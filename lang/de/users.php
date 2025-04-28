@@ -1,0 +1,108 @@
+<?php
+
+return [
+    'fields' => [
+        'name' => 'Name',
+        'email' => 'E-Mail',
+        'phone' => 'Telefon',
+        'ico' => 'Unternehmens-ID',
+        'dic' => 'Steuer-ID',
+        'shortcut' => 'Kürzel',
+        'street' => 'Straße',
+        'city' => 'Stadt',
+        'zip' => 'PLZ',
+        'country' => 'Land',
+        'description' => 'Beschreibung',
+        'czech_republic' => 'Tschechische Republik',
+        'current_password' => 'Aktuelles Passwort',
+        'current_password_hint' => 'Geben Sie Ihr aktuelles Passwort zur Bestätigung ein',
+        'password_hint' => 'Das Passwort muss mindestens 8 Zeichen haben',
+        'password' => 'Passwort',
+        'new_password' => 'Neues Passwort',
+        'password_confirmation' => 'Passwortbestätigung',
+        'password_confirmation_hint' => 'Geben Sie das Passwort erneut zur Bestätigung ein',
+        'remember_me' => 'Angemeldet bleiben',
+        
+        // Hinweise und Platzhalter
+        'email_placeholder' => 'E-Mail',
+        'password_placeholder' => 'Passwort',
+    ],
+    
+    'titles' => [
+        'edit_profile' => 'Profil bearbeiten',
+        'login' => 'Anmelden',
+        'register' => 'Registrieren',
+        'system_name' => 'Rechnungssystem',
+    ],
+    
+    'errors' => [
+        'login_errors' => 'Bei der Anmeldung sind Fehler aufgetreten:',
+    ],
+    
+    'sections' => [
+        'basic_info' => 'Grunddaten',
+        'address' => 'Adresse',
+        'change_password' => 'Passwort ändern',
+        'security' => 'Sicherheit',
+    ],
+    
+    'actions' => [
+        'create' => 'Lieferant erstellen',
+        'edit' => 'Lieferant bearbeiten',
+        'delete' => 'Lieferant löschen',
+        'save' => 'Änderungen speichern',
+        'cancel' => 'Abbrechen',
+        'logout' => 'Abmelden',
+        'back_to_dashboard' => 'Zurück zur Übersicht',
+        'update_password' => 'Passwort aktualisieren',
+        'login' => 'Anmelden',
+        'register' => 'Registrieren',
+        'forgot_password' => 'Passwort vergessen?',
+        'back_to_login' => 'Zurück zur Anmeldung',
+    ],
+    'messages' => [
+        'profile_updated' => 'Profil wurde erfolgreich aktualisiert.',
+        'password_updated' => 'Profil und Passwort wurden erfolgreich geändert.',
+        'profile_error_update' => 'Fehler bei der Aktualisierung des Profils: ',
+        'profile_error' => 'Fehler beim Laden des Profils: ',
+        'profile_error_update_password' => 'Fehler bei der Änderung des Profils und Passworts: ',
+        'profile_error_update_password_current' => 'Das aktuelle Passwort ist falsch.',
+        'profile_error_update_password_empty' => 'Das Passwort ist leer.',
+        'error_edit_client' => 'Fehler bei der Bearbeitung des Kunden: ',
+        'error_create_client' => 'Fehler beim Erstellen des Kunden: ',
+        'error_delete_client' => 'Fehler beim Löschen des Kunden: ',
+        'error_update_client' => 'Fehler bei der Aktualisierung des Kunden: ',
+        'no_account' => 'Sie haben kein Konto?',
+        'register_prompt' => 'Registrieren Sie sich',
+        'have_account' => 'Sie haben bereits ein Konto?',
+        'login_prompt' => 'Melden Sie sich an',
+    ],
+
+    'validation' => [
+        'name_required' => 'Name ist erforderlich',
+        'email_required' => 'E-Mail ist erforderlich',
+        'email_email' => 'Bitte geben Sie eine gültige E-Mail-Adresse ein',
+        'email_unique' => 'Diese E-Mail wird bereits verwendet',
+        'street_required' => 'Straße ist erforderlich',
+        'city_required' => 'Stadt ist erforderlich',
+        'zip_required' => 'PLZ ist erforderlich',
+        'country_required' => 'Land ist erforderlich',
+        'password_min' => 'Das Passwort muss mindestens :min Zeichen haben',
+        'password_required' => 'Passwort ist erforderlich',
+        'password_confirmed' => 'Die Passwörter stimmen nicht überein',
+        'required_field' => 'Dieses Feld ist erforderlich',
+    ],
+
+    'placeholders' => [
+        'name' => 'Name eingeben',
+        'email' => 'E-Mail eingeben',
+        'phone' => 'Telefonnummer eingeben',
+        'ico' => 'Unternehmens-ID eingeben',
+        'dic' => 'Steuer-ID eingeben',
+        'shortcut' => 'Kürzel eingeben',
+        'street' => 'Straße eingeben',
+        'city' => 'Stadt eingeben',
+        'zip' => 'PLZ eingeben',
+        'country' => 'Land auswählen',
+    ],
+];

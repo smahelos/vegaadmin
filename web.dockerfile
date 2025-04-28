@@ -1,6 +1,10 @@
-FROM nginx:1.21
+FROM nginx:1.25-alpine
 
-COPY vhost.conf /etc/nginx/conf.d/default.conf
+# Kopírování konfigurace Nginx
+COPY ./docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 
-RUN ln -sf /dev/stdout /var/log/nginx/access.log \
-	&& ln -sf /dev/stderr /var/log/nginx/error.log
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]

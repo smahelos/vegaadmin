@@ -1,0 +1,1 @@
+<img src="{{ asset('assets/images/logo.svg') }}" alt="{{ config('app.name') }}" {{ $attributes->merge(['class' => 'h-20 w-auto']) }}>

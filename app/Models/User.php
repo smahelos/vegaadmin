@@ -3,19 +3,25 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
     use CrudTrait;
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasRoles;
     use HasFactory, Notifiable;
 
+    /*
+    |--------------------------------------------------------------------------
+    | GLOBAL VARIABLES
+    |--------------------------------------------------------------------------
+    */
     /**
-     * The attributes that are mass assignable.
+     * The attributes that are mass assignable
      *
      * @var list<string>
      */
@@ -23,10 +29,17 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'street',
+        'city',
+        'zip',
+        'country',
+        'phone',
+        'ico',
+        'dic',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * The attributes that should be hidden for serialization
      *
      * @var list<string>
      */
@@ -36,21 +49,86 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+    /**
+     * Get the invoices associated with the user through clients
+     */
     public function invoices()
     {
-        return $this->belongsToMany('App\Models\Invoice', 'invoices');
+        return $this->hasManyThrough(Invoice::class, Client::class);
     }
+
+    /**
+     * Get clients belonging to this user
+     */
+    public function clients(): HasMany
+    {
+        return $this->hasMany(Client::class);
+    }
+
+    /**
+     * Get suppliers belonging to this user
+     */
+    public function suppliers(): HasMany
+    {
+        return $this->hasMany(Supplier::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FUNCTIONS
+    |--------------------------------------------------------------------------
+    */
+    /**
+     * Get the full address of the user
+     */
+    public function getFullAddressAttribute()
+    {
+        return "{$this->street}, {$this->zip} {$this->city}, {$this->country}";
+    }
+
+    /**
+     * Check if user has admin role
+     */
+    public function is_admin(): bool
+    {
+        // Check for admin role using Spatie Permission if available
+        if (method_exists($this, 'hasRole')) {
+            return $this->hasRole('admin');
+        }
+        
+        // Fallback if roles are not assigned
+        return true;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SCOPES
+    |--------------------------------------------------------------------------
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | ACCESSORS
+    |--------------------------------------------------------------------------
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | MUTATORS
+    |--------------------------------------------------------------------------
+    */
 }

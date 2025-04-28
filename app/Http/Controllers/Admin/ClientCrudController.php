@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\ClientRequest;
+use App\Http\Requests\Admin\ClientRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use App\Traits\ClientFormFields;
 
 /**
- * Class ClientCrudController
- * @package App\Http\Controllers\Admin
+ * Client management controller
  * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
  */
 class ClientCrudController extends CrudController
@@ -18,9 +18,10 @@ class ClientCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use ClientFormFields;
 
     /**
-     * Configure the CrudPanel object. Apply settings to all operations.
+     * Configure the CrudPanel object
      * 
      * @return void
      */
@@ -32,42 +33,54 @@ class ClientCrudController extends CrudController
     }
 
     /**
-     * Define what happens when the List operation is loaded.
+     * Setup list view columns
      * 
-     * @see  https://backpackforlaravel.com/docs/crud-operation-list-entries
      * @return void
      */
     protected function setupListOperation()
     {
-        CRUD::setFromDb(); // set columns from db columns.
+        CRUD::column('user_id')
+            ->type('integer')
+            ->label('Owner')
+            ->entity('user')
+            ->attribute('name');
 
-        /**
-         * Columns can be defined using the fluent syntax:
-         * - CRUD::column('price')->type('number');
-         */
+        CRUD::column('shortcut')->type('text');
+        CRUD::column('name')->type('text')->after('shortcut');
+        CRUD::column('phone')->type('text');
+        CRUD::column('email')->type('email');
+        CRUD::column('country')->type('text');
     }
 
     /**
-     * Define what happens when the Create operation is loaded.
+     * Setup create form fields
      * 
-     * @see https://backpackforlaravel.com/docs/crud-operation-create
      * @return void
      */
     protected function setupCreateOperation()
     {
         CRUD::setValidation(ClientRequest::class);
-        CRUD::setFromDb(); // set fields from db columns.
+        CRUD::setFromDb();
+        
+        CRUD::field('user_id')
+        ->type('hidden')
+        ->label('Owner')
+        ->entity('user')
+        ->attribute('name')
+        ->options(function ($query) {
+            return $query->orderBy('name', 'ASC')->get();
+        });
 
-        /**
-         * Fields can be defined using the fluent syntax:
-         * - CRUD::field('price')->type('number');
-         */
+        CRUD::column('shortcut')->type('text');
+        CRUD::column('name')->type('text')->after('shortcut');
+        CRUD::column('phone')->type('text');
+        CRUD::column('email')->type('email');
+        CRUD::column('country')->type('text');
     }
 
     /**
-     * Define what happens when the Update operation is loaded.
+     * Setup update form fields
      * 
-     * @see https://backpackforlaravel.com/docs/crud-operation-update
      * @return void
      */
     protected function setupUpdateOperation()
@@ -76,9 +89,9 @@ class ClientCrudController extends CrudController
     }
     
     /**
-     * Vrátí data klienta ve formátu JSON podle ID
+     * Returns client data as JSON by ID
      *
-     * @param int $id ID klienta
+     * @param int $id Client ID
      * @return \Illuminate\Http\JsonResponse
      */
     public function fetch($id)

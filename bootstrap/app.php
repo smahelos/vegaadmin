@@ -3,6 +3,10 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\ApiAuthentication;
+use App\Http\Middleware\RefreshFrontendSession;
+use App\Http\Middleware\RefreshBackpackSession;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,7 +16,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->web(prepend: [
+            SetLocale::class,
+            RefreshFrontendSession::class // Refreshes the frontend session
+        ]);
+        $middleware->api(prepend: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        ]);
+        
+        // Registrace vlastního middleware jako alias
+        $middleware->alias([
+            'api.auth' => ApiAuthentication::class,
+            'refresh.frontend.session' => RefreshFrontendSession::class,
+            'refresh.backpack.session' => RefreshBackpackSession::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

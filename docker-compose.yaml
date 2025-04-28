@@ -5,11 +5,19 @@ services:
         build:
             context: .
             dockerfile: app.dockerfile
+        container_name: vegaadmin-app
         working_dir: /var/www
         volumes:
             - ./:/var/www
+            - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
         depends_on:
             - "database"
+        environment:
+            PHP_IDE_CONFIG: "serverName=vegaadmin.local"
+            PHP_MEMORY_LIMIT: "512M"
+            PHP_MAX_EXECUTION_TIME: "30"
+        networks:
+            - vegaadmin-network
     # Web Server
     web:
         build:
@@ -18,15 +26,22 @@ services:
         working_dir: /var/www
         volumes:
             - ./:/var/www
+            - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
         depends_on:
             - "app"
         ports:
             - 80:80
-    # Database
+        networks:
+            - vegaadmin-network
+
+    # MySQL Database
     database:
         image: mysql:8.0
+        container_name: vegaadmin-mysql
         volumes:
             - ./docker/mysql:/var/lib/mysql
+            - ./docker/mysql/init:/docker-entrypoint-initdb.d
+            - ./docker/mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
         environment:
             MYSQL_DATABASE: ${DB_DATABASE}
             MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
@@ -34,6 +49,13 @@ services:
             MYSQL_USER: ${DB_USERNAME}
         ports:
             - 33061:3306
+        networks:
+            - vegaadmin-network
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            timeout: 5s
+            retries: 10
+
     # Database management
     pma:
         image: phpmyadmin:5.1
@@ -47,14 +69,26 @@ services:
             - database
         ports:
             - 8888:80
-    # Mailing Server
+        networks:
+            - vegaadmin-network
+    
+    # MailHog for email testing
     mailhog:
         image: mailhog/mailhog
+        container_name: vegaadmin-mailhog
         logging:
             driver: 'none'
         ports:
             - 1025:1025 
-            - 8025:8025 
+            - 8025:8025
+        networks:
+            - vegaadmin-network
+
+# Custom network
+networks:
+    vegaadmin-network:
+        driver: bridge
 
 volumes:
     dbdata:
+        driver: local
