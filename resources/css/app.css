@@ -1,11 +1,240 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* Custom styles - používáme standardní CSS */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.shadow-hover {
+    transition: all 0.3s ease;
+}
+
+.shadow-hover:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Přidejte tento blok kódu do vašeho app.css */
+
+/* Styly pro formuláře faktur */
+.form-input,
+.form-select {
+    height: auto;
+    transition: all 0.2s ease;
+}
+
+.form-input:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
+}
+
+.form-select:focus, 
+.form-input:focus {
+  /* Použití přímých CSS vlastností namísto utility tříd */
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  --tw-ring-color: rgb(56 189 248); /* primary-400 */
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), 0 0 #0000;
+  border-color: rgb(125 211 252); /* primary-300 */
+}
+
+/* Stylování required polí */
+label:has(+ input[required]),
+label:has(+ select[required]) {
+    /*color: #22693c;*/
+}
+
+/* Alternativní podpora pro prohlížeče bez podpory :has */
+.required-field {
+    /*color: #22693c;*/
+}
+
+/* Přidání více prostoru mezi jednotlivými sekcemi */
+.space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 2rem;
+}
+
+/* Definice komponent v layer */
+@layer components {
+    /* Typography */
+    .apple-text-base {
+        font-size: 0.875rem;
+        line-height: 1.625;
+        color: #1f2937;
+        font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .apple-heading-1 {
+        font-size: 2.25rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: #111827;
+        font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .apple-heading-2 {
+        font-size: 1.875rem;
+        font-weight: 600;
+        letter-spacing: -0.025em;
+        color: #111827;
+        font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .apple-heading-3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #111827;
+        font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .apple-subheading {
+        font-size: 1.125rem;
+        font-weight: 500;
+        color: #4b5563;
+        font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .apple-caption {
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    /* Cards */
+    .apple-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        border: 1px solid #f3f4f6;
+        backdrop-filter: blur(8px);
+    }
+
+    .apple-card-hover {
+        background-color: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        border: 1px solid #f3f4f6;
+        backdrop-filter: blur(8px);
+        transition: all 0.3s;
+    }
+
+    .apple-card-hover:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transform: translateY(-0.25rem);
+    }
+
+    /* Buttons */
+    .apple-button {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-radius: 9999px;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        outline: none;
+    }
+
+    .apple-button:focus {
+        outline: none;
+        --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+        --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+        box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+        --tw-ring-offset-width: 2px;
+    }
+
+    .apple-button-primary {
+        background-color: #2563eb;
+        color: white;
+    }
+
+    .apple-button-primary:hover {
+        background-color: #1d4ed8;
+    }
+
+    .apple-button-primary:focus {
+        --tw-ring-color: #3b82f6;
+    }
+
+    .apple-button-secondary {
+        background-color: #f3f4f6;
+        color: #1f2937;
+    }
+
+    .apple-button-secondary:hover {
+        background-color: #e5e7eb;
+    }
+
+    .apple-button-secondary:focus {
+        --tw-ring-color: #9ca3af;
+    }
+
+    .apple-button-danger {
+        background-color: #dc2626;
+        color: white;
+    }
+
+    .apple-button-danger:hover {
+        background-color: #b91c1c;
+    }
+
+    .apple-button-danger:focus {
+        --tw-ring-color: #ef4444;
+    }
+
+    .apple-button-subtle {
+        background-color: transparent;
+        color: #4b5563;
+    }
+
+    .apple-button-subtle:hover {
+        background-color: #f3f4f6;
+    }
+
+    /* Form elements */
+    .apple-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid #d1d5db;
+        transition: all 0.2s;
+        outline: none;
+    }
+
+    .apple-input:focus {
+        --tw-ring-color: #3b82f6;
+        --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+        --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+        box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+        border-color: #3b82f6;
+    }
+
+    /* Další prvky... */
+}
+
+/* Definice zbývajících prvků, které nepoužíváme v @apply */

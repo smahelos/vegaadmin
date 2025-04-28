@@ -117,6 +117,16 @@ return [
         // \Backpack\CRUD\app\Http\Middleware\UseBackpackAuthGuardInsteadOfDefaultAuthGuard::class,
     ],
 
+    // Nastavení přesměrování po přihlášení
+    'redirect_after_login' => 'admin/dashboard',
+    
+    // Route pro login - upravíme, aby byl v admin sekci
+    'login_url' => config('backpack.base.route_prefix', 'admin') . '/login',
+    'logout_url' => config('backpack.base.route_prefix', 'admin') . '/logout',
+
+    // Kam přesměrovat po odhlášení z admin panelu
+    'logout_redirect_url' => 'admin/login',
+
     // Alias for that middleware
     'middleware_key' => 'admin',
     // Note: It's recommended to use the backpack_middleware() helper everywhere, which pulls this key for you.
@@ -134,6 +144,10 @@ return [
     // The guard that protects the Backpack admin panel.
     // If null, the config.auth.defaults.guard value will be used.
     'guard' => 'backpack',
+
+
+    // Nastavení session pro Backpack
+    'session_lifetime' => 120, // v minutách
 
     // The password reset configuration for Backpack.
     // If null, the config.auth.defaults.passwords value will be used.

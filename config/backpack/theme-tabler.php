@@ -39,7 +39,7 @@ return [
      *   - boom!
      */
     'styles' => [
-        base_path('vendor/backpack/theme-tabler/resources/assets/css/color-adjustments.css'),
+        base_path('public/assets/css/color-adjustments.css'),
         base_path('vendor/backpack/theme-tabler/resources/assets/css/colors.css'),
     ],
 
