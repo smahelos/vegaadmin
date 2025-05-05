@@ -25,3 +25,10 @@ RUN apt-get update && apt-get install -y  \
     && docker-php-ext-enable imagick
 
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+
+# Set working directory
+WORKDIR /var/www
+
+ADD . /var/www
+
+RUN chown -R www-data:www-data /var/www

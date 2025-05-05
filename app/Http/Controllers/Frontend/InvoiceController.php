@@ -63,7 +63,7 @@ class InvoiceController extends Controller
         $suppliers = Supplier::where('user_id', Auth::id())->pluck('name', 'id')->toArray();
         
         // Get payment methods for dropdown
-        $paymentMethods = PaymentMethod::all()->pluck('slug', 'id');
+        $paymentMethods = PaymentMethod::all()->pluck('slug', 'id')->toArray();;
 
         // Load all active invoice statuses
         $statuses = Status::pluck('name', 'id')->toArray();
@@ -199,7 +199,7 @@ class InvoiceController extends Controller
     public function createForGuest()
     {
         // Get payment methods for dropdown
-        $paymentMethods = PaymentMethod::all()->pluck('slug', 'id');
+        $paymentMethods = PaymentMethod::all()->pluck('slug', 'id')->toArray();
         
         // Get statuses for dropdown
         $statuses = Status::pluck('name', 'id')->toArray();

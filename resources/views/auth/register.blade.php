@@ -225,7 +225,7 @@
                             value="{{ old('account_number') }}" 
                             class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-[#FDFDFC]"
                             placeholder="123456789">
-                        <p class="mt-2 text-xs text-gray-500">{{ __('suppliers.fields.account_number_hint') }}</p>
+                        <p class="mt-2 text-xs text-gray-500">{{ __('suppliers.hints.account_number') }}</p>
                         @error('account_number')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -284,7 +284,7 @@
                             value="{{ old('iban') }}" 
                             class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-[#FDFDFC] uppercase"
                             placeholder="CZ0000000000000000000000">
-                        <p class="mt-2 text-xs text-gray-500">{{ __('suppliers.fields.iban_hint') }}</p>
+                        <p class="mt-2 text-xs text-gray-500">{{ __('suppliers.hints.iban') }}</p>
                         @error('iban')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -301,7 +301,7 @@
                             value="{{ old('swift') }}" 
                             class="form-input mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-[#FDFDFC] uppercase"
                             placeholder="AAAACZPP">
-                        <p class="mt-2 text-xs text-gray-500">{{ __('suppliers.fields.swift_hint') }}</p>
+                        <p class="mt-2 text-xs text-gray-500">{{ __('suppliers.hints.swift') }}</p>
                         @error('swift')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror

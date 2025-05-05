@@ -25,6 +25,9 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($clients as $client)
+                                    @php
+                                        $confirmDeleteTxt = __('clients.messages.confirm_delete')
+                                    @endphp
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $client->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $client->email }}</td>
@@ -41,7 +44,7 @@
                                             <a href="@localizedRoute('frontend.invoice.create', ['client_id' => $client->id])" title="{{ __('clients.actions.create') }}" class="text-green-600 hover:text-green-900 mr-3">
                                                 <i class="fas fa-file-invoice"></i>
                                             </a>
-                                            <a href="#" title="{{ __('clients.actions.delete') }}" class="text-red-600 hover:text-red-900" onclick="event.preventDefault(); if(confirm('@php echo __('clients.messages.confirm_delete') @endphp')) document.getElementById('delete-form-{{ $client->id }}').submit();">
+                                            <a href="#" title="{{ __('clients.actions.delete') }}" class="text-red-600 hover:text-red-900" onclick="event.preventDefault(); if(confirm('@php echo $confirmDeleteTxt; @endphp')) document.getElementById('delete-form-{{ $client->id }}').submit();">
                                                 <i class="fas fa-trash-alt"></i>
                                             </a>
                                             <form id="delete-form-{{ $client->id }}" action="{{ route('frontend.client.destroy', $client) }}" method="POST" class="hidden">

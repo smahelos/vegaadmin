@@ -268,7 +268,6 @@ $formAction = $userLoggedIn ? route('frontend.invoice.store') : route('frontend.
                                 <!-- Způsob platby -->
                                 <div class="md:col-span-1">
                                 @php
-                                    $paymentMethods = $paymentMethods->toArray();
                                     foreach($paymentMethods as $key => $method) {
                                         $paymentMethods[$key] = __('payment_methods.' . $method);
                                     }
@@ -467,7 +466,7 @@ $formAction = $userLoggedIn ? route('frontend.invoice.store') : route('frontend.
     <div class="flex @if($userLoggedIn)justify-between @else justify-end @endif">
         @if($userLoggedIn)
         <a href="@localizedRoute('frontend.invoices')" class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-        {{ __('invoices.actions.cancel') }}
+            {{ __('invoices.actions.cancel') }}
         </a>
         @endif
         <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:text-white bg-emerald-500 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 cursor-pointer">
@@ -531,7 +530,7 @@ $formAction = $userLoggedIn ? route('frontend.invoice.store') : route('frontend.
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Získání ID uživatele z Blade
-    const userLoggedIn = JSON.parse("{{ json_encode($userLoggedIn) }}");
+    const userLoggedIn = {{ Js::from($userLoggedIn) }};
     console.log(JSON.stringify('userLoggedIn: ' + userLoggedIn));
 
     // Funkcionalita pro generování nového čísla faktury
@@ -745,7 +744,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Automatické vyplnění názvu banky podle vybraného kódu
     const bankCodeSelect = document.getElementById('bank_code');
     const bankNameInput = document.getElementById('bank_name');
-    const bankOptions = @json($banks);
+    const bankOptions = {{ Js::from($banks) }};
 
     if (bankCodeSelect && bankNameInput) {
         const updateBankName = () => {
