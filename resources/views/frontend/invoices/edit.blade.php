@@ -456,6 +456,8 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const userLoggedIn = {{ Js::from($userLoggedIn) }};
+    const bankOptions = {{ Js::from($banks) }};
     // Klienti
     const clientSelect = document.getElementById('client_id');
     const clientNameField = document.getElementById('client_name');
@@ -566,7 +568,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Automatické vyplnění názvu banky podle vybraného kódu
     const bankCodeSelect = document.getElementById('bank_code');
     const bankNameInput = document.getElementById('bank_name');
-    const bankOptions = @json($banks);
 
     if (bankCodeSelect && bankNameInput) {
         const updateBankName = () => {
