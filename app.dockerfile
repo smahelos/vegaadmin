@@ -1,28 +1,35 @@
-FROM php:8.3-fpm
+FROM php:8.3-fpm-alpine
 
-RUN apt-get update && apt-get install -y  \
+# Instalace základních balíčků pro Alpine
+RUN apk add --no-cache \
     git \
     curl \
     libpng-dev \
-    libonig-dev \
+    oniguruma-dev \
     libxml2-dev \
     libzip-dev \
     zip \
     unzip \
-    libicu-dev \
+    icu-dev \
     libwebp-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
     # balíčky pro Imagick
-    libmagickwand-dev \
+    imagemagick-dev \
     imagemagick \
+    autoconf \
+    g++ \
+    make \
     && docker-php-ext-install pdo_mysql -j$(nproc) mbstring exif pcntl bcmath intl zip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install -j$(nproc) gd \
-    # Instalace rozšíření Imagick
-    && pecl install imagick \
+    && docker-php-ext-install -j$(nproc) gd
+
+# Instalace rozšíření Imagick
+RUN pecl install imagick \
     && docker-php-ext-enable imagick
+
+# Instalace Redis extenze
+RUN pecl install redis && docker-php-ext-enable redis
 
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 

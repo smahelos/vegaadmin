@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\HasPreferredLocale;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Client extends Model
 {
-    use CrudTrait;
-    use HasRoles;
-    use HasFactory;
+    use HasFactory, HasRoles, Notifiable, CrudTrait, HasPreferredLocale;
 
     /*
     |--------------------------------------------------------------------------
@@ -82,6 +82,14 @@ class Client extends Model
     public function getFullNameAttribute()
     {
         return "{$this->name} ({$this->shortcut})";
+    }
+
+    /**
+     * Get preferred locale of the client
+     */
+    public function preferredLocale()
+    {
+        return $this->getPreferredLocale();
     }
 
     /*

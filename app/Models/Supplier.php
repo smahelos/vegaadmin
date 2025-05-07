@@ -3,15 +3,16 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use App\Traits\HasPreferredLocale;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Supplier extends Model
 {
-    use CrudTrait;
-    use HasFactory;
+    use HasFactory, Notifiable, CrudTrait, HasPreferredLocale;
 
     /*
     |--------------------------------------------------------------------------
@@ -121,6 +122,14 @@ class Supplier extends Model
     public function getHasPaymentInfoAttribute(): bool
     {
         return (!empty($this->account_number) && !empty($this->bank_code)) || !empty($this->iban);
+    }
+
+    /**
+     * Get preferred locale of the supplier
+     */
+    public function preferredLocale()
+    {
+        return $this->getPreferredLocale();
     }
 
     /*

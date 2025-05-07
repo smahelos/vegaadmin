@@ -248,6 +248,7 @@ class InvoiceController extends Controller
     {
         $invoice = Invoice::with('client', 'supplier', 'paymentStatus', 'paymentMethod')->findOrFail($id);
         $user = Auth::user();
+        $userLoggedIn = Auth::check();
         
         if ($invoice->user_id != Auth::id()) {
             return redirect()->route('frontend.invoices', ['lang' => app()->getLocale()])->with('error', __('invoices.messages.edit_error_unauthorized'));
@@ -335,7 +336,7 @@ class InvoiceController extends Controller
         $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
         
         return view('frontend.invoices.edit', compact(
-            'invoice', 'fields', 'paymentMethods', 'clients', 'suppliers', 'statuses', 'user', 'banks'
+            'invoice', 'userLoggedIn', 'fields', 'paymentMethods', 'clients', 'suppliers', 'statuses', 'user', 'banks'
         ));
     }
     
