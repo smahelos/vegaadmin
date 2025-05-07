@@ -200,4 +200,30 @@ return [
         'status' => '',
         'invoice_text' => '',
     ],
+    
+    'reminders' => [
+        'greeting' => 'Hello, :name,',
+        'upcoming_due_subject' => 'Reminder: Upcoming due date for Invoice No. :number',
+        'due_today_subject' => 'Invoice No. :number is due today',
+        'overdue_subject' => 'Overdue Invoice No. :number',
+        
+        'upcoming_due_intro_supplier' => 'This is a reminder that Invoice No. :number issued to client :client will be due in :days days.',
+        'upcoming_due_intro_client' => 'This is a reminder that Invoice No. :number will be due in :days days.',
+        
+        'due_today_intro_supplier' => 'Invoice No. :number issued to client :client is due today.',
+        'due_today_intro_client' => 'Invoice No. :number is due today.',
+        
+        'overdue_intro_supplier' => 'Invoice No. :number issued to client :client is overdue by :days days.',
+        'overdue_intro_client' => 'Invoice No. :number is overdue by :days days.',
+        
+        'due_date_info' => 'Due date: :date',
+        'due_date_today' => 'Due date: today',
+        'due_date_passed' => 'Due date: :date (exceeded)',
+        'amount_info' => 'Amount: :amount :currency',
+        'view_invoice' => 'View invoice',
+        'payment_request' => 'Please settle this invoice as soon as possible to avoid further delays.',
+        'thank_you' => 'Thank you for your cooperation.',
+    ],
+
+    'overdue_days' => ':days days overdue',
 ];

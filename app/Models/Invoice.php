@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Permission\Traits\HasRoles;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Invoice extends Model
 {
@@ -206,6 +207,16 @@ class Invoice extends Model
     | ACCESSORS
     |--------------------------------------------------------------------------
     */
+    
+    /**
+     * Get supplier name with fallback for unknown supplier.
+     */
+    protected function supplierName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->supplier?->name ?? __('invoices.placeholders.unknown_supplier'),
+        );
+    }
 
     /*
     |--------------------------------------------------------------------------

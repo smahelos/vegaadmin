@@ -200,4 +200,30 @@ return [
         'status' => '',
         'invoice_text' => '',
     ],
+
+    'reminders' => [
+        'greeting' => 'Dobrý deň, :name,',
+        'upcoming_due_subject' => 'Upozornenie na blížiacu sa splatnosť faktúry č. :number',
+        'due_today_subject' => 'Faktúra č. :number je dnes splatná',
+        'overdue_subject' => 'Upozornenie na faktúru po splatnosti č. :number',
+        
+        'upcoming_due_intro_supplier' => 'Pripomíname, že faktúra č. :number vystavená klientovi :client bude splatná za :days dní.',
+        'upcoming_due_intro_client' => 'Pripomíname, že faktúra č. :number bude splatná za :days dní.',
+        
+        'due_today_intro_supplier' => 'Faktúra č. :number vystavená klientovi :client je dnes splatná.',
+        'due_today_intro_client' => 'Faktúra č. :number je dnes splatná.',
+        
+        'overdue_intro_supplier' => 'Faktúra č. :number vystavená klientovi :client je po splatnosti :days dní.',
+        'overdue_intro_client' => 'Faktúra č. :number je po splatnosti :days dní.',
+        
+        'due_date_info' => 'Dátum splatnosti: :date',
+        'due_date_today' => 'Dátum splatnosti: dnes',
+        'due_date_passed' => 'Dátum splatnosti: :date (prekročené)',
+        'amount_info' => 'Suma: :amount :currency',
+        'view_invoice' => 'Zobraziť faktúru',
+        'payment_request' => 'Prosím, uhraďte túto faktúru čo najskôr, aby nedošlo k ďalšiemu omeškaniu.',
+        'thank_you' => 'Ďakujeme za spoluprácu.',
+    ],
+
+    'overdue_days' => ':days dní po splatnosti',
 ];
