@@ -22,3 +22,6 @@
 
 <x-backpack::menu-item title="Statuses" icon="la la-question" :link="backpack_url('status')" />
 <x-backpack::menu-item title="Suppliers" icon="la la-question" :link="backpack_url('supplier')" />
+<x-backpack::menu-item title="Cron tasks" icon="la la-question" :link="backpack_url('cron-task')" />
+<x-backpack::menu-item title="Artisan command categories" icon="la la-question" :link="backpack_url('artisan-command-category')" />
+<x-backpack::menu-item title="Artisan commands" icon="la la-question" :link="backpack_url('artisan-command')" />

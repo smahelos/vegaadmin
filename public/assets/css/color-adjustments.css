@@ -275,3 +275,12 @@
 .border-yellow-300 {
     border-color: #ffe69c !important;
 }
+.min-h-screen {
+    min-height: 100vh !important;
+}
+.min-h-fit {
+    min-height: fit-content !important;
+}
+.min-h-200px {
+    min-height: 200px !important;
+}

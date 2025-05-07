@@ -18,7 +18,11 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    //'driver' => env('SESSION_DRIVER', 'database'),
+
+    //uses the redis driver from config/database.php
+    'driver' => env('SESSION_DRIVER', 'redis'),
+
 
     /*
     |--------------------------------------------------------------------------
@@ -73,7 +77,10 @@ return [
     |
     */
 
-    'connection' => env('SESSION_CONNECTION'),
+    //'connection' => env('SESSION_CONNECTION'),
+    
+    //uses the 'session' connection from the redis driver in config/database.php
+    'connection' => 'session',
 
     /*
     |--------------------------------------------------------------------------

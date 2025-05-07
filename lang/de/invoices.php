@@ -200,4 +200,30 @@ return [
         'status' => '',
         'invoice_text' => '',
     ],
+
+    'reminders' => [
+        'greeting' => 'Guten Tag, :name,',
+        'upcoming_due_subject' => 'Hinweis auf bevorstehende Fälligkeit der Rechnung Nr. :number',
+        'due_today_subject' => 'Rechnung Nr. :number ist heute fällig',
+        'overdue_subject' => 'Hinweis auf überfällige Rechnung Nr. :number',
+        
+        'upcoming_due_intro_supplier' => 'Wir möchten Sie daran erinnern, dass die Rechnung Nr. :number für den Kunden :client in :days Tagen fällig wird.',
+        'upcoming_due_intro_client' => 'Wir möchten Sie daran erinnern, dass die Rechnung Nr. :number in :days Tagen fällig wird.',
+        
+        'due_today_intro_supplier' => 'Die Rechnung Nr. :number für den Kunden :client ist heute fällig.',
+        'due_today_intro_client' => 'Die Rechnung Nr. :number ist heute fällig.',
+        
+        'overdue_intro_supplier' => 'Die Rechnung Nr. :number für den Kunden :client ist seit :days Tagen überfällig.',
+        'overdue_intro_client' => 'Die Rechnung Nr. :number ist seit :days Tagen überfällig.',
+        
+        'due_date_info' => 'Fälligkeitsdatum: :date',
+        'due_date_today' => 'Fälligkeitsdatum: heute',
+        'due_date_passed' => 'Fälligkeitsdatum: :date (überschritten)',
+        'amount_info' => 'Betrag: :amount :currency',
+        'view_invoice' => 'Rechnung anzeigen',
+        'payment_request' => 'Bitte begleichen Sie diese Rechnung so bald wie möglich, um weitere Verzögerungen zu vermeiden.',
+        'thank_you' => 'Vielen Dank für Ihre Zusammenarbeit.',
+    ],
+
+    'overdue_days' => ':days Tage überfällig',
 ];
