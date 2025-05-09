@@ -9,24 +9,24 @@ use Illuminate\Console\Command;
 
 class TestCronExpression extends Command
 {
-    protected $signature = 'cron:test {id? : ID úlohy pro testování} {--expression= : CRON výraz pro testování}';
-    protected $description = 'Otestuje CRON výraz a zobrazí čas příštího spuštění';
+    protected $signature = 'cron:test {id? : tasd ID to test} {--expression= : CRON expression to test}';
+    protected $description = 'Tests cron expression and shows time of next run.';
 
     public function handle()
     {
         if ($this->argument('id')) {
-            // Test existující úlohy
+            // Check existing tasks
             $task = CronTask::where('id', $this->argument('id'))->firstOrFail();
             $expression = $task->frequency === 'custom' ? $task->custom_expression : $this->convertFrequencyToExpression($task);
             
-            $this->info("Testování úlohy: {$task->name}");
-            $this->info("CRON výraz: {$expression}");
+            $this->info("Testing of task: {$task->name}");
+            $this->info("CRON expression: {$expression}");
         } elseif ($this->option('expression')) {
-            // Test zadaného výrazu
+            // Check custom expression
             $expression = $this->option('expression');
-            $this->info("Testování CRON výrazu: {$expression}");
+            $this->info("CRON expression testing: {$expression}");
         } else {
-            $this->error('Musíte zadat ID úlohy nebo CRON výraz.');
+            $this->error('You have to set task ID or CRON expression.');
             return 1;
         }
 
@@ -34,36 +34,36 @@ class TestCronExpression extends Command
             $cron = new CronParser($expression);
             $now = Carbon::now();
             
-            // Zobrazení příštích 5 spuštění
-            $this->info("Příští spuštění (5):");
+            // Next 5 runs
+            $this->info("Next runs (5):");
             
             for ($i = 0; $i < 5; $i++) {
                 $nextRun = Carbon::createFromFormat('Y-m-d H:i:s', $cron->getNextRunDate()->format('Y-m-d H:i:s'));
                 $this->info(" - " . $nextRun->format('Y-m-d H:i:s') . " (" . $nextRun->diffForHumans() . ")");
-                $cron->getNextRunDate(); // Posun na další datum
+                $cron->getNextRunDate();
             }
             
-            // Simulace spuštění
-            $this->info("Chcete simulovat spuštění úlohy? [y/N]");
-            if ($this->confirm("Simulovat spuštění?")) {
+            // Simulation of task execution
+            $this->info("Do yu want to simulate task run? [y/N]");
+            if ($this->confirm("Simulate task run?")) {
                 if ($this->argument('id')) {
-                    // Spuštění příkazu z úlohy
-                    $this->info("Spouštění: {$task->command}");
+                    // Run the task command
+                    $this->info("Task run: {$task->command}");
                     $this->call($task->command);
                 } else {
-                    $this->warning("Simulace není dostupná pro testování samostatného výrazu.");
+                    $this->warning("Simulation is not accessible for testing of task expression.");
                 }
             }
             
             return 0;
         } catch (\Exception $e) {
-            $this->error("Neplatný CRON výraz: " . $e->getMessage());
+            $this->error("Incorrect CRON expression: " . $e->getMessage());
             return 1;
         }
     }
 
     /**
-     * Převede frekvenci cron úlohy na standardní CRON výraz.
+     * Convert frequency to CRON expression.
      *
      * @param CronTask $task
      * @return string
@@ -78,7 +78,7 @@ class TestCronExpression extends Command
             'daily' => "{$minute} {$hour} * * *",
             'weekly' => "{$minute} {$hour} * * {$task->day_of_week}",
             'monthly' => "{$minute} {$hour} {$task->day_of_month} * *",
-            default => '* * * * *', // Nemělo by nastat
+            default => '* * * * *', 
         };
     }
 }

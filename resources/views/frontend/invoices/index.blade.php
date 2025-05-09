@@ -76,9 +76,24 @@
                                             <a href="@localizedRoute('frontend.invoice.edit', $invoice->id)" title="{{ __('invoices.actions.edit') }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
                                                 <i class="fas fa-pencil-alt"></i>
                                             </a>
-                                            <a href="@localizedRoute('frontend.invoice.download', $invoice->id)" title="{{ __('invoices.actions.download') }}"  class="text-green-600 hover:text-green-900">
+                                            <a href="@localizedRoute('frontend.invoice.download', $invoice->id)" title="{{ __('invoices.actions.download') }}"  class="text-fuchsia-600 hover:text-fuchsia-900">
                                                 <i class="fas fa-download"></i>
                                             </a>
+
+                                            <!-- Button to mark invoice as paid -->
+                                            @if($invoice->payment_status_slug != 'paid')
+                                                <form method="POST" action="@localizedRoute('frontend.invoice.mark-as-paid', $invoice->id)" class="inline">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit" class="text-emerald-600 hover:text-emerald-800 pl-2" title="{{ __('invoices.actions.mark_as_paid') }}">
+                                                        <i class="fas fa-check-circle"></i>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <span class="text-gray-400 cursor-not-allowed pl-2">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </span>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -88,7 +103,7 @@
 
                     @if($invoices instanceof \Illuminate\Pagination\LengthAwarePaginator)
                         <div class="mt-4">
-                            {{ $invoices->links() }}
+                            <x-pagination :paginator="$invoices" />
                         </div>
                     @endif
                 @else

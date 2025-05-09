@@ -1,4 +1,4 @@
-@props(['name', 'id' => null, 'selected' => null, 'required' => false, 'label' => 'Měna', 'class' => ''])
+@props(['name', 'id' => null, 'selected' => null, 'required' => false, 'label' => __('invoices.fields.payment_currency'), 'class' => ''])
 
 <div {{ $attributes }}>
     @if ($label)

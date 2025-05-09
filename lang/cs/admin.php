@@ -105,4 +105,8 @@ return [
             'sort_order' => 'Pořadí příkazu v seznamu (menší číslo = vyšší pozice)',
         ],
     ],
+
+    'statuses' => [
+        'status_types' => 'Typy stavů',
+    ],
 ];

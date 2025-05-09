@@ -16,12 +16,14 @@ use Illuminate\Support\Facades\Auth;
 |--------------------------------------------------------------------------
 */
 
-// Aplikace middleware pro prodlužování session na celou skupinu web routes
+// Middleware application for frontend routes
+// This middleware will refresh the session for the frontend
+// and ensure that the session is always up to date
+// with the latest data from the database.
 Route::middleware([
     'web', 
-    'refresh.frontend.session' // Náš nový middleware
+    'refresh.frontend.session'
 ])->group(function () {
-    // Existující routes pro frontend
     Route::get('/', function () {
         return view('welcome');
     });
@@ -34,7 +36,7 @@ Route::middleware([
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('frontend.dashboard');
         
-        // Faktury
+        // Invoices
         Route::get('/invoices', [InvoiceController::class, 'index'])->name('frontend.invoices');
         Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('frontend.invoice.create');
         Route::post('/invoice', [InvoiceController::class, 'store'])->name('frontend.invoice.store');
@@ -42,8 +44,9 @@ Route::middleware([
         Route::get('/invoice/{id}/edit', [InvoiceController::class, 'edit'])->name('frontend.invoice.edit');
         Route::put('/invoice/{id}', [InvoiceController::class, 'update'])->name('frontend.invoice.update');
         Route::get('/invoice/{id}/download', [InvoiceController::class, 'download'])->name('frontend.invoice.download');
+        Route::put('/invoice/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('frontend.invoice.mark-as-paid');
         
-        // Klienti
+        // Clients
         Route::get('/clients', [ClientController::class, 'index'])->name('frontend.clients');
         Route::get('/client/create', [ClientController::class, 'create'])->name('frontend.client.create');
         Route::post('/client', [ClientController::class, 'store'])->name('frontend.client.store');
@@ -52,7 +55,7 @@ Route::middleware([
         Route::put('/client/{id}', [ClientController::class, 'update'])->name('frontend.client.update');
         Route::delete('/client/{id}/delete', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
         
-        // Dodavatelé
+        // Suppliers
         Route::get('/suppliers', [SupplierController::class, 'index'])->name('frontend.suppliers');
         Route::get('/supplier/create', [SupplierController::class, 'create'])->name('frontend.supplier.create');
         Route::post('/supplier', [SupplierController::class, 'store'])->name('frontend.supplier.store');
@@ -61,43 +64,39 @@ Route::middleware([
         Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('frontend.supplier.update');
         Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('frontend.supplier.destroy');
         
-        // Profil
+        // Profile
         Route::get('/profile', [ProfileController::class, 'edit'])->name('frontend.profile.edit');
         Route::put('/profile', [ProfileController::class, 'update'])->name('frontend.profile.update');
         Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('frontend.profile.update.password');
     });
-    
-    // Zbývající existující routes
 });
 
-// Veřejné trasy (pro nepřihlášené uživatele)
+// Public routes (for guests)
 Route::get('/', [InvoiceController::class, 'createForGuest'])->name('home');
-
-// Pro nepřihlášené uživatele:
 Route::post('/guest-invoices', [InvoiceController::class, 'storeGuest'])
     ->name('frontend.invoice.store.guest')
     ->withoutMiddleware(['auth']);
 
-// Stažení faktury pomocí tokenu (pro nepřihlášené uživatele)
+// Download invoice with token (for guests)
 Route::get('/invoices/download/{token}', [InvoiceController::class, 'downloadWithToken'])
     ->name('frontend.invoice.download.token')
     ->withoutMiddleware(['auth']);
 
-// Smazání dočasné faktury pomocí tokenu (pro nepřihlášené uživatele)
+// Delete invoice with token (for guests)
 Route::get('/invoices/delete/{token}', [InvoiceController::class, 'deleteGuestInvoice'])
     ->name('frontend.invoice.delete.token')
     ->withoutMiddleware(['auth']);
 
 // Frontend Authentication Routes - pouze pro nepřihlášené uživatele
 Route::middleware('guest')->group(function () {
-    // Registrace
+    // Registration
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
     
-    // Přihlášení
+    // Login
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
 });
 
-// Odhlášení - dostupné pro všechny uživatele
+// Logout route
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

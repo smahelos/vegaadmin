@@ -105,4 +105,8 @@ return [
         'zip' => 'PLZ eingeben',
         'country' => 'Land auswählen',
     ],
+
+    'status' => [
+        'user_statuses' => 'Benutzerstatus',
+    ],
 ];

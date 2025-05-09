@@ -3,10 +3,12 @@
 return [
     'qr_code_info' => 'Pre platbu použite QR kód',
     'generated_at' => 'Vygenerované',
+
     'defaults' => [
         'invoice_text' => 'Fakturácia služieb',
         'payment_method' => 'Bankový prevod',
     ],
+
     'fields' => [
         'invoice_vs' => 'Číslo faktúry',
         'invoice_vs_long' => 'Číslo faktúry (VS):',
@@ -44,7 +46,10 @@ return [
         'amount' => 'Suma',
         'total' => 'Celkom',
         'invoice_vs_short' => 'VS',
+        'invoice_items' => 'Položky faktúry',
+        'invoice_note' => 'Poznámka k faktúre',
     ],
+
     'sections' => [
         'invoice_details' => 'Údaje o faktúre',
         'invoice_info' => 'Informácie o faktúre',
@@ -59,7 +64,9 @@ return [
         'items' => 'Položky faktúry',
         'payment_info' => 'Informácie pre platbu',
         'qr_payment' => 'QR kód pre platbu',
+        'invoice_text' => 'Položky a poznámky k faktúre',
     ],
+
     'actions' => [
         'create' => 'Vytvoriť faktúru',
         'edit' => 'Upraviť faktúru',
@@ -80,7 +87,9 @@ return [
         'send_email' => 'Odoslať e-mailom',
         'show' => 'Zobraziť faktúru',
         'processing' => 'Spracovávam...',
+        'add_item' => 'Pridať položku',
     ],
+
     'titles' => [
         'index' => 'Faktúry',
         'create' => 'Vytvoriť novú faktúru',
@@ -90,9 +99,11 @@ return [
         'invoice' => 'Faktúra',
         'invoice_items' => 'Položky faktúry',
     ],
+
     'labels' => [
         'created_at' => 'Dátum vystavenia',
     ],
+
     'messages' => [
         'created' => 'Faktúra bola úspešne vytvorená.',
         'updated' => 'Faktúra bola úspešne aktualizovaná.',
@@ -117,7 +128,10 @@ return [
         'expires_in_soon' => 'Odkaz čoskoro vyprší',
         'invoice_deleted' => 'Faktúra bola úspešne vymazaná.',
         'invoice_sent' => 'Faktúra bola úspešne odoslaná.',
+        'marked_as_paid' => 'Faktúra bola označená ako zaplatená.',
+        'status_not_found' => 'Status "zaplatené" nebol nájdený.',
     ],
+
     'placeholders' => [
         'select_client' => 'Vytvorte nového klienta alebo vyberte...',
         'select_status' => 'Vyberte stav...',
@@ -128,8 +142,17 @@ return [
         'suggested_number_desc' => 'Navrhované číslo faktúry môžete zmeniť podľa vašich potrieb',
         'not_available' => '—',
         'number' => 'Číslo',
+        'item_name' => 'Názov položky',
+        'item_quantity' => 'Množstvo',
+        'item_unit' => 'Jednotka',
+        'item_price' => 'Cena/ks',
+        'item_tax' => 'DPH',
+        'item_price_complete' => 'Celkom',
+        'actions' => 'Akcie',
     ],
+
     'status' => [
+        'invoice_statuses' => 'Stavy faktúr',
         'sent' => 'Odoslané',
         'paid' => 'Zaplatené',
         'overdue' => 'Po splatnosti',
@@ -138,21 +161,36 @@ return [
         'draft' => 'Koncept',
         'unknown' => 'Neznámy',
     ],
+
     'modal' => [
         'preview_title' => 'Náhľad faktúry č. :number',
         'loading_pdf' => 'Načítavam PDF...',
     ],
+
     'units' => [
+        'hours' => 'hodín',
         'days' => 'dní',
+        'pieces' => 'ks',
+        'kilograms' => 'kg',
+        'grams' => 'g',
+        'liters' => 'l',
+        'meters' => 'm',
+        'cubic_meters' => 'm³',
+        'centimeters' => 'cm',
+        'cubic_centimeters' => 'cm³',
+        'milliliters' => 'ml',
     ],
+
     'tags' => [
         'issuer' => 'Dodávateľ',
         'recipient' => 'Odberateľ',
     ],
+
     'tables' => [
         'field' => 'Pole',
         'value' => 'Hodnota',
     ],
+
     'validation' => [
         // Základné údaje o faktúre
         'invoice_vs_required' => 'Číslo faktúry (VS) je povinné',
@@ -187,6 +225,7 @@ return [
         'client_zip_required' => 'PSČ klienta je povinné',
         'client_country_required' => 'Krajina klienta je povinná',
     ],
+
     'hints' => [
         'invoice_vs' => 'Navrhované číslo faktúry môžete prispôsobiť vášmu číslovaniu.',
         'invoice_ks' => '',

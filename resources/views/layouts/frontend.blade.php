@@ -84,7 +84,7 @@
                             </div>
                         @else
                             @php
-                                // Automatické smazání expirovaných údajů ze session
+                                // Automatically delete the session data if expired
                                 Session::forget('last_guest_invoice_token');
                                 Session::forget('last_guest_invoice_number');
                                 Session::forget('last_guest_invoice_expires');

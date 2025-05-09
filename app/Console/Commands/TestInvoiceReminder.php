@@ -15,14 +15,14 @@ class TestInvoiceReminder extends Command
      *
      * @var string
      */
-    protected $signature = 'invoices:test-reminder {invoice_id : ID faktury pro test} {type=all : Typ připomenutí (upcoming, due, overdue, all)}';
+    protected $signature = 'invoices:test-reminder {invoice_id : invoice IF to test} {type=all : Reminder type (upcoming, due, overdue, all)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Test odeslání připomenutí pro vybranou fakturu';
+    protected $description = 'Invoice reminder test for selected invoice';
 
     /**
      * Execute the console command.
@@ -34,11 +34,11 @@ class TestInvoiceReminder extends Command
         
         $invoice = Invoice::find($invoiceId);
         if (!$invoice) {
-            $this->error("Faktura s ID {$invoiceId} nebyla nalezena");
+            $this->error("Unvoice with ID {$invoiceId} not found");
             return Command::FAILURE;
         }
 
-        $this->info("Testování připomenutí pro fakturu #{$invoice->invoice_vs}");
+        $this->info("Invoice reminder testing #{$invoice->invoice_vs}");
 
         if ($type === 'upcoming' || $type === 'all') {
             $this->testUpcomingReminder($invoice);
@@ -52,64 +52,64 @@ class TestInvoiceReminder extends Command
             $this->testOverdueReminder($invoice);
         }
 
-        $this->info('Testování dokončeno');
+        $this->info('Testing finished.');
         return Command::SUCCESS;
     }
 
     private function testUpcomingReminder($invoice)
     {
-        $this->info('Testování připomenutí o blížící se splatnosti...');
+        $this->info('Invoice reminder test about upcomming due date...');
         
         if ($invoice->supplier && $invoice->supplier->email) {
             $invoice->supplier->notify(new InvoiceUpcomingDueReminder($invoice));
-            $this->info("Odesláno dodavateli: {$invoice->supplier->email}");
+            $this->info("Sent to supplier: {$invoice->supplier->email}");
         } else {
-            $this->warn('Dodavatel nemá email pro odeslání');
+            $this->warn('Supplier has not email to send information to.');
         }
         
         if ($invoice->client && $invoice->client->email) {
             $invoice->client->notify(new InvoiceUpcomingDueReminder($invoice, 'client'));
-            $this->info("Odesláno klientovi: {$invoice->client->email}");
+            $this->info("Sent to client: {$invoice->client->email}");
         } else {
-            $this->warn('Klient nemá email pro odeslání');
+            $this->warn('Client  has not email to send information to.');
         }
     }
 
     private function testDueReminder($invoice)
     {
-        $this->info('Testování připomenutí o dnešní splatnosti...');
+        $this->info('Invoice reminder test about due date is today...');
         
         if ($invoice->supplier && $invoice->supplier->email) {
             $invoice->supplier->notify(new InvoiceDueReminder($invoice));
-            $this->info("Odesláno dodavateli: {$invoice->supplier->email}");
+            $this->info("Sent to supplier: {$invoice->supplier->email}");
         } else {
-            $this->warn('Dodavatel nemá email pro odeslání');
+            $this->warn('Supplier has not email to send information to.');
         }
         
         if ($invoice->client && $invoice->client->email) {
             $invoice->client->notify(new InvoiceDueReminder($invoice, 'client'));
-            $this->info("Odesláno klientovi: {$invoice->client->email}");
+            $this->info("Sent to client: {$invoice->client->email}");
         } else {
-            $this->warn('Klient nemá email pro odeslání');
+            $this->warn('Client has not email to send information to.');
         }
     }
 
     private function testOverdueReminder($invoice)
     {
-        $this->info('Testování připomenutí o překročení splatnosti...');
+        $this->info('Invoice reminder test about overdue...');
         
         if ($invoice->supplier && $invoice->supplier->email) {
             $invoice->supplier->notify(new InvoiceOverdueReminder($invoice));
-            $this->info("Odesláno dodavateli: {$invoice->supplier->email}");
+            $this->info("Sent to supplier: {$invoice->supplier->email}");
         } else {
-            $this->warn('Dodavatel nemá email pro odeslání');
+            $this->warn('Supplier has not email to send information to.');
         }
         
         if ($invoice->client && $invoice->client->email) {
             $invoice->client->notify(new InvoiceOverdueReminder($invoice, 'client'));
-            $this->info("Odesláno klientovi: {$invoice->client->email}");
+            $this->info("Sent to client: {$invoice->client->email}");
         } else {
-            $this->warn('Klient nemá email pro odeslání');
+            $this->warn('Client has not email to send information to.');
         }
     }
 }

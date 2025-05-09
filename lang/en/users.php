@@ -105,4 +105,8 @@ return [
         'zip' => 'Enter ZIP code',
         'country' => 'Select country',
     ],
+
+    'status' => [
+        'user_statuses' => 'User Statuses',
+    ],
 ];

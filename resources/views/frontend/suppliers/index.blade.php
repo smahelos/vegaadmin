@@ -65,7 +65,7 @@
                             <i class="fas fa-eye"></i>
                         </a>
                         <a href="@localizedRoute('frontend.supplier.edit', $supplier)" title="{{ __('suppliers.actions.edit') }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
-                            <i class="fas fa-edit"></i>
+                            <i class="fas fa-pencil-alt"></i>
                         </a>
                         <a href="@localizedRoute('frontend.invoice.create', ['supplier_id' => $supplier->id])" title="{{ __('suppliers.actions.invoice') }}" class="text-green-600 hover:text-green-900 mr-3">
                             <i class="fas fa-file-invoice"></i>
@@ -82,10 +82,13 @@
                 @endforeach
             </tbody>
         </table>
-        
-        <div class="mt-4">
-            {{ $suppliers->links() }}
-        </div>
+
+        <!-- Pagination -->
+        @if($suppliers instanceof \Illuminate\Pagination\LengthAwarePaginator)
+            <div class="mt-4">
+                <x-pagination :paginator="$suppliers" />
+            </div>
+        @endif
     </div>
 </div>
 @endsection

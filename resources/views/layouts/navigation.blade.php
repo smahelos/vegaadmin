@@ -84,7 +84,7 @@
                     </div>
 
                     <div class="relative">
-                        <!-- Přidání komponenty pro přepínání jazyků do navigace -->
+                        <!-- Add component to switch languages -->
                         <div class="flex justify-end p-2">
                             @languageSwitch
                         </div>

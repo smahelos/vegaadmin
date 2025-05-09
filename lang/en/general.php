@@ -52,4 +52,13 @@ return [
         'no_items' => 'No items',
         'no_results' => 'No results',
     ],
+
+    'pagination' => [
+        'shown' => 'Showing',
+        'of' => 'of',
+        'up_to' => 'to',
+        'items' => 'items',
+        'previous' => 'Previous',
+        'next' => 'Next',
+    ],
 ];

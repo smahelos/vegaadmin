@@ -42,7 +42,10 @@ class ArtisanCommandCrudController extends CrudController
     {
         CRUD::setValidation(ArtisanCommandRequest::class);
         
-        // Získáme všechny dostupné příkazy
+        // Get available commands from the ArtisanCommandsService
+        // and filter them to show only those that are not already in the database
+        // This is done to avoid duplicates and ensure that the user can only select from available commands
+        // that are not already registered in the database. 
         $commandsService = new ArtisanCommandsService();
         $availableCommands = $commandsService->getAllCommands(true);
 

@@ -3,10 +3,12 @@
 return [
     'qr_code_info' => 'Verwenden Sie den QR-Code für die Zahlung',
     'generated_at' => 'Generiert am',
+
     'defaults' => [
         'invoice_text' => 'Abrechnung für Dienstleistungen',
         'payment_method' => 'Banküberweisung',
     ],
+
     'fields' => [
         'invoice_vs' => 'Rechnungsnummer',
         'invoice_vs_long' => 'Rechnungsnummer (VS):',
@@ -44,7 +46,10 @@ return [
         'amount' => 'Betrag',
         'total' => 'Gesamt',
         'invoice_vs_short' => 'VS',
+        'invoice_items' => 'Rechnungspositionen',
+        'invoice_note' => 'Anmerkung zur Rechnung',
     ],
+
     'sections' => [
         'invoice_details' => 'Rechnungsdetails',
         'invoice_info' => 'Rechnungsinformationen',
@@ -59,7 +64,9 @@ return [
         'items' => 'Rechnungspositionen',
         'payment_info' => 'Zahlungsinformationen',
         'qr_payment' => 'QR-Code für Zahlung',
+        'invoice_text' => 'Rechnungspositionen und Anmerkungen',
     ],
+
     'actions' => [
         'create' => 'Rechnung erstellen',
         'edit' => 'Rechnung bearbeiten',
@@ -80,7 +87,9 @@ return [
         'send_email' => 'Per E-Mail senden',
         'show' => 'Rechnung anzeigen',
         'processing' => 'Verarbeitung...',
+        'add_item' => 'Position hinzufügen',
     ],
+
     'titles' => [
         'index' => 'Rechnungen',
         'create' => 'Neue Rechnung erstellen',
@@ -90,9 +99,11 @@ return [
         'invoice' => 'Rechnung',
         'invoice_items' => 'Rechnungspositionen',
     ],
+
     'labels' => [
         'created_at' => 'Ausstellungsdatum',
     ],
+
     'messages' => [
         'created' => 'Rechnung wurde erfolgreich erstellt.',
         'updated' => 'Rechnung wurde erfolgreich aktualisiert.',
@@ -117,7 +128,10 @@ return [
         'expires_in_soon' => 'Der Link läuft bald ab',
         'invoice_deleted' => 'Rechnung wurde erfolgreich gelöscht.',
         'invoice_sent' => 'Rechnung wurde erfolgreich gesendet.',
+        'marked_as_paid' => 'Die Rechnung wurde als bezahlt markiert.',
+        'status_not_found' => 'Status "bezahlt" wurde nicht gefunden.',
     ],
+
     'placeholders' => [
         'select_client' => 'Erstellen Sie einen neuen Kunden oder wählen Sie aus...',
         'select_status' => 'Status auswählen...',
@@ -128,8 +142,17 @@ return [
         'suggested_number_desc' => 'Sie können die vorgeschlagene Rechnungsnummer nach Bedarf ändern',
         'not_available' => '—',
         'number' => 'Nummer',
+        'item_name' => 'Artikelname',
+        'item_quantity' => 'Menge',
+        'item_unit' => 'Einheit',
+        'item_price' => 'Preis/Einheit',
+        'item_tax' => 'MwSt',
+        'item_price_complete' => 'Gesamt',
+        'actions' => 'Aktionen',
     ],
+
     'status' => [
+        'invoice_statuses' => 'Rechnungsstatus',
         'sent' => 'Gesendet',
         'paid' => 'Bezahlt',
         'overdue' => 'Überfällig',
@@ -138,21 +161,36 @@ return [
         'draft' => 'Entwurf',
         'unknown' => 'Unbekannt',
     ],
+
     'modal' => [
         'preview_title' => 'Vorschau Rechnung Nr. :number',
         'loading_pdf' => 'PDF wird geladen...',
     ],
+
     'units' => [
+        'hours' => 'Stunden',
         'days' => 'Tage',
+        'pieces' => 'Stk',
+        'kilograms' => 'kg',
+        'grams' => 'g',
+        'liters' => 'l',
+        'meters' => 'm',
+        'cubic_meters' => 'm³',
+        'centimeters' => 'cm',
+        'cubic_centimeters' => 'cm³',
+        'milliliters' => 'ml',
     ],
+
     'tags' => [
         'issuer' => 'Lieferant',
         'recipient' => 'Empfänger',
     ],
+
     'tables' => [
         'field' => 'Feld',
         'value' => 'Wert',
     ],
+    
     'validation' => [
         // Grundlegende Rechnungsdaten
         'invoice_vs_required' => 'Rechnungsnummer (VS) ist erforderlich',
@@ -187,6 +225,7 @@ return [
         'client_zip_required' => 'Kunden-PLZ ist erforderlich',
         'client_country_required' => 'Kundenland ist erforderlich',
     ],
+
     'hints' => [
         'invoice_vs' => 'Sie können die vorgeschlagene Rechnungsnummer an Ihr Nummerierungssystem anpassen.',
         'invoice_ks' => '',

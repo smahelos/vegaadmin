@@ -2,7 +2,7 @@
 
 @php
 /**
- * Pomůcka pro získání pole podle názvu
+ * Helper function for getting field by name
  */
 function getFieldByName($fields, $name) {
     foreach ($fields as $field) {
@@ -14,7 +14,7 @@ function getFieldByName($fields, $name) {
 }
 
 /**
- * Generování tříd pro pole
+ * Generating classes for fields
  */
 function getFieldClasses($fieldName, $supplierFields, $clientFields, $invoiceFields) {
     $classes = [];
@@ -34,24 +34,24 @@ function getFieldClasses($fieldName, $supplierFields, $clientFields, $invoiceFie
 }
 
 /**
- * Generování společných atributů pro input pole
+ * Generating common attributes for input fields
  */
 function renderInputAttributes($field, $invoice, $supplierFields, $clientFields) {
     $attributes = [];
     
-    // Typ pole
+    // Field type
     $attributes[] = 'type="' . $field['type'] . '"';
     
-    // Název a ID
+    // Name and ID
     $attributes[] = 'name="' . $field['name'] . '"'; 
     $attributes[] = 'id="' . $field['name'] . '"';
     
-    // Step pro číselná pole
+    // Step for number fields
     if($field['name'] === 'payment_amount') {
         $attributes[] = 'step="1"';
     }
     
-    // Povinnost vyplnění
+    // Setting required attribute
     if(isset($field['required']) && $field['required'] === true) {
         $attributes[] = 'required';
     }
@@ -61,7 +61,7 @@ function renderInputAttributes($field, $invoice, $supplierFields, $clientFields)
         $attributes[] = 'placeholder="' . $field['placeholder'] . '"';
     }
     
-    // Hodnota - pro edit formulář používáme data z invoice objektu
+    // Value - for editing form we use 'old' or existing invoice data
     if($invoice) {
         $attributes[] = 'value="' . old($field['name'], $invoice->{$field['name']} ?? '') . '"';
     } else {
@@ -72,7 +72,7 @@ function renderInputAttributes($field, $invoice, $supplierFields, $clientFields)
 }
 
 /**
- * Funkce pro vykreslení hvězdičky u povinných polí
+ * Function for rendering asterisk for required fields
  */
 function renderRequiredMark($field) {
     if(isset($field['required']) && $field['required'] === true) {
@@ -82,7 +82,7 @@ function renderRequiredMark($field) {
 }
 
 /**
- * Funkce pro určení velikosti sloupců v grid layoutu
+ * Function for determining column size in grid layout
  */
 function getColumnSpan($fieldName) {
     if(in_array($fieldName, ['payment_amount', 'account_number'])) {
@@ -101,11 +101,11 @@ $supplierFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country',
 $clientFields = ['client_name', 'client_email', 'client_phone', 'client_street', 'client_city', 'client_zip', 'client_country', 'client_ico', 'client_dic'];
 $fieldDescription = getFieldByName($fields, 'invoice_text');
 
-// Pole pro určení začátku a konce sekcí
+// Fields for the start and end of the section
 $sectionStartFields = ['invoice_ks', 'issue_date', 'payment_method_id', 'payment_amount', 'supplier_id', 'email', 'city', 'ico', 'account_number', 'iban', 'client_id', 'client_email', 'client_city', 'client_ico'];
 $sectionEndFields = ['invoice_ss', 'due_in', 'payment_currency', 'supplier_id', 'phone', 'country', 'dic', 'bank_name', 'swift', 'client_id', 'client_phone', 'client_country', 'client_dic'];
 
-// Pole pro speciální rozdělení layoutu
+// Fields that require special layout
 $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
 @endphp
 
@@ -121,7 +121,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
     @csrf
     @method('PUT')
     
-    <!-- Sekce 1: Údaje o faktuře -->
+    <!-- Section 1: Invoice Details -->
     <div class="bg-white overflow-hidden shadow-sm rounded-lg mb-8">
         <div class="p-6">
             <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('invoices.sections.invoice_details') }}</h2>
@@ -143,7 +143,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                             @endif
 
                             @if($field['name'] === 'invoice_vs')
-                                <!-- Číslo faktury -->
+                                <!-- Invoice number -->
                                 <div class="mb-5">
                                     <label for="invoice_vs" class="block text-base font-medium text-gray-500 mb-2">
                                         {{ $field['label'] }} <span class="text-red-500">*</span>
@@ -165,7 +165,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                                 </div>
 
                             @elseif($field['name'] === 'supplier_id')
-                                <!-- Výběr dodavatele -->
+                                <!-- Supplier select -->
                                 <div class="md:col-span-4">
                                     <x-select 
                                         name="{{ $field['name'] }}"
@@ -196,7 +196,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                                 </div>
 
                             @elseif($field['name'] === 'client_id')
-                                <!-- Výběr klienta -->
+                                <!-- Client select -->
                                 <div class="md:col-span-4">
                                     <x-select 
                                         name="{{ $field['name'] }}"
@@ -227,7 +227,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                                 </div>
                             
                             @elseif($field['name'] === 'payment_method_id')
-                                <!-- Způsob platby -->
+                                <!-- Payment method -->
                                 <div class="md:col-span-1">
                                 @php
                                     if(isset($paymentMethods)) {
@@ -251,7 +251,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                                 </div>
 
                             @elseif($field['name'] === 'due_in')
-                                <!-- Splatnost faktury -->
+                                <!-- Invoice due in -->
                                 @php
                                 $dueInOptions = [
                                     7 => '7 ' . __('invoices.units.days'),
@@ -330,7 +330,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                                 </div>
 
                             @else
-                                <!-- Ostatní pole -->
+                                <!-- Other fields -->
                                 @php
                                     $containerId = '';
                                     if ($field['name'] === 'name') {
@@ -410,21 +410,94 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
         </div>
     </div>
     
-    <!-- Sekce 4: Popis faktury -->
+    <!-- Section 4: Invoice description -->
     <div class="bg-white overflow-hidden shadow-sm rounded-lg mb-8">
         <div class="p-6">
             <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('invoices.sections.other_info') }}</h2>
             
+            <!-- Hidden filed for JSON data -->
+            <input type="hidden" name="invoice_text" id="invoice_text_json">
+
             <div>
-                <label for="invoice_text" class="block text-base font-medium text-gray-500 mb-2">
-                    {{ __('invoices.fields.invoice_text') }}
-                </label>
+                <div id="invoice-items-container">
+                    <!-- Head of items table -->
+                    <div class="grid grid-cols-12 gap-4 mb-2">
+                        <div class="col-span-4 text-sm font-medium text-gray-600">{{ __('invoices.placeholders.item_name') }}</div>
+                        <div class="col-span-1 text-sm font-medium text-gray-600">{{ __('invoices.placeholders.item_quantity') }}</div>
+                        <div class="col-span-1 text-sm font-medium text-gray-600">{{ __('invoices.placeholders.item_unit') }}</div>
+                        <div class="col-span-2 text-sm font-medium text-gray-600">{{ __('invoices.placeholders.item_price') }}</div>
+                        <div class="col-span-1 text-sm font-medium text-gray-600">{{ __('invoices.placeholders.item_tax') }}</div>
+                        <div class="col-span-2 text-sm font-medium text-gray-600">{{ __('invoices.placeholders.item_price_complete') }}</div>
+                        <div class="col-span-1 text-sm font-medium text-gray-600">{{ __('invoices.placeholders.actions') }}</div>
+                    </div>
+                    <!-- Template for invoice item -->
+                    <div class="invoice-item-template hidden">
+                        <div class="invoice-item grid grid-cols-12 gap-4 mb-3">
+                            <div class="col-span-4">
+                                <input type="text" class="item-name form-input w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50" placeholder="{{ __('invoices.placeholders.item_name') }}">
+                            </div>
+                            <div class="col-span-1">
+                                <input type="number" class="item-quantity form-input w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50" placeholder="{{ __('invoices.placeholders.item_quantity') }}" step="0.5" min="0" value="1">
+                            </div>
+                            <div class="col-span-1">
+                                <select class="item-unit form-select w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">
+                                    @foreach($itemUnits as $key => $unit)
+                                        <option value="{{ $unit }}">{{ $unit }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <input type="number" class="item-price form-input w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50" placeholder="{{ __('invoices.placeholders.item_price') }}" step="0.01" min="0" value="0">
+                            </div>
+                            <div class="col-span-1">
+                                <select class="item-tax form-select w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">
+                                    <option value="0">0%</option>
+                                    @foreach($taxRates as $key => $rate)
+                                        <option value="{{ $rate }}">{{ $rate }}%</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <input type="text" class="item-price-complete form-input w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-gray-100" placeholder="{{ __('invoices.placeholders.item_price_complete') }}" readonly>
+                            </div>
+                            <div class="col-span-1 flex items-center space-x-2">
+                                <button type="button" class="duplicate-item text-blue-500 hover:text-blue-700">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                                <button type="button" class="remove-item text-red-500 hover:text-red-700">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="invoice-items-list">
+                        <!-- Place to generate items dynamicaly -->
+                    </div>
+
+                    <!-- Invoice items complete price -->
+                    <div class="grid grid-cols-12 mt-5 mb-4 pt-3">
+                        <div class="col-span-9 text-lg font-medium text-gray-600 text-right bg-gray-50 p-2 border-t border-gray-200">{{ __('invoices.fields.total') }}:</div>
+                        <div class="col-span-2 font-bold text-lg bg-gray-50 p-2 border-t border-gray-200" id="invoice-items-total">0.00</div>
+                        <div class="col-span-1"></div>
+                    </div>
+                </div>
                 
-                <textarea 
-                    name="invoice_text" 
-                    id="invoice_text" 
-                    rows="5" 
-                    class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">{{ old('invoice_text', $invoice->invoice_text) }}</textarea>
+                <button type="button" id="add-invoice-item" class="mt-2 inline-flex items-center px-3 py-1 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-plus mr-2"></i>{{ __('invoices.actions.add_item') }}
+                </button>
+
+                <!-- Add field for message -->
+                <div class="mt-6">
+                    <label for="invoice_note" class="block text-base font-medium text-gray-500 mb-2">
+                        {{ __('invoices.fields.invoice_note') }}
+                    </label>
+                    <textarea 
+                        name="invoice_note" 
+                        id="invoice_note" 
+                        rows="3" 
+                        class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50"></textarea>
+                </div>
                 
                 @if(isset($fieldDescription['hint']) && $fieldDescription['hint'] !== '')
                     <p class="mt-1 text-sm text-gray-500">
@@ -458,80 +531,80 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
 document.addEventListener('DOMContentLoaded', function() {
     const userLoggedIn = {{ Js::from($userLoggedIn) }};
     const bankOptions = {{ Js::from($banks) }};
-    // Klienti
+    // Clients
     const clientSelect = document.getElementById('client_id');
     const clientNameField = document.getElementById('client_name');
     const clientFields = document.querySelectorAll('.client-field');
     const clientNameRequired = document.getElementById('client-name-required');
     const editClientLink = document.getElementById('edit-client-link');
     
-    // Dodavatelé
+    // Suppliers
     const supplierSelect = document.getElementById('supplier_id');
     const supplierNameField = document.getElementById('name');
     const supplierFields = document.querySelectorAll('.supplier-field');
     const supplierNameRequired = document.getElementById('supplier-name-required');
     const editSupplierLink = document.getElementById('edit-supplier-link');
 
-    // Funkce pro přepínání stavu polí (společná implementace pro klienta i dodavatele)
+    // Function to toggle fields based on selection
     function toggleFields(select, fields, required, editLink, type) {
         const selectedId = select.value;
         console.log(`selected${type}Id: ${selectedId}`);
         
         if (selectedId) {
-            // Nastavení polí jako readonly
+            // Set fields to read-only
             fields.forEach(field => {
                 field.readOnly = true;
                 field.classList.add('bg-gray-200', 'text-gray-500');
             });
 
-            // Aktivace odkazu na editaci
+            // Activate edit link
             editLink.readOnly = false;
             editLink.classList.remove('pointer-events-none', 'bg-gray-200', 'text-gray-500', 'opacity-50');
             
-            // Sestavení URL pro editaci
+            // Make URL for edit link
             const baseUrl = editLink.getAttribute('href').split('/').slice(0, -2).join('/') + '/';
             editLink.href = baseUrl + selectedId + '/edit';
 
-            // Skrytí required hvězdičky
+            // Hide required star
             required.classList.add('hidden');
         } else {
-            // Vrácení polí do editovatelného stavu
+            // Return fields to editable state
             fields.forEach(field => {
                 field.readOnly = false;
                 field.classList.remove('bg-gray-200', 'text-gray-500');
             });
             
-            // Deaktivace odkazu na editaci
+            // Deaktivate edit link
             editLink.readOnly = true;
             editLink.classList.add('pointer-events-none', 'bg-gray-200', 'text-gray-500', 'opacity-50');
             editLink.href = '#';
 
-            // Zobrazení required hvězdičky
+            // Show required star
             required.classList.remove('hidden');
         }
     }
 
-    // Funkce pro přepínání polí klienta
+    // Function for toggling client fields
     function toggleClientFields() {
         toggleFields(clientSelect, clientFields, clientNameRequired, editClientLink, 'Client');
     }
 
-    // Funkce pro přepínání polí dodavatele
+    // Function for toggling supplier fields
     function toggleSupplierFields() {
         toggleFields(supplierSelect, supplierFields, supplierNameRequired, editSupplierLink, 'Supplier');
     }
     
-    // Inicializace formuláře
+    // Initialize form
     toggleClientFields();
     toggleSupplierFields();
     
-    // Sledování změn výběru
+    // Listeners for changes
     clientSelect.addEventListener('change', toggleClientFields);
     supplierSelect.addEventListener('change', toggleSupplierFields);
 
-    // Validace formuláře
+    // Form validation
     document.querySelector('form').addEventListener('submit', function(e) {
-        // Společná funkce pro validaci
+        // Validation for required fields
         const validateRequired = (value, message) => {
             if (!value) {
                 e.preventDefault();
@@ -541,21 +614,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return true;
         };
         
-        // Validace klienta
+        // Client name and ID validation
         const selectedClientId = clientSelect.value;
         const clientNameValue = clientNameField.value.trim();
         if (!validateRequired(selectedClientId || clientNameValue, '{{ __("invoices.validation.client_required") }}')) {
             return;
         }
         
-        // Validace dodavatele
+        // Supplier name and ID validation
         const selectedSupplierId = supplierSelect.value;
         const supplierNameValue = supplierNameField.value.trim();
         if (!validateRequired(selectedSupplierId || supplierNameValue, '{{ __("invoices.validation.supplier_required") }}')) {
             return;
         }
         
-        // Validace částky
+        // Payment method validation
         const paymentAmount = document.getElementById('payment_amount').value.trim();
         if (!validateRequired(paymentAmount, '{{ __("invoices.validation.amount_required") }}')) {
             return;
@@ -565,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Automatické vyplnění názvu banky podle vybraného kódu
+    // Automatically fill bank name based on selected bank code
     const bankCodeSelect = document.getElementById('bank_code');
     const bankNameInput = document.getElementById('bank_name');
 
@@ -573,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const updateBankName = () => {
             const selectedCode = bankCodeSelect.value;
             if (selectedCode && bankOptions[selectedCode]) {
-                // Extrahujeme název banky z textu (odstraníme kód v závorce)
+                // Extract the bank name from the option text
                 bankNameInput.value = bankOptions[selectedCode].replace(/\s+\(\d+\)$/, '');
             } else {
                 bankNameInput.value = '';
@@ -582,13 +655,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         bankCodeSelect.addEventListener('change', updateBankName);
         
-        // Pokud je již kód banky vybrán při načtení stránky, vyplníme název
+        // If a bank code is already selected, update the bank name
         if (bankCodeSelect.value) {
             updateBankName();
         }
     }
     
-    // Formátování IBAN a SWIFT
+    // IBAN and SWIFT input formatting
     const formatInputToUpperCase = (element) => {
         if (element) {
             element.addEventListener('input', function() {
@@ -599,6 +672,320 @@ document.addEventListener('DOMContentLoaded', function() {
     
     formatInputToUpperCase(document.getElementById('iban'));
     formatInputToUpperCase(document.getElementById('swift'));
+
+
+    // Initialize invoice items manager
+    invoiceItemsManager.init();
+    
+    // Add form validtion for JSON data before submission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        // Ensure JSON is updated before submitting
+        invoiceItemsManager.updateJsonData();
+    });
 });
+
+// Invoice items management
+const invoiceItemsManager = {
+    init() {
+        // References to containers and buttons
+        this.itemsContainer = document.getElementById('invoice-items-list');
+        this.addButton = document.getElementById('add-invoice-item');
+        this.itemTemplate = document.querySelector('.invoice-item-template').innerHTML;
+        this.jsonInput = document.getElementById('invoice_text_json');
+        this.noteInput = document.getElementById('invoice_note');
+        this.paymentAmountInput = document.getElementById('payment_amount');
+        this.totalDisplay = document.getElementById('invoice-items-total');
+        this.currencySelect = document.getElementById('payment_currency');
+        
+        // Add event listener for adding new item
+        this.addButton.addEventListener('click', () => this.addItem());
+        
+        // Event delegation for buttons and value changes
+        this.itemsContainer.addEventListener('click', (e) => {
+            // Remove item
+            if (e.target.classList.contains('remove-item') || e.target.parentElement.classList.contains('remove-item')) {
+                const itemElement = e.target.closest('.invoice-item');
+                if (itemElement) {
+                    itemElement.remove();
+                    this.updateJsonData();
+                    this.updateTotalAmount();
+                }
+            }
+            
+            // Duplicate item
+            if (e.target.classList.contains('duplicate-item') || e.target.parentElement.classList.contains('duplicate-item')) {
+                const itemElement = e.target.closest('.invoice-item');
+                if (itemElement) {
+                    const nameValue = itemElement.querySelector('.item-name').value;
+                    const quantityValue = itemElement.querySelector('.item-quantity').value;
+                    const unitValue = itemElement.querySelector('.item-unit').value;
+                    const priceValue = itemElement.querySelector('.item-price').value;
+                    const taxValue = itemElement.querySelector('.item-tax').value;
+                    
+                    this.addItem(nameValue, quantityValue, unitValue, priceValue, taxValue);
+                }
+            }
+        });
+        
+        // Event delegation for price calculation when input values change
+        this.itemsContainer.addEventListener('input', (e) => {
+            if (e.target.classList.contains('item-quantity') || 
+                e.target.classList.contains('item-price') ||
+                e.target.classList.contains('item-tax')) {
+                    
+                this.calculateItemPrice(e.target.closest('.invoice-item'));
+                this.updateJsonData();
+                this.updateTotalAmount();
+            } else {
+                this.updateJsonData();
+            }
+        });
+        
+        // Event delegation for tax select changes
+        this.itemsContainer.addEventListener('change', (e) => {
+            if (e.target.classList.contains('item-tax')) {
+                this.calculateItemPrice(e.target.closest('.invoice-item'));
+                this.updateJsonData();
+                this.updateTotalAmount();
+            }
+        });
+        
+        // Listeners for note input
+        if (this.noteInput) {
+            this.noteInput.addEventListener('input', () => {
+                this.updateJsonData();
+            });
+        }
+        
+        // Listeners for currency select
+        if (this.currencySelect) {
+            this.currencySelect.addEventListener('change', () => {
+                this.updateTotalDisplay();
+            });
+        }
+        
+        // Initialization - if there is existing data
+        this.loadExistingData();
+        
+        // Add first item if none exists
+        if (this.itemsContainer.children.length === 0) {
+            this.addItem();
+        }
+    },
+    
+    // Add new item to the invoice
+    addItem(name = '', quantity = '1', unit = 'ks', price = '0', tax = '0') {
+        const itemWrapper = document.createElement('div');
+        itemWrapper.innerHTML = this.itemTemplate;
+        const itemElement = itemWrapper.firstElementChild;
+        
+        // Set values if provided
+        if (name !== '') {
+            itemElement.querySelector('.item-name').value = name;
+        }
+        if (quantity !== '') {
+            itemElement.querySelector('.item-quantity').value = quantity;
+        }
+        if (unit !== '') {
+            itemElement.querySelector('.item-unit').value = unit;
+        }
+        if (price !== '') {
+            itemElement.querySelector('.item-price').value = price;
+        }
+        if (tax !== '') {
+            const taxSelect = itemElement.querySelector('.item-tax');
+            // Find the option with the value of tax and set it as selected
+            for (let i = 0; i < taxSelect.options.length; i++) {
+                if (taxSelect.options[i].value === tax) {
+                    taxSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        
+        this.itemsContainer.appendChild(itemElement);
+        this.calculateItemPrice(itemElement);
+        this.updateJsonData();
+        this.updateTotalAmount();
+    },
+    
+    // Calculate item total price
+    calculateItemPrice(itemElement) {
+        const quantity = parseFloat(itemElement.querySelector('.item-quantity').value) || 0;
+        const price = parseFloat(itemElement.querySelector('.item-price').value) || 0;
+        const taxRate = parseFloat(itemElement.querySelector('.item-tax').value) || 0;
+        
+        // Calculate price with tax
+        const totalWithoutTax = quantity * price;
+        const totalWithTax = totalWithoutTax * (1 + (taxRate / 100));
+        
+        // Round to 2 decimal places
+        const totalRounded = Math.round(totalWithTax * 100) / 100;
+        
+        // Format number with thousands separator and 2 decimal places
+        const formattedTotal = this.formatNumber(totalRounded);
+        
+        // Set result value
+        itemElement.querySelector('.item-price-complete').value = formattedTotal;
+    },
+    
+    // Update invoice total amount
+    updateTotalAmount() {
+        let total = 0;
+        let hasNonZeroPrices = false;
+        
+        // Go through all items and sum their prices
+        const itemElements = this.itemsContainer.querySelectorAll('.invoice-item');
+        itemElements.forEach(itemElement => {
+            const quantity = parseFloat(itemElement.querySelector('.item-quantity').value) || 0;
+            const price = parseFloat(itemElement.querySelector('.item-price').value) || 0;
+            const taxRate = parseFloat(itemElement.querySelector('.item-tax').value) || 0;
+            
+            const itemTotal = quantity * price * (1 + (taxRate / 100));
+            total += itemTotal;
+            
+            // Check if there are any non-zero prices
+            if (price > 0) {
+                hasNonZeroPrices = true;
+            }
+        });
+        
+        // Round to 2 decimal places
+        const roundedTotal = Math.round(total * 100) / 100;
+        
+        // Set readonly for total invoice amount if there are items with non-zero prices
+        if (hasNonZeroPrices && this.paymentAmountInput) {
+            this.paymentAmountInput.value = roundedTotal;
+            this.paymentAmountInput.readOnly = true;
+            this.paymentAmountInput.classList.add('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
+        } else if (this.paymentAmountInput) {
+            this.paymentAmountInput.readOnly = false;
+            this.paymentAmountInput.classList.remove('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
+        }
+        
+        // Update displayed total
+        this.updateTotalDisplay(roundedTotal);
+    },
+    
+    // Update displayed total amount
+    updateTotalDisplay(total = null) {
+        if (total === null && this.paymentAmountInput) {
+            total = parseFloat(this.paymentAmountInput.value) || 0;
+        }
+        
+        const formattedTotal = this.formatNumber(total);
+        const currency = this.currencySelect ? this.currencySelect.value : 'CZK';
+        
+        if (this.totalDisplay) {
+            this.totalDisplay.textContent = `${formattedTotal} ${currency}`;
+        }
+    },
+    
+    // Format number for display
+    formatNumber(number) {
+        return number.toLocaleString('cs-CZ', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    },
+    
+    // Update JSON data
+    updateJsonData() {
+        const items = [];
+        const itemElements = this.itemsContainer.querySelectorAll('.invoice-item');
+        
+        itemElements.forEach(itemElement => {
+            const name = itemElement.querySelector('.item-name').value.trim();
+            const quantity = itemElement.querySelector('.item-quantity').value.trim();
+            const unit = itemElement.querySelector('.item-unit').value.trim();
+            const price = itemElement.querySelector('.item-price').value.trim();
+            const tax = itemElement.querySelector('.item-tax').value.trim();
+            const priceComplete = itemElement.querySelector('.item-price-complete').value.trim();
+            
+            if (name || quantity || price) {
+                items.push({
+                    name,
+                    quantity,
+                    unit,
+                    price,
+                    tax,
+                    priceComplete
+                });
+            }
+        });
+        
+        const jsonData = {
+            items,
+            note: this.noteInput ? this.noteInput.value.trim() : ''
+        };
+        
+        this.jsonInput.value = JSON.stringify(jsonData);
+    },
+    
+    // Load existing data
+    loadExistingData() {
+        try {
+            // Load existing text from the invoice
+            let existingText = @json(old('invoice_text', $invoice->invoice_text ?? ''));
+            
+            if (existingText) {
+                try {
+                    // If the existing text is a string, try to parse it as JSON
+                    let jsonData;
+                    if (typeof existingText === 'object') {
+                        jsonData = existingText;
+                    } else {
+                        // Try to parse the JSON string
+                        jsonData = JSON.parse(existingText);
+                    }
+                    
+                    // Prepare items
+                    if (jsonData && jsonData.items && Array.isArray(jsonData.items)) {
+                        // Clear existing items
+                        this.itemsContainer.innerHTML = '';
+                        
+                        // Add items from JSON
+                        jsonData.items.forEach(item => {
+                            this.addItem(
+                                item.name || '', 
+                                item.quantity || '1',
+                                item.unit || 'ks',
+                                item.price || '0',
+                                item.tax || '0'
+                            );
+                        });
+                    }
+                    
+                    // Prepare note
+                    if (jsonData && jsonData.note && this.noteInput) {
+                        this.noteInput.value = jsonData.note;
+                    }
+                } catch (e) {
+                    console.log('Error while parsing JSON data:', e);
+                    // If parsing fails, we can assume the existing text is a simple string
+                    if (this.noteInput) {
+                        this.noteInput.value = existingText;
+                    }
+                    
+                    // Add at least one empty item
+                    this.addItem();
+                }
+            } else {
+                // If no existing text, we can assume it's a new invoice
+                this.addItem();
+            }
+            
+            // update total amount
+            this.updateTotalAmount();
+            
+            // Update JSON data
+            this.updateJsonData();
+        } catch (error) {
+            console.error('Error loading existing data:', error);
+            // Add at least one empty item
+            this.addItem();
+        }
+    }
+};
 </script>
 @endpush

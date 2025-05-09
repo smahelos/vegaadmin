@@ -1,7 +1,7 @@
 @extends('layouts.frontend')
 
 @php
-    // Pomocné funkce pro získání polí podle jména
+    // Helper functions to get fields by name
     function getField($fields, $name) {
         return collect($fields)->firstWhere('name', $name) ?? [];
     }
@@ -24,12 +24,12 @@
 <form method="POST" action="{{ route('register') }}">
     @csrf
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Sekce 1: Základní údaje -->
+        <!-- Section 1: Basic Information -->
         <div class="bg-white overflow-hidden shadow-sm rounded-lg mb-8">
             <div class="p-6">
                 <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('users.sections.basic_info') }}</h2>
                 
-                <!-- Jméno -->
+                <!-- Name -->
                 @php $field = getField($userFields, 'name'); @endphp
                 <div class="mb-5">
                     <label for="name" class="block text-base font-medium text-gray-500 mb-2">
@@ -48,7 +48,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Telefon -->
+                    <!-- Phone -->
                     @php $field = getField($userFields, 'phone'); @endphp
                     <div class="mb-5">
                         <label for="phone" class="block text-base font-medium text-gray-500 mb-2">
@@ -85,7 +85,7 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
-                    <!-- Přidání pole pro popis dodavatele -->
+                    <!-- Supplier description field -->
                     <div class="mb-4">
                         <label for="description" class="block text-sm font-medium text-gray-600 mb-1">
                             {{ __('suppliers.fields.description') }}
@@ -103,7 +103,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- IČO -->
+                    <!-- Business ID -->
                     @php $field = getField($userFields, 'ico'); @endphp
                     <div class="mb-5">
                         <label for="ico" class="block text-base font-medium text-gray-500 mb-2">
@@ -121,7 +121,7 @@
                         @enderror
                     </div>
                             
-                    <!-- DIČ -->
+                    <!-- VAT Number -->
                     @php $field = getField($userFields, 'dic'); @endphp
                     <div class="mb-5">
                         <label for="dic" class="block text-base font-medium text-gray-500 mb-2">
@@ -142,12 +142,12 @@
             </div>
         </div>
     
-        <!-- Sekce 2: Adresa -->
+        <!-- Section 2: Address -->
         <div class="bg-green-50 overflow-hidden shadow-sm rounded-lg border border-green-200 mb-8">
             <div class="p-6">
                 <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('users.sections.address') }}</h2>
                 
-                <!-- Ulice -->
+                <!-- Street -->
                 @php $field = getField($userFields, 'street'); @endphp
                 <div class="mb-5">
                     <label for="street" class="block text-base font-medium text-gray-500 mb-2">
@@ -166,7 +166,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Město -->
+                    <!-- City -->
                     @php $field = getField($userFields, 'city'); @endphp
                     <div class="mb-5">
                         <label for="city" class="block text-base font-medium text-gray-500 mb-2">
@@ -184,7 +184,7 @@
                         @enderror
                     </div>
                     
-                    <!-- PSČ -->
+                    <!-- ZIP Code -->
                     @php $field = getField($userFields, 'zip'); @endphp
                     <div class="mb-5">
                         <label for="zip" class="block text-base font-medium text-gray-500 mb-2">
@@ -202,7 +202,7 @@
                         @enderror
                     </div>
 
-                    <!-- Země -->
+                    <!-- Country -->
                     @php $field = getField($userFields, 'country'); @endphp
                     <x-country-select 
                         name="country"
@@ -214,7 +214,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-10 gap-6 mb-5">
-                    <!-- Číslo účtu -->
+                    <!-- Account Number -->
                     <div class="md:col-span-4">
                         <label for="account_number" class="block text-base font-medium text-gray-500 mb-2">
                             {{ __('suppliers.fields.account_number') }}
@@ -231,7 +231,7 @@
                         @enderror
                     </div>
                     
-                    <!-- Kód banky -->
+                    <!-- Bank Code -->
                     <div class="md:col-span-3">
                         <label for="bank_code" class="block text-base font-medium text-gray-500 mb-2">
                             {{ __('suppliers.fields.bank_code') }}
@@ -255,7 +255,7 @@
                         @enderror
                     </div>
                     
-                    <!-- Název banky -->
+                    <!-- Bank Name -->
                     <div class="md:col-span-3">
                         <label for="bank_name" class="block text-base font-medium text-gray-500 mb-2">
                             {{ __('suppliers.fields.bank_name') }}
@@ -311,12 +311,12 @@
         </div>
     </div>
 
-    <!-- Sekce 3: Bezpečnost účtu -->
+    <!-- Section 3: Account Security -->
     <div class="bg-blue-50 overflow-hidden shadow-sm rounded-lg mb-8 border border-blue-200">
         <div class="p-6">
             <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('users.sections.security') }}</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Heslo -->
+                <!-- Password -->
                 @php $field = collect($passwordFields)->firstWhere('name', 'password') ?? []; @endphp
                 <div class="mb-5">
                     <label for="password" class="block text-base font-medium text-gray-500 mb-2">
@@ -336,7 +336,7 @@
                     @enderror
                 </div>
                 
-                <!-- Potvrzení hesla -->
+                <!-- Password Confirmation -->
                 @php $field = collect($passwordFields)->firstWhere('name', 'password_confirmation') ?? []; @endphp
                 <div class="mb-5">
                     <label for="password_confirmation" class="block text-base font-medium text-gray-500 mb-2">
@@ -356,7 +356,7 @@
         </div>
     </div>
     
-    <!-- Tlačítka pro registraci -->
+    <!-- Registration Buttons -->
     <div class="flex justify-between">
         <a href="@localizedRoute('login')" class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
             {{ __('users.messages.login_prompt') }}
@@ -374,7 +374,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Automatické vyplnění názvu banky podle vybraného kódu
+    // Automatically fill bank name based on selected code
     const bankCodeSelect = document.getElementById('bank_code');
     const bankNameInput = document.getElementById('bank_name');
     
@@ -401,14 +401,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Pokud je již kód banky vybrán při načtení stránky, vyplníme název
+        // If bank code is already selected when page loads, fill the name
         if(bankCodeSelect.value) {
             const event = new Event('change');
             bankCodeSelect.dispatchEvent(event);
         }
     }
     
-    // Formátování IBAN - odstraníme mezery a převedeme na velká písmena
+    // Format IBAN - remove spaces and convert to uppercase
     const ibanInput = document.getElementById('iban');
     if(ibanInput) {
         ibanInput.addEventListener('input', function() {
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Formátování SWIFT - převedeme na velká písmena
+    // Format SWIFT - convert to uppercase
     const swiftInput = document.getElementById('swift');
     if(swiftInput) {
         swiftInput.addEventListener('input', function() {

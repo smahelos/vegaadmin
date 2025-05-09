@@ -10,7 +10,7 @@
             <div class="p-6 bg-white border-b border-gray-200">
                 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <!-- Karty s přehledem -->
+                    <!-- Dashboard cards with overview -->
                     <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
                         <div class="flex items-center">
                             <div class="p-3 rounded-full bg-blue-500 text-white mr-4">
@@ -60,7 +60,7 @@
                     </div>
                 </div>
 
-                <!-- Graf měsíčních statistik -->
+                <!-- Graph of monthly statistics -->
                 <div class="bg-white rounded-lg shadow p-5 mb-8">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.monthly_invoices') }}</h3>
                     <div class="h-64">
@@ -68,7 +68,7 @@
                     </div>
                 </div>
 
-                <!-- Poslední faktury -->
+                <!-- Latest invoices -->
                 <div class="mb-8">
                         <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_invoices') }}</h3>
                         <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -130,9 +130,9 @@
                         </div>
                     </div>
 
-                <!-- Poslední klienti a faktury -->
+                <!-- Latest clients and suppliers -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Poslední klienti -->
+                    <!-- Latest clients -->
                     <div>
                         <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_clients') }}</h3>
                         <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -166,7 +166,7 @@
                         </div>
                     </div>
 
-                    <!-- Poslední dodavatelé -->
+                    <!-- Latest suppliers -->
                     <div>
                         <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_suppliers') }}</h3>
                         <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -219,11 +219,11 @@
         try {
             const ctx = document.getElementById('invoicesChart').getContext('2d');
             
-            // Data pro graf - bezpečnější přístup k JSON
+            // Graph data
             const monthlyStatsRaw = '{!! addslashes(json_encode($monthlyStats ?? [])) !!}';
             const monthlyStats = JSON.parse(monthlyStatsRaw);
             
-            // Pokud nejsou žádná data, zobrazíme prázdný graf
+            // If not any data, show empty graph
             if (!monthlyStats || monthlyStats.length === 0) {
                 new Chart(ctx, {
                     type: 'bar',
@@ -255,7 +255,8 @@
                 return;
             }
             
-            // Připravíme data pro graf
+            // Process data for the graph
+            // Convert month-year string to Date object for sorting
             const labels = monthlyStats.map(item => {
                 const [year, month] = item.month.split('-');
                 return new Date(year, month - 1).toLocaleDateString('cs-CZ', { month: 'short', year: 'numeric' });
@@ -263,7 +264,7 @@
             
             const data = monthlyStats.map(item => item.total);
             
-            // Vytvoříme graf
+            // Create the chart
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -309,8 +310,7 @@
                 }
             });
         } catch (error) {
-            console.error('Chyba při inicializaci grafu:', error);
-            // Zabráníme pádu aplikace v případě chyby
+            console.error('Error while initializin the graph:', error);
         }
     });
 </script>

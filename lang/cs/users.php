@@ -97,4 +97,8 @@ return [
         'zip' => 'Zadejte PSČ',
         'country' => 'Vyberte zemi',
     ],
+
+    'status' => [
+        'user_statuses' => 'Stavy uživatele',
+    ],
 ];
