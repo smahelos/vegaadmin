@@ -12,6 +12,7 @@ use App\View\Components\Dropdown;
 use App\View\Components\DropdownLink;
 use App\View\Components\Select;
 use App\View\Components\CurrencySelect;
+use App\View\Components\Pagination;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -73,5 +74,6 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('dropdown-link', DropdownLink::class);
         Blade::component('select', Select::class);
         Blade::component('currency-select', CurrencySelect::class);
+        Blade::component('pagination', Pagination::class);
     }
 }

@@ -52,30 +52,13 @@ return [
         'no_items' => 'Keine Einträge',
         'no_results' => 'Keine Ergebnisse',
     ],
-    
-    'actions' => 'Aktionen',
-    'buttons' => [
-        'save' => 'Speichern',
-        'cancel' => 'Abbrechen',
-        'edit' => 'Bearbeiten',
-        'delete' => 'Löschen',
-        'create' => 'Erstellen',
-        'submit' => 'Absenden',
-        'back' => 'Zurück',
+
+    'pagination' => [
+        'shown' => 'Angezeigt',
+        'of' => 'von',
+        'up_to' => 'bis',
+        'items' => 'Einträgen',
+        'previous' => 'Zurück',
+        'next' => 'Weiter',
     ],
-    'messages' => [
-        'success' => 'Erfolg',
-        'error' => 'Fehler',
-        'warning' => 'Warnung',
-        'info' => 'Information',
-    ],
-    'confirmations' => [
-        'delete' => 'Sind Sie sicher, dass Sie dieses Element löschen möchten?',
-        'proceed' => 'Sind Sie sicher, dass Sie fortfahren möchten?',
-    ],
-    'status' => [
-        'active' => 'Aktiv',
-        'inactive' => 'Inaktiv',
-    ],
-    'not_specified' => 'Nicht angegeben',
 ];

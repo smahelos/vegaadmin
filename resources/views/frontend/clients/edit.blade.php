@@ -14,13 +14,13 @@
     @csrf
     @method('PUT')
 
-    <!-- Sekce 1: Základní informace klienta -->
+    <!-- Section 1: Client Basic Information -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white overflow-hidden shadow-sm rounded-lg">
             <div class="p-6">
                 <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('clients.sections.basic_info') }}</h2>
                 
-                    <!-- Levý sloupec -->
+                    <!-- Left column -->
                     @php
                         $leftColumnFields = ['name', 'shortcut', 'email', 'phone'];
                     @endphp
@@ -77,7 +77,7 @@
                         @endif
                         
                         @if ($field['name'] === 'is_default')
-                            <!-- Výchozí klient -->
+                            <!-- Default client -->
                             <div class="mb-5 is-default-{{ $client->is_default }}">
                                 <label for="is_default" class="flex items-center">
                                     <input type="hidden" name="is_default" value="0">
@@ -98,12 +98,12 @@
             </div>
         </div>
 
-        <!-- Sekce 2: Fakturační údaje klienta -->
+        <!-- Section 2: Client Billing Information -->
         <div class="bg-green-50 overflow-hidden shadow-sm rounded-lg border border-green-200">
             <div class="p-6">
                 <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('clients.sections.billing_info') }}</h2>
                 
-                    <!-- Pravý sloupec -->
+                    <!-- Right column -->
                     @php
                         $leftColumnFields = ['name', 'shortcut', 'email', 'phone', 'description', 'is_default'];
                     @endphp
@@ -113,7 +113,7 @@
                         @endif
                             <div class="@if($field['name'] === 'city')md:col-span-5 @elseif($field['name'] === 'zip')md:col-span-3 @elseif($field['name'] === 'country')md:col-span-2 @else md:col-span-5 @endif ">
                             @if ($field['name'] === 'country')
-                                <!-- Země -->
+                                <!-- Country -->
                                 <x-country-select 
                                     name="country"
                                     :selected="old('country', $client->country ?? 'CZ')" 
@@ -151,7 +151,7 @@
         </div>
     </div>
 
-    <!-- Tlačítko pro odeslání formuláře -->
+    <!-- Form submit button -->
     <div class="mt-6 flex justify-between">
         <a href="@localizedRoute('frontend.clients')" 
            class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

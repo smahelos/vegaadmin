@@ -181,13 +181,33 @@ class InvoiceController extends Controller
                 'client_dic' => $selectedClient->dic,
             ];
         }
+
+        // Get default values of tax rates
+        $taxRates = [21, 15, 10]; // Lze upravit podle potřeb nebo načíst z databáze
+
+        // Get item units for dropdown
+        $itemUnits = [
+            __('invoices.units.hours'),
+            __('invoices.units.days'),
+            __('invoices.units.pieces'),
+            __('invoices.units.kilograms'),
+            __('invoices.units.grams'),
+            __('invoices.units.liters'),
+            __('invoices.units.meters'),
+            __('invoices.units.cubic_meters'),
+            __('invoices.units.centimeters'),
+            __('invoices.units.cubic_centimeters'),
+            __('invoices.units.milliliters'),
+        ];
         
         // Get fields for invoice form from trait
         $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
         
         return view('frontend.invoices.create', compact(
-            'userLoggedIn', 'fields', 'clients', 'suppliers', 'userInfo', 
-            'clientInfo', 'paymentMethods', 'suggestedNumber', 'statuses', 'defaultSupplier', 'banks'
+            'userLoggedIn', 'fields', 'clients', 
+            'suppliers', 'userInfo', 'clientInfo', 'paymentMethods', 
+            'suggestedNumber', 'statuses', 'defaultSupplier', 'banks', 
+            'taxRates', 'itemUnits'
         ));
     }
 
@@ -232,9 +252,29 @@ class InvoiceController extends Controller
             'email' => '',
             'phone' => '',
         ];
+
+        // Načtení sazeb DPH pro položky faktury
+        $taxRates = [21, 15, 10]; // Lze upravit podle potřeb nebo načíst z databáze
+
+        // Načtení sazeb DPH pro položky faktury
+        $itemUnits = [
+            __('invoices.units.hours'),
+            __('invoices.units.days'),
+            __('invoices.units.pieces'),
+            __('invoices.units.kilograms'),
+            __('invoices.units.grams'),
+            __('invoices.units.liters'),
+            __('invoices.units.meters'),
+            __('invoices.units.cubic_meters'),
+            __('invoices.units.centimeters'),
+            __('invoices.units.cubic_centimeters'),
+            __('invoices.units.milliliters'),
+        ];
         
         return view('frontend.invoices.create', compact(
-            'userLoggedIn', 'fields', 'userInfo', 'paymentMethods', 'clients', 'suppliers', 'statuses', 'suggestedNumber', 'banks'
+            'userLoggedIn', 'fields', 'userInfo', 
+            'paymentMethods', 'clients', 'suppliers', 'statuses', 
+            'suggestedNumber', 'banks', 'taxRates', 'itemUnits'
         ));
     }
 
@@ -331,12 +371,30 @@ class InvoiceController extends Controller
             
         // Get czech banks for dropdown
         $banks = $this->getCzechBanks();
+
+        // Načtení sazeb DPH pro položky faktury
+        $taxRates = [21, 15, 10]; // Lze upravit podle potřeb nebo načíst z databáze
+
+        // Načtení sazeb DPH pro položky faktury
+        $itemUnits = [
+            __('invoices.units.hours'),
+            __('invoices.units.days'),
+            __('invoices.units.pieces'),
+            __('invoices.units.kilograms'),
+            __('invoices.units.grams'),
+            __('invoices.units.liters'),
+            __('invoices.units.meters'),
+            __('invoices.units.cubic_meters'),
+            __('invoices.units.centimeters'),
+            __('invoices.units.cubic_centimeters'),
+            __('invoices.units.milliliters'),
+        ];
         
         // Get fields for invoice form from trait
         $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
         
         return view('frontend.invoices.edit', compact(
-            'invoice', 'userLoggedIn', 'fields', 'paymentMethods', 'clients', 'suppliers', 'statuses', 'user', 'banks'
+            'invoice', 'userLoggedIn', 'fields', 'paymentMethods', 'clients', 'suppliers', 'statuses', 'user', 'banks', 'taxRates', 'itemUnits'
         ));
     }
     
@@ -474,6 +532,7 @@ class InvoiceController extends Controller
                     'lang' => $locale
                 ]),
                 'token' => $token,
+                'qr_code' => $qrCodeBase64,
                 'has_qr_code' => !empty($qrCodeBase64)
             ]);
         } catch (\Exception $e) {
@@ -1003,6 +1062,37 @@ class InvoiceController extends Controller
             
             return redirect()->route('home')
                 ->with('error', __('invoices.messages.delete_error'));
+        }
+    }
+
+    /**
+     * Mark invoice as paid
+     *
+     * @param int $id Invoice ID
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function markAsPaid($id)
+    {
+        try {
+            // Get invoice
+            $invoice = Invoice::where('user_id', Auth::id())->findOrFail($id);
+            
+            // Get status ID for "paid"
+            $paidStatusId = Status::where('slug', 'paid')->first()->id ?? null;
+            
+            if (!$paidStatusId) {
+                return back()->with('error', __('invoices.messages.status_not_found'));
+            }
+            
+            // Update invoice status
+            $invoice->update([
+                'payment_status_id' => $paidStatusId
+            ]);
+            
+            return back()->with('success', __('invoices.messages.marked_as_paid'));
+        } catch (\Exception $e) {
+            Log::error('Error marking invoice as paid: ' . $e->getMessage());
+            return back()->with('error', __('invoices.messages.update_error'));
         }
     }
 }

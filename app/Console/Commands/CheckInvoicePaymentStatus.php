@@ -39,16 +39,17 @@ class CheckInvoicePaymentStatus extends Command
         $today = Carbon::today();
         $count = ['upcoming' => 0, 'due_today' => 0, 'overdue' => 0];
 
-        // Možné stavy faktur na základě tvé codebase (z _Data/Dockers/Production/vegaadmin/lang/en/invoices.php)
-        // Chceme kontrolovat jen faktury, které nejsou zaplacené nebo zrušené
-        // (předpokládám, že 'paid' a 'cancelled' jsou stavy, které nebudeme kontrolovat)
-        // TODO: načítat stavy z DB, pokud je to možné
-        $unpaidStatuses = ['pending', 'overdue', 'partially_paid'];
-
-        $this->info('Kontrola faktur pro připomenutí plateb...');
+        // Get statuses from database and exclude 'paid' and 'cancelled'
+        $paidStatusSlugs = ['paid', 'cancelled'];
+        $unpaidStatuses = \App\Models\Status::whereNotIn('slug', $paidStatusSlugs)
+            ->where('type', 'invoice_payment')
+            ->pluck('slug')
+            ->toArray();
+            
+        $this->info('Checking invoice for payment reminder...');
 
         try {
-            // 1. Faktury, které budou brzy splatné (např. za 3 dny)
+            // 1. Invoices that are due in the next X days
             $upcomingDueInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses) {
                     $query->whereIn('slug', $unpaidStatuses);
                 })
@@ -60,7 +61,7 @@ class CheckInvoicePaymentStatus extends Command
                 $count['upcoming']++;
             }
 
-            // 2. Faktury, které jsou splatné dnes
+            // 2. invoices that are due today
             $dueTodayInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses) {
                     $query->whereIn('slug', $unpaidStatuses);
                 })
@@ -72,7 +73,7 @@ class CheckInvoicePaymentStatus extends Command
                 $count['due_today']++;
             }
 
-            // 3. Faktury, které jsou po splatnosti (např. 1 den po)
+            // 3. Invoices that are overdue (e.g. 1 day after)
             $overdueInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses) {
                     $query->whereIn('slug', $unpaidStatuses);
                 })
@@ -84,109 +85,109 @@ class CheckInvoicePaymentStatus extends Command
                 $count['overdue']++;
             }
 
-            $this->info("Odesláno upozornění: {$count['upcoming']} nastávajících, {$count['due_today']} dnešních, {$count['overdue']} po splatnosti.");
+            $this->info("Notifications sent: {$count['upcoming']} upcoming, {$count['due_today']} today, {$count['overdue']} overdue.");
 
         } catch (\Exception $e) {
-            $this->error("Chyba při kontrole faktur: " . $e->getMessage());
-            Log::error("Chyba při kontrole faktur: " . $e->getMessage(), ['exception' => $e]);
+            $this->error("Error while checking invoices: " . $e->getMessage());
+            Log::error("Error while checking invoices: " . $e->getMessage(), ['exception' => $e]);
         }
 
         return Command::SUCCESS;
     }
 
     /**
-     * Odeslat připomenutí o nadcházející splatnosti faktury
+     * Send reminder for upcoming due invoice
      */
     private function sendUpcomingReminder(Invoice $invoice)
     {
-        // Načtení vztahů pro správné zobrazení v emailu
+        // Get the invoice with its relations
         $invoice->load(['supplier', 'client']);
         
-        $this->info("Odesílám připomenutí o blížící se splatnosti pro fakturu #{$invoice->invoice_vs}");
+        $this->info("Sending a reminder about the upcoming due date for invoice #{$invoice->invoice_vs}");
         
-        // Odeslat notifikaci dodavateli, pokud máme jeho email
+        // Send notification to supplier if we have their email
         if ($invoice->supplier && $invoice->supplier->email) {
-            // Detekce jazyka dodavatele
+            // Check if the supplier has a preferred locale
             $locale = $invoice->supplier->preferredLocale();
-            $this->info("- Používám jazyk pro dodavatele: {$locale}");
+            $this->info("- Using language for : {$locale}");
             
             $invoice->supplier->notify(new InvoiceUpcomingDueReminder($invoice));
         }
         
-        // Odeslat notifikaci klientovi, pokud máme jeho email
+        // Send notification to client if we have their email
         if ($invoice->client && $invoice->client->email) {
-            // Detekce jazyka klienta
+            // Check if the client has a preferred locale
             $locale = $invoice->client->preferredLocale();
-            $this->info("- Používám jazyk pro klienta: {$locale}");
+            $this->info("- Using language for client: {$locale}");
             
             $invoice->client->notify(new InvoiceUpcomingDueReminder($invoice, 'client'));
         }
     }
 
     /**
-     * Odeslat připomenutí o faktuře splatné dnes
+     * Send reminder for invoice due today
      */
     private function sendDueTodayReminder(Invoice $invoice)
     {
-        // Načtení vztahů pro správné zobrazení v emailu
+        // Get the invoice with its relations
         $invoice->load(['supplier', 'client']);
         
-        $this->info("Odesílám připomenutí o splatnosti dnes pro fakturu #{$invoice->invoice_vs}");
+        $this->info("Sending a reminder about today's due date for invoice #{$invoice->invoice_vs}");
         
-        // Odeslat notifikaci dodavateli, pokud máme jeho email
+        // Send notification to supplier if we have their email
         if ($invoice->supplier && $invoice->supplier->email) {
-            // Detekce jazyka dodavatele
+            // Check if the supplier has a preferred locale
             $locale = $invoice->supplier->preferredLocale();
-            $this->info("- Používám jazyk pro dodavatele: {$locale}");
+            $this->info("- Using language for supplier: {$locale}");
 
             $invoice->supplier->notify(new InvoiceDueReminder($invoice));
         }
         
-        // Odeslat notifikaci klientovi, pokud máme jeho email
+        // Send notification to client if we have their email
         if ($invoice->client && $invoice->client->email) {
-            // Detekce jazyka klienta
+            // Check if the client has a preferred locale
             $locale = $invoice->client->preferredLocale();
-            $this->info("- Používám jazyk pro klienta: {$locale}");
+            $this->info("- Using language for client: {$locale}");
 
             $invoice->client->notify(new InvoiceDueReminder($invoice, 'client'));
         }
     }
 
     /**
-     * Odeslat připomenutí o faktuře po splatnosti
+     * Send reminder for overdue invoice
      */
     private function sendOverdueReminder(Invoice $invoice)
     {
-        // Načtení vztahů pro správné zobrazení v emailu
+        // Get the invoice with its relations
         $invoice->load(['supplier', 'client']);
         
-        $this->info("Odesílám připomenutí o překročení splatnosti pro fakturu #{$invoice->invoice_vs}");
+        $this->info("Sending a reminder about overdue invoice #{$invoice->invoice_vs}");
         
-        // Odeslat notifikaci dodavateli, pokud máme jeho email
+        // Send notification to supplier if we have their email
         if ($invoice->supplier && $invoice->supplier->email) {
-            // Detekce jazyka dodavatele
+            // Check if the supplier has a preferred locale
             $locale = $invoice->supplier->preferredLocale();
-            $this->info("- Používám jazyk pro dodavatele: {$locale}");
+            $this->info("- Using language for supplier: {$locale}");
 
             $invoice->supplier->notify(new InvoiceOverdueReminder($invoice));
         }
         
-        // Odeslat notifikaci klientovi, pokud máme jeho email
+        // Send notification to client if we have their email
         if ($invoice->client && $invoice->client->email) {
-            // Detekce jazyka klienta
+            // Check if the client has a preferred locale
             $locale = $invoice->client->preferredLocale();
-            $this->info("- Používám jazyk pro klienta: {$locale}");
+            $this->info("- Using language for client: {$locale}");
 
             $invoice->client->notify(new InvoiceOverdueReminder($invoice, 'client'));
         }
 
-        // Aktualizovat status faktury na "overdue", pokud ještě není
+        // Actually change the status of the invoice to 'overdue'
         if ($invoice->payment_status_slug !== 'overdue') {
             $overdueStatus = \App\Models\Status::where('slug', 'overdue')->first();
             if ($overdueStatus) {
                 $invoice->payment_status_id = $overdueStatus->id;
                 $invoice->save();
-                $this->info("Status faktury #{$invoice->invoice_vs} změněn na 'overdue'");
+                $this->info("Invoice status #{$invoice->invoice_vs} changed to 'overdue'");
             }
         }
     }

@@ -1,4 +1,4 @@
-@props(['name', 'id' => null, 'selected' => null, 'required' => false, 'label' => 'Země', 'class' => ''])
+@props(['name', 'id' => null, 'selected' => null, 'required' => false, 'label' => __('invoices.fields.country'), 'class' => ''])
 
 <div {{ $attributes }}>
     <label for="{{ $id ?? $name }}" class="block text-base font-medium text-gray-500 mb-2">

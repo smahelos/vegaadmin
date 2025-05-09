@@ -34,8 +34,8 @@ class ClientList extends Component
                 'hasData' => $clients->total() > 0,
             ]);
         } catch (\Exception $e) {
-            Log::error('Chyba při načítání seznamu klientů: ' . $e->getMessage());
-            $this->errorMessage = 'Nastala chyba při načítání klientů.';
+            Log::error('Error while loading clients: ' . $e->getMessage());
+            $this->errorMessage = 'Error while loading clients.';
             
             return view('livewire.client-list', [
                 'clients' => collect()->paginate(10),

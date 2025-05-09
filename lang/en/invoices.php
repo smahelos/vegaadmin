@@ -3,10 +3,12 @@
 return [
     'qr_code_info' => 'Use the QR code for payment',
     'generated_at' => 'Generated at',
+
     'defaults' => [
         'invoice_text' => 'Billing for services',
         'payment_method' => 'Bank transfer',
     ],
+
     'fields' => [
         'invoice_vs' => 'Invoice Number',
         'invoice_vs_long' => 'Invoice Number (VS):',
@@ -44,7 +46,10 @@ return [
         'amount' => 'Amount',
         'total' => 'Total',
         'invoice_vs_short' => 'VS',
+        'invoice_items' => 'Invoice items',
+        'invoice_note' => 'Invoice note',
     ],
+
     'sections' => [
         'invoice_details' => 'Invoice Details',
         'invoice_info' => 'Invoice Information',
@@ -59,7 +64,9 @@ return [
         'items' => 'Invoice Items',
         'payment_info' => 'Payment Information',
         'qr_payment' => 'QR Payment Code',
+        'invoice_text' => 'Invoice items and notes',
     ],
+
     'actions' => [
         'create' => 'Create Invoice',
         'edit' => 'Edit Invoice',
@@ -80,7 +87,9 @@ return [
         'send_email' => 'Send by Email',
         'show' => 'View Invoice',
         'processing' => 'Processing...',
+        'add_item' => 'Add item',
     ],
+
     'titles' => [
         'index' => 'Invoices',
         'create' => 'Create New Invoice',
@@ -90,9 +99,11 @@ return [
         'invoice' => 'Invoice',
         'invoice_items' => 'Invoice Items',
     ],
+
     'labels' => [
         'created_at' => 'Issue Date',
     ],
+
     'messages' => [
         'created' => 'Invoice was successfully created.',
         'updated' => 'Invoice was successfully updated.',
@@ -117,7 +128,10 @@ return [
         'expires_in_soon' => 'Link will expire soon',
         'invoice_deleted' => 'Invoice was successfully deleted.',
         'invoice_sent' => 'Invoice was successfully sent.',
+        'marked_as_paid' => 'Invoice has been marked as paid.',
+        'status_not_found' => 'Status "paid" not found.',
     ],
+
     'placeholders' => [
         'select_client' => 'Create a new client or select...',
         'select_status' => 'Select status...',
@@ -128,8 +142,17 @@ return [
         'suggested_number_desc' => 'You can change the suggested invoice number according to your needs',
         'not_available' => '—',
         'number' => 'Number',
+        'item_name' => 'Item name',
+        'item_quantity' => 'Quantity',
+        'item_unit' => 'Unit',
+        'item_price' => 'Price/unit',
+        'item_tax' => 'VAT',
+        'item_price_complete' => 'Total',
+        'actions' => 'Actions',
     ],
+
     'status' => [
+        'invoice_statuses' => 'Invoice Statuses',
         'sent' => 'Sent',
         'paid' => 'Paid',
         'overdue' => 'Overdue',
@@ -138,21 +161,36 @@ return [
         'draft' => 'Draft',
         'unknown' => 'Unknown',
     ],
+
     'modal' => [
         'preview_title' => 'Preview Invoice No. :number',
         'loading_pdf' => 'Loading PDF...',
     ],
+
     'units' => [
+        'hours' => 'hours',
         'days' => 'days',
+        'pieces' => 'pcs',
+        'kilograms' => 'kg',
+        'grams' => 'g',
+        'liters' => 'l',
+        'meters' => 'm',
+        'cubic_meters' => 'm³',
+        'centimeters' => 'cm',
+        'cubic_centimeters' => 'cm³',
+        'milliliters' => 'ml',
     ],
+
     'tags' => [
         'issuer' => 'Supplier',
         'recipient' => 'Recipient',
     ],
+
     'tables' => [
         'field' => 'Field',
         'value' => 'Value',
     ],
+
     'validation' => [
         // Basic invoice information
         'invoice_vs_required' => 'Invoice number (VS) is required',
@@ -187,6 +225,7 @@ return [
         'client_zip_required' => 'Client ZIP code is required',
         'client_country_required' => 'Client country is required',
     ],
+
     'hints' => [
         'invoice_vs' => 'You can customize the suggested invoice number to match your numbering system.',
         'invoice_ks' => '',

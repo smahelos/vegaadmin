@@ -35,15 +35,19 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $client->ico ?? '—' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $client->invoices_count ?? $client->invoices->count() }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <!-- View button -->
                                             <a href="@localizedRoute('frontend.client.show', $client->id)" title="{{ __('clients.actions.show') }}" class="text-cyan-600 hover:text-cyan-900 mr-3">
                                                 <i class="fas fa-eye"></i>
                                             </a>
+                                            <!-- Edit button -->
                                             <a href="@localizedRoute('frontend.client.edit', $client->id)" title="{{ __('clients.actions.edit') }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
                                                 <i class="fas fa-pencil-alt"></i>
                                             </a>
+                                            <!-- New invoice button -->
                                             <a href="@localizedRoute('frontend.invoice.create', ['client_id' => $client->id])" title="{{ __('clients.actions.create') }}" class="text-green-600 hover:text-green-900 mr-3">
                                                 <i class="fas fa-file-invoice"></i>
                                             </a>
+                                            <!-- Delete button -->
                                             <a href="#" title="{{ __('clients.actions.delete') }}" class="text-red-600 hover:text-red-900" onclick="event.preventDefault(); if(confirm('@php echo $confirmDeleteTxt; @endphp')) document.getElementById('delete-form-{{ $client->id }}').submit();">
                                                 <i class="fas fa-trash-alt"></i>
                                             </a>
@@ -58,12 +62,14 @@
                         </table>
                     </div>
 
+                    <!-- Pagination -->
                     @if($clients instanceof \Illuminate\Pagination\LengthAwarePaginator)
                         <div class="mt-4">
-                            {{ $clients->links() }}
+                            <x-pagination :paginator="$clients" />
                         </div>
                     @endif
                 @else
+                    <!-- Empty state message -->
                     <div class="text-center py-10">
                         <div class="text-gray-400 mb-3">
                             <i class="fas fa-users fa-3x"></i>
@@ -79,6 +85,7 @@
         </div>
 </div>
 
+<!-- Livewire component -->
 @if(isset($livewire) && $livewire)
     @livewire('clients-table')
 @endif

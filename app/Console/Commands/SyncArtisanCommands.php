@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 class SyncArtisanCommands extends Command
 {
     protected $signature = 'artisan:sync-commands';
-    protected $description = 'Synchronizuje dostupné Artisan příkazy s databází';
+    protected $description = 'Synchronize artisan commands with the database';
 
     protected $commandsService;
 
@@ -25,7 +25,7 @@ class SyncArtisanCommands extends Command
         $availableCommands = $this->commandsService->getAllCommands();
         $databaseCommands = ArtisanCommand::pluck('command')->toArray();
         
-        // Určení kategorie pro nové příkazy
+        // Set category for uncategorized commands
         $uncategorizedCategory = ArtisanCommandCategory::firstOrCreate(
             ['slug' => 'uncategorized'],
             [
@@ -35,10 +35,10 @@ class SyncArtisanCommands extends Command
             ]
         );
         
-        // Najdeme nové příkazy
+        // Find new commands that are not in the database
         $newCommands = array_diff(array_keys($availableCommands), $databaseCommands);
         
-        // Přidáme nové příkazy do databáze
+        // Add new commands to the database
         foreach ($newCommands as $command) {
             $description = str_replace($command . ' - ', '', $availableCommands[$command]);
             
@@ -51,18 +51,19 @@ class SyncArtisanCommands extends Command
             ]);
         }
         
-        // Označíme neexistující příkazy
+        // Mark commands that are no longer available
+        // as inactive in the database
         $missingCommands = array_diff($databaseCommands, array_keys($availableCommands));
         if (count($missingCommands) > 0) {
             ArtisanCommand::whereIn('command', $missingCommands)->update(['is_active' => false]);
         }
         
-        // Vyčistíme cache
+        // Clear the commands cache
         $this->commandsService->clearCommandsCache();
         
-        $this->info('Synchronizace dokončena.');
-        $this->info('Přidáno nových příkazů: ' . count($newCommands));
-        $this->info('Označeno neaktivních příkazů: ' . count($missingCommands));
+        $this->info('Synchronisation finished.');
+        $this->info('New commands added: ' . count($newCommands));
+        $this->info('Marked as inactive commands: ' . count($missingCommands));
         
         return 0;
     }

@@ -52,4 +52,13 @@ return [
         'no_items' => 'Žiadne položky',
         'no_results' => 'Žiadne výsledky',
     ],
+
+    'pagination' => [
+        'shown' => 'Zobrazené',
+        'of' => 'z',
+        'up_to' => 'až',
+        'items' => 'položiek',
+        'previous' => 'Predchádzajúca',
+        'next' => 'Ďalšia',
+    ],
 ];

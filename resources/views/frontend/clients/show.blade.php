@@ -12,11 +12,11 @@
         </a>
     </div>
 </div>
-<!-- Hlavní informace o klientovi -->
+<!-- Main client information -->
 <div class="mb-6">
         <div class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Levý sloupec: Základní informace -->
+                <!-- Left column: Basic information -->
                 <div class="p-6 overflow-hidden shadow-md bg-blue-50 rounded-lg border border-blue-200">
                     <div class="border-b border-blue-200 mb-4 pb-2 flex justify-between items-center">
                         <h2 class="text-xl text-gray-800">{{ __('clients.sections.basic_info') }}</h2>
@@ -80,7 +80,7 @@
                     </div>
                 </div>
 
-                <!-- Pravý sloupec: Fakturační údaje -->
+                <!-- Right column: Billing information -->
                 <div class="p-6 overflow-hidden shadow-md bg-green-50 rounded-lg border border-green-200">
                     <div class="border-b border-green-200 mb-4 pb-2 flex justify-between items-center">
                         <h2 class="text-xl text-gray-800">{{ __('clients.sections.billing_info') }}</h2>
@@ -127,7 +127,7 @@
                             </div>
                         </div>
                         
-                        <!-- Zobrazení doručovací adresy, pokud se liší od fakturační -->
+                        <!-- Display delivery address if different from billing -->
                         @if($client->has_delivery_address)
                         <div class="bg-white p-3 rounded-md shadow-sm">
                             <div class="text-sm font-medium mb-2">{{ __('clients.sections.delivery_address') }}</div>
@@ -219,7 +219,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="@localizedRoute('frontend.invoice.show', $invoice->id)" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                    <a href="@localizedRoute('frontend.invoice.show', $invoice->id)" class="text-cyan-600 hover:text-cyan-900 mr-3">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="@localizedRoute('frontend.invoice.edit', $invoice->id)" class="text-yellow-600 hover:text-yellow-900 mr-3">

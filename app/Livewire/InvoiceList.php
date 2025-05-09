@@ -51,8 +51,8 @@ class InvoiceList extends Component
                 'hasData' => $invoices->total() > 0,
             ]);
         } catch (\Exception $e) {
-            Log::error('Chyba při načítání seznamu faktur: ' . $e->getMessage());
-            $this->errorMessage = 'Nastala chyba při načítání faktur.';
+            Log::error('Error while loading invoices list: ' . $e->getMessage());
+            $this->errorMessage = 'Error while loading invoices.';
             
             return view('livewire.invoice-list', [
                 'invoices' => collect()->paginate(10),

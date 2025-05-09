@@ -13,13 +13,13 @@
 <form action="{{ route('frontend.supplier.store') }}" method="POST">
     @csrf
 
-    <!-- Sekce 1: Základní informace dodavatele -->
+    <!-- Section 1: Supplier basic information -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white overflow-hidden shadow-sm rounded-lg">
             <div class="p-6">
                 <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('suppliers.sections.basic_info') }}</h2>
                 
-                    <!-- Levý sloupec -->
+                    <!-- Left column -->
                     @php
                         $leftColumnFields = ['name', 'shortcut', 'email', 'phone', 'note'];
                     @endphp
@@ -52,7 +52,7 @@
                             </div>
                         @endif
 
-                        <!-- Výchozí popis -->
+                        <!-- Default description -->
                         @if ($field['name'] === 'description')
                             <div class="mb-5">
                                 <label for="{{ $field['name'] }}" class="block text-base font-medium text-gray-500 mb-2 h-6">
@@ -75,7 +75,7 @@
                             </div>
                         @endif
 
-                        <!-- Výchozí dodavatel -->
+                        <!-- Default supplier -->
                         @if ($field['name'] === 'is_default')
                             <div class="mb-5">
                                 <label for="is_default" class="flex items-center">
@@ -97,12 +97,12 @@
             </div>
         </div>
 
-        <!-- Sekce 2: Fakturační údaje dodavatele -->
+        <!-- Section 2: Supplier billing information -->
         <div class="bg-green-50 overflow-hidden shadow-sm rounded-lg border border-green-200">
             <div class="p-6">
                 <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('suppliers.sections.billing_info') }}</h2>
                 
-                    <!-- Pravý sloupec -->
+                    <!-- Right column -->
                     @php
                         $leftColumnFields = ['name', 'shortcut', 'email', 'phone', 'description', 'is_default'];
                     @endphp
@@ -112,7 +112,7 @@
                         @endif
                             <div class="@if($field['name'] === 'city')md:col-span-5 @elseif($field['name'] === 'account_number')md:col-span-4 @elseif($field['name'] === 'zip' || $field['name'] === 'bank_code' || $field['name'] === 'bank_name')md:col-span-3 @elseif($field['name'] === 'country')md:col-span-2 @else md:col-span-5 @endif ">
                             @if ($field['name'] === 'country')
-                                <!-- Země -->
+                                <!-- Country -->
                                 <x-country-select 
                                     name="country"
                                     :selected="old('country', $supplierInfo['country'] ?? 'CZ')" 
@@ -168,7 +168,7 @@
         </div>
     </div>
 
-    <!-- Tlačítko pro odeslání formuláře -->
+    <!-- Form submission button -->
     <div class="mt-6 flex justify-between">
         <a href="@localizedRoute('frontend.suppliers')" 
            class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">

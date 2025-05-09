@@ -36,7 +36,6 @@ class CronTaskCrudController extends CrudController
                 'monthly' => __('admin.cron_tasks.frequency.monthly'),
                 'custom' => __('admin.cron_tasks.frequency.custom'),
             ]);
-        // Přidáme nový sloupec pro zobrazení příštího spuštění
         CRUD::column('next_run')
             ->label(__('admin.cron_tasks.fields.next_run'))
             ->type('closure')
@@ -60,12 +59,12 @@ class CronTaskCrudController extends CrudController
             ->type('text')
             ->tab(__('admin.cron_tasks.tabs.basic'));
         
-        // Získáme všechny dostupné příkazy
+        // Get all available commands
         $commandsService = new ArtisanCommandsService();
-        // Připravíme výchozí příkazy z kategorie 'cron'
+        // Prepare commands for select form 'cron' command category
         $commands = $commandsService->getCommandsByCategory('cron');
         
-        // Pole pro základní příkaz - select
+        // Base command
         CRUD::field('base_command')
             ->label(__('admin.cron_tasks.fields.base_command'))
             ->type('select_from_array')
@@ -76,7 +75,7 @@ class CronTaskCrudController extends CrudController
             ])
             ->tab(__('admin.cron_tasks.tabs.basic'));
         
-        // Pole pro parametry příkazu
+        // Command parameters
         CRUD::field('command_params')
             ->label(__('admin.cron_tasks.fields.command_params'))
             ->type('text')
@@ -86,14 +85,10 @@ class CronTaskCrudController extends CrudController
             ])
             ->tab(__('admin.cron_tasks.tabs.basic'));
         
-        // Skryté pole pro kompletní příkaz
+        // Hidden field for complete command
         CRUD::field('command')
             ->type('hidden')
             ->tab(__('admin.cron_tasks.tabs.basic'));
-            
-        // CRUD::field('command')->label(__('admin.cron_tasks.fields.command'))
-        //     ->type('text')
-        //     ->tab(__('admin.cron_tasks.tabs.basic'));
         
         CRUD::field('frequency')->label(__('admin.cron_tasks.fields.frequency'))
             ->type('select_from_array')
@@ -167,7 +162,7 @@ class CronTaskCrudController extends CrudController
             )
             ->tab(__('admin.cron_tasks.tabs.history'));
 
-        // Přidáme skript pro spojení polí
+        // Add a field for the command script
         $this->crud->addField([
             'name' => 'command_script',
             'type' => 'view',
@@ -217,9 +212,6 @@ class CronTaskCrudController extends CrudController
         });
     }
 
-    /**
-     * Přidejte tuto metodu do třídy kontroléru
-     */
     public function runCronTask($id)
     {
         $task = \App\Models\CronTask::findOrFail($id);

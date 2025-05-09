@@ -1,13 +1,25 @@
 @extends('layouts.frontend')
 
 @section('content')
-    <!-- Horní navigační lišta s tlačítky -->
+    <!-- Top navigation bar with buttons -->
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl text-amber-600">{{ __('invoices.titles.invoice_number', ['number' => $invoice->invoice_vs]) }}</h1>
         <div class="flex space-x-4">
             <a href="@localizedRoute('frontend.invoices')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i> {{ __('invoices.actions.back_to_list') }}
             </a>
+
+            <!-- Button for marking as paid - show only if not paid -->
+            @if($invoice->payment_status_slug != 'paid')
+                <form method="POST" action="@localizedRoute('frontend.invoice.mark-as-paid', $invoice->id)">
+                    @csrf
+                    @method('PUT')
+                    <button type="submit" class="px-4 py-2 bg-emerald-200 hover:bg-emerald-500 rounded-md text-gray-700 hover:text-white text-sm font-medium transition-colors">
+                        <i class="fas fa-check-circle mr-2"></i> {{ __('invoices.actions.mark_as_paid') }}
+                    </button>
+                </form>
+            @endif
+
             <a href="@localizedRoute('frontend.invoice.edit', $invoice->id)" class="px-4 py-2 bg-green-200 hover:bg-emerald-500 rounded-md text-gray-700 hover:text-white text-sm font-medium transition-colors">
                 <i class="fas fa-pencil-alt"></i> {{ __('invoices.actions.edit') }}
             </a>
@@ -27,11 +39,11 @@
         </div>
     </div>
 
-    <!-- Hlavní informace o faktuře -->
+    <!-- Main invoice information -->
     <div class="mb-6">
         <div class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Levý sloupec: Informace o faktuře -->
+                <!-- Left column: Invoice information -->
                 
                 <div class="bg-white overflow-hidden shadow-md rounded-lg p-6">
                     <div class="mb-4 border-b border-gray-200 pb-2 flex justify-between items-center">
@@ -141,21 +153,11 @@
                         </div>
                         @endif
                     </div>
-                
-                    <!-- Sekce pro popis (pouze pokud existuje) -->
-                    @if(!empty($invoice->invoice_text))
-                    <div class="border-t border-gray-200">
-                        <div class="p-6">
-                            <h3 class="text-base font-medium text-gray-900 mb-2">{{ __('invoices.sections.internal_note') }}</h3>
-                            <p class="text-sm text-gray-700 whitespace-pre-line">{{ $invoice->invoice_text }}</p>
-                        </div>
-                    </div>
-                    @endif
                 </div>
 
-                <!-- Pravý sloupec: Informace o vystaviteli a odběrateli -->
+                <!-- Right column: Information about issuer and recipient -->
                 <div>
-                    <!-- Sekce Dodavatel -->
+                    <!-- Supplier section -->
                     <div class="mb-6 overflow-hidden shadow-md bg-blue-50 rounded-lg border border-blue-200 p-6">
                         <div class="mb-4 border-b border-blue-200 pb-2 flex justify-between items-center">
                             <h2 class="text-xl text-gray-800">{{ __('invoices.sections.supplier') }}</h2>
@@ -204,7 +206,7 @@
                         </div>
                     </div>
 
-                    <!-- Sekce Odběratel -->
+                    <!-- Client section -->
                     <div class="overflow-hidden shadow-md bg-green-50 rounded-lg border border-green-200 p-6">
                         <div class="mb-4 border-b border-green-200 pb-2 flex justify-between items-center">
                             <h2 class="text-xl text-gray-800">{{ __('invoices.sections.client') }}</h2>
@@ -254,10 +256,133 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Section for invoice items and note (only if exists) -->
+            @if(!empty($invoice->invoice_text))
+            <div>
+                <div class="bg-red-100 overflow-hidden shadow-md rounded-lg p-6">
+                    <div class="mb-4 border-b border-white pb-2 flex justify-between items-center">
+                        <h2 class="text-xl text-gray-800">{{ __('invoices.sections.invoice_text') }}</h2>
+                    </div>
+                
+                    <div class="space-y-4">
+                        <div class="mt-4 space-y-4">
+                            <div class="">
+                                @php
+                                    // Attempt to parse JSON
+                                    $invoiceTextData = null;
+                                    try {
+                                        $invoiceTextData = json_decode($invoice->invoice_text, true);
+                                    } catch (\Exception $e) {
+                                        // Parsing error - leave $invoiceTextData as null
+                                    }
+                                @endphp
+                                
+                                @if($invoiceTextData && isset($invoiceTextData['items']) && count($invoiceTextData['items']) > 0)
+                                <!-- Invoice items -->
+                                <h3 class="text-base font-medium text-gray-900 mb-4 ml-4">{{ __('invoices.fields.invoice_items') }}</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 mb-4">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ __('invoices.placeholders.item_name') }}
+                                                </th>
+                                                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ __('invoices.placeholders.item_quantity') }}
+                                                </th>
+                                                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ __('invoices.placeholders.item_unit') }}
+                                                </th>
+                                                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ __('invoices.placeholders.item_price') }}
+                                                </th>
+                                                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ __('invoices.placeholders.item_tax') }}
+                                                </th>
+                                                <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    {{ __('invoices.placeholders.item_price_complete') }}
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            @foreach($invoiceTextData['items'] as $item)
+                                                <tr>
+                                                    <td class="px-4 py-2 text-sm text-gray-900">
+                                                        {{ $item['name'] ?? '-' }}
+                                                    </td>
+                                                    <td class="px-4 py-2 text-sm text-right text-gray-900">
+                                                        {{ $item['quantity'] ?? '-' }}
+                                                    </td>
+                                                    <td class="px-4 py-2 text-sm text-right text-gray-900">
+                                                        {{ $item['unit'] ?? 'ks' }}
+                                                    </td>
+                                                    <td class="px-4 py-2 text-sm text-right text-gray-900">
+                                                        @if(isset($item['price']) && $item['price'] > 0)
+                                                            {{ number_format($item['price'], 2, ',', ' ') }}
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-4 py-2 text-sm text-right text-gray-900">
+                                                        @if(isset($item['tax']))
+                                                            {{ $item['tax'] }}%
+                                                        @else
+                                                            0%
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-4 py-2 text-sm text-right text-gray-900 font-medium">
+                                                        @if(isset($item['priceComplete']) && $item['priceComplete'])
+                                                            {{ $item['priceComplete'] }}
+                                                        @elseif(isset($item['price']) && isset($item['quantity']))
+                                                            @php
+                                                                $tax = isset($item['tax']) ? floatval($item['tax']) : 0;
+                                                                $totalWithTax = floatval($item['price']) * floatval($item['quantity']) * (1 + ($tax / 100));
+                                                                echo number_format($totalWithTax, 2, ',', ' ');
+                                                            @endphp
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr class="bg-gray-100 font-medium">
+                                                <td class="px-4 py-3 text-right" colspan="5">
+                                                    {{ __('invoices.fields.total') }}:
+                                                </td>
+                                                <td class="px-4 py-3 text-right text-gray-900 font-bold">
+                                                    {{ number_format($invoice->payment_amount, 2, ',', ' ') }} {{ $invoice->payment_currency }}
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            @endif
+
+                                @if($invoiceTextData && isset($invoiceTextData['note']) && !empty($invoiceTextData['note']))
+                                    <!-- Invoice note -->
+                                    <h3 class="text-base font-medium text-gray-900 mb-2 mt-6 ml-4">{{ __('invoices.fields.invoice_note') }}</h3>
+                                    <div class="bg-gray-50 rounded-md p-4">
+                                        <p class="text-sm text-gray-700 whitespace-pre-line">{{ $invoiceTextData['note'] }}</p>
+                                    </div>
+                                @elseif(!$invoiceTextData)
+                                    <!-- Display original content if JSON parsing fails -->
+                                    <h3 class="text-base font-medium text-gray-900 mb-2">{{ __('invoices.sections.internal_note') }}</h3>
+                                    <p class="text-sm text-gray-700 whitespace-pre-line">{{ $invoice->invoice_text }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            </div>
+
         </div>
     </div>
 
-<!-- Modální okno pro PDF náhled -->
+<!-- Modal window for PDF preview -->
 <div id="pdfPreviewModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen p-4 text-center">
         <div class="fixed inset-0 transition-opacity" aria-hidden="true">
@@ -305,39 +430,39 @@
         const pdfIframe = document.getElementById('pdfIframe');
         const loadingIndicator = document.getElementById('loading-indicator');
         
-        // Otevření modálního okna a načtení PDF
+        // Opening modal window and loading PDF
         previewBtn.addEventListener('click', function() {
-            // Získání aktuálního jazyka
+            // Get current language
             const currentLang = '{{ app()->getLocale() }}';
-            // Nastavení iframe zdroje s parametrem preview=true
+            // Set iframe source with preview=true parameter
             pdfIframe.src = "{{ route('frontend.invoice.download', $invoice->id) }}?preview=true&lang=" + currentLang;
             
-            // Zobrazení načítacího indikátoru
+            // Show loading indicator
             loadingIndicator.classList.remove('hidden');
             pdfIframe.onload = function() {
-                console.log('PDF načteno');
+                console.log('PDF loaded');
                 loadingIndicator.classList.add('hidden');
             };
             
             modal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
             
-            // Debug informace
-            console.log('Modální okno otevřeno, načítám PDF');
+            // Debug information
+            console.log('Modal window opened, loading PDF');
             console.log('URL:', "{{ route('frontend.invoice.download', $invoice->id) }}?preview=true&lang=" + currentLang);
         });
         
-        // Zavření modálního okna
+        // Closing modal window
         const closeModalFunction = function() {
             modal.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
-            // Vyčištění iframe zdroje pro snížení zatížení paměti
+            // Clearing iframe source to reduce memory usage
             setTimeout(() => {
                 pdfIframe.src = 'about:blank';
             }, 300);
         };
         
-        // Zajistíme, že prvky existují, než přidáme event listenery
+        // Ensure elements exist before adding event listeners
         if (closeModalBtn) {
             closeModalBtn.addEventListener('click', closeModalFunction);
         }
@@ -345,14 +470,14 @@
             closeModal.addEventListener('click', closeModalFunction);
         }
         
-        // Zavření modálního okna při kliknutí mimo obsah
+        // Close modal window when clicking outside content
         modal.addEventListener('click', function(event) {
             if (event.target === modal) {
                 closeModalFunction();
             }
         });
         
-        // Zavření modálního okna při stisknutí klávesy Escape
+        // Close modal window when pressing Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
                 closeModalFunction();

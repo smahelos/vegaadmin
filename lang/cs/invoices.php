@@ -3,10 +3,12 @@
 return [
     'qr_code_info' => 'Pro platbu použijte QR kód',
     'generated_at' => 'Vygenerováno',
+
     'defaults' => [
         'invoice_text' => 'Fakturace služeb',
         'payment_method' => 'Bankovní převod',
     ],
+    
     'fields' => [
         'invoice_vs' => 'Číslo faktury',
         'invoice_vs_long' => 'Číslo faktury (VS):',
@@ -44,7 +46,10 @@ return [
         'amount' => 'Částka',
         'total' => 'Celkem',
         'invoice_vs_short' => 'VS',
+        'invoice_items' => 'Položky faktury',
+        'invoice_note' => 'Poznámka k faktuře',
     ],
+
     'sections' => [
         'invoice_details' => 'Údaje o faktuře',
         'invoice_info' => 'Informace o faktuře',
@@ -59,7 +64,9 @@ return [
         'items' => 'Položky faktury',
         'payment_info' => 'Informace pro platbu',
         'qr_payment' => 'QR kód pro platbu',
+        'invoice_text' => 'Položky a poznámky k faktuře',
     ],
+
     'actions' => [
         'create' => 'Vytvořit fakturu',
         'edit' => 'Upravit fakturu',
@@ -80,7 +87,9 @@ return [
         'send_email' => 'Odeslat e-mailem',
         'show' => 'Zobrazit fakturu',
         'processing' => 'Zpracovávám...',
+        'add_item' => 'Přidat položku',
     ],
+
     'titles' => [
         'index' => 'Faktury',
         'create' => 'Vytvořit novou fakturu',
@@ -90,9 +99,11 @@ return [
         'invoice' => 'Faktura',
         'invoice_items' => 'Položky faktury',
     ],
+
     'labels' => [
         'created_at' => 'Datum vystavení',
     ],
+
     'messages' => [
         'created' => 'Faktura byla úspěšně vytvořena.',
         'updated' => 'Faktura byla úspěšně aktualizována.',
@@ -117,7 +128,10 @@ return [
         'expires_in_soon' => 'Platnost odkazu brzy vyprší',
         'invoice_deleted' => 'Faktura byla úspěšně smazána.',
         'invoice_sent' => 'Faktura byla úspěšně odeslána.',
+        'marked_as_paid' => 'Faktura byla označena jako zaplacená.',
+        'status_not_found' => 'Status "zaplaceno" nebyl nalezen.',
     ],
+
     'placeholders' => [
         'select_client' => 'Vytvořte nového klienta nebo vyberte...',
         'select_status' => 'Vyberte stav...',
@@ -128,8 +142,18 @@ return [
         'suggested_number_desc' => 'Navrhované číslo faktury můžete změnit podle vašich potřeb',
         'not_available' => '—',
         'number' => 'Číslo',
+        'item_name' => 'Název položky',
+        'item_quantity' => 'Množství',
+        'item_unit' => 'Jednotka',
+        'item_price' => 'Cena/ks',
+        'item_tax' => 'DPH',
+        'item_price_complete' => 'Celkem',
+        'actions' => 'Akce',
+        'select_item_unit' => 'Vyberte jednotku',
     ],
+
     'status' => [
+        'invoice_statuses' => 'Stavy faktur',
         'sent' => 'Odesláno',
         'paid' => 'Zaplaceno',
         'overdue' => 'Po splatnosti',
@@ -138,21 +162,36 @@ return [
         'draft' => 'Koncept',
         'unknown' => 'Neznámý',
     ],
+
     'modal' => [
         'preview_title' => 'Náhled faktury č. :number',
         'loading_pdf' => 'Načítám PDF...',
     ],
+
     'units' => [
-        'days' => 'dní', // Nově přidáno pro text dní u splatnosti
+        'hours' => 'hodin',
+        'days' => 'dní',
+        'pieces' => 'ks',
+        'kilograms' => 'kg',
+        'grams' => 'g',
+        'liters' => 'l',
+        'meters' => 'm',
+        'cubic_meters' => 'm3',
+        'centimeters' => 'cm',
+        'cubic_centimeters' => 'cm3',
+        'milliliters' => 'mm',
     ],
+
     'tags' => [
         'issuer' => 'Dodavatel',
         'recipient' => 'Odběratel',
     ],
+
     'tables' => [
         'field' => 'Pole',
         'value' => 'Hodnota',
     ],
+
     'validation' => [
         // Základní údaje o faktuře
         'invoice_vs_required' => 'Číslo faktury (VS) je povinné',
@@ -187,6 +226,7 @@ return [
         'client_zip_required' => 'PSČ klienta je povinné',
         'client_country_required' => 'Země klienta je povinná',
     ],
+
     'hints' => [
         'invoice_vs' => 'Navrhované číslo faktury můžete přizpůsobit vašemu číslování.',
         'invoice_ks' => '',

@@ -39,6 +39,7 @@ class StatusCrudController extends CrudController
     {
         CRUD::column('name')->label('Name');
         CRUD::column('slug')->label('Slug');
+        CRUD::column('type')->label('Type');
         CRUD::column('color_preview')
             ->type('custom_html')
             ->value(function($entry) {
@@ -62,19 +63,24 @@ class StatusCrudController extends CrudController
         
         CRUD::field('name')->label('Name');
         CRUD::field('slug')->label('Slug');
+        CRUD::field('type')->label(__('admin.statuses.status_types'))->type('select_from_array')
+            ->options([
+                'invoice_type' => __('invoices.status.invoice_statuses'),
+                'user_type' => __('users.status.user_statuses'),
+            ])->allows_null(false);
         CRUD::addField([
             'name' => 'color',
             'label' => 'Color',
             'type' => 'select_from_array',
             'options' => [
-                'bg-green-100 text-green-800' => 'Green',
-                'bg-yellow-100 text-yellow-800' => 'Yellow',
-                'bg-red-100 text-red-800' => 'Red',
-                'bg-blue-100 text-blue-800' => 'Blue',
-                'bg-gray-100 text-gray-800' => 'Gray',
-                'bg-purple-100 text-purple-800' => 'Purple',
-                'bg-indigo-100 text-indigo-800' => 'Indigo',
-                'bg-pink-100 text-pink-800' => 'Pink',
+                'green' => 'Green',
+                'yellow' => 'Yellow',
+                'red' => 'Red',
+                'blue' => 'Blue',
+                'gray' => 'Gray',
+                'purple' => 'Purple',
+                'indigo' => 'Indigo',
+                'pink' => 'Pink',
             ],
             'allows_null' => false,
             'default' => 'bg-gray-100 text-gray-800',
