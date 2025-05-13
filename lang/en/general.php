@@ -4,6 +4,8 @@ return [
     // General translations for the application
     'logo_alt' => 'Vega Invoices',
     'currency' => '$',
+    'yes' => 'Yes',
+    'no' => 'No',
     
     // Months for date formatting
     'months' => [

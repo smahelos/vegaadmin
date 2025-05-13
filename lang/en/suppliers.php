@@ -98,7 +98,7 @@ return [
         'bank_name' => '',
     ],
     'placeholders' => [
-        'account_number' => '111111111/1111',
+        'account_number' => '123456789',
         'bank_code' => 'Select bank',
         'bank_name' => '',
         'iban' => 'GB00NWBK00000000000000',

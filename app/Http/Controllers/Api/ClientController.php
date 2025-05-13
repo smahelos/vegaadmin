@@ -70,4 +70,42 @@ class ClientController extends ApiBackpackController
         
         return response()->json($clients);
     }
+
+    /**
+     * Get default client for the authenticated user
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getDefaultClient()
+    {
+        try {
+            // Find default client
+            $client = Client::where('user_id', Auth::id())
+                ->where('is_default', true)
+                ->first();
+            
+            // If no default client found, get the first one
+            if (!$client) {
+                $client = Client::where('user_id', Auth::id())
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+            }
+            
+            if (!$client) {
+                return response()->json([
+                    'error' => __('clients.messages.no_clients')
+                ], 404);
+            }
+            
+            return response()->json($client);
+        } catch (\Exception $e) {
+            Log::error('Error getting default client: ' . $e->getMessage(), [
+                'user_id' => Auth::id()
+            ]);
+            
+            return response()->json([
+                'error' => __('clients.messages.error_loading')
+            ], 500);
+        }
+    }
 }

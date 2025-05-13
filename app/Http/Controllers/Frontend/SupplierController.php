@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\Bank;
 use App\Traits\SupplierFormFields;
 
 class SupplierController extends Controller
@@ -22,11 +23,7 @@ class SupplierController extends Controller
      */
     public function index()
     {
-        $suppliers = Supplier::where('user_id', Auth::id())
-            ->orderBy('name')
-            ->paginate(10);
-            
-        return view('frontend.suppliers.index', compact('suppliers'));
+        return view('frontend.suppliers.index');
     }
 
     /**
@@ -40,7 +37,10 @@ class SupplierController extends Controller
         $fields = $this->getSupplierFields();
 
         // Banks dropdown
-        $banks = $this->getCzechBanks();
+        $banks = $this->getBanksForDropdown();
+
+        // Get banksData for JD bank-fields.js
+        $banksData = $this->getBanksForJs();
 
         $supplierInfo = [
             'name' => $supplier->name ?? '',
@@ -65,6 +65,7 @@ class SupplierController extends Controller
             'fields' => $fields,
             'supplierInfo' => $supplierInfo,
             'banks' => $banks,
+            'banksData' => $banksData
         ]);
     }
 
@@ -154,12 +155,16 @@ class SupplierController extends Controller
             $fields = $this->getSupplierFields();
             
             // Banks dropdown
-            $banks = $this->getCzechBanks();
+            $banks = $this->getBanksForDropdown();
+
+            // Get banksData for JD bank-fields.js
+            $banksData = $this->getBanksForJs();
             
             return view('frontend.suppliers.edit', [
                 'supplier' => $supplier,
                 'fields' => $fields,
                 'banks' => $banks,
+                'banksData' => $banksData,
             ]);
             
         } catch (ModelNotFoundException $e) {
@@ -229,24 +234,44 @@ class SupplierController extends Controller
     }
 
     /**
-     * List of Czech banks with codes for dropdown
+     * Get list of banks with codes for dropdown
      * 
      * @return array
      */
-    private function getCzechBanks(): array
+    private function getBanksForDropdown(): array
     {
-        return [
-            '' => __('suppliers.fields.select_bank'),
-            '0100' => 'Komerční banka (0100)',
-            '0300' => 'ČSOB (0300)',
-            '0600' => 'MONETA Money Bank (0600)',
-            '0800' => 'Česká spořitelna (0800)',
-            '2010' => 'Fio banka (2010)',
-            '2700' => 'UniCredit Bank (2700)',
-            '3030' => 'Air Bank (3030)',
-            '5500' => 'Raiffeisenbank (5500)',
-            '6210' => 'mBank (6210)',
-            '8330' => 'Equa Bank (8330)',
-        ];
+        
+        $banks = Bank::where('country', 'CZ')
+            ->orderBy('created_at', 'desc')
+            ->get()->toArray();
+
+        foreach ($banks as $key => $bank) {
+            $banks[$key]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
+            $banks[$key]['value'] = $bank['code'];
+        }
+        $banks[0] = __('suppliers.fields.select_bank');
+
+        return $banks;
+    }
+
+    /**
+     * Get list of banks with codes for dropdown
+     * 
+     * @return array
+     */
+    private function getBanksForJs(): array
+    {
+        
+        $banks = Bank::where('country', 'CZ')
+            ->orderBy('created_at', 'desc')
+            ->get()->toArray();
+
+        $banksData = [];
+        foreach ($banks as $key => $bank) {
+            $banksData[$bank['code']]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
+            $banksData[$bank['code']]['swift'] = $bank['swift']; 
+        }
+
+        return $banksData;
     }
 }

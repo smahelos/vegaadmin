@@ -25,3 +25,5 @@
 <x-backpack::menu-item title="Cron tasks" icon="la la-question" :link="backpack_url('cron-task')" />
 <x-backpack::menu-item title="Artisan command categories" icon="la la-question" :link="backpack_url('artisan-command-category')" />
 <x-backpack::menu-item title="Artisan commands" icon="la la-question" :link="backpack_url('artisan-command')" />
+<x-backpack::menu-item title="Taxes" icon="la la-question" :link="backpack_url('tax')" />
+<x-backpack::menu-item title="Banks" icon="la la-question" :link="backpack_url('bank')" />

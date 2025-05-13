@@ -98,7 +98,7 @@ return [
         'bank_name' => '',
     ],
     'placeholders' => [
-        'account_number' => '111111111/1111',
+        'account_number' => '123456789',
         'bank_code' => 'Vyberte banku',
         'bank_name' => '',
         'iban' => 'SK0000000000000000000000',

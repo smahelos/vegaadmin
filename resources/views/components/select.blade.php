@@ -1,3 +1,19 @@
+@props([
+    'name',
+    'id',
+    'label' => null,
+    'labelClass' => '',
+    'class' => '',
+    'selected' => null,
+    'options' => [],
+    'required' => false,
+    'valueField' => 'id',
+    'textField' => 'name',
+    'hint' => '',
+    'allowsNull' => false,
+    'placeholder' => '-'
+])
+
 @if ($label)
         <label for="{{ $id }}" class="block text-base font-medium text-gray-500 mb-2 {{ $labelClass }}">
             {{ $label }}

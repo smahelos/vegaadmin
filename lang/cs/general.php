@@ -4,6 +4,8 @@ return [
     // Obecné překlady pro aplikaci
     'logo_alt' => 'Vega Faktury',
     'currency' => 'Kč',
+    'yes' => 'Ano',
+    'no' => 'Ne',
     
     // Měsíce pro formátování dat
     'months' => [

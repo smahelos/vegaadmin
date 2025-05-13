@@ -4,6 +4,8 @@ return [
     // Allgemeine Übersetzungen für die Anwendung
     'logo_alt' => 'Vega Rechnungen',
     'currency' => '€',
+    'yes' => 'Ja',
+    'no' => 'Nein',
     
     // Monate für Datumsformatierung
     'months' => [

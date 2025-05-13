@@ -183,3 +183,11 @@
     <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
 </form>
 @endsection
+
+@push('scripts')
+<script>
+    // Make bank options available to the bank-fields.js script
+    window.bankOptions = {{ Js::from($banksData) }};
+</script>
+@vite('resources/js/bank-fields.js')
+@vite('resources/js/ares-lookup.js')

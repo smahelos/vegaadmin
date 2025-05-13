@@ -70,99 +70,21 @@
 
                 <!-- Latest invoices -->
                 <div class="mb-8">
-                        <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_invoices') }}</h3>
-                        <div class="bg-white rounded-lg shadow overflow-hidden">
-                            @if(isset($recentInvoices) && $recentInvoices->count() > 0)
-                                <ul class="divide-y divide-gray-200">
-                                    @foreach($recentInvoices as $invoice)
-                                        <li class="px-4 hover:bg-gray-50 bg-{{ $invoice->status_color_class }}-100">
-                                            <a href="@localizedRoute('frontend.invoice.show', $invoice->id)" class="flex flex-row items-center">
-                                                <div class="basis-3/24">
-                                                    <p class="text-sm font-medium text-gray-900">{{ $invoice->invoice_vs }}</p>
-                                                </div>
-                                                <div class="basis-6/24">
-                                                    <p class="text-xs text-gray-500">
-                                                        {{ $invoice->client ? $invoice->client->name : __('dashboard.status.unknown_client') }} - 
-                                                        {{ number_format($invoice->payment_amount, 0, ',', ' ') }} {{ __('general.currency') }}
-                                                    </p>
-                                                </div>
-                                                <div class="basis-6/24">
-                                                    <p class="text-xs text-gray-500">
-                                                        @if($invoice->paymentMethod)
-                                                            {{ $invoice->paymentMethod->translated_name }}
-                                                        @else
-                                                            <span class="text-gray-400">{{ __('invoices.placeholders.not_available') }}</span>
-                                                        @endif
-                                                    </p>
-                                                </div>
-                                                <div class="basis-6/24">
-                                                    <p class="p-3 text-{{ $invoice->status_color_class }}-800">
-                                                        {{ $invoice->client ? $invoice->payment_status_name : __('dashboard.status.unknown_status') }}
-                                                    </p>
-                                                </div>
-                                                <div class="basis-2/24 p-4 text-{{ $invoice->status_color_class }}-800
-                                                    ">
-                                                    <p class="text-xs">
-                                                        @if($invoice->due_date)
-                                                            {{ $invoice->due_date->format('d.m.Y') }}
-                                                        @else
-                                                            <span class="text-gray-400">—</span>
-                                                        @endif
-                                                    </p>
-                                                </div>
-                                                <div class="basis-1/24 text-right">
-                                                    <i class="fas fa-chevron-right text-gray-400"></i>
-                                                </div>
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                                <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
-                                    <a href="@localizedRoute('frontend.invoices')" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                                        {{ __('dashboard.actions.view_all_invoices') }} <i class="fas fa-arrow-right ml-1"></i>
-                                    </a>
-                                </div>
-                            @else
-                                <div class="p-4 text-center text-gray-500">
-                                    <p>{{ __('dashboard.status.no_invoices') }}</p>
-                                </div>
-                            @endif
-                        </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_invoices') }}</h3>
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <!-- Livewire component - Latest invoices -->
+                        @livewire('InvoiceListRecent')
                     </div>
+                </div>
 
                 <!-- Latest clients and suppliers -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Latest clients -->
                     <div>
                         <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_clients') }}</h3>
-                        <div class="bg-white rounded-lg shadow overflow-hidden">
-                            @if(isset($recentClients) && $recentClients->count() > 0)
-                                <ul class="divide-y divide-gray-200">
-                                    @foreach($recentClients as $client)
-                                        <li class="px-4 hover:bg-gray-50">
-                                            <a href="@localizedRoute('frontend.client.show', $client->id)" class="flex justify-between items-center">
-                                                <div class="w-50">
-                                                    <p class="text-sm font-medium text-gray-900">{{ $client->name }}</p>
-                                                    <p class="text-xs text-gray-500">{{ $client->email ?? __('dashboard.status.no_email') }}</p>
-                                                </div>
-                                                <div class="w-40 text-center p-5 bg-yellow-100 text-yellow-800">
-                                                    <p class="">{{ $client->created_at->format('d.m.Y') }}</p>
-                                                </div>
-                                                <i class="fas fa-chevron-right text-gray-400 w-10"></i>
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                                <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
-                                    <a href="@localizedRoute('frontend.clients')" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                                        {{ __('dashboard.actions.view_all_clients') }} <i class="fas fa-arrow-right ml-1"></i>
-                                    </a>
-                                </div>
-                            @else
-                                <div class="p-4 text-center text-gray-500">
-                                    <p>{{ __('dashboard.status.no_clients') }}</p>
-                                </div>
-                            @endif
+                        <div class="bg-white rounded-lg shadow overflow-hidden">        
+                            <!-- Livewire component - Latest clients -->
+                            @livewire('ClientListLatest')
                         </div>
                     </div>
 
@@ -170,33 +92,8 @@
                     <div>
                         <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_suppliers') }}</h3>
                         <div class="bg-white rounded-lg shadow overflow-hidden">
-                            @if(isset($recentSuppliers) && $recentSuppliers->count() > 0)
-                                <ul class="divide-y divide-gray-200">
-                                    @foreach($recentSuppliers as $supplier)
-                                        <li class="px-4 hover:bg-gray-50">
-                                            <a href="@localizedRoute('frontend.supplier.show', $supplier->id)" class="flex justify-between items-center">
-                                                <div class="w-50">
-                                                    <p class="text-sm font-medium text-gray-900">{{ $supplier->name }}</p>
-                                                    <p class="text-xs text-gray-500">{{ $supplier->email ?? __('dashboard.status.no_email') }}</p>
-                                                </div>
-                                                <div class="w-40 text-center p-5 bg-yellow-100 text-yellow-800">
-                                                    <p class="">{{ $supplier->created_at->format('d.m.Y') }}</p>
-                                                </div>
-                                                <i class="fas fa-chevron-right text-gray-400 w-10"></i>
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                                <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
-                                    <a href="@localizedRoute('frontend.suppliers')" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                                        {{ __('dashboard.actions.view_all_suppliers') }} <i class="fas fa-arrow-right ml-1"></i>
-                                    </a>
-                                </div>
-                            @else
-                                <div class="p-4 text-center text-gray-500">
-                                    <p>{{ __('dashboard.status.no_suppliers') }}</p>
-                                </div>
-                            @endif
+                            <!-- Livewire component - Latest suppliers -->
+                            @livewire('SupplierListLatest')
                         </div>
                     </div>
                 </div>
