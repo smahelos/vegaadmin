@@ -13,6 +13,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Traits\UserFormFields;
+use App\Models\Bank;
 
 class RegisterController extends Controller
 {
@@ -26,11 +27,24 @@ class RegisterController extends Controller
     public function showRegistrationForm()
     {
         $userFields = $this->getUserFields();
-        $passwordFields = $this->getUserFields();
+        $passwordFields = $this->getPasswordFields();
+
+        // Get banks for dropdown
+        $banks = Bank::where('country', 'CZ')
+            ->orderBy('created_at', 'desc')
+            ->get()->toArray();
+            
+        // Banks dropdown
+        $banks = $this->getBanksForDropdown();
+
+        // Get banksData for JD bank-fields.js
+        $banksData = $this->getBanksForJs();
 
         return view('auth.register', [
             'userFields' => $userFields,
             'passwordFields' => $passwordFields,
+            'banks' => $banks,
+            'banksData' => $banksData,
         ]);
     }
 
@@ -93,5 +107,47 @@ class RegisterController extends Controller
             
             return back()->withInput()->with('error', __('auth.registration_failed'));
         }
+    }
+
+    /**
+     * Get list of banks with codes for dropdown
+     * 
+     * @return array
+     */
+    private function getBanksForDropdown(): array
+    {
+        
+        $banks = Bank::where('country', 'CZ')
+            ->orderBy('created_at', 'desc')
+            ->get()->toArray();
+
+        foreach ($banks as $key => $bank) {
+            $banks[$key]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
+            $banks[$key]['value'] = $bank['code'];
+        }
+        $banks[0] = __('suppliers.fields.select_bank');
+
+        return $banks;
+    }
+
+    /**
+     * Get list of banks with codes for dropdown
+     * 
+     * @return array
+     */
+    private function getBanksForJs(): array
+    {
+        
+        $banks = Bank::where('country', 'CZ')
+            ->orderBy('created_at', 'desc')
+            ->get()->toArray();
+
+        $banksData = [];
+        foreach ($banks as $key => $bank) {
+            $banksData[$bank['code']]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
+            $banksData[$bank['code']]['swift'] = $bank['swift']; 
+        }
+
+        return $banksData;
     }
 }

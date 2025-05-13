@@ -21,12 +21,8 @@ class ClientController extends Controller
      * @return \Illuminate\View\View
      */
     public function index()
-    {
-        $clients = Client::where('user_id', Auth::id())
-            ->orderBy('name')
-            ->paginate(10);
-            
-        return view('frontend.clients.index', compact('clients'));
+    {       
+        return view('frontend.clients.index');
     }
 
     /**

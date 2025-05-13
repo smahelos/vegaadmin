@@ -26,6 +26,9 @@ Route::group([
     Route::get('cron-task/{id}/run', 'App\Http\Controllers\Admin\CronTaskCrudController@runCronTask');
     Route::crud('artisan-command-category', 'ArtisanCommandCategoryCrudController');
     Route::crud('artisan-command', 'ArtisanCommandCrudController');
+    Route::crud('tax', 'TaxCrudController');
+    Route::crud('tax', 'BankCrudController');
+    Route::crud('bank', 'BankCrudController');
 }); // this should be the absolute last line of this file
 
 /**

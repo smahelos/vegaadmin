@@ -14,4 +14,8 @@ For best suggestions, always read files to be changed, to not miss anything ther
 
 We use Laravel 12 builtin translation system to make project multilingual, allways use translations for all translatable strings.
 
+We want to have all comments in project in English, so all comments should be in English.
+
+We want to have all code in project in English, so all code should be in English.
+
 We want to have project as clean as possible. Formulars loads fields from App/Traits trait files. Frontend formulars requests are laoded from App/Requests folder. Backend formulars requests are laoded from App/Requests/Admin folder. Frontend authorization, validation rules, attributes and messages for formulars are placed in App/Requests folder. backend authorization, validation rules, attributes and messages for formulars are placed in App/Requests/Admin folder.

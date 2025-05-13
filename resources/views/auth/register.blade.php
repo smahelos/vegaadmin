@@ -107,7 +107,7 @@
                     @php $field = getField($userFields, 'ico'); @endphp
                     <div class="mb-5">
                         <label for="ico" class="block text-base font-medium text-gray-500 mb-2">
-                            {{ $field['label'] ?? __('users.fields.ico') }} {!! getRequired($field) !!}
+                            {{ $field['label'] ?? __('suppliers.fields.ico') }} {!! getRequired($field) !!}
                         </label>
                         <input type="{{ $field['type'] ?? 'text' }}" 
                             name="ico" 
@@ -125,7 +125,7 @@
                     @php $field = getField($userFields, 'dic'); @endphp
                     <div class="mb-5">
                         <label for="dic" class="block text-base font-medium text-gray-500 mb-2">
-                            {{ $field['label'] ?? __('users.fields.dic') }} {!! getRequired($field) !!}
+                            {{ $field['label'] ?? __('suppliers.fields.dic') }} {!! getRequired($field) !!}
                         </label>
                         <input type="{{ $field['type'] ?? 'text' }}" 
                             name="dic" 
@@ -233,23 +233,17 @@
                     
                     <!-- Bank Code -->
                     <div class="md:col-span-3">
-                        <label for="bank_code" class="block text-base font-medium text-gray-500 mb-2">
-                            {{ __('suppliers.fields.bank_code') }}
-                        </label>
-                        <select name="bank_code" id="bank_code" 
-                            class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-[#FDFDFC]">
-                            <option value="">{{ __('suppliers.fields.select_bank') }}</option>
-                            <option value="0100" {{ old('bank_code') == '0100' ? 'selected' : '' }}>Komerční banka (0100)</option>
-                            <option value="0300" {{ old('bank_code') == '0300' ? 'selected' : '' }}>ČSOB (0300)</option>
-                            <option value="0600" {{ old('bank_code') == '0600' ? 'selected' : '' }}>MONETA Money Bank (0600)</option>
-                            <option value="0800" {{ old('bank_code') == '0800' ? 'selected' : '' }}>Česká spořitelna (0800)</option>
-                            <option value="2010" {{ old('bank_code') == '2010' ? 'selected' : '' }}>Fio banka (2010)</option>
-                            <option value="2700" {{ old('bank_code') == '2700' ? 'selected' : '' }}>UniCredit Bank (2700)</option>
-                            <option value="3030" {{ old('bank_code') == '3030' ? 'selected' : '' }}>Air Bank (3030)</option>
-                            <option value="5500" {{ old('bank_code') == '5500' ? 'selected' : '' }}>Raiffeisenbank (5500)</option>
-                            <option value="6210" {{ old('bank_code') == '6210' ? 'selected' : '' }}>mBank (6210)</option>
-                            <option value="8330" {{ old('bank_code') == '8330' ? 'selected' : '' }}>Equa Bank (8330)</option>
-                        </select>
+                            <x-select 
+                                name="bank_code"
+                                label="{{ __('suppliers.fields.bank_code') }}"
+                                id="bank_code"
+                                :selected="0" 
+                                required="false"
+                                :options="$banks" 
+                                hint="{{ __('suppliers.hints.bank_code') }}"
+                                class="bg-[#FDFDFC]" 
+                                labelClass="" 
+                                />
                         @error('bank_code')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -373,57 +367,10 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Automatically fill bank name based on selected code
-    const bankCodeSelect = document.getElementById('bank_code');
-    const bankNameInput = document.getElementById('bank_name');
-    
-    if(bankCodeSelect && bankNameInput) {
-        const bankNames = {
-            "0100": "Komerční banka",
-            "0300": "ČSOB",
-            "0600": "MONETA Money Bank",
-            "0800": "Česká spořitelna",
-            "2010": "Fio banka",
-            "2700": "UniCredit Bank",
-            "3030": "Air Bank",
-            "5500": "Raiffeisenbank",
-            "6210": "mBank",
-            "8330": "Equa Bank"
-        };
-        
-        bankCodeSelect.addEventListener('change', function() {
-            const selectedCode = this.value;
-            if(selectedCode && bankNames[selectedCode]) {
-                bankNameInput.value = bankNames[selectedCode];
-            } else {
-                bankNameInput.value = '';
-            }
-        });
-        
-        // If bank code is already selected when page loads, fill the name
-        if(bankCodeSelect.value) {
-            const event = new Event('change');
-            bankCodeSelect.dispatchEvent(event);
-        }
-    }
-    
-    // Format IBAN - remove spaces and convert to uppercase
-    const ibanInput = document.getElementById('iban');
-    if(ibanInput) {
-        ibanInput.addEventListener('input', function() {
-            this.value = this.value.replace(/\s+/g, '').toUpperCase();
-        });
-    }
-    
-    // Format SWIFT - convert to uppercase
-    const swiftInput = document.getElementById('swift');
-    if(swiftInput) {
-        swiftInput.addEventListener('input', function() {
-            this.value = this.value.replace(/\s+/g, '').toUpperCase();
-        });
-    }
-});
+    // Make bank options available to the bank-fields.js script
+    window.bankOptions = {{ Js::from($banksData) }};
 </script>
+@vite('resources/js/bank-fields.js')
+@vite('resources/js/ares-lookup.js')
 @endpush
 @endsection

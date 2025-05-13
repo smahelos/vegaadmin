@@ -25,19 +25,6 @@ class DashboardController extends Controller
         $clientCount = Client::where('user_id', $user->id)->count();
         $suppliersCount = Supplier::where('user_id', $user->id)->count();
         $totalAmount = Invoice::where('user_id', $user->id)->sum('payment_amount');
-        $recentInvoices = Invoice::where('user_id', $user->id)
-            ->with(['client', 'supplier', 'paymentMethod'])
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
-        $recentClients = Client::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
-        $recentSuppliers = Supplier::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
             
         // Get monthly statistics for chart - database-agnostic version
         $monthlyStats = DB::table('invoices')
@@ -58,9 +45,6 @@ class DashboardController extends Controller
             'clientCount',
             'suppliersCount',
             'totalAmount',
-            'recentInvoices',
-            'recentClients',
-            'recentSuppliers',
             'monthlyStats'
         ));
     }

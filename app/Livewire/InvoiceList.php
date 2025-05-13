@@ -6,16 +6,47 @@ use App\Models\Invoice;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Url;
 
 class InvoiceList extends Component
 {
     use WithPagination;
     
+    #[Url]
     public $search = '';
+    
+    #[Url]
     public $status = '';
+    
+    #[Url(as: 'sort')]
     public $orderBy = 'created_at';
+    
+    #[Url(as: 'direction')]
     public $orderAsc = false;
+    
+    #[Url(keep: true)]
+    public $page = 1;
+    
     public $errorMessage = null;
+    
+    protected $paginationTheme = 'tailwind';
+    
+    public function mount()
+    {
+        // Set theme for pagination to ensure correct styling
+        $this->paginationTheme = 'tailwind';
+    }
+    
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+    
+    public function updatingStatus()
+    {
+        $this->resetPage();
+    }
     
     public function resetFilters()
     {
@@ -24,11 +55,22 @@ class InvoiceList extends Component
         $this->resetPage();
     }
     
+    public function sortBy($field)
+    {
+        if ($this->orderBy === $field) {
+            $this->orderAsc = !$this->orderAsc;
+        } else {
+            $this->orderBy = $field;
+            $this->orderAsc = true;
+        }
+    }
+    
     public function render()
     {
         try {
-            $query = Invoice::query();
-            
+            $query = Invoice::with(['client', 'paymentMethod', 'paymentStatus'])
+                ->where('user_id', Auth::id());
+                
             if ($this->search) {
                 $query->where(function($q) {
                     $q->where('number', 'like', "%{$this->search}%")
@@ -42,38 +84,39 @@ class InvoiceList extends Component
                 $query->where('status', $this->status);
             }
             
-            $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
+            // Special handling for different sorting fields
+            if ($this->orderBy === 'client_id') {
+                // Using subquery to sort by client name while maintaining eager loading
+                $query->orderBy(function($query) {
+                    $query->select('name')
+                          ->from('clients')
+                          ->whereColumn('clients.id', 'invoices.client_id')
+                          ->limit(1);
+                }, $this->orderAsc ? 'asc' : 'desc');
+            } elseif ($this->orderBy === 'due_date') {
+                // Special handling for due_date which is calculated from issue_date + due_in
+                $query->orderByRaw('DATE_ADD(issue_date, INTERVAL due_in DAY) ' . ($this->orderAsc ? 'ASC' : 'DESC'));
+            } else {
+                $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
+            }
             
-            $invoices = $query->with('client')->paginate(10);
+            $invoices = $query->paginate(10);
             
             return view('livewire.invoice-list', [
                 'invoices' => $invoices,
                 'hasData' => $invoices->total() > 0,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error while loading invoices list: ' . $e->getMessage());
+            Log::error('Error while loading invoices list: ' . $e->getMessage(), [
+                'exception' => $e
+            ]);
             $this->errorMessage = 'Error while loading invoices.';
             
             return view('livewire.invoice-list', [
-                'invoices' => collect()->paginate(10),
+                'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator
                 'hasData' => false,
                 'errorMessage' => $this->errorMessage
             ]);
         }
-    }
-    
-    public function sortBy($field)
-    {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = !$this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
-    }
-    
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 }

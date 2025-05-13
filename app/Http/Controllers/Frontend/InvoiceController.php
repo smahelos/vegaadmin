@@ -10,6 +10,8 @@ use App\Models\Invoice;
 use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\PaymentMethod;
+use App\Models\Tax;
+use App\Models\Bank;
 use App\Traits\InvoiceFormFields;
 use App\Services\QrPaymentService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -39,13 +41,7 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        // Load invoices with related models for better performance
-        $invoices = Invoice::with(['client', 'paymentMethod', 'paymentStatus'])
-            ->where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
-
-        return view('frontend.invoices.index', compact('invoices'));
+        return view('frontend.invoices.index');
     }
 
     /**
@@ -72,12 +68,20 @@ class InvoiceController extends Controller
         $lastInvoice = Invoice::where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->first();
+
+        // Get tax rates for dropdown
+        $taxRates = Tax::where('slug', 'dph')
+            ->pluck('rate', 'id')
+            ->toArray();
+
+        // Get banks for dropdown
+        $banks = $this->getBanksForDropdown();
+
+        // Get banksData for JD bank-fields.js
+        $banksData = $this->getBanksForJs();
         
         // Get suggested invoice number
         $suggestedNumber = $this->getNextInvoiceNumber();
-            
-        // Czech banks for dropdown
-        $banks = $this->getCzechBanks();
 
         // Preselected client if client_id is provided in request
         $selectedClient = null;
@@ -94,6 +98,12 @@ class InvoiceController extends Controller
                 // just show flash message
                 session()->flash('error', __('clients.messages.not_found'));
             }
+        }
+        // If no specific client is requested, use default client
+        if (!$selectedClient) {
+            $selectedClient = Client::where('user_id', Auth::id())
+                ->where('is_default', true)
+                ->first();
         }
         
         // Find default supplier
@@ -182,9 +192,6 @@ class InvoiceController extends Controller
             ];
         }
 
-        // Get default values of tax rates
-        $taxRates = [21, 15, 10]; // Lze upravit podle potřeb nebo načíst z databáze
-
         // Get item units for dropdown
         $itemUnits = [
             __('invoices.units.hours'),
@@ -206,8 +213,8 @@ class InvoiceController extends Controller
         return view('frontend.invoices.create', compact(
             'userLoggedIn', 'fields', 'clients', 
             'suppliers', 'userInfo', 'clientInfo', 'paymentMethods', 
-            'suggestedNumber', 'statuses', 'defaultSupplier', 'banks', 
-            'taxRates', 'itemUnits'
+            'suggestedNumber', 'statuses', 'defaultSupplier', 'banks',
+            'banksData', 'taxRates', 'itemUnits'
         ));
     }
 
@@ -223,6 +230,17 @@ class InvoiceController extends Controller
         
         // Get statuses for dropdown
         $statuses = Status::pluck('name', 'id')->toArray();
+
+        // Get tax rates for dropdown
+        $taxRates = Tax::where('slug', 'dph')
+            ->pluck('rate', 'id')
+            ->toArray();
+
+        // Get banks for dropdown
+        $banks = $this->getBanksForDropdown();
+
+        // Get banksData for JD bank-fields.js
+        $banksData = $this->getBanksForJs();
         
         // Get suggested invoice number
         $suggestedNumber = $this->getNextInvoiceNumber();
@@ -230,9 +248,6 @@ class InvoiceController extends Controller
         // Empty arrays for clients and suppliers since guest users don't have any
         $clients = [];
         $suppliers = [];
-            
-        // Czech banks for dropdown
-        $banks = $this->getCzechBanks();
 
         // Guest user flag
         $userLoggedIn = false;
@@ -253,10 +268,7 @@ class InvoiceController extends Controller
             'phone' => '',
         ];
 
-        // Načtení sazeb DPH pro položky faktury
-        $taxRates = [21, 15, 10]; // Lze upravit podle potřeb nebo načíst z databáze
-
-        // Načtení sazeb DPH pro položky faktury
+        // Get item units for dropdown
         $itemUnits = [
             __('invoices.units.hours'),
             __('invoices.units.days'),
@@ -274,7 +286,8 @@ class InvoiceController extends Controller
         return view('frontend.invoices.create', compact(
             'userLoggedIn', 'fields', 'userInfo', 
             'paymentMethods', 'clients', 'suppliers', 'statuses', 
-            'suggestedNumber', 'banks', 'taxRates', 'itemUnits'
+            'suggestedNumber', 'banks', 'banksData', 'taxRates', 
+            'itemUnits'
         ));
     }
 
@@ -368,12 +381,17 @@ class InvoiceController extends Controller
         
         // Load all active invoice statuses
         $statuses = Status::pluck('name', 'id')->toArray();
-            
-        // Get czech banks for dropdown
-        $banks = $this->getCzechBanks();
 
-        // Načtení sazeb DPH pro položky faktury
-        $taxRates = [21, 15, 10]; // Lze upravit podle potřeb nebo načíst z databáze
+        // Get tax rates for dropdown
+        $taxRates = Tax::where('slug', 'dph')
+            ->pluck('rate', 'id')
+            ->toArray();
+
+        // Get banks for dropdown
+        $banks = $this->getBanksForDropdown();
+
+        // Get banksData for JD bank-fields.js
+        $banksData = $this->getBanksForJs();
 
         // Načtení sazeb DPH pro položky faktury
         $itemUnits = [
@@ -394,7 +412,9 @@ class InvoiceController extends Controller
         $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
         
         return view('frontend.invoices.edit', compact(
-            'invoice', 'userLoggedIn', 'fields', 'paymentMethods', 'clients', 'suppliers', 'statuses', 'user', 'banks', 'taxRates', 'itemUnits'
+            'invoice', 'userLoggedIn', 'fields', 
+            'paymentMethods', 'clients', 'suppliers', 'statuses', 
+            'user', 'banks', 'banksData', 'taxRates', 'itemUnits'
         ));
     }
     
@@ -1003,26 +1023,46 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Get list of Czech banks with codes for dropdown
+     * Get list of banks with codes for dropdown
      * 
      * @return array
      */
-    private function getCzechBanks(): array
+    private function getBanksForDropdown(): array
     {
-        return [
-            '' => __('suppliers.fields.select_bank'),
-            '0100' => 'Komerční banka (0100)',
-            '0300' => 'ČSOB (0300)',
-            '0600' => 'MONETA Money Bank (0600)',
-            '0800' => 'Česká spořitelna (0800)',
-            '2010' => 'Fio banka (2010)',
-            '2700' => 'UniCredit Bank (2700)',
-            '3030' => 'Air Bank (3030)',
-            '5500' => 'Raiffeisenbank (5500)',
-            '6210' => 'mBank (6210)',
-            '8330' => 'Equa Bank (8330)',
-            // Další banky lze přidat zde
-        ];
+        
+        $banks = Bank::where('country', 'CZ')
+            ->orderBy('created_at', 'desc')
+            ->get()->toArray();
+
+        foreach ($banks as $key => $bank) {
+            $banks[$key]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
+            $banks[$key]['value'] = $bank['code'];
+            $banks[$key]['swift'] = $bank['swift']; 
+        }
+        $banks[0] = __('suppliers.fields.select_bank');
+
+        return $banks;
+    }
+
+    /**
+     * Get list of banks with codes for dropdown
+     * 
+     * @return array
+     */
+    private function getBanksForJs(): array
+    {
+        
+        $banks = Bank::where('country', 'CZ')
+            ->orderBy('created_at', 'desc')
+            ->get()->toArray();
+
+        $banksData = [];
+        foreach ($banks as $key => $bank) {
+            $banksData[$bank['code']]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
+            $banksData[$bank['code']]['swift'] = $bank['swift']; 
+        }
+
+        return $banksData;
     }
 
     /**

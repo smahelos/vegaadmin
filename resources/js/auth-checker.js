@@ -1,12 +1,13 @@
-// Funkce pro kontrolu platnosti autentizace
+// Function to check authentication status and refresh session
 function setupAuthChecker() {
-    // Pravidelně kontrolujeme stav autentizace (každých 5 minut)
+    // Controlling the interval for checking authentication
+    // This is set to 5 minutes (300000 ms) for demonstration purposes
     const checkInterval = 5 * 60 * 1000; // 5 minut v ms
     
-    // Funkce pro provedení kontroly
+    // Function to check authentication status
     async function checkAuthentication() {
         try {
-            // Rychlé volání API pro ověření platnosti přihlášení
+            // Quick API call to verify login validity
             const response = await fetch('/api/auth-check', {
                 method: 'GET',
                 credentials: 'same-origin',
@@ -17,7 +18,8 @@ function setupAuthChecker() {
             });
             
             if (!response.ok) {
-                // Pokud nejsme přihlášeni, necháme uživatele znovu přihlásit
+                // If we get a 401 Unauthorized response, we can assume the session has expired
+                // and we can prompt the user to log in again
                 if (response.status === 401) {
                     if (confirm('Vaše přihlášení vypršelo. Chcete se přihlásit znovu?')) {
                         window.location.reload();
@@ -29,20 +31,20 @@ function setupAuthChecker() {
         }
     }
     
-    // Nastavíme interval pro kontrolu
+    // Set up the interval to check authentication every 5 minutes
     setInterval(checkAuthentication, checkInterval);
     
-    // Nastavíme event listenery pro aktivitu uživatele - každá akce prodlouží session
+    // Set up event listeners for user activity - each action will extend the session
     const userActivityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll'];
     
     let activityTimeout;
-    const activityDelay = 30 * 1000; // 30 sekund mezi kontrolami aktivity
+    const activityDelay = 30 * 1000; // 30 seconds between activity checks
     
     function handleUserActivity() {
         clearTimeout(activityTimeout);
         
         activityTimeout = setTimeout(() => {
-            // Po 30 sekundách od poslední aktivity provedeme API volání pro prodloužení session
+            // After 30 seconds of inactivity, we will make an API call to refresh the session
             fetch('/api/session-refresh', {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -51,18 +53,18 @@ function setupAuthChecker() {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
                 }
-            }).catch(error => console.error('Chyba při obnovení session:', error));
+            }).catch(error => console.error('Error while refreshing session:', error));
         }, activityDelay);
     }
     
-    // Přidáme event listenery
+    // Set up event listeners for user activity - each action will extend the session
     userActivityEvents.forEach(eventType => {
         document.addEventListener(eventType, handleUserActivity);
     });
     
-    // Iniciální kontrola
+    // Initial check
     handleUserActivity();
 }
 
-// Spuštění po načtení stránky
+// Start after the page has loaded
 document.addEventListener('DOMContentLoaded', setupAuthChecker);
