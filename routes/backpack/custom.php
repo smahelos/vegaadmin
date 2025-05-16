@@ -27,8 +27,9 @@ Route::group([
     Route::crud('artisan-command-category', 'ArtisanCommandCategoryCrudController');
     Route::crud('artisan-command', 'ArtisanCommandCrudController');
     Route::crud('tax', 'TaxCrudController');
-    Route::crud('tax', 'BankCrudController');
     Route::crud('bank', 'BankCrudController');
+    Route::crud('product', 'ProductCrudController');
+    Route::crud('product-category', 'ProductCategoryCrudController');
 }); // this should be the absolute last line of this file
 
 /**

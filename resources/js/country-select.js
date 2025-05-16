@@ -32,19 +32,73 @@ function initCountrySelect() {
             
             // List all country selects with class 'country-select'
             countrySelects.forEach(select => {
-                const selectedCountry = select.getAttribute('data-selected');
-                console.log('Processing select with selected country:', selectedCountry);
+                const selectedValue = select.getAttribute('data-selected') || select.value;
+                console.log('Processing select with ID:', select.id, 'with selected value:', selectedValue);
+                
+                // Empty existing options first to avoid duplicates
+                select.innerHTML = '';
+                
+                // Add placeholder option
+                const placeholderOption = document.createElement('option');
+                placeholderOption.value = '';
+                placeholderOption.text = select.getAttribute('placeholder') || 'Select country';
+                select.appendChild(placeholderOption);
                 
                 // Add options to the select element
                 sortedCountries.forEach(country => {
                     const option = document.createElement('option');
                     option.value = country.code;
                     option.textContent = `${country.flag} ${country.code} - ${country.name}`;
-                    option.selected = country.code === selectedCountry;
+                    
+                    // Set selected state if this is the selected country
+                    if (country.code === selectedValue) {
+                        option.selected = true;
+                    }
+                    
                     select.appendChild(option);
                 });
                 
-                console.log('Select populated with countries');
+                // Set value property to ensure form submission works
+                if (selectedValue) {
+                    select.value = selectedValue;
+                    
+                    // Update fallback fields if they exist
+                    if (select.id === 'country') {
+                        const fallbackField = document.getElementById('country_fallback');
+                        if (fallbackField) {
+                            fallbackField.value = selectedValue;
+                        }
+                    } else if (select.id === 'client_country') {
+                        const fallbackField = document.getElementById('client_country_fallback');
+                        if (fallbackField) {
+                            fallbackField.value = selectedValue;
+                        }
+                    }
+                }
+                
+                // Trigger change event to ensure any listeners are notified
+                const event = new Event('change', { bubbles: true });
+                select.dispatchEvent(event);
+                
+                console.log('Select populated with countries, current value:', select.value);
+                
+                // Add change event listener to make sure select value is properly set
+                select.addEventListener('change', function(e) {
+                    console.log(`Country ${select.id} changed to:`, select.value);
+                    const value = e.target.value;
+                    
+                    if (select.id === 'country') {
+                        const fallbackField = document.getElementById('country_fallback');
+                        if (fallbackField) {
+                            fallbackField.value = value;
+                        }
+                    } else if (select.id === 'client_country') {
+                        const fallbackField = document.getElementById('client_country_fallback');
+                        if (fallbackField) {
+                            fallbackField.value = value;
+                        }
+                    }
+                });
             });
         })
         .catch(error => {
@@ -71,6 +125,23 @@ function initCountrySelect() {
                     option.selected = country.code === selectedCountry;
                     select.appendChild(option);
                 });
+                
+                // Set fallback value and update fallback field (same as above)
+                if (selectedCountry) {
+                    select.value = selectedCountry;
+                    
+                    if (select.id === 'country') {
+                        const fallbackField = document.getElementById('country_fallback');
+                        if (fallbackField) {
+                            fallbackField.value = selectedCountry;
+                        }
+                    } else if (select.id === 'client_country') {
+                        const fallbackField = document.getElementById('client_country_fallback');
+                        if (fallbackField) {
+                            fallbackField.value = selectedCountry;
+                        }
+                    }
+                }
             });
         });
 }

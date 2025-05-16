@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/js/invoice-form.js',
                 'resources/js/supplier-form-data.js',
                 'resources/js/client-form-data.js',
+                'resources/js/slug-generator.js',
                 // přidejte další soubory podle potřeby
             ],
             refresh: true,

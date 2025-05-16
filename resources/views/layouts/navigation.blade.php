@@ -17,20 +17,24 @@
                             {{ __('general.navigation.dashboard') }}
                         </x-nav-link>
                         
-                        <x-nav-link :href="route('frontend.invoices', ['lang' => app()->getLocale()])" :active="request()->routeIs('frontend.invoices*')">
+                        <x-nav-link :href="route('frontend.invoices', ['lang' => app()->getLocale()])" :active="request()->routeIs('frontend.invoice*')">
                             {{ __('general.navigation.invoices') }}
                         </x-nav-link>
                         
-                        <x-nav-link :href="route('frontend.clients', ['lang' => app()->getLocale()])" :active="request()->routeIs('frontend.clients*')">
+                        <x-nav-link :href="route('frontend.clients', ['lang' => app()->getLocale()])" :active="request()->routeIs('frontend.client*')">
                             {{ __('general.navigation.clients') }}
                         </x-nav-link>
                         
-                        <x-nav-link :href="route('frontend.suppliers', ['lang' => app()->getLocale()])" :active="request()->routeIs('frontend.suppliers*')">
+                        <x-nav-link :href="route('frontend.suppliers', ['lang' => app()->getLocale()])" :active="request()->routeIs('frontend.supplier*')">
                             {{ __('general.navigation.suppliers') }}
                         </x-nav-link>
                         
                         <x-nav-link :href="route('frontend.profile.edit', ['lang' => app()->getLocale()])" :active="request()->routeIs('frontend.profile*')">
                             {{ __('general.navigation.profile') }}
+                        </x-nav-link>
+                        
+                        <x-nav-link :href="route('frontend.products', ['lang' => app()->getLocale()])" :active="request()->routeIs('frontend.product*')">
+                            {{ __('general.navigation.products') }}
                         </x-nav-link>
                     @endauth
                 </div>
@@ -112,20 +116,24 @@
                     {{ __('global.navigation.dashboard') }}
                 </x-responsive-nav-link>
                 
-                <x-responsive-nav-link :href="route('frontend.invoices')" :active="request()->routeIs('frontend.invoices*', ['lang' => app()->getLocale()])">
+                <x-responsive-nav-link :href="route('frontend.invoices')" :active="request()->routeIs('frontend.invoice*', ['lang' => app()->getLocale()])">
                     {{ __('global.navigation.invoices') }}
                 </x-responsive-nav-link>
                 
-                <x-responsive-nav-link :href="route('frontend.clients')" :active="request()->routeIs('frontend.clients*', ['lang' => app()->getLocale()])">
+                <x-responsive-nav-link :href="route('frontend.clients')" :active="request()->routeIs('frontend.client*', ['lang' => app()->getLocale()])">
                     {{ __('global.navigation.clients') }}
                 </x-responsive-nav-link>
                 
-                <x-responsive-nav-link :href="route('frontend.suppliers')" :active="request()->routeIs('frontend.suppliers*', ['lang' => app()->getLocale()])">
+                <x-responsive-nav-link :href="route('frontend.suppliers')" :active="request()->routeIs('frontend.supplier*', ['lang' => app()->getLocale()])">
                     {{ __('global.navigation.suppliers') }}
                 </x-responsive-nav-link>
                 
                 <x-responsive-nav-link :href="route('frontend.profile.edit')" :active="request()->routeIs('frontend.profile*', ['lang' => app()->getLocale()])">
                     {{ __('global.navigation.profile') }}
+                </x-responsive-nav-link>
+                        
+                <x-responsive-nav-link :href="route('frontend.products', ['lang' => app()->getLocale()])" :active="request()->routeIs('frontend.product*')">
+                    {{ __('general.navigation.products') }}
                 </x-responsive-nav-link>
             @endauth
         </div>

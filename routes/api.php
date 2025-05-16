@@ -19,14 +19,14 @@ Route::middleware(['web', 'api.auth', 'refresh.backpack.session'])->prefix('admi
 // Frontend API endpointy - přístupné s běžnou autentizací
 Route::middleware(['web', 'api.auth', 'refresh.frontend.session'])->group(function () {
     // Klienti
-    Route::get('/clients', [ClientController::class, 'getClients'])->name('api.clients');
+    Route::get('/client', [ClientController::class, 'getClients'])->name('api.clients');
+    Route::get('/client/default', [ClientController::class, 'getDefaultClient'])->name('api.client.default');
     Route::get('/client/{id}', [ClientController::class, 'getClient'])->name('api.client');
-    Route::get('/clients/default', [ClientController::class, 'getDefaultClient'])->name('api.client.default');
     
     // Dodavatelé
-    Route::get('/suppliers', [SupplierController::class, 'getSuppliers'])->name('api.suppliers');
+    Route::get('/supplier', [SupplierController::class, 'getSuppliers'])->name('api.suppliers');
+    Route::get('/supplier/default', [SupplierController::class, 'getDefaultSupplier'])->name('api.supplier.default');
     Route::get('/supplier/{id}', [SupplierController::class, 'getSupplier'])->name('api.supplier');
-    Route::get('/suppliers/default', [SupplierController::class, 'getDefaultSupplier'])->name('api.supplier.default');
 });
 
 // Veřejné API endpointy - bez autentizace ale s web middleware pro session
@@ -35,6 +35,8 @@ Route::middleware(['web', 'refresh.frontend.session'])->group(function () {
     Route::get('/countries/{code}', [CountryController::class, 'getCountry'])->name('api.country');
     Route::get('/currencies/common', [CurrencyController::class, 'getCommonCurrencies']);
     Route::get('/currencies/all', [CurrencyController::class, 'getAllCurrencies']);
+    Route::get('/currencies/exchange-rate', [CurrencyController::class, 'getExchangeRate'])->name('api.exchange-rate');
+    Route::get('/currencies/convert', [CurrencyController::class, 'convertCurrency'])->name('api.convert-currency');
     // ARES lookup route
     Route::get('/ares-lookup', [AresLookupController::class, 'lookup']);
 });

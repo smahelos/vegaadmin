@@ -10,20 +10,45 @@
 </x-backpack::menu-dropdown>
 @endif
 
-@if(backpack_user()->can('can_create_edit_invoice'))
-<x-backpack::menu-item title="Invoices" icon="la la-question" :link="backpack_url('invoice')" />
-@endif
-@if(backpack_user()->can('can_create_edit_client'))
-<x-backpack::menu-item title="Clients" icon="la la-question" :link="backpack_url('client')" />
-@endif
-@if(backpack_user()->can('can_create_edit_payment_method'))
-<x-backpack::menu-item title="Payment methods" icon="la la-question" :link="backpack_url('payment-method')" />
+@if(backpack_user()->can('can_configure_system'))
+<x-backpack::menu-dropdown title="{{ trans('admin.system.settings') }}" icon="la la-tools">
+    @if(backpack_user()->can('can_create_edit_tax'))
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.taxes.taxes') }}" icon="la la-percentage" :link="backpack_url('tax')" />
+    @endif
+    @if(backpack_user()->can('can_create_edit_bank'))
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.banks.banks') }}" icon="la la-bank" :link="backpack_url('bank')" />
+    @endif
+    @if(backpack_user()->can('can_create_edit_payment_method'))
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.payment_methods.payment_methods') }}" icon="la la-money-check-alt" :link="backpack_url('payment-method')" />
+    @endif
+    @if(backpack_user()->can('can_create_edit_cron_tasks'))
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.cron_tasks.cron_tasks') }}" icon="la la-calendar" :link="backpack_url('cron-task')" />
+    @endif
+</x-backpack::menu-dropdown>
 @endif
 
-<x-backpack::menu-item title="Statuses" icon="la la-question" :link="backpack_url('status')" />
-<x-backpack::menu-item title="Suppliers" icon="la la-question" :link="backpack_url('supplier')" />
-<x-backpack::menu-item title="Cron tasks" icon="la la-question" :link="backpack_url('cron-task')" />
-<x-backpack::menu-item title="Artisan command categories" icon="la la-question" :link="backpack_url('artisan-command-category')" />
-<x-backpack::menu-item title="Artisan commands" icon="la la-question" :link="backpack_url('artisan-command')" />
-<x-backpack::menu-item title="Taxes" icon="la la-question" :link="backpack_url('tax')" />
-<x-backpack::menu-item title="Banks" icon="la la-question" :link="backpack_url('bank')" />
+@if(backpack_user()->can('can_create_edit_invoice'))
+<x-backpack::menu-dropdown title="{{ trans('admin.invoices.invoices') }}" icon="la la-file-invoice">
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.invoices.invoices') }}" icon="la la-file-invoice" :link="backpack_url('invoice')" />
+    @if(backpack_user()->can('can_create_edit_client'))
+        <x-backpack::menu-dropdown-item title="{{ trans('admin.clients.clients') }}" icon="la la-handshake" :link="backpack_url('client')" />
+    @endif
+    @if(backpack_user()->can('can_create_edit_supplier'))
+        <x-backpack::menu-dropdown-item title="{{ trans('admin.suppliers.suppliers') }}" icon="la la-handshake" :link="backpack_url('artisan-command-category')" />
+    @endif
+</x-backpack::menu-dropdown>
+@endif
+
+@if(backpack_user()->can('can_create_edit_commands'))
+<x-backpack::menu-dropdown title="{{ trans('admin.artisan_commands.commands') }}" icon="la la-hammer">
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.artisan_commands.commands') }}" icon="la la-hammer" :link="backpack_url('artisan-command')" />
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.artisan_commands.categories') }}" icon="la la-list" :link="backpack_url('artisan-command-category')" />
+</x-backpack::menu-dropdown>
+@endif
+
+@if(backpack_user()->can('can_create_edit_products'))
+<x-backpack::menu-dropdown title="{{ trans('admin.products.products') }}" icon="la la-box">
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.products.products') }}" icon="la la-box" :link="backpack_url('product')" />
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.products.product_categories') }}" icon="la la-list" :link="backpack_url('product-category')" />
+</x-backpack::menu-dropdown>
+@endif

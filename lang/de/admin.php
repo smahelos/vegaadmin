@@ -1,6 +1,86 @@
 <?php
 
 return [
+    'system' => [
+        'settings' => 'Einstellungen',
+    ],
+
+    'invoices' => [
+        'invoice' => 'Rechnung',
+        'invoices' => 'Rechnungen',
+        'due_date' => 'Fälligkeitsdatum',
+        'issue_date' => 'Ausstellungsdatum',
+        'invoice_vs' => 'Rechnungsnummer/VS',
+        'invoice_ks' => 'Konstantsymbol',
+        'invoice_ss' => 'Spezifisches Symbol',
+        'client' => 'Kunde',
+        'client_id' => 'Kunden-ID',
+        'status' => 'Status',
+        'payment_status' => 'Zahlungsstatus',
+        'payment_method' => 'Zahlungsmethode',
+        'payment_date' => 'Zahlungsdatum',
+        'amount' => 'Betrag',
+        'currency' => 'Währung',
+        'description' => 'Beschreibung',
+        'tax' => 'MwSt.',
+        'tax_rate' => 'MwSt.-Satz',
+        'tax_amount' => 'MwSt.-Betrag',
+        'total' => 'Gesamtbetrag',
+    ],
+
+    'clients' => [
+        'client' => 'Kunde',
+        'clients' => 'Kunden',
+        'ico' => 'Handelsregisternummer',
+        'dic' => 'Steuernummer',
+        'company_name' => 'Firmenname',
+        'street' => 'Straße',
+        'city' => 'Stadt',
+        'zip' => 'PLZ',
+        'country' => 'Land',
+        'email' => 'E-Mail',
+        'phone' => 'Telefon',
+        'description' => 'Beschreibung',
+        'status' => [
+            'active' => 'Aktiv',
+            'inactive' => 'Inaktiv',
+            'archived' => 'Archiviert',
+            'deleted' => 'Gelöscht',
+        ],
+        'is_default' => 'Standard',
+        'user' => 'Benutzer',
+    ],
+
+    'suppliers' => [
+        'supplier' => 'Lieferant',
+        'suppliers' => 'Lieferanten',
+        'ico' => 'Handelsregisternummer',
+        'dic' => 'Steuernummer',
+        'company_name' => 'Firmenname',
+        'street' => 'Straße',
+        'city' => 'Stadt',
+        'zip' => 'PLZ',
+        'country' => 'Land',
+        'email' => 'E-Mail',
+        'phone' => 'Telefon',
+        'description' => 'Beschreibung',
+
+        'status' => [
+            'active' => 'Aktiv',
+            'inactive' => 'Inaktiv',
+            'archived' => 'Archiviert',
+            'deleted' => 'Gelöscht',
+        ],
+
+        'is_default' => 'Standard',
+        'user' => 'Benutzer',
+        'account_number' => 'Kontonummer',
+        'bank_code' => 'Bankleitzahl',
+        'iban' => 'IBAN',
+        'swift' => 'SWIFT',
+        'bank_name' => 'Bankname',
+    ],
+
     'cron_tasks' => [
         'cron_task' => 'Geplante Aufgabe',
         'cron_tasks' => 'Geplante Aufgaben',
@@ -108,5 +188,59 @@ return [
 
     'statuses' => [
         'status_types' => 'Statustypen',
+    ],
+
+    'taxes' => [
+        'tax' => 'MwSt.',
+        'taxes' => 'MwSt.',
+        'name' => 'Name',
+        'rate' => 'Satz',
+        'description' => 'Beschreibung',
+        'slug' => 'Slug',
+    ],
+
+    'banks' => [
+        'bank' => 'Bank',
+        'banks' => 'Banken',
+        'name' => 'Name',
+        'code' => 'Bankleitzahl',
+        'swift' => 'SWIFT',
+        'country' => 'Land',
+        'description' => 'Beschreibung',
+        'is_active' => 'Aktiv',
+        'sort_order' => 'Reihenfolge',
+    ],
+
+    'payment_methods' => [
+        'payment_method' => 'Zahlungsmethode',
+        'payment_methods' => 'Zahlungsmethoden',
+        'name' => 'Name',
+        'description' => 'Beschreibung',
+        'slug' => 'Slug',
+        'country' => 'Land',
+        'currency' => 'Währung',
+        'icon' => 'Symbol',
+        'is_active' => 'Aktiv',
+        'sort_order' => 'Reihenfolge',
+    ],
+
+    'products' => [
+        'product' => 'Produkt',
+        'products' => 'Produkte',
+        'supplier' => 'Lieferant',
+        'product_category' => 'Produktkategorie',
+        'product_categories' => 'Produktkategorien',
+        'name' => 'Name',
+        'slug' => 'Slug',
+        'description' => 'Beschreibung',
+        'price' => 'Preis',
+        'tax' => 'MwSt.',
+        'category' => 'Kategorie',
+        'is_default' => 'Standard',
+        'user' => 'Benutzer',
+        'image' => 'Bild',
+        'leave_empty_for_autogeneration' => 'Leer lassen für automatische Generierung',
+        'remove_image' => 'Bild entfernen',
+        'image_help' => 'Unterstützte Formate: JPG, PNG, GIF (max. 2MB)',
     ],
 ];

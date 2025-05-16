@@ -26,9 +26,9 @@
                 @endphp
                 @foreach($fields as $field)
                 @if ($field['name'] === 'name' || $field['name'] === 'email')
-                <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
-                    @endif
-                    @if (in_array($field['name'], $leftColumnFields))
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+                @endif
+                @if (in_array($field['name'], $leftColumnFields))
                     <div
                         class="mb-5 @if($field['name'] === 'name')md:col-span-4 @elseif($field['name'] === 'shortcut')md:col-span-2 @else md:col-span-3 @endif ">
                         <label for="{{ $field['name'] }}" class="block text-base font-medium text-gray-500 mb-2 h-6">
@@ -47,9 +47,9 @@
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    @endif
-                    @if ($field['name'] === 'shortcut' || $field['name'] === 'phone')
-                </div>
+                @endif
+                @if ($field['name'] === 'shortcut' || $field['name'] === 'phone')
+                    </div>
                 @endif
 
                 @if ($field['name'] === 'description')

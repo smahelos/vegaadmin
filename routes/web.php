@@ -6,6 +6,7 @@ use App\Http\Controllers\Frontend\InvoiceController;
 use App\Http\Controllers\Frontend\ClientController;
 use App\Http\Controllers\Frontend\SupplierController;
 use App\Http\Controllers\Frontend\ProfileController;
+use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\Auth\LoginController;
 use Illuminate\Support\Facades\Auth;
@@ -37,7 +38,7 @@ Route::middleware([
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('frontend.dashboard');
         
         // Invoices
-        Route::get('/invoices', [InvoiceController::class, 'index'])->name('frontend.invoices');
+        Route::get('/invoice', [InvoiceController::class, 'index'])->name('frontend.invoices');
         Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('frontend.invoice.create');
         Route::post('/invoice', [InvoiceController::class, 'store'])->name('frontend.invoice.store');
         Route::get('/invoice/{id}', [InvoiceController::class, 'show'])->name('frontend.invoice.show');
@@ -47,7 +48,7 @@ Route::middleware([
         Route::put('/invoice/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('frontend.invoice.mark-as-paid');
         
         // Clients
-        Route::get('/clients', [ClientController::class, 'index'])->name('frontend.clients');
+        Route::get('/client', [ClientController::class, 'index'])->name('frontend.clients');
         Route::get('/client/create', [ClientController::class, 'create'])->name('frontend.client.create');
         Route::post('/client', [ClientController::class, 'store'])->name('frontend.client.store');
         Route::get('/client/{id}', [ClientController::class, 'show'])->name('frontend.client.show');
@@ -56,7 +57,7 @@ Route::middleware([
         Route::delete('/client/{id}/delete', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
         
         // Suppliers
-        Route::get('/suppliers', [SupplierController::class, 'index'])->name('frontend.suppliers');
+        Route::get('/supplier', [SupplierController::class, 'index'])->name('frontend.suppliers');
         Route::get('/supplier/create', [SupplierController::class, 'create'])->name('frontend.supplier.create');
         Route::post('/supplier', [SupplierController::class, 'store'])->name('frontend.supplier.store');
         Route::get('/supplier/{id}', [SupplierController::class, 'show'])->name('frontend.supplier.show');
@@ -68,6 +69,15 @@ Route::middleware([
         Route::get('/profile', [ProfileController::class, 'edit'])->name('frontend.profile.edit');
         Route::put('/profile', [ProfileController::class, 'update'])->name('frontend.profile.update');
         Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('frontend.profile.update.password');
+
+        // Products
+        Route::get('/product', [ProductController::class, 'index'])->name('frontend.products');
+        Route::get('/product/create', [ProductController::class, 'create'])->name('frontend.product.create');
+        Route::post('/product', [ProductController::class, 'store'])->name('frontend.product.store');
+        Route::get('/product/{id}/delete', [ProductController::class, 'destroy'])->name('frontend.product.destroy');
+        Route::get('/product/{id}', [ProductController::class, 'show'])->name('frontend.product.show');
+        Route::get('/product/{id}/edit', [ProductController::class, 'edit'])->name('frontend.product.edit');
+        Route::put('/product/{id}', [ProductController::class, 'update'])->name('frontend.product.update');
     });
 });
 

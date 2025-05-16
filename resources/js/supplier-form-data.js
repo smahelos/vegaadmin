@@ -23,7 +23,7 @@ const SupplierFormData = (function() {
     /**
      * Initialize the module
      */
-    function init() {
+    function init(options = {}) {
         console.log('Initializing SupplierFormData module');
         
         // Set edit mode flag
@@ -38,7 +38,9 @@ const SupplierFormData = (function() {
         // Set up event listener for supplier select change
         const supplierSelect = document.getElementById('supplier_id');
         if (supplierSelect) {
+            var event = new Event('change');
             supplierSelect.addEventListener('change', handleSupplierChange);
+            supplierSelect.dispatchEvent(event);
             console.log('Event listener for supplier select added');
         } else {
             console.warn('Supplier select element not found');
@@ -51,7 +53,7 @@ const SupplierFormData = (function() {
     function loadDefaultSupplier() {
         console.log('Loading default supplier data');
         
-        fetch(`${baseURL}/api/suppliers/default`)
+        fetch(`${baseURL}/api/supplier/default`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -156,40 +158,75 @@ const SupplierFormData = (function() {
         supplierFields.forEach(field => {
             const element = document.getElementById(field);
             if (element) {
-                // Set field value if exists in data, otherwise clear
-                element.value = data[field] || '';
-                console.log(`Field ${field} set to: ${element.value}`);
+                // Handle select elements differently
+                if (element.tagName === 'SELECT') {
+                    if (data[field]) {
+                        console.log(`Setting ` + field + ` select to: ${data[field]}`);
+                        
+                        // Try to find the option with value
+                        const option = Array.from(element.options).find(opt => opt.value === data[field]);
+                        
+                        if (option) {
+                            // Use vanilla JS property + trigger change event
+                            element.value = data[field];
+                            
+                            // Also trigger change event to ensure form state is updated
+                            const event = new Event('change', { bubbles: true });
+                            element.dispatchEvent(event);
+
+                            console.log(`Select ${field} set to: ${data[field]}`);
+                        } else {
+                            // If there's no matching option, add one
+                            const newOption = document.createElement('option');
+                            newOption.value = data[field];
+                            newOption.text = data[field] + ' - ' + (data.bank_name || '');
+                            element.add(newOption);
+                            
+                            // Set selected property on the new option
+                            newOption.selected = true;
+                            
+                            // Also update value property and trigger change
+                            element.value = data[field];
+                            const event = new Event('change', { bubbles: true });
+                            element.dispatchEvent(event);
+                            
+                            console.log(`Added and selected new option for bank code: ${data[field]}`);
+                        }
+                        
+                        // Update fallback field
+                        const fallbackField = document.getElementById(field + '_fallback');
+                        if (fallbackField) {
+                            fallbackField.value = data[field];
+                        }
+
+                    } else {
+                        // Generic select handling
+                        if (data[field]) {
+                            // Try to find the option and set it
+                            const option = Array.from(element.options).find(opt => opt.value === data[field]);
+                            if (option) {
+                                option.selected = true;
+                            }
+                            
+                            // Also set the value property
+                            element.value = data[field];
+                            
+                            // Trigger change event
+                            const event = new Event('change', { bubbles: true });
+                            element.dispatchEvent(event);
+                            
+                            console.log(`Select ${field} set to: ${data[field]}`);
+                        }
+                    }
+                } else {
+                    // Normal input fields
+                    element.value = data[field] || '';
+                    console.log(`Field ${field} set to: ${element.value}`);
+                }
             } else {
                 console.warn(`Field element ${field} not found`);
             }
         });
-
-        // Special handling for select elements like country and bank_code
-        const countryElement = document.getElementById('country');
-        if (countryElement && countryElement.tagName === 'SELECT' && data.country) {
-            // Find and select the option with the correct value
-            const option = countryElement.querySelector(`option[value="${data.country}"]`);
-            if (option) {
-                option.selected = true;
-                console.log(`Country select set to: ${data.country}`);
-            }
-        }
-
-        const bankCodeElement = document.getElementById('bank_code');
-        if (bankCodeElement && bankCodeElement.tagName === 'SELECT' && data.bank_code) {
-            // Find and select the option with the correct value
-            const option = bankCodeElement.querySelector(`option[value="${data.bank_code}"]`);
-            const optionEmpty = bankCodeElement.querySelector(`option[value="${data.bank_code}"]`);
-            if (option) {
-                option.selected = true;
-                console.log(`Bank code select set to: ${data.bank_code}`);
-            } else {
-                // If no option found, set to empty
-                bankCodeElement.value = 0;
-                optionEmpty.selected = true;
-                console.log(`Bank code select set to 0`);
-            }
-        }
     }
     
     /**

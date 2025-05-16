@@ -2,6 +2,8 @@ import './bootstrap';
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
 import { initCountrySelect } from './country-select';
+import SlugGenerator from './slug-generator';
+import CurrencyManager from './currency-manager';
 
 Alpine.plugin(focus);
 window.Alpine = Alpine;
@@ -65,6 +67,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initializing country select
     initCountrySelect();
+    
+    // Initialize currency manager for invoice forms
+    if (document.getElementById('payment_currency') && document.getElementById('invoice-items-list')) {
+        window.currencyManager = new CurrencyManager();
+    }
 });
 
 // For fetch API, always use credentials: 'same-origin'
@@ -111,3 +118,24 @@ async function fetchWithSession(url, options = {}) {
 
 // Export for use in modules
 window.fetchWithSession = fetchWithSession;
+
+
+// Export SlugGenerator for use in other modules
+window.SlugGenerator = SlugGenerator;
+
+// Initialize currency manager for invoice forms
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize currency manager for invoice forms
+    if (document.getElementById('payment_currency') && document.getElementById('invoice-items-list')) {
+        // Import the CurrencyManager dynamically to prevent errors if file doesn't exist
+        import('./currency-manager.js')
+            .then(module => {
+                const CurrencyManager = module.default;
+                window.currencyManager = new CurrencyManager();
+                console.log('Currency manager initialized');
+            })
+            .catch(err => {
+                console.error('Failed to load currency manager:', err);
+            });
+    }
+});

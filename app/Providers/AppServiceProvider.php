@@ -13,6 +13,8 @@ use App\View\Components\DropdownLink;
 use App\View\Components\Select;
 use App\View\Components\CurrencySelect;
 use App\View\Components\Pagination;
+use App\Models\Invoice;
+use App\Observers\InvoiceObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,6 +40,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Observe Invoice model events
+        // This observer will handle the creation and update events for the Invoice model
+        // and synchronize products from the invoice_text JSON to the pivot table
+        // The observer will also handle the bulk update of all invoices if needed
+        Invoice::observe(InvoiceObserver::class);
+
         // Add Blade directive for checking users with admin access
         Blade::if('backpackUser', function () {
             return UserHelpers::isBackpackUser();

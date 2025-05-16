@@ -308,19 +308,33 @@
                                         hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                                 </div>
 
-                            @elseif($field['name'] === 'country' || $field['name'] === 'client_country')
+                            @elseif($field['name'] === 'country')
                                 <div class="md:col-span-1 mb-5">
-                                    <x-country-select name="{{ $field['name'] }}"
-                                        :selected="old($field['name'], $userInfo['country'] ?? 'CZ')"
+                                    <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
+                                        id="{{ $field['name'] }}" valueField="id"
+                                        :selected="old($field['name'], $userInfo['country'] ?? 'CZ')" 
                                         required="{{ isset($field['required']) ? $field['required'] : ''}}"
-                                        label="{{ $field['label'] }}"
-                                        class="{{ in_array($field['name'], $supplierFields) ? 'bg-[#FDFDFC] supplier-field' : '' }} {{ in_array($field['name'], $clientFields) ? 'bg-[#FDFDFC] client-field' : '' }}" />
+                                        :options="$field['options']" hint="{{ $field['hint'] }}"
+                                        labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}"
+                                        class="{{ in_array($field['name'], $supplierFields) ? 'bg-[#FDFDFC] supplier-field country-select' : '' }}" />
+                                </div>
+
+                            @elseif($field['name'] === 'client_country')
+                                <div class="md:col-span-1 mb-5">
+                                    <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
+                                        id="{{ $field['name'] }}" valueField="id"
+                                        :selected="old($field['name'], $userInfo['client_country'] ?? 'CZ')" 
+                                        required="{{ isset($field['required']) ? $field['required'] : ''}}"
+                                        :options="$field['options']" hint="{{ $field['hint'] }}"
+                                        labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}"
+                                        class="{{ in_array($field['name'], $clientFields) ? 'bg-[#FDFDFC] client-field country-select' : '' }}" />
                                 </div>
 
                             @elseif($field['name'] === 'bank_code')
                                 <div class="md:col-span-3">
                                     <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                        id="{{ $field['name'] }}" :selected="old($field['name'], $invoice->bank_code ?? '')"
+                                        id="{{ $field['name'] }}"
+                                        :selected="old($field['name'], $invoice->bank_code ?? $defaultSupplier['bank_code'] ?? '')"
                                         required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$banks"
                                         placeholder="{{ __('suppliers.placeholders.bank_code') }}"
                                         hint="{{ $field['hint'] }}" class="bg-[#FDFDFC] supplier-field" labelClass="" />
@@ -421,8 +435,10 @@
                             __('invoices.placeholders.item_quantity') }}</div>
                         <div class="col-span-1 text-sm font-medium text-gray-600">{{
                             __('invoices.placeholders.item_unit') }}</div>
-                        <div class="col-span-2 text-sm font-medium text-gray-600">{{
+                        <div class="col-span-1 text-sm font-medium text-gray-600">{{
                             __('invoices.placeholders.item_price') }}</div>
+                        <div class="col-span-1 text-sm font-medium text-gray-600">{{
+                            __('invoices.placeholders.item_currency') }}</div>
                         <div class="col-span-1 text-sm font-medium text-gray-600">{{
                             __('invoices.placeholders.item_tax') }}</div>
                         <div class="col-span-2 text-sm font-medium text-gray-600">{{
@@ -433,10 +449,13 @@
                     <!-- Template for invoice item -->
                     <div class="invoice-item-template hidden">
                         <div class="invoice-item grid grid-cols-12 gap-4 mb-3">
-                            <div class="col-span-4">
+                            <div class="col-span-4 flex">
                                 <input type="text"
                                     class="item-name form-input w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50"
                                     placeholder="{{ __('invoices.placeholders.item_name') }}">
+                                <button type="button" title="{{ __('invoices.placeholders.select_product') }}" class="select-product ml-1 px-2 py-1 border border-blue-300 rounded-md cursor-pointer text-white hover:text-white bg-emerald-500 hover:bg-emerald-600">
+                                    <i class="fas fa-search"></i>
+                                </button>
                             </div>
                             <div class="col-span-1">
                                 <input type="number"
@@ -445,18 +464,30 @@
                                     value="1">
                             </div>
                             <div class="col-span-1">
-                                <select
+                                <select selected="pieces"
                                     class="item-unit form-select w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">
                                     @foreach($itemUnits as $key => $unit)
-                                    <option value="{{ $unit }}">{{ $unit }}</option>
+                                    @if ($key !== 'pieces')
+                                        <option value="{{ $key }}" selected>{{ $unit }}</option>
+                                    @else
+                                        <option value="{{ $key }}">{{ $unit }}</option>
+                                    @endif
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-span-2">
+                            <div class="col-span-1">
                                 <input type="number"
                                     class="item-price form-input w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50"
                                     placeholder="{{ __('invoices.placeholders.item_price') }}" step="0.01" min="0"
                                     value="0">
+                            </div>
+                            <div class="col-span-1">
+                                <select
+                                    class="item-currency form-select w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">
+                                    <option value="CZK">CZK</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="USD">USD</option>
+                                </select>
                             </div>
                             <div class="col-span-1">
                                 <select
@@ -595,9 +626,69 @@
         </div>
     </div>
 </div>
+
+<!-- Product Selection Modal -->
+<div id="product-selection-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen p-4 text-center">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+        <!-- Dialog -->
+        <div class="inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-xl font-medium leading-6 text-gray-900">
+                    {{ __('products.titles.select_product') }}
+                </h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-500">
+                    <span class="sr-only">{{ __('common.actions.close') }}</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="product-list-content">
+                @livewire('product-list-select')
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
+<script>
+// Debug script for modals
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, setting up Livewire event monitors');
+    
+    // Listen for all Livewire events
+    document.addEventListener('livewire:initialized', function() {
+        console.log('Livewire initialized successfully');
+        
+        document.addEventListener('product-selected', function(e) {
+            console.log('Event handler: product-selected detected with data:', e.detail);
+            
+            // Manual test - try to update first row if event is detected
+            const testUpdate = function(data) {
+                const firstRow = document.querySelector('.invoice-item');
+                if (!firstRow) {
+                    console.error('No invoice item rows found for test update');
+                    return;
+                }
+                
+                const nameField = firstRow.querySelector('.item-name');
+                if (nameField && data.productData) {
+                    console.log('Test update: Setting product name to:', data.productData.name);
+                    nameField.value = data.productData.name;
+                }
+            };
+            
+            // Try manual update as a test
+            testUpdate(e.detail);
+        });
+    });
+});
+</script>
 <script>
     // Make bank options available to the bank-fields.js script
     window.bankOptions = {{ Js::from($banksData) }};

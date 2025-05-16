@@ -109,6 +109,7 @@ trait InvoiceFormFields
                 'type' => 'select_from_array',
                 'options' => $currencies,
                 'hint' => __('invoices.hints.payment_currency'),
+                'placeholder' => __('invoices.placeholders.select_currency'),
                 'required' => true,
             ],
             [
@@ -190,6 +191,7 @@ trait InvoiceFormFields
                 'type' => 'select_from_array',
                 'options' => $countries,
                 'hint' => __('suppliers.hints.country'),
+                'placeholder' => __('general.placeholders.select_country'),
                 'required' => true,
             ],
             [
@@ -302,6 +304,7 @@ trait InvoiceFormFields
                 'type' => 'select_from_array',
                 'options' => $countries,
                 'hint' => __('clients.hints.country'),
+                'placeholder' => __('general.placeholders.select_country'),
                 'required' => true,
             ],
             [
