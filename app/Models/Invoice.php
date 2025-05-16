@@ -90,6 +90,16 @@ class Invoice extends Model
     }
 
     /**
+     * Products associated with this invoice
+     */
+    public function products()
+    {
+        return $this->belongsToMany(Product::class)
+                    ->withPivot('quantity', 'price', 'tax_rate')
+                    ->withTimestamps();
+    }
+
+    /**
      * Get the user that owns the invoice
      */
     public function user()
@@ -194,6 +204,46 @@ class Invoice extends Model
         }
         
         return null;
+    }
+
+    /**
+     * Sync products from invoice_text JSON data
+     */
+    public function syncProductsFromJson()
+    {
+        $productsData = [];
+        $jsonData = [];
+        
+        try {
+            if (!empty($this->invoice_text)) {
+                $jsonData = json_decode($this->invoice_text, true);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error parsing invoice_text JSON: ' . $e->getMessage());
+            return;
+        }
+        
+        // If items are present in the JSON data
+        // and are in the expected format, proceed with syncing
+        if (isset($jsonData['items']) && is_array($jsonData['items'])) {
+            foreach ($jsonData['items'] as $item) {
+                if (isset($item['product_id']) && !empty($item['product_id'])) {
+                    $productId = (int) $item['product_id'];
+                    
+                    // Prepare data for sync
+                    $productsData[$productId] = [
+                        'quantity' => (float) ($item['quantity'] ?? 1),
+                        'price' => (float) ($item['price'] ?? 0),
+                        'tax_rate' => (float) ($item['tax'] ?? 0)
+                    ];
+                }
+            }
+        }
+        
+        // Synchronizing products with pivot table
+        if (!empty($productsData)) {
+            $this->products()->sync($productsData);
+        }
     }
 
     /*

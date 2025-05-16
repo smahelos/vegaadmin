@@ -29,6 +29,7 @@ return [
         'clients' => 'Clients',
         'suppliers' => 'Suppliers',
         'profile' => 'Profile',
+        'products' => 'Products',
     ],
     
     'placeholders' => [

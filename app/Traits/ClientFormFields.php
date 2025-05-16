@@ -61,6 +61,7 @@ trait ClientFormFields
                 'label' => __('clients.fields.country'),
                 'type' => 'text',
                 'hint' => __('clients.hints.country'),
+                'placeholder' => __('clients.placeholders.select_country'),
                 'required' => true,
             ],
             [

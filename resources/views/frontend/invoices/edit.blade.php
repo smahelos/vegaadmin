@@ -271,20 +271,35 @@
                                         hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                                 </div>
 
-                            @elseif($field['name'] === 'country' || $field['name'] === 'client_country')
+                            @elseif($field['name'] === 'country')
                                 <div class="md:col-span-1 mb-5">
-                                    <x-country-select name="{{ $field['name'] }}"
-                                        :selected="old($field['name'], $invoice->{$field['name']})"
+                                    <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
+                                        id="{{ $field['name'] }}" valueField="id"
+                                        :selected="old($field['name'], $userInfo['country'] ?? 'CZ')" 
                                         required="{{ isset($field['required']) ? $field['required'] : ''}}"
-                                        label="{{ $field['label'] }}"
-                                        class="{{ in_array($field['name'], $supplierFields) ? 'bg-[#FDFDFC] supplier-field' : '' }} {{ in_array($field['name'], $clientFields) ? 'bg-[#FDFDFC] client-field' : '' }}" />
+                                        :options="$field['options']" hint="{{ $field['hint'] }}"
+                                        labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}"
+                                        class="{{ in_array($field['name'], $supplierFields) ? 'bg-[#FDFDFC] supplier-field country-select' : '' }}" />
+                                </div>
+
+                            @elseif($field['name'] === 'client_country')
+                                <div class="md:col-span-1 mb-5">
+                                    <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
+                                        id="{{ $field['name'] }}" valueField="id"
+                                        :selected="old($field['name'], $userInfo['client_country'] ?? 'CZ')" 
+                                        required="{{ isset($field['required']) ? $field['required'] : ''}}"
+                                        :options="$field['options']" hint="{{ $field['hint'] }}"
+                                        labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}"
+                                        class="{{ in_array($field['name'], $clientFields) ? 'bg-[#FDFDFC] client-field country-select' : '' }}" />
                                 </div>
 
                             @elseif($field['name'] === 'bank_code')
                                 <div class="md:col-span-3">
                                     <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                        id="{{ $field['name'] }}" :selected="old($field['name'], $invoice->bank_code)"
+                                        id="{{ $field['name'] }}"
+                                        :selected="old($field['name'], $invoice->bank_code ?? $defaultSupplier['bank_code'] ?? '')"
                                         required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$banks"
+                                        placeholder="{{ __('suppliers.placeholders.bank_code') }}"
                                         hint="{{ $field['hint'] }}" class="bg-[#FDFDFC] supplier-field" labelClass="" />
                                 </div>
 
@@ -314,7 +329,7 @@
                                                 class="{{ $invoice->client_id ? 'hidden' : '' }}">*</span>
                                         @endif
                                     </label>
-                                    <input type="{{ $field['type'] }}" name="{{ $field['name'] }}" id="{{ $field['name'] }}"
+                                    <input type="{{ $field['type'] }}" data-help="{{ old($field['name'], $invoice->{$field['name']}) }}" name="{{ $field['name'] }}" id="{{ $field['name'] }}"
                                         @if($field['name']==='issue_date' || $field['name']==='tax_point_date' )
                                             value="{{ old($field['name'], $invoice->{$field['name']}->format('Y-m-d')) }}" 
                                         @else
@@ -389,8 +404,10 @@
                             __('invoices.placeholders.item_quantity') }}</div>
                         <div class="col-span-1 text-sm font-medium text-gray-600">{{
                             __('invoices.placeholders.item_unit') }}</div>
-                        <div class="col-span-2 text-sm font-medium text-gray-600">{{
+                        <div class="col-span-1 text-sm font-medium text-gray-600">{{
                             __('invoices.placeholders.item_price') }}</div>
+                        <div class="col-span-1 text-sm font-medium text-gray-600">{{
+                            __('invoices.placeholders.item_currency') }}</div>
                         <div class="col-span-1 text-sm font-medium text-gray-600">{{
                             __('invoices.placeholders.item_tax') }}</div>
                         <div class="col-span-2 text-sm font-medium text-gray-600">{{
@@ -401,10 +418,13 @@
                     <!-- Template for invoice item -->
                     <div class="invoice-item-template hidden">
                         <div class="invoice-item grid grid-cols-12 gap-4 mb-3">
-                            <div class="col-span-4">
+                            <div class="col-span-4 flex">
                                 <input type="text"
                                     class="item-name form-input w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50"
                                     placeholder="{{ __('invoices.placeholders.item_name') }}">
+                                <button type="button" title="{{ __('invoices.placeholders.select_product') }}" class="select-product ml-1 px-2 py-1 border border-blue-300 rounded-md cursor-pointer text-white hover:text-white bg-emerald-500 hover:bg-emerald-600">
+                                    <i class="fas fa-search"></i>
+                                </button>
                             </div>
                             <div class="col-span-1">
                                 <input type="number"
@@ -416,11 +436,11 @@
                                 <select
                                     class="item-unit form-select w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">
                                     @foreach($itemUnits as $key => $unit)
-                                        <option value="{{ $unit }}">{{ $unit }}</option>
+                                    <option value="{{ $key }}">{{ $unit }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-span-2">
+                            <div class="col-span-1">
                                 <input type="number"
                                     class="item-price form-input w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50"
                                     placeholder="{{ __('invoices.placeholders.item_price') }}" step="0.01" min="0"
@@ -428,10 +448,18 @@
                             </div>
                             <div class="col-span-1">
                                 <select
+                                    class="item-currency form-select w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">
+                                    <option value="CZK">CZK</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="USD">USD</option>
+                                </select>
+                            </div>
+                            <div class="col-span-1">
+                                <select
                                     class="item-tax form-select w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">
                                     <option value="0">0%</option>
                                     @foreach($taxRates as $key => $rate)
-                                        <option value="{{ $rate }}">{{ $rate }}%</option>
+                                    <option value="{{ $rate }}">{{ $rate }}%</option>
                                     @endforeach
                                 </select>
                             </div>

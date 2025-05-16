@@ -29,6 +29,7 @@ return [
         'clients' => 'Klienti',
         'suppliers' => 'Dodávatelia',
         'profile' => 'Profil',
+        'products' => 'Produkty',
     ],
     
     'placeholders' => [

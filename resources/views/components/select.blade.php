@@ -14,14 +14,15 @@
     'placeholder' => '-'
 ])
 
-@if ($label)
-        <label for="{{ $id }}" class="block text-base font-medium text-gray-500 mb-2 {{ $labelClass }}">
-            {{ $label }}
-            @if ($required)
-                <span class="text-red-500">*</span>
-            @endif
-        </label>
-@endif
+<div>
+    @if ($label)
+            <label for="{{ $id }}" class="block text-base font-medium text-gray-500 mb-2 {{ $labelClass }}">
+                {{ $label }}
+                @if ($required)
+                    <span class="text-red-500">*</span>
+                @endif
+            </label>
+    @endif
 
     <select 
         name="{{ $name }}" 
@@ -33,12 +34,22 @@
         @if ($allowsNull)
             <option value="">{{ $placeholder ?? '-' }}</option>
         @endif
-        @foreach ($options as $k => $option)
-            <option 
-                value="{{ is_array($option) ? $option[$valueField] : $k }}" 
-                @if($selected !== null && (is_array($option) ? $option[$valueField] : $k) == $selected) selected @endif
-            >
-                {{ is_array($option) ? $option[$textField] : $option }}
+        @foreach ($options as $value => $label)
+            @php
+                if (is_array($label) && isset($label[$valueField])) {
+                    $optionValue = $label[$valueField];
+                    $optionLabel = $label[$textField] ?? $optionValue;
+                } else {
+                    $optionValue = $value;
+                    $optionLabel = $label;
+                }
+                
+                // Check if this option should be selected
+                $isSelected = $selected !== null && (string)$selected === (string)$optionValue;
+            @endphp
+            
+            <option value="{{ $optionValue }}" {{ $isSelected ? 'selected' : '' }}>
+                {{ $optionLabel }}
             </option>
         @endforeach
     </select>
@@ -50,3 +61,5 @@
     @error($name)
         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
     @enderror
+    <input type="hidden" name="{{ $name }}_fallback" id="{{ $name }}_fallback" value="{{ $selected }}">
+</div>

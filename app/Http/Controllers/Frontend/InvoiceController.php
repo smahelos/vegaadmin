@@ -193,19 +193,7 @@ class InvoiceController extends Controller
         }
 
         // Get item units for dropdown
-        $itemUnits = [
-            __('invoices.units.hours'),
-            __('invoices.units.days'),
-            __('invoices.units.pieces'),
-            __('invoices.units.kilograms'),
-            __('invoices.units.grams'),
-            __('invoices.units.liters'),
-            __('invoices.units.meters'),
-            __('invoices.units.cubic_meters'),
-            __('invoices.units.centimeters'),
-            __('invoices.units.cubic_centimeters'),
-            __('invoices.units.milliliters'),
-        ];
+        $itemUnits = $this->getItemUnits();
         
         // Get fields for invoice form from trait
         $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
@@ -269,19 +257,7 @@ class InvoiceController extends Controller
         ];
 
         // Get item units for dropdown
-        $itemUnits = [
-            __('invoices.units.hours'),
-            __('invoices.units.days'),
-            __('invoices.units.pieces'),
-            __('invoices.units.kilograms'),
-            __('invoices.units.grams'),
-            __('invoices.units.liters'),
-            __('invoices.units.meters'),
-            __('invoices.units.cubic_meters'),
-            __('invoices.units.centimeters'),
-            __('invoices.units.cubic_centimeters'),
-            __('invoices.units.milliliters'),
-        ];
+        $itemUnits = $this->getItemUnits();
         
         return view('frontend.invoices.create', compact(
             'userLoggedIn', 'fields', 'userInfo', 
@@ -309,6 +285,8 @@ class InvoiceController extends Controller
         
         if ($invoice->client) {
             $invoice->client_name = $invoice->client_name ?? $invoice->client->name;
+            $invoice->email = $invoice->email ?? $invoice->client->email;
+            $invoice->phone = $invoice->phone ?? $invoice->client->phone;
             $invoice->client_street = $invoice->client_street ?? $invoice->client->street;
             $invoice->client_city = $invoice->client_city ?? $invoice->client->city;
             $invoice->client_zip = $invoice->client_zip ?? $invoice->client->zip;
@@ -319,6 +297,8 @@ class InvoiceController extends Controller
 
         if ($invoice->supplier) {
             $invoice->name = $invoice->name ?? $invoice->supplier->name;
+            $invoice->email = $invoice->email ?? $invoice->supplier->email;
+            $invoice->phone = $invoice->phone ?? $invoice->supplier->phone;
             $invoice->street = $invoice->street ?? $invoice->supplier->street;
             $invoice->city = $invoice->city ?? $invoice->supplier->city;
             $invoice->zip = $invoice->zip ?? $invoice->supplier->zip;
@@ -393,20 +373,8 @@ class InvoiceController extends Controller
         // Get banksData for JD bank-fields.js
         $banksData = $this->getBanksForJs();
 
-        // Načtení sazeb DPH pro položky faktury
-        $itemUnits = [
-            __('invoices.units.hours'),
-            __('invoices.units.days'),
-            __('invoices.units.pieces'),
-            __('invoices.units.kilograms'),
-            __('invoices.units.grams'),
-            __('invoices.units.liters'),
-            __('invoices.units.meters'),
-            __('invoices.units.cubic_meters'),
-            __('invoices.units.centimeters'),
-            __('invoices.units.cubic_centimeters'),
-            __('invoices.units.milliliters'),
-        ];
+        // Get item units for invoice items
+        $itemUnits = $this->getItemUnits();
         
         // Get fields for invoice form from trait
         $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
@@ -1134,5 +1102,27 @@ class InvoiceController extends Controller
             Log::error('Error marking invoice as paid: ' . $e->getMessage());
             return back()->with('error', __('invoices.messages.update_error'));
         }
+    }
+
+    /**
+     * Get item units for invoice items
+     *
+     * @return array
+     */
+    public function getItemUnits()
+    {
+        return  [
+            'hours' => __('invoices.units.hours'),
+            'days' => __('invoices.units.days'),
+            'pieces' => __('invoices.units.pieces'),
+            'kilograms' => __('invoices.units.kilograms'),
+            'grams' => __('invoices.units.grams'),
+            'liters' => __('invoices.units.liters'),
+            'meters' => __('invoices.units.meters'),
+            'cubic_meters' => __('invoices.units.cubic_meters'),
+            'centimeters' => __('invoices.units.centimeters'),
+            'cubic_centimeters' => __('invoices.units.cubic_centimeters'),
+            'milliliters' => __('invoices.units.milliliters'),
+        ];
     }
 }

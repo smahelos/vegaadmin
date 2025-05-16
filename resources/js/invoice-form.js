@@ -8,11 +8,19 @@ import InvoiceNumberGenerator from './invoice-number-generator';
 import GuestInvoiceModal from './guest-invoice-modal';
 import SupplierFormData from './supplier-form-data.js';
 import ClientFormData from './client-form-data.js';
+import CurrencyManager from './currency-manager.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialisation of the invoice item manager
     const itemManager = new InvoiceItemManager();
     itemManager.init();
+    
+    // Store reference to item manager globally for use by other components
+    window.invoiceItemManager = itemManager;
+    
+    // Initialize currency manager
+    const currencyManager = new CurrencyManager();
+    // It self-initializes if required elements are found
     
     // If we are on edit page, try to load existing data from invoice_text field
     if (document.getElementById('invoice_text_json')) {
@@ -124,5 +132,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ensure JSON data is updated before form submission
     document.querySelector('form')?.addEventListener('submit', function() {
         itemManager.updateJsonData();
+    });
+    
+    // Ensure selects have proper value set on page load
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+        // Get the expected selected value from data attribute
+        const selectedValue = select.getAttribute('data-selected') || 
+                             select.getAttribute(':selected') || 
+                             select.value;
+        
+        if (selectedValue) {
+            // Find matching option
+            const option = Array.from(select.options).find(opt => opt.value === selectedValue);
+            if (option) {
+                option.selected = true;
+                select.value = selectedValue;
+                console.log(`Initial select ${select.id || select.name} value set to: ${selectedValue}`);
+            }
+        }
     });
 });

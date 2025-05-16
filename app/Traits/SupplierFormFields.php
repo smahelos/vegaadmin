@@ -63,6 +63,7 @@ trait SupplierFormFields
                 'required' => true,
                 'hint' => __('suppliers.hints.country'),
                 'type' => 'text',
+                'placeholder' => __('suppliers.placeholders.select_country'),
             ],
             [
                 'name' => 'ico',

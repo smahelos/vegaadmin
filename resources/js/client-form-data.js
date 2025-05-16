@@ -22,7 +22,7 @@ const ClientFormData = (function() {
     /**
      * Initialize the module
      */
-    function init() {
+    function init(options = {}) {
         console.log('Initializing ClientFormData module');
         
         // Set edit mode flag
@@ -31,13 +31,16 @@ const ClientFormData = (function() {
 
         // Load default supplier on page load only if not in edit mode
         if (!isEditMode) {
-            loadDefaultSupplier();
+            loadDefaultClient();
         }
         
         // Set up event listener for client select change
         const clientSelect = document.getElementById('client_id');
         if (clientSelect) {
+            var event = new Event('change');
             clientSelect.addEventListener('change', handleClientChange);
+            clientSelect.dispatchEvent(event);
+
             console.log('Event listener for client select added');
         } else {
             console.warn('Client select element not found');
@@ -50,7 +53,7 @@ const ClientFormData = (function() {
     function loadDefaultClient() {
         console.log('Loading default client data');
         
-        fetch(`${baseURL}/api/clients/default`)
+        fetch(`${baseURL}/api/client/default`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -158,9 +161,32 @@ const ClientFormData = (function() {
             
             const element = document.getElementById(field);
             if (element) {
-                // Set field value if exists in data, otherwise clear
-                element.value = data[dataField] || '';
-                console.log(`Field ${field} set to: ${element.value}`);
+                if (element.tagName === 'SELECT') {
+                    if (data[field]) {
+                        // Client country select handling
+                        const option = element.querySelector(`option[value="${data[field]}"]`);
+                        if (option) {
+                            element.value = data[field];
+                            console.log(field + ` select set to: ${data[field]}`);
+                        }
+                        
+                        // Update fallback field
+                        const fallbackField = document.getElementById(field + '_fallback');
+                        if (fallbackField) {
+                            fallbackField.value = data[field];
+                        }
+                    } else {
+                        // Generic select handling
+                        if (data[field]) {
+                            element.value = data[field];
+                            console.log(`Select ${field} set to: ${data[field]}`);
+                        }
+                    }
+                } else {
+                    // Set field value if exists in data, otherwise clear
+                    element.value = data[dataField] || '';
+                    console.log(`Field ${field} set to: ${element.value}`);
+                }
             } else {
                 console.warn(`Field element ${field} not found`);
             }

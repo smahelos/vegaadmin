@@ -127,4 +127,43 @@ class InvoiceRequest extends FormRequest
             'client_country.required_without' => __('invoices.validation.client_country_required'),
         ];
     }
+    
+    /**
+     * Prepare the data for validation.
+     * This method merges fallback values for form fields when original ones are missing.
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        // Merge data from fallback fields if the original fields are empty
+        $input = $this->all();
+        
+        // Handle country fields
+        if (empty($input['country']) && isset($input['country_fallback'])) {
+            $input['country'] = $input['country_fallback'];
+        }
+        
+        if (empty($input['client_country']) && isset($input['client_country_fallback'])) {
+            $input['client_country'] = $input['client_country_fallback'];
+        }
+        
+        // Handle bank_code field
+        if (empty($input['bank_code']) && isset($input['bank_code_fallback'])) {
+            $input['bank_code'] = $input['bank_code_fallback'];
+        }
+        
+        // Handle any other fallback fields
+        $fallbackFields = [
+            'payment_method_id', 'supplier_id', 'client_id', 'due_in', 'payment_status_id'
+        ];
+        
+        foreach ($fallbackFields as $field) {
+            if (empty($input[$field]) && isset($input[$field . '_fallback'])) {
+                $input[$field] = $input[$field . '_fallback'];
+            }
+        }
+        
+        $this->replace($input);
+    }
 }
