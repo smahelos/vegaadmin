@@ -268,17 +268,8 @@
                     <div class="space-y-4">
                         <div class="mt-4 space-y-4">
                             <div class="">
-                                @php
-                                    // Attempt to parse JSON
-                                    $invoiceTextData = null;
-                                    try {
-                                        $invoiceTextData = json_decode($invoice->invoice_text, true);
-                                    } catch (\Exception $e) {
-                                        // Parsing error - leave $invoiceTextData as null
-                                    }
-                                @endphp
                                 
-                                @if($invoiceTextData && isset($invoiceTextData['items']) && count($invoiceTextData['items']) > 0)
+                                @if($invoice->invoiceProductsData && count($invoice->invoiceProductsData) > 0)
                                 <!-- Invoice items -->
                                 <h3 class="text-base font-medium text-gray-900 mb-4 ml-4">{{ __('invoices.fields.invoice_items') }}</h3>
                                 <div class="overflow-x-auto">
@@ -306,7 +297,7 @@
                                             </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
-                                            @foreach($invoiceTextData['items'] as $item)
+                                            @foreach($invoice->invoiceProductsData as $item)
                                                 <tr>
                                                     <td class="px-4 py-2 text-sm text-gray-900">
                                                         {{ $item['name'] ?? '-' }}
@@ -325,18 +316,18 @@
                                                         @endif
                                                     </td>
                                                     <td class="px-4 py-2 text-sm text-right text-gray-900">
-                                                        @if(isset($item['tax']))
-                                                            {{ $item['tax'] }}%
+                                                        @if(isset($item['tax_rate']) && $item['tax_rate'] > 0)
+                                                            {{ $item['tax_rate'] }}%
                                                         @else
                                                             0%
                                                         @endif
                                                     </td>
                                                     <td class="px-4 py-2 text-sm text-right text-gray-900 font-medium">
-                                                        @if(isset($item['priceComplete']) && $item['priceComplete'])
-                                                            {{ $item['priceComplete'] }}
+                                                        @if(isset($item['total_price']) && $item['total_price'])
+                                                            {{ $item['total_price'] }}
                                                         @elseif(isset($item['price']) && isset($item['quantity']))
                                                             @php
-                                                                $tax = isset($item['tax']) ? floatval($item['tax']) : 0;
+                                                                $tax = isset($item['tax_rate']) ? floatval($item['tax_rate']) : 0;
                                                                 $totalWithTax = floatval($item['price']) * floatval($item['quantity']) * (1 + ($tax / 100));
                                                                 echo number_format($totalWithTax, 2, ',', ' ');
                                                             @endphp
@@ -361,13 +352,13 @@
                                 </div>
                             @endif
 
-                                @if($invoiceTextData && isset($invoiceTextData['note']) && !empty($invoiceTextData['note']))
+                                @if($invoice->invoice_text)
                                     <!-- Invoice note -->
                                     <h3 class="text-base font-medium text-gray-900 mb-2 mt-6 ml-4">{{ __('invoices.fields.invoice_note') }}</h3>
                                     <div class="bg-gray-50 rounded-md p-4">
-                                        <p class="text-sm text-gray-700 whitespace-pre-line">{{ $invoiceTextData['note'] }}</p>
+                                        <p class="text-sm text-gray-700 whitespace-pre-line">{{ $invoice->invoice_text }}</p>
                                     </div>
-                                @elseif(!$invoiceTextData)
+                                @elseif(!$invoice->invoice_text)
                                     <!-- Display original content if JSON parsing fails -->
                                     <h3 class="text-base font-medium text-gray-900 mb-2">{{ __('invoices.sections.internal_note') }}</h3>
                                     <p class="text-sm text-gray-700 whitespace-pre-line">{{ $invoice->invoice_text }}</p>

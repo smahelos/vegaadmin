@@ -247,5 +247,5 @@
         }
     });
 </script>
-<script src="{{ asset('js/product-image-preview.js') }}"></script>
+@vite('resources/js/product-image-preview.js')
 @endpush

@@ -67,9 +67,28 @@ class ProductList extends Component
     public function render()
     {
         try {
-            $query = Product::where('user_id', Auth::id())
-                ->withCount('invoices'); // Add count of invoices for each client
+            // Základní dotaz
+            $query = Product::query();
             
+            // Přidat omezení podle uživatele - pokud je potřeba
+            $query->where('user_id', Auth::id());
+            
+            // Přidat počet faktur
+            $query->withCount('invoices');
+            
+            // Přidat vyhledávání
+            if ($this->search) {
+                $query->where(function($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('description', 'like', '%' . $this->search . '%');
+                });
+            }
+        
+            // Přidat filtrování podle stavu
+            if ($this->status) {
+                $query->where('status', $this->status);
+            }
+
             // Handle special sort cases
             if ($this->orderBy === 'invoices') {
                 // Sort by the number of invoices
@@ -78,6 +97,10 @@ class ProductList extends Component
                 // Standard sorting for other fields
                 $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
             }
+        
+            // Logování dotazu pro ladění
+            Log::debug('Products query: ' . $query->toSql());
+            Log::debug('Products query bindings: ' . json_encode($query->getBindings()));
             
             $products = $query->paginate(10);
             

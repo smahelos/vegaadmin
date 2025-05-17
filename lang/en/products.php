@@ -22,6 +22,7 @@ return [
         'create' => 'Create product',
         'edit' => 'Edit product',
         'show' => 'Product #',
+        'select_product' => 'Select product',
     ],
 
     'no_input_labels' => [
@@ -43,6 +44,7 @@ return [
         'save' => 'Save',
         'confirm_delete' => 'Confirm product deletion?',
         'back_to_list' => 'Back to list',
+        'search' => 'Search product...',
     ],
 
     'hints' => [
@@ -76,6 +78,7 @@ return [
         'image_uploaded' => 'Image was successfully uploaded.',
         'image_deleted' => 'Image was successfully deleted.',
         'image_error' => 'Error uploading image.',
+        'no_products_found' => 'No products found.',
     ],
 
     'validation' => [

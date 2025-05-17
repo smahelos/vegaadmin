@@ -419,11 +419,11 @@
         <div class="p-6">
             <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('invoices.sections.other_info') }}</h2>
 
-            <!-- Hidden field for JSON data -->
-            <input type="hidden" name="invoice_text" id="invoice_text_json">
+            <!-- Hidden filed for products data -->
+            <input type="hidden" name="invoice-products" id="invoice-products" value="" />
 
             <div>
-                <label for="invoice_text" class="block text-base font-medium text-gray-500 mb-2">
+                <label for="invoice-products" class="block text-base font-medium text-gray-500 mb-2">
                     {{ __('invoices.fields.invoice_items') }}
                 </label>
                 <div id="invoice-items-container">
@@ -536,11 +536,11 @@
 
                 <!-- Description field -->
                 <div class="mt-6">
-                    <label for="invoice_note" class="block text-base font-medium text-gray-500 mb-2">
+                    <label for="invoice_text" class="block text-base font-medium text-gray-500 mb-2">
                         {{ __('invoices.fields.invoice_note') }}
                     </label>
-                    <textarea name="invoice_note" id="invoice_note" rows="3"
-                        class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">{{ old('invoice_note', $invoice->invoice_note ?? '') }}</textarea>
+                    <textarea name="invoice_text" id="invoice_text" rows="3"
+                        class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">{{ old('invoice_text', $invoice->invoice_text ?? '') }}</textarea>
 
                     @if(isset($fieldDescription['hint']) && $fieldDescription['hint'] !== '')
                         <p class="mt-1 text-sm text-gray-500">

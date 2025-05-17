@@ -391,8 +391,8 @@
         <div class="p-6">
             <h2 class="text-2xl font-medium text-gray-900 mb-4">{{ __('invoices.sections.other_info') }}</h2>
 
-            <!-- Hidden filed for JSON data -->
-            <input type="hidden" name="invoice_text" id="invoice_text_json">
+            <!-- Hidden filed for products data -->
+            <input type="hidden" name="invoice-products" id="invoice-products" />
 
             <div>
                 <div id="invoice-items-container">
@@ -501,11 +501,11 @@
 
                 <!-- Add field for message -->
                 <div class="mt-6">
-                    <label for="invoice_note" class="block text-base font-medium text-gray-500 mb-2">
+                    <label for="invoice_text" class="block text-base font-medium text-gray-500 mb-2">
                         {{ __('invoices.fields.invoice_note') }}
                     </label>
-                    <textarea name="invoice_note" id="invoice_note" rows="3"
-                        class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50"></textarea>
+                    <textarea name="invoice_text" id="invoice_text" rows="3"
+                        class="form-textarea mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50">{{ old('invoice_text', $invoice->invoice_text) }}</textarea>
                 </div>
 
                 @if(isset($fieldDescription['hint']) && $fieldDescription['hint'] !== '')
@@ -535,6 +535,33 @@
     <!-- set Locale -->
     <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
 </form>
+
+<!-- Product Selection Modal -->
+<div id="product-selection-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen p-4 text-center">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+        <!-- Dialog -->
+        <div class="inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+            <div class="flex justify-between items-start mb-4">
+                <h3 class="text-xl font-medium leading-6 text-gray-900">
+                    {{ __('products.titles.select_product') }}
+                </h3>
+                <button type="button" class="close-modal text-gray-400 hover:text-gray-500">
+                    <span class="sr-only">{{ __('common.actions.close') }}</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="product-list-content">
+                @livewire('product-list-select')
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -543,7 +570,7 @@
     window.bankOptions = {{ Js::from($banksData) }};
     
     // Provide existing invoice data to the invoice-form.js script
-    window.existingInvoiceData = @json(old('invoice_text', $invoice->invoice_text ?? ''));
+    window.existingInvoiceData = @json($invoice->invoiceProductsData ?? []);
 </script>
 @vite('resources/js/bank-fields.js')
 @vite('resources/js/ares-lookup.js')

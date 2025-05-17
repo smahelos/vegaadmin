@@ -11,7 +11,7 @@
     </div>
 </div>
 
-<form action="{{ route('frontend.supplier.update', $supplier->id) }}" method="POST">
+<form id="invoice-edit-form" action="{{ route('frontend.supplier.update', $supplier->id) }}" method="POST">
     @csrf
     @method('PUT')
 

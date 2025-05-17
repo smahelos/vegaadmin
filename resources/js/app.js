@@ -3,11 +3,17 @@ import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
 import { initCountrySelect } from './country-select';
 import SlugGenerator from './slug-generator';
-import CurrencyManager from './currency-manager';
 
-Alpine.plugin(focus);
-window.Alpine = Alpine;
-Alpine.start();
+// For None Livewire pages, start Alpine.js when the DOM is ready
+// This is to ensure that Alpine.js is only started when there is no Livewire component on the page
+// This is important because Livewire and Alpine.js can conflict with each other
+if (!window.Livewire) {
+    Alpine.plugin(focus);
+    window.Alpine = Alpine;
+    document.addEventListener('DOMContentLoaded', () => {
+        Alpine.start();
+    });
+}
 
 // Replace jQuery AJAX with native Fetch API
 // New helper function for AJAX requests
@@ -47,7 +53,7 @@ window.ajax.setup({
     credentials: 'same-origin'
 });
 
-// Alpine.js support
+// Initialize on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips and popovers (if used)
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -67,10 +73,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initializing country select
     initCountrySelect();
-    
+
     // Initialize currency manager for invoice forms
     if (document.getElementById('payment_currency') && document.getElementById('invoice-items-list')) {
-        window.currencyManager = new CurrencyManager();
+        // Import the CurrencyManager dynamically to prevent errors if file doesn't exist
+        import('./currency-manager.js')
+            .then(module => {
+                const CurrencyManager = module.default;
+                window.currencyManager = new CurrencyManager();
+                console.log('Currency manager initialized');
+            })
+            .catch(err => {
+                console.error('Failed to load currency manager:', err);
+            });
     }
 });
 
@@ -119,23 +134,5 @@ async function fetchWithSession(url, options = {}) {
 // Export for use in modules
 window.fetchWithSession = fetchWithSession;
 
-
 // Export SlugGenerator for use in other modules
 window.SlugGenerator = SlugGenerator;
-
-// Initialize currency manager for invoice forms
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize currency manager for invoice forms
-    if (document.getElementById('payment_currency') && document.getElementById('invoice-items-list')) {
-        // Import the CurrencyManager dynamically to prevent errors if file doesn't exist
-        import('./currency-manager.js')
-            .then(module => {
-                const CurrencyManager = module.default;
-                window.currencyManager = new CurrencyManager();
-                console.log('Currency manager initialized');
-            })
-            .catch(err => {
-                console.error('Failed to load currency manager:', err);
-            });
-    }
-});

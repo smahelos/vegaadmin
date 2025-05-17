@@ -22,6 +22,7 @@ return [
         'create' => 'Produkt erstellen',
         'edit' => 'Produkt bearbeiten',
         'show' => 'Produkt #',
+        'select_product' => 'Produkt auswählen',
     ],
 
     'no_input_labels' => [
@@ -43,6 +44,7 @@ return [
         'save' => 'Speichern',
         'confirm_delete' => 'Produktlöschung bestätigen?',
         'back_to_list' => 'Zurück zur Liste',
+        'search' => 'Produkt suchen...',
     ],
 
     'hints' => [
@@ -85,6 +87,7 @@ return [
         'image_uploaded' => 'Bild wurde erfolgreich hochgeladen.',
         'image_deleted' => 'Bild wurde erfolgreich gelöscht.',
         'image_error' => 'Fehler beim Hochladen des Bildes.',
+        'no_products_found' => 'Es wurden keine Produkte gefunden.',
     ],
 
     'validation' => [
