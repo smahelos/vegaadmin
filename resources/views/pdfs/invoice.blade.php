@@ -276,11 +276,11 @@ app()->setLocale($locale);
                     ?? '' }}</p>
 
                 @if(!empty($supplier->ico ?? $invoice->ico))
-                <p>{{ __('invoices.fields.ico') }}: {{ $supplier->ico ?? $invoice->ico }}</p>
+                    <p>{{ __('invoices.fields.ico') }}: {{ $supplier->ico ?? $invoice->ico }}</p>
                 @endif
 
                 @if(!empty($supplier->dic ?? $invoice->dic))
-                <p>{{ __('invoices.fields.dic') }}: {{ $supplier->dic ?? $invoice->dic }}</p>
+                    <p>{{ __('invoices.fields.dic') }}: {{ $supplier->dic ?? $invoice->dic }}</p>
                 @endif
             </div>
         </div>
@@ -295,11 +295,11 @@ app()->setLocale($locale);
                     $invoice->client_country ?? '' }}</p>
 
                 @if(!empty($client->ico ?? $invoice->client_ico))
-                <p>{{ __('invoices.fields.ico') }}: {{ $client->ico ?? $invoice->client_ico }}</p>
+                    <p>{{ __('invoices.fields.ico') }}: {{ $client->ico ?? $invoice->client_ico }}</p>
                 @endif
 
                 @if(!empty($client->dic ?? $invoice->client_dic))
-                <p>{{ __('invoices.fields.dic') }}: {{ $client->dic ?? $invoice->client_dic }}</p>
+                    <p>{{ __('invoices.fields.dic') }}: {{ $client->dic ?? $invoice->client_dic }}</p>
                 @endif
             </div>
         </div>
@@ -320,7 +320,7 @@ app()->setLocale($locale);
                 </div>
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.due_in') }}:</span>
-                    <span class="info-value">{{ $invoice->due_in }} {{ __('invoices.units.days') }}</span>
+                    <span class="info-value">{{ $invoice->due_in ?? '0' }} {{ __('invoices.units.days') }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label red">{{ __('invoices.fields.due_date') }}:</span>
@@ -335,37 +335,37 @@ app()->setLocale($locale);
                     <span class="info-label">{{ __('invoices.fields.payment_method') }}:</span>
                     <span class="info-value">
                         @if(isset($paymentMethod) && $paymentMethod)
-                        {{ $paymentMethod->name }}
+                            {{ $paymentMethod->slug ? __('payment_methods.' . $paymentMethod->slug) : __('invoices.defaults.payment_method') }}
                         @elseif(isset($invoice->payment_method_id))
                         @php
-                        $method = App\Models\PaymentMethod::find($invoice->payment_method_id);
+                            $method = App\Models\PaymentMethod::find($invoice->payment_method_id);
                         @endphp
-                        {{ $method ? $method->name : __('invoices.defaults.payment_method') }}
+                            {{ $method ? __('payment_methods.' . $method->slug ?? 'no_method') : __('invoices.defaults.payment_method') }}
                         @else
-                        {{ __('invoices.defaults.payment_method') }}
+                            {{ __('invoices.defaults.payment_method') }}
                         @endif
                     </span>
                 </div>
 
                 @if($invoice->invoice_vs)
-                <div class="info-row">
-                    <span class="info-label">{{ __('invoices.fields.invoice_vs_short') }}:</span>
-                    <span class="info-value">{{ $invoice->invoice_vs }}</span>
-                </div>
+                    <div class="info-row">
+                        <span class="info-label">{{ __('invoices.fields.invoice_vs_short') }}:</span>
+                        <span class="info-value">{{ $invoice->invoice_vs }}</span>
+                    </div>
                 @endif
 
                 @if($invoice->invoice_ks)
-                <div class="info-row">
-                    <span class="info-label">{{ __('invoices.fields.invoice_ks') }}:</span>
-                    <span class="info-value">{{ $invoice->invoice_ks }}</span>
-                </div>
+                    <div class="info-row">
+                        <span class="info-label">{{ __('invoices.fields.invoice_ks') }}:</span>
+                        <span class="info-value">{{ $invoice->invoice_ks }}</span>
+                    </div>
                 @endif
 
                 @if($invoice->invoice_ss)
-                <div class="info-row">
-                    <span class="info-label">{{ __('invoices.fields.invoice_ss') }}:</span>
-                    <span class="info-value">{{ $invoice->invoice_ss }}</span>
-                </div>
+                    <div class="info-row">
+                        <span class="info-label">{{ __('invoices.fields.invoice_ss') }}:</span>
+                        <span class="info-value">{{ $invoice->invoice_ss }}</span>
+                    </div>
                 @endif
             </div>
         </div>
@@ -374,111 +374,71 @@ app()->setLocale($locale);
     <!-- Invoice amounts -->
     <div class="section">
         <div class="section-title">{{ __('invoices.titles.invoice_items') }}</div>
+        @if($invoice->invoiceProductsData && count($invoice->invoiceProductsData) > 0)
+            <!-- Structured data from JSON -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>{{ __('invoices.placeholders.item_name') }}</th>
+                        <th class="text-right">{{ __('invoices.placeholders.item_quantity') }}</th>
+                        <th class="text-right">{{ __('invoices.placeholders.item_unit') }}</th>
+                        <th class="text-right">{{ __('invoices.placeholders.item_price') }}</th>
+                        <th class="text-right">{{ __('invoices.placeholders.item_tax') }}</th>
+                        <th class="text-right">{{ __('invoices.placeholders.item_price_complete') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($invoice->invoiceProductsData as $item)
+                    <tr>
+                        <td>{{ $item['name'] ?? '-' }}</td>
+                        <td class="text-right">{{ $item['quantity'] ?? '-' }}</td>
+                        <td class="text-right">{{ $item['unit'] ? __('invoices.units.' . $item['unit']) : 'ks' }}</td>
+                        <td class="text-right">
+                            @if(isset($item['price']) && $item['price'] > 0)
+                            {{ number_format($item['price'], 2, ',', ' ') }}
+                            @else
+                            -
+                            @endif
+                        </td>
+                        <td class="text-right">
+                            @if(isset($item['tax_rate']))
+                            {{ $item['tax_rate'] }}%
+                            @else
+                            0%
+                            @endif
+                        </td>
+                        <td class="text-right">
+                            @if(isset($item['total_price']) && $item['total_price'])
+                                {{ $item['total_price'] }}
+                            @elseif(isset($item['price']) && isset($item['quantity']))
+                            @php
+                                $tax = isset($item['tax_rate']) ? floatval($item['tax_rate']) : 0;
+                                $totatotal_pricelWithTax = floatval($item['price']) * floatval($item['quantity']) * (1 + ($tax / 100));
+                                echo number_format($totalWithTax, 2, ',', ' ');
+                            @endphp
+                            @else
+                            -
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr class="amount-total">
+                        <th colspan="5" class="text-right">{{ __('invoices.fields.total') }}</th>
+                        <td class="text-right"><strong>{{ number_format($invoice->payment_amount, 2, ',', ' ') }} {{
+                                $invoice->payment_currency }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
 
-        @php
-        // Processing invoice_text as JSON or as plaintext
-        $invoiceTextData = null;
-        $plainText = $invoice->invoice_text ?? __('invoices.defaults.invoice_text');
-
-        try {
-        // Attempt to parse JSON
-        if (!empty($invoice->invoice_text)) {
-        $invoiceTextData = json_decode($invoice->invoice_text, true);
-        }
-        } catch (\Exception $e) {
-        // Keep plainText in case of error
-        }
-        @endphp
-
-        @if($invoiceTextData && isset($invoiceTextData['items']) && count($invoiceTextData['items']) > 0)
-        <!-- Structured data from JSON -->
-        <table>
-            <thead>
-                <tr>
-                    <th>{{ __('invoices.placeholders.item_name') }}</th>
-                    <th class="text-right">{{ __('invoices.placeholders.item_quantity') }}</th>
-                    <th class="text-right">{{ __('invoices.placeholders.item_unit') }}</th>
-                    <th class="text-right">{{ __('invoices.placeholders.item_price') }}</th>
-                    <th class="text-right">{{ __('invoices.placeholders.item_tax') }}</th>
-                    <th class="text-right">{{ __('invoices.placeholders.item_price_complete') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($invoiceTextData['items'] as $item)
-                <tr>
-                    <td>{{ $item['name'] ?? '-' }}</td>
-                    <td class="text-right">{{ $item['quantity'] ?? '-' }}</td>
-                    <td class="text-right">{{ $item['unit'] ?? 'ks' }}</td>
-                    <td class="text-right">
-                        @if(isset($item['price']) && $item['price'] > 0)
-                        {{ number_format($item['price'], 2, ',', ' ') }}
-                        @else
-                        -
-                        @endif
-                    </td>
-                    <td class="text-right">
-                        @if(isset($item['tax']))
-                        {{ $item['tax'] }}%
-                        @else
-                        0%
-                        @endif
-                    </td>
-                    <td class="text-right">
-                        @if(isset($item['priceComplete']) && $item['priceComplete'])
-                        {{ $item['priceComplete'] }}
-                        @elseif(isset($item['price']) && isset($item['quantity']))
-                        @php
-                        $tax = isset($item['tax']) ? floatval($item['tax']) : 0;
-                        $totalWithTax = floatval($item['price']) * floatval($item['quantity']) * (1 + ($tax / 100));
-                        echo number_format($totalWithTax, 2, ',', ' ');
-                        @endphp
-                        @else
-                        -
-                        @endif
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-            <tfoot>
-                <tr class="amount-total">
-                    <th colspan="5" class="text-right">{{ __('invoices.fields.total') }}</th>
-                    <td class="text-right"><strong>{{ number_format($invoice->payment_amount, 2, ',', ' ') }} {{
-                            $invoice->payment_currency }}</strong></td>
-                </tr>
-            </tfoot>
-        </table>
-
-        @if(!empty($invoiceTextData['note']))
-        <div
-            style="margin-top: 10px; padding: 5px 10px 0px 10px; background-color: #f9fafb; border-radius: 5px; border: 1px solid #e5e7eb;">
-            <strong>{{ __('invoices.fields.invoice_note') }}:</strong>
-            <p style="margin-top: 5px;">{{ $invoiceTextData['note'] }}</p>
-        </div>
-        @endif
-        @else
-        <!-- Legacy display if JSON structure is not present -->
-        <table>
-            <thead>
-                <tr>
-                    <th>{{ __('invoices.fields.description') }}</th>
-                    <th class="text-right">{{ __('invoices.fields.amount') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ $plainText }}</td>
-                    <td class="text-right">{{ number_format($invoice->payment_amount, 2, ',', ' ') }} {{
-                        $invoice->payment_currency }}</td>
-                </tr>
-            </tbody>
-            <tfoot>
-                <tr class="amount-total">
-                    <th class="text-right">{{ __('invoices.fields.total') }}</th>
-                    <td class="text-right"><strong>{{ number_format($invoice->payment_amount, 2, ',', ' ') }} {{
-                            $invoice->payment_currency }}</strong></td>
-                </tr>
-            </tfoot>
-        </table>
+            @if($invoice->invoice_text)
+                <div
+                    style="margin-top: 10px; padding: 5px 10px 0px 10px; background-color: #f9fafb; border-radius: 5px; border: 1px solid #e5e7eb;">
+                    <strong>{{ __('invoices.fields.invoice_note') }}:</strong>
+                    <p style="margin-top: 5px;">{{ $invoice->invoice_text }}</p>
+                </div>
+            @endif
         @endif
     </div>
 

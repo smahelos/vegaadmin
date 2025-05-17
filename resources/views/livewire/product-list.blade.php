@@ -135,10 +135,10 @@
                 @endphp
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $product->name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->supplier_id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->supplier->name ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->price ?? '—' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->tax_id ?? '—' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->category_id ?? '—' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->tax->name ?? '—' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->category->name ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm @if($product->is_default == 1)text-green-600 font-semibold @else text-gray-500 @endif">{{ $product->is_default ? __('general.yes') : __('general.no') }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->invoices_count ??
                         $product->invoices->count() }}</td>
@@ -181,7 +181,7 @@
     <div class="text-center py-10">
         <div class="text-gray-400 mb-3">
             <i class="fas fa-users fa-3x"></i>
-        </div>alert
+        </div>
         <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('products.empty.title') }}</h3>
         <p class="text-gray-500 mb-6">{{ __('products.empty.message') }}</p>
         <a href="@localizedRoute('frontend.product.create')"

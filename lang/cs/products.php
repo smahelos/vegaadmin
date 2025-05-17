@@ -22,6 +22,7 @@ return [
         'create' => 'Vytvořit produkt',
         'edit' => 'Upravit produkt',
         'show' => 'Produkt #',
+        'select_product' => 'Vyberte produkt',
     ],
 
     'no_input_labels' => [
@@ -43,6 +44,7 @@ return [
         'save' => 'Uložit',
         'confirm_delete' => 'Opravit smazání produktu?',
         'back_to_list' => 'Zpět na seznam',
+        'search' => 'Vyhledat produkt...',
     ],
 
     'hints' => [
@@ -85,6 +87,7 @@ return [
         'image_uploaded' => 'Obrázek byl úspěšně nahrán.',
         'image_deleted' => 'Obrázek byl úspěšně smazán.',
         'image_error' => 'Chyba při nahrávání obrázku.',
+        'no_products_found' => 'Nebyl nalezen žádný produkt.',
     ],
 
     'validation' => [

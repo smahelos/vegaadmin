@@ -15,6 +15,7 @@ class ProductListSelect extends Component
     public $sortField = 'name';
     public $sortDirection = 'asc';
     public $perPage = 10;
+    public $selectedProductIds = [];
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -22,6 +23,33 @@ class ProductListSelect extends Component
         'sortDirection' => ['except' => 'asc'],
         'perPage' => ['except' => 10],
     ];
+    
+    protected $listeners = [
+        'setSelectedProductIds' => 'handleSetSelectedProductIds'
+    ];
+    
+    public function mount()
+    {
+        $this->selectedProductIds = [];
+    }
+    
+    public function handleSetSelectedProductIds($params)
+    {
+        // Pokud je to array s klíčem 'ids', použijeme to (pro novější verzi Livewire)
+        if (is_array($params) && isset($params['ids']) && is_array($params['ids'])) {
+            $this->setSelectedProductIds($params['ids']);
+        } 
+        // Jinak předpokládáme, že parametr je přímo pole ID (pro starší verzi Livewire)
+        elseif (is_array($params)) {
+            $this->setSelectedProductIds($params);
+        }
+    }
+    
+    public function setSelectedProductIds(array $ids)
+    {
+        // Implementace metody, která nastavuje vybrané produkty
+        $this->selectedProductIds = $ids;
+    }
 
     public function updatingSearch()
     {
@@ -132,7 +160,7 @@ class ProductListSelect extends Component
             $user = Auth::user();
             
             // Explicitní předběžné načtení daňových sazeb
-            $query = Product::with('tax')
+            $query = Product::with(['tax'])
                 ->when($user, function ($query) use ($user) {
                     return $query->where('user_id', $user->id);
                 })
@@ -145,6 +173,11 @@ class ProductListSelect extends Component
                 })
                 ->orderBy($this->sortField, $this->sortDirection);
 
+            // Pokud máme vybrané produkty, vyloučíme je z výsledků
+            if (!empty($this->selectedProductIds)) {
+                $query->whereNotIn('id', $this->selectedProductIds);
+            }
+            
             $products = $query->paginate($this->perPage);
             
             // Log prvních pár produktů pro kontrolu načtení tax

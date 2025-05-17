@@ -9,12 +9,12 @@ export default class InvoiceItemManager {
         this.addButton = null;
         this.itemTemplate = null;
         this.jsonInput = null;
-        this.noteInput = null;
         this.paymentAmountInput = null;
         this.totalDisplay = null;
         this.currencySelect = null;
         this.productModal = null;
         this.activeItemRow = null;
+        this.invoiceProductsInput = null;
         console.log('InvoiceItemManager initialized');
     }
     
@@ -23,12 +23,12 @@ export default class InvoiceItemManager {
         this.itemsContainer = document.getElementById('invoice-items-list');
         this.addButton = document.getElementById('add-invoice-item');
         this.itemTemplate = document.querySelector('.invoice-item-template').innerHTML;
-        this.jsonInput = document.getElementById('invoice_text_json');
-        this.noteInput = document.getElementById('invoice_note');
+        this.jsonInput = document.getElementById('invoice-products');
         this.paymentAmountInput = document.getElementById('payment_amount');
         this.totalDisplay = document.getElementById('invoice-items-total');
         this.currencySelect = document.getElementById('payment_currency');
         this.productModal = document.getElementById('product-selection-modal');
+        this.invoiceProductsInput = document.getElementById('invoice-products');
         
         if (!this.itemsContainer || !this.addButton || !this.itemTemplate) {
             console.warn('Some invoice item elements not found. Invoice items functionality might be limited.');
@@ -42,11 +42,6 @@ export default class InvoiceItemManager {
         this.itemsContainer.addEventListener('click', this.handleItemButtonClicks.bind(this));
         this.itemsContainer.addEventListener('input', this.handleItemInputChanges.bind(this));
         this.itemsContainer.addEventListener('change', this.handleItemSelectChanges.bind(this));
-        
-        // Listeners for note input
-        if (this.noteInput) {
-            this.noteInput.addEventListener('input', () => this.updateJsonData());
-        }
         
         // Listeners for currency selection
         if (this.currencySelect) {
@@ -82,71 +77,71 @@ export default class InvoiceItemManager {
         
         // Multiple event listeners to ensure we catch the event regardless of how it's dispatched
     
-    // 1. Standard Livewire 3 event listener
-    document.addEventListener('livewire:initialized', () => {
-        console.log('Livewire initialized, setting up event listeners');
-    });
-    
-    // 2. Direct event listener on window (this should catch our manual dispatch)
-    window.addEventListener('product-selected', (event) => {
-        console.log('Product selected event captured on window:', event);
+        // 1. Standard Livewire 3 event listener
+        document.addEventListener('livewire:initialized', () => {
+            console.log('Livewire initialized, setting up event listeners');
+        });
         
-        try {
-            let productData = null;
+        // 2. Direct event listener on window (this should catch our manual dispatch)
+        window.addEventListener('product-selected', (event) => {
+            console.log('Product selected event captured on window:', event);
             
-            if (event.detail && event.detail.productData) {
-                productData = event.detail.productData;
-                console.log('Found product data in event.detail.productData:', productData);
-            } else if (event.detail) {
-                productData = event.detail;
-                console.log('Found product data directly in event.detail:', productData);
+            try {
+                let productData = null;
+                
+                if (event.detail && event.detail.productData) {
+                    productData = event.detail.productData;
+                    console.log('Found product data in event.detail.productData:', productData);
+                } else if (event.detail) {
+                    productData = event.detail;
+                    console.log('Found product data directly in event.detail:', productData);
+                }
+                
+                if (productData && (productData.id || productData.name)) {
+                    console.log('Valid product data found, processing selection...');
+                    this.handleProductSelection(productData);
+                    this.closeProductModal();
+                } else {
+                    console.error('Invalid product data structure:', event.detail);
+                }
+            } catch (error) {
+                console.error('Error processing product selection:', error);
             }
-            
-            if (productData && (productData.id || productData.name)) {
-                console.log('Valid product data found, processing selection...');
-                this.handleProductSelection(productData);
-                this.closeProductModal();
-            } else {
-                console.error('Invalid product data structure:', event.detail);
+        });
+        
+        // 3. Direct document event listener (fallback)
+        document.addEventListener('product-selected', (event) => {
+            console.log('Product selected event captured on document:', event);
+            // Same processing logic as above
+            try {
+                let productData = null;
+                
+                if (event.detail && event.detail.productData) {
+                    productData = event.detail.productData;
+                    console.log('Found product data in event.detail.productData:', productData);
+                } else if (event.detail) {
+                    productData = event.detail;
+                    console.log('Found product data directly in event.detail:', productData);
+                }
+                
+                if (productData && (productData.id || productData.name)) {
+                    console.log('Valid product data found, processing selection...');
+                    this.handleProductSelection(productData);
+                    this.closeProductModal();
+                } else {
+                    console.error('Invalid product data structure:', event.detail);
+                }
+            } catch (error) {
+                console.error('Error processing product selection from document event:', error);
             }
-        } catch (error) {
-            console.error('Error processing product selection:', error);
-        }
-    });
-    
-    // 3. Direct document event listener (fallback)
-    document.addEventListener('product-selected', (event) => {
-        console.log('Product selected event captured on document:', event);
-        // Same processing logic as above
-        try {
-            let productData = null;
-            
-            if (event.detail && event.detail.productData) {
-                productData = event.detail.productData;
-                console.log('Found product data in event.detail.productData:', productData);
-            } else if (event.detail) {
-                productData = event.detail;
-                console.log('Found product data directly in event.detail:', productData);
-            }
-            
-            if (productData && (productData.id || productData.name)) {
-                console.log('Valid product data found, processing selection...');
-                this.handleProductSelection(productData);
-                this.closeProductModal();
-            } else {
-                console.error('Invalid product data structure:', event.detail);
-            }
-        } catch (error) {
-            console.error('Error processing product selection from document event:', error);
-        }
-    });
+        });
 
-    // Close modal on outside click
-    this.productModal.addEventListener('click', (e) => {
-        if (e.target === this.productModal) {
-            this.closeProductModal();
-        }
-    });
+        // Close modal on outside click
+        this.productModal.addEventListener('click', (e) => {
+            if (e.target === this.productModal) {
+                this.closeProductModal();
+            }
+        });
     }
     
     handleItemButtonClicks(e) {
@@ -454,7 +449,7 @@ export default class InvoiceItemManager {
             const unit = itemElement.querySelector('.item-unit').value.trim();
             const price = itemElement.querySelector('.item-price').value.trim();
             const currency = itemElement.querySelector('.item-currency').value.trim();
-            const tax = itemElement.querySelector('.item-tax').value.trim();
+            const taxRate = itemElement.querySelector('.item-tax').value.trim();
             const priceComplete = itemElement.querySelector('.item-price-complete').value.trim();
         
             // Add product_id only if available
@@ -467,8 +462,7 @@ export default class InvoiceItemManager {
                     unit,
                     price,
                     currency,
-                    tax,
-                    priceComplete
+                    tax_rate: taxRate,
                 };
                 
                 // Add product ID if available
@@ -482,10 +476,13 @@ export default class InvoiceItemManager {
         
         const jsonData = {
             items,
-            note: this.noteInput ? this.noteInput.value.trim() : ''
         };
         
         this.jsonInput.value = JSON.stringify(jsonData);
+
+        if (this.invoiceProductsInput) {
+            this.invoiceProductsInput.value = JSON.stringify(items);
+        }
     }
     
     // Load existing data
@@ -495,6 +492,9 @@ export default class InvoiceItemManager {
             
             if (existingData) {
                 jsonData = existingData;
+            } else if (window.existingInvoiceData && window.existingInvoiceData.length > 0) {
+                // use existingInvoiceData from global variable
+                jsonData = { items: window.existingInvoiceData };
             } else if (this.jsonInput && this.jsonInput.value) {
                 try {
                     // Try parsing as JSON if it's a string
@@ -516,13 +516,31 @@ export default class InvoiceItemManager {
                 
                 // Add items from JSON
                 jsonData.items.forEach(item => {
+                    // Check if this is a custom product or a regular product
+                    const isCustomProduct = item.is_custom_product || !item.product_id;
+                    
+                    // Determine product name based on structure
+                    let productName = '';
+                    if (isCustomProduct) {
+                        // For custom products, use the name directly from the item
+                        productName = item.name || '';
+                    } else {
+                        // For regular products, check if product object exists
+                        if (item.product && item.product.name) {
+                            productName = item.product.name;
+                        } else {
+                            // Fallback to item name if product object structure is missing
+                            productName = item.name || '';
+                        }
+                    }
+                    
                     this.addItem(
-                        item.name || '', 
+                        productName, 
                         item.quantity || '1',
                         item.unit || 'pieces',
                         item.price || '0',
-                        item.tax || '0',
-                        item.product_id || null,
+                        item.tax_rate || '0',
+                        isCustomProduct ? null : (item.product_id || null),
                         item.currency || 'CZK'
                     );
                 });
@@ -532,11 +550,6 @@ export default class InvoiceItemManager {
             } else {
                 // Add at least one empty item
                 this.addItem();
-            }
-            
-            // Set note if it exists
-            if (jsonData && jsonData.note && this.noteInput) {
-                this.noteInput.value = jsonData.note;
             }
             
             // Update JSON data
@@ -569,6 +582,15 @@ export default class InvoiceItemManager {
                 this.itemsContainer.querySelectorAll('.invoice-item')
             ).indexOf(this.activeItemRow);
         }
+        
+        // Get IDs of already selected products
+        const selectedProductIds = this.getSelectedProductIds();
+        console.log('Already selected product IDs:', selectedProductIds);
+        
+        // Dispatch event to notify Livewire component about already selected products
+        window.dispatchEvent(new CustomEvent('invoice-products-loaded', {
+            detail: { selectedProductIds }
+        }));
         
         this.productModal.classList.remove('hidden');
         document.body.classList.add('overflow-hidden'); // Prevent scrolling
@@ -724,5 +746,20 @@ export default class InvoiceItemManager {
         } catch (error) {
             console.error('Error processing product selection:', error);
         }
+    }
+
+    // Přidejte tuto metodu do třídy InvoiceItemManager
+    getSelectedProductIds() {
+        const selectedIds = [];
+        const itemElements = this.itemsContainer.querySelectorAll('.invoice-item');
+        
+        itemElements.forEach(itemElement => {
+            const productId = itemElement.dataset.productId;
+            if (productId) {
+                selectedIds.push(parseInt(productId, 10));
+            }
+        });
+        
+        return selectedIds;
     }
 }

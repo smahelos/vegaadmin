@@ -23,11 +23,11 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::where('user_id', Auth::id())
-            ->with(['category', 'tax'])
-            ->paginate(10);
+        // $products = Product::where('user_id', Auth::id())
+        //     ->with(['category', 'tax'])
+        //     ->paginate(10);
         
-        return view('frontend.products.index', compact('products'));
+        return view('frontend.products.index');
     }
 
     /**

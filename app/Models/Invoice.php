@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Permission\Traits\HasRoles;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\InvoiceProduct;
+use Illuminate\Support\Facades\Log;
 
 class Invoice extends Model
 {
@@ -90,13 +92,33 @@ class Invoice extends Model
     }
 
     /**
-     * Products associated with this invoice
+     * Get the products related to this invoice
      */
     public function products()
     {
-        return $this->belongsToMany(Product::class)
-                    ->withPivot('quantity', 'price', 'tax_rate')
-                    ->withTimestamps();
+        return $this->belongsToMany(Product::class, 'invoice_products')
+            ->withPivot([
+                'name', 
+                'quantity', 
+                'price', 
+                'currency',
+                'unit',
+                'category',
+                'description',
+                'is_custom_product',
+                'tax_rate',
+                'tax_amount',
+                'total_price'
+            ])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all invoice products including custom products
+     */
+    public function invoiceProducts()
+    {
+        return $this->hasMany(InvoiceProduct::class);
     }
 
     /**
@@ -138,6 +160,36 @@ class Invoice extends Model
     }
 
     /**
+     * Calculate invoice total amount
+     *
+     * @return float
+     */
+    public function calculateTotalAmount()
+    {
+        try {
+            if ($this->relationLoaded('invoiceProducts') && $this->invoiceProducts->isNotEmpty()) {
+                $total = $this->invoiceProducts->sum('total_price');
+            } else {
+                // Check if the relation is loaded
+                if (!$this->exists) {
+                    return 0.0;
+                }
+                
+                $total = $this->invoiceProducts()->sum('total_price');
+            }
+            
+            // Update the invoice header
+            $this->payment_amount = $total;
+            $this->save();
+            
+            return $total;
+        } catch (\Exception $e) {
+            \Log::error('Error calculating total amount: ' . $e->getMessage());
+            return 0.0;
+        }
+    }
+
+    /**
      * Get translated payment status name
      *
      * @return string
@@ -152,7 +204,7 @@ class Invoice extends Model
      */
     public function getPaymentStatusSlugAttribute()
     {
-        return $this->paymentStatus ? $this->paymentStatus->slug : null;
+        return $this->paymentStatus ? $this->paymentStatus->slug : 'unknown';
     }
 
     /**
@@ -160,11 +212,22 @@ class Invoice extends Model
      */
     public function getClientNameAttribute()
     {
-        return $this->client->name ?? __('invoices.placeholders.unknown_client');
+        // Check if the relation is loaded
+        if ($this->relationLoaded('client') && $this->client) {
+            return $this->client->name;
+        } elseif ($this->client_id) {
+            // If client is needed (lazy loading)
+            $client = $this->client()->first();
+            return $client ? $client->name : __('invoices.placeholders.unknown_client');
+        }
+    
+        return __('invoices.placeholders.unknown_client');
     }
 
     /**
-     * Get CSS class for payment status display
+     * Get CSS class for payment status display with fallback
+     * 
+     * @return string
      */
     public function getStatusColorClassAttribute()
     {
@@ -183,9 +246,12 @@ class Invoice extends Model
             'overdue' => 'red',
             'partially_paid' => 'blue',
             'canceled' => 'gray',
+            'unknown' => 'gray',
         ];
-        
-        return $colorMap[$this->payment_status_slug] ?? 'gray';
+    
+        $slug = $this->getPaymentStatusSlugAttribute();
+
+        return $colorMap[$slug] ?? 'gray';
     }
 
     /**
@@ -246,6 +312,52 @@ class Invoice extends Model
         }
     }
 
+    /**
+     * Get total price without tax
+     */
+    public function getSubtotalAttribute()
+    {
+        try {
+            if (!$this->relationLoaded('invoiceProducts') || $this->invoiceProducts->isEmpty()) {
+                // Check if the relation exists
+                if (!$this->exists) {
+                    return 0.0;
+                }
+                
+                return $this->invoiceProducts()->sum(\DB::raw('price * quantity')) ?: 0.0;
+            }
+            
+            return $this->invoiceProducts->sum(function($item) {
+                return ($item->price ?? 0) * ($item->quantity ?? 0);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Error calculating subtotal: ' . $e->getMessage());
+            return 0.0;
+        }
+    }
+
+    /**
+     * Get total tax amount
+     */
+    public function getTotalTaxAttribute()
+    {
+        try {
+            if (!$this->relationLoaded('invoiceProducts') || $this->invoiceProducts->isEmpty()) {
+                // Check if the relation exists
+                if (!$this->exists) {
+                    return 0.0;
+                }
+                
+                return $this->invoiceProducts()->sum('tax_amount') ?: 0.0;
+            }
+            
+            return $this->invoiceProducts->sum('tax_amount') ?: 0.0;
+        } catch (\Exception $e) {
+            \Log::error('Error calculating total tax: ' . $e->getMessage());
+            return 0.0;
+        }
+    }
+
     /*
     |--------------------------------------------------------------------------
     | SCOPES
@@ -264,8 +376,64 @@ class Invoice extends Model
     protected function supplierName(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->supplier?->name ?? __('invoices.placeholders.unknown_supplier'),
+            get: function () {
+                // Kontrola existence vztahu supplier
+                if ($this->relationLoaded('supplier') && $this->supplier) {
+                    return $this->supplier->name;
+                } elseif ($this->supplier_id) {
+                    // Lazy loading pokud je potřeba
+                    $supplier = $this->supplier()->first();
+                    return $supplier ? $supplier->name : __('invoices.placeholders.unknown_supplier');
+                }
+                
+                return __('invoices.placeholders.unknown_supplier');
+            },
         );
+    }
+
+    /**
+     * Get all products (regular and custom) associated with this invoice
+     * 
+     * @return array
+     */
+    public function getInvoiceProductsDataAttribute(): array
+    {
+        $products = [];
+    
+        // Ensure the relation is loaded
+        $invoiceProducts = $this->relationLoaded('invoiceProducts') ? 
+            $this->invoiceProducts : $this->invoiceProducts()->get();
+
+            Log::info('Invoice Products:', ['invoiceProducts' => $invoiceProducts->toArray()]);
+        
+        foreach ($invoiceProducts as $invoiceProduct) {
+            $productData = [
+                'id' => $invoiceProduct->id,
+                'product_id' => $invoiceProduct->product_id,
+                'name' => $invoiceProduct->name,
+                'quantity' => $invoiceProduct->quantity,
+                'unit' => $invoiceProduct->unit,
+                'price' => $invoiceProduct->price,
+                'currency' => $invoiceProduct->currency,
+                'tax_rate' => $invoiceProduct->tax_rate,
+                'tax_amount' => $invoiceProduct->tax_amount,
+                'total_price' => $invoiceProduct->total_price,
+                'is_custom_product' => $invoiceProduct->is_custom_product,
+            ];
+            
+            // Add product details if this is not a custom product
+            if (!$invoiceProduct->is_custom_product && $invoiceProduct->product) {
+                $productData['product'] = [
+                    'id' => $invoiceProduct->product->id,
+                    'name' => $invoiceProduct->product->name,
+                    // Add other product fields as needed
+                ];
+            }
+            
+            $products[] = $productData;
+        }
+        
+        return $products;
     }
 
     /*

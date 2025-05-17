@@ -12,6 +12,7 @@ use App\Models\Supplier;
 use App\Models\PaymentMethod;
 use App\Models\Tax;
 use App\Models\Bank;
+use App\Models\InvoiceProduct;
 use App\Traits\InvoiceFormFields;
 use App\Services\QrPaymentService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -59,7 +60,10 @@ class InvoiceController extends Controller
         $suppliers = Supplier::where('user_id', Auth::id())->pluck('name', 'id')->toArray();
         
         // Get payment methods for dropdown
-        $paymentMethods = PaymentMethod::all()->pluck('slug', 'id')->toArray();;
+        $paymentMethods = PaymentMethod::all()->pluck('slug', 'id')->toArray();
+        
+        // Set invoice products
+        $invoiceProducts = [];
 
         // Load all active invoice statuses
         $statuses = Status::pluck('name', 'id')->toArray();
@@ -202,7 +206,7 @@ class InvoiceController extends Controller
             'userLoggedIn', 'fields', 'clients', 
             'suppliers', 'userInfo', 'clientInfo', 'paymentMethods', 
             'suggestedNumber', 'statuses', 'defaultSupplier', 'banks',
-            'banksData', 'taxRates', 'itemUnits'
+            'banksData', 'taxRates', 'itemUnits', 'invoiceProducts'
         ));
     }
 
@@ -232,6 +236,9 @@ class InvoiceController extends Controller
         
         // Get suggested invoice number
         $suggestedNumber = $this->getNextInvoiceNumber();
+
+        // Get Invoice products
+        $invoiceProducts = [];
         
         // Empty arrays for clients and suppliers since guest users don't have any
         $clients = [];
@@ -375,14 +382,23 @@ class InvoiceController extends Controller
 
         // Get item units for invoice items
         $itemUnits = $this->getItemUnits();
+
+        // Get Invoice products
+        $invoiceProducts = InvoiceProduct::where('invoice_id', $id)
+            ->with(['product'])
+            ->get()
+            ->toArray();
+
+        Log::info('Invoice products: ', $invoiceProducts);
         
         // Get fields for invoice form from trait
         $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
         
         return view('frontend.invoices.edit', compact(
-            'invoice', 'userLoggedIn', 'fields', 
-            'paymentMethods', 'clients', 'suppliers', 'statuses', 
-            'user', 'banks', 'banksData', 'taxRates', 'itemUnits'
+            'invoice', 'userLoggedIn', 'fields',
+            'paymentMethods', 'clients', 'suppliers', 'statuses',
+            'user', 'banks', 'banksData', 'taxRates', 'itemUnits',
+            'invoiceProducts'
         ));
     }
     
@@ -437,6 +453,22 @@ class InvoiceController extends Controller
 
             // Create invoice
             $invoice = Invoice::create($data);
+                
+            // Get invoice products from request
+            $invoiceProducts = $request->input('invoice-products');
+            
+            // Decode JSON if it's a string
+            if (is_string($invoiceProducts)) {
+                $invoiceProducts = json_decode($invoiceProducts, true);
+            }
+
+            // Add products to invoice
+            if (is_array($invoiceProducts) && !empty($invoiceProducts)) {
+                $this->saveInvoiceProducts($invoice, $invoiceProducts);
+            }
+
+            // Recalculate total amount
+            $invoice->calculateTotalAmount();
             
             return redirect()->route('frontend.invoices', ['lang' => app()->getLocale()])
                 ->with('success', __('invoices.messages.created'));
@@ -470,6 +502,16 @@ class InvoiceController extends Controller
             // Convert due_in to integer
             if (isset($data['due_in'])) {
                 $data['due_in'] = (int)$data['due_in'];
+            }
+        
+            // Process invoice products
+            $invoiceProducts = $request->input('invoice-products');
+            
+            // Make sure products JSON is included in cached data
+            if (is_string($invoiceProducts)) {
+                $data['invoice-products'] = $invoiceProducts;
+            } else {
+                $data['invoice-products'] = json_encode($invoiceProducts);
             }
             
             // Create token to identify the invoice
@@ -713,15 +755,17 @@ class InvoiceController extends Controller
     public function downloadWithToken($token)
     {
         try {
+            Log::info('Starting PDF generation with token: ' . substr($token, 0, 8) . '...');
+            
             // Get invoice data from cache
             $invoiceData = Cache::get('invoice_data_' . $token);
             
             if (!$invoiceData) {
-                Log::warning('Trying to downlad invoice with token: ' . $token);
+                Log::warning('Invoice data not found for token: ' . substr($token, 0, 8) . '...');
                 abort(404, __('invoices.messages.token_invalid'));
             }
-    
-            // set locale based on request or default
+
+            // Set locale based on request or default
             $requestLocale = request()->get('lang');
             $dataLocale = $invoiceData['lang'] ?? null;
 
@@ -735,41 +779,56 @@ class InvoiceController extends Controller
             }
 
             $this->setLocaleForPdfGeneration($locale);
-    
-            // Create a new temporary invoice object
+
+            // Create a new temporary invoice object with all properties
             $invoice = new \stdClass();
             foreach ($invoiceData as $key => $value) {
-                $invoice->$key = $value;
+                // Skip complex data (will be processed separately)
+                if ($key !== 'invoice-products') {
+                    $invoice->$key = $value;
+                }
+            }
+
+            // Calculate due_date if needed
+            if (isset($invoice->issue_date) && isset($invoice->due_in)) {
+                $issueDate = new \DateTime($invoice->issue_date);
+                $issueDate->modify('+' . (int)$invoice->due_in . ' days');
+                $invoice->due_date = $issueDate->format('Y-m-d');
             }
 
             // Convert due_in to integer
             if (isset($invoice->due_in)) {
                 $invoice->due_in = (int)$invoice->due_in;
             }
-    
-            // Ensure required properties are set
+
+            // Ensure required properties are set with default values
             $this->ensureProperties($invoice, [
-                'payment_method_id', 'due_in', 'payment_status_id', 'payment_currency'
+                'payment_method_id', 'due_in', 'payment_status_id', 'payment_currency',
+                'invoice_vs', 'invoice_ks', 'invoice_ss', 'issue_date', 'payment_amount',
+                'tax_point_date', 'invoice_text', 'due_date'
             ]);
-    
-            // Create client and supplier objects
+
+            // Create client object with proper defaults
             $client = new \stdClass();
-            $client->name = $invoiceData['client_name'] ?? '';
+            $client->id = null;
+            $client->name = $invoiceData['client_name'] ?? __('invoices.placeholders.unnamed_client');
             $client->street = $invoiceData['client_street'] ?? '';
             $client->city = $invoiceData['client_city'] ?? '';
             $client->zip = $invoiceData['client_zip'] ?? '';
-            $client->country = $invoiceData['client_country'] ?? '';
+            $client->country = $invoiceData['client_country'] ?? 'CZ';
             $client->ico = $invoiceData['client_ico'] ?? '';
             $client->dic = $invoiceData['client_dic'] ?? '';
             $client->email = $invoiceData['client_email'] ?? '';
             $client->phone = $invoiceData['client_phone'] ?? '';
-    
+
+            // Create supplier object with proper defaults
             $supplier = new \stdClass();
-            $supplier->name = $invoiceData['name'] ?? '';
+            $supplier->id = null;
+            $supplier->name = $invoiceData['name'] ?? __('invoices.placeholders.unnamed_supplier');
             $supplier->street = $invoiceData['street'] ?? '';
             $supplier->city = $invoiceData['city'] ?? '';
             $supplier->zip = $invoiceData['zip'] ?? '';
-            $supplier->country = $invoiceData['country'] ?? '';
+            $supplier->country = $invoiceData['country'] ?? 'CZ';
             $supplier->ico = $invoiceData['ico'] ?? '';
             $supplier->dic = $invoiceData['dic'] ?? '';
             $supplier->email = $invoiceData['email'] ?? '';
@@ -779,48 +838,110 @@ class InvoiceController extends Controller
             $supplier->bank_name = $invoiceData['bank_name'] ?? '';
             $supplier->iban = $invoiceData['iban'] ?? '';
             $supplier->swift = $invoiceData['swift'] ?? '';
-    
-            // Add supplier to invoice
+
+            // Add supplier and client to invoice
             $invoice->supplier = $supplier;
-    
-            // Create a clone invoice object
-            $qrInvoice = clone $invoice;
+            $invoice->client = $client;
+
+            // Process invoice products from JSON data
+            $invoiceProducts = [];
+            $totalAmount = 0;
             
-            // Set payment information data for QR code
-            $qrData = [
-                'invoice_vs' => $invoiceData['invoice_vs'],
-                'payment_amount' => (float)$invoiceData['payment_amount'],
-                'payment_currency' => $invoiceData['payment_currency'],
-            ];
-            
-            // Set bank account details for QR code
-            if (!empty($invoiceData['account_number']) && !empty($invoiceData['bank_code'])) {
-                $qrData['account_number'] = $invoiceData['account_number'];
-                $qrData['bank_code'] = $invoiceData['bank_code'];
+            if (!empty($invoiceData['invoice-products'])) {
+                try {
+                    $productsData = $invoiceData['invoice-products'];
+                    
+                    // Decode JSON if it's a string
+                    if (is_string($productsData)) {
+                        $productsData = json_decode($productsData, true);
+                        
+                        // Check for JSON decode errors
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                            Log::warning('JSON decode error for invoice products: ' . json_last_error_msg());
+                            $productsData = [];
+                        }
+                    }
+                    
+                    // Create invoice product objects
+                    if (is_array($productsData)) {
+                        foreach ($productsData as $index => $product) {
+                            $invoiceProduct = [];
+                            $invoiceProduct['id'] = $index + 1; // Assign sequential ID
+                            $invoiceProduct['product_id'] = $product['product_id'] ?? null;
+                            $invoiceProduct['name'] = $product['name'] ?? __('invoices.placeholders.unnamed_product');
+                            $invoiceProduct['quantity'] = floatval($product['quantity'] ?? 1);
+                            $invoiceProduct['unit'] = $product['unit'] ?? __('invoices.units.pieces');
+                            $invoiceProduct['price'] = floatval($product['price'] ?? 0);
+                            $invoiceProduct['currency'] = $product['currency'] ?? 'CZK';
+                            $invoiceProduct['tax_rate'] = floatval($product['tax_rate'] ?? 21);
+                            
+                            // Calculate tax amount and total price
+                            $invoiceProduct['tax_amount'] = ($invoiceProduct['price'] * $invoiceProduct['quantity'] * $invoiceProduct['tax_rate']) / 100;
+                            $invoiceProduct['total_price'] = ($invoiceProduct['price'] * $invoiceProduct['quantity']) + $invoiceProduct['tax_amount'];
+                            
+                            // Add to running total
+                            $totalAmount += $invoiceProduct['total_price'];
+                            
+                            $invoiceProducts[] = $invoiceProduct;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Error processing invoice products: ' . $e->getMessage(), [
+                        'token' => substr($token, 0, 8) . '...'
+                    ]);
+                }
             }
             
-            if (!empty($invoiceData['iban'])) {
-                $qrData['iban'] = $invoiceData['iban'];
-            }
+            // Add products to invoice
+            $invoice->invoiceProductsData = $invoiceProducts;
             
-            // Add QR code data to the invoice object
-            foreach ($qrData as $key => $value) {
-                $qrInvoice->$key = $value;
-            }
-    
             // Get payment method
-            // Check if payment method ID is set in the invoice data
             $paymentMethod = null;
-            if (!empty($invoiceData['payment_method_id'])) {
-                $paymentMethod = PaymentMethod::find($invoiceData['payment_method_id']);
+            if (!empty($invoice->payment_method_id)) {
+                try {
+                    $paymentMethod = PaymentMethod::find($invoice->payment_method_id);
+                } catch (\Exception $e) {
+                    Log::warning('Payment method not found: ' . $e->getMessage());
+                }
             }
+            
+            // Create fallback payment method if needed
+            if (!$paymentMethod) {
+                $paymentMethod = new \stdClass();
+                $paymentMethod->id = $invoice->payment_method_id ?? 1;
+                $paymentMethod->name = __('payment_methods.' . ($invoiceData['payment_method_slug'] ?? 'bank_transfer'));
+                $paymentMethod->slug = $invoiceData['payment_method_slug'] ?? 'bank_transfer';
+            }
+            
+            // Get payment status
+            $paymentStatus = null;
+            if (!empty($invoice->payment_status_id)) {
+                try {
+                    $paymentStatus = Status::find($invoice->payment_status_id);
+                } catch (\Exception $e) {
+                    Log::warning('Payment status not found: ' . $e->getMessage());
+                }
+            }
+            
+            // Create fallback payment status if needed
+            if (!$paymentStatus) {
+                $paymentStatus = new \stdClass();
+                $paymentStatus->id = $invoice->payment_status_id ?? 1;
+                $paymentStatus->name = __('invoices.status.' . ($invoiceData['payment_status_slug'] ?? 'unpaid'));
+                $paymentStatus->slug = $invoiceData['payment_status_slug'] ?? 'unpaid';
+            }
+
+            // Create a clone invoice object for QR code
+            $qrInvoice = clone $invoice;
             
             // Generate QR code
             $qrCodeBase64 = null;
             try {
-                $qrCodeBase64 = $this->qrPaymentService->generateQrCodeBase64($qrInvoice);
+                if ((!empty($invoice->account_number) && !empty($invoice->bank_code)) || !empty($invoice->iban)) {
+                    $qrCodeBase64 = $this->qrPaymentService->generateQrCodeBase64($qrInvoice);
+                }
             } catch (\Exception $e) {
-                Log::error('Error while generation QR code: ' . $e->getMessage());
+                Log::error('Error generating QR code: ' . $e->getMessage());
             }
             
             // Data for PDF generation
@@ -830,20 +951,37 @@ class InvoiceController extends Controller
                 'client' => $client,
                 'supplier' => $supplier,
                 'paymentMethod' => $paymentMethod,
+                'paymentStatus' => $paymentStatus,
                 'qrCode' => $qrCodeBase64,
                 'hasQrCode' => !empty($qrCodeBase64),
-                'locale' => $locale // Add locale
+                'locale' => $locale,
+                'invoiceProducts' => $invoiceProducts,
             ];
-    
-            // Generating PDF
-            $pdf = Pdf::loadView('pdfs.invoice', $data);
 
-            $response = $pdf->download('faktura-' . $invoice->invoice_vs . '.pdf');
+            // Log rendering details for debugging
+            Log::info('Rendering PDF with data', [
+                'invoice_number' => $invoice->invoice_vs ?? 'N/A',
+                'product_count' => count($invoiceProducts),
+                'locale' => $locale,
+                'has_qr' => !empty($qrCodeBase64) ? 'yes' : 'no'
+            ]);
+
+            // Generate PDF
+            $pdf = Pdf::loadView('pdfs.invoice', $data);
+            
+            $filename = 'faktura-' . ($invoice->invoice_vs ?? date('YmdHis')) . '.pdf';
+            $response = $pdf->download($filename);
 
             // Set locale cookie
-            return $response->cookie('locale', $locale, 60 * 24 * 30);
+            return $response->cookie('locale', $locale, 60 * 24 * 30); // 30 days
         } catch (\Exception $e) {
-            Log::error('Error while generating invoice PDF: ' . $e->getMessage());
+            Log::error('Error while generating invoice PDF: ' . $e->getMessage(), [
+                'token' => substr($token, 0, 8) . '...',
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             abort(500, __('invoices.messages.pdf_error'));
         }
     }
@@ -957,6 +1095,25 @@ class InvoiceController extends Controller
             
             // update invoice
             $invoice->update($data);
+            
+            // Smažeme stávající produkty a nahradíme novými
+            $invoice->invoiceProducts()->delete();
+            
+            // Get invoice products from request
+            $invoiceProducts = $request->input('invoice-products');
+            
+            // Decode JSON if it's a string
+            if (is_string($invoiceProducts)) {
+                $invoiceProducts = json_decode($invoiceProducts, true);
+            }
+            
+            // Add products to invoice
+            if (is_array($invoiceProducts) && !empty($invoiceProducts)) {
+                $this->saveInvoiceProducts($invoice, $invoiceProducts);
+            }
+
+            // Recalculate total amount
+            $invoice->calculateTotalAmount();
             
             return redirect()
                 ->route('frontend.invoice.show', ['id' => $invoice->id, 'lang' => app()->getLocale()])
@@ -1124,5 +1281,47 @@ class InvoiceController extends Controller
             'cubic_centimeters' => __('invoices.units.cubic_centimeters'),
             'milliliters' => __('invoices.units.milliliters'),
         ];
+    }
+
+    /**
+     * Helper method to save invoice products
+     * 
+     * @param Invoice $invoice
+     * @param array $products
+     * @return void
+     */
+    private function saveInvoiceProducts(Invoice $invoice, array $products)
+    {
+        foreach ($products as $product) {
+            // Check if this is a custom product (no product_id or explicitly marked)
+            $isCustom = !isset($product['product_id']) || empty($product['product_id']) || 
+                       (isset($product['is_custom_product']) && $product['is_custom_product']);
+            
+            // Convert to numbers for safety
+            $quantity = floatval($product['quantity'] ?? 1);
+            $price = floatval($product['price'] ?? 0);
+            $taxRate = floatval($product['tax_rate'] ?? 21);
+            
+            $taxAmount = ($quantity * $price * $taxRate) / 100;
+            $totalPrice = $quantity * $price * (1 + $taxRate / 100);
+            
+            $invoiceProduct = new InvoiceProduct([
+                'invoice_id' => $invoice->id,
+                'product_id' => $isCustom ? null : $product['product_id'],
+                'name' => $product['name'] ?? '',
+                'quantity' => $quantity,
+                'price' => $price,
+                'currency' => $product['currency'] ?? 'CZK',
+                'unit' => $product['unit'] ?? 'ks',
+                'category' => $product['category'] ?? null,
+                'description' => $product['description'] ?? null,
+                'is_custom_product' => $isCustom,
+                'tax_rate' => $taxRate,
+                'tax_amount' => $taxAmount,
+                'total_price' => $totalPrice,
+            ]);
+            
+            $invoiceProduct->save();
+        }
     }
 }
