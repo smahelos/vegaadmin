@@ -37,6 +37,14 @@ class Status extends Model
     {
         return $this->hasMany(Invoice::class, 'payment_status_id');
     }
+    
+    /**
+     * Get the category of this status
+     */
+    public function category()
+    {
+        return $this->belongsTo(StatusCategory::class, 'category_id');
+    }
 
     /*
     |--------------------------------------------------------------------------

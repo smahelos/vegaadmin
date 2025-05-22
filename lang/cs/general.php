@@ -64,4 +64,24 @@ return [
         'previous' => 'Předchozí',
         'next' => 'Další',
     ],
+
+    'actions' => [
+        'create' => 'Vytvořit',
+        'edit' => 'Upravit',
+        'delete' => 'Smazat',
+        'view' => 'Zobrazit',
+        'save' => 'Uložit',
+        'cancel' => 'Zrušit',
+        'confirm' => 'Potvrdit',
+        'back' => 'Zpět',
+        'download' => 'Stáhnout',
+        'print' => 'Tisknout',
+        'send' => 'Odeslat',
+        'actions' => 'Akce',
+    ],
+
+    'common' => [
+        'created_at' => 'Vytvořeno',
+        'updated_at' => 'Aktualizováno',
+    ],
 ];

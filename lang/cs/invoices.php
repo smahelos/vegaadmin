@@ -69,7 +69,7 @@ return [
 
     'actions' => [
         'create' => 'Vytvořit fakturu',
-        'edit' => 'Upravit fakturu',
+        'edit' => 'Upravit',
         'delete' => 'Smazat fakturu',
         'save' => 'Uložit fakturu',
         'cancel' => 'Zrušit',
@@ -78,7 +78,7 @@ return [
         'back' => 'Zpět',
         'back_to_list' => 'Zpět na seznam',
         'download' => 'Stáhnout',
-        'download_pdf' => 'Stáhnout fakturu (PDF)',
+        'download_pdf' => 'Stáhnout (PDF)',
         'preview_pdf' => 'Náhled PDF',
         'send' => 'Odeslat fakturu',
         'pay' => 'Zaplatit',

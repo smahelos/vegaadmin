@@ -11,10 +11,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
+use App\Traits\HasFileUploads;
 
 class Product extends Model
 {
-    use HasFactory, Sluggable, CrudTrait;
+    use HasFactory, Sluggable, CrudTrait, HasFileUploads;
 
     protected $fillable = [
         'name',
@@ -145,43 +146,34 @@ class Product extends Model
      */
     public function setImageAttribute($value)
     {
-        $attribute_name = "image";
-        $disk = "public";
-        $destination_path = "products";
-
-        // If a new file has been uploaded
-        if ($value instanceof UploadedFile) {
-            // Delete old file if exists
-            if (!empty($this->attributes[$attribute_name])) {
-                Storage::disk($disk)->delete($this->attributes[$attribute_name]);
-            }
-
-            // Generate a filename and store the file
-            $filename = md5($value->getClientOriginalName().time()).'.'.$value->getClientOriginalExtension();
-            $value->storeAs($destination_path, $filename, $disk);
-            $this->attributes[$attribute_name] = $destination_path.'/'.$filename;
-        }
-        
-        // If the image has been removed through the checkbox
-        if ($value === null && request()->has($attribute_name.'_remove')) {
-            // Delete the file if it exists
-            if (!empty($this->attributes[$attribute_name])) {
-                Storage::disk($disk)->delete($this->attributes[$attribute_name]);
-            }
-            $this->attributes[$attribute_name] = null;
-        }
-    }
-
-    public function getImageUrl()
-    {
-        if ($this->image) {
-            return Storage::disk('public')->url($this->image);
-        }
-        return null;
+        $this->handleFileUpload('image', $value, 'products/images', [
+            'disk' => 'public',
+            'createThumbnails' => true,
+            'thumbnailWidth' => 200,
+            'thumbnailHeight' => 200,
+            'thumbnailPath' => 'thumbnails',
+            'allowedFileTypes' => [
+                // Images
+                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                'jpeg', 'jpg', 'png', 'gif', 'webp',
+            ],
+            'maxFileSize' => 10240, // 10MB max file size
+        ]);
     }
 
     /**
-     * Get a URL to the image thumbnail
+     * Get URL to the image file
+     * 
+     * @param string $attribute
+     * @return string|null
+     */
+    public function getFileUrl(string $attribute = 'image', $index = null)
+    {
+        return $this->getAttributeFileUrl($attribute, $index);
+    }
+
+    /**
+     * Get a URL to the image thumbnail file
      * 
      * @return string|null
      */

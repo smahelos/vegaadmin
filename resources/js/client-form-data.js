@@ -18,6 +18,16 @@ const ClientFormData = (function() {
     
     // Flag to determine if we're in edit mode
     let isEditMode = false;
+
+    /**
+     * Check if URL has client_id parameter and return it
+     * @returns {string|null} - client_id from URL or null if not present
+     */
+    function getClientIdFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const clientId = urlParams.get('client_id');
+        return clientId;
+    }
     
     /**
      * Initialize the module
@@ -29,14 +39,26 @@ const ClientFormData = (function() {
         isEditMode = options.isEditMode || false;
         console.log(`Edit mode: ${isEditMode}`);
 
-        // Load default supplier on page load only if not in edit mode
-        if (!isEditMode) {
+        // Check if client_id is in URL
+        const urlClientId = getClientIdFromUrl();
+        
+        if (urlClientId) {
+            console.log(`Found client_id in URL: ${urlClientId}`);
+            // Load client from URL parameter instead of default
+            loadClientById(urlClientId);
+        } else if (!isEditMode) {
+            // Only load default if no URL parameter and not in edit mode
             loadDefaultClient();
         }
         
         // Set up event listener for client select change
         const clientSelect = document.getElementById('client_id');
         if (clientSelect) {
+            // Set the client select value if URL parameter exists
+            if (urlClientId) {
+                clientSelect.value = urlClientId;
+            }
+            
             var event = new Event('change');
             clientSelect.addEventListener('change', handleClientChange);
             clientSelect.dispatchEvent(event);
@@ -45,6 +67,54 @@ const ClientFormData = (function() {
         } else {
             console.warn('Client select element not found');
         }
+    }
+
+    /**
+     * Load client data by ID
+     * @param {string} clientId - ID of client to load
+     */
+    function loadClientById(clientId) {
+        console.log(`Loading client data for ID: ${clientId}`);
+        
+        fetch(`${baseURL}/api/client/${clientId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Client data received:', data);
+                if (data && data.id) {
+                    // Update select with client if it exists
+                    const clientSelect = document.getElementById('client_id');
+                    if (clientSelect) {
+                        clientSelect.value = data.id;
+                        currentClientId = data.id;
+                        console.log(`Client set to ID: ${data.id}`);
+                    }
+                    
+                    // Fill form fields with client data
+                    fillClientFields(data);
+                    
+                    // Set fields as readonly since we have a client
+                    setClientFieldsReadOnly(true);
+                    
+                    // Update edit client link
+                    updateEditClientLink(data.id);
+                } else {
+                    console.log('No client found or data is invalid');
+                    clearClientFields();
+                    setClientFieldsReadOnly(false);
+                    updateEditClientLink(null);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching client:', error);
+                clearClientFields();
+                setClientFieldsReadOnly(false);
+                updateEditClientLink(null);
+            });
     }
     
     /**

@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\StatusRequest;
+use App\Http\Requests\Admin\StatusRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use App\Services\StatusService;
+use App\Models\Status;
+use App\Models\StatusCategory;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -28,6 +31,20 @@ class StatusCrudController extends CrudController
         CRUD::setModel(\App\Models\Status::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/status');
         CRUD::setEntityNameStrings('status', 'statuses');
+
+        // Filter by category_id from URL
+        if (request()->has('category_id')) {
+            $this->crud->addClause('where', 'category_id', request()->input('category_id'));
+            
+            // Get category name for a more descriptive page title
+            $category = \App\Models\StatusCategory::find(request()->input('category_id'));
+            if ($category) {
+                CRUD::setEntityNameStrings(
+                    $category->name . ' ' . trans('admin.statuses.status'), 
+                    $category->name . ' ' . trans('admin.statuses.statuses')
+                );
+            }
+        }
     }
 
     /**
@@ -39,12 +56,40 @@ class StatusCrudController extends CrudController
     {
         CRUD::column('name')->label('Name');
         CRUD::column('slug')->label('Slug');
-        CRUD::column('type')->label('Type');
+        
+        // Add column for category
+        CRUD::addColumn([
+            'name' => 'category',
+            'label' => trans('admin.statuses.category'),
+            'type' => 'relationship',
+            'relation_type' => 'BelongsTo',
+            'entity' => 'category',
+            'model' => StatusCategory::class,
+            'attribute' => 'name',
+            'wrapper'   => [
+                'href' => function ($crud, $column, $entry, $related_key) {
+                    return backpack_url('status-category/'.$entry->category_id.'/show');
+                },
+            ],
+        ])->afterColumn('slug');
+
+        // Add a filter for category
+        CRUD::addFilter([
+            'name'  => 'category_id',
+            'type'  => 'select2',
+            'label' => trans('admin.statuses.filter_by_category')
+        ], function() {
+            return StatusCategory::pluck('name', 'id')->toArray();
+        }, function($value) {
+            CRUD::addClause('where', 'category_id', $value);
+        });
+
         CRUD::column('color_preview')
             ->type('custom_html')
             ->value(function($entry) {
                 return '<span class="badge bg-'.$entry->color.'">'.$entry->name.'</span>';
         });
+        
         CRUD::addColumn([
             'name' => 'is_active',
             'label' => 'Active',
@@ -63,11 +108,33 @@ class StatusCrudController extends CrudController
         
         CRUD::field('name')->label('Name');
         CRUD::field('slug')->label('Slug');
-        CRUD::field('type')->label(__('admin.statuses.status_types'))->type('select_from_array')
-            ->options([
-                'invoice_type' => __('invoices.status.invoice_statuses'),
-                'user_type' => __('users.status.user_statuses'),
-            ])->allows_null(false);
+
+        // Add field for category selection
+        CRUD::addField([
+            'name'      => 'category_id',
+            'label'     => trans('admin.statuses.category'),
+            'type'      => 'relationship',
+            'entity'    => 'category',
+            'attribute' => 'name',
+            'model'     => StatusCategory::class,
+        ])->afterField('type');
+
+        // NEXT LINES ARE THE OLD ONES, WHERE WE USED THE STATUS SERVICE
+        // But now we have 'relationship' fiedType
+        //
+        // // Get product categories from the service
+        // $statusService = new StatusService();
+        // // Prepare product categories for select form
+        // $statusCategories = $statusService->getAllCategories();
+        // CRUD::field('category_id')
+        //     ->type('select_from_array')
+        //     ->label(trans('admin.statuses.category'))
+        //     ->entity('category')
+        //     ->model('App\Models\StatusCategory')
+        //     ->pivot(true)
+        //     ->attribute('name')
+        //     ->options($statusCategories);
+        
         CRUD::addField([
             'name' => 'color',
             'label' => 'Color',

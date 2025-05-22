@@ -69,7 +69,7 @@ return [
 
     'actions' => [
         'create' => 'Vytvoriť faktúru',
-        'edit' => 'Upraviť faktúru',
+        'edit' => 'Upraviť',
         'delete' => 'Vymazať faktúru',
         'save' => 'Uložiť faktúru',
         'cancel' => 'Zrušiť',
@@ -78,7 +78,7 @@ return [
         'back' => 'Späť',
         'back_to_list' => 'Späť na zoznam',
         'download' => 'Stiahnuť',
-        'download_pdf' => 'Stiahnuť faktúru (PDF)',
+        'download_pdf' => 'Stiahnuť (PDF)',
         'preview_pdf' => 'Náhľad PDF',
         'send' => 'Odoslať faktúru',
         'pay' => 'Zaplatiť',

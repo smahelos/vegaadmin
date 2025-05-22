@@ -24,6 +24,10 @@
     @if(backpack_user()->can('can_create_edit_cron_tasks'))
     <x-backpack::menu-dropdown-item title="{{ trans('admin.cron_tasks.cron_tasks') }}" icon="la la-calendar" :link="backpack_url('cron-task')" />
     @endif
+    @if(backpack_user()->can('can_create_edit_status'))
+    <x-backpack::menu-dropdown-item title="Status categories" icon="la la-tags" :link="backpack_url('status-category')" />
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.statuses.statuses') }}" icon="la la-calendar" :link="backpack_url('status')" />
+    @endif
 </x-backpack::menu-dropdown>
 @endif
 
@@ -34,21 +38,28 @@
         <x-backpack::menu-dropdown-item title="{{ trans('admin.clients.clients') }}" icon="la la-handshake" :link="backpack_url('client')" />
     @endif
     @if(backpack_user()->can('can_create_edit_supplier'))
-        <x-backpack::menu-dropdown-item title="{{ trans('admin.suppliers.suppliers') }}" icon="la la-handshake" :link="backpack_url('artisan-command-category')" />
+        <x-backpack::menu-dropdown-item title="{{ trans('admin.suppliers.suppliers') }}" icon="la la-handshake" :link="backpack_url('supplier')" />
     @endif
+</x-backpack::menu-dropdown>
+@endif
+
+@if(backpack_user()->can('can_create_edit_expense'))
+<x-backpack::menu-dropdown title="{{ trans('admin.expenses.expenses') }}" icon="la la-receipt">
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.expenses.expenses') }}" icon="la la-receipt" :link="backpack_url('expense')" />
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.expenses.expense_categories') }}" icon="la la-tags" :link="backpack_url('expense-category')" />
 </x-backpack::menu-dropdown>
 @endif
 
 @if(backpack_user()->can('can_create_edit_commands'))
 <x-backpack::menu-dropdown title="{{ trans('admin.artisan_commands.commands') }}" icon="la la-hammer">
     <x-backpack::menu-dropdown-item title="{{ trans('admin.artisan_commands.commands') }}" icon="la la-hammer" :link="backpack_url('artisan-command')" />
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.artisan_commands.categories') }}" icon="la la-list" :link="backpack_url('artisan-command-category')" />
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.artisan_commands.categories') }}" icon="la la-tags" :link="backpack_url('artisan-command-category')" />
 </x-backpack::menu-dropdown>
 @endif
 
 @if(backpack_user()->can('can_create_edit_products'))
 <x-backpack::menu-dropdown title="{{ trans('admin.products.products') }}" icon="la la-box">
     <x-backpack::menu-dropdown-item title="{{ trans('admin.products.products') }}" icon="la la-box" :link="backpack_url('product')" />
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.products.product_categories') }}" icon="la la-list" :link="backpack_url('product-category')" />
+    <x-backpack::menu-dropdown-item title="{{ trans('admin.products.product_categories') }}" icon="la la-tags" :link="backpack_url('product-category')" />
 </x-backpack::menu-dropdown>
 @endif

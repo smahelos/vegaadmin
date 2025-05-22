@@ -34,6 +34,15 @@ class PaymentMethod extends Model
         return $this->belongsToMany('App\Models\Invoice', 'invoices');
     }
 
+
+    /**
+     * Get the expenses in this payment method.
+     */
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'payment_method_id');
+    }
+    
     /*
     |--------------------------------------------------------------------------
     | FUNCTIONS

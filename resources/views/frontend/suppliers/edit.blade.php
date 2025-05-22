@@ -4,6 +4,9 @@
 <div class="mb-6 flex justify-between items-center">
     <h1 class="text-3xl text-amber-600">{{ __('suppliers.titles.edit') }}</h1>
     <div class="space-x-2">
+
+        <x-back-button />
+        
         <a href="@localizedRoute('frontend.suppliers')"
             class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
             <i class="fas fa-arrow-left mr-2"></i>{{ __('suppliers.actions.back_to_list') }}

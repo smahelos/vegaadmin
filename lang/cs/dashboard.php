@@ -52,4 +52,18 @@ return [
         'clients_count' => 'Počet klientů',
         'invoices_count' => 'Počet faktur',
     ],
+
+    'filters' => [
+        'date_range' => 'Rozsah dat',
+        'custom_range' => 'Vlastní rozsah',
+        'last_6_months' => 'Posledních 6 měsíců',
+        'last_month' => 'Poslední měsíc',
+        'last_quarter' => 'Poslední čtvrtletí',
+        'last_year' => 'Poslední rok',
+        'date_from' => 'Datum od',
+        'date_to' => 'Datum do',
+        'clients' => 'Klienti',
+        'suppliers' => 'Dodavatelé',
+        'status' => 'Stav',
+    ]
 ];

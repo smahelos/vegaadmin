@@ -87,6 +87,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Failed to load currency manager:', err);
             });
     }
+
+    // Initialize dashboard statistics if we are on the dashboard
+    if (document.querySelector('.dashboard-stats-container')) {
+        // Import the DashboardStatistics dynamically
+        import('./dashboard-statistics.js')
+            .then(module => {
+                const DashboardStatistics = module.default;
+                window.dashboardStats = new DashboardStatistics();
+                window.dashboardStats.init({
+                    translations: window.translations?.dashboard?.charts || {},
+                    currency: window.appCurrency || 'CZK',
+                    locale: document.documentElement.lang || 'cs-CZ'
+                });
+                console.log('Dashboard statistics initialized');
+            })
+            .catch(err => {
+                console.error('Failed to load dashboard statistics:', err);
+            });
+    }
 });
 
 // For fetch API, always use credentials: 'same-origin'

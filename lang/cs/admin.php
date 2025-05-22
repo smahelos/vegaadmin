@@ -1,9 +1,14 @@
 <?php
 
 return [
+    'global' => [
+        'upload_files' => 'Nahrát soubory',
+    ],
+
     'system' => [
         'settings' => 'Nastavení',
     ],
+    
     'invoices' => [
         'invoice' => 'Faktura',
         'invoices' => 'Faktury',
@@ -185,8 +190,74 @@ return [
         ],
     ],
 
+    'expenses' => [
+        'expenses' => 'Výdaje',
+        'expense' => 'Výdaj',
+        'expense_categories' => 'Kategorie výdajů',
+        'expense_category' => 'Kategorie výdajů',
+        'name' => 'Název',
+        'slug' => 'Slug',
+        'color' => 'Barva',
+        'is_active' => 'Je aktivní',
+        'description' => 'Popis',
+        'active' => 'Aktivní',
+        'inactive' => 'Neaktivní',
+        'filter_by_status' => 'Filtrovat podle stavu',
+        'slug_hint' => 'Automaticky se vygeneruje z názvu, pokud nebude vyplněno',
+        'date' => 'Datum',
+        'amount' => 'Částka',
+        'currency' => 'Měna',
+        'supplier' => 'Dodavatel',
+        'category' => 'Kategorie',
+        'payment_method' => 'Způsob platby',
+        'reference_number' => 'Referenční číslo',
+        'reference_number_hint' => 'Např. číslo faktury, číslo účtenky apod.',
+        'receipt' => 'Doklad',
+        'receipt_hint' => 'Nahrajte naskenovaný doklad (PDF, JPG, PNG)',
+        'tax_amount' => 'Částka daně',
+        'status' => 'Stav',
+        'date_range' => 'Časové období',
+        'tax_rate' => 'Sazba DPH',
+        'tax_included' => 'Daň je součástí částky',
+        'tax_included_hint' => 'Označte, pokud je daň již zahrnuta v celkové částce',
+        'attachments' => 'Přílohy',
+        'attachments_hint' => 'Nahrajte soubory spojené s tímto výdajem (obrázky, PDF, dokumenty).',
+        'upload_files' => 'Nahrát soubory',
+        'remove_file' => 'Odstranit soubor',
+    ],
+
     'statuses' => [
+        'status' => 'Stav',
+        'statuses' => 'Stavy',
         'status_types' => 'Typy stavů',
+        'invoice_statuses' => 'Stavy faktur',
+        'invoice_status' => 'Stav faktury',
+        'sent' => 'Odesláno',
+        'paid' => 'Zaplaceno',
+        'overdue' => 'Po splatnosti',
+        'partially_paid' => 'Částečně uhrazena',
+        'canceled' => 'Stornováno',
+        'draft' => 'Koncept',
+        'unknown' => 'Neznámý stav',
+        'expense_status' => 'Stav výdaje',
+        'expense_statuses' => 'Stavy výdajů',
+        'pending' => 'Čekající',
+        'approved' => 'Schváleno',
+        'rejected' => 'Zamítnuto',
+        'category' => 'Kategorie',
+        'filter_by_category' => 'Filtrovat podle kategorie',
+    ],
+
+    'status_categories' => [
+        'status_categories' => 'Kategorie stavů',
+        'status_category' => 'Kategorie stavu',
+        'name' => 'Název',
+        'slug' => 'Slug',
+        'description' => 'Popis',
+        'slug_hint' => 'Bude automaticky vygenerován z názvu, pokud nebude zadáno',
+        'statuses_count' => 'Počet stavů',
+        'statuses' => 'Stavy',
+        'statuses_tab' => 'Seznam stavů',
     ],
 
     'taxes' => [

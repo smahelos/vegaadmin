@@ -69,7 +69,7 @@ return [
 
     'actions' => [
         'create' => 'Create Invoice',
-        'edit' => 'Edit Invoice',
+        'edit' => 'Edit',
         'delete' => 'Delete Invoice',
         'save' => 'Save Invoice',
         'cancel' => 'Cancel',
@@ -78,7 +78,7 @@ return [
         'back' => 'Back',
         'back_to_list' => 'Back to List',
         'download' => 'Download',
-        'download_pdf' => 'Download Invoice (PDF)',
+        'download_pdf' => 'Download (PDF)',
         'preview_pdf' => 'Preview PDF',
         'send' => 'Send Invoice',
         'pay' => 'Pay',

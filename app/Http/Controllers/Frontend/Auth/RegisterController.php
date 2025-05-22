@@ -13,11 +13,62 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Traits\UserFormFields;
-use App\Models\Bank;
+use App\Services\BankService;
+use App\Services\CountryService;
+use App\Services\LocaleService;
+use App\Repositories\SupplierRepository;
 
 class RegisterController extends Controller
 {
     use UserFormFields;
+
+    /**
+     * Bank service instance
+     * 
+     * @var BankService
+     */
+    protected $bankService;
+
+    /**
+     * Country service instance
+     * 
+     * @var CountryService
+     */
+    protected $countryService;
+
+    /**
+     * Locale service instance
+     * 
+     * @var LocaleService
+     */
+    protected $localeService;
+
+    /**
+     * Supplier repository instance
+     * 
+     * @var SupplierRepository
+     */
+    protected $supplierRepository;
+
+    /**
+     * Constructor
+     * 
+     * @param BankService $bankService
+     * @param CountryService $countryService
+     * @param LocaleService $localeService
+     * @param SupplierRepository $supplierRepository
+     */
+    public function __construct(
+        BankService $bankService,
+        CountryService $countryService,
+        LocaleService $localeService,
+        SupplierRepository $supplierRepository
+    ) {
+        $this->bankService = $bankService;
+        $this->countryService = $countryService;
+        $this->localeService = $localeService;
+        $this->supplierRepository = $supplierRepository;
+    }
 
     /**
      * Show registration form with user fields
@@ -28,23 +79,22 @@ class RegisterController extends Controller
     {
         $userFields = $this->getUserFields();
         $passwordFields = $this->getPasswordFields();
-
-        // Get banks for dropdown
-        $banks = Bank::where('country', 'CZ')
-            ->orderBy('created_at', 'desc')
-            ->get()->toArray();
             
-        // Banks dropdown
-        $banks = $this->getBanksForDropdown();
+        // Get banks for dropdown
+        $banks = $this->bankService->getBanksForDropdown();
 
         // Get banksData for JD bank-fields.js
-        $banksData = $this->getBanksForJs();
+        $banksData = $this->bankService->getBanksForJs();
+
+        // Get countries for dropdown
+        $countries = $this->countryService->getCountryCodesForSelect();
 
         return view('auth.register', [
             'userFields' => $userFields,
             'passwordFields' => $passwordFields,
             'banks' => $banks,
             'banksData' => $banksData,
+            'countries' => $countries
         ]);
     }
 
@@ -59,14 +109,15 @@ class RegisterController extends Controller
         $validatedData = $request->validated();
         
         try {
+            // Create new user
             $user = User::create([
                 'name' => $validatedData['name'],
                 'email' => $validatedData['email'],
                 'password' => Hash::make($validatedData['password']),
             ]);
 
-            // Create default supplier for new user
-            $supplier = new Supplier([
+            // Create default supplier for new user using repository
+            $supplierData = [
                 'name' => $request->name,
                 'email' => $request->email,
                 'street' => $request->street,
@@ -85,19 +136,25 @@ class RegisterController extends Controller
                 'swift' => $request->swift,
                 'bank_name' => $request->bank_name,
                 'has_payment_info' => (!empty($request->account_number) && !empty($request->bank_code)),
-            ]);
+            ];
                 
-            $supplier->save();
+            $supplier = $this->supplierRepository->create($supplierData);
         
+            // Fire registered event
             event(new Registered($user));
         
+            // Login user automatically
             Auth::login($user);
         
-            return redirect()->route('home', ['lang' => app()->getLocale()])->with('success', __('auth.registration_success'));
+            // Set locale and redirect
+            $locale = $this->localeService->determineLocale($request->get('lang'));
+            
+            return redirect()->route('home', ['lang' => $locale])->with('success', __('auth.registration_success'));
         } catch (\Exception $e) {
             Log::error('Registration error: ' . $e->getMessage(), [
                 'email' => $validatedData['email'] ?? 'unknown',
-                'ip' => $request->ip()
+                'ip' => $request->ip(),
+                'trace' => $e->getTraceAsString()
             ]);
             
             // If error occurs, try to delete partially created user to avoid data inconsistency
@@ -107,47 +164,5 @@ class RegisterController extends Controller
             
             return back()->withInput()->with('error', __('auth.registration_failed'));
         }
-    }
-
-    /**
-     * Get list of banks with codes for dropdown
-     * 
-     * @return array
-     */
-    private function getBanksForDropdown(): array
-    {
-        
-        $banks = Bank::where('country', 'CZ')
-            ->orderBy('created_at', 'desc')
-            ->get()->toArray();
-
-        foreach ($banks as $key => $bank) {
-            $banks[$key]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
-            $banks[$key]['value'] = $bank['code'];
-        }
-        $banks[0] = __('suppliers.fields.select_bank');
-
-        return $banks;
-    }
-
-    /**
-     * Get list of banks with codes for dropdown
-     * 
-     * @return array
-     */
-    private function getBanksForJs(): array
-    {
-        
-        $banks = Bank::where('country', 'CZ')
-            ->orderBy('created_at', 'desc')
-            ->get()->toArray();
-
-        $banksData = [];
-        foreach ($banks as $key => $bank) {
-            $banksData[$bank['code']]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
-            $banksData[$bank['code']]['swift'] = $bank['swift']; 
-        }
-
-        return $banksData;
     }
 }

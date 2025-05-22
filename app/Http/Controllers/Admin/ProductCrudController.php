@@ -109,13 +109,13 @@ class ProductCrudController extends CrudController
         CRUD::field('is_active')->type('checkbox');
 
         CRUD::field('image')
-            ->type('image_preview')
+            ->type('image_with_preview')
             ->label(trans('admin.products.image'))
             ->upload(true)
-            ->disk('public')
-            ->prefix('storage/')
+            // ->disk('public')
+            // ->prefix('storage/')
+            // ->uploadRoute('backpack.upload')
             ->hint(trans('admin.products.image_help'))
-            ->uploadRoute('backpack.upload')
             ->wrapper([
                 'class' => 'form-group col-md-6'
             ]);
