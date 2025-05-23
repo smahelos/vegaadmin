@@ -26,7 +26,8 @@ class ProductController extends Controller
         // $products = Product::where('user_id', Auth::id())
         //     ->with(['category', 'tax'])
         //     ->paginate(10);
-        
+
+        // we load grid by livewire ProductList component
         return view('frontend.products.index');
     }
 

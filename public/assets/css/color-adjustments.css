@@ -263,6 +263,15 @@
 .text-gray-600 {
     color: #757575 !important;
 }
+.text-gray-500 {
+    color: #9e9e9e !important;
+}
+.text-gray-400 {
+    color: #bdbdbd !important;
+}
+.text-gray-300 {
+    color: #e0e0e0 !important;
+}
 .border-yellow-50 {
     border-color: #fff3cd !important;
 }

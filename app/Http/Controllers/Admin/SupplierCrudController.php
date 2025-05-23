@@ -49,6 +49,7 @@ class SupplierCrudController extends CrudController
     {
         CRUD::setValidation(SupplierRequest::class);
         CRUD::setFromDb();
+        
     }
 
     /**

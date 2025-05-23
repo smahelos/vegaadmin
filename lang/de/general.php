@@ -64,4 +64,24 @@ return [
         'previous' => 'Zurück',
         'next' => 'Weiter',
     ],
+
+    'actions' => [
+        'create' => 'Erstellen',
+        'edit' => 'Bearbeiten',
+        'delete' => 'Löschen',
+        'view' => 'Anzeigen',
+        'save' => 'Speichern',
+        'cancel' => 'Abbrechen',
+        'confirm' => 'Bestätigen',
+        'back' => 'Zurück',
+        'download' => 'Herunterladen',
+        'print' => 'Drucken',
+        'send' => 'Senden',
+        'actions' => 'Aktionen',
+    ],
+
+    'common' => [
+        'created_at' => 'Erstellt am',
+        'updated_at' => 'Aktualisiert am',
+    ],
 ];

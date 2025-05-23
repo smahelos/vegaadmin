@@ -10,10 +10,45 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Traits\ClientFormFields;
+use App\Services\LocaleService;
+use App\Services\CountryService;
+use App\Repositories\ClientRepository;
 
 class ClientController extends Controller
 {
     use ClientFormFields;
+
+    /**
+     * @var ClientRepository
+     */
+    protected $clientRepository;
+
+    /**
+     * @var CountryService
+     */
+    protected $countryService;
+
+    /**
+     * @var LocaleService
+     */
+    protected $localeService;
+
+    /**
+     * Constructor
+     * 
+     * @param ClientRepository $clientRepository
+     * @param CountryService $countryService
+     * @param LocaleService $localeService
+     */
+    public function __construct(
+        ClientRepository $clientRepository,
+        CountryService $countryService,
+        LocaleService $localeService
+    ) {
+        $this->clientRepository = $clientRepository;
+        $this->countryService = $countryService;
+        $this->localeService = $localeService;
+    }
 
     /**
      * Display paginated list of user clients
@@ -40,7 +75,7 @@ class ClientController extends Controller
             'street' => $user->street ?? '',
             'city' => $user->city ?? '',
             'zip' => $user->zip ?? '',
-            'country' => $user->country ?? 'Czech Republic',
+            'country' => $user->country ?? 'CZ',
             'ico' => $user->ico ?? '',
             'dic' => $user->dic ?? '',
             'email' => $user->email ?? '',
@@ -48,9 +83,13 @@ class ClientController extends Controller
             'description' => $user->description ?? '',
         ];
         
+        // Get countries for dropdown
+        $countries = $this->countryService->getCountryCodesForSelect();
+        
         return view('frontend.clients.create', [
             'fields' => $fields,
             'userInfo' => $userInfo,
+            'countries' => $countries,
         ]);
     }
     
@@ -65,15 +104,13 @@ class ClientController extends Controller
         try {
             $validatedData = $request->validated();
             
-            if (Client::where('user_id', Auth::id())->count() === 0) {
-                $validatedData['is_default'] = true;
-            }
+            // Use repository to create the client
+            $client = $this->clientRepository->create($validatedData);
             
-            $validatedData['user_id'] = Auth::id();
+            // Set locale for response
+            $locale = $this->localeService->determineLocale($request->get('lang'));
             
-            $client = Client::create($validatedData);
-            
-            return redirect()->route('frontend.clients', ['lang' => app()->getLocale()])
+            return redirect()->route('frontend.clients', ['lang' => $locale])
                             ->with('success', __('clients.messages.created'));
         } catch (\Exception $e) {
             Log::error('Error creating client: ' . $e->getMessage());
@@ -105,17 +142,28 @@ class ClientController extends Controller
                     ->with('error', __('clients.messages.invalid_id'));
             }
             
+            // Get client using repository
             $client = Client::where('user_id', Auth::id())->findOrFail($id);
+            
+            // Get related invoices with eager loading
             $invoices = $client->invoices()
-                ->with(['paymentMethod', 'paymentStatus']) // Eager load related models
+                ->with(['paymentMethod', 'paymentStatus'])
                 ->orderBy('created_at', 'desc')
                 ->get();
             
             return view('frontend.clients.show', compact('client', 'invoices'));
         } catch (ModelNotFoundException $e) {
+            Log::warning('Trying to view nonexistent client with ID: ' . $id);
+            
             return redirect()
                 ->route('frontend.clients', ['lang' => app()->getLocale()])
-                ->with('error', __('clients.messages.error_update'));
+                ->with('error', __('clients.messages.error_show'));
+        } catch (\Exception $e) {
+            Log::error('Error viewing client: ' . $e->getMessage());
+            
+            return redirect()
+                ->route('frontend.clients', ['lang' => app()->getLocale()])
+                ->with('error', __('clients.messages.error_show'));
         }
     }
     
@@ -128,19 +176,31 @@ class ClientController extends Controller
     public function edit($id)
     {
         try {
+            // Get client using repository
             $client = Client::where('user_id', Auth::id())
                             ->findOrFail($id);
                             
             $fields = $this->getClientFields();
             
+            // Get countries for dropdown
+            $countries = $this->countryService->getCountryCodesForSelect();
+            
             return view('frontend.clients.edit', [
                 'client' => $client,
-                'fields' => $fields
+                'fields' => $fields,
+                'countries' => $countries
             ]);
             
         } catch (ModelNotFoundException $e) {
+            Log::error('Client not found for edit: ' . $e->getMessage());
+            
             return redirect()->route('frontend.clients', ['lang' => app()->getLocale()])
                              ->with('error', __('clients.messages.error_update'));
+        } catch (\Exception $e) {
+            Log::error('Error editing client: ' . $e->getMessage());
+            
+            return redirect()->route('frontend.clients', ['lang' => app()->getLocale()])
+                             ->with('error', __('clients.messages.error_edit'));
         }
     }
     
@@ -159,13 +219,26 @@ class ClientController extends Controller
             $validatedData = $request->validated();
             $validatedData['is_default'] = isset($validatedData['is_default']) && $validatedData['is_default'] == 1;
 
+            // Update client
             $client->update($validatedData);
+            
+            // Set locale for response
+            $locale = $this->localeService->determineLocale($request->get('lang'));
+            
+            return redirect()
+                ->route('frontend.clients', ['lang' => $locale])
+                ->with('success', __('clients.messages.updated'));
+        } catch (ModelNotFoundException $e) {
+            Log::error('Client not found during update #' . $id . ': ' . $e->getMessage());
             
             return redirect()
                 ->route('frontend.clients', ['lang' => app()->getLocale()])
-                ->with('success', __('clients.messages.updated'));
-        } catch (ModelNotFoundException $e) {
-            Log::error('Error updating client #' . $id . ': ' . $e->getMessage());
+                ->with('error', __('clients.messages.error_update'));
+        } catch (\Exception $e) {
+            Log::error('Error updating client #' . $id . ': ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return redirect()
                 ->route('frontend.clients', ['lang' => app()->getLocale()])
                 ->with('error', __('clients.messages.error_update'));
@@ -183,22 +256,71 @@ class ClientController extends Controller
         try {
             $client = Client::where('user_id', Auth::id())->findOrFail($id);
             
+            // Check if client has invoices
             if ($client->invoices->count() > 0) {
                 return redirect()
                     ->route('frontend.clients', ['lang' => app()->getLocale()])
                     ->with('error', __('clients.messages.error_delete_invoices'));
             }
             
+            // Delete client
             $client->delete();
             
             return redirect()
                 ->route('frontend.clients', ['lang' => app()->getLocale()])
                 ->with('success', __('clients.messages.deleted'));
         } catch (ModelNotFoundException $e) {
-            Log::error('Error deleting client #' . $id . ': ' . $e->getMessage());
+            Log::error('Client not found for delete #' . $id . ': ' . $e->getMessage());
+            
             return redirect()
                 ->route('frontend.clients', ['lang' => app()->getLocale()])
                 ->with('error', __('clients.messages.error_delete'));
+        } catch (\Exception $e) {
+            Log::error('Error deleting client #' . $id . ': ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()
+                ->route('frontend.clients', ['lang' => app()->getLocale()])
+                ->with('error', __('clients.messages.error_delete'));
+        }
+    }
+    
+    /**
+     * Set client as default
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function setDefault($id)
+    {
+        try {
+            // Find client
+            $client = Client::where('user_id', Auth::id())->findOrFail($id);
+            
+            // Remove default flag from all other clients
+            Client::where('user_id', Auth::id())
+                ->where('id', '!=', $id)
+                ->update(['is_default' => false]);
+            
+            // Set this client as default
+            $client->update(['is_default' => true]);
+            
+            return redirect()
+                ->route('frontend.clients', ['lang' => app()->getLocale()])
+                ->with('success', __('clients.messages.set_default'));
+        } catch (ModelNotFoundException $e) {
+            Log::error('Client not found for setting default #' . $id . ': ' . $e->getMessage());
+            
+            return redirect()
+                ->route('frontend.clients', ['lang' => app()->getLocale()])
+                ->with('error', __('clients.messages.error_set_default'));
+        } catch (\Exception $e) {
+            Log::error('Error setting client as default #' . $id . ': ' . $e->getMessage());
+            
+            return redirect()
+                ->route('frontend.clients', ['lang' => app()->getLocale()])
+                ->with('error', __('clients.messages.error_set_default'));
         }
     }
 }

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 class ProductsService
 {
     /**
-     * Získá seznam všech kategorií
+     * Get all product categories
      * 
      * @return array
      */
@@ -36,7 +36,7 @@ class ProductsService
     }
 
     /**
-     * Získá seznam všech kategorií
+     * Get all suppliers for the current user
      * 
      * @return array
      */
@@ -60,15 +60,15 @@ class ProductsService
     }
 
     /**
-     * Vymaže cache s příkazy
+     * Delete cache for all categories
      */
     public function clearCategoriesCache(): void
     {   
-        // Vymaže cache pro všechny kategorie
+        // Delete cache for all categories
         $categories = ProductCategory::pluck('slug')->toArray();
         foreach ($categories as $slug) {
-            Cache::forget("artisan_commands_by_category:{$slug}:0");
-            Cache::forget("artisan_commands_by_category:{$slug}:1");
+            Cache::forget("products_by_category:{$slug}:0");
+            Cache::forget("products_by_category:{$slug}:1");
         }
         
         Cache::forget("product_categories");

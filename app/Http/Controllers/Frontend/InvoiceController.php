@@ -11,10 +11,15 @@ use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\PaymentMethod;
 use App\Models\Tax;
-use App\Models\Bank;
 use App\Models\InvoiceProduct;
 use App\Traits\InvoiceFormFields;
 use App\Services\QrPaymentService;
+use App\Services\InvoiceService;
+use App\Services\InvoicePdfService;
+use App\Services\LocaleService;
+use App\Services\BankService;
+use App\Repositories\ClientRepository;
+use App\Repositories\SupplierRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -29,10 +34,29 @@ class InvoiceController extends Controller
     use InvoiceFormFields;
 
     protected $qrPaymentService;
+    protected $invoiceService;
+    protected $invoicePdfService;
+    protected $localeService;
+    protected $bankService;
+    protected $clientRepository;
+    protected $supplierRepository;
     
-    public function __construct(QrPaymentService $qrPaymentService)
-    {
+    public function __construct(
+        QrPaymentService $qrPaymentService,
+        InvoiceService $invoiceService,
+        InvoicePdfService $invoicePdfService,
+        LocaleService $localeService,
+        BankService $bankService,
+        ClientRepository $clientRepository,
+        SupplierRepository $supplierRepository
+    ) {
         $this->qrPaymentService = $qrPaymentService;
+        $this->invoiceService = $invoiceService;
+        $this->invoicePdfService = $invoicePdfService;
+        $this->localeService = $localeService;
+        $this->bankService = $bankService;
+        $this->clientRepository = $clientRepository;
+        $this->supplierRepository = $supplierRepository;
     }
 
     /**
@@ -54,10 +78,10 @@ class InvoiceController extends Controller
     public function create(Request $request)
     {
         // Get clients for dropdown
-        $clients = Client::where('user_id', Auth::id())->pluck('name', 'id')->toArray();
+        $clients = $this->clientRepository->getClientsForDropdown();
         
         // Get suppliers for dropdown
-        $suppliers = Supplier::where('user_id', Auth::id())->pluck('name', 'id')->toArray();
+        $suppliers = $this->supplierRepository->getSuppliersForDropdown();
         
         // Get payment methods for dropdown
         $paymentMethods = PaymentMethod::all()->pluck('slug', 'id')->toArray();
@@ -68,24 +92,19 @@ class InvoiceController extends Controller
         // Load all active invoice statuses
         $statuses = Status::pluck('name', 'id')->toArray();
         
-        // Get last invoice for the user
-        $lastInvoice = Invoice::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->first();
-
         // Get tax rates for dropdown
         $taxRates = Tax::where('slug', 'dph')
             ->pluck('rate', 'id')
             ->toArray();
 
         // Get banks for dropdown
-        $banks = $this->getBanksForDropdown();
+        $banks = $this->bankService->getBanksForDropdown();
 
         // Get banksData for JD bank-fields.js
-        $banksData = $this->getBanksForJs();
+        $banksData = $this->bankService->getBanksForJs();
         
         // Get suggested invoice number
-        $suggestedNumber = $this->getNextInvoiceNumber();
+        $suggestedNumber = $this->invoiceService->getNextInvoiceNumber();
 
         // Preselected client if client_id is provided in request
         $selectedClient = null;
@@ -95,7 +114,6 @@ class InvoiceController extends Controller
                     ->findOrFail($request->client_id);
             } catch (ModelNotFoundException $e) {
                 Log::error('Error loading client: ' . $e->getMessage(), [
-                    'client_id' => $request->client_id,
                     'user_id' => Auth::id()
                 ]);
                 
@@ -103,11 +121,10 @@ class InvoiceController extends Controller
                 session()->flash('error', __('clients.messages.not_found'));
             }
         }
+        
         // If no specific client is requested, use default client
         if (!$selectedClient) {
-            $selectedClient = Client::where('user_id', Auth::id())
-                ->where('is_default', true)
-                ->first();
+            $selectedClient = $this->clientRepository->getDefaultClient();
         }
         
         // Find default supplier
@@ -118,20 +135,14 @@ class InvoiceController extends Controller
                     ->findOrFail($request->supplier_id);
             } catch (ModelNotFoundException $e) {
                 Log::error('Error loading supplier: ' . $e->getMessage(), [
-                    'supplier_id' => $request->supplier_id,
                     'user_id' => Auth::id()
                 ]);
             }
         }
+        
         // If no specific supplier is requested, use default supplier
         if (!$defaultSupplier) {
-            $defaultSupplier = Supplier::where('user_id', Auth::id())
-                ->where('is_default', true)
-                ->first();
-        }
-        // If no default supplier, use the first one
-        if (!$defaultSupplier) {
-            $defaultSupplier = Supplier::where('user_id', Auth::id())->first();
+            $defaultSupplier = $this->supplierRepository->getDefaultSupplier();
         }
         
         // Get authenticated user
@@ -178,7 +189,7 @@ class InvoiceController extends Controller
                 'client_id' => null,
             ];
         }
-    
+
         // Prepare client data if client is selected
         $clientInfo = [];
         if ($selectedClient) {
@@ -197,7 +208,7 @@ class InvoiceController extends Controller
         }
 
         // Get item units for dropdown
-        $itemUnits = $this->getItemUnits();
+        $itemUnits = $this->invoiceService->getItemUnits();
         
         // Get fields for invoice form from trait
         $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
@@ -229,13 +240,13 @@ class InvoiceController extends Controller
             ->toArray();
 
         // Get banks for dropdown
-        $banks = $this->getBanksForDropdown();
+        $banks = $this->bankService->getBanksForDropdown();
 
         // Get banksData for JD bank-fields.js
-        $banksData = $this->getBanksForJs();
+        $banksData = $this->bankService->getBanksForJs();
         
         // Get suggested invoice number
-        $suggestedNumber = $this->getNextInvoiceNumber();
+        $suggestedNumber = $this->invoiceService->getNextInvoiceNumber();
 
         // Get Invoice products
         $invoiceProducts = [];
@@ -264,7 +275,7 @@ class InvoiceController extends Controller
         ];
 
         // Get item units for dropdown
-        $itemUnits = $this->getItemUnits();
+        $itemUnits = $this->invoiceService->getItemUnits();
         
         return view('frontend.invoices.create', compact(
             'userLoggedIn', 'fields', 'userInfo', 
@@ -282,124 +293,139 @@ class InvoiceController extends Controller
      */
     public function edit($id)
     {
-        $invoice = Invoice::with('client', 'supplier', 'paymentStatus', 'paymentMethod')->findOrFail($id);
-        $user = Auth::user();
-        $userLoggedIn = Auth::check();
-        
-        if ($invoice->user_id != Auth::id()) {
-            return redirect()->route('frontend.invoices', ['lang' => app()->getLocale()])->with('error', __('invoices.messages.edit_error_unauthorized'));
-        }
-        
-        if ($invoice->client) {
-            $invoice->client_name = $invoice->client_name ?? $invoice->client->name;
-            $invoice->email = $invoice->email ?? $invoice->client->email;
-            $invoice->phone = $invoice->phone ?? $invoice->client->phone;
-            $invoice->client_street = $invoice->client_street ?? $invoice->client->street;
-            $invoice->client_city = $invoice->client_city ?? $invoice->client->city;
-            $invoice->client_zip = $invoice->client_zip ?? $invoice->client->zip;
-            $invoice->client_country = $invoice->client_country ?? $invoice->client->country;
-            $invoice->client_ico = $invoice->client_ico ?? $invoice->client->ico;
-            $invoice->client_dic = $invoice->client_dic ?? $invoice->client->dic;
-        }
-
-        if ($invoice->supplier) {
-            $invoice->name = $invoice->name ?? $invoice->supplier->name;
-            $invoice->email = $invoice->email ?? $invoice->supplier->email;
-            $invoice->phone = $invoice->phone ?? $invoice->supplier->phone;
-            $invoice->street = $invoice->street ?? $invoice->supplier->street;
-            $invoice->city = $invoice->city ?? $invoice->supplier->city;
-            $invoice->zip = $invoice->zip ?? $invoice->supplier->zip;
-            $invoice->country = $invoice->country ?? $invoice->supplier->country;
-            $invoice->ico = $invoice->ico ?? $invoice->supplier->ico;
-            $invoice->dic = $invoice->dic ?? $invoice->supplier->dic;
-            $invoice->account_number = $invoice->account_number ?? $invoice->supplier->account_number;
-            $invoice->bank_code = $invoice->bank_code ?? $invoice->supplier->bank_code;
-            $invoice->bank_name = $invoice->bank_name ?? $invoice->supplier->bank_name;
-            $invoice->iban = $invoice->iban ?? $invoice->supplier->iban;
-            $invoice->swift = $invoice->swift ?? $invoice->supplier->swift;
-        } else {
-            $defaultSupplier = Supplier::where('user_id', Auth::id())
-                ->where('is_default', true)
-                ->first();
-                
-            if (!$defaultSupplier) {
-                $defaultSupplier = Supplier::where('user_id', Auth::id())->first();
+        try {
+            // Get invoice with related models
+            $invoice = Invoice::with('client', 'supplier', 'paymentStatus', 'paymentMethod')->findOrFail($id);
+            
+            // Check if user has permission to edit this invoice
+            if ($invoice->user_id != Auth::id()) {
+                return redirect()
+                    ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                    ->with('error', __('invoices.messages.edit_error_unauthorized'));
             }
             
-            if ($defaultSupplier) {
-                $invoice->name = $invoice->name ?? $defaultSupplier->name ?? '';
-                $invoice->email = $invoice->email ?? $defaultSupplier->email ?? '';
-                $invoice->street = $invoice->street ?? $defaultSupplier->street ?? '';
-                $invoice->city = $invoice->city ?? $defaultSupplier->city ?? '';
-                $invoice->zip = $invoice->zip ?? $defaultSupplier->zip ?? '';
-                $invoice->country = $invoice->country ?? $defaultSupplier->country ?? 'CZ';
-                $invoice->ico = $invoice->ico ?? $defaultSupplier->ico ?? '';
-                $invoice->dic = $invoice->dic ?? $defaultSupplier->dic ?? '';
-                $invoice->account_number = $invoice->account_number ?? $defaultSupplier->account_number ?? '';
-                $invoice->bank_code = $invoice->bank_code ?? $defaultSupplier->bank_code ?? '';
-                $invoice->bank_name = $invoice->bank_name ?? $defaultSupplier->bank_name ?? '';
-                $invoice->iban = $invoice->iban ?? $defaultSupplier->iban ?? '';
-                $invoice->swift = $invoice->swift ?? $defaultSupplier->swift ?? '';
-            } else {
-                $invoice->name = $invoice->name ?? $user->name ?? '';
-                $invoice->email = $invoice->email ?? $user->email ?? '';
-                $invoice->street = $invoice->street ?? '';
-                $invoice->city = $invoice->city ?? '';
-                $invoice->zip = $invoice->zip ?? '';
-                $invoice->country = $invoice->country ?? 'CZ';
-                $invoice->ico = $invoice->ico ?? '';
-                $invoice->dic = $invoice->dic ?? '';
-                $invoice->account_number = $invoice->account_number ?? '';
-                $invoice->bank_code = $invoice->bank_code ?? '';
-                $invoice->bank_name = $invoice->bank_name ?? '';
-                $invoice->iban = $invoice->iban ?? '';
-                $invoice->swift = $invoice->swift ?? '';
+            $user = Auth::user();
+            $userLoggedIn = Auth::check();
+            
+            // Populate client fields from relation if available
+            if ($invoice->client) {
+                $invoice->client_name = $invoice->client_name ?? $invoice->client->name;
+                $invoice->client_email = $invoice->client_email ?? $invoice->client->email;
+                $invoice->client_phone = $invoice->client_phone ?? $invoice->client->phone;
+                $invoice->client_street = $invoice->client_street ?? $invoice->client->street;
+                $invoice->client_city = $invoice->client_city ?? $invoice->client->city;
+                $invoice->client_zip = $invoice->client_zip ?? $invoice->client->zip;
+                $invoice->client_country = $invoice->client_country ?? $invoice->client->country;
+                $invoice->client_ico = $invoice->client_ico ?? $invoice->client->ico;
+                $invoice->client_dic = $invoice->client_dic ?? $invoice->client->dic;
             }
+
+            // Populate supplier fields from relation if available
+            if ($invoice->supplier) {
+                $invoice->name = $invoice->name ?? $invoice->supplier->name;
+                $invoice->email = $invoice->email ?? $invoice->supplier->email;
+                $invoice->phone = $invoice->phone ?? $invoice->supplier->phone;
+                $invoice->street = $invoice->street ?? $invoice->supplier->street;
+                $invoice->city = $invoice->city ?? $invoice->supplier->city;
+                $invoice->zip = $invoice->zip ?? $invoice->supplier->zip;
+                $invoice->country = $invoice->country ?? $invoice->supplier->country;
+                $invoice->ico = $invoice->ico ?? $invoice->supplier->ico;
+                $invoice->dic = $invoice->dic ?? $invoice->supplier->dic;
+                $invoice->account_number = $invoice->account_number ?? $invoice->supplier->account_number;
+                $invoice->bank_code = $invoice->bank_code ?? $invoice->supplier->bank_code;
+                $invoice->bank_name = $invoice->bank_name ?? $invoice->supplier->bank_name;
+                $invoice->iban = $invoice->iban ?? $invoice->supplier->iban;
+                $invoice->swift = $invoice->swift ?? $invoice->supplier->swift;
+            } else {
+                // If no supplier is assigned, try to use default supplier
+                $defaultSupplier = $this->supplierRepository->getDefaultSupplier();
+                
+                if ($defaultSupplier) {
+                    $invoice->name = $invoice->name ?? $defaultSupplier->name ?? '';
+                    $invoice->email = $invoice->email ?? $defaultSupplier->email ?? '';
+                    $invoice->street = $invoice->street ?? $defaultSupplier->street ?? '';
+                    $invoice->city = $invoice->city ?? $defaultSupplier->city ?? '';
+                    $invoice->zip = $invoice->zip ?? $defaultSupplier->zip ?? '';
+                    $invoice->country = $invoice->country ?? $defaultSupplier->country ?? 'CZ';
+                    $invoice->ico = $invoice->ico ?? $defaultSupplier->ico ?? '';
+                    $invoice->dic = $invoice->dic ?? $defaultSupplier->dic ?? '';
+                    $invoice->account_number = $invoice->account_number ?? $defaultSupplier->account_number ?? '';
+                    $invoice->bank_code = $invoice->bank_code ?? $defaultSupplier->bank_code ?? '';
+                    $invoice->bank_name = $invoice->bank_name ?? $defaultSupplier->bank_name ?? '';
+                    $invoice->iban = $invoice->iban ?? $defaultSupplier->iban ?? '';
+                    $invoice->swift = $invoice->swift ?? $defaultSupplier->swift ?? '';
+                } else {
+                    // No supplier, use authenticated user info as fallback
+                    $invoice->name = $invoice->name ?? $user->name ?? '';
+                    $invoice->email = $invoice->email ?? $user->email ?? '';
+                    $invoice->street = $invoice->street ?? '';
+                    $invoice->city = $invoice->city ?? '';
+                    $invoice->zip = $invoice->zip ?? '';
+                    $invoice->country = $invoice->country ?? 'CZ';
+                    $invoice->ico = $invoice->ico ?? '';
+                    $invoice->dic = $invoice->dic ?? '';
+                    $invoice->account_number = $invoice->account_number ?? '';
+                    $invoice->bank_code = $invoice->bank_code ?? '';
+                    $invoice->bank_name = $invoice->bank_name ?? '';
+                    $invoice->iban = $invoice->iban ?? '';
+                    $invoice->swift = $invoice->swift ?? '';
+                }
+            }
+
+            // Get clients for dropdown
+            $clients = $this->clientRepository->getClientsForDropdown();
+            
+            // Get suppliers for dropdown
+            $suppliers = $this->supplierRepository->getSuppliersForDropdown();
+
+            // Get payment methods for dropdown
+            $paymentMethods = PaymentMethod::all()->pluck('slug', 'id')->toArray();
+            
+            // Load all active invoice statuses
+            $statuses = Status::pluck('name', 'id')->toArray();
+
+            // Get tax rates for dropdown
+            $taxRates = Tax::where('slug', 'dph')
+                ->pluck('rate', 'id')
+                ->toArray();
+
+            // Get banks for dropdown
+            $banks = $this->bankService->getBanksForDropdown();
+
+            // Get banksData for JD bank-fields.js
+            $banksData = $this->bankService->getBanksForJs();
+
+            // Get item units for invoice items
+            $itemUnits = $this->invoiceService->getItemUnits();
+
+            // Get Invoice products
+            $invoiceProducts = InvoiceProduct::where('invoice_id', $id)
+                ->with(['product'])
+                ->get()
+                ->toArray();
+
+            Log::info('Invoice products: ', $invoiceProducts);
+            
+            // Get fields for invoice form from trait
+            $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
+            
+            return view('frontend.invoices.edit', compact(
+                'invoice', 'userLoggedIn', 'fields',
+                'paymentMethods', 'clients', 'suppliers', 'statuses',
+                'user', 'banks', 'banksData', 'taxRates', 'itemUnits',
+                'invoiceProducts'
+            ));
+        } catch (ModelNotFoundException $e) {
+            Log::error('Invoice not found: ' . $e->getMessage());
+            return redirect()
+                ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                ->with('error', __('invoices.messages.not_found'));
+        } catch (\Exception $e) {
+            Log::error('Error loading invoice for editing: ' . $e->getMessage());
+            return redirect()
+                ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                ->with('error', __('invoices.messages.edit_error'));
         }
-
-        // Get clients for dropdown
-        $clients = Client::where('user_id', Auth::id())->pluck('name', 'id')->toArray();
-        
-        // Get suppliers for dropdown
-        $suppliers = Supplier::where('user_id', Auth::id())->pluck('name', 'id')->toArray();
-
-        // Get payment methods for dropdown
-        $paymentMethods = PaymentMethod::all()->pluck('slug', 'id')->toArray();
-        
-        // Load all active invoice statuses
-        $statuses = Status::pluck('name', 'id')->toArray();
-
-        // Get tax rates for dropdown
-        $taxRates = Tax::where('slug', 'dph')
-            ->pluck('rate', 'id')
-            ->toArray();
-
-        // Get banks for dropdown
-        $banks = $this->getBanksForDropdown();
-
-        // Get banksData for JD bank-fields.js
-        $banksData = $this->getBanksForJs();
-
-        // Get item units for invoice items
-        $itemUnits = $this->getItemUnits();
-
-        // Get Invoice products
-        $invoiceProducts = InvoiceProduct::where('invoice_id', $id)
-            ->with(['product'])
-            ->get()
-            ->toArray();
-
-        Log::info('Invoice products: ', $invoiceProducts);
-        
-        // Get fields for invoice form from trait
-        $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
-        
-        return view('frontend.invoices.edit', compact(
-            'invoice', 'userLoggedIn', 'fields',
-            'paymentMethods', 'clients', 'suppliers', 'statuses',
-            'user', 'banks', 'banksData', 'taxRates', 'itemUnits',
-            'invoiceProducts'
-        ));
     }
     
     /**
@@ -419,15 +445,16 @@ class InvoiceController extends Controller
         
             if (empty($data['client_id']) && !empty($data['client_name']) && strlen($data['client_name']) >= 3) {
                 // Create new client
-                $client = Client::create([
+                $client = $this->clientRepository->create([
                     'name' => $data['client_name'],
-                    'street' => $data['client_street'] ?? null,
-                    'city' => $data['client_city'] ?? null,
-                    'zip' => $data['client_zip'] ?? null,
-                    'country' => $data['client_country'] ?? null,
-                    'ico' => $data['client_ico'] ?? null,
-                    'dic' => $data['client_dic'] ?? null,
-                    'user_id' => Auth::id()
+                    'street' => $data['client_street'] ?? '',
+                    'city' => $data['client_city'] ?? '',
+                    'zip' => $data['client_zip'] ?? '',
+                    'country' => $data['client_country'] ?? 'CZ',
+                    'ico' => $data['client_ico'] ?? '',
+                    'dic' => $data['client_dic'] ?? '',
+                    'email' => $data['client_email'] ?? '',
+                    'phone' => $data['client_phone'] ?? '',
                 ]);
                 
                 // Add new client ID to invoice data
@@ -436,15 +463,21 @@ class InvoiceController extends Controller
         
             if (empty($data['supplier_id']) && !empty($data['name']) && strlen($data['name']) >= 3) {
                 // Create new supplier
-                $supplier = Supplier::create([
+                $supplier = $this->supplierRepository->create([
                     'name' => $data['name'],
-                    'street' => $data['street'] ?? null,
-                    'city' => $data['city'] ?? null,
-                    'zip' => $data['zip'] ?? null,
-                    'country' => $data['country'] ?? null,
-                    'ico' => $data['ico'] ?? null,
-                    'dic' => $data['dic'] ?? null,
-                    'user_id' => Auth::id()
+                    'street' => $data['street'] ?? '',
+                    'city' => $data['city'] ?? '',
+                    'zip' => $data['zip'] ?? '',
+                    'country' => $data['country'] ?? 'CZ',
+                    'ico' => $data['ico'] ?? '',
+                    'dic' => $data['dic'] ?? '',
+                    'email' => $data['email'] ?? '',
+                    'phone' => $data['phone'] ?? '',
+                    'account_number' => $data['account_number'] ?? '',
+                    'bank_code' => $data['bank_code'] ?? '',
+                    'bank_name' => $data['bank_name'] ?? '',
+                    'iban' => $data['iban'] ?? '',
+                    'swift' => $data['swift'] ?? '',
                 ]);
                 
                 // Add new supplier ID to invoice data
@@ -464,7 +497,7 @@ class InvoiceController extends Controller
 
             // Add products to invoice
             if (is_array($invoiceProducts) && !empty($invoiceProducts)) {
-                $this->saveInvoiceProducts($invoice, $invoiceProducts);
+                $this->invoiceService->saveInvoiceProducts($invoice, $invoiceProducts);
             }
 
             // Recalculate total amount
@@ -494,9 +527,7 @@ class InvoiceController extends Controller
         
             // Set locale based on request or default and add locale to data
             $locale = $request->get('lang', app()->getLocale());
-            if (!in_array($locale, config('app.available_locales', ['cs', 'en', 'de', 'sk']))) {
-                $locale = config('app.fallback_locale', 'cs');
-            }
+            $locale = $this->localeService->determineLocale($locale);
             $data['lang'] = $locale;
         
             // Convert due_in to integer
@@ -514,23 +545,20 @@ class InvoiceController extends Controller
                 $data['invoice-products'] = json_encode($invoiceProducts);
             }
             
-            // Create token to identify the invoice
-            $token = Str::random(64);
-            
-            // Save invoice data to cache with expiration in 10 minutes
-            Cache::put('invoice_data_' . $token, $data, now()->addMinutes(10));
+            // Generate token and store invoice data in cache
+            $token = $this->invoiceService->storeTemporaryInvoice($data);
 
-            // Sace token to session for later use
+            // Save token to session for later use
             Session::put('last_guest_invoice_token', $token);
             Session::put('last_guest_invoice_number', $data['invoice_vs']);
             Session::put('last_guest_invoice_expires', now()->addMinutes(10)->timestamp);
             
-            // Create temporary invoice object
+            // Create temporary invoice object for QR code
             $tempInvoice = new \stdClass();
             foreach ($data as $key => $value) {
                 $tempInvoice->$key = $value;
             }
-
+            
             // Convert temporary invoice due_in to integer
             if (isset($tempInvoice->due_in)) {
                 $tempInvoice->due_in = (int)$tempInvoice->due_in;
@@ -540,26 +568,22 @@ class InvoiceController extends Controller
             $qrCodeBase64 = null;
             try {
                 // Check if bank details are available
-                if (!empty($tempInvoice->account_number) && !empty($tempInvoice->bank_code)) {
+                if ((!empty($tempInvoice->account_number) && !empty($tempInvoice->bank_code)) || !empty($tempInvoice->iban)) {
                     $qrCodeBase64 = $this->qrPaymentService->generateQrCodeBase64($tempInvoice);
-                } elseif (!empty($tempInvoice->iban)) {
-                    $qrCodeBase64 = $this->qrPaymentService->generateQrCodeBase64($tempInvoice);
-                } else {
-                    Log::warning('For guest user, no bank details available for QR code generation.');
                 }
             } catch (\Exception $e) {
                 Log::error('Error while generating QR code: ' . $e->getMessage());
             }
             
-            // Render the invoice PDF for modal window
+            // Return success response
             return response()->json([
                 'success' => true,
                 'message' => __('invoices.messages.created_guest'),
                 'invoice_number' => $data['invoice_vs'],
                 'download_url' => route('frontend.invoice.download.token', 
                 [
-                    'token' => $token, 
-                    'lang' => $locale
+                    'lang' => $locale,
+                    'token' => $token
                 ]),
                 'token' => $token,
                 'qr_code' => $qrCodeBase64,
@@ -587,7 +611,7 @@ class InvoiceController extends Controller
         try {
             // Ignore requests for static files
             if (preg_match('/\.(js\.map|css\.map|js|css|png|jpg|gif|svg|woff|woff2|ttf|eot)$/', $id)) {
-                // Tiché ignorování požadavků na statické soubory
+                // Silent ignore of static file requests
                 return response()->json(['error' => 'Not found'], 404);
             }
 
@@ -598,11 +622,13 @@ class InvoiceController extends Controller
                     ->route('frontend.invoices', ['lang' => app()->getLocale()])
                     ->with('error', __('invoices.messages.invalid_id'));
             }
+            
             // Get invoice with related models
-            $invoice = Invoice::with(['supplier',  'client', 'paymentMethod', 'paymentStatus'])
+            $invoice = Invoice::with(['supplier', 'client', 'paymentMethod', 'paymentStatus'])
                 ->where('user_id', Auth::id())
                 ->findOrFail($id);
 
+            // Populate supplier fields if supplier exists
             if ($invoice->supplier) {
                 $invoice->name = $invoice->name ?? $invoice->supplier->name ?? '';
                 $invoice->street = $invoice->street ?? $invoice->supplier->street ?? '';
@@ -629,6 +655,12 @@ class InvoiceController extends Controller
             return redirect()
                 ->route('frontend.invoices', ['lang' => app()->getLocale()])
                 ->with('error', __('invoices.messages.error_show'));
+        } catch (\Exception $e) {
+            Log::error('Error viewing invoice: ' . $e->getMessage());
+            
+            return redirect()
+                ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                ->with('error', __('invoices.messages.error_show'));
         }
     }
 
@@ -644,100 +676,26 @@ class InvoiceController extends Controller
         try {
             // Get invoice with related models
             $invoice = Invoice::with(['supplier', 'client', 'paymentMethod', 'paymentStatus'])
-                ->where('user_id', Auth::id())
                 ->findOrFail($id);
+            
+            // Check if user has permission to access this invoice
+            if ($invoice->user_id != Auth::id()) {
+                return redirect()->back()->with('error', __('invoices.messages.access_denied'));
+            }
 
-            // Set locale based on request or default
-            $requestLocale = request()->get('lang');
-            $userLocale = Session::get('locale');
+            // Set locale based on request
+            $requestLocale = $request->get('lang');
             
-            $locale = null;
-            // First check the request locale
-            if ($requestLocale && in_array($requestLocale, config('app.available_locales', ['cs', 'en', 'de', 'sk']))) {
-                $locale = $requestLocale;
-            } 
-            // Next check the session locale
-            elseif ($userLocale && in_array($userLocale, config('app.available_locales', ['cs', 'en', 'de', 'sk']))) {
-                $locale = $userLocale;
-            }
-            // Finally check the invoice locale
-            else {
-                $locale = config('app.locale', 'cs');
-            }
-        
-            $this->setLocaleForPdfGeneration($locale);
-
-            // Data for QR code
-            $qrData = [
-                'invoice_vs' => $invoice->invoice_vs,
-                'payment_amount' => (float)$invoice->payment_amount,
-                'payment_currency' => $invoice->payment_currency,
-            ];
-
-            // Set bank account details for QR code
-            $supplier = $invoice->supplier;
-            if ($supplier) {
-                if (!empty($supplier->account_number) && !empty($supplier->bank_code)) {
-                    $qrData['account_number'] = $supplier->account_number;
-                    $qrData['bank_code'] = $supplier->bank_code;
-                }
-                if (!empty($supplier->iban)) {
-                    $qrData['iban'] = $supplier->iban;
-                }
-            }
-            
-            // If no bank details in supplier, check invoice
-            if (empty($qrData['account_number']) && !empty($invoice->account_number) && !empty($invoice->bank_code)) {
-                $qrData['account_number'] = $invoice->account_number;
-                $qrData['bank_code'] = $invoice->bank_code;
-            }
-            
-            if (empty($qrData['iban']) && !empty($invoice->iban)) {
-                $qrData['iban'] = $invoice->iban;
-            }
-            
-            // Create a clone of the invoice object to avoid modifying the original
-            $qrInvoice = clone $invoice;
-            
-            // Add QR code data to the invoice object
-            foreach ($qrData as $key => $value) {
-                $qrInvoice->$key = $value;
-            }
-            
-            // Generate QR code with updated data
-            $qrCodeBase64 = null;
-            try {
-                $qrCodeBase64 = $this->qrPaymentService->generateQrCodeBase64($qrInvoice);
-            } catch (\Exception $e) {
-                Log::error('Error while generating QR code: ' . $e->getMessage());
-            }
-            
-            // Set data for PDF generation
-            $data = [
-                'invoice' => $invoice,
-                'user' => Auth::user(),
-                'client' => $invoice->client,
-                'supplier' => $invoice->supplier,
-                'paymentMethod' => $invoice->paymentMethod,
-                'qrCode' => $qrCodeBase64,
-                'hasQrCode' => !empty($qrCodeBase64),
-                'locale' => $locale // Add locale information
-            ];
-
-            // Generating PDF
-            $data['locale'] = $locale;
-            $pdf = Pdf::loadView('pdfs.invoice', $data);
+            // Generate PDF
+            $pdf = $this->invoicePdfService->generatePdf($invoice, $requestLocale);
             
             // Preview or download
             if ($request->has('preview')) {
-                app()->setLocale($locale);
-                Session::put('locale', $locale);
-
-                $response = $pdf->stream('faktura-'.$invoice->invoice_vs.'.pdf');
-                return $response->cookie('locale', $locale, 60 * 24 * 30); // 30 dní
+                return $pdf->stream('faktura-'.$invoice->invoice_vs.'.pdf');
             }
         
-            // Add cookie for locale
+            // Download with cookie for locale
+            $locale = $this->localeService->determineLocale($requestLocale);
             $response = $pdf->download('faktura-'.$invoice->invoice_vs.'.pdf');
             return $response->cookie('locale', $locale, 60 * 24 * 30); // 30 days
         } catch (\Exception $e) {
@@ -749,286 +707,51 @@ class InvoiceController extends Controller
     /**
      * Generate and download invoice PDF using token (for guests)
      * 
-     * @param string $token Invoice token
+     * @param Request $request
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function downloadWithToken($token)
+    public function downloadWithToken(Request $request)
     {
         try {
+            $token = $request->get('token');
+            if (!$token) {
+                $token = Session::get('last_guest_invoice_token');
+                if (!$token) {
+                    abort(404, __('invoices.messages.not_found'));
+                }
+            }
+            
             Log::info('Starting PDF generation with token: ' . substr($token, 0, 8) . '...');
             
             // Get invoice data from cache
-            $invoiceData = Cache::get('invoice_data_' . $token);
+            $invoiceData = $this->invoiceService->getTemporaryInvoiceByToken($token);
             
             if (!$invoiceData) {
-                Log::warning('Invoice data not found for token: ' . substr($token, 0, 8) . '...');
-                abort(404, __('invoices.messages.token_invalid'));
+                abort(404, __('invoices.messages.expired'));
             }
 
-            // Set locale based on request or default
-            $requestLocale = request()->get('lang');
-            $dataLocale = $invoiceData['lang'] ?? null;
-
-            $locale = null;
-            if ($requestLocale && in_array($requestLocale, config('app.available_locales', ['cs', 'en', 'de', 'sk']))) {
-                $locale = $requestLocale;
-            } elseif ($dataLocale && in_array($dataLocale, config('app.available_locales', ['cs', 'en', 'de', 'sk']))) {
-                $locale = $dataLocale;
-            } else {
-                $locale = config('app.fallback_locale', 'cs');
-            }
-
-            $this->setLocaleForPdfGeneration($locale);
-
-            // Create a new temporary invoice object with all properties
-            $invoice = new \stdClass();
-            foreach ($invoiceData as $key => $value) {
-                // Skip complex data (will be processed separately)
-                if ($key !== 'invoice-products') {
-                    $invoice->$key = $value;
-                }
-            }
-
-            // Calculate due_date if needed
-            if (isset($invoice->issue_date) && isset($invoice->due_in)) {
-                $issueDate = new \DateTime($invoice->issue_date);
-                $issueDate->modify('+' . (int)$invoice->due_in . ' days');
-                $invoice->due_date = $issueDate->format('Y-m-d');
-            }
-
-            // Convert due_in to integer
-            if (isset($invoice->due_in)) {
-                $invoice->due_in = (int)$invoice->due_in;
-            }
-
-            // Ensure required properties are set with default values
-            $this->ensureProperties($invoice, [
-                'payment_method_id', 'due_in', 'payment_status_id', 'payment_currency',
-                'invoice_vs', 'invoice_ks', 'invoice_ss', 'issue_date', 'payment_amount',
-                'tax_point_date', 'invoice_text', 'due_date'
-            ]);
-
-            // Create client object with proper defaults
-            $client = new \stdClass();
-            $client->id = null;
-            $client->name = $invoiceData['client_name'] ?? __('invoices.placeholders.unnamed_client');
-            $client->street = $invoiceData['client_street'] ?? '';
-            $client->city = $invoiceData['client_city'] ?? '';
-            $client->zip = $invoiceData['client_zip'] ?? '';
-            $client->country = $invoiceData['client_country'] ?? 'CZ';
-            $client->ico = $invoiceData['client_ico'] ?? '';
-            $client->dic = $invoiceData['client_dic'] ?? '';
-            $client->email = $invoiceData['client_email'] ?? '';
-            $client->phone = $invoiceData['client_phone'] ?? '';
-
-            // Create supplier object with proper defaults
-            $supplier = new \stdClass();
-            $supplier->id = null;
-            $supplier->name = $invoiceData['name'] ?? __('invoices.placeholders.unnamed_supplier');
-            $supplier->street = $invoiceData['street'] ?? '';
-            $supplier->city = $invoiceData['city'] ?? '';
-            $supplier->zip = $invoiceData['zip'] ?? '';
-            $supplier->country = $invoiceData['country'] ?? 'CZ';
-            $supplier->ico = $invoiceData['ico'] ?? '';
-            $supplier->dic = $invoiceData['dic'] ?? '';
-            $supplier->email = $invoiceData['email'] ?? '';
-            $supplier->phone = $invoiceData['phone'] ?? '';
-            $supplier->account_number = $invoiceData['account_number'] ?? '';
-            $supplier->bank_code = $invoiceData['bank_code'] ?? '';
-            $supplier->bank_name = $invoiceData['bank_name'] ?? '';
-            $supplier->iban = $invoiceData['iban'] ?? '';
-            $supplier->swift = $invoiceData['swift'] ?? '';
-
-            // Add supplier and client to invoice
-            $invoice->supplier = $supplier;
-            $invoice->client = $client;
-
-            // Process invoice products from JSON data
-            $invoiceProducts = [];
-            $totalAmount = 0;
+            // Set locale based on request
+            $requestLocale = $request->get('lang');
             
-            if (!empty($invoiceData['invoice-products'])) {
-                try {
-                    $productsData = $invoiceData['invoice-products'];
-                    
-                    // Decode JSON if it's a string
-                    if (is_string($productsData)) {
-                        $productsData = json_decode($productsData, true);
-                        
-                        // Check for JSON decode errors
-                        if (json_last_error() !== JSON_ERROR_NONE) {
-                            Log::warning('JSON decode error for invoice products: ' . json_last_error_msg());
-                            $productsData = [];
-                        }
-                    }
-                    
-                    // Create invoice product objects
-                    if (is_array($productsData)) {
-                        foreach ($productsData as $index => $product) {
-                            $invoiceProduct = [];
-                            $invoiceProduct['id'] = $index + 1; // Assign sequential ID
-                            $invoiceProduct['product_id'] = $product['product_id'] ?? null;
-                            $invoiceProduct['name'] = $product['name'] ?? __('invoices.placeholders.unnamed_product');
-                            $invoiceProduct['quantity'] = floatval($product['quantity'] ?? 1);
-                            $invoiceProduct['unit'] = $product['unit'] ?? __('invoices.units.pieces');
-                            $invoiceProduct['price'] = floatval($product['price'] ?? 0);
-                            $invoiceProduct['currency'] = $product['currency'] ?? 'CZK';
-                            $invoiceProduct['tax_rate'] = floatval($product['tax_rate'] ?? 21);
-                            
-                            // Calculate tax amount and total price
-                            $invoiceProduct['tax_amount'] = ($invoiceProduct['price'] * $invoiceProduct['quantity'] * $invoiceProduct['tax_rate']) / 100;
-                            $invoiceProduct['total_price'] = ($invoiceProduct['price'] * $invoiceProduct['quantity']) + $invoiceProduct['tax_amount'];
-                            
-                            // Add to running total
-                            $totalAmount += $invoiceProduct['total_price'];
-                            
-                            $invoiceProducts[] = $invoiceProduct;
-                        }
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Error processing invoice products: ' . $e->getMessage(), [
-                        'token' => substr($token, 0, 8) . '...'
-                    ]);
-                }
+            // Generate PDF from data
+            $pdf = $this->invoicePdfService->generatePdfFromData($invoiceData, $requestLocale);
+            
+            $filename = 'faktura-' . ($invoiceData['invoice_vs'] ?? date('YmdHis')) . '.pdf';
+            
+            // Preview or download
+            if ($request->has('preview')) {
+                return $pdf->stream($filename);
             }
             
-            // Add products to invoice
-            $invoice->invoiceProductsData = $invoiceProducts;
-            
-            // Get payment method
-            $paymentMethod = null;
-            if (!empty($invoice->payment_method_id)) {
-                try {
-                    $paymentMethod = PaymentMethod::find($invoice->payment_method_id);
-                } catch (\Exception $e) {
-                    Log::warning('Payment method not found: ' . $e->getMessage());
-                }
-            }
-            
-            // Create fallback payment method if needed
-            if (!$paymentMethod) {
-                $paymentMethod = new \stdClass();
-                $paymentMethod->id = $invoice->payment_method_id ?? 1;
-                $paymentMethod->name = __('payment_methods.' . ($invoiceData['payment_method_slug'] ?? 'bank_transfer'));
-                $paymentMethod->slug = $invoiceData['payment_method_slug'] ?? 'bank_transfer';
-            }
-            
-            // Get payment status
-            $paymentStatus = null;
-            if (!empty($invoice->payment_status_id)) {
-                try {
-                    $paymentStatus = Status::find($invoice->payment_status_id);
-                } catch (\Exception $e) {
-                    Log::warning('Payment status not found: ' . $e->getMessage());
-                }
-            }
-            
-            // Create fallback payment status if needed
-            if (!$paymentStatus) {
-                $paymentStatus = new \stdClass();
-                $paymentStatus->id = $invoice->payment_status_id ?? 1;
-                $paymentStatus->name = __('invoices.status.' . ($invoiceData['payment_status_slug'] ?? 'unpaid'));
-                $paymentStatus->slug = $invoiceData['payment_status_slug'] ?? 'unpaid';
-            }
-
-            // Create a clone invoice object for QR code
-            $qrInvoice = clone $invoice;
-            
-            // Generate QR code
-            $qrCodeBase64 = null;
-            try {
-                if ((!empty($invoice->account_number) && !empty($invoice->bank_code)) || !empty($invoice->iban)) {
-                    $qrCodeBase64 = $this->qrPaymentService->generateQrCodeBase64($qrInvoice);
-                }
-            } catch (\Exception $e) {
-                Log::error('Error generating QR code: ' . $e->getMessage());
-            }
-            
-            // Data for PDF generation
-            $data = [
-                'invoice' => $invoice,
-                'user' => null,
-                'client' => $client,
-                'supplier' => $supplier,
-                'paymentMethod' => $paymentMethod,
-                'paymentStatus' => $paymentStatus,
-                'qrCode' => $qrCodeBase64,
-                'hasQrCode' => !empty($qrCodeBase64),
-                'locale' => $locale,
-                'invoiceProducts' => $invoiceProducts,
-            ];
-
-            // Log rendering details for debugging
-            Log::info('Rendering PDF with data', [
-                'invoice_number' => $invoice->invoice_vs ?? 'N/A',
-                'product_count' => count($invoiceProducts),
-                'locale' => $locale,
-                'has_qr' => !empty($qrCodeBase64) ? 'yes' : 'no'
-            ]);
-
-            // Generate PDF
-            $pdf = Pdf::loadView('pdfs.invoice', $data);
-            
-            $filename = 'faktura-' . ($invoice->invoice_vs ?? date('YmdHis')) . '.pdf';
-            $response = $pdf->download($filename);
-
             // Set locale cookie
+            $locale = $this->localeService->determineLocale($requestLocale, $invoiceData['lang'] ?? null);
+            $response = $pdf->download($filename);
             return $response->cookie('locale', $locale, 60 * 24 * 30); // 30 days
         } catch (\Exception $e) {
             Log::error('Error while generating invoice PDF: ' . $e->getMessage(), [
-                'token' => substr($token, 0, 8) . '...',
-                'exception' => get_class($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
             abort(500, __('invoices.messages.pdf_error'));
-        }
-    }
-
-    /**
-     * Set application locale for PDF generation
-     * 
-     * @param string $locale Language code
-     * @return void
-     */
-    private function setLocaleForPdfGeneration(string $locale): void
-    {
-        if (in_array($locale, config('app.available_locales', ['cs', 'en', 'de', 'sk']))) {
-            app()->setLocale($locale);
-            Session::put('locale', $locale);
-        } else {
-            $fallbackLocale = config('app.fallback_locale', 'cs');
-            app()->setLocale($fallbackLocale);
-            Session::put('locale', $fallbackLocale);
-        }
-    }
-
-    /**
-     * Ensure object has all required properties (with empty values)
-     *
-     * @param \stdClass $object
-     * @param array $properties
-     * @return void
-     */
-    private function ensureProperties(\stdClass $object, array $properties): void
-    {
-        foreach ($properties as $property) {
-            if (!property_exists($object, $property)) {
-                if ($property === 'due_in') {
-                    $object->$property = 14;
-                } elseif ($property === 'payment_method_id' || $property === 'payment_status_id') {
-                    $object->$property = 1;
-                } elseif ($property === 'payment_amount') {
-                    $object->$property = 0;
-                } else {
-                    $object->$property = '';
-                }
-            } else if ($property === 'due_in' || $property === 'payment_method_id' || $property === 'payment_status_id') {
-                $object->$property = (int)$object->$property;
-            } else if ($property === 'payment_amount') {
-                $object->$property = (float)$object->$property;
-            }
         }
     }
 
@@ -1042,61 +765,68 @@ class InvoiceController extends Controller
     public function update(InvoiceRequest $request, $id)
     {
         try {
+            // Find invoice and check ownership
             $invoice = Invoice::where('user_id', Auth::id())->findOrFail($id);
+            
+            // Additional check for security
             if ($invoice->user_id != Auth::id()) {
-                return redirect()->route('frontend.invoices', ['lang' => app()->getLocale()])->with('error', __('invoices.messages.update_error_unauthorized'));
+                return redirect()
+                    ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                    ->with('error', __('invoices.messages.update_error_unauthorized'));
             }
             
             // Get validated data
             $data = $request->validated();
         
+            // Create new client if needed
             if (empty($data['client_id']) && !empty($data['client_name']) && strlen($data['client_name']) >= 3) {
-                // Create new client
-                $client = new Client();
-                $client->user_id = Auth::id();
-                $client->name = $data['client_name'];
-                $client->street = $data['client_street'] ?? null;
-                $client->city = $data['client_city'] ?? null;
-                $client->zip = $data['client_zip'] ?? null;
-                $client->country = $data['client_country'] ?? 'CZ';
-                $client->shortcut = $data['client_shortcut'] ?? null;
-                $client->ico = $data['client_ico'] ?? null;
-                $client->dic = $data['client_dic'] ?? null;
-                $client->email = $data['client_email'] ?? null;
-                $client->phone = $data['client_phone'] ?? null;
-                $client->description = $data['client_description'] ?? null;
-                $client->save();
+                // Create new client using repository
+                $client = $this->clientRepository->create([
+                    'name' => $data['client_name'],
+                    'street' => $data['client_street'] ?? '',
+                    'city' => $data['client_city'] ?? '',
+                    'zip' => $data['client_zip'] ?? '',
+                    'country' => $data['client_country'] ?? 'CZ',
+                    'ico' => $data['client_ico'] ?? '',
+                    'dic' => $data['client_dic'] ?? '',
+                    'email' => $data['client_email'] ?? '',
+                    'phone' => $data['client_phone'] ?? '',
+                    'description' => $data['client_description'] ?? '',
+                ]);
                 
                 // Set client
                 $data['client_id'] = $client->id;
             }
         
+            // Create new supplier if needed
             if (empty($data['supplier_id']) && !empty($data['name']) && strlen($data['name']) >= 3) {
-                $user = Auth::user();
-                // Create new supplier
-                $supplier = new Supplier();
-                $supplier->user_id = Auth::id();
-                $supplier->name = $data['name'];
-                $supplier->street = $data['street'] ?? null;
-                $supplier->city = $data['city'] ?? null;
-                $supplier->zip = $data['zip'] ?? null;
-                $supplier->country = $data['country'] ?? 'CZ';
-                $supplier->shortcut = $data['shortcut'] ?? null;
-                $supplier->ico = $data['ico'] ?? null;
-                $supplier->dic = $data['dic'] ?? null;
-                $supplier->email = $data['dic'] ?? null;
-                $supplier->phone = $data['dic'] ?? null;
-                $supplier->description = $data['dic'] ?? null;
-                $supplier->save();
+                // Create new supplier using repository
+                $supplier = $this->supplierRepository->create([
+                    'name' => $data['name'],
+                    'street' => $data['street'] ?? '',
+                    'city' => $data['city'] ?? '',
+                    'zip' => $data['zip'] ?? '',
+                    'country' => $data['country'] ?? 'CZ',
+                    'ico' => $data['ico'] ?? '',
+                    'dic' => $data['dic'] ?? '',
+                    'email' => $data['email'] ?? '',
+                    'phone' => $data['phone'] ?? '',
+                    'description' => $data['description'] ?? '',
+                    'account_number' => $data['account_number'] ?? '',
+                    'bank_code' => $data['bank_code'] ?? '',
+                    'bank_name' => $data['bank_name'] ?? '',
+                    'iban' => $data['iban'] ?? '',
+                    'swift' => $data['swift'] ?? '',
+                ]);
                 
                 // Set supplier
                 $data['supplier_id'] = $supplier->id;
             }
             
-            // update invoice
+            // Update invoice
             $invoice->update($data);
             
-            // Smažeme stávající produkty a nahradíme novými
+            // Delete existing products
             $invoice->invoiceProducts()->delete();
             
             // Get invoice products from request
@@ -1109,7 +839,7 @@ class InvoiceController extends Controller
             
             // Add products to invoice
             if (is_array($invoiceProducts) && !empty($invoiceProducts)) {
-                $this->saveInvoiceProducts($invoice, $invoiceProducts);
+                $this->invoiceService->saveInvoiceProducts($invoice, $invoiceProducts);
             }
 
             // Recalculate total amount
@@ -1118,78 +848,22 @@ class InvoiceController extends Controller
             return redirect()
                 ->route('frontend.invoice.show', ['id' => $invoice->id, 'lang' => app()->getLocale()])
                 ->with('success', __('invoices.messages.updated'));
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
+            Log::error('Invoice not found during update: ' . $e->getMessage());
             return back()
                 ->withInput()
-                ->with('error', __('invoices.messages.update_error') . $e->getMessage());
+                ->with('error', __('invoices.messages.not_found'));
+        } catch (\Exception $e) {
+            Log::error('Error updating invoice: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()
+                ->withInput()
+                ->with('error', __('invoices.messages.update_error') . ' ' . $e->getMessage());
         }
     }
     
-    /**
-     * Generate next available invoice number
-     * 
-     * @return string
-     */
-    protected function getNextInvoiceNumber()
-    {
-        $lastInvoice = Invoice::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->first();
-    
-        if ($lastInvoice) {
-            // Extract the last number from the invoice_vs field
-            // Assuming the format is YYYYXXXX, where YYYY is the year and XXXX is the number
-            preg_match('/(\d+)$/', $lastInvoice->invoice_vs, $matches);
-            $nextNumber = isset($matches[1]) ? (int)$matches[1] + 1 : 1;
-            return sprintf('%04d', $nextNumber);
-        }
-        
-        return date('Y') . '0001';
-    }
-
-    /**
-     * Get list of banks with codes for dropdown
-     * 
-     * @return array
-     */
-    private function getBanksForDropdown(): array
-    {
-        
-        $banks = Bank::where('country', 'CZ')
-            ->orderBy('created_at', 'desc')
-            ->get()->toArray();
-
-        foreach ($banks as $key => $bank) {
-            $banks[$key]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
-            $banks[$key]['value'] = $bank['code'];
-            $banks[$key]['swift'] = $bank['swift']; 
-        }
-        $banks[0] = __('suppliers.fields.select_bank');
-
-        return $banks;
-    }
-
-    /**
-     * Get list of banks with codes for dropdown
-     * 
-     * @return array
-     */
-    private function getBanksForJs(): array
-    {
-        
-        $banks = Bank::where('country', 'CZ')
-            ->orderBy('created_at', 'desc')
-            ->get()->toArray();
-
-        $banksData = [];
-        foreach ($banks as $key => $bank) {
-            $banksData[$bank['code']]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
-            $banksData[$bank['code']]['swift'] = $bank['swift']; 
-        }
-
-        return $banksData;
-    }
-
     /**
      * Delete temporary invoice for guest user
      * 
@@ -1203,13 +877,12 @@ class InvoiceController extends Controller
             $sessionToken = Session::get('last_guest_invoice_token');
             
             if ($sessionToken !== $token) {
-                Log::warning('Pokus o smazání faktury s neplatným tokenem: ' . $token);
                 return redirect()->route('home')
-                    ->with('error', __('invoices.messages.delete_unauthorized'));
+                    ->with('error', __('invoices.messages.invalid_token'));
             }
 
             // Delete invoice data from cache
-            Cache::forget('invoice_data_' . $token);
+            $this->invoiceService->deleteTemporaryInvoice($token);
             
             // Clear token from session
             Session::forget('last_guest_invoice_token');
@@ -1217,11 +890,9 @@ class InvoiceController extends Controller
             Session::forget('last_guest_invoice_expires');
             
             return redirect()->route('home')
-                ->with('success', __('invoices.messages.invoice_deleted'));
-                
+                ->with('success', __('invoices.messages.deleted_guest'));
         } catch (\Exception $e) {
             Log::error('Error deleting guest invoice', [
-                'token' => substr($token, 0, 8) . '...', // Only log part of the token for security
                 'error' => $e->getMessage()
             ]);
             
@@ -1239,89 +910,16 @@ class InvoiceController extends Controller
     public function markAsPaid($id)
     {
         try {
-            // Get invoice
-            $invoice = Invoice::where('user_id', Auth::id())->findOrFail($id);
+            $success = $this->invoiceService->markInvoiceAsPaid($id);
             
-            // Get status ID for "paid"
-            $paidStatusId = Status::where('slug', 'paid')->first()->id ?? null;
-            
-            if (!$paidStatusId) {
-                return back()->with('error', __('invoices.messages.status_not_found'));
+            if ($success) {
+                return back()->with('success', __('invoices.messages.marked_as_paid'));
+            } else {
+                return back()->with('error', __('invoices.messages.update_error'));
             }
-            
-            // Update invoice status
-            $invoice->update([
-                'payment_status_id' => $paidStatusId
-            ]);
-            
-            return back()->with('success', __('invoices.messages.marked_as_paid'));
         } catch (\Exception $e) {
             Log::error('Error marking invoice as paid: ' . $e->getMessage());
             return back()->with('error', __('invoices.messages.update_error'));
-        }
-    }
-
-    /**
-     * Get item units for invoice items
-     *
-     * @return array
-     */
-    public function getItemUnits()
-    {
-        return  [
-            'hours' => __('invoices.units.hours'),
-            'days' => __('invoices.units.days'),
-            'pieces' => __('invoices.units.pieces'),
-            'kilograms' => __('invoices.units.kilograms'),
-            'grams' => __('invoices.units.grams'),
-            'liters' => __('invoices.units.liters'),
-            'meters' => __('invoices.units.meters'),
-            'cubic_meters' => __('invoices.units.cubic_meters'),
-            'centimeters' => __('invoices.units.centimeters'),
-            'cubic_centimeters' => __('invoices.units.cubic_centimeters'),
-            'milliliters' => __('invoices.units.milliliters'),
-        ];
-    }
-
-    /**
-     * Helper method to save invoice products
-     * 
-     * @param Invoice $invoice
-     * @param array $products
-     * @return void
-     */
-    private function saveInvoiceProducts(Invoice $invoice, array $products)
-    {
-        foreach ($products as $product) {
-            // Check if this is a custom product (no product_id or explicitly marked)
-            $isCustom = !isset($product['product_id']) || empty($product['product_id']) || 
-                       (isset($product['is_custom_product']) && $product['is_custom_product']);
-            
-            // Convert to numbers for safety
-            $quantity = floatval($product['quantity'] ?? 1);
-            $price = floatval($product['price'] ?? 0);
-            $taxRate = floatval($product['tax_rate'] ?? 21);
-            
-            $taxAmount = ($quantity * $price * $taxRate) / 100;
-            $totalPrice = $quantity * $price * (1 + $taxRate / 100);
-            
-            $invoiceProduct = new InvoiceProduct([
-                'invoice_id' => $invoice->id,
-                'product_id' => $isCustom ? null : $product['product_id'],
-                'name' => $product['name'] ?? '',
-                'quantity' => $quantity,
-                'price' => $price,
-                'currency' => $product['currency'] ?? 'CZK',
-                'unit' => $product['unit'] ?? 'ks',
-                'category' => $product['category'] ?? null,
-                'description' => $product['description'] ?? null,
-                'is_custom_product' => $isCustom,
-                'tax_rate' => $taxRate,
-                'tax_amount' => $taxAmount,
-                'total_price' => $totalPrice,
-            ]);
-            
-            $invoiceProduct->save();
         }
     }
 }

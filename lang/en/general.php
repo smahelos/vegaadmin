@@ -64,4 +64,24 @@ return [
         'previous' => 'Previous',
         'next' => 'Next',
     ],
+
+    'actions' => [
+        'create' => 'Create',
+        'edit' => 'Edit',
+        'delete' => 'Delete',
+        'save' => 'Save',
+        'cancel' => 'Cancel',
+        'confirm' => 'Confirm',
+        'back' => 'Back',
+        'download' => 'Download',
+        'print' => 'Print',
+        'send' => 'Send',
+        'view' => 'View',
+        'actions' => 'Actions',
+    ],
+
+    'common' => [
+        'created_at' => 'Created At',
+        'updated_at' => 'Updated At',
+    ],
 ];

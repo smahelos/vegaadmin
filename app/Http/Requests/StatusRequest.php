@@ -15,7 +15,13 @@ class StatusRequest extends FormRequest
      */
     public function authorize()
     {
-        return Auth::check();
+        // Only allow updates if the user has permission to manage statuses
+        $user = Auth::user();
+        if (!$user) {
+            return false;
+        }
+
+        return $user->can('can_create_edit_status');
     }
 
     /**

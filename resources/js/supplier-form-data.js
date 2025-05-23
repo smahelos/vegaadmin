@@ -19,6 +19,16 @@ const SupplierFormData = (function() {
     
     // Flag to determine if we're in edit mode
     let isEditMode = false;
+
+    /**
+     * Check if URL has supplier_id parameter and return it
+     * @returns {string|null} - supplier_id from URL or null if not present
+     */
+    function getSupplierIdFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const supplierId = urlParams.get('supplier_id');
+        return supplierId;
+    }
     
     /**
      * Initialize the module
@@ -30,14 +40,26 @@ const SupplierFormData = (function() {
         isEditMode = options.isEditMode || false;
         console.log(`Edit mode: ${isEditMode}`);
 
-        // Load default supplier on page load only if not in edit mode
-        if (!isEditMode) {
+        // Check if supplier_id is in URL
+        const urlSupplierId = getSupplierIdFromUrl();
+        
+        if (urlSupplierId) {
+            console.log(`Found supplier_id in URL: ${urlSupplierId}`);
+            // Load supplier from URL parameter instead of default
+            loadSupplierById(urlSupplierId);
+        } else if (!isEditMode) {
+            // Only load default if no URL parameter and not in edit mode
             loadDefaultSupplier();
         }
         
         // Set up event listener for supplier select change
         const supplierSelect = document.getElementById('supplier_id');
         if (supplierSelect) {
+            // Set the supplier select value if URL parameter exists
+            if (urlSupplierId) {
+                supplierSelect.value = urlSupplierId;
+            }
+            
             var event = new Event('change');
             supplierSelect.addEventListener('change', handleSupplierChange);
             supplierSelect.dispatchEvent(event);
@@ -45,6 +67,54 @@ const SupplierFormData = (function() {
         } else {
             console.warn('Supplier select element not found');
         }
+    }
+
+    /**
+     * Load supplier data by ID
+     * @param {string} supplierId - ID of supplier to load
+     */
+    function loadSupplierById(supplierId) {
+        console.log(`Loading supplier data for ID: ${supplierId}`);
+        
+        fetch(`${baseURL}/api/supplier/${supplierId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Supplier data received:', data);
+                if (data && data.id) {
+                    // Update select with supplier if it exists
+                    const supplierSelect = document.getElementById('supplier_id');
+                    if (supplierSelect) {
+                        supplierSelect.value = data.id;
+                        currentSupplierId = data.id;
+                        console.log(`Supplier set to ID: ${data.id}`);
+                    }
+                    
+                    // Fill form fields with supplier data
+                    fillSupplierFields(data);
+                    
+                    // Set fields as readonly since we have a supplier
+                    setSupplierFieldsReadOnly(true);
+                    
+                    // Update edit supplier link
+                    updateEditSupplierLink(data.id);
+                } else {
+                    console.log('No supplier found or data is invalid');
+                    clearSupplierFields();
+                    setSupplierFieldsReadOnly(false);
+                    updateEditSupplierLink(null);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching supplier:', error);
+                clearSupplierFields();
+                setSupplierFieldsReadOnly(false);
+                updateEditSupplierLink(null);
+            });
     }
     
     /**

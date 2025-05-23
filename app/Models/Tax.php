@@ -36,11 +36,6 @@ class Tax extends Model
     |--------------------------------------------------------------------------
     */
 
-    public function getRateFormattedAttribute()
-    {
-        return number_format($this->rate, 2) . '%';
-    }
-
     /*
     |--------------------------------------------------------------------------
     | SCOPES
@@ -52,6 +47,11 @@ class Tax extends Model
     | ACCESSORS
     |--------------------------------------------------------------------------
     */
+
+    public function getRateFormattedAttribute()
+    {
+        return number_format($this->rate, 2) . '%';
+    }
 
     /*
     |--------------------------------------------------------------------------

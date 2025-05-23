@@ -26,6 +26,13 @@ class DashboardController extends Controller
         $suppliersCount = Supplier::where('user_id', $user->id)->count();
         $totalAmount = Invoice::where('user_id', $user->id)->sum('payment_amount');
             
+        $clients = Client::where('user_id', $user->id)
+            ->with(['invoices' => function($query) {
+                $query->select('client_id', DB::raw('SUM(payment_amount) as total'))
+                      ->groupBy('client_id');
+            }])
+            ->get();
+
         // Get monthly statistics for chart - database-agnostic version
         $monthlyStats = DB::table('invoices')
             ->join('clients', 'invoices.client_id', '=', 'clients.id')
@@ -45,7 +52,8 @@ class DashboardController extends Controller
             'clientCount',
             'suppliersCount',
             'totalAmount',
-            'monthlyStats'
+            'monthlyStats',
+            'clients'
         ));
     }
 }

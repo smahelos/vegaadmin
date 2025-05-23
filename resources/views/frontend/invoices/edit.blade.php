@@ -117,10 +117,15 @@
 @section('content')
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl text-amber-600">{{ __('invoices.titles.edit') }}</h1>
-    <a href="@localizedRoute('frontend.invoices')"
-        class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
-        <i class="fas fa-arrow-left mr-2"></i> {{ __('invoices.actions.back_to_list') }}
-    </a>
+    
+    <div class="space-x-2">
+        <x-back-button />
+        
+        <a href="@localizedRoute('frontend.invoices')"
+            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> {{ __('invoices.actions.back_to_list') }}
+        </a>
+    </div>
 </div>
 
 <form id="invoice-form" method="POST" action="{{ route('frontend.invoice.update', $invoice->id) }}"

@@ -4,6 +4,9 @@
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl text-amber-600"><span class="text-base text-gray-900 font-medium">{{ __('clients.titles.client') }}</span> {{ $client->name }}</h1>
     <div class="flex space-x-4">
+
+        <x-back-button />
+
         <a href="@localizedRoute('frontend.clients')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
             <i class="fas fa-arrow-left mr-2"></i> {{ __('clients.actions.back_to_list') }}
         </a>
@@ -185,7 +188,7 @@
                                     {{ __('invoices.fields.status') }}
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    {{ __('general.actions') }}
+                                    {{ __('general.actions.actons') }}
                                 </th>
                             </tr>
                         </thead>

@@ -9,12 +9,63 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Models\Bank;
 use App\Traits\SupplierFormFields;
+use App\Services\BankService;
+use App\Services\LocaleService;
+use App\Services\CountryService;
+use App\Repositories\SupplierRepository;
 
 class SupplierController extends Controller
 {
     use SupplierFormFields;
+
+    /**
+     * Bank service instance
+     * 
+     * @var \App\Services\BankService
+     */
+    protected $bankService;
+
+    /**
+     * Locale service instance
+     * 
+     * @var \App\Services\LocaleService
+     */
+    protected $localeService;
+
+    /**
+     * Country service instance
+     * 
+     * @var \App\Services\CountryService
+     */
+    protected $countryService;
+
+    /**
+     * Supplier repository instance
+     * 
+     * @var \App\Repositories\SupplierRepository
+     */
+    protected $supplierRepository;
+
+    /**
+     * Constructor
+     * 
+     * @param BankService $bankService
+     * @param LocaleService $localeService
+     * @param CountryService $countryService
+     * @param SupplierRepository $supplierRepository
+     */
+    public function __construct(
+        BankService $bankService,
+        LocaleService $localeService,
+        CountryService $countryService,
+        SupplierRepository $supplierRepository
+    ) {
+        $this->bankService = $bankService;
+        $this->localeService = $localeService;
+        $this->countryService = $countryService;
+        $this->supplierRepository = $supplierRepository;
+    }
 
     /**
      * Display paginated list of user suppliers
@@ -37,23 +88,27 @@ class SupplierController extends Controller
         $fields = $this->getSupplierFields();
 
         // Banks dropdown
-        $banks = $this->getBanksForDropdown();
+        $banks = $this->bankService->getBanksForDropdown();
 
         // Get banksData for JD bank-fields.js
-        $banksData = $this->getBanksForJs();
+        $banksData = $this->bankService->getBanksForJs();
 
+        // Get countries for dropdown
+        $countries = $this->countryService->getCountryCodesForSelect();
+
+        $user = Auth::user();
         $supplierInfo = [
-            'name' => $supplier->name ?? '',
-            'street' => $supplier->street ?? '',
-            'city' => $supplier->city ?? '',
-            'zip' => $supplier->zip ?? '',
-            'country' => $supplier->country ?? 'Czech Republic',
-            'ico' => $supplier->ico ?? '',
-            'dic' => $supplier->dic ?? '',
-            'email' => $supplier->email ?? '',
-            'phone' => $supplier->phone ?? '',
-            'description' => $supplier->description ?? '',
-            'is_default' => $supplier->is_default ?? '',
+            'name' => $user->name ?? '',
+            'street' => '',
+            'city' => '',
+            'zip' => '',
+            'country' => 'CZ',
+            'ico' => '',
+            'dic' => '',
+            'email' => $user->email ?? '',
+            'phone' => '',
+            'description' => '',
+            'is_default' => '',
             'account_number' => '',
             'bank_code' => '',
             'iban' => '',
@@ -65,7 +120,8 @@ class SupplierController extends Controller
             'fields' => $fields,
             'supplierInfo' => $supplierInfo,
             'banks' => $banks,
-            'banksData' => $banksData
+            'banksData' => $banksData,
+            'countries' => $countries
         ]);
     }
 
@@ -80,20 +136,18 @@ class SupplierController extends Controller
         $validatedData = $request->validated();
         
         try {
-            // Add authenticated user ID
-            $validatedData['user_id'] = Auth::id();
+            // Create new supplier using repository
+            $supplier = $this->supplierRepository->create($validatedData);
             
-            // Set as default if it's the first supplier
-            if (Supplier::where('user_id', Auth::id())->count() === 0) {
-                $validatedData['is_default'] = true;
-            }
+            // Set locale for response
+            $locale = $this->localeService->determineLocale($request->get('lang'));
             
-            $supplier = Supplier::create($validatedData);
-            
-            return redirect()->route('frontend.suppliers', ['lang' => app()->getLocale()])
+            return redirect()->route('frontend.suppliers', ['lang' => $locale])
                             ->with('success', __('suppliers.messages.created'));
         } catch (\Exception $e) {
-            Log::error('Error creating supplier: ' . $e->getMessage());
+            Log::error('Error creating supplier: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return back()->withInput()
                         ->with('error', __('suppliers.messages.error_create'));
@@ -116,10 +170,10 @@ class SupplierController extends Controller
 
             // Check if ID is numeric
             if (!is_numeric($id)) {
-                Log::warning('Wrong client ID: ' . $id);
+                Log::warning('Wrong supplier ID: ' . $id);
                 return redirect()
-                    ->route('frontend.clients', ['lang' => app()->getLocale()])
-                    ->with('error', __('clients.messages.invalid_id'));
+                    ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                    ->with('error', __('suppliers.messages.invalid_id'));
             }
 
             // Get supplier by ID, only for authenticated user
@@ -134,7 +188,15 @@ class SupplierController extends Controller
             Log::error('Error showing supplier #' . $id . ': ' . $e->getMessage());
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
-                ->with('error', __('suppliers.messages.error_update'));
+                ->with('error', __('suppliers.messages.error_show'));
+        } catch (\Exception $e) {
+            Log::error('Error viewing supplier: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()
+                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->with('error', __('suppliers.messages.error_show'));
         }
     }
 
@@ -155,22 +217,33 @@ class SupplierController extends Controller
             $fields = $this->getSupplierFields();
             
             // Banks dropdown
-            $banks = $this->getBanksForDropdown();
+            $banks = $this->bankService->getBanksForDropdown();
 
             // Get banksData for JD bank-fields.js
-            $banksData = $this->getBanksForJs();
-            
+            $banksData = $this->bankService->getBanksForJs();
+
+            // Get countries for dropdown
+            $countries = $this->countryService->getCountryCodesForSelect();
+
             return view('frontend.suppliers.edit', [
                 'supplier' => $supplier,
                 'fields' => $fields,
                 'banks' => $banks,
                 'banksData' => $banksData,
+                'countries' => $countries
             ]);
             
         } catch (ModelNotFoundException $e) {
             Log::error('Error editing supplier #' . $id . ': ' . $e->getMessage());
             return redirect()->route('frontend.suppliers', ['lang' => app()->getLocale()])
-                             ->with('error', __('suppliers.messages.error_update'));
+                             ->with('error', __('suppliers.messages.error_edit'));
+        } catch (\Exception $e) {
+            Log::error('Error editing supplier #' . $id . ': ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                             ->with('error', __('suppliers.messages.error_edit'));
         }
     }
 
@@ -189,13 +262,31 @@ class SupplierController extends Controller
             $validatedData = $request->validated();
             $validatedData['is_default'] = isset($validatedData['is_default']) && $validatedData['is_default'] == 1;
             
+            // If setting this supplier as default, unset all others
+            if ($validatedData['is_default']) {
+                Supplier::where('user_id', Auth::id())
+                    ->where('id', '!=', $id)
+                    ->update(['is_default' => false]);
+            }
+            
             $supplier->update($validatedData);
             
+            // Set locale for response
+            $locale = $this->localeService->determineLocale($request->get('lang'));
+            
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['lang' => $locale])
                 ->with('success', __('suppliers.messages.updated'));
         } catch (ModelNotFoundException $e) {
             Log::error('Error updating supplier #' . $id . ': ' . $e->getMessage());
+            return redirect()
+                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->with('error', __('suppliers.messages.error_update'));
+        } catch (\Exception $e) {
+            Log::error('Error updating supplier #' . $id . ': ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_update'));
@@ -230,48 +321,52 @@ class SupplierController extends Controller
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_delete'));
+        } catch (\Exception $e) {
+            Log::error('Error deleting supplier #' . $id . ': ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()
+                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->with('error', __('suppliers.messages.error_delete'));
         }
     }
 
     /**
-     * Get list of banks with codes for dropdown
+     * Set supplier as default
      * 
-     * @return array
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
      */
-    private function getBanksForDropdown(): array
+    public function setDefault($id)
     {
-        
-        $banks = Bank::where('country', 'CZ')
-            ->orderBy('created_at', 'desc')
-            ->get()->toArray();
-
-        foreach ($banks as $key => $bank) {
-            $banks[$key]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
-            $banks[$key]['value'] = $bank['code'];
+        try {
+            // Find supplier
+            $supplier = Supplier::where('user_id', Auth::id())->findOrFail($id);
+            
+            // Remove default flag from all other suppliers
+            Supplier::where('user_id', Auth::id())
+                ->where('id', '!=', $id)
+                ->update(['is_default' => false]);
+            
+            // Set this supplier as default
+            $supplier->update(['is_default' => true]);
+            
+            return redirect()
+                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->with('success', __('suppliers.messages.set_default'));
+        } catch (ModelNotFoundException $e) {
+            Log::error('Supplier not found for setting default #' . $id . ': ' . $e->getMessage());
+            
+            return redirect()
+                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->with('error', __('suppliers.messages.error_set_default'));
+        } catch (\Exception $e) {
+            Log::error('Error setting supplier as default #' . $id . ': ' . $e->getMessage());
+            
+            return redirect()
+                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->with('error', __('suppliers.messages.error_set_default'));
         }
-        $banks[0] = __('suppliers.fields.select_bank');
-
-        return $banks;
-    }
-
-    /**
-     * Get list of banks with codes for dropdown
-     * 
-     * @return array
-     */
-    private function getBanksForJs(): array
-    {
-        
-        $banks = Bank::where('country', 'CZ')
-            ->orderBy('created_at', 'desc')
-            ->get()->toArray();
-
-        $banksData = [];
-        foreach ($banks as $key => $bank) {
-            $banksData[$bank['code']]['text'] = $bank['name'] . ' (' . $bank['code'] . ')';
-            $banksData[$bank['code']]['swift'] = $bank['swift']; 
-        }
-
-        return $banksData;
     }
 }
