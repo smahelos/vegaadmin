@@ -56,3 +56,15 @@ if (!function_exists('backpack_url')) {
         return url($prefix.'/'.$path);
     }
 }
+
+if (!function_exists('backpack_pro')) {
+    /**
+     * Get authentication manager instance for Backpack guard
+     *
+     * @return bool
+     */
+    function backpack_pro()
+    {
+        return true;
+    }
+}
