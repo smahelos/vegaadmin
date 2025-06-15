@@ -15,7 +15,7 @@ class ProductPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('can_create_edit_products') ||
+        return $user->hasPermissionTo('can_create_edit_product') ||
                $user->hasRole('frontend_user') ||
                $user->hasRole('admin');
     }
@@ -26,7 +26,7 @@ class ProductPolicy
     public function view(User $user, Product $product): bool
     {
         return $user->id === $product->user_id || 
-               $user->hasPermissionTo('can_create_edit_products') ||
+               $user->hasPermissionTo('can_create_edit_product') ||
                $user->hasRole('frontend_user') ||
                $user->hasRole('admin');
     }
@@ -36,7 +36,7 @@ class ProductPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('can_create_edit_products') ||
+        return $user->hasPermissionTo('can_create_edit_product') ||
                $user->hasRole('frontend_user') ||
                $user->hasRole('admin');
     }
@@ -47,7 +47,7 @@ class ProductPolicy
     public function update(User $user, Product $product): bool
     {
         return $user->id === $product->user_id || 
-               $user->hasPermissionTo('can_create_edit_products') ||
+               $user->hasPermissionTo('can_create_edit_product') ||
                $user->hasRole('frontend_user') ||
                $user->hasRole('admin');
     }
@@ -58,7 +58,7 @@ class ProductPolicy
     public function delete(User $user, Product $product): bool
     {
         return $user->id === $product->user_id || 
-               $user->hasPermissionTo('can_create_edit_products') ||
+               $user->hasPermissionTo('can_create_edit_product') ||
                $user->hasRole('admin');
     }
 }

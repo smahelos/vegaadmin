@@ -458,9 +458,11 @@
                                 <input type="text"
                                     class="item-name form-input w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-blue-50"
                                     placeholder="{{ __('invoices.placeholders.item_name') }}">
-                                <button type="button" title="{{ __('invoices.placeholders.select_product') }}" class="select-product ml-1 px-2 py-1 border border-blue-300 rounded-md cursor-pointer text-white hover:text-white bg-emerald-500 hover:bg-emerald-600">
+                                @if($userLoggedIn)
+                                    <button type="button" title="{{ __('invoices.placeholders.select_product') }}" class="select-product ml-1 px-2 py-1 border border-blue-300 rounded-md cursor-pointer text-white hover:text-white bg-emerald-500 hover:bg-emerald-600">
                                     <i class="fas fa-search"></i>
-                                </button>
+                                    </button>
+                                @endif
                             </div>
                             <div class="col-span-1">
                                 <input type="number"
@@ -556,10 +558,6 @@
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
-
-                @error('invoice_text')
-                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                @enderror
             </div>
         </div>
     </div>
@@ -632,6 +630,7 @@
     </div>
 </div>
 
+@if($userLoggedIn)
 <!-- Product Selection Modal -->
 <div id="product-selection-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen p-4 text-center">
@@ -658,6 +657,7 @@
         </div>
     </div>
 </div>
+@endif
 @endsection
 
 @push('scripts')

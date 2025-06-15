@@ -4,9 +4,10 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\SetLocale;
-use App\Http\Middleware\ApiAuthentication;
 use App\Http\Middleware\RefreshFrontendSession;
 use App\Http\Middleware\RefreshBackpackSession;
+use App\Http\Middleware\RequireFrontendApiAccess;
+use App\Http\Middleware\RequireBackpackApiAccess;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -38,11 +39,11 @@ return Application::configure(basePath: dirname(__DIR__))
         
         // Registrace vlastního middleware jako alias
         $middleware->alias([
-            'api.auth' => ApiAuthentication::class,
+            'api.require.frontend' => RequireFrontendApiAccess::class,
+            'api.require.backpack' => RequireBackpackApiAccess::class,
             'refresh.frontend.session' => RefreshFrontendSession::class,
             'refresh.backpack.session' => RefreshBackpackSession::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
     })->create();

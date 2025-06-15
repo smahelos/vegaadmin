@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'auth' => [
+        'unauthenticated' => 'Not authenticated.',
+        'forbidden' => 'Access denied.',
+        'unauthorized' => 'Access denied. You do not have permission to access this resource.',
+        'no_frontend_access' => 'Access denied. You do not have permission to access frontend API.',
+        'no_admin_access' => 'Access denied. You do not have permission to access admin area.',
+        'registration_success' => 'Registration was successful.',
+        'registration_failed' => 'Registration failed.',
+        'failed' => 'Login failed.',
+    ],
+
     'fields' => [
         'name' => 'Name',
         'email' => 'Email',
@@ -104,6 +115,8 @@ return [
         'city' => 'Enter city',
         'zip' => 'Enter ZIP code',
         'country' => 'Select country',
+        'new_password' => 'Enter new password',
+        'password_confirmation' => 'Enter the same password for confirmation',
     ],
 
     'status' => [

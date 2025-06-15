@@ -33,6 +33,18 @@ Route::group([
     Route::crud('product-category', 'ProductCategoryCrudController');
     Route::crud('expense', 'ExpenseCrudController');
     Route::crud('expense-category', 'ExpenseCategoryCrudController');
+    
+    // Database Management Routes
+    Route::get('database-dashboard', 'DatabaseDashboardController@index')->name('admin.database.dashboard');
+    Route::post('database-dashboard/run-command', 'DatabaseDashboardController@runCommand')->name('admin.database.run-command');
+    Route::crud('database-maintenance-log', 'DatabaseMaintenanceLogCrudController');
+    Route::crud('performance-metric', 'PerformanceMetricCrudController');
+    Route::crud('archive-policy', 'ArchivePolicyCrudController');
+    Route::crud('mysql-optimization-log', 'MysqlOptimizationLogCrudController');
+    Route::post('database-dashboard/resolve-alert', 'DatabaseDashboardController@resolveAlert');
+    Route::post('database-dashboard/clean-metrics', 'DatabaseDashboardController@cleanPerformanceMetrics');
+    Route::post('database-dashboard/metrics-stats', 'DatabaseDashboardController@getMetricsStats');
+    Route::get('dashboard', 'AdminController@dashboard')->name('backpack.dashboard');
 }); // this should be the absolute last line of this file
 
 /**

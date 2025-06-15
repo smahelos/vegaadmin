@@ -22,7 +22,7 @@ return [
         11 => 'November',
         12 => 'Dezember',
     ],
-
+    
     'navigation' => [
         'dashboard' => 'Übersicht',
         'invoices' => 'Rechnungen',
@@ -57,6 +57,7 @@ return [
     ],
 
     'pagination' => [
+        'navigation' => 'Navigation',
         'shown' => 'Angezeigt',
         'of' => 'von',
         'up_to' => 'bis',

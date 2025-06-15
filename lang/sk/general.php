@@ -57,6 +57,7 @@ return [
     ],
 
     'pagination' => [
+        'navigation' => 'Navigácia',
         'shown' => 'Zobrazené',
         'of' => 'z',
         'up_to' => 'až',
@@ -70,12 +71,13 @@ return [
         'edit' => 'Upraviť',
         'delete' => 'Vymazať',
         'view' => 'Zobraziť',
-        'cancel' => 'Zrušiť',
         'save' => 'Uložiť',
+        'cancel' => 'Zrušiť',
+        'confirm' => 'Potvrdiť',
         'back' => 'Späť',
-        'send' => 'Odoslať',
-        'print' => 'Tlačiť',
         'download' => 'Stiahnuť',
+        'print' => 'Tlačiť',
+        'send' => 'Odoslať',
         'actions' => 'Akcie',
     ],
 

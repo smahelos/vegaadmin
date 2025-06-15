@@ -80,7 +80,23 @@ class ExpenseCrudController extends CrudController
             
         CRUD::column('description')
             ->label(trans('admin.expenses.description'))
-            ->limit(80);
+            ->type('text')
+            ->limit(80)
+            ->escaped(true);
+
+        CRUD::column('attachments')
+            ->label(trans('admin.expenses.attachments'))
+            ->type('closure')
+            ->function(function($entry) {
+                if (!is_array($entry->attachments)) {
+                    return 'shit';
+                }
+                $fileNames = array_map(function($path) {
+                    return basename($path);
+                }, $entry->attachments);
+                return implode(', ', $fileNames);
+            })
+            ->limit(50);
 
         // Filters
         CRUD::filter('expense_date')
@@ -188,24 +204,6 @@ class ExpenseCrudController extends CrudController
             ->label(trans('admin.expenses.description'))
             ->type('textarea');
             
-        // CRUD::field('receipt_file')
-        //     ->label(trans('admin.expenses.receipt'))
-        //     ->type('image')
-        //     ->name('receipt_file')
-        //     // ->crop(true)
-        //     ->withFiles(true)
-        //     ->aspect_ratio(1) // set to 0 to allow any aspect ratio
-        //     ->hint(trans('admin.expenses.receipt_hint'));
-
-        // CRUD::field('receipt_file')
-        //     ->type('image_with_preview')
-        //     ->label(trans('admin.expenses.receipt'))
-        //     ->upload(true)
-        //     ->disk('public')
-        //     ->hint(trans('admin.expenses.receipt_hint'))
-        //     ->wrapper([
-        //         'class' => 'form-group col-md-6'
-        //     ]);
 
         $this->crud->addField([
             'name' => 'attachments',
@@ -219,30 +217,6 @@ class ExpenseCrudController extends CrudController
             ],
             'hint' => trans('admin.expenses.attachments_hint'),
         ]);
-            
-        // // Add JavaScript for better handling of the custom field
-        // $this->crud->addField([
-        //     'name' => 'receipt_file_preview_scripts',
-        //     'type' => 'custom_html',
-        //     'value' => '<script>
-        //         document.addEventListener("DOMContentLoaded", function() {
-        //             // This ensures the receipt_file preview is updated when form is submitted
-        //             document.querySelector("form").addEventListener("submit", function() {
-        //                 const removeCheckbox = document.getElementById("file_remove");
-        //                 const inputField = document.getElementById("file_input");
-
-        //                 if (removeCheckbox && removeCheckbox.checked && inputField.files.length === 0) {
-        //                     // If remove is checked but no new file is selected
-        //                     const hiddenInput = document.createElement("input");
-        //                     hiddenInput.type = "hidden";
-        //                     hiddenInput.name = "file";
-        //                     hiddenInput.value = "";
-        //                     this.appendChild(hiddenInput);
-        //                 }
-        //             });
-        //         });
-        //     </script>'
-        // ]);
 
         $taxes = \App\Models\Tax::all();
         $options = [];    
@@ -288,5 +262,65 @@ class ExpenseCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+    /**
+     * Configure the Show operation.
+     *
+     * @return void
+     */
+    protected function setupShowOperation()
+    {
+        // Re-use most of the same columns from list operation
+        $this->setupListOperation();
+        
+        // Override the attachments column with a custom renderer for the Show operation
+        // $this->crud->modifyColumn('attachments', [
+        //     'label' => trans('admin.expenses.attachments'),
+        //     'type' => 'closure',
+        //     'function' => function($entry) {
+        //         if (empty($entry->attachments)) {
+        //             return '';
+        //         }
+                
+        //         $html = '<div class="attachments-list">';
+        //         foreach ($entry->attachments as $filePath) {
+        //             $url = asset('storage/' . $filePath);
+        //             $fileName = basename($filePath);
+        //             $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                    
+        //             // Icon based on file type
+        //             $icon = 'fa-file';
+        //             if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+        //                 $icon = 'fa-file-image';
+        //             } elseif ($extension === 'pdf') {
+        //                 $icon = 'fa-file-pdf';
+        //             } elseif (in_array($extension, ['doc', 'docx'])) {
+        //                 $icon = 'fa-file-word';
+        //             } elseif (in_array($extension, ['xls', 'xlsx'])) {
+        //                 $icon = 'fa-file-excel';
+        //             }
+                    
+        //             $html .= '<div class="attachment-item mb-2">';
+        //             $html .= '<i class="fa ' . $icon . ' mr-2"></i>';
+        //             $html .= '<a href="' . $url . '" target="_blank">' . $fileName . '</a>';
+        //             $html .= '</div>';
+        //         }
+        //         $html .= '</div>';
+                
+        //         return $html;
+        //     }
+        // ]);
+        
+        // Also ensure description is properly displayed if null
+        if (collect($this->crud->columns())->firstWhere('name', 'description')) {
+            $this->crud->modifyColumn('description', [
+                'escaped' => true,
+                'type' => 'closure',
+                'function' => function($entry) {
+                    return $entry->description ?? '';
+                }
+            ]);
+        }
     }
 }

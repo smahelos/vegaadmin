@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
-class InvoiceController extends ApiBackpackController
+class InvoiceController extends Controller
 {
     /**
      * Get invoice data by ID using query parameter
@@ -35,7 +35,7 @@ class InvoiceController extends ApiBackpackController
             $user = $this->getAuthenticatedUser();
             
             if (!$user) {
-                return response()->json(['message' => __('auth.unauthenticated')], 401);
+                return response()->json(['message' => __('users.auth.unauthenticated')], 401);
             }
 
             $invoice = Invoice::findOrFail($invoiceId);
@@ -69,7 +69,7 @@ class InvoiceController extends ApiBackpackController
         $user = $this->getAuthenticatedUser();
         
         if (!$user) {
-            return response()->json(['message' => __('auth.unauthenticated')], 401);
+            return response()->json(['message' => __('users.auth.unauthenticated')], 401);
         }
         
         // Admins can see all invoices

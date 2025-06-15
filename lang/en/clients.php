@@ -46,6 +46,8 @@ return [
         'edit' => 'Edit Client',
         'show' => 'Client Details',
         'client' => 'client',
+        'empty' => 'You don\'t have any clients yet',
+        'empty_message' => 'Start by creating your first client.',
     ],
     'messages' => [
         'created' => 'Client was successfully created.',
@@ -59,16 +61,18 @@ return [
         'error_loading' => 'An error occurred while loading clients. Please try again later.',
         'is_default_explanation' => 'If this client is set as default, it will be automatically selected when creating new invoices.',
         'not_found' => 'Client not found.',
+        'no_clients' => 'You don\'t have any clients yet.',
     ],
     'validation' => [
         'name_required' => 'Client name is required.',
+        'email_required' => 'Email address is required.',
         'email_valid' => 'Please enter a valid email address.',
+        'street_required' => 'Street address is required.',
+        'city_required' => 'City is required.',
+        'zip_required' => 'ZIP code is required.',
+        'country_required' => 'Country is required.',
         'ico_format' => 'Company ID must contain exactly 8 digits.',
         'zip_format' => 'ZIP code must be in XXX XX or XXXXX format.',
-    ],
-    'empty' => [
-        'title' => 'You don\'t have any clients yet',
-        'message' => 'Start by creating your first client.',
     ],
     'placeholders' => [
         'not_specified' => 'Not specified',

@@ -36,7 +36,7 @@ class UserCrudController extends CrudController
     public function setup()
     {
         // Check permissions first
-        if(!backpack_user()->hasPermissionTo('can_view_user')) {
+        if(!backpack_user()->hasPermissionTo('can_view_user', 'backpack')) {
             // Deny access to operations
             CRUD::denyAccess(['list','show','create','update','delete']);
         }

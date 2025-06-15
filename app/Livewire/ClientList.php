@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Client;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class ClientList extends Component
@@ -86,7 +85,6 @@ class ClientList extends Component
                 'hasData' => $clients->total() > 0,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error while loading clients: ' . $e->getMessage());
             $this->errorMessage = 'Error while loading clients.';
             
             return view('livewire.client-list', [

@@ -69,8 +69,6 @@ class ProductListSelect extends Component
     public function selectProduct($id)
     {
         try {
-            \Log::info("ProductListSelect::selectProduct method called", ['product_id' => $id]);
-
             // Explicitní načtení produktu včetně relace tax
             $product = Product::findOrFail($id);
             
@@ -78,15 +76,6 @@ class ProductListSelect extends Component
             if ($product->tax_id) {
                 $product->load('tax');
             }
-            
-            // Podrobné logování produktu pro diagnostiku
-            \Log::channel('daily')->info('Product selected details', [
-                'product_id' => $product->id,
-                'product_name' => $product->name,
-                'tax_id' => $product->tax_id,
-                'tax_loaded' => $product->relationLoaded('tax'),
-                'tax_exists' => $product->tax ? true : false
-            ]);
             
             // Ensure all fields are properly formatted
             $price = $product->price ?? 0;
@@ -96,26 +85,15 @@ class ProductListSelect extends Component
             if ($product->tax_id) {
                 if ($product->tax) {
                     $tax_rate = $product->tax->rate;
-                    \Log::channel('daily')->info('Tax rate found', [
-                        'tax_id' => $product->tax_id,
-                        'tax_rate' => $tax_rate
-                    ]);
                 } else {
                     // Zkusíme načíst daň přímo, pokud relace selhala
                     try {
                         $tax = \App\Models\Tax::find($product->tax_id);
                         if ($tax) {
                             $tax_rate = $tax->rate;
-                            \Log::channel('daily')->info('Tax rate loaded directly', [
-                                'tax_id' => $product->tax_id,
-                                'tax_rate' => $tax_rate
-                            ]);
                         }
                     } catch (\Exception $e) {
-                        \Log::channel('daily')->error('Failed to load tax', [
-                            'tax_id' => $product->tax_id,
-                            'error' => $e->getMessage()
-                        ]);
+                        // Failed to load tax
                     }
                 }
             }
@@ -133,9 +111,6 @@ class ProductListSelect extends Component
                 'currency' => $currency,
             ];
             
-            // Log všech odesílaných dat
-            \Log::channel('daily')->info('Dispatching product data', $productData);
-            
             // Dispatch browser event with complete product data
             $this->dispatch('product-selected', productData: $productData);
             
@@ -144,12 +119,6 @@ class ProductListSelect extends Component
             
             return true;
         } catch (\Exception $e) {
-            \Log::channel('daily')->error('Error in selectProduct', [
-                'product_id' => $id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
             return false;
         }
     }
@@ -179,29 +148,11 @@ class ProductListSelect extends Component
             }
             
             $products = $query->paginate($this->perPage);
-            
-            // Log prvních pár produktů pro kontrolu načtení tax
-            if ($products->count() > 0) {
-                $sampleProduct = $products->first();
-                \Log::channel('daily')->info('Sample product from listing', [
-                    'product_id' => $sampleProduct->id,
-                    'product_name' => $sampleProduct->name,
-                    'tax_id' => $sampleProduct->tax_id,
-                    'tax_loaded' => $sampleProduct->relationLoaded('tax'),
-                    'has_tax' => $sampleProduct->tax ? true : false,
-                    'tax_rate' => $sampleProduct->tax ? $sampleProduct->tax->rate : null
-                ]);
-            }
 
             return view('livewire.product-list-select', [
                 'products' => $products
             ]);
         } catch (\Exception $e) {
-            \Log::channel('daily')->error('Error in render method', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
             // Return empty products collection in case of error
             return view('livewire.product-list-select', [
                 'products' => collect([])

@@ -26,12 +26,12 @@ class InvoiceRequest extends FormRequest
     public function rules()
     {
         $rules = [
-            'invoice_vs' => 'required|string|max:255',
-            'invoice_ks' => 'nullable|string|max:255',
-            'invoice_ss' => 'nullable|string|max:255',
+            'invoice_vs' => 'required|string|max:50',
+            'invoice_ks' => 'nullable|string|max:20',
+            'invoice_ss' => 'nullable|string|max:20',
             'payment_method_id' => 'required|exists:payment_methods,id',
             'payment_amount' => 'required|numeric|min:0',
-            'payment_currency' => 'required|string|max:10',
+            'payment_currency' => 'required|string|max:3',
             'issue_date' => 'required|date',
             'tax_point_date' => 'nullable|date',
             'due_in' => 'required|integer|min:1',

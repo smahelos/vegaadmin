@@ -179,6 +179,27 @@ class DashboardStatistics {
         
         // Fetch data from API
         this.fetchData('client-revenue').then(data => {
+            console.log('Client revenue data (raw):', data);
+            
+            // Ujistíme se, že máme platná data
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                console.warn('No client revenue data received or invalid format.');
+                // Vytvoříme prázdný graf s informací
+                this.charts.clientRevenue = this.createChart(ctx, 'pie', {
+                    labels: [this.translations.noData || 'No data'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['rgba(156, 163, 175, 0.7)']
+                    }]
+                }, {
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                });
+                return;
+            }
+            
+            // Nyní jsme si jisti, že máme platná data
             this.charts.clientRevenue = this.createChart(ctx, 'pie', {
                 labels: data.map(item => item.client_name),
                 datasets: [{
@@ -207,6 +228,14 @@ class DashboardStatistics {
             });
         }).catch(error => {
             console.error('Failed to load client revenue data:', error);
+            // Zobrazíme prázdný graf v případě chyby
+            this.charts.clientRevenue = this.createChart(ctx, 'pie', {
+                labels: [this.translations.error || 'Error'],
+                datasets: [{
+                    data: [1],
+                    backgroundColor: ['rgba(239, 68, 68, 0.7)']
+                }]
+            });
         });
     }
 
@@ -219,13 +248,43 @@ class DashboardStatistics {
         this.fetchData('invoice-status').then(data => {
             const statusColors = {
                 'paid': 'rgba(16, 185, 129, 0.7)',  // green
+                'partially-paid': 'rgba(37, 99, 235, 0.7)', // blue
                 'pending': 'rgba(251, 191, 36, 0.7)',  // yellow
                 'overdue': 'rgba(239, 68, 68, 0.7)',   // red
-                'draft': 'rgba(156, 163, 175, 0.7)'    // gray
+                'cancelled': 'rgba(156, 163, 175, 0.7)'    // gray
             };
-            
+
+            console.log('Invoice status data (raw):', data);
+            // Ensure we use the correct translation key
+            const getTranslation = (status) => {
+                // If status is partially-paid, check for partiallyPaid in translations first
+                if (status === 'partially-paid' && this.translations['partiallyPaid']) {
+                    return this.translations['partiallyPaid'];
+                }
+                // Otherwise use the status as key or fallback to the status itself
+                return this.translations[status] || status;
+            };
+
+            // Ujistíme se, že máme platná data
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                console.warn('No client revenue data received or invalid format.');
+                // Vytvoříme prázdný graf s informací
+                this.charts.clientRevenue = this.createChart(ctx, 'pie', {
+                    labels: [this.translations.noData || 'No data'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['rgba(156, 163, 175, 0.7)']
+                    }]
+                }, {
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                });
+                return;
+            }
+
             this.charts.invoiceStatus = this.createChart(ctx, 'doughnut', {
-                labels: data.map(item => this.translations[item.status] || item.status),
+                labels: data.map(item => getTranslation(item.status)),
                 datasets: [{
                     data: data.map(item => item.count),
                     backgroundColor: data.map(item => statusColors[item.status] || 'rgba(79, 70, 229, 0.7)'),
@@ -407,11 +466,30 @@ class DashboardStatistics {
             });
         }
         
-        const url = `/api/statistics/${endpoint}?${queryParams.toString()}`;
+        const url = `/api/${endpoint}?${queryParams.toString()}`;
         
         try {
+            // Přidáme logování pro diagnostiku
+            console.log(`Fetching data from: ${url}`);
+            
             const response = await window.fetchWithSession(url);
-            return response.data;
+            console.log(`Raw API response for ${endpoint}:`, response);
+            
+            // Vylepšené zpracování odpovědi - zkusíme všechny možné struktury
+            if (Array.isArray(response)) {
+                // Pokud je odpověď přímo pole
+                return response;
+            } else if (response && response.data) {
+                // Pokud je odpověď objekt s vlastností data
+                return response.data;
+            } else if (response && Array.isArray(response.data)) {
+                // Pro případ, že response.data je pole
+                return response.data;
+            } else {
+                // Jiná struktura - zajistíme, že vrátíme alespoň prázdné pole
+                console.warn(`Unexpected response format from ${endpoint}:`, response);
+                return response || [];
+            }
         } catch (error) {
             console.error(`Error fetching data from ${endpoint}:`, error);
             throw error;

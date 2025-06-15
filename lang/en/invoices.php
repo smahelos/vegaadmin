@@ -98,6 +98,8 @@ return [
         'invoice_number' => 'Invoice No. :number',
         'invoice' => 'Invoice',
         'invoice_items' => 'Invoice Items',
+        'empty' => 'You don’t have any invoices yet.',
+        'empty_message' => 'Create your first invoice by clicking the button below.',
     ],
 
     'labels' => [
@@ -108,6 +110,7 @@ return [
         'created' => 'Invoice was successfully created.',
         'updated' => 'Invoice was successfully updated.',
         'deleted' => 'Invoice was successfully deleted.',
+        'deleted_guest' => 'Invoice was successfully deleted.',
         'confirm_delete' => 'Are you sure you want to delete this invoice?',
         'create_error' => 'Error creating invoice: ',
         'update_error' => 'Error updating invoice: ',

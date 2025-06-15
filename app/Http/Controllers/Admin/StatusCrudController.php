@@ -116,6 +116,7 @@ class StatusCrudController extends CrudController
             'type'      => 'relationship',
             'entity'    => 'category',
             'attribute' => 'name',
+            'required' => true,
             'model'     => StatusCategory::class,
         ])->afterField('type');
 

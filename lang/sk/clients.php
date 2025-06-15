@@ -46,6 +46,8 @@ return [
         'edit' => 'Upraviť klienta',
         'show' => 'Detail klienta',
         'client' => 'klient',
+        'empty' => 'Zatiaľ nemáte žiadnych klientov',
+        'empty_message' => 'Začnite vytvorením vášho prvého klienta.',
     ],
     'messages' => [
         'created' => 'Klient bol úspešne vytvorený.',
@@ -59,16 +61,18 @@ return [
         'error_loading' => 'Nastala chyba pri načítaní klientov. Prosím, skúste to znova neskôr.',
         'is_default_explanation' => 'Ak je tento klient nastavený ako predvolený, bude automaticky vybraný pri vytváraní nových faktúr.',
         'not_found' => 'Klient nebol nájdený.',
+        'no_clients' => 'Zatiaľ nemáte žiadnych klientov.',
     ],
     'validation' => [
         'name_required' => 'Názov klienta je povinný.',
+        'email_required' => 'E-mailová adresa je povinná.',
         'email_valid' => 'Zadajte platnú e-mailovú adresu.',
+        'street_required' => 'Adresa ulice je povinná.',
+        'city_required' => 'Mesto je povinné.',
+        'zip_required' => 'PSČ je povinné.',
+        'country_required' => 'Krajina je povinná.',
         'ico_format' => 'IČO musí obsahovať presne 8 číslic.',
         'zip_format' => 'PSČ musí byť vo formáte XXX XX alebo XXXXX.',
-    ],
-    'empty' => [
-        'title' => 'Zatiaľ nemáte žiadnych klientov',
-        'message' => 'Začnite vytvorením vášho prvého klienta.',
     ],
     'placeholders' => [
         'not_specified' => 'Neuvedené',

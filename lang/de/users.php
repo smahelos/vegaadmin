@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'auth' => [
+        'unauthenticated' => 'Nicht authentifiziert',
+        'forbidden' => 'Zugriff verweigert.',
+        'unauthorized' => 'Zugriff verweigert. Sie haben keine Berechtigung für den Zugriff auf diese Ressource.',
+        'no_frontend_access' => 'Zugriff verweigert. Sie haben keine Berechtigung für den Zugriff auf die Frontend-API.',
+        'no_admin_access' => 'Zugriff verweigert. Sie haben keine Berechtigung für den Zugriff auf die Verwaltung.',
+        'registration_success' => 'Registrierung war erfolgreich.',
+        'registration_failed' => 'Registrierung ist fehlgeschlagen.',
+        'failed' => 'Anmeldung ist fehlgeschlagen.',
+    ],
+    
     'fields' => [
         'name' => 'Name',
         'email' => 'E-Mail',
@@ -104,6 +115,8 @@ return [
         'city' => 'Stadt eingeben',
         'zip' => 'PLZ eingeben',
         'country' => 'Land auswählen',
+        'new_password' => 'Neues Passwort eingeben',
+        'password_confirmation' => 'Geben Sie das Passwort zur Bestätigung erneut ein',
     ],
 
     'status' => [

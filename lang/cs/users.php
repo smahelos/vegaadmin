@@ -1,6 +1,17 @@
 <?php
 
 return [
+    'auth' => [
+        'unauthenticated' => 'Nejste přihlášeni.',
+        'forbidden' => 'Přístup odepřen.',
+        'unauthorized' => 'Přístup odepřen. Nemáte oprávnění pro přístup k tomuto zdroji.',
+        'no_frontend_access' => 'Přístup odepřen. Nemáte oprávnění pro přístup k frontend API.',
+        'no_admin_access' => 'Přístup odepřen. Nemáte oprávnění pro přístup do administrace.',
+        'registration_success' => 'Registrace byla úspěšná.',
+        'registration_failed' => 'Registrace se nezdařila.',
+        'failed' => 'Přihlášení se nezdařilo.',
+    ],
+
     'fields' => [
         'name' => 'Jméno',
         'email' => 'E-mail',
@@ -96,6 +107,8 @@ return [
         'city' => 'Zadejte město',
         'zip' => 'Zadejte PSČ',
         'country' => 'Vyberte zemi',
+        'new_password' => 'Zadejte nové heslo',
+        'password_confirmation' => 'Stejné heslo pro potvrzení',
     ],
 
     'status' => [

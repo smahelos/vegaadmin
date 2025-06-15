@@ -35,7 +35,7 @@
                         @error('name')
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
-                        <p class="mt-2 text-xs text-gray-500 text-white">x</p>
+                        <p class="mt-2 text-xs text-white">x</p>
                     </div>
                     
                     <!-- Email -->

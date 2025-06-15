@@ -41,6 +41,12 @@ export default class InvoiceItemManager {
         // Event delegation for buttons and value changes
         this.itemsContainer.addEventListener('click', this.handleItemButtonClicks.bind(this));
         this.itemsContainer.addEventListener('input', this.handleItemInputChanges.bind(this));
+        // Special handling for price field blur to ensure value is preserved
+        this.itemsContainer.addEventListener('blur', (e) => {
+            if (e.target.classList.contains('item-price')) {
+                this.handlePriceFieldBlur(e);
+            }
+        }, true);
         this.itemsContainer.addEventListener('change', this.handleItemSelectChanges.bind(this));
         
         // Listeners for currency selection
@@ -84,7 +90,13 @@ export default class InvoiceItemManager {
         
         // 2. Direct event listener on window (this should catch our manual dispatch)
         window.addEventListener('product-selected', (event) => {
-            console.log('Product selected event captured on window:', event);
+            // Check if modal exists (only for logged in users)
+            this.productModal = document.getElementById('product-selection-modal');
+            
+            if (!this.productModal) {
+                console.log('Product selection modal not found - user is not logged in or modal is missing');
+                return;
+            }
             
             try {
                 let productData = null;
@@ -172,7 +184,7 @@ export default class InvoiceItemManager {
         }
 
         // Product selection button handling - FIXED IMPLEMENTATION
-        if (e.target.classList.contains('select-product') || e.target.parentElement.classList.contains('select-product')) {
+        if ((e.target.classList.contains('select-product') || e.target.parentElement.classList.contains('select-product')) && this.productModal) {
             const itemElement = e.target.closest('.invoice-item');
             if (itemElement) {
                 console.log('Product selection button clicked for row:', itemElement);
@@ -193,16 +205,91 @@ export default class InvoiceItemManager {
     }
     
     handleItemInputChanges(e) {
+        console.log(`Item input change - type: ${e.type}, target class: ${e.target.className}`, e.target.value);
+    
+        const itemElement = e.target.closest('.invoice-item');
+        if (!itemElement) return;
+        
         if (e.target.classList.contains('item-quantity') || 
             e.target.classList.contains('item-price') ||
             e.target.classList.contains('item-tax')) {
-                
-            this.calculateItemPrice(e.target.closest('.invoice-item'));
+            
+            // Special handling for item-price field
+            if (e.target.classList.contains('item-price')) {
+                const currentValue = e.target.value.trim();
+                if (currentValue) {
+                    // Save the value to the row's data attribute
+                    itemElement.dataset.lastPrice = currentValue;
+
+                    // Immediately update the total invoice amount
+                    // This is especially important for the first row
+                    setTimeout(() => this.updateTotalAmount(), 0);
+                }
+                console.log('Price field changed, value:', currentValue);
+            }
+
+            // Recalculate price and update JSON data
+            this.calculateItemPrice(itemElement);
             this.updateJsonData();
             this.updateTotalAmount();
         } else {
             this.updateJsonData();
         }
+    }
+
+    // Upravená metoda handlePriceFieldBlur
+    handlePriceFieldBlur(e) {
+        const priceField = e.target;
+        const itemRow = priceField.closest('.invoice-item');
+        
+        if (!itemRow) return;
+        
+        // Get the current value of the price field
+        const currentValue = priceField.value.trim();
+        
+        console.log('Price field blur detected:', {
+            field: priceField,
+            value: currentValue,
+            row: itemRow
+        });
+
+        // Prevent default blur behavior to avoid validation triggering
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        // If the field has a value, ensure it remains and calculations update
+        if (currentValue) {
+            // Store the value for identification
+            itemRow.dataset.lastPrice = currentValue;
+            
+            // Ensure the value is properly set in the field
+            priceField.value = currentValue;
+            
+            // Calculate item price and update JSON
+            this.calculateItemPrice(itemRow);
+            this.updateJsonData();
+            this.updateTotalAmount();
+        }
+    }
+
+    calculateTotalFromItems() {
+        let total = 0;
+        
+        // Check all invoice items and sum their prices
+        const items = document.querySelectorAll('.invoice-item');
+        items.forEach(item => {
+            const priceField = item.querySelector('.item-price');
+            const quantityField = item.querySelector('.item-quantity');
+            
+            if (priceField && priceField.value && quantityField && quantityField.value) {
+                const price = parseFloat(priceField.value.trim().replace(/,/g, '.')) || 0;
+                const quantity = parseFloat(quantityField.value.trim().replace(/,/g, '.')) || 0;
+                // Add item price to total amount
+                total += price * quantity;
+            }
+        });
+        
+        return total;
     }
     
     handleItemSelectChanges(e) {
@@ -673,6 +760,14 @@ export default class InvoiceItemManager {
             // Set product price, converting if necessary
             const priceInput = this.activeItemRow.querySelector('.item-price');
             if (priceInput) {
+                console.log('Currency conversion data:', {
+                    productCurrency,
+                    currentCurrency,
+                    originalPrice: productPrice,
+                    hasCurrencyManager: !!window.currencyManager,
+                    needsConversion: productCurrency !== currentCurrency
+                });
+                
                 // Check if we need to convert the price
                 if (productCurrency !== currentCurrency && window.currencyManager) {
                     try {
@@ -684,7 +779,14 @@ export default class InvoiceItemManager {
                         );
                         
                         console.log(`Converting price from ${productPrice} ${productCurrency} to ${convertedPrice} ${currentCurrency}`);
-                        priceInput.value = convertedPrice;
+
+                        // Ensure we have a valid number after conversion
+                        if (convertedPrice && !isNaN(convertedPrice)) {
+                            priceInput.value = convertedPrice;
+                        } else {
+                            console.warn('Conversion returned invalid value, using original price');
+                            priceInput.value = productPrice;
+                        }
                     } catch (error) {
                         console.error('Failed to convert product price:', error);
                         priceInput.value = productPrice;
@@ -693,12 +795,18 @@ export default class InvoiceItemManager {
                     // No conversion needed
                     priceInput.value = productPrice;
                 }
+                // Store the current price value for debugging
+                this.activeItemRow.dataset.currentPrice = priceInput.value;
+                console.log('Final price set to:', priceInput.value);
             }
 
             // Set currency to match current invoice currency
             const currencySelect = this.activeItemRow.querySelector('.item-currency');
             if (currencySelect) {
                 currencySelect.value = currentCurrency;
+            
+                // Important: Update the dataset to reflect the current currency
+                this.activeItemRow.dataset.currentCurrency = currentCurrency;
             }
 
             // // Set other product fields if they exist in the data
@@ -734,17 +842,32 @@ export default class InvoiceItemManager {
                 if (unitInput) unitInput.value = data.unit;
             }
 
+            // Important: Explicitly delay calculations until after all fields are updated
+            setTimeout(() => {
+                // Recalculate the item price based on quantity and tax
+                this.calculateItemPrice(this.activeItemRow);
+                
+                // Update the JSON data and total
+                this.updateJsonData();
+                this.updateTotalAmount();
+                
+                console.log('Completed product selection processing with recalculations');
+            }, 50);
+
             // Recalculate the item price based on quantity and tax
-            this.calculateItemPrice(this.activeItemRow);
+            // this.calculateItemPrice(this.activeItemRow);
 
-            // Update the JSON data and total
-            this.updateJsonData();
-            this.updateTotalAmount();
+            // // Update the JSON data and total
+            // this.updateJsonData();
+            // this.updateTotalAmount();
 
-            // Close the modal
-            this.closeProductModal();
+            // // Close the modal
+            // this.closeProductModal();
         } catch (error) {
             console.error('Error processing product selection:', error);
+        } finally {
+            // Always close the modal when done
+            this.closeProductModal();
         }
     }
 

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class CountryService
 {
@@ -19,22 +18,13 @@ class CountryService
     {
         return Cache::remember('countries_all', 86400, function () {
             try {
-                Log::info('Fetching countries from API', ['url' => "{$this->apiUrl}/all?fields=name,cca2,flag"]);
-                
                 $response = Http::timeout(5)->get("{$this->apiUrl}/all?fields=name,cca2,flag");
                 
                 if ($response->successful()) {
                     $countries = $response->json();
                     
-                    // Log API response
-                    Log::info('API returned countries', [
-                        'count' => count($countries),
-                        'first_few' => array_slice($countries, 0, 3)
-                    ]);
-                    
                     // Check if we got valid data
                     if (empty($countries) || !is_array($countries)) {
-                        Log::warning('API returned empty or invalid data', ['response' => $response->body()]);
                         return $this->getFallbackCountryCodes();
                     }
                     
@@ -46,20 +36,10 @@ class CountryService
                     return $countries;
                 }
                 
-                // Log failed API response
-                Log::warning('API request was not successful', [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
-                
                 // Return fallback data if API call wasn't successful
                 return $this->getFallbackCountryCodes();
             } catch (\Exception $e) {
-                Log::error('Error loading countries. API not responding: ' . $e->getMessage(), [
-                    'exception' => get_class($e),
-                    'trace' => $e->getTraceAsString()
-                ]);
-                
+                // API not responding, return fallback data
                 return $this->getFallbackCountryCodes();
             }
         });
@@ -123,7 +103,6 @@ class CountryService
         $result = [];
         
         if (empty($countries)) {
-            Log::warning('No countries returned from getAllCountries()');
             return $this->getFallbackCountryCodesFormatted();
         }
         
@@ -135,16 +114,14 @@ class CountryService
                     'flag' => $country['flag']
                 ];
             } else {
-                Log::warning('Country with missing data', ['country' => $country]);
+                // Country with missing data - skip it
             }
         }
         
         if (empty($result)) {
-            Log::warning('No valid countries found after processing');
             return $this->getFallbackCountryCodesFormatted();
         }
         
-        Log::info('Returning countries for select', ['count' => count($result)]);
         return $result;
     }
     
@@ -165,7 +142,6 @@ class CountryService
             'US' => ['code' => 'US', 'name' => 'United States', 'flag' => '🇺🇸'],
         ];
         
-        Log::info('Using formatted fallback country data', ['count' => count($fallback)]);
         return $fallback;
     }
     
@@ -230,7 +206,6 @@ class CountryService
                 
                 return null;
             } catch (\Exception $e) {
-                Log::error("Error fetching country data for code {$code}: " . $e->getMessage());
                 return null;
             }
         });

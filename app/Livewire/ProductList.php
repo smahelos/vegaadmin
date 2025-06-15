@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Product;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class ProductList extends Component
@@ -97,10 +96,6 @@ class ProductList extends Component
                 // Standard sorting for other fields
                 $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
             }
-        
-            // Logování dotazu pro ladění
-            Log::debug('Products query: ' . $query->toSql());
-            Log::debug('Products query bindings: ' . json_encode($query->getBindings()));
             
             $products = $query->paginate(10);
             
@@ -109,7 +104,6 @@ class ProductList extends Component
                 'hasData' => $products->total() > 0,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error while loading products: ' . $e->getMessage());
             $this->errorMessage = 'Error while loading products.';
             
             return view('livewire.product-list', [

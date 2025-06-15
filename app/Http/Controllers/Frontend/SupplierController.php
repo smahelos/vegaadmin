@@ -7,7 +7,6 @@ use App\Models\Supplier;
 use App\Http\Requests\SupplierRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Traits\SupplierFormFields;
 use App\Services\BankService;
@@ -145,10 +144,6 @@ class SupplierController extends Controller
             return redirect()->route('frontend.suppliers', ['lang' => $locale])
                             ->with('success', __('suppliers.messages.created'));
         } catch (\Exception $e) {
-            Log::error('Error creating supplier: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
             return back()->withInput()
                         ->with('error', __('suppliers.messages.error_create'));
         }
@@ -170,7 +165,6 @@ class SupplierController extends Controller
 
             // Check if ID is numeric
             if (!is_numeric($id)) {
-                Log::warning('Wrong supplier ID: ' . $id);
                 return redirect()
                     ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                     ->with('error', __('suppliers.messages.invalid_id'));
@@ -185,15 +179,10 @@ class SupplierController extends Controller
             
             return view('frontend.suppliers.show', compact('supplier', 'invoices'));
         } catch (ModelNotFoundException $e) {
-            Log::error('Error showing supplier #' . $id . ': ' . $e->getMessage());
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_show'));
         } catch (\Exception $e) {
-            Log::error('Error viewing supplier: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_show'));
@@ -234,14 +223,9 @@ class SupplierController extends Controller
             ]);
             
         } catch (ModelNotFoundException $e) {
-            Log::error('Error editing supplier #' . $id . ': ' . $e->getMessage());
             return redirect()->route('frontend.suppliers', ['lang' => app()->getLocale()])
                              ->with('error', __('suppliers.messages.error_edit'));
         } catch (\Exception $e) {
-            Log::error('Error editing supplier #' . $id . ': ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
             return redirect()->route('frontend.suppliers', ['lang' => app()->getLocale()])
                              ->with('error', __('suppliers.messages.error_edit'));
         }
@@ -278,15 +262,10 @@ class SupplierController extends Controller
                 ->route('frontend.suppliers', ['lang' => $locale])
                 ->with('success', __('suppliers.messages.updated'));
         } catch (ModelNotFoundException $e) {
-            Log::error('Error updating supplier #' . $id . ': ' . $e->getMessage());
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_update'));
         } catch (\Exception $e) {
-            Log::error('Error updating supplier #' . $id . ': ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_update'));
@@ -317,15 +296,10 @@ class SupplierController extends Controller
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('success', __('suppliers.messages.deleted'));
         } catch (ModelNotFoundException $e) {
-            Log::error('Error deleting supplier #' . $id . ': ' . $e->getMessage());
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_delete'));
         } catch (\Exception $e) {
-            Log::error('Error deleting supplier #' . $id . ': ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_delete'));
@@ -356,14 +330,10 @@ class SupplierController extends Controller
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('success', __('suppliers.messages.set_default'));
         } catch (ModelNotFoundException $e) {
-            Log::error('Supplier not found for setting default #' . $id . ': ' . $e->getMessage());
-            
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_set_default'));
         } catch (\Exception $e) {
-            Log::error('Error setting supplier as default #' . $id . ': ' . $e->getMessage());
-            
             return redirect()
                 ->route('frontend.suppliers', ['lang' => app()->getLocale()])
                 ->with('error', __('suppliers.messages.error_set_default'));

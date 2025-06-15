@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Client;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class ClientListLatest extends Component
@@ -40,7 +39,6 @@ class ClientListLatest extends Component
                 'errorMessage' => $this->errorMessage,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error while loading latest clients: ' . $e->getMessage());
             $this->errorMessage = 'Error while loading latest clients.';
             
             return view('livewire.client-list-latest', [

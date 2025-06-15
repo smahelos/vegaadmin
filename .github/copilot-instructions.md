@@ -1,4 +1,4 @@
-Allways use actual files, not what you remeber from past answers.
+Allways use newly read files, not what you remeber from past answers.
 
 We use Laravel 12 as our main php framework, so when talking about Laravel, always give me instructions and code samples that use Laravel 12.
 
