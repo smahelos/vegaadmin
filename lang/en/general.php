@@ -57,6 +57,7 @@ return [
     ],
 
     'pagination' => [
+        'navigation' => 'Navigation',
         'shown' => 'Showing',
         'of' => 'of',
         'up_to' => 'to',
@@ -69,6 +70,7 @@ return [
         'create' => 'Create',
         'edit' => 'Edit',
         'delete' => 'Delete',
+        'view' => 'View',
         'save' => 'Save',
         'cancel' => 'Cancel',
         'confirm' => 'Confirm',
@@ -76,7 +78,6 @@ return [
         'download' => 'Download',
         'print' => 'Print',
         'send' => 'Send',
-        'view' => 'View',
         'actions' => 'Actions',
     ],
 

@@ -364,6 +364,7 @@
     <!-- set Locale -->
     <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
 </form>
+@endsection
 
 @push('scripts')
 <script>
@@ -373,4 +374,3 @@
 @vite('resources/js/bank-fields.js')
 @vite('resources/js/ares-lookup.js')
 @endpush
-@endsection

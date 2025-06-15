@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -77,17 +78,37 @@ return new class extends Migration
      */
     private function hasForeignKey(string $table, string $column, string $referencedTable): bool
     {
-        $conn = Schema::getConnection();
-        $dbSchemaManager = $conn->getDoctrineSchemaManager();
-        $doctrineTable = $dbSchemaManager->introspectTable($table);
+        // Get database connection and platform
+        $connection = Schema::getConnection();
+        $driver = $connection->getDriverName();
         
-        foreach ($doctrineTable->getForeignKeys() as $foreignKey) {
-            if ($foreignKey->getLocalColumns()[0] === $column &&
-                $foreignKey->getForeignTableName() === $referencedTable) {
-                return true;
+        if ($driver === 'sqlite') {
+            // For SQLite, check pragma foreign_key_list
+            try {
+                $foreignKeys = DB::select("PRAGMA foreign_key_list($table)");
+                foreach ($foreignKeys as $fk) {
+                    if ($fk->from == $column && $fk->table == $referencedTable) {
+                        return true;
+                    }
+                }
+                return false;
+            } catch (\Exception $e) {
+                // If table doesn't exist or other error, assume no foreign key
+                return false;
             }
+        } else {
+            // MySQL/MariaDB specific query to check for foreign keys
+            $databaseName = $connection->getDatabaseName();
+            $foreignKeys = DB::select("
+                SELECT * 
+                FROM information_schema.KEY_COLUMN_USAGE
+                WHERE TABLE_SCHEMA = ?
+                AND TABLE_NAME = ?
+                AND COLUMN_NAME = ?
+                AND REFERENCED_TABLE_NAME = ?
+            ", [$databaseName, $table, $column, $referencedTable]);
+            
+            return count($foreignKeys) > 0;
         }
-        
-        return false;
     }
 };

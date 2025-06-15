@@ -26,11 +26,11 @@ Route::middleware([
     'refresh.frontend.session'
 ])->group(function () {
     Route::get('/', function () {
-        return view('welcome');
+        return view('frontend.invoices.create');
     });
 
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        return view('frontend.dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
 
     Route::middleware('auth')->group(function () {
@@ -54,7 +54,8 @@ Route::middleware([
         Route::get('/client/{id}', [ClientController::class, 'show'])->name('frontend.client.show');
         Route::get('/client/{id}/edit', [ClientController::class, 'edit'])->name('frontend.client.edit');
         Route::put('/client/{id}', [ClientController::class, 'update'])->name('frontend.client.update');
-        Route::delete('/client/{id}/delete', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
+        Route::delete('/client/{id}', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
+        Route::get('/client/{id}/set-default', [ClientController::class, 'setDefault'])->name('frontend.client.set-default');
         
         // Suppliers
         Route::get('/supplier', [SupplierController::class, 'index'])->name('frontend.suppliers');
@@ -64,6 +65,7 @@ Route::middleware([
         Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('frontend.supplier.edit');
         Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('frontend.supplier.update');
         Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('frontend.supplier.destroy');
+        Route::get('/supplier/{id}/set-default', [SupplierController::class, 'setDefault'])->name('frontend.supplier.set-default');
         
         // Profile
         Route::get('/profile', [ProfileController::class, 'edit'])->name('frontend.profile.edit');
@@ -74,7 +76,7 @@ Route::middleware([
         Route::get('/product', [ProductController::class, 'index'])->name('frontend.products');
         Route::get('/product/create', [ProductController::class, 'create'])->name('frontend.product.create');
         Route::post('/product', [ProductController::class, 'store'])->name('frontend.product.store');
-        Route::get('/product/{id}/delete', [ProductController::class, 'destroy'])->name('frontend.product.destroy');
+        Route::delete('/product/{id}', [ProductController::class, 'destroy'])->name('frontend.product.destroy');
         Route::get('/product/{id}', [ProductController::class, 'show'])->name('frontend.product.show');
         Route::get('/product/{id}/edit', [ProductController::class, 'edit'])->name('frontend.product.edit');
         Route::put('/product/{id}', [ProductController::class, 'update'])->name('frontend.product.update');

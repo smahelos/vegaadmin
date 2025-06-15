@@ -52,7 +52,11 @@ class SupplierRepository
      */
     public function create(array $data): Supplier
     {
-        $data['user_id'] = Auth::id();
+        // Only set user_id from Auth if not already provided in data
+        if (!isset($data['user_id']) || $data['user_id'] === null) {
+            $data['user_id'] = Auth::id();
+        }
+        
         return Supplier::create($data);
     }
 }

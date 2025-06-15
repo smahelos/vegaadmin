@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Invoice;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 
@@ -107,10 +106,7 @@ class InvoiceList extends Component
                 'hasData' => $invoices->total() > 0,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error while loading invoices list: ' . $e->getMessage(), [
-                'exception' => $e
-            ]);
-            $this->errorMessage = 'Error while loading invoices.';
+            $this->errorMessage = 'Error while loading invoices list.';
             
             return view('livewire.invoice-list', [
                 'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator

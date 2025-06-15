@@ -20,7 +20,26 @@ class Supplier extends Model
     |--------------------------------------------------------------------------
     */
     protected $table = 'suppliers';
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'name',
+        'email',
+        'street',
+        'city',
+        'zip',
+        'country',
+        'ico',
+        'dic',
+        'phone',
+        'description',
+        'is_default',
+        'user_id',
+        'account_number',
+        'bank_code',
+        'iban',
+        'swift',
+        'bank_name',
+        'has_payment_info',
+    ];
     
     protected $casts = [
         'is_default' => 'boolean',

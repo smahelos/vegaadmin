@@ -98,6 +98,8 @@ return [
         'invoice_number' => 'Rechnung Nr. :number',
         'invoice' => 'Rechnung',
         'invoice_items' => 'Rechnungspositionen',
+        'empty' => 'Sie haben noch keine Rechnungen.',
+        'empty_message' => 'Erstellen Sie Ihre erste Rechnung, indem Sie auf die Schaltfläche unten klicken.',
     ],
 
     'labels' => [
@@ -108,6 +110,7 @@ return [
         'created' => 'Rechnung wurde erfolgreich erstellt.',
         'updated' => 'Rechnung wurde erfolgreich aktualisiert.',
         'deleted' => 'Rechnung wurde erfolgreich gelöscht.',
+        'deleted_guest' => 'Rechnung wurde erfolgreich gelöscht.',
         'confirm_delete' => 'Möchten Sie diese Rechnung wirklich löschen?',
         'create_error' => 'Beim Erstellen der Rechnung ist ein Fehler aufgetreten: ',
         'update_error' => 'Beim Aktualisieren der Rechnung ist ein Fehler aufgetreten: ',

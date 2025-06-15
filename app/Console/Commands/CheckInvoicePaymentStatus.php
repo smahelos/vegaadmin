@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Invoice;
+use App\Models\StatusCategory;
 use App\Notifications\InvoiceDueReminder;
 use App\Notifications\InvoiceOverdueReminder;
 use App\Notifications\InvoiceUpcomingDueReminder;
@@ -42,7 +43,7 @@ class CheckInvoicePaymentStatus extends Command
         // Get statuses from database and exclude 'paid' and 'cancelled'
         $paidStatusSlugs = ['paid', 'cancelled'];
         $unpaidStatuses = \App\Models\Status::whereNotIn('slug', $paidStatusSlugs)
-            ->where('type', 'invoice_payment')
+            ->where('category_id', StatusCategory::where('slug', 'invoice-payment')->first()->id ?? null)
             ->pluck('slug')
             ->toArray();
             

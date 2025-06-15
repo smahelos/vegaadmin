@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Invoice;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 
@@ -47,10 +46,7 @@ class InvoiceListRecent extends Component
                 'errorMessage' => $this->errorMessage,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error while loading recent invoices list: ' . $e->getMessage(), [
-                'exception' => $e
-            ]);
-            $this->errorMessage = 'Error while loading recent invoices.';
+            $this->errorMessage = 'Error while loading recent invoices list.';
             
             return view('livewire.invoice-list-recent', [
                 'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator

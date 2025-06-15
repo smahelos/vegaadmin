@@ -74,19 +74,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initializing country select
     initCountrySelect();
 
-    // Initialize currency manager for invoice forms
-    if (document.getElementById('payment_currency') && document.getElementById('invoice-items-list')) {
-        // Import the CurrencyManager dynamically to prevent errors if file doesn't exist
-        import('./currency-manager.js')
-            .then(module => {
-                const CurrencyManager = module.default;
-                window.currencyManager = new CurrencyManager();
-                console.log('Currency manager initialized');
-            })
-            .catch(err => {
-                console.error('Failed to load currency manager:', err);
-            });
-    }
+    // // Initialize currency manager for invoice forms
+    // if (document.getElementById('payment_currency') && document.getElementById('invoice-items-list')) {
+    //     // Import the CurrencyManager dynamically to prevent errors if file doesn't exist
+    //     import('./currency-manager.js')
+    //         .then(module => {
+    //             const CurrencyManager = module.default;
+    //             window.currencyManager = new CurrencyManager();
+    //             console.log('Currency manager initialized');
+    //         })
+    //         .catch(err => {
+    //             console.error('Failed to load currency manager:', err);
+    //         });
+    // }
 
     // Initialize dashboard statistics if we are on the dashboard
     if (document.querySelector('.dashboard-stats-container')) {

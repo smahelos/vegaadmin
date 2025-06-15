@@ -46,6 +46,8 @@ return [
         'edit' => 'Kunden bearbeiten',
         'show' => 'Kundendetails',
         'client' => 'Kunde',
+        'empty' => 'Sie haben noch keine Kunden',
+        'empty_message' => 'Beginnen Sie mit der Erstellung Ihres ersten Kunden.',
     ],
     'messages' => [
         'created' => 'Kunde wurde erfolgreich erstellt.',
@@ -59,16 +61,18 @@ return [
         'error_loading' => 'Beim Laden der Kunden ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.',
         'is_default_explanation' => 'Wenn dieser Kunde als Standard festgelegt ist, wird er beim Erstellen neuer Rechnungen automatisch ausgewählt.',
         'not_found' => 'Kunde wurde nicht gefunden.',
+        'no_clients' => 'Sie haben noch keine Kunden.',
     ],
     'validation' => [
         'name_required' => 'Der Kundenname ist erforderlich.',
+        'email_required' => 'E-Mail-Adresse ist erforderlich.',
         'email_valid' => 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
+        'street_required' => 'Straßenadresse ist erforderlich.',
+        'city_required' => 'Stadt ist erforderlich.',
+        'zip_required' => 'Postleitzahl ist erforderlich.',
+        'country_required' => 'Land ist erforderlich.',
         'ico_format' => 'Die Unternehmens-ID muss genau 8 Ziffern enthalten.',
         'zip_format' => 'Die Postleitzahl muss im Format XXX XX oder XXXXX sein.',
-    ],
-    'empty' => [
-        'title' => 'Sie haben noch keine Kunden',
-        'message' => 'Beginnen Sie mit der Erstellung Ihres ersten Kunden.',
     ],
     'placeholders' => [
         'not_specified' => 'Nicht angegeben',

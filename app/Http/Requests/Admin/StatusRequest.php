@@ -33,6 +33,7 @@ class StatusRequest extends FormRequest
                 'max:255',
                 Rule::unique('statuses', 'slug')->ignore($this->id),
             ],
+            'category_id' => 'required|exists:status_categories,id',
             'color' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -49,6 +50,7 @@ class StatusRequest extends FormRequest
         return [
             'name' => __('statuses.fields.name'),
             'slug' => __('statuses.fields.slug'),
+            'category_id' => __('statuses.fields.category'),
             'color' => __('statuses.fields.color'),
             'description' => __('statuses.fields.description'),
             'is_active' => __('statuses.fields.is_active'),

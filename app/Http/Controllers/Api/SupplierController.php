@@ -3,47 +3,70 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HandlesBackpackApiAuthentication;
+use App\Traits\HandlesFrontendApiAuthentication;
 use App\Models\Supplier;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
-class SupplierController extends ApiBackpackController
+class SupplierController extends Controller
 {
+    use HandlesFrontendApiAuthentication, 
+        HandlesBackpackApiAuthentication;
+
     /**
-     * Get supplier data by ID
+     * Get supplier data by ID (Admin API endpoint)
+     * Admins can access any supplier
+     *
+     * @param int $id Supplier ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getSupplierAdmin($id)
+    {
+        try {
+            $user = $this->getBackpackUser();
+            
+            if (!$user) {
+                return response()->json(['error' => __('users.auth.unauthenticated')], 401);
+            }
+
+            // Check if user has admin role (this should be handled by middleware, but double-check)
+            if (!$user->hasRole('admin')) {
+                return response()->json(['error' => __('users.auth.unauthenticated')], 403);
+            }
+
+            $supplier = Supplier::findOrFail($id);
+            
+            return response()->json($supplier);
+        } catch (\Exception $e) {
+            return response()->json(['error' => __('suppliers.messages.not_found')], 404);
+        }
+    }
+
+    /**
+     * Get supplier data by ID (Frontend API endpoint)
+     * Users can only access their own suppliers
      *
      * @param int $id Supplier ID
      * @return \Illuminate\Http\JsonResponse
      */
     public function getSupplier($id)
     {
-        $logContext = $this->getLogContext(['supplier_id' => $id]);
-        
         try {
-            $user = $this->getAuthenticatedUser();
+            $user = $this->getFrontendUser();
             
             if (!$user) {
-                return response()->json(['message' => __('auth.unauthenticated')], 401);
+                return response()->json(['error' => __('users.auth.unauthenticated')], 401);
             }
 
             $supplier = Supplier::findOrFail($id);
             
-            // Admins can see any supplier
-            if ($user->hasRole('admin')) {
-                // Admin access
-            }
-            // Regular users can see only their suppliers
-            else if ($supplier->user_id !== $user->id) {
+            // Users can see only their suppliers (no admin bypass in frontend API)
+            if ($supplier->user_id !== $user->id) {
                 return response()->json(['error' => __('suppliers.messages.not_found')], 403);
             }
             
             return response()->json($supplier);
         } catch (\Exception $e) {
-            Log::error('API error: Supplier not found', array_merge($logContext, [
-                'error' => $e->getMessage(),
-            ]));
-            
             return response()->json(['error' => __('suppliers.messages.not_found')], 404);
         }
     }
@@ -53,20 +76,39 @@ class SupplierController extends ApiBackpackController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getSuppliers()
+    public function getSuppliersAdmin()
     {
-        $user = $this->getAuthenticatedUser();
-        
+        $user = $this->getBackpackUser();
+
         if (!$user) {
-            return response()->json(['message' => __('auth.unauthenticated')], 401);
+            return response()->json(['message' => __('users.auth.unauthenticated')], 401);
         }
         
         // Admins can see all suppliers
-        if ($user->hasRole('admin')) {
-            $suppliers = Supplier::all();
-        } else {
-            $suppliers = Supplier::where('user_id', $user->id)->get();
+        // if ($user->hasRole('admin')) {
+        //     $suppliers = Supplier::all();
+        // } else {
+        //     $suppliers = Supplier::where('user_id', $user->id)->get();
+        // }
+        $suppliers = Supplier::all();
+        
+        return response()->json($suppliers);
+    }
+    
+    /**
+     * Get list of suppliers for authenticated user
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getSuppliers()
+    {
+        $user = $this->getFrontendUser();
+        
+        if (!$user) {
+            return response()->json(['message' => __('users.auth.unauthenticated')], 401);
         }
+        
+        $suppliers = Supplier::where('user_id', $user->id)->get();
         
         return response()->json($suppliers);
     }
@@ -99,10 +141,6 @@ class SupplierController extends ApiBackpackController
             
             return response()->json($supplier);
         } catch (\Exception $e) {
-            Log::error('Error getting default supplier: ' . $e->getMessage(), [
-                'user_id' => Auth::id()
-            ]);
-            
             return response()->json([
                 'error' => __('suppliers.messages.error_loading')
             ], 500);

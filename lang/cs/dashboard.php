@@ -29,7 +29,14 @@ return [
         'no_email' => 'E-mail není uveden',
         'unknown_client' => 'Neznámý klient',
         'no_clients' => 'Zatím nemáte žádné klienty',
+        'no_suppliers' => 'Zatím nemáte žádné dodavatele',
         'no_invoices' => 'Zatím nemáte žádné faktury',
+        'overdue' => 'Po splatnosti',
+        'paid' => 'Zaplaceno',
+        'partially-paid' => 'Částečně zaplaceno',
+        'pending' => 'Čekající',
+        'draft' => 'Návrh',
+        'cancelled' => 'Zrušeno',
     ],
     
     // Akční tlačítka a odkazy
@@ -43,6 +50,16 @@ return [
     'charts' => [
         'billed_currency' => 'Fakturováno (Kč)',
         'no_data' => 'Žádná data',
+        'amount' => 'Částka',
+        'paid_currency' => 'Zaplaceno (Kč)',
+        'invoice_status' => 'Stav faktur',
+        'payment_methods' => 'Platební metody',
+        'revenue_vs_expenses' => 'Příjmy vs Výdaje',
+        'revenue_by_client' => 'Příjmy podle klienta',
+        'expenses_by_supplier' => 'Výdaje podle dodavatele',
+        'revenue_vs_expenses_monthly' => 'Příjmy vs Výdaje (měsíčně)',
+        'revenue' => 'Příjmy',
+        'expenses' => 'Výdaje',
     ],
 
     // Statistiky

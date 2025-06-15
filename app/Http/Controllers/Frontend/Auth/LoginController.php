@@ -75,7 +75,7 @@ class LoginController extends Controller
                 'ip' => $request->ip()
             ]);
             
-            return back()->withInput()->with('error', __('auth.failed'));
+            return back()->withInput()->with('error', __('users.auth.failed'));
         }
     }
 

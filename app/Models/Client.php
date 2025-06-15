@@ -22,6 +22,15 @@ class Client extends Model
     */
     protected $table = 'clients';
     protected $guarded = ['id'];
+    
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'is_default' => 'boolean',
+    ];
 
     /**
      * Boot method for the model

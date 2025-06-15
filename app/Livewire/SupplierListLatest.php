@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Supplier;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class SupplierListLatest extends Component
@@ -40,7 +39,6 @@ class SupplierListLatest extends Component
                 'errorMessage' => $this->errorMessage,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error while loading latest suppliers: ' . $e->getMessage());
             $this->errorMessage = 'Error while loading latest suppliers.';
             
             return view('livewire.supplier-list-latest', [

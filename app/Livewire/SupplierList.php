@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Supplier;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 
@@ -80,7 +79,6 @@ class SupplierList extends Component
                 'hasData' => $suppliers->total() > 0,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error while loading suppliers: ' . $e->getMessage());
             $this->errorMessage = 'Error while loading suppliers.';
             
             return view('livewire.supplier-list', [

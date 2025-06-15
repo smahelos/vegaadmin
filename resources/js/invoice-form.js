@@ -20,7 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize currency manager
     const currencyManager = new CurrencyManager();
-    // It self-initializes if required elements are found
+    // Export to global scope
+    window.currencyManager = currencyManager;
     
     // If we are on edit page, try to load existing data from invoice_text field
     if (document.getElementById('invoice-edit-form')) {

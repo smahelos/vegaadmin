@@ -65,6 +65,7 @@
                     </div>
                 </div>
 
+                @if(!$clients->isEmpty())
                 <!-- Statistics filter controls -->
                 <div class="bg-red-50 rounded-lg p-5 mb-6 flex flex-wrap gap-5 items-center">
                     <div class="flex w-full gap-5">
@@ -114,17 +115,21 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
-                <!-- Store monthly stats data for JavaScript -->
-                <div id="monthly-stats-data" class="hidden" data-stats="{{ json_encode($monthlyStats ?? []) }}"></div>
 
-                <!-- Main revenue chart (enhanced) -->
-                <div class="bg-white rounded-lg shadow p-5 mb-8">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.monthly_invoices') }}</h3>
-                    <div class="h-64">
-                        <canvas id="invoicesChart"></canvas>
+                @if(!$monthlyStats->isEmpty())
+                    <!-- Store monthly stats data for JavaScript -->
+                    <div id="monthly-stats-data" class="hidden" data-stats="{{ json_encode($monthlyStats ?? []) }}"></div>
+
+                    <!-- Main revenue chart (enhanced) -->
+                    <div class="bg-white rounded-lg shadow p-5 mb-8">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.monthly_invoices') }}</h3>
+                        <div class="h-64">
+                            <canvas id="invoicesChart"></canvas>
+                        </div>
                     </div>
-                </div>
+                @endif
 
                 <!-- Invoice status and payment method charts -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -160,7 +165,7 @@
 
                     <!-- Revenue vs Expenses trend -->
                     <div class="bg-white rounded-lg shadow p-5">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.charts.revenue_expenses') }}
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.charts.revenue_vs_expenses') }}
                         </h3>
                         <div class="h-64">
                             <canvas id="revenueExpensesChart"></canvas>
@@ -219,12 +224,16 @@
     window.translations.dashboard.charts = {
         billedAmount: "{{ __('dashboard.charts.billed_currency') }}",
         paidAmount: "{{ __('dashboard.charts.paid_currency') }}",
+        amount: "{{ __('dashboard.charts.amount') }}",
         revenue: "{{ __('dashboard.charts.revenue') }}",
         expenses: "{{ __('dashboard.charts.expenses') }}",
         paid: "{{ __('dashboard.status.paid') }}",
+        partiallyPaid: "{{ __('dashboard.status.partially-paid') }}",
         pending: "{{ __('dashboard.status.pending') }}",
         overdue: "{{ __('dashboard.status.overdue') }}",
-        draft: "{{ __('dashboard.status.draft') }}"
+        draft: "{{ __('dashboard.status.draft') }}",
+        cancelled: "{{ __('dashboard.status.cancelled') }}",
+        noData: "{{ __('dashboard.charts.no_data') }}",
     };
     
     // Set application currency

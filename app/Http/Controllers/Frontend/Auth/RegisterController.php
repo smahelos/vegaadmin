@@ -17,6 +17,7 @@ use App\Services\BankService;
 use App\Services\CountryService;
 use App\Services\LocaleService;
 use App\Repositories\SupplierRepository;
+use Spatie\Permission\Models\Role;
 
 class RegisterController extends Controller
 {
@@ -116,6 +117,10 @@ class RegisterController extends Controller
                 'password' => Hash::make($validatedData['password']),
             ]);
 
+            // Assign frontend_user role to new user
+            $frontendRole = Role::firstOrCreate(['name' => 'frontend_user']);
+            $user->assignRole($frontendRole);
+
             // Create default supplier for new user using repository
             $supplierData = [
                 'name' => $request->name,
@@ -149,7 +154,7 @@ class RegisterController extends Controller
             // Set locale and redirect
             $locale = $this->localeService->determineLocale($request->get('lang'));
             
-            return redirect()->route('home', ['lang' => $locale])->with('success', __('auth.registration_success'));
+            return redirect()->route('home', ['lang' => $locale])->with('success', __('users.auth.registration_success'));
         } catch (\Exception $e) {
             Log::error('Registration error: ' . $e->getMessage(), [
                 'email' => $validatedData['email'] ?? 'unknown',
@@ -162,7 +167,7 @@ class RegisterController extends Controller
                 $user->delete();
             }
             
-            return back()->withInput()->with('error', __('auth.registration_failed'));
+            return back()->withInput()->with('error', __('users.auth.registration_failed'));
         }
     }
 }

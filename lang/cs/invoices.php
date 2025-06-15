@@ -98,6 +98,8 @@ return [
         'invoice_number' => 'Faktura č. :number',
         'invoice' => 'Faktura',
         'invoice_items' => 'Položky faktury',
+        'empty' => 'Zatím nemáte žádné faktury',
+        'empty_message' => 'Vytvořte svou první fakturu kliknutím na tlačítko níže.',
     ],
 
     'labels' => [
@@ -108,6 +110,7 @@ return [
         'created' => 'Faktura byla úspěšně vytvořena.',
         'updated' => 'Faktura byla úspěšně aktualizována.',
         'deleted' => 'Faktura byla úspěšně smazána.',
+        'deleted_guest' => 'Faktura byla úspěšně smazána.',
         'confirm_delete' => 'Opravdu chcete smazat tuto fakturu?',
         'create_error' => 'Při vytváření faktury došlo k chybě: ',
         'update_error' => 'Při aktualizaci faktury došlo k chybě: ',

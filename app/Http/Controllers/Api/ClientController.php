@@ -3,13 +3,54 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HandlesBackpackApiAuthentication;
+use App\Traits\HandlesFrontendApiAuthentication;
 use App\Models\Client;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
-class ClientController extends ApiBackpackController
+class ClientController extends Controller
 {
+    use HandlesFrontendApiAuthentication, 
+        HandlesBackpackApiAuthentication;
+
+    /**
+     * Get client data by ID for admin users
+     * 
+     * This method is specifically for admin API endpoints and allows
+     * admins to access any client without user-specific restrictions.
+     *
+     * @param int $id Client ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getClientAdmin($id)
+    {
+        try {
+            $user = $this->getBackpackUser();
+            
+            if (!$user) {
+                return response()->json(['error' => __('users.auth.unauthenticated')], 401);
+            }
+
+            // Check if user has permission to view clients
+            if (!$this->backpackUserHasPermission('can_view_client')) {
+                return response()->json(['error' => __('users.auth.unauthorized')], 403);
+            }
+
+            $client = Client::findOrFail($id);
+            
+            return response()->json($client);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['error' => __('clients.messages.not_found')], 404);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('ClientController@getClientAdmin error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'client_id' => $id
+            ]);
+            return response()->json(['error' => __('clients.messages.error_loading')], 500);
+        }
+    }
+
     /**
      * Get client data by ID
      *
@@ -18,34 +59,47 @@ class ClientController extends ApiBackpackController
      */
     public function getClient($id)
     {
-        $logContext = $this->getLogContext(['client_id' => $id]);
-        
         try {
-            $user = $this->getAuthenticatedUser();
+            $user = $this->getFrontendUser();
             
             if (!$user) {
-                return response()->json(['message' => __('auth.unauthenticated')], 401);
+                return response()->json(['error' => __('users.auth.unauthenticated'), 'code' => 401], 401);
             }
 
             $client = Client::findOrFail($id);
             
-            // Admins can see any client
-            if ($user->hasRole('admin')) {
-                // Admin access
-            }
             // Regular users can see only their clients
-            else if ($client->user_id !== $user->id) {
+            if ($client->user_id !== $user->id) {
                 return response()->json(['error' => __('clients.messages.not_found')], 403);
             }
             
             return response()->json($client);
         } catch (\Exception $e) {
-            Log::error('API error: Client not found', array_merge($logContext, [
-                'error' => $e->getMessage(),
-            ]));
-            
             return response()->json(['error' => __('clients.messages.not_found')], 404);
         }
+    }
+    
+    /**
+     * Get list of clients for authenticated user
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */    public function getClientsAdmin()
+    {
+        $user = $this->getBackpackUser();
+
+        if (!$user) {
+            return response()->json(['error' => __('users.auth.unauthenticated'), 'code' => 401], 401);
+        }
+        
+        // Check if user has permission to view clients
+        if (!$this->backpackUserHasPermission('can_view_client')) {
+            return response()->json(['error' => __('users.auth.unauthorized')], 403);
+        }
+        
+        // Admins can see all clients
+        $clients = Client::all();
+        
+        return response()->json($clients);
     }
     
     /**
@@ -55,18 +109,13 @@ class ClientController extends ApiBackpackController
      */
     public function getClients()
     {
-        $user = $this->getAuthenticatedUser();
+        $user = $this->getFrontendUser();
         
         if (!$user) {
-            return response()->json(['message' => __('auth.unauthenticated')], 401);
+            return response()->json(['error' => __('users.auth.unauthenticated'), 'code' => 401], 401);
         }
         
-        // Admins can see all clients
-        if ($user->hasRole('admin')) {
-            $clients = Client::all();
-        } else {
-            $clients = Client::where('user_id', $user->id)->get();
-        }
+        $clients = Client::where('user_id', $user->id)->get();
         
         return response()->json($clients);
     }
@@ -93,16 +142,12 @@ class ClientController extends ApiBackpackController
             
             if (!$client) {
                 return response()->json([
-                    'error' => __('clients.messages.no_clients')
+                    'error' => __('clients.messages.not_found')
                 ], 404);
             }
             
             return response()->json($client);
         } catch (\Exception $e) {
-            Log::error('Error getting default client: ' . $e->getMessage(), [
-                'user_id' => Auth::id()
-            ]);
-            
             return response()->json([
                 'error' => __('clients.messages.error_loading')
             ], 500);

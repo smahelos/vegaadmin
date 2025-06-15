@@ -207,8 +207,8 @@
         <div class="text-gray-400 mb-3">
             <i class="fas fa-file-invoice fa-3x"></i>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('invoices.empty.title') }}</h3>
-        <p class="text-gray-500 mb-6">{{ __('invoices.empty.message') }}</p>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('invoices.titles.empty') }}</h3>
+        <p class="text-gray-500 mb-6">{{ __('invoices.titles.empty_message') }}</p>
         <a href="@localizedRoute('frontend.invoice.create')"
             class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <i class="fas fa-plus mr-2"></i> {{ __('invoices.actions.create') }}

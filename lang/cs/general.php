@@ -57,6 +57,7 @@ return [
     ],
 
     'pagination' => [
+        'navigation' => 'Navigace',
         'shown' => 'Zobrazeno',
         'of' => 'z',
         'up_to' => 'až',

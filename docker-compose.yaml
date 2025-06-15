@@ -45,11 +45,12 @@ services:
             - ./docker/mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
         environment:
             MYSQL_DATABASE: ${DB_DATABASE}
-            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+            MYSQL_ROOT_USER: ${DB_ROOT_USERNAME}
             MYSQL_PASSWORD: ${DB_PASSWORD}
             MYSQL_USER: ${DB_USERNAME}
         ports:
-            - 33061:3306
+            - 3306:3306
         networks:
             - vegaadmin-network
         healthcheck:
@@ -63,8 +64,8 @@ services:
         environment:
             - PMA_ARBITRARY=1
             - PMA_HOST=${DB_HOST}
-            - PMA_USER=${DB_USERNAME}
-            - PMA_PASSWORD=${DB_PASSWORD}
+            - PMA_USER=${DB_ROOT_USERNAME}
+            - PMA_PASSWORD=${DB_ROOT_PASSWORD}
             - PMA_PORT=${DB_PORT}
         depends_on:
             - database

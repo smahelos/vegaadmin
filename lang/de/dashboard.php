@@ -29,7 +29,14 @@ return [
         'no_email' => 'E-Mail nicht angegeben',
         'unknown_client' => 'Unbekannter Kunde',
         'no_clients' => 'Sie haben noch keine Kunden',
+        'no_suppliers' => 'Sie haben noch keine Lieferanten',
         'no_invoices' => 'Sie haben noch keine Rechnungen',
+        'overdue' => 'Überfällig',
+        'paid' => 'Bezahlt',
+        'partially-paid' => 'Teilweise bezahlt',
+        'pending' => 'Ausstehend',
+        'draft' => 'Entwurf',
+        'cancelled' => 'Storniert',
     ],
     
     // Aktionsschaltflächen und Links
@@ -43,6 +50,16 @@ return [
     'charts' => [
         'billed_currency' => 'Abgerechnet (€)',
         'no_data' => 'Keine Daten',
+        'amount' => 'Betrag',
+        'paid_currency' => 'Bezahlt (€)',
+        'invoice_status' => 'Rechnungsstatus',
+        'payment_methods' => 'Zahlungsmethoden',
+        'revenue_vs_expenses' => 'Einnahmen vs Ausgaben',
+        'revenue_by_client' => 'Einnahmen nach Kunde',
+        'expenses_by_supplier' => 'Ausgaben nach Lieferant',
+        'revenue_vs_expenses_monthly' => 'Einnahmen vs Ausgaben (monatlich)',
+        'revenue' => 'Einnahmen',
+        'expenses' => 'Ausgaben',
     ],
 
     // Statistiken
@@ -52,4 +69,18 @@ return [
         'clients_count' => 'Anzahl der Kunden',
         'invoices_count' => 'Anzahl der Rechnungen',
     ],
+    
+    'filters' => [
+        'date_range' => 'Datumsbereich',
+        'custom_range' => 'Benutzerdefinierter Bereich',
+        'last_6_months' => 'Letzte 6 Monate',
+        'last_month' => 'Letzter Monat',
+        'last_quarter' => 'Letztes Quartal',
+        'last_year' => 'Letztes Jahr',
+        'date_from' => 'Datum von',
+        'date_to' => 'Datum bis',
+        'clients' => 'Kunden',
+        'suppliers' => 'Lieferanten',
+        'status' => 'Status',
+    ]
 ];

@@ -28,14 +28,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'email_verified_at',
         'password',
-        'street',
-        'city',
-        'zip',
-        'country',
-        'phone',
-        'ico',
-        'dic',
+        'remember_token',
     ];
 
     /**
@@ -87,19 +82,6 @@ class User extends Authenticatable
         return $this->hasMany(Supplier::class);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | FUNCTIONS
-    |--------------------------------------------------------------------------
-    */
-    /**
-     * Get the full address of the user
-     */
-    public function getFullAddressAttribute()
-    {
-        return "{$this->street}, {$this->zip} {$this->city}, {$this->country}";
-    }
-
     /**
      * Check if user has admin role
      */
@@ -110,8 +92,8 @@ class User extends Authenticatable
             return $this->hasRole('admin');
         }
         
-        // Fallback if roles are not assigned
-        return true;
+        // Fallback if roles are not assigned - default to false for security
+        return false;
     }
 
     /*
