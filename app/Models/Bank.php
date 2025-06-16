@@ -18,7 +18,13 @@ class Bank extends Model
     */
 
     protected $table = 'banks';
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'name', 'code', 'swift', 'country', 'active', 'description'
+    ];
+
+    protected $casts = [
+        'active' => 'boolean',
+    ];
 
     /*
     |--------------------------------------------------------------------------
@@ -32,11 +38,8 @@ class Bank extends Model
     |--------------------------------------------------------------------------
     */
     
-
-    public function suppliers()
-    {
-        return $this->hasMany(Supplier::class);
-    }
+    // Bank model is reference data for bank codes and information
+    // Suppliers reference banks via bank_code field, not direct relationship
 
     /*
     |--------------------------------------------------------------------------
