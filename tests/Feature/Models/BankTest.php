@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class BankModelTest extends TestCase
+class BankTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 

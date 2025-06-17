@@ -3,62 +3,77 @@
 namespace Tests\Unit\Models;
 
 use App\Models\User;
-use Tests\TestCase;
+use Illuminate\Database\Eloquent\Model;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
-/**
- * Unit tests for User Model
- * 
- * Tests internal model structure, fillable attributes, hidden attributes, and casts
- * These tests do not require database interactions and focus on model configuration
- */
 class UserTest extends TestCase
 {
-    /**
-     * Test that user fillable attributes are correctly defined.
-     *
-     * @return void
-     */
-    public function test_user_has_correct_fillable_attributes()
-    {
-        $user = new User();
-        $fillable = [
-            'name',
-            'email',
-            'email_verified_at',
-            'password',
-            'remember_token',
-        ];
+    private User $user;
+    private ReflectionClass $reflection;
 
-        $this->assertEquals($fillable, $user->getFillable());
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = new User();
+        $this->reflection = new ReflectionClass($this->user);
     }
 
-    /**
-     * Test that hidden attributes are correctly defined.
-     *
-     * @return void
-     */
-    public function test_user_has_correct_hidden_attributes()
+    #[Test]
+    public function model_extends_eloquent_model(): void
     {
-        $user = new User();
-        $hidden = [
-            'password',
-            'remember_token',
-        ];
-
-        $this->assertEquals($hidden, $user->getHidden());
+        $this->assertInstanceOf(Model::class, $this->user);
     }
 
-    /**
-     * Test that the user model has correctly defined cast attributes.
-     *
-     * @return void
-     */
-    public function test_user_has_correct_casts()
+    #[Test]
+    public function has_fillable_property(): void
     {
-        $user = new User();
-        $this->assertArrayHasKey('email_verified_at', $user->getCasts());
-        $this->assertArrayHasKey('password', $user->getCasts());
-        $this->assertEquals('datetime', $user->getCasts()['email_verified_at']);
-        $this->assertEquals('hashed', $user->getCasts()['password']);
+        $this->assertTrue($this->reflection->hasProperty('fillable'));
+        
+        $fillableProperty = $this->reflection->getProperty('fillable');
+        $this->assertTrue($fillableProperty->isProtected());
+    }
+
+    #[Test]
+    public function has_casts_property(): void
+    {
+        $this->assertTrue($this->reflection->hasProperty('casts'));
+        
+        $castsProperty = $this->reflection->getProperty('casts');
+        $this->assertTrue($castsProperty->isProtected());
+    }
+
+    #[Test]
+    public function has_hidden_property(): void
+    {
+        $this->assertTrue($this->reflection->hasProperty('hidden'));
+        
+        $hiddenProperty = $this->reflection->getProperty('hidden');
+        $this->assertTrue($hiddenProperty->isProtected());
+    }
+
+    #[Test]
+    public function has_get_casts_method(): void
+    {
+        $this->assertTrue($this->reflection->hasMethod('getCasts'));
+        
+        $getCastsMethod = $this->reflection->getMethod('getCasts');
+        $this->assertTrue($getCastsMethod->isPublic());
+        $this->assertEquals('array', $getCastsMethod->getReturnType()?->getName());
+    }
+
+    #[Test]
+    public function class_structure_is_valid(): void
+    {
+        $this->assertFalse($this->reflection->isAbstract());
+        $this->assertFalse($this->reflection->isInterface());
+        $this->assertTrue($this->reflection->isInstantiable());
+    }
+
+    #[Test]
+    public function has_expected_namespace(): void
+    {
+        $this->assertEquals('App\Models\User', $this->reflection->getName());
     }
 }

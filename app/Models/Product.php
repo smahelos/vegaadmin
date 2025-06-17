@@ -146,7 +146,7 @@ class Product extends Model
      */
     public function setImageAttribute($value)
     {
-        $this->handleFileUpload('image', $value, 'products/images', [
+        $this->handleFileUpload('image', $value, 'products', [
             'disk' => 'public',
             'createThumbnails' => true,
             'thumbnailWidth' => 200,

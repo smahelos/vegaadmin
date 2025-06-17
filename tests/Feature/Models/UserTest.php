@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for User Model
@@ -18,7 +19,7 @@ use Tests\TestCase;
  * Tests database relationships, business logic, and role-based functionality
  * Tests user interactions with clients, suppliers, and admin role functionality
  */
-class UserModelTest extends TestCase
+class UserTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
@@ -72,12 +73,8 @@ class UserModelTest extends TestCase
         ]);
     }
 
-    /**
-     * Test that user can have multiple clients relationship.
-     *
-     * @return void
-     */
-    public function test_user_has_many_clients_relationship()
+    #[Test]
+    public function user_has_many_clients_relationship()
     {
         // Initially no clients
         $this->assertInstanceOf(Collection::class, $this->user->clients);
@@ -110,12 +107,8 @@ class UserModelTest extends TestCase
         }
     }
 
-    /**
-     * Test that user can have multiple suppliers relationship.
-     *
-     * @return void
-     */
-    public function test_user_has_many_suppliers_relationship()
+    #[Test]
+    public function user_has_many_suppliers_relationship()
     {
         // Initially no suppliers
         $this->assertInstanceOf(Collection::class, $this->user->suppliers);
@@ -148,12 +141,8 @@ class UserModelTest extends TestCase
         }
     }
 
-    /**
-     * Test is_admin function returns true when user has admin role.
-     *
-     * @return void
-     */
-    public function test_is_admin_returns_true_with_admin_role()
+    #[Test]
+    public function is_admin_returns_true_with_admin_role()
     {
         // Assign admin role to user
         $this->user->assignRole($this->adminRole);
@@ -164,12 +153,8 @@ class UserModelTest extends TestCase
         $this->assertTrue($this->user->is_admin());
     }
 
-    /**
-     * Test is_admin function returns false when user doesn't have admin role.
-     *
-     * @return void
-     */
-    public function test_is_admin_returns_false_without_admin_role()
+    #[Test]
+    public function is_admin_returns_false_without_admin_role()
     {
         // Assign non-admin role to user
         $this->user->assignRole($this->userRole);
@@ -180,23 +165,15 @@ class UserModelTest extends TestCase
         $this->assertFalse($this->user->is_admin());
     }
 
-    /**
-     * Test is_admin function returns false when user has no roles.
-     *
-     * @return void
-     */
-    public function test_is_admin_returns_false_with_no_roles()
+    #[Test]
+    public function is_admin_returns_false_with_no_roles()
     {
         // User has no roles assigned
         $this->assertFalse($this->user->is_admin());
     }
 
-    /**
-     * Test that user can have both clients and suppliers simultaneously.
-     *
-     * @return void
-     */
-    public function test_user_can_have_both_clients_and_suppliers()
+    #[Test]
+    public function user_can_have_both_clients_and_suppliers()
     {
         // Create both clients and suppliers
         $client = Client::factory()->create([
@@ -221,13 +198,8 @@ class UserModelTest extends TestCase
         $this->assertTrue($this->user->suppliers->contains($supplier));
     }
 
-    /**
-     * Test that deleting user doesn't cascade delete clients and suppliers
-     * (if that's the intended behavior).
-     *
-     * @return void
-     */
-    public function test_user_deletion_behavior_with_related_models()
+    #[Test]
+    public function user_deletion_behavior_with_related_models()
     {
         // Create related models
         $client = Client::factory()->create([
@@ -264,12 +236,8 @@ class UserModelTest extends TestCase
         }
     }
 
-    /**
-     * Test user role assignment and checking.
-     *
-     * @return void
-     */
-    public function test_user_role_assignment_and_checking()
+    #[Test]
+    public function user_role_assignment_and_checking()
     {
         // Initially no roles
         $this->assertFalse($this->user->hasRole($this->adminRole));
@@ -297,12 +265,8 @@ class UserModelTest extends TestCase
         $this->assertTrue($this->user->hasRole($this->userRole));
     }
 
-    /**
-     * Test that multiple users can exist with different roles.
-     *
-     * @return void
-     */
-    public function test_multiple_users_with_different_roles()
+    #[Test]
+    public function multiple_users_with_different_roles()
     {
         // Create another user
         $secondUser = User::factory()->create([

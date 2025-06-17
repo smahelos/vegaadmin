@@ -65,19 +65,16 @@ class ProductController extends Controller
             $validatedData['is_default'] = true;
         }
 
-        if ($request->hasFile('image')) {
-            $validatedData['image'] = $request->file('image')->store('products', 'public');
-        }
-
         // Generate slug if not provided
         if (empty($validatedData['slug'])) {
             $validatedData['slug'] = \Str::slug($validatedData['name']);
         }
 
+        // The image handling is done by the setImageAttribute mutator in the Product model
         Product::create($validatedData);
 
         return redirect()->route('frontend.products')
-            ->with('success', trans('products.messages.product_created'));
+            ->with('success', trans('products.messages.created'));
     }
 
     public function show(int $id)
@@ -132,18 +129,11 @@ class ProductController extends Controller
             $data['slug'] = \Str::slug($data['name']);
         }
 
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($product->image) {
-                Storage::disk('public')->delete($product->image);
-            }
-            $data['image'] = $request->file('image')->store('products', 'public');
-        }
-
+        // The image handling is done by the setImageAttribute mutator in the Product model
         $product->update($data);
         
         return redirect()->route('frontend.products')
-            ->with('success', trans('products.messages.product_updated'));
+            ->with('success', trans('products.messages.updated'));
     }
 
     /**

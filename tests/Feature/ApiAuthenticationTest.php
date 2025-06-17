@@ -7,6 +7,7 @@ use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ApiAuthenticationTest extends TestCase
 {
@@ -64,7 +65,8 @@ class ApiAuthenticationTest extends TestCase
         ]);
     }
 
-    public function test_frontend_user_can_access_frontend_api()
+    #[Test]
+    public function frontend_user_can_access_frontend_api()
     {
         // Create frontend user with role
         $user = User::factory()->create();
@@ -78,7 +80,8 @@ class ApiAuthenticationTest extends TestCase
         $this->assertFalse($user->hasPermissionTo('frontend.api.extended', 'web'));
     }
 
-    public function test_admin_user_can_access_all_apis()
+    #[Test]
+    public function admin_user_can_access_all_apis()
     {
         // Create admin user with role
         $user = User::factory()->create();
@@ -92,7 +95,8 @@ class ApiAuthenticationTest extends TestCase
         $this->assertTrue($user->hasPermissionTo('can_view_client', 'backpack'));
     }
 
-    public function test_guard_separation_is_enforced()
+    #[Test]
+    public function guard_separation_is_enforced()
     {
         // Create users with different guards
         $backpackUser = User::factory()->create();
@@ -112,7 +116,8 @@ class ApiAuthenticationTest extends TestCase
         $this->assertTrue($webUser->hasPermissionTo('frontend.api.access', 'web'));
     }
 
-    public function test_role_permissions_are_correctly_assigned()
+    #[Test]
+    public function role_permissions_are_correctly_assigned()
     {
         $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $backendUserRole = Role::where('name', 'backend_user')->where('guard_name', 'backpack')->first();
