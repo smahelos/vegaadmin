@@ -15,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -136,7 +137,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test index method returns correct view
      */
-    public function test_index_returns_correct_view()
+    #[Test]
+    public function index_returns_correct_view()
     {
         $response = $this->actingAs($this->user)->get(route('frontend.suppliers'));
 
@@ -147,7 +149,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test index requires authentication
      */
-    public function test_index_requires_authentication()
+    #[Test]
+    public function index_requires_authentication()
     {
         $response = $this->get(route('frontend.suppliers'));
 
@@ -157,7 +160,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test create method returns correct view with data
      */
-    public function test_create_returns_correct_view_with_data()
+    #[Test]
+    public function create_returns_correct_view_with_data()
     {
         // Clean any existing output buffers
         while (ob_get_level()) {
@@ -188,7 +192,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test create requires authentication
      */
-    public function test_create_requires_authentication()
+    #[Test]
+    public function create_requires_authentication()
     {
         $response = $this->get(route('frontend.supplier.create'));
 
@@ -198,7 +203,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test store creates supplier successfully
      */
-    public function test_store_creates_supplier_successfully()
+    #[Test]
+    public function store_creates_supplier_successfully()
     {
         $response = $this->actingAs($this->user)
             ->post(route('frontend.supplier.store'), $this->validSupplierData);
@@ -216,7 +222,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test store requires authentication
      */
-    public function test_store_requires_authentication()
+    #[Test]
+    public function store_requires_authentication()
     {
         $response = $this->post(route('frontend.supplier.store'), $this->validSupplierData);
 
@@ -226,7 +233,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test store fails with invalid data
      */
-    public function test_store_fails_with_invalid_data()
+    #[Test]
+    public function store_fails_with_invalid_data()
     {
         $invalidData = $this->validSupplierData;
         unset($invalidData['name']);
@@ -240,7 +248,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test store handles exceptions gracefully
      */
-    public function test_store_handles_exceptions_gracefully()
+    #[Test]
+    public function store_handles_exceptions_gracefully()
     {
         // Mock the SupplierRepository to throw an exception
         $this->mock(SupplierRepository::class, function ($mock) {
@@ -257,7 +266,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test show displays supplier details
      */
-    public function test_show_displays_supplier_details()
+    #[Test]
+    public function show_displays_supplier_details()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -276,7 +286,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test show requires authentication
      */
-    public function test_show_requires_authentication()
+    #[Test]
+    public function show_requires_authentication()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -290,7 +301,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test show prevents access to other users' suppliers
      */
-    public function test_show_prevents_access_to_other_users_suppliers()
+    #[Test]
+    public function show_prevents_access_to_other_users_suppliers()
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
@@ -310,7 +322,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test show handles non-numeric IDs
      */
-    public function test_show_handles_non_numeric_ids()
+    #[Test]
+    public function show_handles_non_numeric_ids()
     {
         $response = $this->actingAs($this->user)
             ->get(route('frontend.supplier.show', 'invalid-id'));
@@ -323,7 +336,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test show ignores static file requests
      */
-    public function test_show_ignores_static_file_requests()
+    #[Test]
+    public function show_ignores_static_file_requests()
     {
         $response = $this->actingAs($this->user)
             ->get(route('frontend.supplier.show', 'test.js'));
@@ -335,7 +349,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test show displays supplier with invoices
      */
-    public function test_show_displays_supplier_with_invoices()
+    #[Test]
+    public function show_displays_supplier_with_invoices()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -360,7 +375,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test edit returns correct view with supplier data
      */
-    public function test_edit_returns_correct_view_with_supplier_data()
+    #[Test]
+    public function edit_returns_correct_view_with_supplier_data()
     {
         // Clean any existing output buffers
         while (ob_get_level()) {
@@ -393,7 +409,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test edit requires authentication
      */
-    public function test_edit_requires_authentication()
+    #[Test]
+    public function edit_requires_authentication()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -407,7 +424,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test edit prevents access to other users' suppliers
      */
-    public function test_edit_prevents_access_to_other_users_suppliers()
+    #[Test]
+    public function edit_prevents_access_to_other_users_suppliers()
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
@@ -427,7 +445,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test update updates supplier successfully
      */
-    public function test_update_updates_supplier_successfully()
+    #[Test]
+    public function update_updates_supplier_successfully()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -453,7 +472,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test update requires authentication
      */
-    public function test_update_requires_authentication()
+    #[Test]
+    public function update_requires_authentication()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -467,7 +487,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test update prevents updating other users' suppliers
      */
-    public function test_update_prevents_updating_other_users_suppliers()
+    #[Test]
+    public function update_prevents_updating_other_users_suppliers()
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
@@ -487,7 +508,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test update handles validation errors
      */
-    public function test_update_handles_validation_errors()
+    #[Test]
+    public function update_handles_validation_errors()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -505,7 +527,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test destroy deletes supplier without invoices
      */
-    public function test_destroy_deletes_supplier_without_invoices()
+    #[Test]
+    public function destroy_deletes_supplier_without_invoices()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -526,7 +549,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test destroy requires authentication
      */
-    public function test_destroy_requires_authentication()
+    #[Test]
+    public function destroy_requires_authentication()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -540,7 +564,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test destroy prevents deleting other users' suppliers
      */
-    public function test_destroy_prevents_deleting_other_users_suppliers()
+    #[Test]
+    public function destroy_prevents_deleting_other_users_suppliers()
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
@@ -560,7 +585,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test destroy prevents deleting supplier with invoices
      */
-    public function test_destroy_prevents_deleting_supplier_with_invoices()
+    #[Test]
+    public function destroy_prevents_deleting_supplier_with_invoices()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -588,7 +614,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test set default sets supplier as default
      */
-    public function test_set_default_sets_supplier_as_default()
+    #[Test]
+    public function set_default_sets_supplier_as_default()
     {
         $supplier1 = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -621,7 +648,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test set default requires authentication
      */
-    public function test_set_default_requires_authentication()
+    #[Test]
+    public function set_default_requires_authentication()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -635,7 +663,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test set default prevents setting other users' supplier as default
      */
-    public function test_set_default_prevents_setting_other_users_supplier_as_default()
+    #[Test]
+    public function set_default_prevents_setting_other_users_supplier_as_default()
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
@@ -655,7 +684,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test controller uses supplier form fields trait
      */
-    public function test_controller_uses_supplier_form_fields_trait()
+    #[Test]
+    public function controller_uses_supplier_form_fields_trait()
     {
         $controller = new SupplierController(
             app(BankService::class),
@@ -670,7 +700,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test controller handles locale in redirects
      */
-    public function test_controller_handles_locale_in_redirects()
+    #[Test]
+    public function controller_handles_locale_in_redirects()
     {
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
@@ -686,7 +717,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test controller dependency injection
      */
-    public function test_controller_dependency_injection()
+    #[Test]
+    public function controller_dependency_injection()
     {
         $controller = app(SupplierController::class);
 

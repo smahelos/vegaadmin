@@ -9,6 +9,7 @@ use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for Api\SupplierController
@@ -144,7 +145,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getSupplierAdmin endpoint with authenticated admin user
      */
-    public function test_admin_can_get_any_supplier(): void
+    #[Test]
+    public function admin_can_get_any_supplier(): void
     {
         $response = $this->actingAs($this->admin, 'backpack')
             ->getJson("/api/admin/supplier/{$this->userSupplier->id}");
@@ -161,7 +163,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getSupplier endpoint with authenticated regular user accessing own supplier
      */
-    public function test_user_can_get_own_supplier(): void
+    #[Test]
+    public function user_can_get_own_supplier(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson("/api/supplier/{$this->userSupplier->id}");
@@ -178,7 +181,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getSupplier endpoint with regular user trying to access other user's supplier
      */
-    public function test_user_cannot_get_other_users_supplier(): void
+    #[Test]
+    public function user_cannot_get_other_users_supplier(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson("/api/supplier/{$this->adminSupplier->id}");
@@ -192,7 +196,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getSupplier endpoint with unauthenticated request
      */
-    public function test_unauthenticated_user_cannot_get_supplier(): void
+    #[Test]
+    public function unauthenticated_user_cannot_get_supplier(): void
     {
         $response = $this->getJson("/api/supplier/{$this->userSupplier->id}");
 
@@ -206,7 +211,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getSupplier endpoint with non-existent supplier ID
      */
-    public function test_get_supplier_with_non_existent_id_returns_404(): void
+    #[Test]
+    public function get_supplier_with_non_existent_id_returns_404(): void
     {
         $nonExistentId = 999999;
             
@@ -222,7 +228,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getSuppliers endpoint with authenticated admin user
      */
-    public function test_admin_can_get_all_suppliers(): void
+    #[Test]
+    public function admin_can_get_all_suppliers(): void
     {
         $response = $this->actingAs($this->admin, 'backpack')
             ->getJson('/api/admin/supplier');
@@ -245,7 +252,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getSuppliers endpoint with authenticated regular user
      */
-    public function test_user_can_get_only_own_suppliers(): void
+    #[Test]
+    public function user_can_get_only_own_suppliers(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson('/api/supplier');
@@ -273,7 +281,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getSuppliers endpoint with unauthenticated request
      */
-    public function test_unauthenticated_user_cannot_get_suppliers(): void
+    #[Test]
+    public function unauthenticated_user_cannot_get_suppliers(): void
     {
         $response = $this->getJson('/api/supplier');
 
@@ -287,7 +296,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getDefaultSupplier endpoint with authenticated user having default supplier
      */
-    public function test_user_can_get_default_supplier(): void
+    #[Test]
+    public function user_can_get_default_supplier(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson('/api/supplier/default');
@@ -305,7 +315,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getDefaultSupplier endpoint with user having no default supplier
      */
-    public function test_user_gets_most_recent_supplier_when_no_default(): void
+    #[Test]
+    public function user_gets_most_recent_supplier_when_no_default(): void
     {
         // Remove default status from all user's suppliers
         Supplier::where('user_id', $this->user->id)->update(['is_default' => false]);
@@ -329,7 +340,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getDefaultSupplier endpoint with user having no suppliers
      */
-    public function test_user_with_no_suppliers_gets_404(): void
+    #[Test]
+    public function user_with_no_suppliers_gets_404(): void
     {
         // Delete all user's suppliers
         Supplier::where('user_id', $this->user->id)->delete();
@@ -346,7 +358,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test getDefaultSupplier endpoint with unauthenticated request
      */
-    public function test_unauthenticated_user_cannot_get_default_supplier(): void
+    #[Test]
+    public function unauthenticated_user_cannot_get_default_supplier(): void
     {
         $response = $this->getJson('/api/supplier/default');
 
@@ -360,7 +373,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test API routes are properly protected by middleware
      */
-    public function test_api_routes_require_authentication(): void
+    #[Test]
+    public function api_routes_require_authentication(): void
     {
         // Test all API endpoints without authentication
         $endpoints = [
@@ -379,7 +393,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test JSON response structure for getSupplier endpoint (frontend)
      */
-    public function test_get_supplier_returns_correct_json_structure(): void
+    #[Test]
+    public function get_supplier_returns_correct_json_structure(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson("/api/supplier/{$this->userSupplier->id}");
@@ -413,7 +428,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test JSON response structure for getSuppliers endpoint
      */
-    public function test_get_suppliers_returns_correct_json_structure(): void
+    #[Test]
+    public function get_suppliers_returns_correct_json_structure(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson('/api/supplier');
@@ -449,7 +465,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test admin API route for getSupplier endpoint
      */
-    public function test_admin_api_route_works_for_admin(): void
+    #[Test]
+    public function admin_api_route_works_for_admin(): void
     {
         $response = $this->actingAs($this->admin, 'backpack')
             ->getJson("/api/admin/supplier/{$this->userSupplier->id}");
@@ -464,7 +481,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test admin API route access for regular user
      */
-    public function test_admin_api_route_requires_admin_role(): void
+    #[Test]
+    public function admin_api_route_requires_admin_role(): void
     {
         $response = $this->actingAs($this->user, 'backpack')
                 ->getJson("/api/admin/supplier/{$this->userSupplier->id}");
@@ -479,7 +497,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test API responses include correct headers
      */
-    public function test_api_responses_include_correct_headers(): void
+    #[Test]
+    public function api_responses_include_correct_headers(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson('/api/supplier');
@@ -491,7 +510,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test proper handling of database exceptions
      */
-    public function test_handles_database_exceptions_gracefully(): void
+    #[Test]
+    public function handles_database_exceptions_gracefully(): void
     {
         // Test with invalid ID format that could cause database error
         $response = $this->actingAs($this->admin, 'backpack')
@@ -506,7 +526,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test that supplier data includes all necessary fields for frontend usage
      */
-    public function test_supplier_data_includes_all_frontend_fields(): void
+    #[Test]
+    public function supplier_data_includes_all_frontend_fields(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson("/api/supplier/{$this->userSupplier->id}");
@@ -531,7 +552,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test viewer role permissions
      */
-    public function test_viewer_role_has_limited_access(): void
+    #[Test]
+    public function viewer_role_has_limited_access(): void
     {
         // Create a supplier for viewer
         $viewerSupplier = Supplier::factory()->create([
@@ -550,7 +572,8 @@ class SupplierControllerTest extends TestCase
     /**
      * Test that multiple users can have their own default suppliers
      */
-    public function test_multiple_users_can_have_default_suppliers(): void
+    #[Test]
+    public function multiple_users_can_have_default_suppliers(): void
     {
         // Set admin's supplier as default
         $this->adminSupplier->update(['is_default' => true]);

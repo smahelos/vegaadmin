@@ -9,6 +9,7 @@ use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for Api\ClientController
@@ -144,7 +145,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getClientAdmin endpoint with authenticated admin user
      */
-    public function test_admin_can_get_any_client(): void
+    #[Test]
+    public function admin_can_get_any_client(): void
     {
         $response = $this->actingAs($this->admin, 'backpack')
             ->getJson("/api/admin/client/{$this->userClient->id}");
@@ -161,7 +163,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getClient endpoint with authenticated regular user accessing own client
      */
-    public function test_user_can_get_own_client(): void
+    #[Test]
+    public function user_can_get_own_client(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson("/api/client/{$this->userClient->id}");
@@ -178,7 +181,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getClient endpoint with regular user trying to access other user's client
      */
-    public function test_user_cannot_get_other_users_client(): void
+    #[Test]
+    public function user_cannot_get_other_users_client(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson("/api/client/{$this->adminClient->id}");
@@ -192,7 +196,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getClient endpoint with unauthenticated request
      */
-    public function test_unauthenticated_user_cannot_get_client(): void
+    #[Test]
+    public function unauthenticated_user_cannot_get_client(): void
     {
         $response = $this->getJson("/api/client/{$this->userClient->id}");
 
@@ -206,7 +211,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getClient endpoint with non-existent client ID
      */
-    public function test_get_non_existent_client_returns_404(): void
+    #[Test]
+    public function get_non_existent_client_returns_404(): void
     {
         $nonExistentId = 99999;
 
@@ -222,7 +228,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test admin api route requires admin role
      */
-    public function test_admin_api_route_requires_admin_role(): void
+    #[Test]
+    public function admin_api_route_requires_admin_role(): void
     {
         $response = $this->actingAs($this->user, 'backpack')
             ->getJson("/api/admin/client/{$this->userClient->id}");
@@ -236,7 +243,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getClients endpoint returns all clients for admin user
      */
-    public function test_admin_can_get_all_clients(): void
+    #[Test]
+    public function admin_can_get_all_clients(): void
     {
         $response = $this->actingAs($this->admin, 'backpack')
             ->getJson('/api/admin/client');
@@ -262,7 +270,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getClients endpoint returns only user's clients for regular user
      */
-    public function test_user_can_get_only_own_clients(): void
+    #[Test]
+    public function user_can_get_only_own_clients(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson('/api/client');
@@ -296,7 +305,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getClients endpoint with unauthenticated request
      */
-    public function test_unauthenticated_user_cannot_get_clients(): void
+    #[Test]
+    public function unauthenticated_user_cannot_get_clients(): void
     {
         $response = $this->getJson('/api/client');
 
@@ -310,7 +320,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getDefaultClient endpoint returns default client for user
      */
-    public function test_user_can_get_default_client(): void
+    #[Test]
+    public function user_can_get_default_client(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson('/api/client/default');
@@ -328,7 +339,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getDefaultClient endpoint with user who has no default client
      */
-    public function test_user_gets_first_client_when_no_default_set(): void
+    #[Test]
+    public function user_gets_first_client_when_no_default_set(): void
     {
         // Create a user with multiple clients but no default
         $testUser = User::factory()->create([
@@ -365,7 +377,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getDefaultClient endpoint with user who has no clients
      */
-    public function test_user_gets_404_when_no_clients_exist(): void
+    #[Test]
+    public function user_gets_404_when_no_clients_exist(): void
     {
         // Create a user with no clients
         $testUser = User::factory()->create([
@@ -386,7 +399,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test getDefaultClient endpoint with unauthenticated request
      */
-    public function test_unauthenticated_user_cannot_get_default_client(): void
+    #[Test]
+    public function unauthenticated_user_cannot_get_default_client(): void
     {
         $response = $this->getJson('/api/client/default');
 
@@ -401,7 +415,8 @@ class ClientControllerTest extends TestCase
      * Test that admin user cannot access frontend API endpoints
      * Admin users have backpack permissions only, not web permissions
      */
-    public function test_admin_cannot_access_frontend_api(): void
+    #[Test]
+    public function admin_cannot_access_frontend_api(): void
     {
         // Create admin's default client
         $adminDefaultClient = Client::factory()->create([
@@ -425,7 +440,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test JSON response structure for getClient endpoint
      */
-    public function test_get_client_response_structure(): void
+    #[Test]
+    public function get_client_response_structure(): void
     {
         $response = $this->actingAs($this->user, 'web')
             ->getJson("/api/client/{$this->userClient->id}");
@@ -444,7 +460,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test that admin endpoint bypasses user ownership checks
      */
-    public function test_admin_endpoint_bypasses_ownership_checks(): void
+    #[Test]
+    public function admin_endpoint_bypasses_ownership_checks(): void
     {
         // Admin should be able to access any user's client via admin endpoint
         $response = $this->actingAs($this->admin, 'backpack')
@@ -460,7 +477,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test that regular endpoint enforces user ownership checks
      */
-    public function test_regular_endpoint_enforces_ownership_checks(): void
+    #[Test]
+    public function regular_endpoint_enforces_ownership_checks(): void
     {
         // Regular user should NOT be able to access admin's client via regular endpoint
         $response = $this->actingAs($this->user, 'web')

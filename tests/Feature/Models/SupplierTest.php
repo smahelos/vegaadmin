@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Database\Eloquent\Collection;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for Supplier Model
@@ -74,7 +75,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_supplier_belongs_to_user()
+    #[Test]
+    public function supplier_belongs_to_user()
     {
         $this->assertInstanceOf(User::class, $this->supplier->user);
         $this->assertEquals($this->user->id, $this->supplier->user->id);
@@ -87,7 +89,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_supplier_has_many_invoices()
+    #[Test]
+    public function supplier_has_many_invoices()
     {
         // Initially no invoices
         $this->assertInstanceOf(Collection::class, $this->supplier->invoices);
@@ -123,7 +126,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_setting_supplier_as_default_unsets_other_defaults()
+    #[Test]
+    public function setting_supplier_as_default_unsets_other_defaults()
     {
         // Create multiple suppliers for the same user
         $supplier1 = Supplier::factory()->create([
@@ -158,7 +162,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_default_supplier_behavior_is_user_specific()
+    #[Test]
+    public function default_supplier_behavior_is_user_specific()
     {
         // Create another user with their own supplier
         $otherUser = User::factory()->create([
@@ -194,7 +199,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_has_payment_info_auto_update_on_save()
+    #[Test]
+    public function has_payment_info_auto_update_on_save()
     {
         // Create a fresh supplier for this test to ensure clean state
         $testSupplier = Supplier::factory()->create([
@@ -234,7 +240,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_has_payment_info_with_iban_only()
+    #[Test]
+    public function has_payment_info_with_iban_only()
     {
         // Set only IBAN
         $this->supplier->iban = 'CZ6508000000192000145399';
@@ -250,7 +257,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_only_one_supplier_can_be_default_per_user()
+    #[Test]
+    public function only_one_supplier_can_be_default_per_user()
     {
         // Create multiple suppliers for the user
         $suppliers = [];
@@ -296,7 +304,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_preferred_locale_method()
+    #[Test]
+    public function preferred_locale_method()
     {
         // This tests the HasPreferredLocale trait functionality
         $locale = $this->supplier->preferredLocale();
@@ -313,7 +322,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_supplier_deletion_behavior_with_invoices()
+    #[Test]
+    public function supplier_deletion_behavior_with_invoices()
     {
         // Create invoices for the supplier
         $invoice1 = Invoice::factory()->create([
@@ -353,7 +363,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_supplier_creation_with_full_data()
+    #[Test]
+    public function supplier_creation_with_full_data()
     {
         $supplierData = [
             'user_id' => $this->user->id,
@@ -390,7 +401,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_supplier_update()
+    #[Test]
+    public function supplier_update()
     {
         $originalName = $this->supplier->name;
         $newName = $this->faker->company;
@@ -419,7 +431,8 @@ class SupplierTest extends TestCase
      *
      * @return void
      */
-    public function test_payment_info_edge_cases()
+    #[Test]
+    public function payment_info_edge_cases()
     {
         // Test empty strings vs null values
         $this->supplier->account_number = '';

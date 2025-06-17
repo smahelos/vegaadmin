@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Event;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class RegisterControllerTest extends TestCase
 {
@@ -57,7 +58,7 @@ class RegisterControllerTest extends TestCase
             'country' => 'CZ',
             'ico' => $this->faker->numerify('########'),
             'dic' => 'CZ' . $this->faker->numerify('########'),
-            'phone' => $this->faker->numberBetween(100000000, 999999999), // Generate as integer per validation rules
+            'phone' => $this->faker->numerify('#########'), // Generate as string per validation rules
             'description' => $this->faker->text(200),
             'account_number' => $this->faker->numerify('#########'),
             'bank_code' => '0100',
@@ -128,7 +129,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_show_registration_form_returns_correct_view()
+    #[Test]
+    public function show_registration_form_returns_correct_view()
     {
         $response = $this->get('/register');
 
@@ -142,18 +144,21 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_successful_with_valid_data()
+    #[Test]
+    public function register_successful_with_valid_data()
     {
         Event::fake();
 
         $response = $this->post('/register', $this->validUserData);
 
         $response->assertRedirect();
-        $this->assertTrue(Auth::check());
         
-        // Check user was created
+        // Check user was created first before checking auth
         $user = User::where('email', $this->validEmail)->first();
-        $this->assertNotNull($user);
+        $this->assertNotNull($user, 'User was not created');
+        
+        $this->assertTrue(Auth::check(), 'User is not authenticated after registration');
+        
         $this->assertEquals($this->validUserData['name'], $user->name);
         $this->assertTrue(Hash::check($this->validPassword, $user->password));
         
@@ -174,7 +179,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_fails_with_invalid_email()
+    #[Test]
+    public function register_fails_with_invalid_email()
     {
         $invalidData = $this->validUserData;
         $invalidData['email'] = 'invalid-email';
@@ -191,7 +197,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_fails_with_duplicate_email()
+    #[Test]
+    public function register_fails_with_duplicate_email()
     {
         // Create existing user with the same email
         User::factory()->create(['email' => $this->validEmail]);
@@ -207,7 +214,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_fails_with_empty_required_fields()
+    #[Test]
+    public function register_fails_with_empty_required_fields()
     {
         $invalidData = [
             'name' => '',
@@ -226,7 +234,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_fails_with_password_confirmation_mismatch()
+    #[Test]
+    public function register_fails_with_password_confirmation_mismatch()
     {
         $invalidData = $this->validUserData;
         $invalidData['password_confirmation'] = 'different_password';
@@ -242,7 +251,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_with_minimal_required_data()
+    #[Test]
+    public function register_with_minimal_required_data()
     {
         Event::fake();
 
@@ -279,7 +289,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_creates_supplier_with_payment_info()
+    #[Test]
+    public function register_creates_supplier_with_payment_info()
     {
         Event::fake();
 
@@ -305,7 +316,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_creates_supplier_without_payment_info()
+    #[Test]
+    public function register_creates_supplier_without_payment_info()
     {
         Event::fake();
 
@@ -338,7 +350,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_creates_frontend_user_role_if_not_exists()
+    #[Test]
+    public function register_creates_frontend_user_role_if_not_exists()
     {
         Event::fake();
 
@@ -360,7 +373,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_with_bank_information()
+    #[Test]
+    public function register_with_bank_information()
     {
         Event::fake();
 
@@ -391,7 +405,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_sets_default_country_to_cz()
+    #[Test]
+    public function register_sets_default_country_to_cz()
     {
         Event::fake();
 
@@ -423,7 +438,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_redirects_to_home_with_locale()
+    #[Test]
+    public function register_redirects_to_home_with_locale()
     {
         Event::fake();
 
@@ -438,7 +454,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_logs_in_user_automatically()
+    #[Test]
+    public function register_logs_in_user_automatically()
     {
         Event::fake();
 
@@ -456,7 +473,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_with_all_optional_fields()
+    #[Test]
+    public function register_with_all_optional_fields()
     {
         Event::fake();
 
@@ -481,7 +499,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_register_validates_password_length()
+    #[Test]
+    public function register_validates_password_length()
     {
         $invalidData = $this->validUserData;
         $invalidData['password'] = '123'; // Too short
@@ -498,7 +517,8 @@ class RegisterControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_controller_uses_user_form_fields_trait()
+    #[Test]
+    public function controller_uses_user_form_fields_trait()
     {
         $traits = class_uses(RegisterController::class);
 

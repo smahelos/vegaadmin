@@ -14,7 +14,7 @@ class BankRequest extends FormRequest
     public function authorize()
     {
         // only allow updates if the user is logged in
-        return backpack_auth()->check();
+        return auth()->check();
     }
 
     /**
@@ -22,10 +22,17 @@ class BankRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
+        $id = $this->get('id') ?? 'NULL';
+        
         return [
-            // 'name' => 'required|min:5|max:255'
+            'name' => 'required|string|min:2|max:255',
+            'code' => 'required|string|min:2|max:10|unique:banks,code,' . $id,
+            'swift' => 'nullable|string|max:20',
+            'country' => 'required|string|max:100',
+            'active' => 'boolean',
+            'description' => 'nullable|string|max:1000',
         ];
     }
 
@@ -34,10 +41,15 @@ class BankRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
-            //
+            'name' => trans('banks.name'),
+            'code' => trans('banks.code'),
+            'swift' => trans('banks.swift'),
+            'country' => trans('banks.country'),
+            'active' => trans('banks.active'),
+            'description' => trans('banks.description'),
         ];
     }
 
@@ -46,10 +58,14 @@ class BankRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
-            //
+            'name.required' => trans('banks.validation.name_required'),
+            'name.min' => trans('banks.validation.name_min'),
+            'code.required' => trans('banks.validation.code_required'),
+            'code.unique' => trans('banks.validation.code_unique'),
+            'country.required' => trans('banks.validation.country_required'),
         ];
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Mockery;
 
@@ -51,7 +52,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_constructor_applies_guest_middleware()
+    #[Test]
+    public function constructor_applies_guest_middleware()
     {
         $middleware = $this->controller->getMiddleware();
         
@@ -65,7 +67,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_show_login_form_returns_correct_view()
+    #[Test]
+    public function show_login_form_returns_correct_view()
     {
         $response = $this->controller->showLoginForm();
         
@@ -77,7 +80,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_successful_with_valid_credentials()
+    #[Test]
+    public function login_successful_with_valid_credentials()
     {
         $response = $this->post('/login', [
             'email' => $this->validEmail,
@@ -94,7 +98,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_fails_with_invalid_credentials()
+    #[Test]
+    public function login_fails_with_invalid_credentials()
     {
         $response = $this->post('/login', [
             'email' => $this->validEmail,
@@ -110,7 +115,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_fails_with_nonexistent_email()
+    #[Test]
+    public function login_fails_with_nonexistent_email()
     {
         $response = $this->post('/login', [
             'email' => 'nonexistent-' . uniqid() . '@example.com',
@@ -126,7 +132,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_validation_fails_with_empty_email()
+    #[Test]
+    public function login_validation_fails_with_empty_email()
     {
         $response = $this->post('/login', [
             'email' => '',
@@ -142,7 +149,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_validation_with_invalid_email_format()
+    #[Test]
+    public function login_validation_with_invalid_email_format()
     {
         // Laravel 12's AuthenticatesUsers trait doesn't validate email format by default
         // It only checks required|string|email and Laravel is lenient with email validation
@@ -161,7 +169,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_validation_fails_with_empty_password()
+    #[Test]
+    public function login_validation_fails_with_empty_password()
     {
         $response = $this->post('/login', [
             'email' => $this->validEmail,
@@ -177,7 +186,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_handles_exceptions_gracefully()
+    #[Test]
+    public function login_handles_exceptions_gracefully()
     {
         // Mock Auth facade to throw exception during attempt
         Auth::shouldReceive('guard')
@@ -218,7 +228,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_authenticated_redirects_to_frontend_dashboard()
+    #[Test]
+    public function authenticated_redirects_to_frontend_dashboard()
     {
         $request = Request::create('/login', 'POST');
         
@@ -243,7 +254,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_authenticated_uses_correct_locale()
+    #[Test]
+    public function authenticated_uses_correct_locale()
     {
         $request = Request::create('/login', 'POST');
         
@@ -265,7 +277,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_logout_user_successfully()
+    #[Test]
+    public function logout_user_successfully()
     {
         // Login user first
         $this->actingAs($this->testUser);
@@ -287,7 +300,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_logout_invalidates_session()
+    #[Test]
+    public function logout_invalidates_session()
     {
         $this->actingAs($this->testUser);
         
@@ -308,7 +322,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_attempt_login_with_valid_credentials()
+    #[Test]
+    public function attempt_login_with_valid_credentials()
     {
         $request = Request::create('/login', 'POST', [
             'email' => $this->validEmail,
@@ -332,7 +347,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_attempt_login_with_invalid_credentials()
+    #[Test]
+    public function attempt_login_with_invalid_credentials()
     {
         $request = Request::create('/login', 'POST', [
             'email' => $this->validEmail,
@@ -355,7 +371,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_attempt_login_with_remember_token()
+    #[Test]
+    public function attempt_login_with_remember_token()
     {
         $request = Request::create('/login', 'POST', [
             'email' => $this->validEmail,
@@ -379,7 +396,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_attempt_login_without_remember_token()
+    #[Test]
+    public function attempt_login_without_remember_token()
     {
         $request = Request::create('/login', 'POST', [
             'email' => $this->validEmail,
@@ -402,7 +420,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_guard_returns_web_guard()
+    #[Test]
+    public function guard_returns_web_guard()
     {
         // Use reflection to call protected method
         $reflection = new \ReflectionClass($this->controller);
@@ -421,7 +440,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_controller_uses_authenticates_users_trait()
+    #[Test]
+    public function controller_uses_authenticates_users_trait()
     {
         $traits = class_uses(LoginController::class);
 
@@ -433,7 +453,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_redirect_to_property_is_set()
+    #[Test]
+    public function redirect_to_property_is_set()
     {
         $reflection = new \ReflectionClass(LoginController::class);
         $property = $reflection->getProperty('redirectTo');
@@ -447,7 +468,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_with_remember_me()
+    #[Test]
+    public function login_with_remember_me()
     {
         $response = $this->post('/login', [
             'email' => $this->validEmail,
@@ -465,7 +487,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_logs_error_on_exception()
+    #[Test]
+    public function login_logs_error_on_exception()
     {
         // Mock Auth facade to throw exception during attempt
         Auth::shouldReceive('guard')
@@ -506,7 +529,8 @@ class LoginControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_login_returns_error_message_on_exception()
+    #[Test]
+    public function login_returns_error_message_on_exception()
     {
         // Mock Auth facade to throw exception during attempt
         Auth::shouldReceive('guard')

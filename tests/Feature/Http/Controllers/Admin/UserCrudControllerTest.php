@@ -11,6 +11,7 @@ use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for Admin\UserCrudController
@@ -140,7 +141,8 @@ class UserCrudControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_admin_can_access_user_list()
+    #[Test]
+    public function admin_can_access_user_list()
     {
         $this->actingAs($this->adminUser, 'backpack');
         
@@ -155,7 +157,8 @@ class UserCrudControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_regular_user_cannot_access_user_list()
+    #[Test]
+    public function regular_user_cannot_access_user_list()
     {
         $this->actingAs($this->regularUser, 'backpack');
         
@@ -180,7 +183,8 @@ class UserCrudControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_admin_can_create_user()
+    #[Test]
+    public function admin_can_create_user()
     {
         $this->actingAs($this->adminUser, 'backpack');
         
@@ -205,7 +209,8 @@ class UserCrudControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_admin_can_update_user()
+    #[Test]
+    public function admin_can_update_user()
     {
         $this->withoutExceptionHandling(); // Show detailed errors for debugging
 
@@ -274,7 +279,8 @@ class UserCrudControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_admin_can_delete_user()
+    #[Test]
+    public function admin_can_delete_user()
     {
         $this->actingAs($this->adminUser, 'backpack');
         
@@ -300,7 +306,8 @@ class UserCrudControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_password_is_hashed_on_create()
+    #[Test]
+    public function password_is_hashed_on_create()
     {
         $this->actingAs($this->adminUser, 'backpack');
         
@@ -326,7 +333,8 @@ class UserCrudControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_password_is_hashed_on_update()
+    #[Test]
+    public function password_is_hashed_on_update()
     {
         $this->withoutExceptionHandling(); // Show detailed errors for debugging
 

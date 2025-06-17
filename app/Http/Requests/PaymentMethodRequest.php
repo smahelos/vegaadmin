@@ -13,7 +13,7 @@ class PaymentMethodRequest extends FormRequest
      */
     public function authorize()
     {
-        return backpack_auth()->check();
+        return auth()->check();
     }
 
     /**

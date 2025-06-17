@@ -19,3 +19,29 @@ We want to have all comments in project in English, so all comments should be in
 We want to have all code in project in English, so all code should be in English.
 
 We want to have project as clean as possible. Formulars loads fields from App/Traits trait files. Frontend formulars requests are laoded from App/Requests folder. Backend formulars requests are laoded from App/Requests/Admin folder. Frontend authorization, validation rules, attributes and messages for formulars are placed in App/Requests folder. backend authorization, validation rules, attributes and messages for formulars are placed in App/Requests/Admin folder.
+
+## Testing Guidelines
+
+### Backpack Admin Tests Authentication
+When creating tests for admin functionality that involve HTTP requests:
+
+1. **Always use 'backpack' guard**: `$this->actingAs($user, 'backpack')`
+2. **Create required permissions** in setUp() method using the permission list below
+3. **Use withoutMiddleware()** to bypass Backpack middleware in tests 
+4. **Use postJson/putJson** instead of post/put for proper JSON responses
+5. **Expect 403** for unauthenticated admin requests (not 401)
+
+### Required Permissions for Admin Tests
+Create these permissions with 'backpack' guard in test setUp():
+- can_create_edit_user, can_create_edit_invoice, can_create_edit_client
+- can_create_edit_supplier, can_create_edit_expense, can_create_edit_tax  
+- can_create_edit_bank, can_create_edit_payment_method, can_create_edit_product
+- can_create_edit_command, can_create_edit_cron_task, can_create_edit_status
+- can_configure_system, backpack.access
+
+### Test Route Setup Example
+```php
+Route::post('/admin/resource', function (ResourceRequest $request) {
+    return response()->json(['success' => true]);
+})->middleware('web');
+```

@@ -6,12 +6,12 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class TaxRequest extends FormRequest
 {
-    public function authorize()
+    public function authorize(): bool
     {
         return backpack_auth()->check();
     }
 
-    public function rules()
+    public function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
@@ -19,7 +19,7 @@ class TaxRequest extends FormRequest
         ];
     }
 
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'name' => __('tax.name'),
@@ -27,7 +27,7 @@ class TaxRequest extends FormRequest
         ];
     }
 
-    public function messages()
+    public function messages(): array
     {
         return [
             'name.required' => __('tax.name_required'),

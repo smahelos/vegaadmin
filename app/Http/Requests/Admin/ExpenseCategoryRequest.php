@@ -12,10 +12,10 @@ class ExpenseCategoryRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         // Only allow updates if the user has permission to manage expenses
-        return backpack_user()->can('can_create_edit_expense');
+        return backpack_user() && backpack_user()->can('can_create_edit_expense');
     }
 
     /**
@@ -23,7 +23,7 @@ class ExpenseCategoryRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         $id = $this->get('id') ?? 'NULL';
         
@@ -41,7 +41,7 @@ class ExpenseCategoryRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'name' => trans('admin.expenses.name'),

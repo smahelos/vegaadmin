@@ -4,6 +4,7 @@ namespace Tests\Unit\Models;
 
 use App\Models\Client;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Unit tests for Client Model
@@ -18,7 +19,8 @@ class ClientTest extends TestCase
      *
      * @return void
      */
-    public function test_client_has_correct_casts()
+    #[Test]
+    public function client_has_correct_casts()
     {
         $client = new Client();
         $this->assertArrayHasKey('is_default', $client->getCasts());
@@ -30,7 +32,8 @@ class ClientTest extends TestCase
      *
      * @return void
      */
-    public function test_get_full_address_attribute()
+    #[Test]
+    public function get_full_address_attribute()
     {
         $client = new Client();
         $client->street = '123 Main St';
@@ -47,7 +50,8 @@ class ClientTest extends TestCase
      *
      * @return void
      */
-    public function test_get_full_name_attribute()
+    #[Test]
+    public function get_full_name_attribute()
     {
         $client = new Client();
         $client->name = 'Test Company';
@@ -62,7 +66,8 @@ class ClientTest extends TestCase
      *
      * @return void
      */
-    public function test_set_is_default_attribute_mutator()
+    #[Test]
+    public function set_is_default_attribute_mutator()
     {
         $client = new Client();
         
@@ -101,7 +106,8 @@ class ClientTest extends TestCase
      *
      * @return void
      */
-    public function test_client_uses_correct_traits()
+    #[Test]
+    public function client_uses_correct_traits()
     {
         $client = new Client();
         $traits = class_uses_recursive(Client::class);
@@ -124,7 +130,8 @@ class ClientTest extends TestCase
      *
      * @return void
      */
-    public function test_client_has_correct_table_name()
+    #[Test]
+    public function client_has_correct_table_name()
     {
         $client = new Client();
         $this->assertEquals('clients', $client->getTable());
@@ -135,7 +142,8 @@ class ClientTest extends TestCase
      *
      * @return void
      */
-    public function test_client_has_correct_guarded_attributes()
+    #[Test]
+    public function client_has_correct_guarded_attributes()
     {
         $client = new Client();
         $this->assertEquals(['id'], $client->getGuarded());
