@@ -18,10 +18,8 @@ class ProductRequest extends FormRequest
 
     /**
      * Prepare the data for validation.
-     *
-     * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         // Generate slug from name if not provided
         if (!$this->filled('slug') && $this->filled('name')) {
@@ -71,6 +69,26 @@ class ProductRequest extends FormRequest
             'is_active' => trans('products.fields.is_active'),
             'image' => trans('products.fields.image'),
             'currency' => trans('products.fields.currency'),
+        ];
+    }
+
+    /**
+     * Get custom validation error messages.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => trans('products.validation.name_required'),
+            'name.min' => trans('products.validation.name_min'),
+            'name.max' => trans('products.validation.name_max'),
+            'slug.unique' => trans('products.validation.slug_unique'),
+            'price.required' => trans('products.validation.price_required'),
+            'price.numeric' => trans('products.validation.price_numeric'),
+            'price.min' => trans('products.validation.price_min'),
+            'currency.required' => trans('products.validation.currency_required'),
+            'currency.in' => trans('products.validation.currency_in'),
+            'image.image' => trans('products.validation.image_image'),
+            'image.max' => trans('products.validation.image_max'),
         ];
     }
 }

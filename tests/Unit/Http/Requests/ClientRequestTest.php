@@ -5,6 +5,7 @@ namespace Tests\Unit\Http\Requests;
 use App\Http\Requests\ClientRequest;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Unit tests for ClientRequest
@@ -32,7 +33,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_validation_rules_are_correctly_defined()
+    #[Test]
+    public function validation_rules_are_correctly_defined()
     {
         $expectedRules = [
             'name' => 'required|string|max:255',
@@ -62,7 +64,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_required_fields_are_properly_identified()
+    #[Test]
+    public function required_fields_are_properly_identified()
     {
         $rules = $this->request->rules();
         
@@ -88,7 +91,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_nullable_fields_are_properly_identified()
+    #[Test]
+    public function nullable_fields_are_properly_identified()
     {
         $rules = $this->request->rules();
         
@@ -112,7 +116,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_string_fields_have_correct_max_length()
+    #[Test]
+    public function string_fields_have_correct_max_length()
     {
         $rules = $this->request->rules();
         
@@ -140,7 +145,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_email_field_has_proper_validation()
+    #[Test]
+    public function email_field_has_proper_validation()
     {
         $rules = $this->request->rules();
         
@@ -155,7 +161,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_boolean_field_validation()
+    #[Test]
+    public function boolean_field_validation()
     {
         $rules = $this->request->rules();
         
@@ -169,7 +176,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_authorize_returns_true_when_authenticated()
+    #[Test]
+    public function authorize_returns_true_when_authenticated()
     {
         // Mock Auth::check() to return true
         Auth::shouldReceive('check')
@@ -184,7 +192,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_authorize_returns_false_when_not_authenticated()
+    #[Test]
+    public function authorize_returns_false_when_not_authenticated()
     {
         // Mock Auth::check() to return false
         Auth::shouldReceive('check')
@@ -199,7 +208,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_custom_validation_messages_are_correctly_defined()
+    #[Test]
+    public function custom_validation_messages_are_correctly_defined()
     {
         $expectedMessages = [
             'name.required' => __('clients.validation.name_required'),
@@ -220,7 +230,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_all_required_fields_have_custom_messages()
+    #[Test]
+    public function all_required_fields_have_custom_messages()
     {
         $messages = $this->request->messages();
         $requiredFieldsWithCustomMessages = [];
@@ -245,7 +256,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_attributes_method_returns_empty_array()
+    #[Test]
+    public function attributes_method_returns_empty_array()
     {
         $this->assertEquals([], $this->request->attributes());
     }
@@ -255,7 +267,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_request_extends_form_request()
+    #[Test]
+    public function request_extends_form_request()
     {
         $this->assertInstanceOf(\Illuminate\Foundation\Http\FormRequest::class, $this->request);
     }
@@ -265,7 +278,8 @@ class ClientRequestTest extends TestCase
      *
      * @return void
      */
-    public function test_validation_messages_use_translation_keys()
+    #[Test]
+    public function validation_messages_use_translation_keys()
     {
         $messages = $this->request->messages();
         

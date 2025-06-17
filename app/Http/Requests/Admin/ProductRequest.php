@@ -52,4 +52,26 @@ class ProductRequest extends FormRequest
             'is_active' => trans('admin.products.is_active'),
         ];
     }
+
+    /**
+     * Get custom error messages for validation rules.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => trans('admin.products.validation.name_required'),
+            'name.min' => trans('admin.products.validation.name_min'),
+            'name.max' => trans('admin.products.validation.name_max'),
+            'price.required' => trans('admin.products.validation.price_required'),
+            'price.numeric' => trans('admin.products.validation.price_numeric'),
+            'price.min' => trans('admin.products.validation.price_min'),
+            'user_id.required' => trans('admin.products.validation.user_required'),
+            'user_id.exists' => trans('admin.products.validation.user_exists'),
+            'tax_id.exists' => trans('admin.products.validation.tax_exists'),
+            'supplier_id.exists' => trans('admin.products.validation.supplier_exists'),
+            'category_id.exists' => trans('admin.products.validation.category_exists'),
+            'image.image' => trans('admin.products.validation.image_format'),
+            'image.max' => trans('admin.products.validation.image_size'),
+        ];
+    }
 }

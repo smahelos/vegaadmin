@@ -12,7 +12,7 @@ class StatusRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         // Only allow updates if the user has permission to manage statuses
         return backpack_user()->can('can_create_edit_status');
@@ -23,7 +23,7 @@ class StatusRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
@@ -45,7 +45,7 @@ class StatusRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'name' => __('statuses.fields.name'),
@@ -62,7 +62,7 @@ class StatusRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             'name.required' => __('statuses.validation.name_required'),

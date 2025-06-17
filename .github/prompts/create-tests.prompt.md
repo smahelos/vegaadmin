@@ -198,6 +198,100 @@ class ExampleRequestFeatureTest extends TestCase
 }
 ```
 
+## Authentication and Authorization in Tests
+
+### Backpack Admin Tests Setup
+For admin Feature tests that test HTTP requests, you need proper authentication setup:
+
+```php
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+
+protected function setUp(): void
+{
+    parent::setUp();
+    
+    $this->user = User::factory()->create();
+    
+    // Create necessary permissions for testing
+    $this->createRequiredPermissions();
+    
+    // Define test routes if testing HTTP behavior
+    Route::post('/admin/resource', function (ResourceRequest $request) {
+        return response()->json(['success' => true]);
+    })->middleware('web');
+}
+
+private function createRequiredPermissions(): void
+{
+    $permissions = [
+        'can_create_edit_user',
+        'can_create_edit_invoice', 
+        'can_create_edit_client',
+        'can_create_edit_supplier',
+        'can_create_edit_expense',
+        'can_create_edit_tax',
+        'can_create_edit_bank',
+        'can_create_edit_payment_method',
+        'can_create_edit_product',
+        'can_create_edit_command',
+        'can_create_edit_cron_task',
+        'can_create_edit_status',
+        'can_configure_system',
+        'backpack.access',
+    ];
+
+    foreach ($permissions as $permission) {
+        Permission::firstOrCreate([
+            'name' => $permission, 
+            'guard_name' => 'backpack'
+        ]);
+    }
+
+    foreach ($permissions as $permissionName) {
+        $permission = Permission::where('name', $permissionName)
+            ->where('guard_name', 'backpack')
+            ->first();
+        if ($permission) {
+            $this->user->givePermissionTo($permission);
+        }
+    }
+}
+```
+
+### Test HTTP Requests with Authentication
+```php
+public function test_authenticated_request(): void
+{
+    $this->withoutMiddleware(); // Bypass Backpack middleware in tests
+    $this->actingAs($this->user, 'backpack'); // Use backpack guard
+
+    $data = ['name' => 'Test Data'];
+    
+    $response = $this->postJson('/admin/resource', $data); // Use postJson for JSON responses
+    
+    $response->assertStatus(200);
+    $response->assertJson(['success' => true]);
+}
+
+public function test_unauthenticated_request(): void
+{
+    $data = ['name' => 'Test Data'];
+    
+    $response = $this->postJson('/admin/resource', $data);
+    
+    $response->assertStatus(403); // Expect 403 for unauthenticated in admin
+}
+```
+
+### Key Authentication Points:
+1. **Always use 'backpack' guard** for admin tests: `$this->actingAs($user, 'backpack')`
+2. **Create all required permissions** in setUp() method
+3. **Use withoutMiddleware()** to bypass Backpack middleware complications
+4. **Use postJson/putJson** instead of post/put for proper JSON validation responses
+5. **Expect 403** for unauthenticated admin requests (not 401)
+6. **Always assign permissions to test users** for the 'backpack' guard
+
 ## Assertions to Include
 - Test success and failure scenarios
 - Test edge cases and boundary values

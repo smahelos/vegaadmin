@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for Frontend\ClientController
@@ -130,7 +131,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test index returns correct view
      */
-    public function test_index_returns_correct_view()
+    #[Test]
+    public function index_returns_correct_view()
     {
         $response = $this->actingAs($this->user)->get(route('frontend.clients'));
 
@@ -141,7 +143,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test index requires authentication
      */
-    public function test_index_requires_authentication()
+    #[Test]
+    public function index_requires_authentication()
     {
         $response = $this->get(route('frontend.clients'));
 
@@ -151,7 +154,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test create returns correct view with data
      */
-    public function test_create_returns_correct_view_with_data()
+    #[Test]
+    public function create_returns_correct_view_with_data()
     {
         $response = $this->actingAs($this->user)->get(route('frontend.client.create'));
 
@@ -168,7 +172,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test create requires authentication
      */
-    public function test_create_requires_authentication()
+    #[Test]
+    public function create_requires_authentication()
     {
         $response = $this->get(route('frontend.client.create'));
 
@@ -178,7 +183,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test store creates client successfully
      */
-    public function test_store_creates_client_successfully()
+    #[Test]
+    public function store_creates_client_successfully()
     {
         $response = $this->actingAs($this->user)
             ->post(route('frontend.client.store'), $this->validClientData);
@@ -196,7 +202,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test store requires authentication
      */
-    public function test_store_requires_authentication()
+    #[Test]
+    public function store_requires_authentication()
     {
         $response = $this->post(route('frontend.client.store'), $this->validClientData);
 
@@ -207,7 +214,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test store fails with invalid data
      */
-    public function test_store_fails_with_invalid_data()
+    #[Test]
+    public function store_fails_with_invalid_data()
     {
         $invalidData = $this->validClientData;
         unset($invalidData['name']); // Remove required field
@@ -221,7 +229,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test store handles exceptions gracefully
      */
-    public function test_store_handles_exceptions_gracefully()
+    #[Test]
+    public function store_handles_exceptions_gracefully()
     {
         // Mock the ClientRepository to throw an exception
         $this->mock(ClientRepository::class, function ($mock) {
@@ -238,7 +247,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test show displays client details
      */
-    public function test_show_displays_client_details()
+    #[Test]
+    public function show_displays_client_details()
     {
         $client = Client::factory()->create([
             'name' => 'Test Client',
@@ -257,7 +267,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test show requires authentication
      */
-    public function test_show_requires_authentication()
+    #[Test]
+    public function show_requires_authentication()
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -271,7 +282,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test show prevents access to other users' clients
      */
-    public function test_show_prevents_access_to_other_users_clients()
+    #[Test]
+    public function show_prevents_access_to_other_users_clients()
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
@@ -291,7 +303,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test show handles non-numeric IDs
      */
-    public function test_show_handles_non_numeric_ids()
+    #[Test]
+    public function show_handles_non_numeric_ids()
     {
         $response = $this->actingAs($this->user)
             ->get('/client/invalid-id');
@@ -304,7 +317,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test show ignores static file requests
      */
-    public function test_show_ignores_static_file_requests()
+    #[Test]
+    public function show_ignores_static_file_requests()
     {
         $response = $this->actingAs($this->user)
             ->get('/client/test.js');
@@ -316,7 +330,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test show displays client with invoices
      */
-    public function test_show_displays_client_with_invoices()
+    #[Test]
+    public function show_displays_client_with_invoices()
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -341,7 +356,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test edit returns correct view with client data
      */
-    public function test_edit_returns_correct_view_with_client_data()
+    #[Test]
+    public function edit_returns_correct_view_with_client_data()
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -359,7 +375,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test edit requires authentication
      */
-    public function test_edit_requires_authentication()
+    #[Test]
+    public function edit_requires_authentication()
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -373,7 +390,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test edit prevents access to other users' clients
      */
-    public function test_edit_prevents_access_to_other_users_clients()
+    #[Test]
+    public function edit_prevents_access_to_other_users_clients()
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
@@ -393,7 +411,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test update updates client successfully
      */
-    public function test_update_updates_client_successfully()
+    #[Test]
+    public function update_updates_client_successfully()
     {
         $client = Client::factory()->create([
             'name' => 'Old Name',
@@ -419,7 +438,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test update requires authentication
      */
-    public function test_update_requires_authentication()
+    #[Test]
+    public function update_requires_authentication()
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -433,7 +453,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test update prevents updating other users' clients
      */
-    public function test_update_prevents_updating_other_users_clients()
+    #[Test]
+    public function update_prevents_updating_other_users_clients()
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
@@ -453,7 +474,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test update handles validation errors
      */
-    public function test_update_handles_validation_errors()
+    #[Test]
+    public function update_handles_validation_errors()
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -471,7 +493,8 @@ class ClientControllerTest extends TestCase
     /**
      * Test destroy deletes client without invoices
      */
-    public function test_destroy_deletes_client_without_invoices()
+    #[Test]
+    public function destroy_deletes_client_without_invoices()
     {
         $this->actingAs($this->user);
 
@@ -490,7 +513,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_destroy_requires_authentication()
+    #[Test]
+    public function destroy_requires_authentication()
     {
         $client = Client::factory()->create();
 
@@ -506,7 +530,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_destroy_prevents_deleting_other_users_clients()
+    #[Test]
+    public function destroy_prevents_deleting_other_users_clients()
     {
         $this->actingAs($this->user);
 
@@ -526,7 +551,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_destroy_prevents_deleting_client_with_invoices()
+    #[Test]
+    public function destroy_prevents_deleting_client_with_invoices()
     {
         $this->actingAs($this->user);
 
@@ -552,7 +578,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_set_default_sets_client_as_default()
+    #[Test]
+    public function set_default_sets_client_as_default()
     {
         $this->actingAs($this->user);
 
@@ -578,7 +605,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_set_default_requires_authentication()
+    #[Test]
+    public function set_default_requires_authentication()
     {
         $client = Client::factory()->create();
 
@@ -592,7 +620,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_set_default_prevents_setting_other_users_client_as_default()
+    #[Test]
+    public function set_default_prevents_setting_other_users_client_as_default()
     {
         $this->actingAs($this->user);
 
@@ -610,7 +639,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_controller_uses_client_form_fields_trait()
+    #[Test]
+    public function controller_uses_client_form_fields_trait()
     {
         $traits = class_uses(ClientController::class);
 
@@ -622,7 +652,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_controller_handles_locale_in_redirects()
+    #[Test]
+    public function controller_handles_locale_in_redirects()
     {
         $this->actingAs($this->user);
 
@@ -640,7 +671,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_controller_dependency_injection()
+    #[Test]
+    public function controller_dependency_injection()
     {
         $clientRepository = $this->createMock(ClientRepository::class);
         $countryService = $this->createMock(CountryService::class);
@@ -660,7 +692,8 @@ class ClientControllerTest extends TestCase
      *
      * @return void
      */
-    public function test_error_logging_on_exceptions()
+    #[Test]
+    public function error_logging_on_exceptions()
     {
         $this->actingAs($this->user);
         

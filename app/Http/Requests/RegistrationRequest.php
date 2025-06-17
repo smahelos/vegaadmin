@@ -11,7 +11,7 @@ class RegistrationRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
@@ -21,7 +21,7 @@ class RegistrationRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
@@ -31,7 +31,7 @@ class RegistrationRequest extends FormRequest
             'city' => 'required|string|max:255',
             'zip' => 'required|string|max:20',
             'country' => 'required|string|max:100',
-            'phone' => 'nullable|integer',
+            'phone' => 'nullable|string|max:50',
             'ico' => 'nullable|string|max:20',
             'dic' => 'nullable|string|max:30',
             'description' => ['nullable', 'string', 'max:1000'],
@@ -50,7 +50,7 @@ class RegistrationRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             'password.required' => __('users.validation.password_required'),

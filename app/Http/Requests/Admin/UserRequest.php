@@ -12,7 +12,7 @@ class UserRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return backpack_auth()->check();
     }
@@ -22,7 +22,7 @@ class UserRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         $id = $this->get('id') ?? $this->route('id');
         $isCreateOperation = $this->isCreateOperation();
@@ -62,7 +62,7 @@ class UserRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'name' => __('users.fields.name'),
@@ -77,7 +77,7 @@ class UserRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             'name.required' => __('users.validation.name_required'),
@@ -97,7 +97,7 @@ class UserRequest extends FormRequest
      * 
      * @return bool
      */
-    public function isCreateOperation()
+    public function isCreateOperation(): bool
     {
         return $this->method() === 'POST';
     }

@@ -11,7 +11,7 @@ class SupplierRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return backpack_auth()->check();
     }
@@ -58,7 +58,7 @@ class SupplierRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'name' => __('suppliers.fields.name'),
@@ -72,7 +72,7 @@ class SupplierRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             'name.required' => __('suppliers.validation.name_required'),

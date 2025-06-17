@@ -14,7 +14,7 @@ class ArtisanCommandCategoryRequest extends FormRequest
     public function authorize()
     {
         // only allow updates if the user is logged in
-        return backpack_auth()->check();
+        return auth()->check();
     }
 
     /**
@@ -22,10 +22,15 @@ class ArtisanCommandCategoryRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
+        $id = $this->get('id') ?? 'NULL';
+        
         return [
-            // 'name' => 'required|min:5|max:255'
+            'name' => 'required|string|min:2|max:255',
+            'slug' => 'required|string|min:2|max:255|unique:artisan_command_categories,slug,' . $id,
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -34,10 +39,13 @@ class ArtisanCommandCategoryRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
-            //
+            'name' => trans('artisan_commands.name'),
+            'slug' => trans('artisan_commands.slug'),
+            'description' => trans('artisan_commands.description'),
+            'is_active' => trans('artisan_commands.is_active'),
         ];
     }
 
@@ -46,10 +54,13 @@ class ArtisanCommandCategoryRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
-            //
+            'name.required' => trans('artisan_commands.validation.name_required'),
+            'name.min' => trans('artisan_commands.validation.name_min'),
+            'slug.required' => trans('artisan_commands.validation.slug_required'),
+            'slug.unique' => trans('artisan_commands.validation.slug_unique'),
         ];
     }
 }
