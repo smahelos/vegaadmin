@@ -19,11 +19,46 @@ class TaxFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->words(2, true);
+        
         return [
-            'name' => $this->faker->word(),
-            'rate' => $this->faker->randomFloat(2, 0, 30),
-            'created_at' => now(),
-            'updated_at' => now(),
+            'name' => $name,
+            'rate' => fake()->randomFloat(2, 0, 30),
+            'slug' => \Illuminate\Support\Str::slug($name),
         ];
+    }
+
+    /**
+     * Create a tax with zero rate.
+     */
+    public function zero(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'rate' => 0.00,
+        ]);
+    }
+
+    /**
+     * Create a tax with standard VAT rate.
+     */
+    public function standardVat(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'name' => 'Standard VAT',
+            'rate' => 21.00,
+            'slug' => 'standard-vat',
+        ]);
+    }
+
+    /**
+     * Create a tax with reduced VAT rate.
+     */
+    public function reducedVat(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'name' => 'Reduced VAT',
+            'rate' => 15.00,
+            'slug' => 'reduced-vat',
+        ]);
     }
 }

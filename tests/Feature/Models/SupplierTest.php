@@ -16,7 +16,7 @@ use Tests\TestCase;
  * Tests database relationships, business logic, and model behavior requiring database interactions
  * Tests supplier interactions with users, invoices, and default supplier functionality
  */
-class SupplierModelTest extends TestCase
+class SupplierTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 

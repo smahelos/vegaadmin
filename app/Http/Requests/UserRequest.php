@@ -27,12 +27,14 @@ class UserRequest extends FormRequest
      */
     public function rules()
     {
+        $userId = $this->user() ? $this->user()->id : null;
+        
         $rules = [
             'name' => 'required|string|max:255',
             'email' => [
                 'required',
                 'email',
-                Rule::unique('users')->ignore($this->user()->id),
+                Rule::unique('users')->ignore($userId),
             ],
         ];
         

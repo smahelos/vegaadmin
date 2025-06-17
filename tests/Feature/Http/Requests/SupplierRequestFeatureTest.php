@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class SupplierRequestFeatureTest extends TestCase
 {
@@ -88,13 +89,9 @@ class SupplierRequestFeatureTest extends TestCase
         
         return $user;
     }
-
-    /**
-     * Test validation passes with valid data.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_valid_data()
+    
+    #[Test]
+    public function validation_passes_with_valid_data()
     {
         $request = new SupplierRequest();
         $validator = Validator::make($this->validSupplierData, $request->rules(), $request->messages());
@@ -102,13 +99,9 @@ class SupplierRequestFeatureTest extends TestCase
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
     }
-
-    /**
-     * Test validation fails when required fields are missing.
-     *
-     * @return void
-     */
-    public function test_validation_fails_when_required_fields_missing()
+    
+    #[Test]
+    public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country'];
         
@@ -123,13 +116,9 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has($field), "Should have error for missing {$field}");
         }
     }
-
-    /**
-     * Test validation fails with invalid email.
-     *
-     * @return void
-     */
-    public function test_validation_fails_with_invalid_email()
+    
+    #[Test]
+    public function validation_fails_with_invalid_email()
     {
         $invalidEmails = ['not-an-email', 'invalid@', '@invalid.com', 'invalid..email@test.com'];
 
@@ -144,13 +133,9 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has('email'));
         }
     }
-
-    /**
-     * Test validation fails when string fields exceed max length.
-     *
-     * @return void
-     */
-    public function test_validation_fails_when_string_fields_exceed_max_length()
+    
+    #[Test]
+    public function validation_fails_when_string_fields_exceed_max_length()
     {
         $fieldsWithMaxLength = [
             'name' => 256,          // max:255
@@ -180,13 +165,9 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has($field));
         }
     }
-
-    /**
-     * Test validation passes with nullable fields empty.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_nullable_fields_empty()
+    
+    #[Test]
+    public function validation_passes_with_nullable_fields_empty()
     {
         // Note: bank_code and swift are conditional, not truly nullable
         $nullableFields = ['shortcut', 'ico', 'dic', 'description', 'is_default', 
@@ -210,13 +191,9 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertFalse($validator->fails(), "Validation should pass when nullable field {$field} is null");
         }
     }
-
-    /**
-     * Test validation fails with invalid boolean values.
-     *
-     * @return void
-     */
-    public function test_validation_fails_with_invalid_boolean_values()
+    
+    #[Test]
+    public function validation_fails_with_invalid_boolean_values()
     {
         $invalidBooleans = ['invalid', 'yes', 'no', 2, -1];
 
@@ -231,13 +208,9 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has('is_default'));
         }
     }
-
-    /**
-     * Test validation passes with valid boolean values.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_valid_boolean_values()
+    
+    #[Test]
+    public function validation_passes_with_valid_boolean_values()
     {
         $validBooleans = [true, false, 1, 0, '1', '0'];
 
@@ -251,13 +224,9 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertFalse($validator->fails(), "Validation should pass for valid boolean: " . json_encode($validBoolean));
         }
     }
-
-    /**
-     * Test conditional bank validation rules.
-     *
-     * @return void
-     */
-    public function test_conditional_bank_validation_rules()
+    
+    #[Test]
+    public function conditional_bank_validation_rules()
     {
         // Test bank_code is required when account_number is provided
         $data = $this->validSupplierData;
@@ -280,13 +249,9 @@ class SupplierRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('swift'));
     }
-
-    /**
-     * Test authorization with authenticated user via HTTP.
-     *
-     * @return void
-     */
-    public function test_authorization_with_authenticated_user_via_http()
+    
+    #[Test]
+    public function authorization_with_authenticated_user_via_http()
     {
         $this->actingAs($this->user);
 
@@ -295,13 +260,9 @@ class SupplierRequestFeatureTest extends TestCase
 
         $this->assertTrue($supplierRequest->authorize());
     }
-
-    /**
-     * Test authorization fails with unauthenticated user via HTTP.
-     *
-     * @return void
-     */
-    public function test_authorization_fails_with_unauthenticated_user_via_http()
+    
+    #[Test]
+    public function authorization_fails_with_unauthenticated_user_via_http()
     {
         // Don't authenticate user
         $request = Request::create('/suppliers', 'POST', $this->validSupplierData);
@@ -309,13 +270,9 @@ class SupplierRequestFeatureTest extends TestCase
 
         $this->assertFalse($supplierRequest->authorize());
     }
-
-    /**
-     * Test that custom error messages are displayed.
-     *
-     * @return void
-     */
-    public function test_custom_error_messages_are_displayed()
+    
+    #[Test]
+    public function custom_error_messages_are_displayed()
     {
         // Test data that will trigger specific required validation errors
         $data = [
@@ -367,13 +324,9 @@ class SupplierRequestFeatureTest extends TestCase
         $this->assertContains($expectedEmailMessage, $emailErrors, 
             'Custom email format message should be displayed');
     }
-
-    /**
-     * Test validation with actual HTTP request.
-     *
-     * @return void
-     */
-    public function test_validation_with_actual_http_request()
+    
+    #[Test]
+    public function validation_with_actual_http_request()
     {
         $this->actingAs($this->user);
 
@@ -384,13 +337,9 @@ class SupplierRequestFeatureTest extends TestCase
         $this->assertNotEquals(422, $response->getStatusCode(), 
             'Request should not fail with validation errors');
     }
-
-    /**
-     * Test edge cases with whitespace and special characters.
-     *
-     * @return void
-     */
-    public function test_edge_cases_with_whitespace_and_special_characters()
+    
+    #[Test]
+    public function edge_cases_with_whitespace_and_special_characters()
     {
         // Test with whitespace in name (should be valid)
         $dataWithWhitespace = $this->validSupplierData;
@@ -419,13 +368,9 @@ class SupplierRequestFeatureTest extends TestCase
         $validator = Validator::make($dataWithSpecialChars, $request->rules(), $request->messages());
         $this->assertFalse($validator->fails());
     }
-
-    /**
-     * Test maximum boundary values for length constraints.
-     *
-     * @return void
-     */
-    public function test_maximum_boundary_values_for_length_constraints()
+    
+    #[Test]
+    public function maximum_boundary_values_for_length_constraints()
     {
         $fieldsWithExactMaxLength = [
             'name' => 255,
@@ -455,13 +400,9 @@ class SupplierRequestFeatureTest extends TestCase
                 "Validation should pass when {$field} is exactly at max length ({$maxLength})");
         }
     }
-
-    /**
-     * Test bank account validation combinations.
-     *
-     * @return void
-     */
-    public function test_bank_account_validation_combinations()
+    
+    #[Test]
+    public function bank_account_validation_combinations()
     {
         // Test 1: Both account_number and bank_code provided (should pass)
         $data = $this->validSupplierData;

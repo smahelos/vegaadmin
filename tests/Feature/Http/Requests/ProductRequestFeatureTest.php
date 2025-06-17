@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ProductRequestFeatureTest extends TestCase
 {
@@ -113,13 +114,9 @@ class ProductRequestFeatureTest extends TestCase
             'name' => $this->faker->word,
         ]);
     }
-
-    /**
-     * Test validation passes with valid data.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_valid_data()
+    
+    #[Test]
+    public function validation_passes_with_valid_data()
     {
         $request = new ProductRequest();
         $validator = Validator::make($this->validProductData, $request->rules());
@@ -127,13 +124,9 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
     }
-
-    /**
-     * Test slug generation during validation preparation.
-     *
-     * @return void
-     */
-    public function test_slug_generation_during_validation_preparation()
+    
+    #[Test]
+    public function slug_generation_during_validation_preparation()
     {
         $data = $this->validProductData;
         $data['name'] = 'Test Product Name';
@@ -151,13 +144,9 @@ class ProductRequestFeatureTest extends TestCase
         // Check that slug was generated
         $this->assertEquals('test-product-name', $productRequest->input('slug'));
     }
-
-    /**
-     * Test validation fails when required fields are missing.
-     *
-     * @return void
-     */
-    public function test_validation_fails_when_required_fields_missing()
+    
+    #[Test]
+    public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'price', 'currency'];
         
@@ -172,13 +161,9 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has($field), "Should have error for missing {$field}");
         }
     }
-
-    /**
-     * Test validation fails with invalid price values.
-     *
-     * @return void
-     */
-    public function test_validation_fails_with_invalid_price_values()
+    
+    #[Test]
+    public function validation_fails_with_invalid_price_values()
     {
         $invalidPrices = ['not-a-number', -1, -0.01, 'abc'];
 
@@ -193,13 +178,9 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has('price'));
         }
     }
-
-    /**
-     * Test validation fails with invalid currency values.
-     *
-     * @return void
-     */
-    public function test_validation_fails_with_invalid_currency_values()
+    
+    #[Test]
+    public function validation_fails_with_invalid_currency_values()
     {
         $invalidCurrencies = ['GBP', 'JPY', 'invalid', '', 123];
 
@@ -214,13 +195,9 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has('currency'));
         }
     }
-
-    /**
-     * Test validation passes with valid currency values.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_valid_currency_values()
+    
+    #[Test]
+    public function validation_passes_with_valid_currency_values()
     {
         $validCurrencies = ['CZK', 'EUR', 'USD'];
 
@@ -234,13 +211,9 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertFalse($validator->fails(), "Validation should pass for valid currency: {$validCurrency}");
         }
     }
-
-    /**
-     * Test validation fails when string fields exceed max length.
-     *
-     * @return void
-     */
-    public function test_validation_fails_when_string_fields_exceed_max_length()
+    
+    #[Test]
+    public function validation_fails_when_string_fields_exceed_max_length()
     {
         $fieldsWithMaxLength = [
             'name' => 256,      // max:255
@@ -258,13 +231,9 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has($field));
         }
     }
-
-    /**
-     * Test validation fails when name is too short.
-     *
-     * @return void
-     */
-    public function test_validation_fails_when_name_is_too_short()
+    
+    #[Test]
+    public function validation_fails_when_name_is_too_short()
     {
         $data = $this->validProductData;
         $data['name'] = 'a'; // Less than min:2
@@ -275,13 +244,9 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('name'));
     }
-
-    /**
-     * Test validation passes with nullable fields empty.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_nullable_fields_empty()
+    
+    #[Test]
+    public function validation_passes_with_nullable_fields_empty()
     {
         $nullableFields = ['slug', 'tax_id', 'category_id', 'description', 'image'];
 
@@ -295,13 +260,9 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertFalse($validator->fails(), "Validation should pass when nullable field {$field} is null");
         }
     }
-
-    /**
-     * Test validation fails with invalid boolean values.
-     *
-     * @return void
-     */
-    public function test_validation_fails_with_invalid_boolean_values()
+    
+    #[Test]
+    public function validation_fails_with_invalid_boolean_values()
     {
         $invalidBooleans = ['invalid', 'yes', 'no', 2, -1];
         $booleanFields = ['is_default', 'is_active'];
@@ -319,13 +280,9 @@ class ProductRequestFeatureTest extends TestCase
             }
         }
     }
-
-    /**
-     * Test validation passes with valid boolean values.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_valid_boolean_values()
+    
+    #[Test]
+    public function validation_passes_with_valid_boolean_values()
     {
         $validBooleans = [true, false, 1, 0, '1', '0'];
         $booleanFields = ['is_default', 'is_active'];
@@ -342,13 +299,9 @@ class ProductRequestFeatureTest extends TestCase
             }
         }
     }
-
-    /**
-     * Test foreign key validation.
-     *
-     * @return void
-     */
-    public function test_foreign_key_validation()
+    
+    #[Test]
+    public function foreign_key_validation()
     {
         // Test invalid tax_id
         $data = $this->validProductData;
@@ -369,13 +322,9 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('category_id'));
     }
-
-    /**
-     * Test image upload validation.
-     *
-     * @return void
-     */
-    public function test_image_upload_validation()
+    
+    #[Test]
+    public function image_upload_validation()
     {
         Storage::fake('public');
 
@@ -407,13 +356,9 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails(), 'Validation should fail with non-image file');
         $this->assertTrue($validator->errors()->has('image'));
     }
-
-    /**
-     * Test authorization with authenticated user via HTTP.
-     *
-     * @return void
-     */
-    public function test_authorization_with_authenticated_user_via_http()
+    
+    #[Test]
+    public function authorization_with_authenticated_user_via_http()
     {
         $this->actingAs($this->user);
 
@@ -422,13 +367,9 @@ class ProductRequestFeatureTest extends TestCase
 
         $this->assertTrue($productRequest->authorize());
     }
-
-    /**
-     * Test authorization fails with unauthenticated user via HTTP.
-     *
-     * @return void
-     */
-    public function test_authorization_fails_with_unauthenticated_user_via_http()
+    
+    #[Test]
+    public function authorization_fails_with_unauthenticated_user_via_http()
     {
         // Don't authenticate user
         $request = Request::create('/products', 'POST', $this->validProductData);
@@ -436,13 +377,9 @@ class ProductRequestFeatureTest extends TestCase
 
         $this->assertFalse($productRequest->authorize());
     }
-
-    /**
-     * Test slug uniqueness validation.
-     *
-     * @return void
-     */
-    public function test_slug_uniqueness_validation()
+    
+    #[Test]
+    public function slug_uniqueness_validation()
     {
         // Create a product with a specific slug
         \App\Models\Product::factory()->create(['slug' => 'existing-slug']);
@@ -457,13 +394,9 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails(), 'Validation should fail with duplicate slug');
         $this->assertTrue($validator->errors()->has('slug'));
     }
-
-    /**
-     * Test validation with actual HTTP request.
-     *
-     * @return void
-     */
-    public function test_validation_with_actual_http_request()
+    
+    #[Test]
+    public function validation_with_actual_http_request()
     {
         $this->actingAs($this->user);
 
@@ -474,13 +407,9 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertNotEquals(422, $response->getStatusCode(), 
             'Request should not fail with validation errors');
     }
-
-    /**
-     * Test custom attributes are applied.
-     *
-     * @return void
-     */
-    public function test_custom_attributes_are_applied()
+    
+    #[Test]
+    public function custom_attributes_are_applied()
     {
         $data = []; // Empty data to trigger validation errors
 

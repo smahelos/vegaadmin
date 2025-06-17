@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for Client Model
@@ -18,7 +19,7 @@ use Tests\TestCase;
  * Tests database relationships, business logic, and model behavior requiring database interactions
  * Tests client interactions with users, invoices, and default client functionality
  */
-class ClientModelTest extends TestCase
+class ClientTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
@@ -70,12 +71,8 @@ class ClientModelTest extends TestCase
         ]);
     }
 
-    /**
-     * Test that client belongs to user relationship.
-     *
-     * @return void
-     */
-    public function test_client_belongs_to_user()
+    #[Test]
+    public function client_belongs_to_user()
     {
         $this->assertInstanceOf(User::class, $this->client->user);
         $this->assertEquals($this->user->id, $this->client->user->id);
@@ -83,12 +80,10 @@ class ClientModelTest extends TestCase
         $this->assertEquals($this->user->email, $this->client->user->email);
     }
 
-    /**
-     * Test that client can have many invoices relationship.
-     *
-     * @return void
-     */
-    public function test_client_has_many_invoices()
+    
+
+    #[Test]
+    public function client_has_many_invoices()
     {
         // Initially no invoices
         $this->assertInstanceOf(Collection::class, $this->client->invoices);
@@ -119,12 +114,8 @@ class ClientModelTest extends TestCase
         }
     }
 
-    /**
-     * Test default client behavior - setting one client as default unsets others.
-     *
-     * @return void
-     */
-    public function test_setting_client_as_default_unsets_other_defaults()
+    #[Test]
+    public function setting_client_as_default_unsets_other_defaults()
     {
         // Create multiple clients for the same user
         $client1 = Client::factory()->create([
@@ -154,12 +145,8 @@ class ClientModelTest extends TestCase
         $this->assertTrue($client2->fresh()->is_default);
     }
 
-    /**
-     * Test that default client behavior only affects clients of the same user.
-     *
-     * @return void
-     */
-    public function test_default_client_behavior_is_user_specific()
+    #[Test]
+    public function default_client_behavior_is_user_specific()
     {
         // Create another user with their own client
         $otherUser = User::factory()->create([
@@ -190,12 +177,8 @@ class ClientModelTest extends TestCase
         $this->assertTrue($thisUserClient->fresh()->is_default);
     }
 
-    /**
-     * Test multiple clients can exist for one user but only one can be default.
-     *
-     * @return void
-     */
-    public function test_only_one_client_can_be_default_per_user()
+    #[Test]
+    public function only_one_client_can_be_default_per_user()
     {
         // Create multiple clients for the user
         $clients = [];
@@ -236,12 +219,8 @@ class ClientModelTest extends TestCase
         $this->assertFalse($defaultClient->fresh()->is_default);
     }
 
-    /**
-     * Test preferred locale functionality.
-     *
-     * @return void
-     */
-    public function test_preferred_locale_method()
+    #[Test]
+    public function preferred_locale_method()
     {
         // This tests the HasPreferredLocale trait functionality
         $locale = $this->client->preferredLocale();
@@ -253,12 +232,8 @@ class ClientModelTest extends TestCase
         $this->assertMatchesRegularExpression('/^[a-z]{2}(_[A-Z]{2})?$/', $locale);
     }
 
-    /**
-     * Test that client deletion behavior with related invoices.
-     *
-     * @return void
-     */
-    public function test_client_deletion_behavior_with_invoices()
+    #[Test]
+    public function client_deletion_behavior_with_invoices()
     {
         // Create invoices for the client
         $invoice1 = Invoice::factory()->create([
@@ -291,14 +266,10 @@ class ClientModelTest extends TestCase
         if ($remainingInvoice2) {
             $this->assertNull($remainingInvoice2->client_id);
         }
-    }
+    }    
 
-    /**
-     * Test client creation with all attributes.
-     *
-     * @return void
-     */
-    public function test_client_creation_with_full_data()
+    #[Test]
+    public function client_creation_with_full_data()
     {
         $clientData = [
             'user_id' => $this->user->id,
@@ -324,12 +295,8 @@ class ClientModelTest extends TestCase
         $this->assertEquals($this->user->id, $client->user_id);
     }
 
-    /**
-     * Test that client updates work correctly.
-     *
-     * @return void
-     */
-    public function test_client_update()
+    #[Test]
+    public function client_update()
     {
         $originalName = $this->client->name;
         $newName = $this->faker->company;

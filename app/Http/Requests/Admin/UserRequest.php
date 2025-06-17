@@ -97,7 +97,7 @@ class UserRequest extends FormRequest
      * 
      * @return bool
      */
-    protected function isCreateOperation()
+    public function isCreateOperation()
     {
         return $this->method() === 'POST';
     }

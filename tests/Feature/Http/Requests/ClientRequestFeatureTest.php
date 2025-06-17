@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for ClientRequest
@@ -83,12 +84,8 @@ class ClientRequestFeatureTest extends TestCase
         ];
     }
 
-    /**
-     * Test validation passes with valid data.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_valid_data()
+    #[Test]
+    public function validation_passes_with_valid_data()
     {
         $request = new ClientRequest();
         $validator = Validator::make($this->validClientData, $request->rules(), $request->messages());
@@ -97,12 +94,8 @@ class ClientRequestFeatureTest extends TestCase
         $this->assertEmpty($validator->errors()->all());
     }
 
-    /**
-     * Test validation fails when required fields are missing.
-     *
-     * @return void
-     */
-    public function test_validation_fails_when_required_fields_missing()
+    #[Test]
+    public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country'];
         
@@ -119,12 +112,8 @@ class ClientRequestFeatureTest extends TestCase
         }
     }
 
-    /**
-     * Test validation fails with invalid email format.
-     *
-     * @return void
-     */
-    public function test_validation_fails_with_invalid_email()
+    #[Test]
+    public function validation_fails_with_invalid_email()
     {
         $invalidEmails = ['invalid-email', 'test@', '@example.com', 'test.example.com'];
         
@@ -140,12 +129,8 @@ class ClientRequestFeatureTest extends TestCase
         }
     }
 
-    /**
-     * Test validation fails when string fields exceed maximum length.
-     *
-     * @return void
-     */
-    public function test_validation_fails_when_string_fields_exceed_max_length()
+    #[Test]
+    public function validation_fails_when_string_fields_exceed_max_length()
     {
         $fieldsWithMaxLength = [
             'name' => 255,
@@ -172,12 +157,8 @@ class ClientRequestFeatureTest extends TestCase
         }
     }
 
-    /**
-     * Test validation passes with nullable fields empty.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_nullable_fields_empty()
+    #[Test]
+    public function validation_passes_with_nullable_fields_empty()
     {
         $nullableFields = ['shortcut', 'ico', 'dic', 'description', 'is_default'];
         
@@ -193,12 +174,8 @@ class ClientRequestFeatureTest extends TestCase
         }
     }
 
-    /**
-     * Test validation fails with invalid boolean values for is_default.
-     *
-     * @return void
-     */
-    public function test_validation_fails_with_invalid_boolean_values()
+    #[Test]
+    public function validation_fails_with_invalid_boolean_values()
     {
         $invalidBooleanValues = ['invalid', 'yes', 'no', 2, -1, 'true_string'];
         
@@ -215,12 +192,8 @@ class ClientRequestFeatureTest extends TestCase
         }
     }
 
-    /**
-     * Test validation passes with valid boolean values for is_default.
-     *
-     * @return void
-     */
-    public function test_validation_passes_with_valid_boolean_values()
+    #[Test]
+    public function validation_passes_with_valid_boolean_values()
     {
         $validBooleanValues = [true, false, 1, 0, '1', '0'];
         
@@ -236,12 +209,8 @@ class ClientRequestFeatureTest extends TestCase
         }
     }
 
-    /**
-     * Test authorization with authenticated user via HTTP request.
-     *
-     * @return void
-     */
-    public function test_authorization_with_authenticated_user_via_http()
+    #[Test]
+    public function authorization_with_authenticated_user_via_http()
     {
         $response = $this->actingAs($this->user)
             ->post(route('frontend.client.store'), $this->validClientData);
@@ -253,12 +222,8 @@ class ClientRequestFeatureTest extends TestCase
         $this->assertTrue(in_array($response->getStatusCode(), [200, 201, 302]));
     }
 
-    /**
-     * Test authorization fails with unauthenticated user via HTTP request.
-     *
-     * @return void
-     */
-    public function test_authorization_fails_with_unauthenticated_user_via_http()
+    #[Test]
+    public function authorization_fails_with_unauthenticated_user_via_http()
     {
         $response = $this->post(route('frontend.client.store'), $this->validClientData);
 
@@ -266,12 +231,8 @@ class ClientRequestFeatureTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /**
-     * Test custom error messages are displayed in validation.
-     *
-     * @return void
-     */
-    public function test_custom_error_messages_are_displayed()
+    #[Test]
+    public function custom_error_messages_are_displayed()
     {
         $requiredFieldsWithMessages = [
             'name' => 'clients.validation.name_required',
@@ -303,12 +264,8 @@ class ClientRequestFeatureTest extends TestCase
         }
     }
 
-    /**
-     * Test validation with actual HTTP request and form data.
-     *
-     * @return void
-     */
-    public function test_validation_with_actual_http_request()
+    #[Test]
+    public function validation_with_actual_http_request()
     {
         // Test with valid data
         $response = $this->actingAs($this->user)
@@ -328,12 +285,8 @@ class ClientRequestFeatureTest extends TestCase
         $response->assertSessionHasErrors(['email', 'name']);
     }
 
-    /**
-     * Test edge cases with whitespace and special characters.
-     *
-     * @return void
-     */
-    public function test_edge_cases_with_whitespace_and_special_characters()
+    #[Test]
+    public function edge_cases_with_whitespace_and_special_characters()
     {
         // Test with whitespace in name (should be valid)
         $dataWithWhitespace = $this->validClientData;
@@ -362,12 +315,8 @@ class ClientRequestFeatureTest extends TestCase
         $this->assertFalse($validator->fails());
     }
 
-    /**
-     * Test maximum boundary values for length constraints.
-     *
-     * @return void
-     */
-    public function test_maximum_boundary_values_for_length_constraints()
+    #[Test]
+    public function maximum_boundary_values_for_length_constraints()
     {
         $fieldsWithExactMaxLength = [
             'name' => str_repeat('a', 255),
