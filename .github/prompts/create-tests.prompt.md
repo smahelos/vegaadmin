@@ -259,13 +259,13 @@ use Tests\TestCase;
 
 class ExampleModelTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker; // REQUIRED: RefreshDatabase for all Feature tests
 
     #[Test]
     public function model_can_be_created_with_factory()
     {
         // Test real-world scenarios with full context
-        // Use RefreshDatabase trait
+        // RefreshDatabase ensures clean database state for each test
         // Create explicit test data with factories
         // Test complete workflows and integrations
     }
@@ -297,11 +297,44 @@ class ExampleModelTest extends TestCase
 ### For Services:
 - **Unit**: Test business logic with mocked dependencies
 
-## Test Data Setup
+## Test Data Setup & Factory Requirements
+
+### Factory Creation (REQUIRED)
+- **Every model MUST have a corresponding factory** in `database/factories/`
+- **Use Faker for realistic, dynamic data** to avoid unique constraint conflicts
+- **Handle unique fields properly** with sequences or unique() method
+- **Create factories before writing tests**
+
+### Test Data Best Practices
 - Use faker for realistic test data
 - Create helper methods for common setup
 - Use explicit permissions and roles
 - Avoid global seeders or hardcoded data
+- **ALL Feature tests MUST use RefreshDatabase trait**
+
+### Factory Example:
+```php
+<?php
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class ExampleModelFactory extends Factory
+{
+    public function definition(): array
+    {
+        return [
+            'name' => $this->faker->unique()->company,
+            'email' => $this->faker->unique()->safeEmail,
+            'slug' => $this->faker->unique()->slug,
+            'is_active' => $this->faker->boolean(80),
+            'user_id' => User::factory(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+    }
+}
+```
 
 ## PHPUnit Modern Syntax Requirements
 - **Use attributes instead of docblock annotations**: `#[Test]` not `/** @test */`

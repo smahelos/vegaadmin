@@ -54,8 +54,6 @@ class PaymentMethodFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'name' => 'Cash',
             'slug' => 'cash',
-            'description' => 'Payment in cash',
-            'is_active' => true,
         ]);
     }
 
@@ -67,8 +65,6 @@ class PaymentMethodFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'name' => 'Credit Card',
             'slug' => 'credit-card',
-            'description' => 'Payment by credit card',
-            'is_active' => true,
         ]);
     }
 
@@ -80,8 +76,6 @@ class PaymentMethodFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'name' => 'Bank Transfer',
             'slug' => 'bank-transfer',
-            'description' => 'Payment by bank transfer',
-            'is_active' => true,
         ]);
     }
 
@@ -93,8 +87,6 @@ class PaymentMethodFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'name' => 'PayPal',
             'slug' => 'paypal',
-            'description' => 'Payment via PayPal',
-            'is_active' => true,
         ]);
     }
 
