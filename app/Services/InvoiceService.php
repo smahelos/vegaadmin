@@ -121,7 +121,7 @@ class InvoiceService
      * @param string $token
      * @return array|null
      */
-    public function getTemporaryInvoiceByToken(string $token)
+    public function getTemporaryInvoiceByToken(string $token): ?array
     {
         return Cache::get('invoice_data_' . $token);
     }

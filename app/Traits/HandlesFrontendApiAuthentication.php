@@ -17,7 +17,7 @@ trait HandlesFrontendApiAuthentication
      *
      * @return \App\Models\User|null
      */
-    protected function getFrontendUser()
+    protected function getFrontendUser(): ?\App\Models\User
     {
         if (!Auth::guard('web')->check()) {
             Log::debug('No frontend user authenticated');
@@ -99,11 +99,11 @@ trait HandlesFrontendApiAuthentication
     /**
      * Return unauthorized response for frontend
      *
-     * @param string $message
+     * @param string|null $message
      * @param int $statusCode
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
-    protected function frontendUnauthorizedResponse(string $message = null, int $statusCode = 401)
+    protected function frontendUnauthorizedResponse(?string $message = null, int $statusCode = 401): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
         $message = $message ?: __('users.auth.unauthorized');
         

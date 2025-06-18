@@ -20,11 +20,11 @@ class ProductCategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $name = $this->faker->word();
+        $name = $this->faker->unique()->word();
         
         return [
             'name' => $name,
-            'slug' => Str::slug($name),
+            'slug' => Str::slug($name) . '-' . $this->faker->unique()->numberBetween(1000, 9999),
             'description' => $this->faker->sentence(),
             'created_at' => now(),
             'updated_at' => now(),
@@ -38,7 +38,7 @@ class ProductCategoryFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'name' => $name,
-            'slug' => Str::slug($name),
+            'slug' => Str::slug($name) . '-' . random_int(1000, 9999),
         ]);
     }
 }

@@ -6,8 +6,10 @@ trait ClientFormFields
 {
     /**
      * Get client form fields definitions
+     *
+     * @return array
      */
-    protected function getClientFields()
+    protected function getClientFields(): array
     {
         return [
             [

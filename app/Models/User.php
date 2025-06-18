@@ -8,12 +8,14 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\HasPreferredLocale;
 
 class User extends Authenticatable
 {
     use CrudTrait;
     use HasRoles;
     use HasFactory, Notifiable;
+    use HasPreferredLocale;
 
     /*
     |--------------------------------------------------------------------------
@@ -119,6 +121,14 @@ class User extends Authenticatable
     | METHODS
     |--------------------------------------------------------------------------
     */
+    
+    /**
+     * Get preferred locale of the user
+     */
+    public function preferredLocale()
+    {
+        return $this->getPreferredLocale();
+    }
     
     /**
      * Get the casts array

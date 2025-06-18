@@ -15,7 +15,7 @@ class InvoiceProductSyncService
      * @param Invoice $invoice
      * @return void
      */
-    public function syncProductsFromJson(Invoice $invoice)
+    public function syncProductsFromJson(Invoice $invoice): void
     {
         DB::beginTransaction();
         
@@ -32,7 +32,7 @@ class InvoiceProductSyncService
      * Bulk update of all invoices
      * Use with caution - might be resource intensive for large databases
      */
-    public function syncAllInvoices()
+    public function syncAllInvoices(): void
     {
         $invoices = Invoice::whereNotNull('invoice_text')->get();
         

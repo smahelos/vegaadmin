@@ -8,8 +8,10 @@ trait BankFormFields
 {
     /**
      * Get bank form fields definitions
+     *
+     * @return array
      */
-    protected function getBankFields()
+    protected function getBankFields(): array
     {
         // Get country codes from CountryService
         $countries = App::make(CountryService::class)->getCountryCodesForSelect();

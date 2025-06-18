@@ -16,7 +16,7 @@ trait CrudPermissionTrait
      *
      * @return void
      */
-    public function setAccessUsingPermissions()
+    public function setAccessUsingPermissions(): void
     {
         // Default - deny all access
         $this->crud->denyAccess($this->operations);

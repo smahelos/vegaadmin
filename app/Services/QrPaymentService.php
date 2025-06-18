@@ -14,7 +14,7 @@ class QrPaymentService
      * @param mixed $invoice Invoice object or standard class with invoice data
      * @return string|null Base64 encoded QR code image
      */
-    public function generateQrCodeBase64($invoice)
+    public function generateQrCodeBase64($invoice): ?string
     {
         try {
             // Check required data
@@ -69,7 +69,7 @@ class QrPaymentService
      * @param string $property Property name
      * @return mixed Property value or null
      */
-    private function safeGetProperty($object, $property)
+    private function safeGetProperty($object, $property): mixed
     {
         // Check object properties
         if (is_object($object)) {
