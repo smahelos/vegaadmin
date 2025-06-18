@@ -6,14 +6,14 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CronTaskRequest extends FormRequest
 {
-    public function authorize()
+    public function authorize(): bool
     {
         return backpack_auth()->check();
     }
 
-    public function rules()
+    public function rules(): array
     {
-        return [
+        $rules = [
             'name' => 'required|string|max:255',
             'base_command' => 'required|string|max:100', // Validace pro základní příkaz
             'command_params' => 'nullable|string|max:255', // Validace pro parametry
@@ -23,22 +23,30 @@ class CronTaskRequest extends FormRequest
             'day_of_month' => 'nullable|integer|between:1,31',
             'is_active' => 'boolean',
             'description' => 'nullable|string',
-            'custom_expression' => [
-                'required_if:frequency,custom',
-                function ($attribute, $value, $fail) {
-                    // Kontrola validního CRON výrazu pomocí regulárního výrazu
-                    if ($this->input('frequency') === 'custom') {
-                        $pattern = '/^(\*|([0-9]|[1-5][0-9])([\-,\/]([0-9]|[1-5][0-9]))?) (\*|([0-9]|1[0-9]|2[0-3])([\-,\/]([0-9]|1[0-9]|2[0-3]))?) (\*|([1-9]|[12][0-9]|3[01])([\-,\/]([1-9]|[12][0-9]|3[01]))?) (\*|([1-9]|1[0-2])([\-,\/]([1-9]|1[0-2]))?) (\*|([0-6])([\-,\/]([0-6]))?)$/';
-                        if (!preg_match($pattern, $value)) {
-                            $fail(__('admin.cron_tasks.validation.invalid_cron_expression'));
-                        }
+        ];
+
+        // Add conditional rule for custom_expression
+        $rules['custom_expression'] = [
+            'required_if:frequency,custom',
+            function ($attribute, $value, $fail) {
+                // Get data from current validation context
+                $allData = request()->all();
+                
+                // Check if frequency is custom
+                $frequency = $allData['frequency'] ?? $this->input('frequency');
+                if ($frequency === 'custom') {
+                    $pattern = '/^(\*|([0-9]|[1-5][0-9])([\-,\/]([0-9]|[1-5][0-9]))?) (\*|([0-9]|1[0-9]|2[0-3])([\-,\/]([0-9]|1[0-9]|2[0-3]))?) (\*|([1-9]|[12][0-9]|3[01])([\-,\/]([1-9]|[12][0-9]|3[01]))?) (\*|([1-9]|1[0-2])([\-,\/]([1-9]|1[0-2]))?) (\*|([0-6])([\-,\/]([0-6]))?)$/';
+                    if (!preg_match($pattern, $value)) {
+                        $fail(__('admin.cron_tasks.validation.invalid_cron_expression'));
                     }
                 }
-            ],
+            }
         ];
+
+        return $rules;
     }
 
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'name' => __('admin.cron_tasks.fields.name'),
@@ -54,7 +62,7 @@ class CronTaskRequest extends FormRequest
         ];
     }
 
-    public function messages()
+    public function messages(): array
     {
         return [
             'name.required' => __('validation.required', ['attribute' => __('admin.cron_tasks.fields.name')]),

@@ -3,156 +3,97 @@
 namespace Tests\Unit\Models;
 
 use App\Models\StatusCategory;
-use App\Models\Status;
-use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit tests for StatusCategory model - CRITICAL RULE: Only pure business logic, no Laravel dependencies
+ * 
+ * According to Unit Test Isolation rule, this class tests only:
+ * - Class structure and traits (without instantiation)
+ * - Static methods and pure calculations (if any)
+ * - Class constants and basic reflection
+ * 
+ * All Eloquent-dependent tests have been moved to Feature tests.
+ */
 class StatusCategoryTest extends TestCase
 {
-    private StatusCategory $model;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->model = new StatusCategory();
-    }
-
     #[Test]
-    public function model_extends_base_model()
+    public function status_category_uses_expected_traits(): void
     {
-        $this->assertInstanceOf(Model::class, $this->model);
-    }
-
-    #[Test]
-    public function model_uses_crud_trait()
-    {
-        $this->assertContains(CrudTrait::class, class_uses($this->model));
-    }
-
-    #[Test]
-    public function model_uses_has_factory_trait()
-    {
-        $this->assertContains(HasFactory::class, class_uses($this->model));
-    }
-
-    #[Test]
-    public function model_has_correct_table_name()
-    {
-        $this->assertEquals('status_categories', $this->model->getTable());
-    }
-
-    #[Test]
-    public function model_has_correct_guarded_attributes()
-    {
-        $guarded = $this->model->getGuarded();
-        $this->assertContains('id', $guarded);
-    }
-
-    #[Test]
-    public function model_uses_timestamps()
-    {
-        $this->assertTrue($this->model->usesTimestamps());
-    }
-
-    #[Test]
-    public function model_has_statuses_relationship_method()
-    {
-        $this->assertTrue(method_exists($this->model, 'statuses'));
-    }
-
-    #[Test]
-    public function statuses_relationship_returns_has_many_relation()
-    {
-        // Unit test - just check method exists and would return correct type
-        $this->assertTrue(method_exists($this->model, 'statuses'));
+        $traits = class_uses_recursive(StatusCategory::class);
         
-        // Check method signature via reflection
-        $reflection = new \ReflectionClass($this->model);
-        $method = $reflection->getMethod('statuses');
-        $this->assertTrue($method->isPublic());
+        $expectedTraits = [
+            'Illuminate\Database\Eloquent\Factories\HasFactory',
+            'Backpack\CRUD\app\Models\Traits\CrudTrait',
+        ];
+        
+        foreach ($expectedTraits as $trait) {
+            $this->assertContains($trait, $traits, "StatusCategory model should use {$trait} trait");
+        }
     }
 
     #[Test]
-    public function model_has_slug_mutator()
+    public function status_category_class_exists_and_is_instantiable(): void
     {
-        $this->assertTrue(method_exists($this->model, 'setSlugAttribute'));
+        $this->assertTrue(class_exists(StatusCategory::class));
+        
+        $reflection = new \ReflectionClass(StatusCategory::class);
+        $this->assertTrue($reflection->isInstantiable());
     }
 
     #[Test]
-    public function slug_mutator_method_is_public()
+    public function status_category_extends_correct_parent_class(): void
     {
-        $reflection = new \ReflectionClass($this->model);
-        $method = $reflection->getMethod('setSlugAttribute');
-        $this->assertTrue($method->isPublic());
+        $reflection = new \ReflectionClass(StatusCategory::class);
+        $this->assertEquals('Illuminate\Database\Eloquent\Model', $reflection->getParentClass()->getName());
     }
 
     #[Test]
-    public function slug_mutator_accepts_string_parameter()
+    public function status_category_has_expected_class_structure(): void
     {
-        $reflection = new \ReflectionClass($this->model);
+        $reflection = new \ReflectionClass(StatusCategory::class);
+        
+        $this->assertFalse($reflection->isAbstract());
+        $this->assertFalse($reflection->isInterface());
+        $this->assertTrue($reflection->isInstantiable());
+        $this->assertEquals('App\Models', $reflection->getNamespaceName());
+    }
+
+    #[Test]
+    public function status_category_has_class_constants(): void
+    {
+        $reflection = new \ReflectionClass(StatusCategory::class);
+        $constants = $reflection->getConstants();
+        
+        $this->assertIsArray($constants);
+    }
+
+    #[Test]
+    public function status_category_has_expected_public_methods(): void
+    {
+        $reflection = new \ReflectionClass(StatusCategory::class);
+        
+        // Check that key methods exist without instantiation
+        $this->assertTrue($reflection->hasMethod('statuses'));
+        $this->assertTrue($reflection->hasMethod('setSlugAttribute'));
+        
+        // Check method visibility
+        $statusesMethod = $reflection->getMethod('statuses');
+        $this->assertTrue($statusesMethod->isPublic());
+        
+        $slugMethod = $reflection->getMethod('setSlugAttribute');
+        $this->assertTrue($slugMethod->isPublic());
+    }
+
+    #[Test]
+    public function status_category_slug_mutator_has_correct_signature(): void
+    {
+        $reflection = new \ReflectionClass(StatusCategory::class);
         $method = $reflection->getMethod('setSlugAttribute');
         $parameters = $method->getParameters();
 
         $this->assertCount(1, $parameters);
         $this->assertEquals('value', $parameters[0]->getName());
-    }
-
-    #[Test]
-    public function model_class_namespace_is_correct()
-    {
-        $this->assertEquals('App\Models\StatusCategory', get_class($this->model));
-    }
-
-    #[Test]
-    public function model_has_expected_fillable_fields_structure()
-    {
-        // Since model uses guarded instead of fillable, check guarded
-        $guarded = $this->model->getGuarded();
-        
-        // ID should be guarded (not mass assignable)
-        $this->assertContains('id', $guarded);
-    }
-
-    #[Test]
-    public function model_relationship_foreign_key_structure()
-    {
-        // Unit test - check that the relationship method exists
-        // The actual relationship testing should be in Feature tests
-        $this->assertTrue(method_exists($this->model, 'statuses'));
-        
-        // Verify it's defined to use correct foreign key structure
-        $reflection = new \ReflectionClass($this->model);
-        $method = $reflection->getMethod('statuses');
-        $this->assertTrue($method->isPublic());
-    }
-
-    #[Test]
-    public function model_primary_key_is_default()
-    {
-        $this->assertEquals('id', $this->model->getKeyName());
-    }
-
-    #[Test]
-    public function model_connection_is_default()
-    {
-        $this->assertNull($this->model->getConnectionName());
-    }
-
-    #[Test]
-    public function model_has_factory()
-    {
-        $this->assertTrue(method_exists($this->model, 'factory'));
-    }
-
-    #[Test]
-    public function model_casts_are_defined()
-    {
-        $casts = $this->model->getCasts();
-        
-        // Should have default Laravel casts
-        $this->assertArrayHasKey('id', $casts);
     }
 }

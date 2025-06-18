@@ -3,73 +3,86 @@
 namespace Tests\Unit\Models;
 
 use App\Models\Bank;
-use App\Models\Supplier;
-use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit tests for Bank model - CRITICAL RULE: Only pure business logic, no Laravel dependencies
+ * 
+ * According to Unit Test Isolation rule, this class tests only:
+ * - Class structure and traits (without instantiation)
+ * - Static methods and pure calculations (if any)
+ * - Class constants and basic reflection
+ * 
+ * All Eloquent-dependent tests (fillable, casts, table name, guarded, relationships)
+ * have been moved to Feature tests.
+ */
 class BankTest extends TestCase
 {
     #[Test]
-    public function bank_has_correct_fillable_attributes()
+    public function bank_uses_expected_traits(): void
     {
-        $bank = new Bank();
+        // Test traits on the actual class without instantiation
+        $traits = class_uses_recursive(Bank::class);
         
-        $expected = [
-            'name', 'code', 'swift', 'country', 'active', 'description'
+        $expectedTraits = [
+            'Illuminate\Database\Eloquent\Factories\HasFactory',
+            'Backpack\CRUD\app\Models\Traits\CrudTrait',
         ];
         
-        $this->assertEquals($expected, $bank->getFillable());
+        foreach ($expectedTraits as $trait) {
+            $this->assertContains($trait, $traits, "Bank model should use {$trait} trait");
+        }
     }
 
     #[Test]
-    public function bank_has_correct_guarded_attributes()
+    public function bank_class_exists_and_is_instantiable(): void
     {
-        $bank = new Bank();
+        $this->assertTrue(class_exists(Bank::class));
         
-        // With fillable defined, guarded should be ['*'] by default
-        $this->assertEquals(['*'], $bank->getGuarded());
+        $reflection = new \ReflectionClass(Bank::class);
+        $this->assertTrue($reflection->isInstantiable());
     }
 
     #[Test]
-    public function bank_has_correct_table_name()
+    public function bank_extends_correct_parent_class(): void
     {
-        $bank = new Bank();
-        
-        $this->assertEquals('banks', $bank->getTable());
+        $reflection = new \ReflectionClass(Bank::class);
+        $this->assertEquals('Illuminate\Database\Eloquent\Model', $reflection->getParentClass()->getName());
     }
 
     #[Test]
-    public function bank_uses_correct_traits()
+    public function bank_has_expected_class_structure(): void
     {
-        $bank = new Bank();
+        $reflection = new \ReflectionClass(Bank::class);
         
-        $this->assertContains(CrudTrait::class, class_uses($bank));
-        $this->assertContains(HasFactory::class, class_uses($bank));
+        // Test that class is not abstract or interface
+        $this->assertFalse($reflection->isAbstract());
+        $this->assertFalse($reflection->isInterface());
+        $this->assertTrue($reflection->isInstantiable());
+        
+        // Test namespace
+        $this->assertEquals('App\Models', $reflection->getNamespaceName());
     }
 
     #[Test]
-    public function bank_has_correct_casts()
+    public function bank_has_class_constants(): void
     {
-        $bank = new Bank();
+        $reflection = new \ReflectionClass(Bank::class);
+        $constants = $reflection->getConstants();
         
-        $expected = [
-            'active' => 'boolean',
-            'id' => 'int',
-        ];
-        
-        $this->assertEquals($expected, $bank->getCasts());
+        // This model doesn't define custom constants, but the test structure is here for future use
+        $this->assertIsArray($constants);
     }
 
     #[Test]
-    public function bank_reference_data_structure_is_correct()
+    public function bank_has_expected_public_methods(): void
     {
-        $bank = new Bank();
+        $reflection = new \ReflectionClass(Bank::class);
         
-        // Bank model serves as reference data for bank codes
-        $this->assertTrue(method_exists($bank, 'getFillable'));
-        $this->assertContains('code', $bank->getFillable());
-        $this->assertContains('name', $bank->getFillable());
+        // Test for essential method existence without calling them
+        $this->assertTrue($reflection->hasMethod('getFillable'));
+        $this->assertTrue($reflection->hasMethod('getCasts'));
+        $this->assertTrue($reflection->hasMethod('getTable'));
     }
 }

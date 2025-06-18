@@ -39,7 +39,7 @@ class ClientRepository
      */
     public function findById(int $id)
     {
-        return Client::find($id)
+        return Client::where('id', $id)
             ->where('user_id', Auth::id())
             ->first();
     }

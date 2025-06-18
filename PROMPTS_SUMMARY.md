@@ -6,12 +6,13 @@ Tento dokument poskytuje úplný přehled všech prompt souborů v projektu, jej
 
 ```
 .github/
-├── copilot-instructions.md         # 🤖 Automatické instrukce pro GitHub Copilot
+├── copilot-instructions.md         # 🤖 Automatické instrukce pro GitHub Copilot [ROZŠÍŘENO]
 └── prompts/
     ├── project.prompt.md           # 🏠 Hlavní prompt - importuje všechny instrukce
-    ├── create-tests.prompt.md      # 🧪 Komplexní guide pro vytváření testů
+    ├── create-tests.prompt.md      # 🧪 Komplexní guide pro vytváření testů [ROZŠÍŘENO]
     ├── test-authentication.prompt.md  # 🔐 Specializovaný guide pro autentizaci v testech
     ├── test-auth-quickref.md       # ⚡ Rychlá reference pro copy-paste
+    ├── testing-docker-quickref.md  # ⚡ Rychlá reference pro testing a docker [NOVÝ]
     ├── create-crud.prompt.md       # 📋 Workflow pro CRUD operace
     ├── code-quality.prompt.md      # 💎 Aplikace coding standards a type safety
     ├── refactor-code.prompt.md     # 🔄 Workflow pro refactoring kódu
@@ -21,12 +22,12 @@ Tento dokument poskytuje úplný přehled všech prompt souborů v projektu, jej
         ├── laravel.md              # 🅰️ Laravel 12 standardy a konvence
         ├── backpack.md             # 🎛️ Backpack 6.8 admin panel
         ├── tailwind.md             # 🎨 Tailwind CSS 4.1.3 styling
-        ├── testing.md              # 🧪 Testing standardy a best practices
+        ├── testing.md              # 🧪 Testing standardy a best practices [KOMPLETNĚ PŘEPSÁNO]
         ├── architecture.md         # 🏗️ Architektura a design patterns
         ├── api.md                  # 🌐 API development standardy
         ├── coding-standards.md     # 📝 Coding standards a konvence
         ├── deployment.md           # 🚀 Deployment a produkční prostředí
-        ├── dockerContainer.md      # 🐳 Docker container commands
+        ├── dockerContainer.md      # 🐳 Docker container commands [KOMPLETNĚ PŘEPSÁNO]
         └── databaseConnection.md   # 🗄️ Database connection settings
 ```
 
@@ -34,7 +35,7 @@ Tento dokument poskytuje úplný přehled všech prompt souborů v projektu, jej
 
 ### 🤖 Automatické instrukce
 
-#### `.github/copilot-instructions.md`
+#### `.github/copilot-instructions.md` [ROZŠÍŘENO]
 **Typ**: Automatické načítání  
 **Kdy se používá**: Automaticky při každé interakci s GitHub Copilot  
 **Není nutné explicitně načítat**: GitHub Copilot ho načte automaticky
@@ -45,8 +46,50 @@ Tento dokument poskytuje úplný přehled všech prompt souborů v projektu, jej
 - Základní testing guidelines pro Backpack admin testy
 - PHPUnit atributový styl (#[Test])
 - Coding standards (angličtina, clean code)
+- **[NOVĚ PŘIDÁNO]** Kompletní testing standardy a pravidla
+- **[NOVĚ PŘIDÁNO]** Docker container execution rules
+- **[NOVĚ PŘIDÁNO]** Modern PHPUnit testing template
+- **[NOVĚ PŘIDÁNO]** Request class testing pattern
+- **[NOVĚ PŘIDÁNO]** Permission setup guidelines
+- **[NOVĚ PŘIDÁNO]** Required return types for Request classes
+- **[AKTUALIZOVÁNO]** Unit Test Isolation - CRITICAL RULE
+
+**Klíčové nové sekce**:
+```markdown
+## Docker Container & Testing Commands
+### CRITICAL: Unit Test Execution Rules
+### Correct Test Command Examples
+#### Unit Test Isolation - CRITICAL RULE
+```
+## Modern PHPUnit Testing Standards
+### Request Test Structure (REQUIRED)
+### Required Test Coverage for Request Classes
+### Permission Setup in Tests
+### Request Class Return Types (REQUIRED)
+```
 
 **Použití**: Automatické, není potřeba volat
+
+#### `.github/TESTING_INSTRUCTIONS.md` [AKTUALIZOVÁNO]
+**Typ**: Dokumentační soubor  
+**Co obsahuje**:
+- **[AKTUALIZOVÁNO]** Kompletní přehled dokončené modernizace všech Request testů
+- **[NOVĚ PŘIDÁNO]** Statistiky: 266 testů s 685 assertions - všechny procházejí
+- **[NOVĚ PŘIDÁNO]** Seznam všech modernizovaných admin Request testů
+- **[NOVĚ PŘIDÁNO]** Testing strategy a best practices
+- Instrukce pro spouštění testů v docker containeru
+
+**Nový obsah**:
+```markdown
+### Request Tests Status (COMPLETED)
+All frontend and admin Request tests have been modernized and are passing:
+
+#### Admin Request Tests ✅
+- **Total: 266 tests with 685 assertions - ALL PASSING**
+- All tests modernized with `#[Test]` attributes
+- All tests include comprehensive business logic testing
+- All tests validate return types using ReflectionClass
+```
 
 ---
 
@@ -74,7 +117,7 @@ Potřebuji vytvořit nový model Client s validací a admin CRUD
 
 ### 🧪 Specialized workflow prompts
 
-#### `@create-tests.prompt.md` - Vytváření Testů
+#### `@create-tests.prompt.md` - Vytváření Testů [ROZŠÍŘENO]
 **Typ**: Specialized workflow prompt  
 **Kdy použít**: Při vytváření nebo úpravě testů
 
@@ -84,6 +127,21 @@ Potřebuji vytvořit nový model Client s validací a admin CRUD
 - Obsahuje best practices pro testování
 - Pokrývá PHPUnit atributový styl
 - Code quality first approach
+- **[NOVĚ PŘIDÁNO]** Kompletní Docker container execution rules
+- **[NOVĚ PŘIDÁNO]** Modern PHPUnit testing standards
+- **[NOVĚ PŘIDÁNO]** Required Request class unit test template
+- **[NOVĚ PŘIDÁNO]** Kritická pravidla pro testing
+- **[AKTUALIZOVÁNO]** Unit Test Isolation - CRITICAL Rule
+
+**Nové sekce**:
+```markdown
+## 🚨 CRITICAL: Docker Container & Testing Rules
+### Docker Container Execution
+### Testing Commands - NEVER Use Verbose Options
+### Correct Test Execution Examples
+### CRITICAL: Unit Test Isolation Rule
+## Request Class Unit Test Template (REQUIRED)
+```
 
 **Jak načítat**:
 ```
@@ -95,6 +153,24 @@ Vytvořit kompletní testy pro ProductRequest včetně Unit a Feature testů
 ```
 @project.prompt.md @create-tests.prompt.md
 Vytvořit nový UserService s testy
+```
+
+#### `testing-docker-quickref.md` - Rychlá Reference pro Testing a Docker [NOVÝ]
+**Typ**: Reference file (není prompt)  
+**Kdy použít**: Pro rychlé copy-paste řešení testing a docker problémů
+
+**Co obsahuje**:
+- **[NOVÉ]** Kritická pravidla pro docker a testing
+- **[NOVÉ]** Modern PHPUnit syntax reference
+- **[NOVÉ]** Request test structure checklist
+- **[NOVÉ]** Permission setup templates
+- **[NOVÉ]** Required return types reference
+- **[NOVÉ]** Correct/wrong command examples
+
+**Jak použít**:
+```
+#file:.github/prompts/testing-docker-quickref.md
+Potřebuji rychle opravit testing setup
 ```
 
 #### `@test-authentication.prompt.md` - Autentizace v testech
@@ -227,13 +303,35 @@ Potřebuji Laravel-specific řešení
 - Integration s Backpack
 - Responsive design patterns
 
-#### `instructions/testing.md` - Testing Standards
+#### `instructions/testing.md` - Testing Standards [KOMPLETNĚ PŘEPSÁNO]
 **Co obsahuje**:
-- Unit vs Feature test guidelines
-- Test organization struktura
-- Database testing s RefreshDatabase
-- Permissions testing patterns
-- PHPUnit modern features
+- **[NOVĚ PŘIDÁNO]** 🚨 CRITICAL: Docker Container Execution Rules
+- **[NOVĚ PŘIDÁNO]** NEVER Use Verbose Options (-v, --verbose)
+- **[NOVĚ PŘIDÁNO]** Docker Container Commands - vždy vegaadmin-app
+- **[NOVĚ PŘIDÁNO]** Modern PHPUnit Testing Standards (REQUIRED)
+- **[NOVĚ PŘIDÁNO]** Request Class Testing Pattern (REQUIRED TEMPLATE)
+- **[NOVĚ PŘIDÁNO]** Required Test Coverage for Request Classes
+- **[NOVĚ PŘIDÁNO]** Permission Setup in Tests
+- **[AKTUALIZOVÁNO]** Unit Test Isolation - CRITICAL RULE
+- **[AKTUALIZOVÁNO]** Unit vs Feature test guidelines
+- **[AKTUALIZOVÁNO]** Test organization struktura
+- **[AKTUALIZOVÁNO]** Database testing s RefreshDatabase
+- **[AKTUALIZOVÁNO]** Permissions testing patterns
+- **[AKTUALIZOVÁNO]** PHPUnit modern features
+
+**Klíčové nové sekce**:
+```markdown
+## 🚨 CRITICAL: Docker Container Execution Rules
+### NEVER Use Verbose Options
+### Docker Container Commands
+### Correct Test Command Examples
+### Unit Test Isolation - CRITICAL RULE
+## Modern PHPUnit Testing Standards (REQUIRED)
+### Request Class Testing Pattern (REQUIRED TEMPLATE)
+### Required Test Coverage for Request Classes
+### Permission Setup in Tests
+### Request Class Return Types (REQUIRED)
+```
 
 ### Development & Architecture Instructions
 
@@ -267,11 +365,29 @@ Potřebuji Laravel-specific řešení
 - Performance optimization
 - Security measures
 
-#### `instructions/dockerContainer.md` - Docker Commands
+#### `instructions/dockerContainer.md` - Docker Commands [KOMPLETNĚ PŘEPSÁNO]
 **Co obsahuje**:
-- Artisan commands přes Docker
-- Container-specific instructions
-- Proper command formatting
+- **[NOVĚ PŘIDÁNO]** 🚨 CRITICAL: Container Execution Rules
+- **[NOVĚ PŘIDÁNO]** All Artisan Commands Must Use Docker Container
+- **[NOVĚ PŘIDÁNO]** Testing Commands - NEVER Use Verbose Options
+- **[NOVĚ PŘIDÁNO]** ✅ Correct Command Examples
+- **[NOVĚ PŘIDÁNO]** ❌ Wrong Commands - Will Cause Errors
+- **[NOVĚ PŘIDÁNO]** Container Information (vegaladmin-app)
+- **[NOVĚ PŘIDÁNO]** Best Practices a Common Debugging Steps
+- **[AKTUALIZOVÁNO]** Artisan commands přes Docker
+- **[AKTUALIZOVÁNO]** Container-specific instructions
+- **[AKTUALIZOVÁNO]** Proper command formatting
+
+**Klíčové nové sekce**:
+```markdown
+## 🚨 CRITICAL: Container Execution Rules
+### All Artisan Commands Must Use Docker Container
+### Testing Commands - NEVER Use Verbose Options
+### ✅ Correct Command Examples
+### ❌ Wrong Commands - Will Cause Errors
+### Container Information
+### Best Practices
+```
 
 #### `instructions/databaseConnection.md` - Database Setup
 **Co obsahuje**:

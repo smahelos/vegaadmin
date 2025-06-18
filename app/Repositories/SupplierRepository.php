@@ -39,7 +39,7 @@ class SupplierRepository
      */
     public function findById(int $id)
     {
-        return Supplier::find($id)
+        return Supplier::where('id', $id)
             ->where('user_id', Auth::id())
             ->first();
     }

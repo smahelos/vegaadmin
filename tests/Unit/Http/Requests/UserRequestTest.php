@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Http\Requests;
 
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\Admin\UserRequest;
 use Illuminate\Foundation\Http\FormRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -24,83 +24,85 @@ class UserRequestTest extends TestCase
     }
 
     #[Test]
-    public function validation_rules_are_correctly_defined(): void
+    public function authorize_method_has_correct_return_type(): void
     {
-        // Unit test - just check that rules method exists
-        $this->assertTrue(method_exists($this->request, 'rules'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('authorize');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('bool', $returnType->getName());
     }
 
     #[Test]
-    public function required_fields_have_required_rule(): void
+    public function rules_method_has_correct_return_type(): void
     {
-        // Unit test - just check that rules method exists
-        $this->assertTrue(method_exists($this->request, 'rules'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('rules');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
     }
 
     #[Test]
-    public function name_field_has_string_rule(): void
+    public function attributes_method_has_correct_return_type(): void
     {
-        // Unit test - just check method existence
-        $this->assertTrue(method_exists($this->request, 'rules'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('attributes');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
     }
 
     #[Test]
-    public function name_field_has_max_length_validation(): void
+    public function messages_method_has_correct_return_type(): void
     {
-        // Unit test - just check method existence
-        $this->assertTrue(method_exists($this->request, 'rules'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('messages');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
     }
 
     #[Test]
-    public function email_field_has_email_rule(): void
+    public function is_create_operation_method_has_correct_return_type(): void
     {
-        // Unit test - just check method existence
-        $this->assertTrue(method_exists($this->request, 'rules'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('isCreateOperation');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('bool', $returnType->getName());
     }
 
     #[Test]
-    public function email_field_has_unique_validation(): void
+    public function has_required_methods(): void
     {
-        // Unit test - just check method existence
-        $this->assertTrue(method_exists($this->request, 'rules'));
+        $requiredMethods = [
+            'authorize',
+            'rules',
+            'attributes',
+            'messages',
+            'isCreateOperation'
+        ];
+
+        foreach ($requiredMethods as $method) {
+            $this->assertTrue(
+                method_exists($this->request, $method),
+                "Method {$method} does not exist in UserRequest class"
+            );
+        }
     }
 
     #[Test]
-    public function custom_attributes_method_exists(): void
+    public function is_create_operation_method_is_public(): void
     {
-        $this->assertTrue(method_exists($this->request, 'attributes'));
-    }
-
-    #[Test]
-    public function custom_error_messages_method_exists(): void
-    {
-        $this->assertTrue(method_exists($this->request, 'messages'));
-    }
-
-    #[Test]
-    public function authorize_method_exists(): void
-    {
-        $this->assertTrue(method_exists($this->request, 'authorize'));
-    }
-
-    #[Test]
-    public function attributes_method_returns_array(): void
-    {
-        // Unit test - just check that method exists and returns array structure
-        $this->assertTrue(method_exists($this->request, 'attributes'));
-    }
-
-    #[Test]
-    public function messages_method_returns_array(): void
-    {
-        // Unit test - just check that method exists and returns array structure  
-        $this->assertTrue(method_exists($this->request, 'messages'));
-    }
-
-    #[Test]
-    public function frontend_request_has_minimal_fields(): void
-    {
-        // Unit test - just check that this is frontend request class
-        $this->assertInstanceOf(UserRequest::class, $this->request);
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('isCreateOperation');
+        
+        $this->assertTrue($method->isPublic());
     }
 }

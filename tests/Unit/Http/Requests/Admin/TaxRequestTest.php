@@ -6,19 +6,15 @@ use App\Http\Requests\Admin\TaxRequest;
 use Illuminate\Foundation\Http\FormRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionMethod;
 
 class TaxRequestTest extends TestCase
 {
     private TaxRequest $request;
-    private ReflectionClass $reflection;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->request = new TaxRequest();
-        $this->reflection = new ReflectionClass($this->request);
     }
 
     #[Test]
@@ -28,82 +24,82 @@ class TaxRequestTest extends TestCase
     }
 
     #[Test]
-    public function has_rules_method(): void
+    public function authorize_method_has_correct_return_type(): void
     {
-        $this->assertTrue($this->reflection->hasMethod('rules'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('authorize');
+        $returnType = $method->getReturnType();
         
-        $rulesMethod = $this->reflection->getMethod('rules');
-        $this->assertTrue($rulesMethod->isPublic());
-        $this->assertEquals('array', $rulesMethod->getReturnType()?->getName());
+        $this->assertNotNull($returnType);
+        $this->assertEquals('bool', $returnType->getName());
     }
 
     #[Test]
-    public function has_authorize_method(): void
+    public function rules_method_has_correct_return_type(): void
     {
-        $this->assertTrue($this->reflection->hasMethod('authorize'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('rules');
+        $returnType = $method->getReturnType();
         
-        $authorizeMethod = $this->reflection->getMethod('authorize');
-        $this->assertTrue($authorizeMethod->isPublic());
-        $this->assertEquals('bool', $authorizeMethod->getReturnType()?->getName());
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
     }
 
     #[Test]
-    public function has_attributes_method(): void
+    public function attributes_method_has_correct_return_type(): void
     {
-        $this->assertTrue($this->reflection->hasMethod('attributes'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('attributes');
+        $returnType = $method->getReturnType();
         
-        $attributesMethod = $this->reflection->getMethod('attributes');
-        $this->assertTrue($attributesMethod->isPublic());
-        $this->assertEquals('array', $attributesMethod->getReturnType()?->getName());
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
     }
 
     #[Test]
-    public function has_messages_method(): void
+    public function messages_method_has_correct_return_type(): void
     {
-        $this->assertTrue($this->reflection->hasMethod('messages'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('messages');
+        $returnType = $method->getReturnType();
         
-        $messagesMethod = $this->reflection->getMethod('messages');
-        $this->assertTrue($messagesMethod->isPublic());
-        $this->assertEquals('array', $messagesMethod->getReturnType()?->getName());
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
     }
 
     #[Test]
-    public function rules_method_has_correct_signature(): void
+    public function authorize_method_exists_and_is_public(): void
     {
-        $rulesMethod = $this->reflection->getMethod('rules');
-        $parameters = $rulesMethod->getParameters();
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('authorize');
         
-        $this->assertCount(0, $parameters);
-        $this->assertEquals('array', $rulesMethod->getReturnType()?->getName());
+        $this->assertTrue($method->isPublic());
     }
 
     #[Test]
-    public function authorize_method_has_correct_signature(): void
+    public function rules_method_exists_and_is_public(): void
     {
-        $authorizeMethod = $this->reflection->getMethod('authorize');
-        $parameters = $authorizeMethod->getParameters();
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('rules');
         
-        $this->assertCount(0, $parameters);
-        $this->assertEquals('bool', $authorizeMethod->getReturnType()?->getName());
+        $this->assertTrue($method->isPublic());
     }
 
     #[Test]
-    public function attributes_method_has_correct_signature(): void
+    public function attributes_method_exists_and_is_public(): void
     {
-        $attributesMethod = $this->reflection->getMethod('attributes');
-        $parameters = $attributesMethod->getParameters();
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('attributes');
         
-        $this->assertCount(0, $parameters);
-        $this->assertEquals('array', $attributesMethod->getReturnType()?->getName());
+        $this->assertTrue($method->isPublic());
     }
 
     #[Test]
-    public function messages_method_has_correct_signature(): void
+    public function messages_method_exists_and_is_public(): void
     {
-        $messagesMethod = $this->reflection->getMethod('messages');
-        $parameters = $messagesMethod->getParameters();
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('messages');
         
-        $this->assertCount(0, $parameters);
-        $this->assertEquals('array', $messagesMethod->getReturnType()?->getName());
+        $this->assertTrue($method->isPublic());
     }
 }

@@ -7,6 +7,17 @@ use Illuminate\Foundation\Http\FormRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit tests for StatusRequest - CRITICAL RULE: Only pure business logic, no Laravel dependencies
+ * 
+ * According to Unit Test Isolation rule, this class tests only:
+ * - Class structure and inheritance
+ * - Method signatures and return types
+ * - Pure validation rules structure (without framework execution)
+ * 
+ * Tests that require Laravel framework (authorization with Auth facade, actual validation execution)
+ * should be moved to Feature tests.
+ */
 class StatusRequestTest extends TestCase
 {
     private StatusRequest $request;
@@ -24,64 +35,88 @@ class StatusRequestTest extends TestCase
     }
 
     #[Test]
-    public function validation_rules_method_exists(): void
+    public function authorize_method_has_correct_return_type(): void
     {
-        $this->assertTrue(method_exists($this->request, 'rules'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('authorize');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('bool', $returnType->getName());
     }
 
     #[Test]
-    public function authorize_method_exists(): void
+    public function rules_method_has_correct_return_type(): void
     {
-        $this->assertTrue(method_exists($this->request, 'authorize'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('rules');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
     }
 
     #[Test]
-    public function attributes_method_exists(): void
+    public function attributes_method_has_correct_return_type(): void
     {
-        $this->assertTrue(method_exists($this->request, 'attributes'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('attributes');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
     }
 
     #[Test]
-    public function messages_method_exists(): void
+    public function messages_method_has_correct_return_type(): void
     {
-        $this->assertTrue(method_exists($this->request, 'messages'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('messages');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
     }
 
     #[Test]
-    public function request_class_namespace_is_correct(): void
+    public function rules_method_exists_and_is_callable(): void
     {
-        $this->assertEquals('App\Http\Requests\StatusRequest', get_class($this->request));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('rules');
+        
+        $this->assertTrue($method->isPublic());
+        $this->assertCount(0, $method->getParameters());
     }
 
     #[Test]
-    public function authorize_method_has_correct_signature(): void
+    public function attributes_method_exists_and_is_callable(): void
     {
-        $reflection = new \ReflectionMethod($this->request, 'authorize');
-        $this->assertTrue($reflection->isPublic());
-        $this->assertEquals('bool', $reflection->getReturnType()?->getName());
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('attributes');
+        
+        $this->assertTrue($method->isPublic());
+        $this->assertCount(0, $method->getParameters());
     }
 
     #[Test]
-    public function rules_method_has_correct_signature(): void
+    public function messages_method_exists_and_is_callable(): void
     {
-        $reflection = new \ReflectionMethod($this->request, 'rules');
-        $this->assertTrue($reflection->isPublic());
-        $this->assertEquals('array', $reflection->getReturnType()?->getName());
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('messages');
+        
+        $this->assertTrue($method->isPublic());
+        $this->assertCount(0, $method->getParameters());
     }
 
     #[Test]
-    public function attributes_method_has_correct_signature(): void
+    public function request_has_expected_class_structure(): void
     {
-        $reflection = new \ReflectionMethod($this->request, 'attributes');
-        $this->assertTrue($reflection->isPublic());
-        $this->assertEquals('array', $reflection->getReturnType()?->getName());
-    }
-
-    #[Test]
-    public function messages_method_has_correct_signature(): void
-    {
-        $reflection = new \ReflectionMethod($this->request, 'messages');
-        $this->assertTrue($reflection->isPublic());
-        $this->assertEquals('array', $reflection->getReturnType()?->getName());
+        $reflection = new \ReflectionClass($this->request);
+        
+        $this->assertEquals('App\Http\Requests', $reflection->getNamespaceName());
+        $this->assertTrue($reflection->hasMethod('authorize'));
+        $this->assertTrue($reflection->hasMethod('rules'));
+        $this->assertTrue($reflection->hasMethod('attributes'));
+        $this->assertTrue($reflection->hasMethod('messages'));
     }
 }

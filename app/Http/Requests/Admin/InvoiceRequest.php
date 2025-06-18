@@ -11,7 +11,7 @@ class InvoiceRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return backpack_auth()->check();
     }
@@ -21,7 +21,7 @@ class InvoiceRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id', 'required_without:name'],
@@ -52,7 +52,7 @@ class InvoiceRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'client_id' => __('invoices.fields.client'),
@@ -68,7 +68,7 @@ class InvoiceRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             'supplier_id.required_without' => __('invoices.validation.supplier_required'),

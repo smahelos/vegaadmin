@@ -22,7 +22,7 @@ class ExpenseRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'expense_date' => 'required|date',
@@ -46,7 +46,7 @@ class ExpenseRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'expense_date' => trans('admin.expenses.date'),
@@ -61,6 +61,23 @@ class ExpenseRequest extends FormRequest
             'tax_amount' => trans('admin.expenses.tax_amount'),
             'status_id' => trans('admin.expenses.status'),
             'tax_included' => trans('admin.expenses.tax_included'),
+        ];
+    }
+
+    /**
+     * Get custom error messages for validation rules.
+     *
+     * @return array
+     */
+    public function messages(): array
+    {
+        return [
+            'expense_date.required' => __('admin.expenses.validation.date_required'),
+            'amount.required' => __('admin.expenses.validation.amount_required'),
+            'amount.numeric' => __('admin.expenses.validation.amount_numeric'),
+            'currency.required' => __('admin.expenses.validation.currency_required'),
+            'category_id.required' => __('admin.expenses.validation.category_required'),
+            'user_id.required' => __('admin.expenses.validation.user_required'),
         ];
     }
 }
