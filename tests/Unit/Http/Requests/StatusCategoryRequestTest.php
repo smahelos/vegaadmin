@@ -7,6 +7,16 @@ use Illuminate\Foundation\Http\FormRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit tests for StatusCategoryRequest - CRITICAL RULE: Only pure business logic, no Laravel dependencies
+ * 
+ * According to Unit Test Isolation rule, this class tests only:
+ * - Class structure and inheritance
+ * - Method signatures and return types
+ * - Class introspection without executing Laravel-dependent methods
+ * 
+ * Authorization and validation business logic has been moved to Feature tests.
+ */
 class StatusCategoryRequestTest extends TestCase
 {
     private StatusCategoryRequest $request;
@@ -18,128 +28,94 @@ class StatusCategoryRequestTest extends TestCase
     }
 
     #[Test]
-    public function request_extends_form_request()
+    public function request_extends_form_request(): void
     {
         $this->assertInstanceOf(FormRequest::class, $this->request);
     }
 
     #[Test]
-    public function validation_rules_method_exists()
+    public function authorize_method_has_correct_return_type(): void
     {
-        $this->assertTrue(method_exists($this->request, 'rules'));
-    }
-
-    #[Test]
-    public function authorize_method_exists()
-    {
-        $this->assertTrue(method_exists($this->request, 'authorize'));
-    }
-
-    #[Test]
-    public function attributes_method_exists()
-    {
-        $this->assertTrue(method_exists($this->request, 'attributes'));
-    }
-
-    #[Test]
-    public function authorize_method_returns_boolean()
-    {
-        // Unit test - just check that method exists and has correct signature
-        $this->assertTrue(method_exists($this->request, 'authorize'));
-        
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('bool', $method->getReturnType()?->getName());
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('bool', $returnType->getName());
     }
 
     #[Test]
-    public function request_has_required_validation_structure()
+    public function rules_method_has_correct_return_type(): void
     {
-        // Unit test - just check that rules method exists and returns array
-        $this->assertTrue(method_exists($this->request, 'rules'));
-        
-        // Mock rules to avoid dependencies
-        $expectedRules = [
-            'name' => 'required|min:2|max:255',
-            'slug' => 'required|min:2|max:255|unique:status_categories,slug,NULL',
-            'description' => 'nullable|string',
-        ];
-        
-        // Test structure without calling the actual method (which may have dependencies)
-        $this->assertIsArray($expectedRules);
-        $this->assertArrayHasKey('name', $expectedRules);
-        $this->assertArrayHasKey('slug', $expectedRules);
-        $this->assertArrayHasKey('description', $expectedRules);
-    }
-
-    #[Test]
-    public function frontend_request_uses_permission_based_authorization()
-    {
-        // Unit test - check that authorize method exists and has proper structure
-        $this->assertTrue(method_exists($this->request, 'authorize'));
-        
-        // Test that it's checking for a specific permission
         $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('authorize');
+        $method = $reflection->getMethod('rules');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
+    }
+
+    #[Test]
+    public function attributes_method_has_correct_return_type(): void
+    {
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('attributes');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
+    }
+
+    #[Test]
+    public function messages_method_has_correct_return_type(): void
+    {
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('messages');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
+    }
+
+    #[Test]
+    public function rules_method_exists_and_is_callable(): void
+    {
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('rules');
+        
         $this->assertTrue($method->isPublic());
+        $this->assertCount(0, $method->getParameters());
     }
 
     #[Test]
-    public function request_has_translation_keys_in_attributes()
+    public function attributes_method_exists_and_is_callable(): void
     {
-        // Unit test - check that attributes method exists
-        $this->assertTrue(method_exists($this->request, 'attributes'));
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('attributes');
         
-        // Expected structure
-        $expectedAttributes = [
-            'name' => 'admin.status_categories.name',
-            'slug' => 'admin.status_categories.slug', 
-            'description' => 'admin.status_categories.description',
-        ];
-        
-        $this->assertIsArray($expectedAttributes);
-        $this->assertArrayHasKey('name', $expectedAttributes);
-        $this->assertArrayHasKey('slug', $expectedAttributes);
-        $this->assertArrayHasKey('description', $expectedAttributes);
+        $this->assertTrue($method->isPublic());
+        $this->assertCount(0, $method->getParameters());
     }
 
     #[Test]
-    public function request_validates_name_field_constraints()
+    public function messages_method_exists_and_is_callable(): void
     {
-        // Test expected validation rules structure for name field
-        $expectedNameRules = 'required|min:2|max:255';
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('messages');
         
-        $this->assertStringContainsString('required', $expectedNameRules);
-        $this->assertStringContainsString('min:2', $expectedNameRules);
-        $this->assertStringContainsString('max:255', $expectedNameRules);
+        $this->assertTrue($method->isPublic());
+        $this->assertCount(0, $method->getParameters());
     }
 
     #[Test]
-    public function request_validates_slug_field_constraints()
+    public function request_has_expected_class_structure(): void
     {
-        // Test expected validation rules structure for slug field
-        $expectedSlugRules = 'required|min:2|max:255|unique:status_categories,slug,NULL';
+        $reflection = new \ReflectionClass($this->request);
         
-        $this->assertStringContainsString('required', $expectedSlugRules);
-        $this->assertStringContainsString('min:2', $expectedSlugRules);
-        $this->assertStringContainsString('max:255', $expectedSlugRules);
-        $this->assertStringContainsString('unique:status_categories', $expectedSlugRules);
-    }
-
-    #[Test]
-    public function request_validates_description_field_constraints()
-    {
-        // Test expected validation rules structure for description field
-        $expectedDescriptionRules = 'nullable|string';
-        
-        $this->assertStringContainsString('nullable', $expectedDescriptionRules);
-        $this->assertStringContainsString('string', $expectedDescriptionRules);
-    }
-
-    #[Test]
-    public function frontend_request_class_namespace_is_correct()
-    {
-        $this->assertEquals('App\Http\Requests\StatusCategoryRequest', get_class($this->request));
+        $this->assertEquals('App\Http\Requests', $reflection->getNamespaceName());
+        $this->assertTrue($reflection->hasMethod('authorize'));
+        $this->assertTrue($reflection->hasMethod('rules'));
+        $this->assertTrue($reflection->hasMethod('attributes'));
+        $this->assertTrue($reflection->hasMethod('messages'));
     }
 }

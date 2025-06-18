@@ -46,4 +46,20 @@ class StatusCategoryRequest extends FormRequest
             'description' => trans('admin.status_categories.description'),
         ];
     }
+
+    /**
+     * Get custom error messages for validation rules.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => trans('admin.validation.required', ['field' => trans('admin.status_categories.name')]),
+            'name.min' => trans('admin.validation.min', ['field' => trans('admin.status_categories.name'), 'min' => 2]),
+            'name.max' => trans('admin.validation.max', ['field' => trans('admin.status_categories.name'), 'max' => 255]),
+            'slug.required' => trans('admin.validation.required', ['field' => trans('admin.status_categories.slug')]),
+            'slug.min' => trans('admin.validation.min', ['field' => trans('admin.status_categories.slug'), 'min' => 2]),
+            'slug.max' => trans('admin.validation.max', ['field' => trans('admin.status_categories.slug'), 'max' => 255]),
+            'slug.unique' => trans('admin.validation.unique', ['field' => trans('admin.status_categories.slug')]),
+        ];
+    }
 }

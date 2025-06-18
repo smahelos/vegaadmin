@@ -11,7 +11,7 @@ class TaxRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true; // Zde můžete přidat logiku pro autorizaci uživatele
     }
@@ -21,7 +21,7 @@ class TaxRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             // 'name' => 'required|min:5|max:255'
@@ -33,7 +33,7 @@ class TaxRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             //
@@ -45,7 +45,7 @@ class TaxRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             //

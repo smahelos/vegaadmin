@@ -6,110 +6,83 @@ use App\Models\Tax;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit tests for Tax model - CRITICAL RULE: Only pure business logic, no Laravel dependencies
+ * 
+ * According to Unit Test Isolation rule, this class tests only:
+ * - Class structure and traits (without instantiation)
+ * - Static methods and pure calculations (if any)
+ * - Class constants and basic reflection
+ * 
+ * All Eloquent-dependent tests (table name, guarded, accessors, model behavior)
+ * have been moved to Feature tests.
+ */
 class TaxTest extends TestCase
 {
-    private Tax $tax;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->tax = new Tax();
-    }
-
     #[Test]
-    public function model_has_correct_table_name(): void
+    public function tax_uses_expected_traits(): void
     {
-        $this->assertEquals('taxes', $this->tax->getTable());
-    }
-
-    #[Test]
-    public function model_has_correct_guarded_attributes(): void
-    {
-        $this->assertContains('id', $this->tax->getGuarded());
-    }
-
-    #[Test]
-    public function model_uses_correct_traits(): void
-    {
-        $traits = class_uses($this->tax);
+        // Test traits on the actual class without instantiation
+        $traits = class_uses_recursive(Tax::class);
         
-        $this->assertContains(\Backpack\CRUD\app\Models\Traits\CrudTrait::class, $traits);
-        $this->assertContains(\Illuminate\Database\Eloquent\Factories\HasFactory::class, $traits);
-    }
-
-    #[Test]
-    public function rate_formatted_accessor_method_exists(): void
-    {
-        $this->assertTrue(method_exists($this->tax, 'getRateFormattedAttribute'));
-    }
-
-    #[Test]
-    public function rate_formatted_accessor_formats_correctly(): void
-    {
-        $this->tax->setRawAttributes(['rate' => 21.5]);
+        $expectedTraits = [
+            'Illuminate\Database\Eloquent\Factories\HasFactory',
+            'Backpack\CRUD\app\Models\Traits\CrudTrait',
+        ];
         
-        $formatted = $this->tax->rate_formatted;
+        foreach ($expectedTraits as $trait) {
+            $this->assertContains($trait, $traits, "Tax model should use {$trait} trait");
+        }
+    }
+
+    #[Test]
+    public function tax_class_exists_and_is_instantiable(): void
+    {
+        $this->assertTrue(class_exists(Tax::class));
         
-        $this->assertEquals('21.50%', $formatted);
+        $reflection = new \ReflectionClass(Tax::class);
+        $this->assertTrue($reflection->isInstantiable());
     }
 
     #[Test]
-    public function rate_formatted_accessor_handles_zero_rate(): void
+    public function tax_extends_correct_parent_class(): void
     {
-        $this->tax->setRawAttributes(['rate' => 0]);
+        $reflection = new \ReflectionClass(Tax::class);
+        $this->assertEquals('Illuminate\Database\Eloquent\Model', $reflection->getParentClass()->getName());
+    }
+
+    #[Test]
+    public function tax_has_expected_class_structure(): void
+    {
+        $reflection = new \ReflectionClass(Tax::class);
         
-        $formatted = $this->tax->rate_formatted;
+        // Test that class is not abstract or interface
+        $this->assertFalse($reflection->isAbstract());
+        $this->assertFalse($reflection->isInterface());
+        $this->assertTrue($reflection->isInstantiable());
         
-        $this->assertEquals('0.00%', $formatted);
+        // Test namespace
+        $this->assertEquals('App\Models', $reflection->getNamespaceName());
     }
 
     #[Test]
-    public function rate_formatted_accessor_handles_decimal_places(): void
+    public function tax_has_class_constants(): void
     {
-        $this->tax->setRawAttributes(['rate' => 15.25]);
+        $reflection = new \ReflectionClass(Tax::class);
+        $constants = $reflection->getConstants();
         
-        $formatted = $this->tax->rate_formatted;
+        // This model doesn't define custom constants, but the test structure is here for future use
+        $this->assertIsArray($constants);
+    }
+
+    #[Test]
+    public function tax_has_expected_public_methods(): void
+    {
+        $reflection = new \ReflectionClass(Tax::class);
         
-        $this->assertEquals('15.25%', $formatted);
-    }
-
-    #[Test]
-    public function rate_formatted_accessor_handles_integer_rate(): void
-    {
-        $this->tax->setRawAttributes(['rate' => 10]);
-        
-        $formatted = $this->tax->rate_formatted;
-        
-        $this->assertEquals('10.00%', $formatted);
-    }
-
-    #[Test]
-    public function model_extends_eloquent_model(): void
-    {
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Model::class, $this->tax);
-    }
-
-    #[Test]
-    public function model_has_timestamps(): void
-    {
-        $this->assertTrue($this->tax->usesTimestamps());
-    }
-
-    #[Test]
-    public function model_has_primary_key(): void
-    {
-        $this->assertEquals('id', $this->tax->getKeyName());
-    }
-
-    #[Test]
-    public function model_key_type_is_int(): void
-    {
-        $this->assertEquals('int', $this->tax->getKeyType());
-    }
-
-    #[Test]
-    public function model_is_incrementing(): void
-    {
-        $this->assertTrue($this->tax->getIncrementing());
+        // Test for essential method existence without calling them
+        $this->assertTrue($reflection->hasMethod('getTable'));
+        $this->assertTrue($reflection->hasMethod('getGuarded'));
+        $this->assertTrue($reflection->hasMethod('getRateFormattedAttribute'));
     }
 }

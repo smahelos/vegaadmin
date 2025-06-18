@@ -38,4 +38,18 @@ class ProductCategoryRequest extends FormRequest
             'description' => trans('admin.description'),
         ];
     }
+
+    /**
+     * Get custom error messages for validation rules.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => trans('admin.product_categories.validation.name_required'),
+            'name.min' => trans('admin.product_categories.validation.name_min'),
+            'name.max' => trans('admin.product_categories.validation.name_max'),
+            'slug.max' => trans('admin.product_categories.validation.slug_max'),
+            'slug.unique' => trans('admin.product_categories.validation.slug_unique'),
+        ];
+    }
 }

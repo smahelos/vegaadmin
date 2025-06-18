@@ -11,7 +11,7 @@ class ArtisanCommandCategoryRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         // only allow updates if the user is logged in
         return auth()->check();

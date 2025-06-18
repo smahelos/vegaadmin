@@ -45,4 +45,18 @@ class ArtisanCommandRequest extends FormRequest
             'sort_order' => __('admin.artisan_commands.fields.sort_order'),
         ];
     }
+
+    /**
+     * Get custom error messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => __('validation.required', ['attribute' => __('admin.artisan_commands.fields.name')]),
+            'command.required' => __('validation.required', ['attribute' => __('admin.artisan_commands.fields.command')]),
+            'command.unique' => __('validation.unique', ['attribute' => __('admin.artisan_commands.fields.command')]),
+            'category_id.required' => __('validation.required', ['attribute' => __('admin.artisan_commands.fields.category')]),
+            'category_id.exists' => __('validation.exists', ['attribute' => __('admin.artisan_commands.fields.category')]),
+        ];
+    }
 }

@@ -12,7 +12,7 @@ class InvoiceRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         // Allow both authenticated and guest users
         return true;
@@ -23,7 +23,7 @@ class InvoiceRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         $rules = [
             'invoice_vs' => 'required|string|max:50',
@@ -82,7 +82,7 @@ class InvoiceRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             //
@@ -94,7 +94,7 @@ class InvoiceRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             // Invoice basic details

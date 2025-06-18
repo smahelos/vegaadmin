@@ -21,7 +21,7 @@ class ExpenseCategoryRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function rules(): array
     {
@@ -39,7 +39,7 @@ class ExpenseCategoryRequest extends FormRequest
     /**
      * Get custom attributes for validator errors.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function attributes(): array
     {
@@ -49,6 +49,20 @@ class ExpenseCategoryRequest extends FormRequest
             'color' => trans('admin.expenses.color'),
             'description' => trans('admin.expenses.description'),
             'is_active' => trans('admin.expenses.is_active'),
+        ];
+    }
+
+    /**
+     * Get custom error messages for validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => trans('admin.expenses.validation.name_required'),
+            'slug.required' => trans('admin.expenses.validation.slug_required'),
+            'slug.unique' => trans('admin.expenses.validation.slug_unique'),
         ];
     }
 

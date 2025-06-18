@@ -5,6 +5,49 @@ description: 'Prompt for creating comprehensive tests for any component'
 
 # Create Tests for Component
 
+## 🚨 CRITICAL: File Safety and Content Verification
+
+### Mandatory File Handling Rules
+- **ALWAYS read files completely** before making any modifications
+- **NEVER delete and recreate files** - always edit existing files in place 
+- **VERIFY file contents** after every creation/modification operation
+- **When creating new files, ALWAYS include complete content** - never create empty files
+- **Use replace_string_in_file and insert_edit_into_file** for existing file modifications
+- **Double-check that business logic is properly transferred** when moving tests between files
+
+### File Operations Safety Checklist
+1. **Before any edit**: Use read_file to understand current file structure
+2. **After file creation**: Verify the file contains expected content, not just exists
+3. **After moving logic**: Ensure source logic is removed and target logic is complete
+4. **After refactoring**: Run tests to verify functionality is preserved
+
+## 🚨 CRITICAL: Docker Container & Testing Rules
+
+### Docker Container Execution
+- **ALL artisan commands MUST be run in the `vegaadmin-app` docker container**
+- Use: `docker exec vegaadmin-app php artisan test ...`
+- Never run artisan commands directly on host system
+
+### Testing Commands - NEVER Use Verbose Options
+- **NEVER use `-v` or `--verbose` options** when running unit tests
+- These options cause "Unknown option" error in our testing environment
+- Use standard `php artisan test` without verbose flags
+
+### Correct Test Execution Examples
+```bash
+# ✅ Correct
+docker exec vegaadmin-app php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php
+docker exec vegaadmin-app php artisan test tests/Unit/Http/Requests/Admin/
+docker exec vegaadmin-app php artisan test --filter=RequestTest
+
+# ❌ Wrong - will cause "Unknown option" error
+docker exec vegaadmin-app php artisan test file.php -v
+docker exec vegaadmin-app php artisan test file.php --verbose
+
+# ❌ Wrong - missing docker container
+php artisan test file.php
+```
+
 ## 🚨 IMPORTANT: Code Quality First
 **When tests fail due to missing return types or method signatures:**
 1. **PREFER fixing the code** over changing tests
@@ -13,6 +56,14 @@ description: 'Prompt for creating comprehensive tests for any component'
 4. **Only modify tests** if the expectation is genuinely wrong
 5. **Always test functionality** after any code changes
 6. **Report any problematic code patterns** and suggest better solutions
+
+## Modern PHPUnit Testing Standards (REQUIRED)
+
+### Use Modern Syntax
+- Use `#[Test]` attribute instead of `test` prefix
+- Use descriptive method names: `validation_fails_when_name_is_missing()`
+- Use `ReflectionClass` instead of `ReflectionMethod`
+- Create unique test data with `uniqid()` to avoid conflicts
 
 ## Test Development Principles
 - Tests should document expected behavior
@@ -28,6 +79,151 @@ description: 'Prompt for creating comprehensive tests for any component'
 5. **Repositories**: Feature tests with database interactions
 6. **Middleware**: Feature tests with HTTP context
 
+## Request Class Unit Test Template (REQUIRED)
+```php
+<?php
+
+namespace Tests\Unit\Http\Requests\Admin;
+
+use App\Http\Requests\Admin\SomeRequest;
+use App\Models\User;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
+use Tests\TestCase;
+
+class SomeRequestTest extends TestCase
+{
+    private SomeRequest $request;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Create required permissions for 'backpack' guard
+        Permission::firstOrCreate(['name' => 'required_permission', 'guard_name' => 'backpack']);
+        
+        $this->request = new SomeRequest();
+    }
+
+    #[Test]
+    public function request_extends_form_request(): void
+    {
+        $this->assertInstanceOf(FormRequest::class, $this->request);
+    }
+
+    #[Test]
+    public function authorize_uses_backpack_auth(): void
+    {
+        // Test without authenticated user - should return false
+        $this->assertFalse($this->request->authorize());
+        
+        // Test with authenticated user - should return true
+        $user = User::factory()->create();
+        $this->actingAs($user, 'backpack');
+        $this->assertTrue($this->request->authorize());
+    }
+
+    #[Test]
+    public function authorize_method_has_correct_return_type(): void
+    {
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('authorize');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('bool', $returnType->getName());
+    }
+
+    #[Test]
+    public function rules_returns_correct_validation_rules(): void
+    {
+        $rules = $this->request->rules();
+        
+        $this->assertIsArray($rules);
+        // Test specific validation rules based on business requirements
+    }
+
+    #[Test]
+    public function rules_method_has_correct_return_type(): void
+    {
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('rules');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
+    }
+
+    #[Test]
+    public function attributes_returns_correct_custom_attributes(): void
+    {
+        $attributes = $this->request->attributes();
+        
+        $this->assertIsArray($attributes);
+        // Test specific attributes and translation keys
+    }
+
+    #[Test]
+    public function attributes_method_has_correct_return_type(): void
+    {
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('attributes');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
+    }
+
+    #[Test]
+    public function messages_returns_correct_custom_messages(): void
+    {
+        $messages = $this->request->messages();
+        
+        $this->assertIsArray($messages);
+        // Test specific error messages and translation keys
+    }
+
+    #[Test]
+    public function messages_method_has_correct_return_type(): void
+    {
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('messages');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('array', $returnType->getName());
+    }
+
+    #[Test]
+    public function validation_passes_with_valid_data(): void
+    {
+        // Create test data with factories
+        $data = [
+            // Valid test data based on business requirements
+        ];
+
+        $validator = Validator::make($data, $this->request->rules());
+        $this->assertTrue($validator->passes());
+    }
+
+    #[Test]
+    public function validation_fails_when_required_fields_missing(): void
+    {
+        $data = [];
+
+        $validator = Validator::make($data, $this->request->rules());
+        $this->assertFalse($validator->passes());
+        
+        $errors = $validator->errors();
+        // Test specific required field errors
+    }
+
+    // Additional business logic tests, edge cases, error scenarios...
+}
+```
+
 ## Unit Test Template
 ```php
 <?php
@@ -40,7 +236,7 @@ use PHPUnit\Framework\TestCase;
 class ExampleModelTest extends TestCase
 {
     #[Test]
-    public function model_has_correct_fillable_attributes()
+    public function model_has_correct_fillable_attributes(): void
     {
         // Test class structure and methods without external dependencies
         // Mock all external dependencies
@@ -112,6 +308,7 @@ class ExampleModelTest extends TestCase
 - **Import attributes**: `use PHPUnit\Framework\Attributes\Test;`
 - **Other useful attributes**: `#[DataProvider]`, `#[Depends]`, `#[Group]`
 - **Method naming**: Use descriptive method names like `test_model_has_correct_fillable_attributes()`
+- **Use ReflectionClass instead of ReflectionMethod**: For method introspection, use `$reflection = new \ReflectionClass($object); $method = $reflection->getMethod('methodName');` instead of `new \ReflectionMethod($object, 'methodName')` to avoid deprecation warnings
 
 ## Test Class Structure Examples
 
@@ -149,6 +346,17 @@ class ExampleRequestTest extends TestCase
     public function request_extends_form_request()
     {
         $this->assertInstanceOf(FormRequest::class, $this->request);
+    }
+
+    #[Test]
+    public function authorize_method_has_correct_return_type(): void
+    {
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('authorize');
+        $returnType = $method->getReturnType();
+        
+        $this->assertNotNull($returnType);
+        $this->assertEquals('bool', $returnType->getName());
     }
 }
 ```
@@ -345,3 +553,147 @@ class ExampleModelFactory extends Factory
 6. **Test edge cases and boundary conditions**
 7. **Verify error messages and status codes**
 8. **Test with different user permissions when applicable**
+
+## Mockery Syntax and Best Practices
+
+### Correct Mockery Syntax (Laravel 12 + Mockery 1.6+)
+```php
+// ✅ CORRECT - Use string with full namespace
+$mockUser = Mockery::mock('App\Models\User');
+$mockProduct = Mockery::mock('App\Models\Product');
+
+// ❌ WRONG - These syntaxes cause errors
+$mockUser = Mockery::mock([User::class]);        // Array syntax - causes constructor errors
+$mockUser = Mockery::mock("User::class");        // Invalid class name characters
+$mockUser = Mockery::mock(User::class);          // String constants may cause warnings
+```
+
+### Mocking Eloquent Model Properties
+For Eloquent models that use `$model->property` syntax (like `$user->id`):
+```php
+// ✅ CORRECT - Mock getAttribute() method (Eloquent uses this internally)
+$mockUser = Mockery::mock('App\Models\User');
+$mockUser->shouldReceive('getAttribute')->with('id')->andReturn(123);
+
+// ❌ WRONG - Direct property assignment fails in mocks
+$mockUser->id = 123;  // Triggers setAttribute() and causes errors
+```
+
+### Mocking Eloquent Model Methods
+```php
+$mockUser = Mockery::mock('App\Models\User');
+$mockUser->shouldReceive('hasPermissionTo')->with('permission_name')->andReturn(true);
+$mockUser->shouldReceive('hasRole')->with('role_name')->andReturn(false);
+```
+
+## Testing Strategy: Unit vs Feature Tests
+
+### For Policies (Business Logic)
+**Use BOTH Unit AND Feature tests:**
+
+**Unit Tests (tests/Unit/Policies/):**
+- ✅ Test pure business logic without database
+- ✅ Fast execution (mocked dependencies)
+- ✅ Focus on logical branches and edge cases
+- ✅ Example: Testing authorization rules, ownership checks
+
+```php
+#[Test]
+public function view_returns_true_for_owner(): void
+{
+    $userId = 123;
+    
+    $mockUser = Mockery::mock('App\Models\User');
+    $mockUser->shouldReceive('getAttribute')->with('id')->andReturn($userId);
+    
+    $mockProduct = Mockery::mock('App\Models\Product');
+    $mockProduct->shouldReceive('getAttribute')->with('user_id')->andReturn($userId);
+    
+    $result = $this->policy->view($mockUser, $mockProduct);
+    
+    $this->assertTrue($result);
+}
+```
+
+**Feature Tests (tests/Feature/Policies/):**
+- ✅ Test end-to-end authorization flows
+- ✅ Real database and user interactions
+- ✅ Integration with auth system
+
+### For Repositories (Data Layer)
+**Use ONLY Feature tests:**
+
+**Why NOT Unit tests for Repositories:**
+- ❌ Complex Eloquent static method mocking (`Client::where()`, `Client::create()`)
+- ❌ `overload:` mockery is overly complex for simple repositories
+- ❌ Repositories are mostly thin wrappers around Eloquent
+- ❌ Integration testing is more valuable than isolated unit testing
+
+**Feature Tests (tests/Feature/Repositories/):**
+- ✅ Test real database interactions
+- ✅ Verify actual SQL queries work
+- ✅ Test data integrity and relationships
+- ✅ More reliable than complex mocking
+
+```php
+#[Test]
+public function find_by_id_returns_client_when_belongs_to_current_user(): void
+{
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['user_id' => $user->id]);
+    
+    $this->actingAs($user);
+    
+    $result = $this->repository->findById($client->id);
+    
+    $this->assertInstanceOf(Client::class, $result);
+    $this->assertEquals($client->id, $result->id);
+}
+```
+
+### CRITICAL: Unit Test Isolation Rule
+- **Unit tests MUST NOT depend on Laravel framework features** (database, container, boot methods)
+- **Move Laravel-dependent tests to Feature tests**: Eloquent relationships, database operations, model events (boot methods)
+- **Unit tests should focus on pure business logic**: static methods, calculations, data transformations
+- **Avoid `new Model()` in Unit tests**: Model instantiation triggers boot methods that require database
+- **Use Feature tests for**: Model relationships, database operations, authentication, validation with database
+
+```php
+// ❌ WRONG - Unit test that requires Laravel framework
+public function test_model_relationship()
+{
+    $model = new Model(); // This triggers boot() method requiring database
+    $relation = $model->relationship();
+    $this->assertInstanceOf(HasMany::class, $relation);
+}
+
+// ✅ CORRECT - Move to Feature test
+class ModelFeatureTest extends TestCase
+{
+    use RefreshDatabase;
+    
+    public function test_model_relationship()
+    {
+        $model = Model::factory()->create();
+        $this->assertInstanceOf(HasMany::class, $model->relationship());
+    }
+}
+
+// ✅ CORRECT - Unit test for pure business logic
+public function test_calculation_method()
+{
+    $result = MyClass::calculateTax(100, 0.21);
+    $this->assertEquals(21, $result);
+}
+```
+
+### Decision Matrix
+
+| Component Type | Unit Tests | Feature Tests | Reason |
+|---------------|-----------|---------------|---------|
+| **Policies** | ✅ Yes | ✅ Yes | Business logic + Integration |
+| **Repositories** | ❌ No | ✅ Yes | Simple wrappers, integration more important |
+| **Models** | ✅ Yes | ✅ Yes | Structure + Relationships |
+| **Requests** | ✅ Yes | ✅ Yes | Validation rules + HTTP behavior |
+| **Controllers** | ❌ No | ✅ Yes | HTTP integration testing only |
+| **Services** | ✅ Yes | ❌ No | Pure business logic |

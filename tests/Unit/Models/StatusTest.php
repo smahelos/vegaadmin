@@ -3,118 +3,82 @@
 namespace Tests\Unit\Models;
 
 use App\Models\Status;
-use App\Models\StatusCategory;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit tests for Status model - CRITICAL RULE: Only pure business logic, no Laravel dependencies
+ * 
+ * According to Unit Test Isolation rule, this class tests only:
+ * - Class structure and traits (without instantiation)
+ * - Static methods and pure calculations (if any)
+ * - Class constants and basic reflection
+ * 
+ * All Eloquent-dependent tests have been moved to Feature tests.
+ */
 class StatusTest extends TestCase
 {
-    private Status $status;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->status = new Status();
-    }
-
     #[Test]
-    public function model_has_correct_table_name(): void
+    public function status_uses_expected_traits(): void
     {
-        $this->assertEquals('statuses', $this->status->getTable());
-    }
-
-    #[Test]
-    public function model_has_correct_guarded_attributes(): void
-    {
-        $this->assertContains('id', $this->status->getGuarded());
-    }
-
-    #[Test]
-    public function model_has_correct_casts(): void
-    {
-        $casts = $this->status->getCasts();
+        $traits = class_uses_recursive(Status::class);
         
-        $this->assertArrayHasKey('is_active', $casts);
-        $this->assertEquals('boolean', $casts['is_active']);
-    }
-
-    #[Test]
-    public function model_uses_correct_traits(): void
-    {
-        $traits = class_uses($this->status);
+        $expectedTraits = [
+            'Illuminate\Database\Eloquent\Factories\HasFactory',
+            'Backpack\CRUD\app\Models\Traits\CrudTrait',
+        ];
         
-        $this->assertContains(\Backpack\CRUD\app\Models\Traits\CrudTrait::class, $traits);
-        $this->assertContains(\Illuminate\Database\Eloquent\Factories\HasFactory::class, $traits);
+        foreach ($expectedTraits as $trait) {
+            $this->assertContains($trait, $traits, "Status model should use {$trait} trait");
+        }
     }
 
     #[Test]
-    public function slug_mutator_formats_slug_properly(): void
+    public function status_class_exists_and_is_instantiable(): void
     {
-        $this->status->slug = 'Test Status Name';
+        $this->assertTrue(class_exists(Status::class));
         
-        $this->assertEquals('test-status-name', $this->status->slug);
+        $reflection = new \ReflectionClass(Status::class);
+        $this->assertTrue($reflection->isInstantiable());
     }
 
     #[Test]
-    public function slug_mutator_handles_special_characters(): void
+    public function status_extends_correct_parent_class(): void
     {
-        $this->status->slug = 'Test Status & Name!';
+        $reflection = new \ReflectionClass(Status::class);
+        $this->assertEquals('Illuminate\Database\Eloquent\Model', $reflection->getParentClass()->getName());
+    }
+
+    #[Test]
+    public function status_has_expected_class_structure(): void
+    {
+        $reflection = new \ReflectionClass(Status::class);
         
-        $this->assertEquals('test-status-name', $this->status->slug);
+        $this->assertFalse($reflection->isAbstract());
+        $this->assertFalse($reflection->isInterface());
+        $this->assertTrue($reflection->isInstantiable());
+        $this->assertEquals('App\Models', $reflection->getNamespaceName());
     }
 
     #[Test]
-    public function color_accessor_returns_default_when_null(): void
+    public function status_has_class_constants(): void
     {
-        $this->status->setRawAttributes(['color' => null]);
+        $reflection = new \ReflectionClass(Status::class);
+        $constants = $reflection->getConstants();
         
-        $this->assertEquals('bg-gray-100 text-gray-800', $this->status->color);
+        $this->assertIsArray($constants);
     }
 
     #[Test]
-    public function color_accessor_returns_actual_value_when_set(): void
+    public function status_has_expected_public_methods(): void
     {
-        $this->status->setRawAttributes(['color' => 'bg-red-100 text-red-800']);
+        $reflection = new \ReflectionClass(Status::class);
         
-        $this->assertEquals('bg-red-100 text-red-800', $this->status->color);
-    }
-
-    #[Test]
-    public function color_preview_attribute_generates_html(): void
-    {
-        $this->status->setRawAttributes([
-            'name' => 'Test Status',
-            'color' => 'bg-green-100 text-green-800'
-        ]);
-
-        $colorPreview = $this->status->color_preview;
-
-        $this->assertStringContainsString('Test Status', $colorPreview);
-        $this->assertStringContainsString('bg-green-100 text-green-800', $colorPreview);
-        $this->assertStringContainsString('<span', $colorPreview);
-    }
-
-    #[Test]
-    public function translated_name_attribute_method_exists(): void
-    {
-        $this->assertTrue(method_exists($this->status, 'getTranslatedNameAttribute'));
-    }
-
-    #[Test]
-    public function invoices_relationship_method_exists(): void
-    {
-        $this->assertTrue(method_exists($this->status, 'invoices'));
-    }
-
-    #[Test]
-    public function category_relationship_method_exists(): void
-    {
-        $this->assertTrue(method_exists($this->status, 'category'));
-    }
-
-    #[Test]
-    public function active_scope_exists(): void
-    {
-        $this->assertTrue(method_exists($this->status, 'scopeActive'));
+        // Check that key relationship methods exist without instantiation
+        $this->assertTrue($reflection->hasMethod('category'));
+        
+        // Check method visibility
+        $categoryMethod = $reflection->getMethod('category');
+        $this->assertTrue($categoryMethod->isPublic());
     }
 }

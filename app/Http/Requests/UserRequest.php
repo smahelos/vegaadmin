@@ -15,7 +15,7 @@ class UserRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return Auth::check();
     }
@@ -25,7 +25,7 @@ class UserRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         $userId = $this->user() ? $this->user()->id : null;
         
@@ -46,7 +46,7 @@ class UserRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'name' => __('users.fields.name'),
@@ -59,7 +59,7 @@ class UserRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             'name.required' => __('users.validation.name_required'),
