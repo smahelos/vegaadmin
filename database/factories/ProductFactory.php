@@ -23,11 +23,11 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
-        $name = $this->faker->words(3, true);
+        $name = $this->faker->unique()->words(3, true);
         
         return [
             'name' => $name,
-            'slug' => Str::slug($name),
+            'slug' => Str::slug($name) . '-' . $this->faker->unique()->numberBetween(1000, 9999),
             'user_id' => User::factory(),
             'price' => $this->faker->randomFloat(2, 1, 1000),
             'tax_id' => Tax::factory(),

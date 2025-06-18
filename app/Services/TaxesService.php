@@ -3,14 +3,12 @@
 namespace App\Services;
 
 use App\Models\Tax;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class TaxesService
 {
     /**
-     * Získá seznam všech kategorií
+     * Get all taxes as slug => name array
      * 
      * @return array
      */
@@ -31,8 +29,9 @@ class TaxesService
             return $result;
         });
     }
+
     /**
-     * Získá seznam všech kategorií
+     * Get all taxes as id => name array for select fields
      * 
      * @return array
      */
@@ -55,11 +54,12 @@ class TaxesService
     }
 
     /**
-     * Vymaže cache s příkazy
+     * Clear all tax-related cache
      */
     public function clearCategoriesCache(): void
     {   
-        // Vymaže cache pro všechny daně
+        // Clear cache for all taxes
         Cache::forget("taxes");
+        Cache::forget("taxes_for_select");
     }
 }

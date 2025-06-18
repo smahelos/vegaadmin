@@ -6,8 +6,10 @@ trait SupplierFormFields
 {
     /**
      * Get supplier form fields definitions
+     *
+     * @return array
      */
-    protected function getSupplierFields()
+    protected function getSupplierFields(): array
     {
         return [
             [

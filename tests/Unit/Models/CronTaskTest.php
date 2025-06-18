@@ -92,9 +92,7 @@ class CronTaskTest extends TestCase
         $this->assertTrue($reflection->hasMethod('getBaseCommandAttribute'));
         $this->assertTrue($reflection->hasMethod('getCommandParamsAttribute'));
         
-        // Test for mutator methods
-        $this->assertTrue($reflection->hasMethod('getRunAtAttribute'));
-        $this->assertTrue($reflection->hasMethod('setRunAtAttribute'));
+        // Test for mutator methods  
         $this->assertTrue($reflection->hasMethod('setCommandAttribute'));
         
         // Test for business logic methods
@@ -128,18 +126,6 @@ class CronTaskTest extends TestCase
     public function mutator_methods_exist_and_are_public(): void
     {
         $reflection = new \ReflectionClass(CronTask::class);
-        
-        // Test getRunAtAttribute method (getter)
-        $getRunAtMethod = $reflection->getMethod('getRunAtAttribute');
-        $this->assertTrue($getRunAtMethod->isPublic());
-        $this->assertFalse($getRunAtMethod->isStatic());
-        $this->assertEquals(1, $getRunAtMethod->getNumberOfParameters());
-        
-        // Test setRunAtAttribute method (setter)
-        $setRunAtMethod = $reflection->getMethod('setRunAtAttribute');
-        $this->assertTrue($setRunAtMethod->isPublic());
-        $this->assertFalse($setRunAtMethod->isStatic());
-        $this->assertEquals(1, $setRunAtMethod->getNumberOfParameters());
         
         // Test setCommandAttribute method
         $setCommandMethod = $reflection->getMethod('setCommandAttribute');

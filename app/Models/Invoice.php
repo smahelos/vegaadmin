@@ -296,11 +296,20 @@ class Invoice extends Model
                 if (isset($item['product_id']) && !empty($item['product_id'])) {
                     $productId = (int) $item['product_id'];
                     
+                    // Get product name - try to fetch from database
+                    $product = Product::find($productId);
+                    $productName = $product ? $product->name : 'Unknown Product';
+                    
                     // Prepare data for sync
                     $productsData[$productId] = [
+                        'name' => $productName,
                         'quantity' => (float) ($item['quantity'] ?? 1),
                         'price' => (float) ($item['price'] ?? 0),
-                        'tax_rate' => (float) ($item['tax'] ?? 0)
+                        'currency' => $this->payment_currency ?? 'CZK',
+                        'tax_rate' => (float) ($item['tax'] ?? 0),
+                        'tax_amount' => 0.00,
+                        'total_price' => 0.00,
+                        'is_custom_product' => 0
                     ];
                 }
             }
@@ -309,6 +318,9 @@ class Invoice extends Model
         // Synchronizing products with pivot table
         if (!empty($productsData)) {
             $this->products()->sync($productsData);
+        } else {
+            // Clear all products if no valid items found
+            $this->products()->sync([]);
         }
     }
 
@@ -327,9 +339,9 @@ class Invoice extends Model
                 return $this->invoiceProducts()->sum(\DB::raw('price * quantity')) ?: 0.0;
             }
             
-            return $this->invoiceProducts->sum(function($item) {
-                return ($item->price ?? 0) * ($item->quantity ?? 0);
-            });
+            return $this->invoiceProducts->reduce(function($carry, $item) {
+                return $carry + (($item->price ?? 0) * ($item->quantity ?? 0));
+            }, 0.0);
         } catch (\Exception $e) {
             \Log::error('Error calculating subtotal: ' . $e->getMessage());
             return 0.0;

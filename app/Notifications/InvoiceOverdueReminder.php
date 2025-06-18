@@ -46,7 +46,7 @@ class InvoiceOverdueReminder extends Notification implements ShouldQueue
         App::setLocale($locale);
 
         $dueDate = $this->invoice->due_date->format('d.m.Y');
-        $daysOverdue = Carbon::now()->diffInDays($this->invoice->due_date);
+        $daysOverdue = $this->invoice->due_date->diffInDays(Carbon::now());
         
         $viewName = $this->recipientType === 'client' 
             ? 'emails.invoices.reminders.overdue_client' 

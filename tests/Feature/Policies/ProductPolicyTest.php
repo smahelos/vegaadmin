@@ -52,13 +52,15 @@ class ProductPolicyTest extends TestCase
         
         $this->unauthorizedUser = User::factory()->create();
         
-        // Create products
+        // Create products with unique slugs
         $this->ownProduct = Product::factory()->create([
-            'user_id' => $this->frontendUser->id
+            'user_id' => $this->frontendUser->id,
+            'slug' => 'own-product-' . uniqid()
         ]);
         
         $this->otherUserProduct = Product::factory()->create([
-            'user_id' => $this->unauthorizedUser->id
+            'user_id' => $this->unauthorizedUser->id,
+            'slug' => 'other-product-' . uniqid()
         ]);
     }
 

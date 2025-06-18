@@ -35,7 +35,7 @@ trait UserFormFields
      * @param bool $isEdit Whether the form is for editing an existing user
      * @return array
      */
-    public function getPasswordFields($isEdit = false): array
+    public function getPasswordFields(bool $isEdit = false): array
     {
         $fields = [
             [

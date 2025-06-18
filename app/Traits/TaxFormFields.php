@@ -6,8 +6,10 @@ trait TaxFormFields
 {
     /**
      * Get tax form fields definitions
+     *
+     * @return array
      */
-    protected function getTaxFields()
+    protected function getTaxFields(): array
     {
         return [
             [
