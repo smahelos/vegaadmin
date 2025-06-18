@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class UserActivitySummary extends Model
 {
-    use CrudTrait;
+    use CrudTrait, HasFactory;
 
     /**
      * The table associated with the model (database view).
@@ -29,6 +30,24 @@ class UserActivitySummary extends Model
      * @var string
      */
     protected $primaryKey = 'user_id';
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'user_id',
+        'user_name',
+        'user_email',
+        'total_invoices',
+        'total_clients',
+        'total_suppliers',
+        'total_products',
+        'last_invoice_date',
+        'invoices_last_30_days',
+        'invoices_last_7_days'
+    ];
 
     /**
      * The attributes that should be cast to native types.

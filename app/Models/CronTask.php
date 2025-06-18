@@ -80,44 +80,6 @@ class CronTask extends Model
     }
 
     /**
-     * Get the run_at attribute.
-     */
-    protected function runAt(): Attribute
-    {
-        return Attribute::make(
-            get: function ($value) {
-                return $value ? \Carbon\Carbon::parse($value)->format('H:i') : null;
-            },
-            set: function ($value) {
-                return $value ?: null;
-            },
-        );
-    }
-
-    /**
-     * Get the run_at attribute.
-     *
-     * @param  string|null  $value
-     * @return string|null
-     */
-    public function getRunAtAttribute($value)
-    {
-        // Zde vracíme hodnotu jako řetězec ve formátu H:i
-        return $value ? (is_string($value) ? $value : \Carbon\Carbon::parse($value)->format('H:i')) : null;
-    }
-
-    /**
-     * Set the run_at attribute.
-     *
-     * @param  string|null  $value
-     * @return void
-     */
-    public function setRunAtAttribute($value)
-    {
-        $this->attributes['run_at'] = $value;
-    }
-
-    /**
      * Získá základní příkaz bez parametrů.
      */
     public function getBaseCommandAttribute()

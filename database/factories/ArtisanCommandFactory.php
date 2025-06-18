@@ -25,24 +25,13 @@ class ArtisanCommandFactory extends Factory
      */
     public function definition(): array
     {
-        $commands = [
-            'cache:clear' => 'Clear application cache',
-            'migrate' => 'Run database migrations',
-            'queue:work' => 'Start processing queue jobs',
-            'config:cache' => 'Create cache file for faster configuration',
-            'route:cache' => 'Create route cache file',
-            'view:cache' => 'Compile all view files',
-            'optimize' => 'Cache configuration, routes and views',
-            'storage:link' => 'Create symbolic link from public/storage to storage/app/public',
-            'backup:run' => 'Run application backup',
-            'down' => 'Put application into maintenance mode',
-        ];
-        
-        $commandName = $this->faker->randomElement(array_keys($commands));
-        $description = $commands[$commandName];
+        // Generate unique command to avoid database constraint violations
+        $uniqueId = $this->faker->unique()->randomNumber(6);
+        $commandName = "test:command-{$uniqueId}";
+        $description = "Test command {$uniqueId} description";
         
         return [
-            'name' => ucfirst(str_replace(':', ' ', $commandName)),
+            'name' => "Test Command {$uniqueId}",
             'description' => $description,
             'category_id' => ArtisanCommandCategory::factory(),
             'is_active' => $this->faker->boolean(85), // 85% chance of being active

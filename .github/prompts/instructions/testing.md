@@ -67,6 +67,27 @@ php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php
 - Test with real database using RefreshDatabase
 - Test authentication and authorization flows
 
+### RefreshDatabase Usage (REQUIRED)
+- **ALL Feature tests MUST use `RefreshDatabase` trait**
+- **NEVER use transactions or manual cleanup** - RefreshDatabase ensures clean state
+- **RefreshDatabase migrates fresh database for each test**
+- **Ensures test isolation and prevents data conflicts**
+- **Required for all tests that interact with database (models, relationships, HTTP endpoints)**
+
+```php
+// ✅ CORRECT - Feature test with RefreshDatabase
+class ModelFeatureTest extends TestCase
+{
+    use RefreshDatabase;  // REQUIRED for all Feature tests
+    
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Setup test data using factories
+    }
+}
+```
+
 ### Unit Test Isolation - CRITICAL RULE
 - **Unit tests MUST NOT depend on Laravel framework features** (database, container, boot methods)
 - **Move Laravel-dependent tests to Feature tests**: Eloquent relationships, database operations, model events (boot methods)
@@ -313,8 +334,6 @@ public function rules(): array
 public function attributes(): array  // or array<string, string>
 public function messages(): array    // or array<string, string>
 ```
-// Feature Test: Test actual validation scenarios with HTTP context
-```
 
 ## Database Testing
 - Use `RefreshDatabase` trait for database tests
@@ -385,3 +404,106 @@ public function test_admin_functionality(): void
 - All deprecated warnings must be resolved before merging
 - Use reflection or direct method calls instead of deprecated `createMock()` patterns
 - Follow current Laravel testing best practices
+
+## Model Factory Guidelines (REQUIRED)
+
+### Factory Creation Rules
+- **Every model MUST have a corresponding factory** in `database/factories/`
+- **Factories MUST generate realistic, valid test data**
+- **Use Faker for dynamic content** to avoid unique constraint conflicts
+- **Handle unique fields with sequences or Faker helpers**
+- **Define all required fields** that have database constraints
+
+### Factory Best Practices
+```php
+<?php
+
+namespace Database\Factories;
+
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class ModelFactory extends Factory
+{
+    public function definition(): array
+    {
+        return [
+            // ✅ Use Faker for dynamic content
+            'name' => $this->faker->unique()->company,
+            'email' => $this->faker->unique()->safeEmail,
+            
+            // ✅ Handle unique constraints with sequences
+            'slug' => $this->faker->unique()->slug,
+            
+            // ✅ Use realistic data types
+            'price' => $this->faker->randomFloat(2, 10, 1000),
+            'is_active' => $this->faker->boolean(80), // 80% chance of true
+            
+            // ✅ Use foreign key references
+            'user_id' => User::factory(),
+            'category_id' => Category::factory(),
+            
+            // ✅ Handle nullable fields appropriately
+            'description' => $this->faker->optional(0.7)->paragraph,
+            
+            // ✅ Use timestamps
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+    }
+
+    // ✅ Define useful states
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_active' => false,
+        ]);
+    }
+
+    public function withCustomName(string $name): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'name' => $name,
+        ]);
+    }
+}
+```
+
+### Factory Usage in Tests
+```php
+// ✅ Basic factory usage
+$model = Model::factory()->create();
+
+// ✅ Create multiple models
+$models = Model::factory()->count(5)->create();
+
+// ✅ Override specific attributes
+$model = Model::factory()->create(['name' => 'Custom Name']);
+
+// ✅ Use factory states
+$model = Model::factory()->inactive()->create();
+
+// ✅ Create without persisting (for Unit tests)
+$model = Model::factory()->make(); // Only in Unit tests when testing structure
+
+// ✅ Create with relationships
+$model = Model::factory()
+    ->has(RelatedModel::factory()->count(3))
+    ->create();
+```
+
+### Unique Constraint Handling
+```php
+// ✅ Use unique() for fields that must be unique
+'email' => $this->faker->unique()->safeEmail,
+'slug' => $this->faker->unique()->slug,
+
+// ✅ Use sequence for predictable unique values
+'code' => $this->faker->unique()->regexify('[A-Z]{3}[0-9]{3}'),
+
+// ✅ Reset unique values in test setUp if needed
+protected function setUp(): void
+{
+    parent::setUp();
+    $this->faker->unique(true); // Reset unique values
+}
+```
