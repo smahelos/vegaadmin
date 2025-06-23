@@ -38,6 +38,9 @@ class NavLink extends Component
      */
     public function render(): View
     {
-        return view('components.nav-link');
+        return view('components.nav-link', [
+            'href' => $this->href,
+            'active' => $this->active,
+        ]);
     }
 }

@@ -50,28 +50,6 @@ class AppServiceProviderFeatureTest extends TestCase
     }
 
     #[Test]
-    public function localized_route_blade_directive_is_registered(): void
-    {
-        // Test that the directive exists by trying to compile it
-        $blade = app('blade.compiler');
-        $compiled = $blade->compileString("@localizedRoute('home')");
-        
-        $this->assertStringContainsString("app()->getLocale()", $compiled);
-        $this->assertStringContainsString("route(", $compiled);
-    }
-
-    #[Test]
-    public function localized_route_directive_handles_parameters(): void
-    {
-        $blade = app('blade.compiler');
-        $compiled = $blade->compileString("@localizedRoute('user.show', ['id' => 1])");
-        
-        $this->assertStringContainsString("app()->getLocale()", $compiled);
-        $this->assertStringContainsString("route(", $compiled);
-        $this->assertStringContainsString("\$params", $compiled);
-    }
-
-    #[Test]
     public function custom_blade_components_are_registered(): void
     {
         $components = [

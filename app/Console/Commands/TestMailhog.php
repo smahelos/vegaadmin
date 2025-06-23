@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * Send a test email to verify mail configuration
+ */
 class TestMailhog extends Command
 {
     /**
@@ -12,38 +15,42 @@ class TestMailhog extends Command
      *
      * @var string
      */
-    protected $signature = 'mail:test {email? : E-mail pro odeslání testovací zprávy}';
+    protected $signature = 'mail:test-mailhog {--to=test@example.com : Email address to send test message to} {--subject=Test Email from VegaAdmin : Subject of the test email}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Odeslání testovacího e-mailu pro ověření konfigurace';
+    protected $description = 'Send a test email to verify mail configuration';
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
-        $email = $this->argument('email') ?: 'test@example.com';
+        $email = $this->option('to');
+        $subject = $this->option('subject');
         
-        $this->info('Odesílám testovací e-mail na adresu: ' . $email);
-        $this->info('Aktuální konfigurace:');
+        $this->info('Sending test email to: ' . $email);
+        $this->info('Subject: ' . $subject);
+        $this->info('Current configuration:');
         $this->info('MAIL_MAILER: ' . config('mail.default'));
         $this->info('MAIL_HOST: ' . config('mail.mailers.smtp.host'));
         $this->info('MAIL_PORT: ' . config('mail.mailers.smtp.port'));
         
         try {
-            Mail::raw('Test e-mailu z aplikace VegaAdmin v čase: ' . now(), function ($message) use ($email) {
+            Mail::raw('Test email from VegaAdmin application at: ' . now(), function ($message) use ($email, $subject) {
                 $message->to($email)
-                    ->subject('Test e-mailu z VegaAdmin');
+                    ->subject($subject);
             });
-            $this->info('E-mail byl odeslán! Zkontroluj Mailhog na adrese: http://localhost:8025');
+            $this->info('Email sent successfully! Check Mailhog at: http://localhost:8025');
+            return 0;
         } catch (\Exception $e) {
-            $this->error('Chyba při odesílání e-mailu: ' . $e->getMessage());
+            $this->error('Error sending email: ' . $e->getMessage());
             $this->error('Stack trace:');
             $this->error($e->getTraceAsString());
+            return 1;
         }
     }
 }

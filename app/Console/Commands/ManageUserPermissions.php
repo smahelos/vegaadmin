@@ -29,38 +29,31 @@ class ManageUserPermissions extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $action = $this->argument('action');
 
         switch ($action) {
             case 'list-roles':
-                $this->listRoles();
-                break;
+                return $this->listRoles();
             case 'list-permissions':
-                $this->listPermissions();
-                break;
+                return $this->listPermissions();
             case 'assign-role':
-                $this->assignRole();
-                break;
+                return $this->assignRole();
             case 'remove-role':
-                $this->removeRole();
-                break;
+                return $this->removeRole();
             case 'show-user':
-                $this->showUser();
-                break;
+                return $this->showUser();
             default:
                 $this->error('Invalid action. Available actions: list-roles, list-permissions, assign-role, remove-role, show-user');
                 return 1;
         }
-
-        return 0;
     }
 
     /**
      * List all available roles and their permissions
      */
-    private function listRoles()
+    private function listRoles(): int
     {
         $roles = Role::with('permissions')->get();
         
@@ -80,12 +73,14 @@ class ManageUserPermissions extends Command
             }
             $this->line('');
         }
+        
+        return 0;
     }
 
     /**
      * List all available permissions
      */
-    private function listPermissions()
+    private function listPermissions(): int
     {
         $permissions = Permission::all();
         
@@ -95,83 +90,87 @@ class ManageUserPermissions extends Command
         foreach ($permissions as $permission) {
             $this->line("- {$permission->name}");
         }
+        
+        return 0;
     }
 
     /**
      * Assign role to user
      */
-    private function assignRole()
+    private function assignRole(): int
     {
         $userInput = $this->option('user');
         $roleName = $this->option('role');
 
         if (!$userInput || !$roleName) {
             $this->error('Both --user and --role options are required for assign-role action');
-            return;
+            return 1;
         }
 
         $user = $this->findUser($userInput);
         if (!$user) {
-            return;
+            return 1;
         }
 
         $role = Role::where('name', $roleName)->first();
         if (!$role) {
             $this->error("Role '{$roleName}' not found");
-            return;
+            return 1;
         }
 
         if ($user->hasRole($roleName)) {
             $this->warn("User already has role '{$roleName}'");
-            return;
+            return 0; // This is not an error, just a warning
         }
 
         $user->assignRole($role);
         $this->info("Role '{$roleName}' assigned to user {$user->email}");
+        return 0;
     }
 
     /**
      * Remove role from user
      */
-    private function removeRole()
+    private function removeRole(): int
     {
         $userInput = $this->option('user');
         $roleName = $this->option('role');
 
         if (!$userInput || !$roleName) {
             $this->error('Both --user and --role options are required for remove-role action');
-            return;
+            return 1;
         }
 
         $user = $this->findUser($userInput);
         if (!$user) {
-            return;
+            return 1;
         }
 
         if (!$user->hasRole($roleName)) {
             $this->warn("User does not have role '{$roleName}'");
-            return;
+            return 0; // This is not an error, just a warning
         }
 
         $user->removeRole($roleName);
         $this->info("Role '{$roleName}' removed from user {$user->email}");
+        return 0;
     }
 
     /**
      * Show user details with roles and permissions
      */
-    private function showUser()
+    private function showUser(): int
     {
         $userInput = $this->option('user');
 
         if (!$userInput) {
             $this->error('--user option is required for show-user action');
-            return;
+            return 1;
         }
 
         $user = $this->findUser($userInput);
         if (!$user) {
-            return;
+            return 1;
         }
 
         $this->info("User Details:");
@@ -199,6 +198,8 @@ class ManageUserPermissions extends Command
         } else {
             $this->line("  No permissions");
         }
+        
+        return 0;
     }
 
     /**

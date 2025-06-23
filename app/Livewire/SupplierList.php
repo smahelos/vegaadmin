@@ -39,6 +39,15 @@ class SupplierList extends Component
         $this->resetPage();
     }
     
+    /**
+     * Reset all filters and pagination
+     */
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->resetPage();
+    }
+    
     public function sortBy($field)
     {
         if ($this->orderBy === $field) {

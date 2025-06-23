@@ -40,7 +40,11 @@ class CronTaskCrudController extends CrudController
             ->label(__('admin.cron_tasks.fields.next_run'))
             ->type('closure')
             ->function(function($entry) {
-                $nextRun = $entry->getNextRunDate();
+                if (null !== $entry) {
+                    $nextRun = $entry->getNextRunDate();
+                } else {
+                    $nextRun = null;
+                }
                 return $nextRun ? $nextRun->format('Y-m-d H:i:s') . ' - (' . $nextRun->diffForHumans() . ')' : '-';
         });
         CRUD::column('is_active')->label(__('admin.cron_tasks.fields.is_active'))

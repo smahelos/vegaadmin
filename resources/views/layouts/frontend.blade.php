@@ -70,11 +70,11 @@
                                         </p>
                                     </div>
                                     <div class="flex space-x-3">
-                                        <a href="{{ route('frontend.invoice.download.token', ['token' => Session::get('last_guest_invoice_token'), 'lang' => app()->getLocale()]) }}" 
+                                        <a href="{{ route('frontend.invoice.download.token', ['token' => Session::get('last_guest_invoice_token'), 'locale' => app()->getLocale()]) }}" 
                                             class="inline-flex items-right px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-700 hover:text-white bg-blue-300 hover:bg-cyan-600">
                                             <i class="fas fa-download mr-2 !leading-[1.2]"></i> {{ __('invoices.actions.download') }}
                                         </a>
-                                        <a href="{{ route('frontend.invoice.delete.token', ['token' => Session::get('last_guest_invoice_token'), 'lang' => app()->getLocale()]) }}" 
+                                        <a href="{{ route('frontend.invoice.delete.token', ['token' => Session::get('last_guest_invoice_token'), 'locale' => app()->getLocale()]) }}" 
                                             class="inline-flex items-right px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-700 hover:text-white bg-red-200 hover:bg-red-400"
                                             onclick="return confirm('{{ __('invoices.messages.confirm_delete') }}');">
                                             <i class="fas fa-trash-alt mr-2 !leading-[1.2]"></i> {{ __('invoices.actions.delete') }}

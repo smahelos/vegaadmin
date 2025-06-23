@@ -137,7 +137,7 @@ class CronTask extends Model
     public function getCronExpression(): string
     {
         if ($this->frequency === 'custom') {
-            return $this->custom_expression;
+            return $this->custom_expression ?: '* * * * *'; // Default fallback if custom_expression is null
         }
 
         $runAt = $this->run_at ? \Carbon\Carbon::parse($this->run_at) : \Carbon\Carbon::parse('00:00');
@@ -160,7 +160,11 @@ class CronTask extends Model
     public function getNextRunDate(): ?\Carbon\Carbon
     {
         try {
-            $cron = new \Cron\CronExpression($this->getCronExpression());
+            $expression = $this->getCronExpression();
+            if (!$expression) {
+                return null; // Pokud není platný CRON výraz
+            }
+            $cron = new \Cron\CronExpression($expression);
             return \Carbon\Carbon::createFromFormat(
                 'Y-m-d H:i:s', 
                 $cron->getNextRunDate()->format('Y-m-d H:i:s')

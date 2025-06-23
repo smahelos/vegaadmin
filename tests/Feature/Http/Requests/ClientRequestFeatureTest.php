@@ -84,6 +84,19 @@ class ClientRequestFeatureTest extends TestCase
         ];
     }
 
+    /**
+     * Helper method to generate locale-based routes.
+     *
+     * @param string $name
+     * @param array $parameters
+     * @param string $locale
+     * @return string
+     */
+    private function localizedRoute(string $name, array $parameters = [], string $locale = 'en'): string
+    {
+        return route($name, array_merge(['locale' => $locale], $parameters));
+    }
+
     #[Test]
     public function validation_passes_with_valid_data()
     {
@@ -213,7 +226,7 @@ class ClientRequestFeatureTest extends TestCase
     public function authorization_with_authenticated_user_via_http()
     {
         $response = $this->actingAs($this->user)
-            ->post(route('frontend.client.store'), $this->validClientData);
+            ->post($this->localizedRoute('frontend.client.store'), $this->validClientData);
 
         // Should not get 403 (unauthorized)
         $this->assertNotEquals(403, $response->getStatusCode());
@@ -225,7 +238,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_with_unauthenticated_user_via_http()
     {
-        $response = $this->post(route('frontend.client.store'), $this->validClientData);
+        $response = $this->post($this->localizedRoute('frontend.client.store'), $this->validClientData);
 
         // Should redirect to login
         $response->assertRedirect(route('login'));
@@ -269,7 +282,7 @@ class ClientRequestFeatureTest extends TestCase
     {
         // Test with valid data
         $response = $this->actingAs($this->user)
-            ->post(route('frontend.client.store'), $this->validClientData);
+            ->post($this->localizedRoute('frontend.client.store'), $this->validClientData);
 
         $response->assertRedirect(); // Should redirect on success
         $response->assertSessionHasNoErrors();
@@ -280,7 +293,7 @@ class ClientRequestFeatureTest extends TestCase
         unset($invalidData['name']);
 
         $response = $this->actingAs($this->user)
-            ->post(route('frontend.client.store'), $invalidData);
+            ->post($this->localizedRoute('frontend.client.store'), $invalidData);
 
         $response->assertSessionHasErrors(['email', 'name']);
     }

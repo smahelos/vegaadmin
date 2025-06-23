@@ -20,7 +20,7 @@ if (!function_exists('backpack_guard_name')) {
      *
      * @return string
      */
-    function backpack_guard_name()
+    function backpack_guard_name(): string
     {
         return config('backpack.base.guard') ?? config('auth.defaults.guard');
     }
@@ -32,7 +32,7 @@ if (!function_exists('backpack_user')) {
      *
      * @return \App\Models\User|null
      */
-    function backpack_user()
+    function backpack_user(): ?\App\Models\User
     {
         return backpack_auth()->user();
     }
@@ -45,7 +45,7 @@ if (!function_exists('backpack_url')) {
      * @param string $path
      * @return string
      */
-    function backpack_url($path = null)
+    function backpack_url(?string $path = null): string
     {
         $prefix = config('backpack.base.route_prefix', 'admin');
         
@@ -63,7 +63,7 @@ if (!function_exists('backpack_pro')) {
      *
      * @return bool
      */
-    function backpack_pro()
+    function backpack_pro(): bool
     {
         return true;
     }

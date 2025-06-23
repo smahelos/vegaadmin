@@ -7,14 +7,14 @@
 
         <x-back-button />
         
-        <a href="@localizedRoute('frontend.products')"
+        <a href="{{ route('frontend.products', ['locale' => app()->getLocale()]) }}"
             class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
             <i class="fas fa-arrow-left mr-2"></i>{{ __('products.actions.back_to_list') }}
         </a>
     </div>
 </div>
 
-<form action="{{ route('frontend.product.update', $product->id) }}" method="POST" enctype="multipart/form-data">
+<form action="{{ route('frontend.product.update', ['locale' => app()->getLocale(), 'id' => $product->id]) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 
@@ -220,7 +220,7 @@
 
     <!-- Form submit button -->
     <div class="mt-6 flex justify-between">
-        <a href="@localizedRoute('frontend.products')"
+        <a href="{{ route('frontend.products', ['locale' => app()->getLocale()]) }}"
             class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
             {{ __('products.actions.cancel') }}
         </a>

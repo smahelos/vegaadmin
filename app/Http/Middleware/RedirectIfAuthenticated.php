@@ -27,7 +27,7 @@ class RedirectIfAuthenticated
                 // For frontend guard or without specified guard
                 if ($guard === 'web' || $guard === null) {
                     // Prioritize redirection to dashboard if exists
-                    return redirect()->route('frontend.dashboard');
+                    return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()]);
                 }
             }
         }

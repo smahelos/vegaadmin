@@ -34,8 +34,9 @@ class ExpenseCrudController extends CrudController
             trans('admin.expenses.expenses')
         );
         
-        // Only allow access if user has permission
-        if (!backpack_user()->can('can_create_edit_expense')) {
+        // Only allow access if user has permission (using backpack guard)
+        $user = backpack_user();
+        if (!$user || !backpack_user()->hasPermissionTo('can_create_edit_expense', 'backpack')) {
             CRUD::denyAccess(['list', 'create', 'update', 'delete']);
         }
     }

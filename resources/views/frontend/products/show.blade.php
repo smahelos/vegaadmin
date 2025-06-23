@@ -6,11 +6,11 @@
     <div class="flex space-x-4">
 
         <x-back-button />
-        
-        <a href="@localizedRoute('frontend.products')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
+
+        <a href="{{ route('frontend.products', ['locale' => app()->getLocale()]) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
             <i class="fas fa-arrow-left mr-2"></i> {{ __('products.actions.back_to_list') }}
         </a>
-        <a href="@localizedRoute('frontend.product.edit', $product->id)" class="px-4 py-2 bg-green-200 hover:bg-emerald-500 rounded-md text-sm text-gray-700 hover:text-white font-medium transition-colors">
+        <a href="{{ route('frontend.product.edit', ['locale' => app()->getLocale(), 'id' => $product->id]) }}" class="px-4 py-2 bg-green-200 hover:bg-emerald-500 rounded-md text-sm text-gray-700 hover:text-white font-medium transition-colors">
             <i class="fas fa-pencil-alt pr-2"></i> {{ __('products.actions.edit') }}
         </a>
     </div>

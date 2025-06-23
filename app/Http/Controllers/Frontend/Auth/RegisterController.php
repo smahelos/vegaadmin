@@ -154,7 +154,7 @@ class RegisterController extends Controller
             // Set locale and redirect
             $locale = $this->localeService->determineLocale($request->get('lang'));
             
-            return redirect()->route('home', ['lang' => $locale])->with('success', __('users.auth.registration_success'));
+            return redirect()->route('home', ['locale' => $locale])->with('success', __('users.auth.registration_success'));
         } catch (\Exception $e) {
             Log::error('Registration error: ' . $e->getMessage(), [
                 'email' => $validatedData['email'] ?? 'unknown',

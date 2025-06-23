@@ -15,13 +15,13 @@
 <div class="mb-6 flex justify-between items-center">
     <h1 class="text-3xl text-amber-600">{{ __('users.titles.register') }}</h1>
     <div class="space-x-2">
-        <a href="@localizedRoute('login')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
+        <a href="{{ route('frontend.login', ['locale' => app()->getLocale()]) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
             <i class="fas fa-arrow-left mr-2"></i>{{ __('users.actions.back_to_login') }}
         </a>
     </div>
 </div>
 
-<form method="POST" action="{{ route('register') }}">
+<form method="POST" action="{{ route('frontend.register', ['locale' => app()->getLocale()]) }}">
     @csrf
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Section 1: Basic Information -->
@@ -352,7 +352,7 @@
     
     <!-- Registration Buttons -->
     <div class="flex justify-between">
-        <a href="@localizedRoute('login')" class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        <a href="{{ route('frontend.login', ['locale' => app()->getLocale()]) }}" class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
             {{ __('users.messages.login_prompt') }}
         </a>
         <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">

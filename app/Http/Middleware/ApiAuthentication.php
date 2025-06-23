@@ -49,11 +49,11 @@ class ApiAuthentication
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'error' => __('auth.unauthenticated'),
-                    'redirect' => $request->is('api/admin/*') ? backpack_url('dashboard') : route('login')
+                    'redirect' => $request->is('api/admin/*') ? backpack_url('dashboard') : route('frontend.login', ['locale' => app()->getLocale()])
                 ], 401);
             }
-            
-            return redirect()->guest($request->is('admin*') ? backpack_url('login') : route('login'));
+
+            return redirect()->guest($request->is('admin*') ? backpack_url('login') : route('frontend.login', ['locale' => app()->getLocale()]));
         }
 
         // Refresh session timeout on each API request

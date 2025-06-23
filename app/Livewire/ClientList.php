@@ -3,10 +3,17 @@
 namespace App\Livewire;
 
 use App\Models\Client;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * ClientList Livewire Component
+ * 
+ * Handles displaying and filtering a paginated list of clients for the authenticated user.
+ * Provides search, sorting, and pagination functionality.
+ */
 class ClientList extends Component
 {
     use WithPagination;
@@ -28,24 +35,38 @@ class ClientList extends Component
     
     public $errorMessage = null;
     
-    public function updatingSearch()
+    /**
+     * Reset pagination when search term is updated
+     */
+    public function updatingSearch(): void
     {
         $this->resetPage();
     }
     
-    public function updatingStatus()
+    /**
+     * Reset pagination when status filter is updated
+     */
+    public function updatingStatus(): void
     {
         $this->resetPage();
     }
     
-    public function resetFilters()
+    /**
+     * Reset all filters and pagination
+     */
+    public function resetFilters(): void
     {
         $this->search = '';
         $this->status = '';
         $this->resetPage();
     }
     
-    public function sortBy($field)
+    /**
+     * Sort by given field, toggle direction if same field
+     *
+     * @param string $field
+     */
+    public function sortBy($field): void
     {
         if ($this->orderBy === $field) {
             $this->orderAsc = !$this->orderAsc;
@@ -57,17 +78,35 @@ class ClientList extends Component
 
     protected $paginationTheme = 'tailwind';
     
-    public function mount()
+    /**
+     * Component initialization
+     */
+    public function mount(): void
     {
         // Set theme for pagination to ensure correct styling
         $this->paginationTheme = 'tailwind';
     }
     
-    public function render()
+    /**
+     * Render the component with clients data
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function render(): \Illuminate\Contracts\View\View
     {
         try {
             $query = Client::where('user_id', Auth::id())
                 ->withCount('invoices'); // Add count of invoices for each client
+            
+            // Apply search filter if provided
+            if (!empty($this->search)) {
+                $query->where(function ($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%')
+                      ->orWhere('email', 'like', '%' . $this->search . '%')
+                      ->orWhere('street', 'like', '%' . $this->search . '%')
+                      ->orWhere('city', 'like', '%' . $this->search . '%');
+                });
+            }
             
             // Handle special sort cases
             if ($this->orderBy === 'invoices') {

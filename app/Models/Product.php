@@ -22,6 +22,8 @@ class Product extends Model
         'slug',
         'user_id',
         'price',
+        'unit',
+        'currency',
         'tax_id',
         'category_id',
         'supplier_id',

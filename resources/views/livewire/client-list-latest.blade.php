@@ -3,7 +3,7 @@
         <ul class="divide-y divide-gray-200">
             @foreach($clients as $client)
                 <li class="px-4 hover:bg-gray-50">
-                    <a href="@localizedRoute('frontend.client.show', $client->id)" class="flex justify-between items-center">
+                    <a href="{{ route('frontend.client.show', ['id' => $client->id, 'locale' => app()->getLocale()]) }}" class="flex justify-between items-center">
                         <div class="w-50">
                             <p class="text-sm font-medium text-gray-900">{{ $client->name }}</p>
                             <p class="text-xs text-gray-500">{{ $client->email ?? __('dashboard.status.no_email') }}</p>
@@ -17,7 +17,7 @@
             @endforeach
         </ul>
         <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
-            <a href="@localizedRoute('frontend.clients')" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+            <a href="{{ route('frontend.clients', ['locale' => app()->getLocale()]) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
                 {{ __('dashboard.actions.view_all_clients') }} <i class="fas fa-arrow-right ml-1"></i>
             </a>
         </div>

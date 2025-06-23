@@ -40,7 +40,7 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             Log::error('Error loading profile: ' . $e->getMessage());
             
-            return redirect()->route('frontend.dashboard', ['lang' => app()->getLocale()])
+            return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()])
                 ->withErrors(['error' => __('users.messages.profile_error')]);
         }
     }
@@ -63,7 +63,7 @@ class ProfileController extends Controller
             // Update user
             $user->update($validatedData);
             
-            return redirect()->route('frontend.profile.edit', ['lang' => $request->input('lang', app()->getLocale())])
+            return redirect()->route('frontend.profile.edit', ['locale' => $request->input('lang', app()->getLocale())])
                 ->with('success', __('users.messages.profile_updated'));
         } catch (\Exception $e) {
             Log::error('Error updating profile: ' . $e->getMessage());
@@ -90,7 +90,7 @@ class ProfileController extends Controller
             $user->password = Hash::make($request->password);
             $user->save();
             
-            return redirect()->route('frontend.profile.edit', ['lang' => $request->input('lang', app()->getLocale())])
+            return redirect()->route('frontend.profile.edit', ['locale' => $request->input('locale', app()->getLocale())])
                 ->with('success', __('users.messages.password_updated'));
         } catch (\Exception $e) {
             Log::error('Error changing password: ' . $e->getMessage());

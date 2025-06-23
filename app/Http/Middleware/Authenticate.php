@@ -20,7 +20,7 @@ class Authenticate extends Middleware
             }
             
             // For frontend use standard login route
-            return route('login');
+            return route('frontend.login', ['locale' => app()->getLocale()]);
         }
         
         return null;

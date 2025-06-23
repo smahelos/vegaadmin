@@ -8,53 +8,76 @@ use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 
+/**
+ * InvoiceList Livewire Component
+ * 
+ * Handles displaying and filtering a paginated list of invoices for the authenticated user.
+ * Provides search, filtering by status, sorting, and pagination functionality.
+ */
 class InvoiceList extends Component
 {
     use WithPagination;
     
     #[Url]
-    public $search = '';
+    public string $search = '';
     
     #[Url]
-    public $status = '';
+    public string $status = '';
     
     #[Url(as: 'sort')]
-    public $orderBy = 'created_at';
+    public string $orderBy = 'created_at';
     
     #[Url(as: 'direction')]
-    public $orderAsc = false;
+    public bool $orderAsc = false;
     
     #[Url(keep: true)]
-    public $page = 1;
+    public int $page = 1;
     
-    public $errorMessage = null;
+    public ?string $errorMessage = null;
     
-    protected $paginationTheme = 'tailwind';
+    protected string $paginationTheme = 'tailwind';
     
-    public function mount()
+    /**
+     * Component initialization
+     */
+    public function mount(): void
     {
         // Set theme for pagination to ensure correct styling
         $this->paginationTheme = 'tailwind';
     }
     
-    public function updatingSearch()
+    /**
+     * Reset pagination when search term is updated
+     */
+    public function updatingSearch(): void
     {
         $this->resetPage();
     }
     
-    public function updatingStatus()
+    /**
+     * Reset pagination when status filter is updated
+     */
+    public function updatingStatus(): void
     {
         $this->resetPage();
     }
     
-    public function resetFilters()
+    /**
+     * Reset all filters and pagination
+     */
+    public function resetFilters(): void
     {
         $this->search = '';
         $this->status = '';
         $this->resetPage();
     }
     
-    public function sortBy($field)
+    /**
+     * Sort by given field, toggle direction if same field
+     *
+     * @param string $field
+     */
+    public function sortBy(string $field): void
     {
         if ($this->orderBy === $field) {
             $this->orderAsc = !$this->orderAsc;
@@ -64,23 +87,30 @@ class InvoiceList extends Component
         }
     }
     
-    public function render()
+    /**
+     * Render the component with invoices data
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function render(): \Illuminate\Contracts\View\View
     {
         try {
             $query = Invoice::with(['client', 'paymentMethod', 'paymentStatus'])
                 ->where('user_id', Auth::id());
                 
-            if ($this->search) {
+            if (!empty($this->search)) {
                 $query->where(function($q) {
-                    $q->where('number', 'like', "%{$this->search}%")
+                    $q->where('invoice_vs', 'like', "%{$this->search}%")
                       ->orWhereHas('client', function($q) {
                           $q->where('name', 'like', "%{$this->search}%");
                       });
                 });
             }
             
-            if ($this->status) {
-                $query->where('status', $this->status);
+            if (!empty($this->status)) {
+                $query->whereHas('paymentStatus', function($q) {
+                    $q->where('name', $this->status);
+                });
             }
             
             // Special handling for different sorting fields

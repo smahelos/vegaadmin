@@ -5,12 +5,15 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\InvoiceProductSyncService;
 
+/**
+ * Synchronize products from invoice_text JSON to pivot table
+ */
 class SyncInvoiceProducts extends Command
 {
     protected $signature = 'invoices:sync-products {--invoice-id= : Sync specific invoice ID}';
     protected $description = 'Synchronize products from invoice_text JSON to pivot table';
 
-    public function handle(InvoiceProductSyncService $syncService)
+    public function handle(InvoiceProductSyncService $syncService): int
     {
         $invoiceId = $this->option('invoice-id');
         

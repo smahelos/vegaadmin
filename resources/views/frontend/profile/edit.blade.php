@@ -4,7 +4,7 @@
 <div class="mb-6 flex justify-between items-center">
     <h1 class="text-3xl text-amber-600">{{ __('users.titles.edit_profile') }}</h1>
     <div class="space-x-2">
-        <a href="@localizedRoute('frontend.dashboard')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
+        <a href="{{ route('frontend.dashboard', ['locale' => app()->getLocale()]) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
             <i class="fas fa-arrow-left mr-2"></i>{{ __('users.actions.back_to_dashboard') }}
         </a>
     </div>
@@ -12,7 +12,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-<form method="POST" action="{{ route('frontend.profile.update', ['lang' => app()->getLocale()]) }}">
+<form method="POST" action="{{ route('frontend.profile.update', ['locale' => app()->getLocale()]) }}">
 @csrf
     @method('PUT')
         <!-- Section 1: Basic informations -->
@@ -59,7 +59,7 @@
                 
     <!-- Submit -->
     <div class="flex justify-between">
-        <a href="@localizedRoute('frontend.dashboard')" class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        <a href="{{ route('frontend.dashboard', ['locale' => app()->getLocale()]) }}" class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
         {{ __('users.actions.cancel') }}
         </a>
         <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:text-white bg-emerald-500 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 cursor-pointer">

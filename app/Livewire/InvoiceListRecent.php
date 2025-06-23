@@ -7,20 +7,55 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
+use Illuminate\Contracts\View\View;
 
+/**
+ * InvoiceListRecent Livewire Component
+ * 
+ * Displays recent invoices with sorting functionality.
+ * Shows last 5 invoices for authenticated user with pagination support.
+ */
 class InvoiceListRecent extends Component
 {
     use WithPagination;
     
+    /**
+     * Current sorting field
+     *
+     * @var string
+     */
     #[Url(as: 'sort')]
-    public $orderBy = 'created_at';
+    public string $orderBy = 'created_at';
     
+    /**
+     * Sort direction (true = ascending, false = descending)
+     *
+     * @var bool
+     */
     #[Url(as: 'direction')]
-    public $orderAsc = false;
+    public bool $orderAsc = false;
     
-    public $errorMessage = null;
+    /**
+     * Error message to display to user
+     *
+     * @var string|null
+     */
+    public ?string $errorMessage = null;
     
-    public function sortBy($field)
+    /**
+     * Set up component with pagination theme
+     */
+    public function mount(): void
+    {
+        $this->paginationTheme = 'bootstrap';
+    }
+    
+    /**
+     * Sort by given field, toggle direction if same field
+     *
+     * @param string $field
+     */
+    public function sortBy(string $field): void
     {
         if ($this->orderBy === $field) {
             $this->orderAsc = !$this->orderAsc;
@@ -30,7 +65,12 @@ class InvoiceListRecent extends Component
         }
     }
     
-    public function render()
+    /**
+     * Render the component with recent invoices data
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function render(): View
     {
         try {
             $query = Invoice::with(['client', 'paymentMethod', 'paymentStatus'])

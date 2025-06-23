@@ -288,10 +288,11 @@ class InvoiceController extends Controller
     /**
      * Show form for editing an invoice
      * 
+     * @param string $locale
      * @param int $id Invoice ID
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function edit($id)
+    public function edit(string $locale, int $id)
     {
         try {
             // Get invoice with related models
@@ -300,7 +301,7 @@ class InvoiceController extends Controller
             // Check if user has permission to edit this invoice
             if ($invoice->user_id != Auth::id()) {
                 return redirect()
-                    ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                    ->route('frontend.invoices', ['locale' => $locale])
                     ->with('error', __('invoices.messages.edit_error_unauthorized'));
             }
             
@@ -418,12 +419,12 @@ class InvoiceController extends Controller
         } catch (ModelNotFoundException $e) {
             Log::error('Invoice not found: ' . $e->getMessage());
             return redirect()
-                ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                ->route('frontend.invoices', ['locale' => $locale])
                 ->with('error', __('invoices.messages.not_found'));
         } catch (\Exception $e) {
             Log::error('Error loading invoice for editing: ' . $e->getMessage());
             return redirect()
-                ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                ->route('frontend.invoices', ['locale' => $locale])
                 ->with('error', __('invoices.messages.edit_error'));
         }
     }
@@ -502,8 +503,8 @@ class InvoiceController extends Controller
 
             // Recalculate total amount
             $invoice->calculateTotalAmount();
-            
-            return redirect()->route('frontend.invoices', ['lang' => app()->getLocale()])
+
+            return redirect()->route('frontend.invoices', ['locale' => app()->getLocale()])
                 ->with('success', __('invoices.messages.created'));
         } catch (\Exception $e) {
             Log::error(__('invoices.messages.create_error') . $e->getMessage());
@@ -582,7 +583,7 @@ class InvoiceController extends Controller
                 'invoice_number' => $data['invoice_vs'],
                 'download_url' => route('frontend.invoice.download.token', 
                 [
-                    'lang' => $locale,
+                    'locale' => $locale,
                     'token' => $token
                 ]),
                 'token' => $token,
@@ -603,10 +604,11 @@ class InvoiceController extends Controller
     /**
      * Display invoice details
      * 
+     * @param string $locale
      * @param int $id Invoice ID
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function show($id)
+    public function show(string $locale, int $id)
     {
         try {
             // Ignore requests for static files
@@ -619,7 +621,7 @@ class InvoiceController extends Controller
             if (!is_numeric($id)) {
                 Log::warning('Wrong invoice ID: ' . $id);
                 return redirect()
-                    ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                    ->route('frontend.invoices', ['locale' => app()->getLocale()])
                     ->with('error', __('invoices.messages.invalid_id'));
             }
             
@@ -653,13 +655,13 @@ class InvoiceController extends Controller
             Log::warning('Trying to view nonexistent invoice with ID: ' . $id);
             
             return redirect()
-                ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                ->route('frontend.invoices', ['locale' => app()->getLocale()])
                 ->with('error', __('invoices.messages.error_show'));
         } catch (\Exception $e) {
             Log::error('Error viewing invoice: ' . $e->getMessage());
             
             return redirect()
-                ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                ->route('frontend.invoices', ['locale' => app()->getLocale()])
                 ->with('error', __('invoices.messages.error_show'));
         }
     }
@@ -667,11 +669,12 @@ class InvoiceController extends Controller
     /**
      * Generate and download invoice PDF
      * 
+     * @param string $locale
      * @param int $id Invoice ID
      * @param Request $request
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
-    public function download($id, Request $request)
+    public function download(string $locale, int $id, Request $request)
     {
         try {
             // Get invoice with related models
@@ -759,10 +762,11 @@ class InvoiceController extends Controller
      * Update an existing invoice
      * 
      * @param InvoiceRequest $request
+     * @param string $locale
      * @param int $id Invoice ID
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(InvoiceRequest $request, $id)
+    public function update(InvoiceRequest $request, string $locale, int $id)
     {
         try {
             // Find invoice and check ownership
@@ -771,7 +775,7 @@ class InvoiceController extends Controller
             // Additional check for security
             if ($invoice->user_id != Auth::id()) {
                 return redirect()
-                    ->route('frontend.invoices', ['lang' => app()->getLocale()])
+                    ->route('frontend.invoices', ['locale' => app()->getLocale()])
                     ->with('error', __('invoices.messages.update_error_unauthorized'));
             }
             
@@ -846,7 +850,7 @@ class InvoiceController extends Controller
             $invoice->calculateTotalAmount();
             
             return redirect()
-                ->route('frontend.invoice.show', ['id' => $invoice->id, 'lang' => app()->getLocale()])
+                ->route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => app()->getLocale()])
                 ->with('success', __('invoices.messages.updated'));
         } catch (ModelNotFoundException $e) {
             Log::error('Invoice not found during update: ' . $e->getMessage());
@@ -867,17 +871,18 @@ class InvoiceController extends Controller
     /**
      * Delete temporary invoice for guest user
      * 
+     * @param string $locale
      * @param string $token Invoice token
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function deleteGuestInvoice($token)
+    public function deleteGuestInvoice(string $locale, string $token)
     {
         try {
             // Verify that token belongs to current user (session)
             $sessionToken = Session::get('last_guest_invoice_token');
             
             if ($sessionToken !== $token) {
-                return redirect()->route('home')
+                return redirect()->route('home', ['locale' => app()->getLocale()])
                     ->with('error', __('invoices.messages.invalid_token'));
             }
 
@@ -888,15 +893,15 @@ class InvoiceController extends Controller
             Session::forget('last_guest_invoice_token');
             Session::forget('last_guest_invoice_number');
             Session::forget('last_guest_invoice_expires');
-            
-            return redirect()->route('home')
+
+            return redirect()->route('home', ['locale' => app()->getLocale()])
                 ->with('success', __('invoices.messages.deleted_guest'));
         } catch (\Exception $e) {
             Log::error('Error deleting guest invoice', [
                 'error' => $e->getMessage()
             ]);
-            
-            return redirect()->route('home')
+
+            return redirect()->route('home', ['locale' => app()->getLocale()])
                 ->with('error', __('invoices.messages.delete_error'));
         }
     }
@@ -904,10 +909,11 @@ class InvoiceController extends Controller
     /**
      * Mark invoice as paid
      *
+     * @param string $locale
      * @param int $id Invoice ID
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function markAsPaid($id)
+    public function markAsPaid(string $locale, int $id)
     {
         try {
             $success = $this->invoiceService->markInvoiceAsPaid($id);

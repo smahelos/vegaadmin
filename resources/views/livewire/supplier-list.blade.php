@@ -126,18 +126,18 @@
                         $supplier->invoices->count() }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <!-- View button -->
-                        <a href="@localizedRoute('frontend.supplier.show', $supplier->id)"
+                        <a href="{{ route('frontend.supplier.show', ['id' => $supplier->id, 'locale' => app()->getLocale()]) }}"
                             title="{{ __('suppliers.actions.show') }}" class="text-cyan-600 hover:text-cyan-900 mr-3">
                             <i class="fas fa-eye"></i>
                         </a>
                         <!-- Edit button -->
-                        <a href="@localizedRoute('frontend.supplier.edit', $supplier->id)"
+                        <a href="{{ route('frontend.supplier.edit', ['id' => $supplier->id, 'locale' => app()->getLocale()]) }}"
                             title="{{ __('suppliers.actions.edit') }}"
                             class="text-yellow-600 hover:text-yellow-900 mr-3">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
                         <!-- New invoice button -->
-                        <a href="@localizedRoute('frontend.invoice.create', ['suppllier_id' => $supplier->id])"
+                        <a href="{{ route('frontend.invoice.create', ['supplier_id' => $supplier->id, 'locale' => app()->getLocale()]) }}"
                             title="{{ __('invoices.actions.create') }}"
                             class="text-green-600 hover:text-green-900 mr-3">
                             <i class="fas fa-file-invoice"></i>
@@ -148,7 +148,7 @@
                             <i class="fas fa-trash-alt"></i>
                         </a>
                         <form id="delete-form-{{ $supplier->id }}"
-                            action="{{ route('frontend.supplier.destroy', $supplier) }}" method="POST" class="hidden">
+                            action="{{ route('frontend.supplier.destroy', ['id' => $supplier->id, 'locale' => app()->getLocale()]) }}" method="POST" class="hidden">
                             @csrf
                             @method('DELETE')
                         </form>
@@ -173,7 +173,7 @@
         </div>
         <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('suppliers.titles.empty') }}</h3>
         <p class="text-gray-500 mb-6">{{ __('suppliers.titles.empty_message') }}</p>
-        <a href="@localizedRoute('frontend.supplier.create')"
+        <a href="{{ route('frontend.supplier.create', ['locale' => app()->getLocale()]) }}"
             class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <i class="fas fa-plus mr-2"></i> {{ __('suppliers.actions.new') }}
         </a>

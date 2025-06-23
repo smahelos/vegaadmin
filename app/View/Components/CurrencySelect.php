@@ -60,6 +60,16 @@ class CurrencySelect extends Component
      */
     public function render(): View
     {
-        return view('components.currency-select');
+        return view('components.currency-select', [
+            'currencies' => $this->currencies,
+            'name' => $this->name,
+            'id' => $this->id,
+            'selected' => $this->selected,
+            'required' => $this->required,
+            'label' => $this->label,
+            'class' => $this->class,
+            'labelClass' => $this->labelClass,
+            'hint' => $this->hint,
+        ]);
     }
 }

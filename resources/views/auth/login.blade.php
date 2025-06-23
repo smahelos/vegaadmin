@@ -31,8 +31,8 @@
                 </div>
             </div>
         @endif
-        
-        <form class="mt-8 space-y-6" action="{{ route('login') }}" method="POST">
+
+        <form class="mt-8 space-y-6" action="{{ route('frontend.login', ['locale' => app()->getLocale()]) }}" method="POST">
             @csrf
             
             <div class="rounded-md shadow-sm -space-y-px">
@@ -60,7 +60,7 @@
 
                 <div class="text-sm">
                     @if (Route::has('frontend.password.request'))
-                    <a href="@localizedRoute('frontend.password.request')" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    <a href="{{ route('frontend.password.request', ['locale' => app()->getLocale()]) }}" class="font-medium text-indigo-600 hover:text-indigo-500">
                         {{ __('users.actions.forgot_password') }}
                     </a>
                     @endif
@@ -68,7 +68,7 @@
     
                 <div class="text-sm">
                     <span class="text-gray-500">{{ __('users.messages.no_account') }}</span>
-                    <a href="@localizedRoute('register')" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    <a href="{{ route('frontend.register', ['locale' => app()->getLocale()]) }}" class="font-medium text-indigo-600 hover:text-indigo-500">
                         {{ __('users.messages.register_prompt') }}
                     </a>
                 </div>

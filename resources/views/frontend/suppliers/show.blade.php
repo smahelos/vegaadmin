@@ -7,10 +7,10 @@
 
         <x-back-button />
         
-        <a href="@localizedRoute('frontend.suppliers')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
+        <a href="{{ route('frontend.suppliers', ['locale' => app()->getLocale()]) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
             <i class="fas fa-arrow-left mr-2"></i> {{ __('suppliers.actions.back_to_list') }}
         </a>
-        <a href="@localizedRoute('frontend.supplier.edit', $supplier->id)" class="px-4 py-2 bg-green-200 hover:bg-emerald-500 rounded-md text-sm text-gray-700 hover:text-white font-medium transition-colors">
+        <a href="{{ route('frontend.supplier.edit', ['locale' => app()->getLocale(), 'id' => $supplier->id]) }}" class="px-4 py-2 bg-green-200 hover:bg-emerald-500 rounded-md text-sm text-gray-700 hover:text-white font-medium transition-colors">
             <i class="fas fa-pencil-alt pr-2"></i> {{ __('suppliers.actions.edit') }}
         </a>
     </div>
@@ -196,7 +196,7 @@
     <div class="p-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-medium text-gray-900">{{ __('suppliers.sections.supplier_invoices') }}</h2>
-            <a href="@localizedRoute('frontend.invoice.create', ['supplier_id' => $supplier->id])" class="px-4 py-2 bg-blue-300 hover:bg-cyan-600 rounded-md text-gray-700 hover:text-white text-sm font-medium transition-colors">
+            <a href="{{ route('frontend.invoice.create', ['supplier_id' => $supplier->id, 'locale' => app()->getLocale()]) }}" class="px-4 py-2 bg-blue-300 hover:bg-cyan-600 rounded-md text-gray-700 hover:text-white text-sm font-medium transition-colors">
                 <i class="fas fa-plus mr-2"></i> {{ __('invoices.actions.create') }}
             </a>
         </div>
@@ -254,13 +254,13 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a href="@localizedRoute('frontend.invoice.show', $invoice->id)" class="text-cyan-600 hover:text-cyan-900 mr-3">
+                                    <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}" class="text-cyan-600 hover:text-cyan-900 mr-3">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="@localizedRoute('frontend.invoice.edit', $invoice->id)" class="text-yellow-600 hover:text-yellow-900 mr-3">
+                                    <a href="{{ route('frontend.invoice.edit', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
                                         <i class="fas fa-pencil-alt"></i>
                                     </a>
-                                    <a href="@localizedRoute('frontend.invoice.download', $invoice->id)" class="text-green-600 hover:text-green-900">
+                                    <a href="{{ route('frontend.invoice.download', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}" class="text-green-600 hover:text-green-900">
                                         <i class="fas fa-download"></i>
                                     </a>
                                 </td>

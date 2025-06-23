@@ -32,7 +32,7 @@ class StatusCategoryCrudController extends CrudController
         );
         
         // Only allow access if user has permission to manage statuses
-        if (!backpack_user()->can('can_create_edit_status')) {
+        if (!backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')) {
             CRUD::denyAccess(['list', 'create', 'update', 'delete']);
         }
     }

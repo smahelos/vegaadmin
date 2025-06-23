@@ -7,16 +7,25 @@ use Carbon\Carbon;
 use Cron\CronExpression as CronParser;
 use Illuminate\Console\Command;
 
+/**
+ * Tests cron expression and shows time of next run.
+ */
 class TestCronExpression extends Command
 {
     protected $signature = 'cron:test {id? : tasd ID to test} {--expression= : CRON expression to test}';
     protected $description = 'Tests cron expression and shows time of next run.';
 
-    public function handle()
+    public function handle(): int
     {
         if ($this->argument('id')) {
             // Check existing tasks
-            $task = CronTask::where('id', $this->argument('id'))->firstOrFail();
+            $task = CronTask::find($this->argument('id'));
+            if (!$task) {
+                $this->error("Task with ID {$this->argument('id')} not found.");
+                return 1;
+            }
+            
+            /** @var CronTask $task */
             $expression = $task->frequency === 'custom' ? $task->custom_expression : $this->convertFrequencyToExpression($task);
             
             $this->info("Testing of task: {$task->name}");
@@ -38,20 +47,19 @@ class TestCronExpression extends Command
             $this->info("Next runs (5):");
             
             for ($i = 0; $i < 5; $i++) {
-                $nextRun = Carbon::createFromFormat('Y-m-d H:i:s', $cron->getNextRunDate()->format('Y-m-d H:i:s'));
+                $nextRun = Carbon::createFromFormat('Y-m-d H:i:s', $cron->getNextRunDate($now)->format('Y-m-d H:i:s'));
                 $this->info(" - " . $nextRun->format('Y-m-d H:i:s') . " (" . $nextRun->diffForHumans() . ")");
-                $cron->getNextRunDate();
+                $now = $nextRun; // Update for next iteration
             }
             
             // Simulation of task execution
-            $this->info("Do yu want to simulate task run? [y/N]");
-            if ($this->confirm("Simulate task run?")) {
+            if ($this->confirm("Do yu want to simulate task run? [y/N]", false)) {
                 if ($this->argument('id')) {
                     // Run the task command
                     $this->info("Task run: {$task->command}");
                     $this->call($task->command);
                 } else {
-                    $this->warning("Simulation is not accessible for testing of task expression.");
+                    $this->line("Simulation is not accessible for testing of task expression.");
                 }
             }
             
@@ -71,13 +79,13 @@ class TestCronExpression extends Command
     private function convertFrequencyToExpression(CronTask $task): string
     {
         $runAt = $task->run_at ? Carbon::parse($task->run_at) : Carbon::parse('00:00');
-        $minute = $runAt->format('i');
-        $hour = $runAt->format('H');
-
+        $minute = (int) $runAt->format('i'); // Convert to int to remove leading zeros
+        $hour = (int) $runAt->format('H');   // Convert to int to remove leading zeros
+        
         return match($task->frequency) {
             'daily' => "{$minute} {$hour} * * *",
-            'weekly' => "{$minute} {$hour} * * {$task->day_of_week}",
-            'monthly' => "{$minute} {$hour} {$task->day_of_month} * *",
+            'weekly' => "{$minute} {$hour} * * " . ($task->day_of_week ?? '1'),
+            'monthly' => "{$minute} {$hour} " . ($task->day_of_month ?? '15') . " * *",
             default => '* * * * *', 
         };
     }
