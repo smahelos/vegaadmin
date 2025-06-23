@@ -23,92 +23,118 @@ use Illuminate\Support\Facades\Auth;
 // with the latest data from the database.
 Route::middleware([
     'web', 
-    'refresh.frontend.session'
+    'set.locale',
+    'refresh.frontend.session',
 ])->group(function () {
-    Route::get('/', function () {
-        return view('frontend.invoices.create');
-    });
-
-    Route::get('/dashboard', function () {
-        return view('frontend.dashboard');
-    })->middleware(['auth', 'verified'])->name('dashboard');
-
-    Route::middleware('auth')->group(function () {
-        // Dashboard
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('frontend.dashboard');
-        
-        // Invoices
-        Route::get('/invoice', [InvoiceController::class, 'index'])->name('frontend.invoices');
-        Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('frontend.invoice.create');
-        Route::post('/invoice', [InvoiceController::class, 'store'])->name('frontend.invoice.store');
-        Route::get('/invoice/{id}', [InvoiceController::class, 'show'])->name('frontend.invoice.show');
-        Route::get('/invoice/{id}/edit', [InvoiceController::class, 'edit'])->name('frontend.invoice.edit');
-        Route::put('/invoice/{id}', [InvoiceController::class, 'update'])->name('frontend.invoice.update');
-        Route::get('/invoice/{id}/download', [InvoiceController::class, 'download'])->name('frontend.invoice.download');
-        Route::put('/invoice/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('frontend.invoice.mark-as-paid');
-        
-        // Clients
-        Route::get('/client', [ClientController::class, 'index'])->name('frontend.clients');
-        Route::get('/client/create', [ClientController::class, 'create'])->name('frontend.client.create');
-        Route::post('/client', [ClientController::class, 'store'])->name('frontend.client.store');
-        Route::get('/client/{id}', [ClientController::class, 'show'])->name('frontend.client.show');
-        Route::get('/client/{id}/edit', [ClientController::class, 'edit'])->name('frontend.client.edit');
-        Route::put('/client/{id}', [ClientController::class, 'update'])->name('frontend.client.update');
-        Route::delete('/client/{id}', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
-        Route::get('/client/{id}/set-default', [ClientController::class, 'setDefault'])->name('frontend.client.set-default');
-        
-        // Suppliers
-        Route::get('/supplier', [SupplierController::class, 'index'])->name('frontend.suppliers');
-        Route::get('/supplier/create', [SupplierController::class, 'create'])->name('frontend.supplier.create');
-        Route::post('/supplier', [SupplierController::class, 'store'])->name('frontend.supplier.store');
-        Route::get('/supplier/{id}', [SupplierController::class, 'show'])->name('frontend.supplier.show');
-        Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('frontend.supplier.edit');
-        Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('frontend.supplier.update');
-        Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('frontend.supplier.destroy');
-        Route::get('/supplier/{id}/set-default', [SupplierController::class, 'setDefault'])->name('frontend.supplier.set-default');
-        
-        // Profile
-        Route::get('/profile', [ProfileController::class, 'edit'])->name('frontend.profile.edit');
-        Route::put('/profile', [ProfileController::class, 'update'])->name('frontend.profile.update');
-        Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('frontend.profile.update.password');
-
-        // Products
-        Route::get('/product', [ProductController::class, 'index'])->name('frontend.products');
-        Route::get('/product/create', [ProductController::class, 'create'])->name('frontend.product.create');
-        Route::post('/product', [ProductController::class, 'store'])->name('frontend.product.store');
-        Route::delete('/product/{id}', [ProductController::class, 'destroy'])->name('frontend.product.destroy');
-        Route::get('/product/{id}', [ProductController::class, 'show'])->name('frontend.product.show');
-        Route::get('/product/{id}/edit', [ProductController::class, 'edit'])->name('frontend.product.edit');
-        Route::put('/product/{id}', [ProductController::class, 'update'])->name('frontend.product.update');
-    });
-});
-
-// Public routes (for guests)
-Route::get('/', [InvoiceController::class, 'createForGuest'])->name('home');
-Route::post('/guest-invoices', [InvoiceController::class, 'storeGuest'])
-    ->name('frontend.invoice.store.guest')
-    ->withoutMiddleware(['auth']);
-
-// Download invoice with token (for guests)
-Route::get('/invoices/download/{token}', [InvoiceController::class, 'downloadWithToken'])
-    ->name('frontend.invoice.download.token')
-    ->withoutMiddleware(['auth']);
-
-// Delete invoice with token (for guests)
-Route::get('/invoices/delete/{token}', [InvoiceController::class, 'deleteGuestInvoice'])
-    ->name('frontend.invoice.delete.token')
-    ->withoutMiddleware(['auth']);
-
-// Frontend Authentication Routes - pouze pro nepřihlášené uživatele
-Route::middleware('guest')->group(function () {
-    // Registration
-    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
     
-    // Login
-    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login']);
+    // Routes with optional locale parameter
+    Route::localized(function () {
+        Route::get('/', function () {
+            return view('frontend.invoices.create');
+        })->name('home');
+
+        Route::get('/dashboard', function () {
+            return view('frontend.dashboard');
+        })->middleware(['auth', 'verified'])->name('dashboard');
+
+        Route::middleware('auth')->group(function () {
+            // Dashboard
+            Route::get('/dashboard', [DashboardController::class, 'index'])->name('frontend.dashboard');
+            
+            // Invoices
+            Route::get('/invoice', [InvoiceController::class, 'index'])->name('frontend.invoices');
+            Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('frontend.invoice.create');
+            Route::post('/invoice', [InvoiceController::class, 'store'])->name('frontend.invoice.store');
+            Route::get('/invoice/{id}', [InvoiceController::class, 'show'])->name('frontend.invoice.show');
+            Route::get('/invoice/{id}/edit', [InvoiceController::class, 'edit'])->name('frontend.invoice.edit');
+            Route::put('/invoice/{id}', [InvoiceController::class, 'update'])->name('frontend.invoice.update');
+            Route::get('/invoice/{id}/download', [InvoiceController::class, 'download'])->name('frontend.invoice.download');
+            Route::put('/invoice/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('frontend.invoice.mark-as-paid');
+            
+            // Clients
+            Route::get('/client', [ClientController::class, 'index'])->name('frontend.clients');
+            Route::get('/client/create', [ClientController::class, 'create'])->name('frontend.client.create');
+            Route::post('/client', [ClientController::class, 'store'])->name('frontend.client.store');
+            Route::get('/client/{id}', [ClientController::class, 'show'])->name('frontend.client.show');
+            Route::get('/client/{id}/edit', [ClientController::class, 'edit'])->name('frontend.client.edit');
+            Route::put('/client/{id}', [ClientController::class, 'update'])->name('frontend.client.update');
+            Route::delete('/client/{id}', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
+            Route::get('/client/{id}/set-default', [ClientController::class, 'setDefault'])->name('frontend.client.set-default');
+            
+            // Suppliers
+            Route::get('/supplier', [SupplierController::class, 'index'])->name('frontend.suppliers');
+            Route::get('/supplier/create', [SupplierController::class, 'create'])->name('frontend.supplier.create');
+            Route::post('/supplier', [SupplierController::class, 'store'])->name('frontend.supplier.store');
+            Route::get('/supplier/{id}', [SupplierController::class, 'show'])->name('frontend.supplier.show');
+            Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('frontend.supplier.edit');
+            Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('frontend.supplier.update');
+            Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('frontend.supplier.destroy');
+            Route::get('/supplier/{id}/set-default', [SupplierController::class, 'setDefault'])->name('frontend.supplier.set-default');
+            
+            // Profile
+            Route::get('/profile', [ProfileController::class, 'edit'])->name('frontend.profile.edit');
+            Route::put('/profile', [ProfileController::class, 'update'])->name('frontend.profile.update');
+            Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('frontend.profile.update.password');
+
+            // Products
+            Route::get('/product', [ProductController::class, 'index'])->name('frontend.products');
+            Route::get('/product/create', [ProductController::class, 'create'])->name('frontend.product.create');
+            Route::post('/product', [ProductController::class, 'store'])->name('frontend.product.store');
+            Route::delete('/product/{id}', [ProductController::class, 'destroy'])->name('frontend.product.destroy');
+            Route::get('/product/{id}', [ProductController::class, 'show'])->name('frontend.product.show');
+            Route::get('/product/{id}/edit', [ProductController::class, 'edit'])->name('frontend.product.edit');
+            Route::put('/product/{id}', [ProductController::class, 'update'])->name('frontend.product.update');
+        });
+
+        // Frontend Authentication Routes - pouze pro nepřihlášené uživatele
+        Route::middleware('guest')->group(function () {
+            // Registration
+            Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('frontend.register');
+            Route::post('/register', [RegisterController::class, 'register']);
+            
+            // Login
+            Route::get('/login', [LoginController::class, 'showLoginForm'])->name('frontend.login');
+            Route::post('/login', [LoginController::class, 'login']);
+        });
+
+
+        // Public routes (for guests)
+        Route::get('/', [InvoiceController::class, 'createForGuest'])->name('home');
+        Route::post('/guest-invoices', [InvoiceController::class, 'storeGuest'])
+            ->name('frontend.invoice.store.guest')
+            ->withoutMiddleware(['auth']);
+
+        // Download invoice with token (for guests)
+        Route::get('/invoices/download/{token}', [InvoiceController::class, 'downloadWithToken'])
+            ->name('frontend.invoice.download.token')
+            ->withoutMiddleware(['auth']);
+
+        // Delete invoice with token (for guests)
+        Route::get('/invoices/delete/{token}', [InvoiceController::class, 'deleteGuestInvoice'])
+            ->name('frontend.invoice.delete.token')
+            ->withoutMiddleware(['auth']);
+
+        // Logout route
+        Route::post('/logout', [LoginController::class, 'logout'])->name('frontend.logout');
+    });
 });
 
-// Logout route
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+// Auth routes outside locale group for Laravel auth middleware compatibility
+Route::middleware(['web', 'guest'])->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+});
+
+// // Public routes (for guests) - outside locale prefix for token access
+// Route::post('/guest-invoices', [InvoiceController::class, 'storeGuest'])
+//     ->name('frontend.invoice.store.guest')
+//     ->withoutMiddleware(['auth']);
+
+// // Download invoice with token (for guests)
+// Route::get('/invoices/download/{token}', [InvoiceController::class, 'downloadWithToken'])
+//     ->name('frontend.invoice.download.token')
+//     ->withoutMiddleware(['auth']);
+
+// // Delete invoice with token (for guests)
+// Route::get('/invoices/delete/{token}', [InvoiceController::class, 'deleteGuestInvoice'])
+//     ->name('frontend.invoice.delete.token')
+//     ->withoutMiddleware(['auth']);

@@ -114,6 +114,6 @@ trait HandlesFrontendApiAuthentication
             ], $statusCode);
         }
         
-        return redirect()->guest(route('login'));
+        return redirect()->guest(route('frontend.login', ['locale' => app()->getLocale()]));
     }
 }

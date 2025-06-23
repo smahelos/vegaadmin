@@ -29,7 +29,7 @@ class CleanPerformanceMetrics extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         $days = $this->option('days');
         $type = $this->option('type');

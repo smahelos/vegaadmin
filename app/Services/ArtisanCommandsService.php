@@ -11,33 +11,34 @@ use Illuminate\Support\Facades\Log;
 class ArtisanCommandsService
 {
     /**
-     * Získá seznam všech dostupných Artisan příkazů.
+     * Get list of all available Artisan commands.
      *
-     * @param bool $onlyNames Vrátit pouze názvy příkazů bez popisů
+     * @param bool $onlyNames Return only command names without descriptions
      * @return array
      */
     public function getAllCommands(bool $onlyNames = false): array
     {
-        // Ukládáme výsledek do cache, abychom nezatěžovali server
+        // Cache the result to avoid server overload
         return Cache::remember('artisan_commands_list', 60 * 60, function () use ($onlyNames) {
             $commands = [];
             
-            // Získáme všechny registrované příkazy
+            // Get all registered commands
             $allCommands = Artisan::all();
             
-            // Seřadíme podle názvu
+            // Sort by name
             ksort($allCommands);
             
             foreach ($allCommands as $name => $command) {
-                // Přeskočíme interní příkazy
+                // Skip internal commands
                 if (substr($name, 0, 1) === '_') {
                     continue;
                 }
                 
-                // Získáme popis příkazu
+                // Get command description and signature
                 $description = $command->getDescription();
+                $signature = $command->getSynopsis();
                 
-                // Přidáme do seznamu
+                // Add to list
                 if ($onlyNames) {
                     $commands[$name] = $name;
                 } else {
@@ -146,5 +147,38 @@ class ArtisanCommandsService
         Cache::forget("artisan_commands_by_category::1");
         Cache::forget("artisan_command_categories:0");
         Cache::forget("artisan_command_categories:1");
+    }
+    
+    /**
+     * Get detailed command information including signature
+     *
+     * @return array
+     */
+    public function getAllCommandsWithDetails(): array
+    {
+        return Cache::remember('artisan_commands_details', 60 * 60, function () {
+            $commands = [];
+            
+            // Get all registered commands
+            $allCommands = Artisan::all();
+            
+            // Sort by name
+            ksort($allCommands);
+            
+            foreach ($allCommands as $name => $command) {
+                // Skip internal commands
+                if (substr($name, 0, 1) === '_') {
+                    continue;
+                }
+                
+                $commands[$name] = [
+                    'name' => $name,
+                    'description' => $command->getDescription(),
+                    'signature' => $command->getSynopsis()
+                ];
+            }
+            
+            return $commands;
+        });
     }
 }

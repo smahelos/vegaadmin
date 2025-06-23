@@ -118,7 +118,7 @@
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                         @if($invoice->client)
-                        <a href="@localizedRoute('frontend.client.show', $invoice->client->id)"
+                        <a href="{{ route('frontend.client.show', ['id' => $invoice->client->id, 'locale' => app()->getLocale()]) }}"
                             class="text-indigo-600 hover:text-indigo-900">
                             {{ $invoice->client->name }}
                         </a>
@@ -159,16 +159,16 @@
                         @endif
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="@localizedRoute('frontend.invoice.show', $invoice->id)"
+                        <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}"
                             title="{{ __('invoices.actions.show') }}" class="text-cyan-600 hover:text-cyan-900 mr-3">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="@localizedRoute('frontend.invoice.edit', $invoice->id)"
+                        <a href="{{ route('frontend.invoice.edit', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}"
                             title="{{ __('invoices.actions.edit') }}"
                             class="text-yellow-600 hover:text-yellow-900 mr-3">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
-                        <a href="@localizedRoute('frontend.invoice.download', $invoice->id)"
+                        <a href="{{ route('frontend.invoice.download', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}"
                             title="{{ __('invoices.actions.download') }}"
                             class="text-fuchsia-600 hover:text-fuchsia-900">
                             <i class="fas fa-download"></i>
@@ -176,7 +176,7 @@
 
                         <!-- Button to mark invoice as paid -->
                         @if($invoice->payment_status_slug != 'paid')
-                        <form method="POST" action="@localizedRoute('frontend.invoice.mark-as-paid', $invoice->id)"
+                        <form method="POST" action="{{ route('frontend.invoice.mark-as-paid', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}"
                             class="inline">
                             @csrf
                             @method('PUT')
@@ -209,7 +209,7 @@
         </div>
         <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('invoices.titles.empty') }}</h3>
         <p class="text-gray-500 mb-6">{{ __('invoices.titles.empty_message') }}</p>
-        <a href="@localizedRoute('frontend.invoice.create')"
+        <a href="{{ route('frontend.invoice.create', ['locale' => app()->getLocale()]) }}"
             class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <i class="fas fa-plus mr-2"></i> {{ __('invoices.actions.create') }}
         </a>

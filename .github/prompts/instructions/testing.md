@@ -5,6 +5,53 @@ description: 'Testing standards and best practices for Laravel application'
 
 # Testing Instructions and Standards
 
+## 🚨 VERY IMPORTANT: Test-Driven Development (TDD) Principles
+
+### Core Testing Philosophy
+
+#### ❌ NEVER: Write Tests That Accommodate Bad Code
+- **NEVER** write tests that work around or accommodate incorrect behavior in application code
+- **NEVER** adjust test expectations to match buggy or non-standard code behavior
+- **NEVER** accept incorrect exit codes, missing error handling, or improper return values
+- **NEVER** write tests that pass for the wrong reasons
+
+#### ✅ ALWAYS: Fix Application Code to Meet Test Expectations
+- **ALWAYS** fix the application code when tests reveal problems
+- **ALWAYS** ensure proper exit codes (0 for success, non-zero for errors)
+- **ALWAYS** implement proper error handling and return values
+- **ALWAYS** follow standard conventions and best practices
+- **ALWAYS** make the code better through testing
+
+### TDD Process (CRITICAL)
+1. **Write tests that define correct behavior** (proper exit codes, error handling, etc.)
+2. **Run tests and let them fail** if code doesn't meet expectations
+3. **Analyze failures** - do they indicate real problems in the code?
+4. **Fix the application code** to make tests pass (not the tests!)
+5. **Refactor and improve** while maintaining test coverage
+
+### Console Command Testing Standards
+```php
+// ✅ CORRECT: Expect proper behavior and fix code if needed
+public function test_command_handles_invalid_user(): void
+{
+    $exitCode = Artisan::call('command', ['--user' => 'invalid']);
+    $this->assertEquals(1, $exitCode); // Expecting proper error exit code
+}
+
+// ❌ WRONG: Adjusting test to accommodate bad code
+public function test_command_handles_invalid_user(): void
+{
+    $exitCode = Artisan::call('command', ['--user' => 'invalid']);
+    $this->assertEquals(0, $exitCode); // Accepting wrong behavior
+}
+```
+
+### When Tests Fail - Decision Tree
+1. **First**: Does the failure indicate incorrect application behavior?
+2. **If YES**: Fix the application code, don't change the test
+3. **If NO**: Check if test expectations are wrong, then fix test
+4. **Remember**: Tests should drive code quality improvement
+
 ## 🚨 CRITICAL: File Handling and Safety Rules
 
 ### File Creation and Editing Safety
@@ -46,10 +93,31 @@ docker exec vegaadmin-app php artisan test tests/Unit/Http/Requests/Admin/Invoic
 php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php
 ```
 
-## Test Organization
+## Test Organization (CRITICAL NAMING CONVENTIONS)
+
+### Test File Naming Standards
+- **Feature Tests**: MUST include "Feature" in filename (e.g., `ClientControllerFeatureTest.php`)
+- **Unit Tests**: MUST NOT include "Unit" in filename (e.g., `ClientListTest.php`, not `ClientListUnitTest.php`)
+- **Avoid Duplicates**: Never create both `ClassName.php` and `ClassNameUnitTest.php` - use only `ClassName.php` for Unit tests
+- **Be Descriptive**: Use meaningful names that clearly indicate what is being tested
+
+### Test Types and Organization
 - **Unit Tests**: `tests/Unit/` - Test individual classes without dependencies
 - **Feature Tests**: `tests/Feature/` - Test application features with full context
 - **Integration Tests**: Test interactions between components
+- **No Duplicate Coverage**: Each component should have either Unit OR Feature tests, not both testing same functionality
+
+### Directory Structure Guidelines
+```
+tests/
+├── Unit/
+│   ├── Http/Requests/MyRequestTest.php          ✅ Correct
+│   ├── Http/Requests/MyRequestUnitTest.php      ❌ Wrong - never use Unit suffix
+│   └── Livewire/ComponentTest.php               ✅ Correct
+└── Feature/
+    ├── Http/Controllers/MyControllerFeatureTest.php  ✅ Correct - has Feature suffix
+    └── Livewire/ComponentFeatureTest.php             ✅ Correct - has Feature suffix
+```
 
 ## Unit vs Feature Test Guidelines
 
@@ -507,3 +575,152 @@ protected function setUp(): void
     $this->faker->unique(true); // Reset unique values
 }
 ```
+
+## Livewire Component Testing Guidelines
+
+### Authentication in Livewire Tests
+When testing Livewire components that require user authentication:
+
+1. **Use `$this->actingAs($user)` ONCE per test** - Sets global authentication for the entire test
+2. **Use `Livewire::test()` DIRECTLY** - No need for `Livewire::actingAs($user)->test()` when global auth is set
+3. **Global auth applies to ALL Livewire instances** in the same test
+
+```php
+#[Test]
+public function livewire_component_requires_authentication(): void
+{
+    $this->actingAs($this->user); // ✅ Set global auth once
+    
+    // ✅ Correct - uses global auth
+    $component = Livewire::test(MyComponent::class);
+    
+    // ❌ Wrong - redundant actingAs
+    $component = Livewire::actingAs($this->user)->test(MyComponent::class);
+}
+```
+
+### Accessing Livewire Component Data
+- **Use `viewData('key')` for view variables** - Data passed to view from render() method
+- **Use `get('property')` for component properties** - Public properties of the component class
+- **NEVER use `assertSet()` for view data** - View data is not a component property
+
+```php
+#[Test]
+public function component_passes_data_to_view(): void
+{
+    $component = Livewire::test(ProductListSelect::class);
+    
+    // ✅ Correct - access view data
+    $products = $component->viewData('products');
+    $hasData = $component->viewData('hasData');
+    
+    // ✅ Correct - access component properties
+    $search = $component->get('search');
+    $sortField = $component->get('sortField');
+    
+    // ❌ Wrong - view data is not a component property
+    $component->assertSet('hasData', true);
+}
+```
+
+### Testing Component Logic vs Database Queries
+When Livewire tests fail:
+
+1. **Test raw database queries first** - Verify data exists and queries work
+2. **Test component behavior separately** - Isolate component logic issues
+3. **Check authentication context** - Ensure user context is properly set
+4. **Verify column existence** - Ensure searched columns exist in database
+
+```php
+#[Test]
+public function search_functionality_works(): void
+{
+    $this->actingAs($this->user);
+    
+    $product = Product::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Product'
+    ]);
+    
+    // ✅ Test raw query first
+    $rawResults = Product::where('user_id', $this->user->id)
+        ->where('name', 'like', '%Test%')
+        ->get();
+    $this->assertCount(1, $rawResults);
+    
+    // ✅ Test component behavior
+    $component = Livewire::test(ProductListSelect::class)
+        ->set('search', 'Test');
+    
+    $products = $component->viewData('products');
+    $this->assertTrue($products->contains('id', $product->id));
+}
+```
+
+### Common Livewire Testing Pitfalls
+
+#### ❌ Wrong: Using non-existent database columns
+```php
+// This will fail if 'code' column doesn't exist
+->orWhere('code', 'like', "%{$searchTerm}%")
+```
+
+#### ✅ Correct: Verify columns exist before searching
+```php
+// Only search existing columns
+$query->where(function($q) use ($searchTerm) {
+    $q->where('name', 'like', "%{$searchTerm}%")
+      ->orWhere('description', 'like', "%{$searchTerm}%");
+});
+```
+
+#### ❌ Wrong: Scope issues in closures
+```php
+->when($this->search, function ($query) {
+    // $this->search may not be accessible in closure
+    $query->where('name', 'like', "%{$this->search}%");
+})
+```
+
+#### ✅ Correct: Pass variables to closure explicitly
+```php
+$searchTerm = $this->search;
+->when($searchTerm, function ($query) use ($searchTerm) {
+    $query->where('name', 'like', "%{$searchTerm}%");
+})
+```
+
+## 🚨 CRITICAL: Preventing Duplicate Tests
+
+### Anti-Duplication Rules
+- **NEVER create multiple test files for the same class** unless they test fundamentally different aspects
+- **CHECK existing tests** before creating new ones - use file search to find existing test coverage
+- **PREFER comprehensive single test file** over multiple smaller files testing same functionality
+- **REMOVE obsolete tests** when creating better versions
+
+### Before Creating Any Test File
+1. **Search for existing tests**: `find tests/ -name "*ComponentName*Test.php"`
+2. **Check both Unit and Feature directories**
+3. **Review existing test coverage** - don't duplicate functionality
+4. **If updating existing tests, don't create new files** - enhance existing ones
+
+### Duplicate Test Detection Commands
+```bash
+# Find potential duplicates by component name
+find tests/ -name "*ClientList*Test.php"
+find tests/ -name "*ProductSelect*Test.php" 
+find tests/ -name "*Invoice*Test.php"
+
+# Check for Unit suffix violations
+find tests/Unit/ -name "*UnitTest.php"  # Should return empty
+
+# Check for missing Feature suffix in Feature tests
+find tests/Feature/ -name "*Test.php" | grep -v "FeatureTest.php"
+```
+
+### When You Find Duplicates
+1. **Compare test coverage** - which file has better/more comprehensive tests?
+2. **Keep the better version** - usually the one following current standards
+3. **Merge useful tests** from the inferior version if any
+4. **Delete the inferior version**
+5. **Update documentation** if test organization changes

@@ -7,16 +7,28 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * ClientListLatest Livewire Component
+ * 
+ * Displays a paginated list of the latest clients for the authenticated user.
+ * Shows the most recently created clients with sorting functionality.
+ */
 class ClientListLatest extends Component
 {   
     use WithPagination;
-    public $orderAsc = false;
     
-    public $orderBy = 'created_at';
+    public bool $orderAsc = false;
     
-    public $errorMessage; 
+    public string $orderBy = 'created_at';
     
-    public function sortBy($field)
+    public ?string $errorMessage = null; 
+    
+    /**
+     * Sort by given field, toggle direction if same field
+     *
+     * @param string $field
+     */
+    public function sortBy(string $field): void
     {
         if ($this->orderBy === $field) {
             $this->orderAsc = !$this->orderAsc;
@@ -26,7 +38,12 @@ class ClientListLatest extends Component
         }
     }
 
-    public function render()
+    /**
+     * Render the component with latest clients data
+     *
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function render(): \Illuminate\Contracts\View\View
     {
         try {
             $query = Client::where('user_id', Auth::id());

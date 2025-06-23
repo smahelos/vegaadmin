@@ -38,7 +38,7 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        return redirect()->route('frontend.dashboard', ['lang' => app()->getLocale()]);
+        return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()]);
     }
 
     /**
@@ -93,7 +93,7 @@ class LoginController extends Controller
         
         $request->session()->regenerateToken();
 
-        return redirect()->route('home', ['lang' => app()->getLocale()]);
+        return redirect()->route('home', ['locale' => app()->getLocale()]);
     }
 
     /**

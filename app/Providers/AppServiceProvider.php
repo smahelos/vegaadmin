@@ -26,9 +26,6 @@ class AppServiceProvider extends ServiceProvider
         // Load Backpack helpers
         require_once app_path('Helpers/BackpackHelpers.php');
 
-        // Register localized route helper function
-        require_once app_path('Helpers/LocaleHelper.php');
-
         $this->app->bind(
             \Backpack\PermissionManager\app\Http\Controllers\UserCrudController::class,
             \App\Http\Controllers\Admin\UserCrudController::class
@@ -39,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services
      */
     public function boot(): void
-    {
+    {   
         // Observe Invoice model events
         // This observer will handle the creation and update events for the Invoice model
         // and synchronize products from the invoice_text JSON to the pivot table
@@ -51,28 +48,9 @@ class AppServiceProvider extends ServiceProvider
             return UserHelpers::isBackpackUser();
         });
 
-        // Create custom directive for generating URLs with language parameter
-        Blade::directive('localizedRoute', function ($expression) {
-            $parts = explode(',', $expression, 2);
-            $route = trim($parts[0]);
-
-            if (count($parts) === 1) {
-                return "<?php echo route({$route}, ['lang' => app()->getLocale()]); ?>";
-            } else {
-                $params = trim($parts[1]);
-                return "<?php 
-                    \$params = {$params};
-                    if (is_array(\$params)) {
-                        \$params['lang'] = app()->getLocale();
-                        echo route({$route}, \$params);
-                    } elseif (is_numeric(\$params)) {
-                        echo route({$route}, ['id' => \$params, 'lang' => app()->getLocale()]);
-                    } else {
-                        echo route({$route}, ['id' => \$params, 'lang' => app()->getLocale()]);
-                    }
-                ?>";
-            }
-        });
+        // Set default pagination views
+        \Illuminate\Pagination\Paginator::defaultView('components.pagination');
+        \Illuminate\Pagination\Paginator::defaultSimpleView('components.simple-pagination');
 
         // Register custom Blade components
         Blade::component('application-logo', ApplicationLogo::class);

@@ -6,15 +6,15 @@
     <div class="space-x-2">
 
         <x-back-button />
-        
-        <a href="@localizedRoute('frontend.clients')"
+
+        <a href="{{ route('frontend.clients', ['locale' => app()->getLocale()]) }}"
             class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
             <i class="fas fa-arrow-left mr-2"></i>{{ __('clients.actions.back_to_list') }}
         </a>
     </div>
 </div>
 
-<form action="{{ route('frontend.client.update', $client->id) }}" method="POST">
+<form action="{{ route('frontend.client.update', ['locale' => app()->getLocale(), $client->id]) }}" method="POST">
     @csrf
     @method('PUT')
 
@@ -149,7 +149,7 @@
 
     <!-- Form submit button -->
     <div class="mt-6 flex justify-between">
-        <a href="@localizedRoute('frontend.clients')"
+        <a href="{{ route('frontend.clients', ['locale' => app()->getLocale()]) }}"
             class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
             {{ __('clients.actions.cancel') }}
         </a>

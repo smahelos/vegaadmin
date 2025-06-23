@@ -18,7 +18,7 @@ class HomeController extends Controller
     {
         // Redirect authenticated user to dashboard
         if (Auth::check()) {
-            return redirect()->route('frontend.dashboard', ['lang' => app()->getLocale()]);
+            return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()]);
         }
         
         // Show login page for unauthenticated users

@@ -45,7 +45,7 @@ class RequireFrontendApiAccess
             ], 401);
         }
         
-        return redirect()->guest(route('login'));
+        return redirect()->guest(route('frontend.login', ['locale' => app()->getLocale()]));
     }
 
     /**
@@ -60,6 +60,6 @@ class RequireFrontendApiAccess
             ], 403);
         }
         
-        return redirect()->route('dashboard')->with('error', __('users.auth.forbidden'));
+        return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()])->with('error', __('users.auth.forbidden'));
     }
 }

@@ -73,11 +73,18 @@ class ProductController extends Controller
         // The image handling is done by the setImageAttribute mutator in the Product model
         Product::create($validatedData);
 
-        return redirect()->route('frontend.products')
+        return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
             ->with('success', trans('products.messages.created'));
     }
 
-    public function show(int $id)
+    /**
+     * Display the specified product.
+     * 
+     * @param string $locale
+     * @param int $id
+     * @return \Illuminate\View\View
+     */
+    public function show(string $locale, int $id)
     {
         $product = Product::findOrFail($id);
         $this->authorize('view', $product);
@@ -87,8 +94,12 @@ class ProductController extends Controller
 
     /**
      * Show the form for editing the specified product.
+     * 
+     * @param string $locale
+     * @param int $id
+     * @return \Illuminate\View\View
      */
-    public function edit(int $id)
+    public function edit(string $locale, int $id)
     {
         $product = Product::findOrFail($id);
         $this->authorize('update', $product);
@@ -114,8 +125,13 @@ class ProductController extends Controller
 
     /**
      * Update the specified product in storage.
+     * 
+     * @param \App\Http\Requests\ProductRequest $request
+     * @param string $locale
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(ProductRequest $request, int $id)
+    public function update(ProductRequest $request, string $locale, int $id)
     {
         $product = Product::findOrFail($id);
         $this->authorize('update', $product);
@@ -132,14 +148,18 @@ class ProductController extends Controller
         // The image handling is done by the setImageAttribute mutator in the Product model
         $product->update($data);
         
-        return redirect()->route('frontend.products')
+        return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
             ->with('success', trans('products.messages.updated'));
     }
 
     /**
      * Remove the specified product from storage.
+     * 
+     * @param string $locale
+     * @param \App\Models\Product $product
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(Product $product)
+    public function destroy(string $locale, Product $product)
     {
         $this->authorize('delete', $product);
         
@@ -149,7 +169,7 @@ class ProductController extends Controller
         
         $product->delete();
         
-        return redirect()->route('frontend.products')
+        return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
             ->with('success', trans('products.messages.product_deleted'));
     }
 }

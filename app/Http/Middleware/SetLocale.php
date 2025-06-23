@@ -19,23 +19,16 @@ class SetLocale
     public function handle(Request $request, Closure $next): Response
     {
         try {
-            // Get language from URL parameter 'lang', session, cookie or default
-            if ($request->has('lang')) {
-                $lang = $request->get('lang');
-            } elseif (Session::has('locale')) {
-                $lang = Session::get('locale');
-            } elseif ($request->cookie('locale')) {
-                $lang = $request->cookie('locale');
-            } else {
-                // Use default language
-                $lang = config('app.locale');
-            }
-    
+            $lang = $this->determineLocale($request);
+            
             // Verify that language is supported
-            if (in_array($lang, config('app.available_locales', ['cs', 'en', 'de', 'sk']))) {
+            $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+            if (in_array($lang, $availableLocales)) {
                 App::setLocale($lang);
                 Session::put('locale', $lang);
-                cookie('locale', $lang, 60 * 24 * 30); // 30 days
+                
+                // Set cookie for 30 days
+                cookie()->queue('locale', $lang, 60 * 24 * 30);
             } else {
                 $fallbackLocale = config('app.fallback_locale', 'cs');
                 App::setLocale($fallbackLocale);
@@ -48,5 +41,47 @@ class SetLocale
             Log::error('Error in SetLocale middleware: ' . $e->getMessage());
             return $next($request);
         }
+    }
+
+    /**
+     * Determine the locale from various sources in order of priority
+     */
+    private function determineLocale(Request $request): string
+    {
+        // 0. From URL segment (highest priority)
+        $locale = $request->segment(1);
+        if (!empty($locale)) {
+            $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+            if (in_array($locale, $availableLocales)) {
+                return $locale;
+            }
+        }
+
+        // 1. From route parameter (second priority)
+        if ($request->route() && $request->route()->parameter('locale')) {
+            $routeLocale = $request->route()->parameter('locale');
+            $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+            if (in_array($routeLocale, $availableLocales)) {
+                return $routeLocale;
+            }
+        }
+
+        // 2. From URL parameter 'lang'
+        if ($request->has('lang')) {
+            return $request->get('lang');
+        }
+
+        // 3. From session
+        if (Session::has('locale')) {
+            return Session::get('locale');
+        }
+
+        // 4. From cookie
+        if ($request->cookie('locale')) {
+            return $request->cookie('locale');
+        }
+
+        // 5. Default language
+        return config('app.locale', 'cs');
     }
 }

@@ -12,7 +12,7 @@ class UserHelpers
      * @param string $default Default value if user is not authenticated
      * @return string
      */
-    public static function getUserName($default = 'Guest')
+    public static function getUserName($default = 'Guest'): string
     {
         if (Auth::check()) {
             return Auth::user()->name;
@@ -26,7 +26,7 @@ class UserHelpers
      *
      * @return bool
      */
-    public static function isBackpackUser()
+    public static function isBackpackUser(): bool
     {
         return Auth::check() && function_exists('backpack_user') && backpack_user() !== null;
     }

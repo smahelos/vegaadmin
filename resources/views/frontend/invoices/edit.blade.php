@@ -4,95 +4,36 @@
     /**
     * Helper function for getting field by name
     */
-    function getFieldByName($fields, $name) {
-        foreach ($fields as $field) {
-            if ($field['name'] === $name) {
-                return $field;
+    if (!function_exists('getEditFieldByName')) {
+        function getEditFieldByName($fields, $name) {
+            foreach ($fields as $field) {
+                if ($field['name'] === $name) {
+                    return $field;
+                }
             }
+            return null;
         }
-        return null;
     }
 
     /**
     * Generating classes for fields
     */
-    function getFieldClasses($fieldName, $supplierFields, $clientFields, $invoiceFields) {
-        $classes = [];
-        if(in_array($fieldName, $invoiceFields)) {
-            $classes[] = 'bg-blue-50';
-        }
+    if (!function_exists('getEditFieldClasses')) {
+        function getEditFieldClasses($fieldName, $supplierFields, $clientFields, $invoiceFields) {
+            $classes = [];
+            if(in_array($fieldName, $invoiceFields)) {
+                $classes[] = 'bg-blue-50';
+            }
 
-        if(in_array($fieldName, $supplierFields)) {
-            $classes[] = 'bg-[#FDFDFC] supplier-field';
-        }
+            if(in_array($fieldName, $supplierFields)) {
+                $classes[] = 'bg-[#FDFDFC] supplier-field';
+            }
 
-        if(in_array($fieldName, $clientFields)) {
-            $classes[] = 'bg-[#FDFDFC] client-field';
-        }
+            if(in_array($fieldName, $clientFields)) {
+                $classes[] = 'bg-[#FDFDFC] client-field';
+            }
 
-        return implode(' ', $classes);
-    }
-
-    /**
-    * Generating common attributes for input fields
-    */
-    function renderInputAttributes($field, $invoice, $supplierFields, $clientFields) {
-        $attributes = [];
-
-        // Field type
-        $attributes[] = 'type="' . $field['type'] . '"';
-
-        // Name and ID
-        $attributes[] = 'name="' . $field['name'] . '"';
-        $attributes[] = 'id="' . $field['name'] . '"';
-
-        // Step for number fields
-        if($field['name'] === 'payment_amount') {
-            $attributes[] = 'step="1"';
-        }
-
-        // Setting required attribute
-        if(isset($field['required']) && $field['required'] === true) {
-            $attributes[] = 'required';
-        }
-
-        // Placeholder
-        if(isset($field['placeholder']) && $field['placeholder'] !== '') {
-            $attributes[] = 'placeholder="' . $field['placeholder'] . '"';
-        }
-
-        // Value - for editing form we use 'old' or existing invoice data
-        if($invoice) {
-            $attributes[] = 'value="' . old($field['name'], $invoice->{$field['name']} ?? '') . '"';
-        } else {
-            $attributes[] = 'value="' . old($field['name']) . '"';
-        }
-
-        return implode(' ', $attributes);
-    }
-
-    /**
-    * Function for rendering asterisk for required fields
-    */
-    function renderRequiredMark($field) {
-        if(isset($field['required']) && $field['required'] === true) {
-            return '<span class="text-red-500">*</span>';
-        }
-        return '';
-    }
-
-    /**
-    * Function for determining column size in grid layout
-    */
-    function getColumnSpan($fieldName) {
-        if(in_array($fieldName, ['payment_amount', 'account_number'])) {
-            return 'md:col-span-4';
-        } elseif(in_array($fieldName, ['bank_code', 'bank_name'])) {
-            return 'md:col-span-3';
-        } elseif(in_array($fieldName, ['city', 'zip', 'client_city', 'client_zip'])) {
-            return 'md:col-span-2';
-        } else {
-            return 'md:col-span-1';
+            return implode(' ', $classes);
         }
     }
 
@@ -102,7 +43,7 @@
         'bank_code', 'bank_name', 'iban', 'swift'];
     $clientFields = ['client_name', 'client_email', 'client_phone', 'client_street', 'client_city', 'client_zip',
         'client_country', 'client_ico', 'client_dic'];
-    $fieldDescription = getFieldByName($fields, 'invoice_text');
+    $fieldDescription = getEditFieldByName($fields, 'invoice_text');
 
     // Fields for the start and end of the section
     $sectionStartFields = ['invoice_ks', 'issue_date', 'payment_method_id', 'payment_amount', 'supplier_id', 'email',
@@ -121,14 +62,14 @@
     <div class="space-x-2">
         <x-back-button />
         
-        <a href="@localizedRoute('frontend.invoices')"
+        <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
             class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 text-sm font-medium transition-colors">
             <i class="fas fa-arrow-left mr-2"></i> {{ __('invoices.actions.back_to_list') }}
         </a>
     </div>
 </div>
 
-<form id="invoice-form" method="POST" action="{{ route('frontend.invoice.update', $invoice->id) }}"
+<form id="invoice-form" method="POST" action="{{ route('frontend.invoice.update', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}"
     data-user-logged-in="{{ $userLoggedIn ? 'true' : 'false' }}"
     data-is-editing="true"
     data-supplier-required="{{ __('invoices.validation.supplier_required') }}"
@@ -149,8 +90,7 @@
                     @foreach($fields as $field)
                         @if($field['name'] !== 'invoice_text')
                             @php
-                                $fieldClasses = getFieldClasses($field['name'], $supplierFields, $clientFields, $invoiceFields);
-                                $columnSpan = getColumnSpan($field['name']);
+                                $fieldClasses = getEditFieldClasses($field['name'], $supplierFields, $clientFields, $invoiceFields);
                             @endphp
 
                             @if(in_array($field['name'], $sectionStartFields))
@@ -195,7 +135,7 @@
                                             {{ __('suppliers.actions.edit_short') }}
                                         </label>
                                     @endif
-                                    <a href="@localizedRoute('frontend.supplier.edit', ['id' => $invoice->supplier_id])"
+                                    <a href="{{ route('frontend.supplier.edit', ['id' => $invoice->supplier_id, 'locale' => app()->getLocale()]) }}"
                                         id="edit-supplier-link"
                                         class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:text-white bg-yellow-300 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 {{ empty($invoice->supplier_id) ? 'opacity-50 pointer-events-none' : '' }}">
                                         {{ __('suppliers.actions.edit_short') }}
@@ -217,7 +157,7 @@
                                             {{ __('clients.actions.edit_short') }}
                                         </label>
                                     @endif
-                                    <a href="@localizedRoute('frontend.client.edit', ['id' => $invoice->client_id ?? 1])"
+                                    <a href="{{ route('frontend.client.edit', ['id' => $invoice->client_id ?? 1, 'locale' => app()->getLocale()]) }}"
                                         id="edit-client-link"
                                         class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 hover:text-white bg-blue-300 hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 {{ empty($invoice->client_id) ? 'opacity-50 pointer-events-none' : '' }}">
                                         {{ __('clients.actions.edit_short') }}
@@ -320,7 +260,7 @@
                                     $marginClass = in_array($field['name'], ['name', 'street', 'client_name', 'client_street']) ?
                                     'mb-5' : '';
                                 @endphp
-                                <div class="{{ $marginClass }} {{ $columnSpan }}" id="{{ $containerId }}">
+                                <div class="{{ $marginClass }} @columnSpan($field['name'])" id="{{ $containerId }}">
                                     <label for="{{ $field['name'] }}" class="block text-base font-medium text-gray-500 mb-2">
                                         {{ $field['label'] }}
                                         @if(isset($field['required']) && $field['required'] === true && $field['name'] !==
@@ -526,7 +466,7 @@
     </div>
 
     <div class="flex justify-between">
-        <a href="@localizedRoute('frontend.invoices')"
+        <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
             class="inline-flex justify-center py-2 px-5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
             {{ __('invoices.actions.cancel') }}
         </a>

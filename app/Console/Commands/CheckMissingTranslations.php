@@ -25,10 +25,21 @@ class CheckMissingTranslations extends Command
      * 
      * @return int Exit code
      */
-    public function handle()
+    public function handle(): int
     {
         $locale = $this->argument('locale');
         $compareLocale = $this->option('compare');
+        
+        // Validate locale names
+        if (empty($locale) || !preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', $locale)) {
+            $this->error("Invalid locale format: '{$locale}'. Expected format: 'en' or 'en-US'");
+            return 1;
+        }
+        
+        if (empty($compareLocale) || !preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', $compareLocale)) {
+            $this->error("Invalid compare locale format: '{$compareLocale}'. Expected format: 'en' or 'en-US'");
+            return 1;
+        }
         
         $this->info("Checking missing translations in '{$locale}' compared to '{$compareLocale}'...");
         

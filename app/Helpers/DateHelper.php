@@ -12,7 +12,7 @@ class DateHelper
      *
      * @return string
      */
-    public static function format()
+    public static function format(): string
     {
         $locale = App::getLocale();
         

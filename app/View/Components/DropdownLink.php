@@ -29,6 +29,8 @@ class DropdownLink extends Component
      */
     public function render(): View
     {
-        return view('components.dropdown-link');
+        return view('components.dropdown-link', [
+            'href' => $this->href
+        ]);
     }
 }

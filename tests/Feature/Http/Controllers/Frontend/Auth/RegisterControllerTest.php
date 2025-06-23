@@ -31,6 +31,19 @@ class RegisterControllerTest extends TestCase
     protected array $validUserData;
 
     /**
+     * Helper method to generate locale-based routes.
+     *
+     * @param string $name
+     * @param array $parameters
+     * @param string $locale
+     * @return string
+     */
+    private function localizedRoute(string $name, array $parameters = [], string $locale = 'en'): string
+    {
+        return route($name, array_merge(['locale' => $locale], $parameters));
+    }
+
+    /**
      * Set up the test environment before each test.
      * Creates permissions, roles, and valid test data for registration testing.
      *
@@ -132,7 +145,7 @@ class RegisterControllerTest extends TestCase
     #[Test]
     public function show_registration_form_returns_correct_view()
     {
-        $response = $this->get('/register');
+        $response = $this->get($this->localizedRoute('frontend.register'));
 
         $response->assertStatus(200);
         $response->assertViewIs('auth.register');
@@ -149,7 +162,7 @@ class RegisterControllerTest extends TestCase
     {
         Event::fake();
 
-        $response = $this->post('/register', $this->validUserData);
+        $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertRedirect();
         
@@ -185,7 +198,7 @@ class RegisterControllerTest extends TestCase
         $invalidData = $this->validUserData;
         $invalidData['email'] = 'invalid-email';
 
-        $response = $this->post('/register', $invalidData);
+        $response = $this->post('/en/register', $invalidData);
 
         $response->assertSessionHasErrors(['email']);
         $this->assertFalse(Auth::check());
@@ -203,7 +216,7 @@ class RegisterControllerTest extends TestCase
         // Create existing user with the same email
         User::factory()->create(['email' => $this->validEmail]);
 
-        $response = $this->post('/register', $this->validUserData);
+        $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertSessionHasErrors(['email']);
         $this->assertFalse(Auth::check());
@@ -223,7 +236,7 @@ class RegisterControllerTest extends TestCase
             'password' => '',
         ];
 
-        $response = $this->post('/register', $invalidData);
+        $response = $this->post('/en/register', $invalidData);
 
         $response->assertSessionHasErrors(['name', 'email', 'password']);
         $this->assertFalse(Auth::check());
@@ -240,7 +253,7 @@ class RegisterControllerTest extends TestCase
         $invalidData = $this->validUserData;
         $invalidData['password_confirmation'] = 'different_password';
 
-        $response = $this->post('/register', $invalidData);
+        $response = $this->post('/en/register', $invalidData);
 
         $response->assertSessionHasErrors(['password']);
         $this->assertFalse(Auth::check());
@@ -269,7 +282,7 @@ class RegisterControllerTest extends TestCase
             'country' => 'CZ',
         ];
 
-        $response = $this->post('/register', $minimalData);
+        $response = $this->post('/en/register', $minimalData);
 
         $response->assertRedirect();
         
@@ -299,7 +312,7 @@ class RegisterControllerTest extends TestCase
         $dataWithPayment['account_number'] = '123456789';
         $dataWithPayment['bank_code'] = '0100';
 
-        $response = $this->post('/register', $dataWithPayment);
+        $response = $this->post('/en/register', $dataWithPayment);
 
         $response->assertRedirect();
         
@@ -333,7 +346,7 @@ class RegisterControllerTest extends TestCase
         unset($dataWithoutPayment['swift']);
         unset($dataWithoutPayment['bank_name']);
 
-        $response = $this->post('/register', $dataWithoutPayment);
+        $response = $this->post('/en/register', $dataWithoutPayment);
 
         $response->assertRedirect();
         
@@ -355,7 +368,7 @@ class RegisterControllerTest extends TestCase
     {
         Event::fake();
 
-        $response = $this->post('/register', $this->validUserData);
+        $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertRedirect();
         
@@ -387,7 +400,7 @@ class RegisterControllerTest extends TestCase
         $bankData['swift'] = 'KOMBCZPP';
         $bankData['bank_name'] = 'Komerční banka';
 
-        $response = $this->post('/register', $bankData);
+        $response = $this->post('/en/register', $bankData);
 
         $response->assertRedirect();
         
@@ -419,7 +432,7 @@ class RegisterControllerTest extends TestCase
         $dataWithValidCountry['email'] = $countryEmail;
         $dataWithValidCountry['country'] = 'SK'; // Different from default
 
-        $response = $this->post('/register', $dataWithValidCountry);
+        $response = $this->post('/en/register', $dataWithValidCountry);
 
         $response->assertRedirect();
         
@@ -443,10 +456,16 @@ class RegisterControllerTest extends TestCase
     {
         Event::fake();
 
-        $response = $this->post('/register', $this->validUserData);
+        $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertRedirect();
-        $this->assertStringContainsString('lang=', $response->getTargetUrl());
+        
+        // Check that the redirect URL contains locale - either /en/ or ends with /en
+        $targetUrl = $response->getTargetUrl();
+        $this->assertTrue(
+            str_contains($targetUrl, '/en/') || str_ends_with($targetUrl, '/en'),
+            'Redirect URL should contain locale in path format, got: ' . $targetUrl
+        );
     }
 
     /**
@@ -459,7 +478,7 @@ class RegisterControllerTest extends TestCase
     {
         Event::fake();
 
-        $response = $this->post('/register', $this->validUserData);
+        $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertRedirect();
         $this->assertTrue(Auth::check());
@@ -478,7 +497,7 @@ class RegisterControllerTest extends TestCase
     {
         Event::fake();
 
-        $response = $this->post('/register', $this->validUserData);
+        $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertRedirect();
         
@@ -506,7 +525,7 @@ class RegisterControllerTest extends TestCase
         $invalidData['password'] = '123'; // Too short
         $invalidData['password_confirmation'] = '123';
 
-        $response = $this->post('/register', $invalidData);
+        $response = $this->post('/en/register', $invalidData);
 
         $response->assertSessionHasErrors(['password']);
         $this->assertFalse(Auth::check());

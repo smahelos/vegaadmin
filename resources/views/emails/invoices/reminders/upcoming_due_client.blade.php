@@ -52,7 +52,7 @@
     <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
         <tr>
             <td align="center">
-                <a href="{{ route('frontend.invoice.show', $invoice->id) }}" 
+                <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}" 
                    class="button" 
                    target="_blank" 
                    rel="noopener">

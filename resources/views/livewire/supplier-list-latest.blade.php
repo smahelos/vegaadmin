@@ -3,7 +3,7 @@
         <ul class="divide-y divide-gray-200">
             @foreach($suppliers as $supplier)
                 <li class="px-4 hover:bg-gray-50">
-                    <a href="@localizedRoute('frontend.supplier.show', $supplier->id)" class="flex justify-between items-center">
+                    <a href="{{ route('frontend.supplier.show', ['id' => $supplier->id, 'locale' => app()->getLocale()]) }} " class="flex justify-between items-center">
                         <div class="w-50">
                             <p class="text-sm font-medium text-gray-900">{{ $supplier->name }}</p>
                             <p class="text-xs text-gray-500">{{ $supplier->email ?? __('dashboard.status.no_email') }}</p>
@@ -17,7 +17,7 @@
             @endforeach
         </ul>
         <div class="bg-gray-50 px-4 py-3 border-t border-gray-200 sm:px-6">
-            <a href="@localizedRoute('frontend.suppliers')" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+            <a href="{{ route('frontend.suppliers', ['locale' => app()->getLocale()]) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
                 {{ __('dashboard.actions.view_all_suppliers') }} <i class="fas fa-arrow-right ml-1"></i>
             </a>
         </div>

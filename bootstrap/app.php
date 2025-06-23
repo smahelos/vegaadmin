@@ -43,6 +43,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.require.backpack' => RequireBackpackApiAccess::class,
             'refresh.frontend.session' => RefreshFrontendSession::class,
             'refresh.backpack.session' => RefreshBackpackSession::class,
+            'set.locale' => SetLocale::class,
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

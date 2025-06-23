@@ -244,9 +244,9 @@ class LoginControllerTest extends TestCase
         $response = $method->invoke($this->controller, $request, $this->testUser);
 
         $this->assertEquals(302, $response->getStatusCode());
-        // Check that it redirects to dashboard with language parameter
+        // Check that it redirects to dashboard with locale in URL path
         $this->assertStringContainsString('/dashboard', $response->getTargetUrl());
-        $this->assertStringContainsString('lang=en', $response->getTargetUrl());
+        $this->assertStringContainsString('/en/', $response->getTargetUrl());
     }
 
     /**
@@ -269,7 +269,7 @@ class LoginControllerTest extends TestCase
 
         $response = $method->invoke($this->controller, $request, $this->testUser);
 
-        $this->assertStringContainsString('lang=cs', $response->getTargetUrl());
+        $this->assertStringContainsString('/cs/', $response->getTargetUrl());
     }
 
     /**
@@ -290,8 +290,12 @@ class LoginControllerTest extends TestCase
         $response = $this->post('/logout');
 
         $response->assertRedirect();
-        // Check that it redirects to home page with language parameter
-        $this->assertStringContainsString('lang=en', $response->getTargetUrl());
+        // Check that it redirects to home page with locale in URL path
+        $targetUrl = $response->getTargetUrl();
+        $this->assertTrue(
+            str_contains($targetUrl, '/en/') || str_ends_with($targetUrl, '/en'),
+            'Logout redirect URL should contain locale in path format, got: ' . $targetUrl
+        );
         $this->assertFalse(Auth::check());
     }
 

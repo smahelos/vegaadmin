@@ -138,10 +138,10 @@ class SupplierController extends Controller
             // Create new supplier using repository
             $supplier = $this->supplierRepository->create($validatedData);
             
-            // Set locale for response
-            $locale = $this->localeService->determineLocale($request->get('lang'));
+            // Get locale from route parameters (since we're in localized route group)
+            $locale = $request->route('locale') ?? 'cs';
             
-            return redirect()->route('frontend.suppliers', ['lang' => $locale])
+            return redirect()->route('frontend.suppliers', ['locale' => $locale])
                             ->with('success', __('suppliers.messages.created'));
         } catch (\Exception $e) {
             return back()->withInput()
@@ -152,10 +152,11 @@ class SupplierController extends Controller
     /**
      * Display supplier details and related invoices
      *
+     * @param string $locale
      * @param int $id
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function show($id)
+    public function show(string $locale, int $id)
     {
         try {
             // Ignore requests for static files
@@ -166,7 +167,7 @@ class SupplierController extends Controller
             // Check if ID is numeric
             if (!is_numeric($id)) {
                 return redirect()
-                    ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                    ->route('frontend.suppliers', ['locale' => $locale])
                     ->with('error', __('suppliers.messages.invalid_id'));
             }
 
@@ -180,11 +181,11 @@ class SupplierController extends Controller
             return view('frontend.suppliers.show', compact('supplier', 'invoices'));
         } catch (ModelNotFoundException $e) {
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_show'));
         } catch (\Exception $e) {
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_show'));
         }
     }
@@ -192,10 +193,11 @@ class SupplierController extends Controller
     /**
      * Show form for editing a supplier
      *
+     * @param string $locale
      * @param int $id
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function edit($id)
+    public function edit(string $locale, int $id)
     {
         try {
             // Get supplier by ID, only for authenticated user
@@ -223,10 +225,10 @@ class SupplierController extends Controller
             ]);
             
         } catch (ModelNotFoundException $e) {
-            return redirect()->route('frontend.suppliers', ['lang' => app()->getLocale()])
+            return redirect()->route('frontend.suppliers', ['locale' => $locale])
                              ->with('error', __('suppliers.messages.error_edit'));
         } catch (\Exception $e) {
-            return redirect()->route('frontend.suppliers', ['lang' => app()->getLocale()])
+            return redirect()->route('frontend.suppliers', ['locale' => $locale])
                              ->with('error', __('suppliers.messages.error_edit'));
         }
     }
@@ -235,10 +237,11 @@ class SupplierController extends Controller
      * Update supplier data
      *
      * @param SupplierRequest $request
+     * @param string $locale
      * @param int $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(SupplierRequest $request, $id)
+    public function update(SupplierRequest $request, string $locale, int $id)
     {
         try {
             $supplier = Supplier::where('user_id', Auth::id())->findOrFail($id);
@@ -255,19 +258,16 @@ class SupplierController extends Controller
             
             $supplier->update($validatedData);
             
-            // Set locale for response
-            $locale = $this->localeService->determineLocale($request->get('lang'));
-            
             return redirect()
-                ->route('frontend.suppliers', ['lang' => $locale])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('success', __('suppliers.messages.updated'));
         } catch (ModelNotFoundException $e) {
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_update'));
         } catch (\Exception $e) {
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_update'));
         }
     }
@@ -275,10 +275,11 @@ class SupplierController extends Controller
     /**
      * Delete supplier if it has no associated invoices
      *
+     * @param string $locale
      * @param int $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy($id)
+    public function destroy(string $locale, int $id)
     {
         try {
             $supplier = Supplier::where('user_id', Auth::id())->findOrFail($id);
@@ -286,33 +287,32 @@ class SupplierController extends Controller
             // Check if supplier has associated invoices
             if ($supplier->invoices->count() > 0) {
                 return redirect()
-                    ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                    ->route('frontend.suppliers', ['locale' => $locale])
                     ->with('error', __('suppliers.messages.error_delete_invoices'));
             }
             
             $supplier->delete();
             
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('success', __('suppliers.messages.deleted'));
         } catch (ModelNotFoundException $e) {
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_delete'));
         } catch (\Exception $e) {
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_delete'));
         }
-    }
-
-    /**
+    }    /**
      * Set supplier as default
-     * 
+     *
+     * @param string $locale
      * @param int $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function setDefault($id)
+    public function setDefault(string $locale, int $id)
     {
         try {
             // Find supplier
@@ -327,15 +327,15 @@ class SupplierController extends Controller
             $supplier->update(['is_default' => true]);
             
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('success', __('suppliers.messages.set_default'));
         } catch (ModelNotFoundException $e) {
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_set_default'));
         } catch (\Exception $e) {
             return redirect()
-                ->route('frontend.suppliers', ['lang' => app()->getLocale()])
+                ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_set_default'));
         }
     }

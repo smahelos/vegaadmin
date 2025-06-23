@@ -13,6 +13,7 @@ class ArtisanCommand extends Model
 
     protected $fillable = [
         'name',
+        'signature',
         'description',
         'category_id',
         'is_active',

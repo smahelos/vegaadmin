@@ -5,6 +5,53 @@ description: 'Prompt for creating comprehensive tests for any component'
 
 # Create Tests for Component
 
+## 🚨 VERY IMPORTANT: Test-Driven Development (TDD) Principles
+
+### Core Testing Philosophy
+
+#### ❌ NEVER: Write Tests That Accommodate Bad Code
+- **NEVER** write tests that work around or accommodate incorrect behavior in application code
+- **NEVER** adjust test expectations to match buggy or non-standard code behavior
+- **NEVER** accept incorrect exit codes, missing error handling, or improper return values
+- **NEVER** write tests that pass for the wrong reasons
+
+#### ✅ ALWAYS: Fix Application Code to Meet Test Expectations
+- **ALWAYS** fix the application code when tests reveal problems
+- **ALWAYS** ensure proper exit codes (0 for success, non-zero for errors)
+- **ALWAYS** implement proper error handling and return values
+- **ALWAYS** follow standard conventions and best practices
+- **ALWAYS** make the code better through testing
+
+### TDD Process (CRITICAL)
+1. **Write tests that define correct behavior** (proper exit codes, error handling, etc.)
+2. **Run tests and let them fail** if code doesn't meet expectations
+3. **Analyze failures** - do they indicate real problems in the code?
+4. **Fix the application code** to make tests pass (not the tests!)
+5. **Refactor and improve** while maintaining test coverage
+
+### Console Command Testing Standards
+```php
+// ✅ CORRECT: Expect proper behavior and fix code if needed
+public function test_command_handles_invalid_user(): void
+{
+    $exitCode = Artisan::call('command', ['--user' => 'invalid']);
+    $this->assertEquals(1, $exitCode); // Expecting proper error exit code
+}
+
+// ❌ WRONG: Adjusting test to accommodate bad code
+public function test_command_handles_invalid_user(): void
+{
+    $exitCode = Artisan::call('command', ['--user' => 'invalid']);
+    $this->assertEquals(0, $exitCode); // Accepting wrong behavior
+}
+```
+
+### When Tests Fail - Decision Tree
+1. **First**: Does the failure indicate incorrect application behavior?
+2. **If YES**: Fix the application code, don't change the test
+3. **If NO**: Check if test expectations are wrong, then fix test
+4. **Remember**: Tests should drive code quality improvement
+
 ## 🚨 CRITICAL: File Safety and Content Verification
 
 ### Mandatory File Handling Rules
@@ -58,6 +105,18 @@ php artisan test file.php
 6. **Report any problematic code patterns** and suggest better solutions
 
 ## Modern PHPUnit Testing Standards (REQUIRED)
+
+### Test File Naming Conventions (CRITICAL)
+- **Feature Tests**: MUST include "Feature" in filename (e.g., `ClientControllerFeatureTest.php`)
+- **Unit Tests**: MUST NOT include "Unit" in filename (e.g., `ClientListTest.php`, not `ClientListUnitTest.php`)
+- **Avoid Duplicates**: Never create both `ClassName.php` and `ClassNameUnitTest.php` - use only `ClassName.php` for Unit tests
+- **Be Descriptive**: Use meaningful names that clearly indicate what is being tested
+
+### Test Organization Rules
+- **Unit Tests**: `tests/Unit/` - Test individual classes without dependencies
+- **Feature Tests**: `tests/Feature/` - Test application features with full context
+- **No Duplicate Coverage**: Each component should have either Unit OR Feature tests, not both testing same functionality
+- **Integration Tests**: Use Feature tests for interactions between components
 
 ### Use Modern Syntax
 - Use `#[Test]` attribute instead of `test` prefix
@@ -730,3 +789,4 @@ public function test_calculation_method()
 | **Requests** | ✅ Yes | ✅ Yes | Validation rules + HTTP behavior |
 | **Controllers** | ❌ No | ✅ Yes | HTTP integration testing only |
 | **Services** | ✅ Yes | ❌ No | Pure business logic |
+````

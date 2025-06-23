@@ -20,9 +20,9 @@ class SyncArtisanCommands extends Command
         $this->commandsService = $commandsService;
     }
 
-    public function handle()
+    public function handle(): int
     {
-        $availableCommands = $this->commandsService->getAllCommands();
+        $availableCommands = $this->commandsService->getAllCommandsWithDetails();
         $databaseCommands = ArtisanCommand::pluck('command')->toArray();
         
         // Set category for uncategorized commands
@@ -40,12 +40,13 @@ class SyncArtisanCommands extends Command
         
         // Add new commands to the database
         foreach ($newCommands as $command) {
-            $description = str_replace($command . ' - ', '', $availableCommands[$command]);
+            $commandData = $availableCommands[$command];
             
             ArtisanCommand::create([
-                'name' => $command,
+                'name' => $commandData['name'],
                 'command' => $command,
-                'description' => $description,
+                'signature' => $commandData['signature'],
+                'description' => $commandData['description'],
                 'category_id' => $uncategorizedCategory->id,
                 'is_active' => false,
             ]);

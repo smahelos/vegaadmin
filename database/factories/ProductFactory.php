@@ -30,6 +30,8 @@ class ProductFactory extends Factory
             'slug' => Str::slug($name) . '-' . $this->faker->unique()->numberBetween(1000, 9999),
             'user_id' => User::factory(),
             'price' => $this->faker->randomFloat(2, 1, 1000),
+            'unit' => $this->faker->randomElement(['ks', 'kg', 'l', 'm', 'm²', 'm³', 'bal', 'hod']),
+            'currency' => $this->faker->randomElement(['CZK', 'EUR', 'USD']),
             'tax_id' => Tax::factory(),
             'category_id' => ProductCategory::factory(),
             'description' => $this->faker->paragraph(),
