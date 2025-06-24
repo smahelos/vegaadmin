@@ -18,8 +18,8 @@ use App\Services\InvoiceService;
 use App\Services\InvoicePdfService;
 use App\Services\LocaleService;
 use App\Services\BankService;
-use App\Repositories\ClientRepository;
-use App\Repositories\SupplierRepository;
+use App\Contracts\ClientRepositoryInterface;
+use App\Contracts\SupplierRepositoryInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -47,8 +47,8 @@ class InvoiceController extends Controller
         InvoicePdfService $invoicePdfService,
         LocaleService $localeService,
         BankService $bankService,
-        ClientRepository $clientRepository,
-        SupplierRepository $supplierRepository
+        ClientRepositoryInterface $clientRepository,
+        SupplierRepositoryInterface $supplierRepository
     ) {
         $this->qrPaymentService = $qrPaymentService;
         $this->invoiceService = $invoiceService;

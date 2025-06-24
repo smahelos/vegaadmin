@@ -12,7 +12,7 @@ use App\Traits\SupplierFormFields;
 use App\Services\BankService;
 use App\Services\LocaleService;
 use App\Services\CountryService;
-use App\Repositories\SupplierRepository;
+use App\Contracts\SupplierRepositoryInterface;
 
 class SupplierController extends Controller
 {
@@ -42,7 +42,7 @@ class SupplierController extends Controller
     /**
      * Supplier repository instance
      * 
-     * @var \App\Repositories\SupplierRepository
+     * @var SupplierRepositoryInterface
      */
     protected $supplierRepository;
 
@@ -52,13 +52,13 @@ class SupplierController extends Controller
      * @param BankService $bankService
      * @param LocaleService $localeService
      * @param CountryService $countryService
-     * @param SupplierRepository $supplierRepository
+     * @param SupplierRepositoryInterface $supplierRepository
      */
     public function __construct(
         BankService $bankService,
         LocaleService $localeService,
         CountryService $countryService,
-        SupplierRepository $supplierRepository
+        SupplierRepositoryInterface $supplierRepository
     ) {
         $this->bankService = $bankService;
         $this->localeService = $localeService;

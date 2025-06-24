@@ -12,14 +12,14 @@ use Illuminate\Support\Facades\Log;
 use App\Traits\ClientFormFields;
 use App\Services\LocaleService;
 use App\Services\CountryService;
-use App\Repositories\ClientRepository;
+use App\Contracts\ClientRepositoryInterface;
 
 class ClientController extends Controller
 {
     use ClientFormFields;
 
     /**
-     * @var ClientRepository
+     * @var ClientRepositoryInterface
      */
     protected $clientRepository;
 
@@ -36,12 +36,12 @@ class ClientController extends Controller
     /**
      * Constructor
      * 
-     * @param ClientRepository $clientRepository
+     * @param ClientRepositoryInterface $clientRepository
      * @param CountryService $countryService
      * @param LocaleService $localeService
      */
     public function __construct(
-        ClientRepository $clientRepository,
+        ClientRepositoryInterface $clientRepository,
         CountryService $countryService,
         LocaleService $localeService
     ) {
