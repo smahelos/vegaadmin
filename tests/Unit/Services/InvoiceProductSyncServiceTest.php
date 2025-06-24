@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\InvoiceProductSyncService;
+use App\Contracts\InvoiceProductSyncServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -20,6 +21,7 @@ class InvoiceProductSyncServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(InvoiceProductSyncService::class, $this->service);
+        $this->assertInstanceOf(InvoiceProductSyncServiceInterface::class, $this->service);
     }
 
     #[Test]

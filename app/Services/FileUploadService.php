@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\FileUploadServiceInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -9,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 
-class FileUploadService
+class FileUploadService implements FileUploadServiceInterface
 {
     /**
      * Image manager instance
@@ -248,38 +249,32 @@ class FileUploadService
     /**
      * Get URL for a thumbnail
      *
-     * @param string|null $originalPath
-     * @param array $options
+     * @param string|null $path
      * @param string $disk
+     * @param string $thumbnailPath
      * @return string|null
      */
-    public function getThumbnailUrl(?string $originalPath, array $options = [], string $disk = 'public'): ?string
+    public function getThumbnailUrl(?string $path, string $disk = 'public', string $thumbnailPath = 'thumbnails'): ?string
     {
-        if (empty($originalPath)) {
+        if (empty($path)) {
             return null;
         }
         
-        $defaultOptions = [
-            'thumbnailPath' => 'thumbnails',
-        ];
-        
-        $options = array_merge($defaultOptions, $options);
-        
         // Only for images
-        if ($this->isImage(Storage::disk($disk)->mimeType($originalPath) ?? '')) {
-            $fileInfo = pathinfo($originalPath);
-            $thumbnailPath = $options['thumbnailPath'] . '/' . $fileInfo['dirname'] . '/' . $fileInfo['basename'];
-            $thumbnailPath = preg_replace('#/+#', '/', $thumbnailPath);
+        if ($this->isImage(Storage::disk($disk)->mimeType($path) ?? '')) {
+            $fileInfo = pathinfo($path);
+            $thumbnailFullPath = $thumbnailPath . '/' . $fileInfo['dirname'] . '/' . $fileInfo['basename'];
+            $thumbnailFullPath = preg_replace('#/+#', '/', $thumbnailFullPath);
             
-            Log::info('Looking for image thumbnail at: ' . $thumbnailPath);
+            Log::info('Looking for image thumbnail at: ' . $thumbnailFullPath);
             
-            if (Storage::disk($disk)->exists($thumbnailPath)) {
-                return Storage::disk($disk)->url($thumbnailPath);
+            if (Storage::disk($disk)->exists($thumbnailFullPath)) {
+                return Storage::disk($disk)->url($thumbnailFullPath);
             }
         }
         
         // If no thumbnail, return the original file
-        return $this->getFileUrl($originalPath, $disk);
+        return $this->getFileUrl($path, $disk);
     }
     
     /**

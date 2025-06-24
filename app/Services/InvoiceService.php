@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Contracts\InvoiceServiceInterface;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\Status;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
 
-class InvoiceService
+class InvoiceService implements InvoiceServiceInterface
 {
     /**
      * Generate next available invoice number

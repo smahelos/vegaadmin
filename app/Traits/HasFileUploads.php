@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use App\Services\FileUploadService;
+use App\Contracts\FileUploadServiceInterface;
 
 trait HasFileUploads
 {
@@ -17,7 +17,7 @@ trait HasFileUploads
      */
     protected function handleFileUpload(string $attribute, $value, string $path, array $options = []): void
     {
-        $fileService = app(FileUploadService::class);
+        $fileService = app(FileUploadServiceInterface::class);
         $oldValue = $this->attributes[$attribute] ?? null;
         
         $this->attributes[$attribute] = $fileService->handleFileUpload(
@@ -38,7 +38,7 @@ trait HasFileUploads
      */
     protected function getFileUrl(string $attribute, string $disk = 'public'): ?string
     {
-        $fileService = app(FileUploadService::class);
+        $fileService = app(FileUploadServiceInterface::class);
         return $fileService->getFileUrl($this->{$attribute}, $disk);
     }
     
@@ -52,9 +52,9 @@ trait HasFileUploads
      */
     protected function getThumbnailUrl(string $attribute, string $thumbnailFolder = 'thumbnails', string $disk = 'public'): ?string
     {
-        $fileService = app(FileUploadService::class);
-        // Pass thumbnail options as an array as required by getThumbnailUrl()
-        return $fileService->getThumbnailUrl($this->{$attribute}, ['thumbnailPath' => $thumbnailFolder], $disk);
+        $fileService = app(FileUploadServiceInterface::class);
+        // Updated to use the new interface signature
+        return $fileService->getThumbnailUrl($this->{$attribute}, $disk, $thumbnailFolder);
     }
     
     /**
@@ -85,9 +85,9 @@ trait HasFileUploads
      */
     public function getAttributeFileUrl(string $attribute, ?int $index = null, string $disk = 'public'): ?string
     {
-        $fileService = app(FileUploadService::class);
+        $fileService = app(FileUploadServiceInterface::class);
         $value = $this->{$attribute};
         
-        return $fileService->getFileUrlFromAttribute($value, $index, $disk);
+        return $fileService->getFileUrlFromAttribute($value, $index ?? 0, $disk);
     }
 }

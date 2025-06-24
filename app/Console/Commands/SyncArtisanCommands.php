@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
-use App\Services\ArtisanCommandsService;
+use App\Contracts\ArtisanCommandsServiceInterface;
 use Illuminate\Console\Command;
 
 class SyncArtisanCommands extends Command
@@ -14,7 +14,7 @@ class SyncArtisanCommands extends Command
 
     protected $commandsService;
 
-    public function __construct(ArtisanCommandsService $commandsService)
+    public function __construct(ArtisanCommandsServiceInterface $commandsService)
     {
         parent::__construct();
         $this->commandsService = $commandsService;

@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Traits\ClientFormFields;
-use App\Services\LocaleService;
-use App\Services\CountryService;
+use App\Contracts\CountryServiceInterface;
+use App\Contracts\LocaleServiceInterface;
 use App\Contracts\ClientRepositoryInterface;
 
 class ClientController extends Controller
@@ -24,12 +24,12 @@ class ClientController extends Controller
     protected $clientRepository;
 
     /**
-     * @var CountryService
+     * @var CountryServiceInterface
      */
     protected $countryService;
 
     /**
-     * @var LocaleService
+     * @var LocaleServiceInterface
      */
     protected $localeService;
 
@@ -37,13 +37,13 @@ class ClientController extends Controller
      * Constructor
      * 
      * @param ClientRepositoryInterface $clientRepository
-     * @param CountryService $countryService
-     * @param LocaleService $localeService
+     * @param CountryServiceInterface $countryService
+     * @param LocaleServiceInterface $localeService
      */
     public function __construct(
         ClientRepositoryInterface $clientRepository,
-        CountryService $countryService,
-        LocaleService $localeService
+        CountryServiceInterface $countryService,
+        LocaleServiceInterface $localeService
     ) {
         $this->clientRepository = $clientRepository;
         $this->countryService = $countryService;

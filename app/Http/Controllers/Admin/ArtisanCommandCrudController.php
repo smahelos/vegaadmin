@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\Admin\ArtisanCommandRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use App\Services\ArtisanCommandsService;
+use App\Contracts\ArtisanCommandsServiceInterface;
 
 class ArtisanCommandCrudController extends CrudController
 {
@@ -14,6 +14,14 @@ class ArtisanCommandCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+
+    private ArtisanCommandsServiceInterface $commandsService;
+
+    public function __construct(ArtisanCommandsServiceInterface $commandsService)
+    {
+        parent::__construct();
+        $this->commandsService = $commandsService;
+    }
 
     public function setup()
     {
@@ -46,8 +54,7 @@ class ArtisanCommandCrudController extends CrudController
         // and filter them to show only those that are not already in the database
         // This is done to avoid duplicates and ensure that the user can only select from available commands
         // that are not already registered in the database. 
-        $commandsService = new ArtisanCommandsService();
-        $availableCommands = $commandsService->getAllCommands(true);
+        $availableCommands = $this->commandsService->getAllCommands(true);
 
         CRUD::field('name')
             ->label(__('admin.artisan_commands.fields.name'))

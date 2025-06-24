@@ -4,6 +4,7 @@ namespace Tests\Feature\Services;
 
 use App\Models\Tax;
 use App\Services\TaxesService;
+use App\Contracts\TaxesServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;

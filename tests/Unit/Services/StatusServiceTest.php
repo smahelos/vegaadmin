@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\StatusService;
+use App\Contracts\StatusServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -20,6 +21,7 @@ class StatusServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(StatusService::class, $this->service);
+        $this->assertInstanceOf(StatusServiceInterface::class, $this->service);
     }
 
     #[Test]

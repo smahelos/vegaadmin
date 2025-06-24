@@ -13,13 +13,13 @@ use App\Models\PaymentMethod;
 use App\Models\Tax;
 use App\Models\InvoiceProduct;
 use App\Traits\InvoiceFormFields;
-use App\Services\QrPaymentService;
-use App\Services\InvoiceService;
-use App\Services\InvoicePdfService;
-use App\Services\LocaleService;
-use App\Services\BankService;
+use App\Contracts\BankServiceInterface;
 use App\Contracts\ClientRepositoryInterface;
 use App\Contracts\SupplierRepositoryInterface;
+use App\Contracts\InvoiceServiceInterface;
+use App\Contracts\InvoicePdfServiceInterface;
+use App\Contracts\LocaleServiceInterface;
+use App\Contracts\QrPaymentServiceInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -42,11 +42,11 @@ class InvoiceController extends Controller
     protected $supplierRepository;
     
     public function __construct(
-        QrPaymentService $qrPaymentService,
-        InvoiceService $invoiceService,
-        InvoicePdfService $invoicePdfService,
-        LocaleService $localeService,
-        BankService $bankService,
+        QrPaymentServiceInterface $qrPaymentService,
+        InvoiceServiceInterface $invoiceService,
+        InvoicePdfServiceInterface $invoicePdfService,
+        LocaleServiceInterface $localeService,
+        BankServiceInterface $bankService,
         ClientRepositoryInterface $clientRepository,
         SupplierRepositoryInterface $supplierRepository
     ) {

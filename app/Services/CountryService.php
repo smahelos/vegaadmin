@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Contracts\CountryServiceInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 
-class CountryService
+class CountryService implements CountryServiceInterface
 {
     protected string $apiUrl = 'https://restcountries.com/v3.1';
     

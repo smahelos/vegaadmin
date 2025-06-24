@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\LocaleService;
+use App\Contracts\LocaleServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -21,6 +22,7 @@ class LocaleServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(LocaleService::class, $this->service);
+        $this->assertInstanceOf(LocaleServiceInterface::class, $this->service);
     }
 
     #[Test]

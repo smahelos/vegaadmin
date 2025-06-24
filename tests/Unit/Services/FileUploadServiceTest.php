@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\FileUploadService;
+use App\Contracts\FileUploadServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -21,6 +22,7 @@ class FileUploadServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(FileUploadService::class, $this->service);
+        $this->assertInstanceOf(FileUploadServiceInterface::class, $this->service);
     }
 
     #[Test]
@@ -115,9 +117,9 @@ class FileUploadServiceTest extends TestCase
         // Check parameters
         $parameters = $method->getParameters();
         $this->assertCount(3, $parameters);
-        $this->assertEquals('originalPath', $parameters[0]->getName());
-        $this->assertEquals('options', $parameters[1]->getName());
-        $this->assertEquals('disk', $parameters[2]->getName());
+        $this->assertEquals('path', $parameters[0]->getName());
+        $this->assertEquals('disk', $parameters[1]->getName());
+        $this->assertEquals('thumbnailPath', $parameters[2]->getName());
     }
 
     #[Test]

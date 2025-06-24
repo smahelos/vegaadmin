@@ -3,20 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\CurrencyService;
-use App\Services\CurrencyExchangeService;
+use App\Contracts\CurrencyServiceInterface;
+use App\Contracts\CurrencyExchangeServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class CurrencyController extends Controller
 {
-    protected CurrencyService $currencyService;
-    protected CurrencyExchangeService $exchangeService;
+    protected CurrencyServiceInterface $currencyService;
+    protected CurrencyExchangeServiceInterface $exchangeService;
 
     /**
      * Controller constructor
      */
-    public function __construct(CurrencyService $currencyService, CurrencyExchangeService $exchangeService)
+    public function __construct(CurrencyServiceInterface $currencyService, CurrencyExchangeServiceInterface $exchangeService)
     {
         $this->currencyService = $currencyService;
         $this->exchangeService = $exchangeService;

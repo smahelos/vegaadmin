@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Contracts\CurrencyServiceInterface;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-class CurrencyService
+class CurrencyService implements CurrencyServiceInterface
 {
     /**
      * API URL for getting available currencies

@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Contracts\InvoicePdfServiceInterface;
+use App\Contracts\InvoiceServiceInterface;
+use App\Contracts\QrPaymentServiceInterface;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -10,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
-class InvoicePdfService
+class InvoicePdfService implements InvoicePdfServiceInterface
 {
     /**
      * @var LocaleService
@@ -18,12 +21,12 @@ class InvoicePdfService
     protected $localeService;
     
     /**
-     * @var QrPaymentService
+     * @var QrPaymentServiceInterface
      */
     protected $qrPaymentService;
     
     /**
-     * @var InvoiceService
+     * @var InvoiceServiceInterface
      */
     protected $invoiceService;
 
@@ -31,13 +34,13 @@ class InvoicePdfService
      * Constructor
      * 
      * @param LocaleService $localeService
-     * @param QrPaymentService $qrPaymentService
-     * @param InvoiceService $invoiceService
+     * @param QrPaymentServiceInterface $qrPaymentService
+     * @param InvoiceServiceInterface $invoiceService
      */
     public function __construct(
         LocaleService $localeService,
-        QrPaymentService $qrPaymentService,
-        InvoiceService $invoiceService
+        QrPaymentServiceInterface $qrPaymentService,
+        InvoiceServiceInterface $invoiceService
     ) {
         $this->localeService = $localeService;
         $this->qrPaymentService = $qrPaymentService;

@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\QrPaymentService;
+use App\Contracts\QrPaymentServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -20,6 +21,7 @@ class QrPaymentServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(QrPaymentService::class, $this->service);
+        $this->assertInstanceOf(QrPaymentServiceInterface::class, $this->service);
     }
 
     #[Test]

@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\TaxesService;
+use App\Contracts\TaxesServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -20,6 +21,7 @@ class TaxesServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(TaxesService::class, $this->service);
+        $this->assertInstanceOf(TaxesServiceInterface::class, $this->service);
     }
 
     #[Test]

@@ -5,8 +5,8 @@ namespace App\Traits;
 use App\Models\ProductCategory;
 use App\Models\Tax;
 use App\Models\Supplier;
-use App\Services\CurrencyService;
-use App\Services\ProductsService;
+use App\Contracts\CurrencyServiceInterface;
+use App\Contracts\ProductsServiceInterface;
 use Illuminate\Support\Facades\App;
 
 trait ProductFormFields
@@ -17,10 +17,10 @@ trait ProductFormFields
     protected function getProductFields($productCategories = [], $taxRates = [], $currencies = [], $suppliers = [])
     {
         // Get currency codes from CurrencyService
-        $currencies = App::make(CurrencyService::class)->getAllCurrencies();
+        $currencies = App::make(CurrencyServiceInterface::class)->getAllCurrencies();
         
         // Get currency codes from CurrencyService
-        $suppliers = App::make(ProductsService::class)->getAllSuppliers();
+        $suppliers = App::make(ProductsServiceInterface::class)->getAllSuppliers();
 
         // Default currencies if not provided
         if (empty($currencies)) {

@@ -3,9 +3,10 @@
 namespace Tests\Unit\Services;
 
 use App\Services\InvoicePdfService;
+use App\Contracts\InvoicePdfServiceInterface;
 use App\Services\LocaleService;
-use App\Services\QrPaymentService;
-use App\Services\InvoiceService;
+use App\Contracts\QrPaymentServiceInterface;
+use App\Contracts\InvoiceServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -14,8 +15,8 @@ class InvoicePdfServiceTest extends TestCase
 {
     private InvoicePdfService $service;
     private LocaleService $localeService;
-    private QrPaymentService $qrPaymentService;
-    private InvoiceService $invoiceService;
+    private QrPaymentServiceInterface $qrPaymentService;
+    private InvoiceServiceInterface $invoiceService;
 
     protected function setUp(): void
     {
@@ -23,8 +24,8 @@ class InvoicePdfServiceTest extends TestCase
         
         // Create mock dependencies
         $this->localeService = $this->createMock(LocaleService::class);
-        $this->qrPaymentService = $this->createMock(QrPaymentService::class);
-        $this->invoiceService = $this->createMock(InvoiceService::class);
+        $this->qrPaymentService = $this->createMock(QrPaymentServiceInterface::class);
+        $this->invoiceService = $this->createMock(InvoiceServiceInterface::class);
         
         $this->service = new InvoicePdfService(
             $this->localeService,
@@ -37,6 +38,7 @@ class InvoicePdfServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(InvoicePdfService::class, $this->service);
+        $this->assertInstanceOf(InvoicePdfServiceInterface::class, $this->service);
     }
 
     #[Test]
@@ -74,8 +76,8 @@ class InvoicePdfServiceTest extends TestCase
         $this->assertEquals('invoiceService', $parameters[2]->getName());
         
         $this->assertEquals('App\Services\LocaleService', $parameters[0]->getType()->getName());
-        $this->assertEquals('App\Services\QrPaymentService', $parameters[1]->getType()->getName());
-        $this->assertEquals('App\Services\InvoiceService', $parameters[2]->getType()->getName());
+        $this->assertEquals('App\Contracts\QrPaymentServiceInterface', $parameters[1]->getType()->getName());
+        $this->assertEquals('App\Contracts\InvoiceServiceInterface', $parameters[2]->getType()->getName());
     }
 
     #[Test]
@@ -243,10 +245,10 @@ class InvoicePdfServiceTest extends TestCase
         
         $qrPaymentServiceProperty = $reflection->getProperty('qrPaymentService');
         $qrPaymentServiceProperty->setAccessible(true);
-        $this->assertInstanceOf(QrPaymentService::class, $qrPaymentServiceProperty->getValue($this->service));
+        $this->assertInstanceOf(QrPaymentServiceInterface::class, $qrPaymentServiceProperty->getValue($this->service));
         
         $invoiceServiceProperty = $reflection->getProperty('invoiceService');
         $invoiceServiceProperty->setAccessible(true);
-        $this->assertInstanceOf(InvoiceService::class, $invoiceServiceProperty->getValue($this->service));
+        $this->assertInstanceOf(InvoiceServiceInterface::class, $invoiceServiceProperty->getValue($this->service));
     }
 }

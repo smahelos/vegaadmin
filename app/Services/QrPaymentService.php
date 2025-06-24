@@ -2,11 +2,12 @@
 
 namespace App\Services;
 
+use App\Contracts\QrPaymentServiceInterface;
 use App\Models\Invoice;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Log;
 
-class QrPaymentService
+class QrPaymentService implements QrPaymentServiceInterface
 {
     /**
      * Generate QR code for invoice payment in base64 format
