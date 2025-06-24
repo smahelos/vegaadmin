@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Contracts\StatusServiceInterface;
 use App\Models\StatusCategory;
 use Illuminate\Support\Facades\Cache;
 
-class StatusService
+class StatusService implements StatusServiceInterface
 {
     /**
      * Get all status categories

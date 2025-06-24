@@ -2,15 +2,17 @@
 
 namespace App\Services;
 
+use App\Contracts\ProductsServiceInterface;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
-class ProductsService
+class ProductsService implements ProductsServiceInterface
 {
     /**
      * Get all product categories
@@ -77,11 +79,11 @@ class ProductsService
     /**
      * Handles product image processing
      * 
-     * @param \Illuminate\Http\UploadedFile|null $image
+     * @param UploadedFile|null $image
      * @param string|null $oldImage
      * @return string|null
      */
-    public function handleProductImage($image, $oldImage = null): ?string
+    public function handleProductImage(?UploadedFile $image, ?string $oldImage = null): ?string
     {
         $disk = "public";
         $destination_path = "products";

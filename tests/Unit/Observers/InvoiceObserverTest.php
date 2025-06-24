@@ -5,6 +5,7 @@ namespace Tests\Unit\Observers;
 use App\Models\Invoice;
 use App\Observers\InvoiceObserver;
 use App\Services\InvoiceProductSyncService;
+use App\Contracts\InvoiceProductSyncServiceInterface;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -19,7 +20,7 @@ class InvoiceObserverTest extends TestCase
         parent::setUp();
         
         // Create mock for InvoiceProductSyncService using Mockery
-        $this->syncService = Mockery::mock(InvoiceProductSyncService::class);
+        $this->syncService = Mockery::mock('App\Contracts\InvoiceProductSyncServiceInterface');
         $this->observer = new InvoiceObserver($this->syncService);
     }
 

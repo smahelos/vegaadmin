@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
+use App\Contracts\TaxesServiceInterface;
 use App\Models\Tax;
 use Illuminate\Support\Facades\Cache;
 
-class TaxesService
+class TaxesService implements TaxesServiceInterface
 {
     /**
      * Get all taxes as slug => name array

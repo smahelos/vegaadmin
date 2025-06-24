@@ -4,6 +4,7 @@ namespace Tests\Unit\Console\Commands;
 
 use App\Console\Commands\SyncInvoiceProducts;
 use App\Services\InvoiceProductSyncService;
+use App\Contracts\InvoiceProductSyncServiceInterface;
 use Illuminate\Console\Command;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -92,7 +93,7 @@ class SyncInvoiceProductsTest extends TestCase
         
         $this->assertCount(1, $parameters);
         $this->assertEquals('syncService', $parameters[0]->getName());
-        $this->assertEquals(InvoiceProductSyncService::class, $parameters[0]->getType()->getName());
+        $this->assertEquals(InvoiceProductSyncServiceInterface::class, $parameters[0]->getType()->getName());
     }
 
     #[Test]
@@ -112,6 +113,6 @@ class SyncInvoiceProductsTest extends TestCase
         $content = file_get_contents($fileName);
         
         $this->assertStringContainsString('use Illuminate\Console\Command;', $content);
-        $this->assertStringContainsString('use App\Services\InvoiceProductSyncService;', $content);
+        $this->assertStringContainsString('use App\Contracts\InvoiceProductSyncServiceInterface;', $content);
     }
 }

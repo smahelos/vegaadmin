@@ -15,7 +15,9 @@ class OptimizeDatabasePhase3 extends Migration
      */
     public function up()
     {
-        echo "Phase 3: Implementing advanced database optimizations...\n";
+        if (!app()->environment('testing')) {
+            echo "Phase 3: Implementing advanced database optimizations...\n";
+        }
 
         // 1. CREATE ARCHIVE TABLES FOR DATA RETENTION
         $this->createArchiveTables();
@@ -29,8 +31,10 @@ class OptimizeDatabasePhase3 extends Migration
         // 4. CREATE MAINTENANCE HELPER TABLES
         $this->createMaintenanceTables();
 
-        echo "Phase 3 optimization completed successfully!\n";
-        echo "Created archive tables, monitoring views, and maintenance structures.\n";
+        if (!app()->environment('testing')) {
+            echo "Phase 3 optimization completed successfully!\n";
+            echo "Created archive tables, monitoring views, and maintenance structures.\n";
+        }
     }
 
     /**
@@ -277,7 +281,9 @@ class OptimizeDatabasePhase3 extends Migration
      */
     public function down()
     {
-        echo "Rolling back Phase 3 optimizations...\n";
+        if (!app()->environment('testing')) {
+            echo "Rolling back Phase 3 optimizations...\n";
+        }
 
         // Drop maintenance tables
         Schema::dropIfExists('archive_policies');
@@ -296,6 +302,8 @@ class OptimizeDatabasePhase3 extends Migration
         Schema::dropIfExists('invoice_products_archive');
         Schema::dropIfExists('invoices_archive');
 
-        echo "Phase 3 rollback completed.\n";
+        if (!app()->environment('testing')) {
+            echo "Phase 3 rollback completed.\n";
+        }
     }
 }

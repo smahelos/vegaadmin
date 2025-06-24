@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\ArtisanCommandsService;
+use App\Contracts\ArtisanCommandsServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -13,6 +14,7 @@ class ArtisanCommandsServiceTest extends TestCase
     {
         $service = new ArtisanCommandsService();
         $this->assertInstanceOf(ArtisanCommandsService::class, $service);
+        $this->assertInstanceOf(ArtisanCommandsServiceInterface::class, $service);
     }
 
     #[Test]

@@ -9,10 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Traits\SupplierFormFields;
-use App\Services\BankService;
-use App\Services\LocaleService;
-use App\Services\CountryService;
-use App\Repositories\SupplierRepository;
+use App\Contracts\BankServiceInterface;
+use App\Contracts\CountryServiceInterface;
+use App\Contracts\LocaleServiceInterface;
+use App\Contracts\SupplierRepositoryInterface;
 
 class SupplierController extends Controller
 {
@@ -21,44 +21,44 @@ class SupplierController extends Controller
     /**
      * Bank service instance
      * 
-     * @var \App\Services\BankService
+     * @var \App\Contracts\BankServiceInterface
      */
     protected $bankService;
 
     /**
      * Locale service instance
      * 
-     * @var \App\Services\LocaleService
+     * @var LocaleServiceInterface
      */
     protected $localeService;
 
     /**
      * Country service instance
      * 
-     * @var \App\Services\CountryService
+     * @var CountryServiceInterface
      */
     protected $countryService;
 
     /**
      * Supplier repository instance
      * 
-     * @var \App\Repositories\SupplierRepository
+     * @var SupplierRepositoryInterface
      */
     protected $supplierRepository;
 
     /**
      * Constructor
      * 
-     * @param BankService $bankService
-     * @param LocaleService $localeService
-     * @param CountryService $countryService
-     * @param SupplierRepository $supplierRepository
+     * @param BankServiceInterface $bankService
+     * @param LocaleServiceInterface $localeService
+     * @param CountryServiceInterface $countryService
+     * @param SupplierRepositoryInterface $supplierRepository
      */
     public function __construct(
-        BankService $bankService,
-        LocaleService $localeService,
-        CountryService $countryService,
-        SupplierRepository $supplierRepository
+        BankServiceInterface $bankService,
+        LocaleServiceInterface $localeService,
+        CountryServiceInterface $countryService,
+        SupplierRepositoryInterface $supplierRepository
     ) {
         $this->bankService = $bankService;
         $this->localeService = $localeService;

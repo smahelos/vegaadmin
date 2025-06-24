@@ -64,7 +64,7 @@ class SyncArtisanCommandsTest extends TestCase
         $reflection = new \ReflectionClass('App\Console\Commands\SyncArtisanCommands');
         $fileContent = file_get_contents($reflection->getFileName());
         
-        $this->assertStringContainsString('App\Services\ArtisanCommandsService', $fileContent);
+        $this->assertStringContainsString('App\Contracts\ArtisanCommandsServiceInterface', $fileContent);
         $this->assertStringContainsString('App\Models\ArtisanCommand', $fileContent);
         $this->assertStringContainsString('Illuminate\Console\Command', $fileContent);
     }

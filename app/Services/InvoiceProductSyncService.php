@@ -2,12 +2,13 @@
 
 namespace App\Services;
 
+use App\Contracts\InvoiceProductSyncServiceInterface;
 use App\Models\Invoice;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class InvoiceProductSyncService
+class InvoiceProductSyncService implements InvoiceProductSyncServiceInterface
 {
     /**
      * Synchronize products from invoice_text JSON to pivot table

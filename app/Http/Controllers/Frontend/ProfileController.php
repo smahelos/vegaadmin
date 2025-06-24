@@ -3,16 +3,10 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Client;
-use App\Models\Invoice;
-use App\Models\User;
+use App\Contracts\UserServiceInterface;
 use App\Traits\UserFormFields;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\UserRequest;
 use App\Http\Requests\PasswordUpdateRequest;
@@ -20,6 +14,23 @@ use App\Http\Requests\PasswordUpdateRequest;
 class ProfileController extends Controller
 {
     use UserFormFields;
+
+    /**
+     * User service instance
+     *
+     * @var UserServiceInterface
+     */
+    protected $userService;
+
+    /**
+     * Constructor
+     *
+     * @param UserServiceInterface $userService
+     */
+    public function __construct(UserServiceInterface $userService)
+    {
+        $this->userService = $userService;
+    }
     
     /**
      * Show form for editing user profile
@@ -30,7 +41,7 @@ class ProfileController extends Controller
     {
         try {
             // Get authenticated user as full model instance
-            $user = User::findOrFail(Auth::id());
+            $user = $this->userService->findUserById(Auth::id());
             
             // Get fields from trait
             $userFields = $this->getUserFields();
@@ -54,14 +65,14 @@ class ProfileController extends Controller
     public function update(UserRequest $request)
     {
         try {
-            // Get authenticated user as full model instance
-            $user = User::findOrFail(Auth::id());
+            // Get authenticated user
+            $user = $this->userService->findUserById(Auth::id());
             
             // Get validated data from request
             $validatedData = $request->validated();
             
-            // Update user
-            $user->update($validatedData);
+            // Update user using service
+            $this->userService->updateProfile($user, $validatedData);
             
             return redirect()->route('frontend.profile.edit', ['locale' => $request->input('lang', app()->getLocale())])
                 ->with('success', __('users.messages.profile_updated'));
@@ -83,12 +94,11 @@ class ProfileController extends Controller
     public function updatePassword(PasswordUpdateRequest $request)
     {
         try {
-            // Get validated data
-            $validatedData = $request->validated();
+            // Get authenticated user
+            $user = $this->userService->findUserById(Auth::id());
             
-            $user = User::findOrFail(Auth::id());
-            $user->password = Hash::make($request->password);
-            $user->save();
+            // Update password using service
+            $this->userService->updatePassword($user, $request->password);
             
             return redirect()->route('frontend.profile.edit', ['locale' => $request->input('locale', app()->getLocale())])
                 ->with('success', __('users.messages.password_updated'));

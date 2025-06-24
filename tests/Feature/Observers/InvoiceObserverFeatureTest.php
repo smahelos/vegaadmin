@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Observers\InvoiceObserver;
 use App\Services\InvoiceProductSyncService;
+use App\Contracts\InvoiceProductSyncServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,13 +17,13 @@ class InvoiceObserverFeatureTest extends TestCase
     use RefreshDatabase;
 
     private InvoiceObserver $observer;
-    private InvoiceProductSyncService $syncService;
+    private InvoiceProductSyncServiceInterface $syncService;
 
     protected function setUp(): void
     {
         parent::setUp();
         
-        $this->syncService = app(InvoiceProductSyncService::class);
+        $this->syncService = app(InvoiceProductSyncServiceInterface::class);
         $this->observer = new InvoiceObserver($this->syncService);
     }
 

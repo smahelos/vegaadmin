@@ -5,6 +5,7 @@ namespace Tests\Feature\Services;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Services\InvoiceProductSyncService;
+use App\Contracts\InvoiceProductSyncServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;

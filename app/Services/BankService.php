@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Contracts\BankServiceInterface;
 use App\Models\Bank;
 
-class BankService
+class BankService implements BankServiceInterface
 {
     /**
      * Get list of banks with codes for dropdown

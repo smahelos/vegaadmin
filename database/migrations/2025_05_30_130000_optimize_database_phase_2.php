@@ -15,7 +15,10 @@ class OptimizeDatabasePhase2 extends Migration
      */
     public function up()
     {
-        echo "Phase 2: Adding composite indexes and performance optimizations...\n";
+        // Only show progress in production environment, not during tests
+        if (!app()->environment('testing')) {
+            echo "Phase 2: Adding composite indexes and performance optimizations...\n";
+        }
 
         // 1. INVOICES TABLE - Most critical composite indexes
         Schema::table('invoices', function (Blueprint $table) {
@@ -113,8 +116,10 @@ class OptimizeDatabasePhase2 extends Migration
 
         // Note: users table indexes not needed - it already has proper primary key and unique email index
 
-        echo "Phase 2 optimization completed successfully!\n";
-        echo "Added " . $this->getIndexCount() . " composite indexes for optimal query performance.\n";
+        if (!app()->environment('testing')) {
+            echo "Phase 2 optimization completed successfully!\n";
+            echo "Added " . $this->getIndexCount() . " composite indexes for optimal query performance.\n";
+        }
     }
 
     /**
@@ -124,7 +129,9 @@ class OptimizeDatabasePhase2 extends Migration
      */
     public function down()
     {
-        echo "Rolling back Phase 2 optimizations...\n";
+        if (!app()->environment('testing')) {
+            echo "Rolling back Phase 2 optimizations...\n";
+        }
 
         // Remove composite indexes in reverse order
         if (Schema::hasTable('cache')) {
@@ -181,7 +188,9 @@ class OptimizeDatabasePhase2 extends Migration
             $table->dropIndex('idx_invoices_user_invoice_vs');
         });
 
-        echo "Phase 2 rollback completed.\n";
+        if (!app()->environment('testing')) {
+            echo "Phase 2 rollback completed.\n";
+        }
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\ProductsService;
+use App\Contracts\ProductsServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -20,6 +21,7 @@ class ProductsServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(ProductsService::class, $this->service);
+        $this->assertInstanceOf(ProductsServiceInterface::class, $this->service);
     }
 
     #[Test]

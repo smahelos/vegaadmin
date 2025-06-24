@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use App\Contracts\LocaleServiceInterface;
 use Illuminate\Support\Facades\Session;
 
-class LocaleService
+class LocaleService implements LocaleServiceInterface
 {
     /**
      * Get available locales from config

@@ -4,6 +4,7 @@ namespace Tests\Feature\Services;
 
 use App\Models\StatusCategory;
 use App\Services\StatusService;
+use App\Contracts\StatusServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;

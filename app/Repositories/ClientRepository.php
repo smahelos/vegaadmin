@@ -2,10 +2,11 @@
 
 namespace App\Repositories;
 
+use App\Contracts\ClientRepositoryInterface;
 use App\Models\Client;
 use Illuminate\Support\Facades\Auth;
 
-class ClientRepository
+class ClientRepository implements ClientRepositoryInterface
 {
     /**
      * Get clients for the current user as dropdown options
@@ -22,9 +23,9 @@ class ClientRepository
     /**
      * Find default client for the current user
      * 
-     * @return \App\Models\Client|null
+     * @return Client|null
      */
-    public function getDefaultClient()
+    public function getDefaultClient(): ?Client
     {
         return Client::where('user_id', Auth::id())
             ->where('is_default', true)
@@ -35,9 +36,9 @@ class ClientRepository
      * Find client by ID for the current user
      * 
      * @param int $id
-     * @return \App\Models\Client|null
+     * @return Client|null
      */
-    public function findById(int $id)
+    public function findById(int $id): ?Client
     {
         return Client::where('id', $id)
             ->where('user_id', Auth::id())
@@ -48,7 +49,7 @@ class ClientRepository
      * Create a new client from data
      * 
      * @param array $data
-     * @return \App\Models\Client
+     * @return Client
      */
     public function create(array $data): Client
     {

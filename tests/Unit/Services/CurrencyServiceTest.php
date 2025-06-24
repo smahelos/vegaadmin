@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\CurrencyService;
+use App\Contracts\CurrencyServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -21,6 +22,7 @@ class CurrencyServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(CurrencyService::class, $this->service);
+        $this->assertInstanceOf(CurrencyServiceInterface::class, $this->service);
     }
 
     #[Test]

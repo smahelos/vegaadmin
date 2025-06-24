@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\ProductRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
-use App\Services\ProductsService;
-use App\Services\TaxesService;
+use App\Contracts\ProductsServiceInterface;
+use App\Contracts\TaxesServiceInterface;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ProductCrudController extends CrudController
@@ -15,6 +15,18 @@ class ProductCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+
+    private ProductsServiceInterface $productsService;
+    private TaxesServiceInterface $taxesService;
+
+    public function __construct(
+        ProductsServiceInterface $productsService,
+        TaxesServiceInterface $taxesService
+    ) {
+        parent::__construct();
+        $this->productsService = $productsService;
+        $this->taxesService = $taxesService;
+    }
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
@@ -79,9 +91,7 @@ class ProductCrudController extends CrudController
         
         CRUD::field('price')->type('number')->attributes(['step' => '0.01']);
         // Get taxes from the service
-        $taxesService = new TaxesService();
-        // Prepare taxes for select form
-        $taxes = $taxesService->getAllTaxesForSelect();
+        $taxes = $this->taxesService->getAllTaxesForSelect();
             
         CRUD::field('tax_id')
             ->type('select_from_array')
@@ -92,9 +102,7 @@ class ProductCrudController extends CrudController
             ->options($taxes);
 
         // Get product categories from the service
-        $productsService = new ProductsService();
-        // Prepare product categories for select form
-        $productCategories = $productsService->getAllCategories();
+        $productCategories = $this->productsService->getAllCategories();
 
         CRUD::field('category_id')
             ->type('select_from_array')

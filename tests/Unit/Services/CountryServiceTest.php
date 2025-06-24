@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Services\CountryService;
+use App\Contracts\CountryServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -21,6 +22,7 @@ class CountryServiceTest extends TestCase
     public function service_can_be_instantiated(): void
     {
         $this->assertInstanceOf(CountryService::class, $this->service);
+        $this->assertInstanceOf(CountryServiceInterface::class, $this->service);
     }
 
     #[Test]

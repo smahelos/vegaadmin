@@ -6,7 +6,7 @@ use App\Models\Client;
 use App\Models\Supplier;
 use App\Models\PaymentMethod;
 use App\Models\Status;
-use App\Services\CountryService;
+use App\Contracts\CountryServiceInterface;
 use Illuminate\Support\Facades\App;
 
 trait InvoiceFormFields
@@ -24,7 +24,7 @@ trait InvoiceFormFields
     protected function getInvoiceFields($clients = [], $suppliers = [], $paymentMethods = [], $statuses = [], $currencies = [])
     {
         // Get country codes from CountryService
-        $countries = App::make(CountryService::class)->getCountryCodesForSelect();
+        $countries = App::make(CountryServiceInterface::class)->getCountryCodesForSelect();
         
         // Default currencies if not provided
         if (empty($currencies)) {

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Traits;
-use App\Services\CountryService;
+use App\Contracts\CountryServiceInterface;
 use Illuminate\Support\Facades\App;
 
 trait BankFormFields
@@ -14,7 +14,7 @@ trait BankFormFields
     protected function getBankFields(): array
     {
         // Get country codes from CountryService
-        $countries = App::make(CountryService::class)->getCountryCodesForSelect();
+        $countries = App::make(CountryServiceInterface::class)->getCountryCodesForSelect();
 
         return [
             [

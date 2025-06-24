@@ -2,10 +2,11 @@
 
 namespace App\Repositories;
 
+use App\Contracts\SupplierRepositoryInterface;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Auth;
 
-class SupplierRepository
+class SupplierRepository implements SupplierRepositoryInterface
 {
     /**
      * Get suppliers for the current user as dropdown options
@@ -22,9 +23,9 @@ class SupplierRepository
     /**
      * Find default supplier for the current user
      * 
-     * @return \App\Models\Supplier|null
+     * @return Supplier|null
      */
-    public function getDefaultSupplier()
+    public function getDefaultSupplier(): ?Supplier
     {
         return Supplier::where('user_id', Auth::id())
             ->where('is_default', true)
@@ -35,9 +36,9 @@ class SupplierRepository
      * Find supplier by ID for the current user
      * 
      * @param int $id
-     * @return \App\Models\Supplier|null
+     * @return Supplier|null
      */
-    public function findById(int $id)
+    public function findById(int $id): ?Supplier
     {
         return Supplier::where('id', $id)
             ->where('user_id', Auth::id())
@@ -48,7 +49,7 @@ class SupplierRepository
      * Create a new supplier from data
      * 
      * @param array $data
-     * @return \App\Models\Supplier
+     * @return Supplier
      */
     public function create(array $data): Supplier
     {

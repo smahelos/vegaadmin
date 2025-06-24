@@ -6,7 +6,7 @@ use App\Models\Client;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
-use App\Services\CountryService;
+use App\Contracts\CountryServiceInterface;
 use App\Traits\InvoiceFormFields;
 use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
@@ -41,12 +41,12 @@ class InvoiceFormFieldsTest extends TestCase
     public function get_invoice_fields_returns_array(): void
     {
         // Mock CountryService
-        $countryService = $this->createMock(CountryService::class);
+        $countryService = $this->createMock(CountryServiceInterface::class);
         $countryService->method('getCountryCodesForSelect')
             ->willReturn(['CZ' => 'Czech Republic', 'SK' => 'Slovakia']);
 
         App::shouldReceive('make')
-            ->with(CountryService::class)
+            ->with(CountryServiceInterface::class)
             ->andReturn($countryService);
 
         $result = $this->getInvoiceFields();
@@ -59,12 +59,12 @@ class InvoiceFormFieldsTest extends TestCase
     public function get_invoice_fields_accepts_all_parameters(): void
     {
         // Mock CountryService
-        $countryService = $this->createMock(CountryService::class);
+        $countryService = $this->createMock(CountryServiceInterface::class);
         $countryService->method('getCountryCodesForSelect')
             ->willReturn(['CZ' => 'Czech Republic']);
 
         App::shouldReceive('make')
-            ->with(CountryService::class)
+            ->with(CountryServiceInterface::class)
             ->andReturn($countryService);
 
         $clients = [1 => 'Client 1'];
@@ -82,12 +82,12 @@ class InvoiceFormFieldsTest extends TestCase
     public function get_invoice_fields_uses_default_currencies_when_empty(): void
     {
         // Mock CountryService
-        $countryService = $this->createMock(CountryService::class);
+        $countryService = $this->createMock(CountryServiceInterface::class);
         $countryService->method('getCountryCodesForSelect')
             ->willReturn(['CZ' => 'Czech Republic']);
 
         App::shouldReceive('make')
-            ->with(CountryService::class)
+            ->with(CountryServiceInterface::class)
             ->andReturn($countryService);
 
         $result = $this->getInvoiceFields();
@@ -106,12 +106,12 @@ class InvoiceFormFieldsTest extends TestCase
     public function get_invoice_fields_contains_required_invoice_fields(): void
     {
         // Mock CountryService
-        $countryService = $this->createMock(CountryService::class);
+        $countryService = $this->createMock(CountryServiceInterface::class);
         $countryService->method('getCountryCodesForSelect')
             ->willReturn(['CZ' => 'Czech Republic']);
 
         App::shouldReceive('make')
-            ->with(CountryService::class)
+            ->with(CountryServiceInterface::class)
             ->andReturn($countryService);
 
         $result = $this->getInvoiceFields();
@@ -135,12 +135,12 @@ class InvoiceFormFieldsTest extends TestCase
     public function get_invoice_fields_contains_supplier_fields(): void
     {
         // Mock CountryService
-        $countryService = $this->createMock(CountryService::class);
+        $countryService = $this->createMock(CountryServiceInterface::class);
         $countryService->method('getCountryCodesForSelect')
             ->willReturn(['CZ' => 'Czech Republic']);
 
         App::shouldReceive('make')
-            ->with(CountryService::class)
+            ->with(CountryServiceInterface::class)
             ->andReturn($countryService);
 
         $result = $this->getInvoiceFields();
@@ -163,12 +163,12 @@ class InvoiceFormFieldsTest extends TestCase
     public function get_invoice_fields_contains_client_fields(): void
     {
         // Mock CountryService
-        $countryService = $this->createMock(CountryService::class);
+        $countryService = $this->createMock(CountryServiceInterface::class);
         $countryService->method('getCountryCodesForSelect')
             ->willReturn(['CZ' => 'Czech Republic']);
 
         App::shouldReceive('make')
-            ->with(CountryService::class)
+            ->with(CountryServiceInterface::class)
             ->andReturn($countryService);
 
         $result = $this->getInvoiceFields();
@@ -191,12 +191,12 @@ class InvoiceFormFieldsTest extends TestCase
     public function get_invoice_fields_contains_payment_information_fields(): void
     {
         // Mock CountryService
-        $countryService = $this->createMock(CountryService::class);
+        $countryService = $this->createMock(CountryServiceInterface::class);
         $countryService->method('getCountryCodesForSelect')
             ->willReturn(['CZ' => 'Czech Republic']);
 
         App::shouldReceive('make')
-            ->with(CountryService::class)
+            ->with(CountryServiceInterface::class)
             ->andReturn($countryService);
 
         $result = $this->getInvoiceFields();
@@ -214,12 +214,12 @@ class InvoiceFormFieldsTest extends TestCase
     public function get_invoice_fields_has_proper_field_structure(): void
     {
         // Mock CountryService
-        $countryService = $this->createMock(CountryService::class);
+        $countryService = $this->createMock(CountryServiceInterface::class);
         $countryService->method('getCountryCodesForSelect')
             ->willReturn(['CZ' => 'Czech Republic']);
 
         App::shouldReceive('make')
-            ->with(CountryService::class)
+            ->with(CountryServiceInterface::class)
             ->andReturn($countryService);
 
         $result = $this->getInvoiceFields();
@@ -237,12 +237,12 @@ class InvoiceFormFieldsTest extends TestCase
     public function get_invoice_fields_sets_model_classes_correctly(): void
     {
         // Mock CountryService
-        $countryService = $this->createMock(CountryService::class);
+        $countryService = $this->createMock(CountryServiceInterface::class);
         $countryService->method('getCountryCodesForSelect')
             ->willReturn(['CZ' => 'Czech Republic']);
 
         App::shouldReceive('make')
-            ->with(CountryService::class)
+            ->with(CountryServiceInterface::class)
             ->andReturn($countryService);
 
         $result = $this->getInvoiceFields();

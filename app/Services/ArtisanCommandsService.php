@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
+use App\Contracts\ArtisanCommandsServiceInterface;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
-class ArtisanCommandsService
+class ArtisanCommandsService implements ArtisanCommandsServiceInterface
 {
     /**
      * Get list of all available Artisan commands.

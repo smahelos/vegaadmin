@@ -4,19 +4,46 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Models\ProductCategory;
-use App\Models\Tax;
 use App\Http\Requests\ProductRequest;
+use App\Contracts\ProductServiceInterface;
+use App\Contracts\ProductRepositoryInterface;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use App\Traits\ProductFormFields;
 
 class ProductController extends Controller
 {
     use AuthorizesRequests;
     use ProductFormFields;
+
+    /**
+     * Product service instance
+     *
+     * @var ProductServiceInterface
+     */
+    protected $productService;
+
+    /**
+     * Product repository instance
+     *
+     * @var ProductRepositoryInterface
+     */
+    protected $productRepository;
+
+    /**
+     * Constructor
+     *
+     * @param ProductServiceInterface $productService
+     * @param ProductRepositoryInterface $productRepository
+     */
+    public function __construct(
+        ProductServiceInterface $productService,
+        ProductRepositoryInterface $productRepository
+    ) {
+        $this->productService = $productService;
+        $this->productRepository = $productRepository;
+    }
 
     /**
      * Display a listing of the user's products.
@@ -36,22 +63,16 @@ class ProductController extends Controller
      */
     public function create()
     {
-        // Get product categories for dropdown
-        $productCategories = ProductCategory::pluck('slug', 'id')->toArray();
-
-        // Get tax rates for dropdown
-        $taxRates = Tax::where('slug', 'dph')
-            ->pluck('rate', 'id')
-            ->toArray();
-
-        foreach($taxRates as $key => $value) {
-            $taxRates[$key] = $value . '%';
-        }
-
-        $fields = $this->getProductFields($productCategories, $taxRates);
-        $categories = ProductCategory::all();
+        // Get form data from service
+        $formData = $this->productService->getFormData();
         
-        return view('frontend.products.create', compact('productCategories', 'taxRates', 'fields'));
+        $fields = $this->getProductFields($formData['product_categories'], $formData['tax_rates']);
+        
+        return view('frontend.products.create', [
+            'productCategories' => $formData['product_categories'],
+            'taxRates' => $formData['tax_rates'],
+            'fields' => $fields
+        ]);
     }
 
     /**
@@ -60,18 +81,10 @@ class ProductController extends Controller
     public function store(ProductRequest $request)
     {
         $validatedData = $request->validated();
-        $validatedData['user_id'] = Auth::id();
-        if (Product::where('user_id', Auth::id())->count() === 0) {
-            $validatedData['is_default'] = true;
-        }
-
-        // Generate slug if not provided
-        if (empty($validatedData['slug'])) {
-            $validatedData['slug'] = \Str::slug($validatedData['name']);
-        }
-
-        // The image handling is done by the setImageAttribute mutator in the Product model
-        Product::create($validatedData);
+        $user = Auth::user();
+        
+        // Create product using service
+        $this->productService->createProduct($validatedData, $user);
 
         return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
             ->with('success', trans('products.messages.created'));
@@ -86,7 +99,8 @@ class ProductController extends Controller
      */
     public function show(string $locale, int $id)
     {
-        $product = Product::findOrFail($id);
+        $user = Auth::user();
+        $product = $this->productRepository->findByIdForUser($id, $user);
         $this->authorize('view', $product);
 
         return view('frontend.products.show', compact('product'));
@@ -101,26 +115,20 @@ class ProductController extends Controller
      */
     public function edit(string $locale, int $id)
     {
-        $product = Product::findOrFail($id);
+        $user = Auth::user();
+        $product = $this->productRepository->findByIdForUser($id, $user);
         $this->authorize('update', $product);
 
-        // Get product categories for dropdown
-        $productCategories = ProductCategory::pluck('slug', 'id')->toArray();
-
-        // Get tax rates for dropdown
-        $taxRates = Tax::where('slug', 'dph')
-            ->pluck('rate', 'id')
-            ->toArray();
-
-        foreach($taxRates as $key => $value) {
-            $taxRates[$key] = $value . '%';
-        }
-
-        $fields = $this->getProductFields($productCategories, $taxRates);
-
-        $categories = ProductCategory::all();
+        // Get form data from service
+        $formData = $this->productService->getFormData();
+        $fields = $this->getProductFields($formData['product_categories'], $formData['tax_rates']);
         
-        return view('frontend.products.edit', compact('product', 'productCategories', 'taxRates', 'fields'));
+        return view('frontend.products.edit', [
+            'product' => $product,
+            'productCategories' => $formData['product_categories'],
+            'taxRates' => $formData['tax_rates'],
+            'fields' => $fields
+        ]);
     }
 
     /**
@@ -133,20 +141,14 @@ class ProductController extends Controller
      */
     public function update(ProductRequest $request, string $locale, int $id)
     {
-        $product = Product::findOrFail($id);
+        $user = Auth::user();
+        $product = $this->productRepository->findByIdForUser($id, $user);
         $this->authorize('update', $product);
         
         $data = $request->validated();
-        $data['is_default'] = isset($data['is_default']) && $data['is_default'] == 1;
-        $data['is_active'] = isset($data['is_active']) && $data['is_active'] == 1;
         
-        // Generate slug if not provided
-        if (empty($data['slug'])) {
-            $data['slug'] = \Str::slug($data['name']);
-        }
-
-        // The image handling is done by the setImageAttribute mutator in the Product model
-        $product->update($data);
+        // Update product using service
+        $this->productService->updateProduct($product, $data);
         
         return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
             ->with('success', trans('products.messages.updated'));
@@ -163,11 +165,8 @@ class ProductController extends Controller
     {
         $this->authorize('delete', $product);
         
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
-        
-        $product->delete();
+        // Delete product using service
+        $this->productService->deleteProduct($product);
         
         return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
             ->with('success', trans('products.messages.product_deleted'));

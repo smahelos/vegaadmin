@@ -13,10 +13,10 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use App\Traits\UserFormFields;
-use App\Services\BankService;
-use App\Services\CountryService;
-use App\Services\LocaleService;
-use App\Repositories\SupplierRepository;
+use App\Contracts\BankServiceInterface;
+use App\Contracts\CountryServiceInterface;
+use App\Contracts\LocaleServiceInterface;
+use App\Contracts\SupplierRepositoryInterface;
 use Spatie\Permission\Models\Role;
 
 class RegisterController extends Controller
@@ -26,44 +26,44 @@ class RegisterController extends Controller
     /**
      * Bank service instance
      * 
-     * @var BankService
+     * @var BankServiceInterface
      */
     protected $bankService;
 
     /**
      * Country service instance
      * 
-     * @var CountryService
+     * @var CountryServiceInterface
      */
     protected $countryService;
 
     /**
      * Locale service instance
      * 
-     * @var LocaleService
+     * @var LocaleServiceInterface
      */
     protected $localeService;
 
     /**
      * Supplier repository instance
      * 
-     * @var SupplierRepository
+     * @var SupplierRepositoryInterface
      */
     protected $supplierRepository;
 
     /**
      * Constructor
      * 
-     * @param BankService $bankService
-     * @param CountryService $countryService
-     * @param LocaleService $localeService
-     * @param SupplierRepository $supplierRepository
+     * @param BankServiceInterface $bankService
+     * @param CountryServiceInterface $countryService
+     * @param LocaleServiceInterface $localeService
+     * @param SupplierRepositoryInterface $supplierRepository
      */
     public function __construct(
-        BankService $bankService,
-        CountryService $countryService,
-        LocaleService $localeService,
-        SupplierRepository $supplierRepository
+        BankServiceInterface $bankService,
+        CountryServiceInterface $countryService,
+        LocaleServiceInterface $localeService,
+        SupplierRepositoryInterface $supplierRepository
     ) {
         $this->bankService = $bankService;
         $this->countryService = $countryService;
