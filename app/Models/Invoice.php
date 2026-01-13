@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\InvoiceProduct;
 use Illuminate\Support\Facades\Log;
+use App\Domain\Shared\Money\ValueObjects\Money;
 
 class Invoice extends Model
 {
@@ -26,9 +27,19 @@ class Invoice extends Model
     protected $table = 'invoices';
     protected $guarded = ['id'];
     protected $casts = [
-        'issue_date' => 'date',
-        'tax_point_date' => 'date',
+        'issue_date' => 'datetime:Y-m-d',
+        'tax_point_date' => 'datetime:Y-m-d',
         'due_in' => 'integer',
+        'payment_amount' => 'decimal:2',
+    ];
+
+    /**
+     * Available invoice templates
+     */
+    const TEMPLATES = [
+        'default' => 'Standard',
+        'modern' => 'Modern',
+        'minimal' => 'Minimal'
     ];
 
     /*
@@ -63,7 +74,7 @@ class Invoice extends Model
 
     /**
      * Get the client associated with the invoice
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function client(): BelongsTo
@@ -73,7 +84,7 @@ class Invoice extends Model
 
     /**
      * Get the supplier associated with the invoice
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function supplier(): BelongsTo
@@ -98,9 +109,9 @@ class Invoice extends Model
     {
         return $this->belongsToMany(Product::class, 'invoice_products')
             ->withPivot([
-                'name', 
-                'quantity', 
-                'price', 
+                'name',
+                'quantity',
+                'price',
                 'currency',
                 'unit',
                 'category',
@@ -155,7 +166,7 @@ class Invoice extends Model
             $paymentMethod = $this->paymentMethod()->first();
             return collect([$paymentMethod]);
         }
-        
+
         return collect([]);
     }
 
@@ -174,14 +185,14 @@ class Invoice extends Model
                 if (!$this->exists) {
                     return 0.0;
                 }
-                
+
                 $total = $this->invoiceProducts()->sum('total_price');
             }
-            
-            // Update the invoice header
-            $this->payment_amount = $total;
+
+            // Update the invoice header with amount rounded to 2 decimal places
+            $this->payment_amount = round($total, 2);
             $this->save();
-            
+
             return $total;
         } catch (\Exception $e) {
             \Log::error('Error calculating total amount: ' . $e->getMessage());
@@ -220,13 +231,13 @@ class Invoice extends Model
             $client = $this->client()->first();
             return $client ? $client->name : __('invoices.placeholders.unknown_client');
         }
-    
+
         return __('invoices.placeholders.unknown_client');
     }
 
     /**
      * Get CSS class for payment status display with fallback
-     * 
+     *
      * @return string
      */
     public function getStatusColorClassAttribute()
@@ -239,7 +250,7 @@ class Invoice extends Model
         if ($this->paymentStatus->color) {
             return $this->paymentStatus->color;
         }
-        
+
         $colorMap = [
             'paid' => 'green',
             'pending' => 'yellow',
@@ -248,7 +259,7 @@ class Invoice extends Model
             'canceled' => 'gray',
             'unknown' => 'gray',
         ];
-    
+
         $slug = $this->getPaymentStatusSlugAttribute();
 
         return $colorMap[$slug] ?? 'gray';
@@ -264,11 +275,11 @@ class Invoice extends Model
         if ($this->issue_date && $this->due_in) {
             return Carbon::parse($this->issue_date)->addDays($this->due_in);
         }
-        
+
         if ($this->payment_draft_date) {
             return Carbon::parse($this->payment_draft_date);
         }
-        
+
         return null;
     }
 
@@ -279,7 +290,7 @@ class Invoice extends Model
     {
         $productsData = [];
         $jsonData = [];
-        
+
         try {
             if (!empty($this->invoice_text)) {
                 $jsonData = json_decode($this->invoice_text, true);
@@ -288,18 +299,18 @@ class Invoice extends Model
             \Log::error('Error parsing invoice_text JSON: ' . $e->getMessage());
             return;
         }
-        
+
         // If items are present in the JSON data
         // and are in the expected format, proceed with syncing
         if (isset($jsonData['items']) && is_array($jsonData['items'])) {
             foreach ($jsonData['items'] as $item) {
                 if (isset($item['product_id']) && !empty($item['product_id'])) {
                     $productId = (int) $item['product_id'];
-                    
+
                     // Get product name - try to fetch from database
                     $product = Product::find($productId);
                     $productName = $product ? $product->name : 'Unknown Product';
-                    
+
                     // Prepare data for sync
                     $productsData[$productId] = [
                         'name' => $productName,
@@ -314,7 +325,7 @@ class Invoice extends Model
                 }
             }
         }
-        
+
         // Synchronizing products with pivot table
         if (!empty($productsData)) {
             $this->products()->sync($productsData);
@@ -335,10 +346,10 @@ class Invoice extends Model
                 if (!$this->exists) {
                     return 0.0;
                 }
-                
+
                 return $this->invoiceProducts()->sum(\DB::raw('price * quantity')) ?: 0.0;
             }
-            
+
             return $this->invoiceProducts->reduce(function($carry, $item) {
                 return $carry + (($item->price ?? 0) * ($item->quantity ?? 0));
             }, 0.0);
@@ -359,10 +370,10 @@ class Invoice extends Model
                 if (!$this->exists) {
                     return 0.0;
                 }
-                
+
                 return $this->invoiceProducts()->sum('tax_amount') ?: 0.0;
             }
-            
+
             return $this->invoiceProducts->sum('tax_amount') ?: 0.0;
         } catch (\Exception $e) {
             \Log::error('Error calculating total tax: ' . $e->getMessage());
@@ -381,7 +392,7 @@ class Invoice extends Model
     | ACCESSORS
     |--------------------------------------------------------------------------
     */
-    
+
     /**
      * Get supplier name with fallback for unknown supplier.
      */
@@ -397,7 +408,7 @@ class Invoice extends Model
                     $supplier = $this->supplier()->first();
                     return $supplier ? $supplier->name : __('invoices.placeholders.unknown_supplier');
                 }
-                
+
                 return __('invoices.placeholders.unknown_supplier');
             },
         );
@@ -405,19 +416,19 @@ class Invoice extends Model
 
     /**
      * Get all products (regular and custom) associated with this invoice
-     * 
+     *
      * @return array
      */
     public function getInvoiceProductsDataAttribute(): array
     {
         $products = [];
-    
+
         // Ensure the relation is loaded
-        $invoiceProducts = $this->relationLoaded('invoiceProducts') ? 
+        $invoiceProducts = $this->relationLoaded('invoiceProducts') ?
             $this->invoiceProducts : $this->invoiceProducts()->get();
 
             Log::info('Invoice Products:', ['invoiceProducts' => $invoiceProducts->toArray()]);
-        
+
         foreach ($invoiceProducts as $invoiceProduct) {
             $productData = [
                 'id' => $invoiceProduct->id,
@@ -432,7 +443,7 @@ class Invoice extends Model
                 'total_price' => $invoiceProduct->total_price,
                 'is_custom_product' => $invoiceProduct->is_custom_product,
             ];
-            
+
             // Add product details if this is not a custom product
             if (!$invoiceProduct->is_custom_product && $invoiceProduct->product) {
                 $productData['product'] = [
@@ -441,10 +452,10 @@ class Invoice extends Model
                     // Add other product fields as needed
                 ];
             }
-            
+
             $products[] = $productData;
         }
-        
+
         return $products;
     }
 
@@ -453,4 +464,59 @@ class Invoice extends Model
     | MUTATORS
     |--------------------------------------------------------------------------
     */
+    /**
+     * Ensure payment_amount is always stored as a string with 2 decimals.
+     * This avoids implicit float to decimal conversion issues with Laravel's decimal cast.
+     */
+    public function setPaymentAmountAttribute($value): void
+    {
+        // Allow null explicitly
+        if ($value === null || $value === '') {
+            $this->attributes['payment_amount'] = null;
+            return;
+        }
+
+        // Normalize numeric or string inputs into a string with 2 decimals
+        if (is_numeric($value) || is_string($value)) {
+            $normalized = number_format((float)$value, 2, '.', '');
+            $this->attributes['payment_amount'] = $normalized;
+            return;
+        }
+
+        // Fallback: cast anything else to float safely and format
+        $normalized = number_format((float)$value, 2, '.', '');
+        $this->attributes['payment_amount'] = $normalized;
+    }
+
+    /**
+     * Get payment amount as Money VO.
+     */
+    public function getPaymentAmountMoneyAttribute(): Money
+    {
+        $amount = $this->payment_amount !== null ? (string)number_format((float)$this->payment_amount, 2, '.', '') : '0';
+        $currency = $this->payment_currency ?: 'CZK';
+        return Money::fromString($amount, strtoupper($currency));
+    }
+
+    /**
+     * Get subtotal (without tax) as Money VO.
+     */
+    public function getSubtotalMoneyAttribute(): Money
+    {
+        $raw = $this->subtotal ?? 0.0; // uses accessor getSubtotalAttribute
+        $amount = (string)number_format((float)$raw, 2, '.', '');
+        $currency = $this->payment_currency ?: 'CZK';
+        return Money::fromString($amount, strtoupper($currency));
+    }
+
+    /**
+     * Get total tax as Money VO.
+     */
+    public function getTotalTaxMoneyAttribute(): Money
+    {
+        $raw = $this->total_tax ?? 0.0; // accessor
+        $amount = (string)number_format((float)$raw, 2, '.', '');
+        $currency = $this->payment_currency ?: 'CZK';
+        return Money::fromString($amount, strtoupper($currency));
+    }
 }

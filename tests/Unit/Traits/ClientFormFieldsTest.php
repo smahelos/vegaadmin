@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Traits;
 
-use App\Traits\ClientFormFields;
+use App\Infrastructure\Forms\Party\ClientFormFields;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -21,10 +21,10 @@ class ClientFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(ClientFormFields::class);
         $this->assertTrue($reflection->hasMethod('getClientFields'));
-        
+
         $method = $reflection->getMethod('getClientFields');
         $this->assertTrue($method->isProtected());
-        
+
         // Check method return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -36,7 +36,7 @@ class ClientFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(ClientFormFields::class);
         $method = $reflection->getMethod('getClientFields');
-        
+
         // Should have no parameters
         $this->assertCount(0, $method->getParameters());
     }
@@ -45,7 +45,7 @@ class ClientFormFieldsTest extends TestCase
     public function trait_has_proper_docblocks(): void
     {
         $reflection = new \ReflectionClass(ClientFormFields::class);
-        
+
         // Check getClientFields method docblock
         $method = $reflection->getMethod('getClientFields');
         $docComment = $method->getDocComment();
@@ -58,10 +58,10 @@ class ClientFormFieldsTest extends TestCase
     public function trait_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(ClientFormFields::class);
-        
+
         // Check namespace
-        $this->assertEquals('App\Traits', $reflection->getNamespaceName());
-        
+        $this->assertEquals('App\\Infrastructure\\Forms\\Party', $reflection->getNamespaceName());
+
         // Check that it's not abstract, final, etc.
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isFinal());
@@ -73,10 +73,10 @@ class ClientFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(ClientFormFields::class);
         $methods = $reflection->getMethods();
-        
+
         // Should have exactly 1 method
         $this->assertCount(1, $methods);
-        
+
         $methodNames = array_map(fn($method) => $method->getName(), $methods);
         $this->assertContains('getClientFields', $methodNames);
     }
@@ -86,7 +86,7 @@ class ClientFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(ClientFormFields::class);
         $method = $reflection->getMethod('getClientFields');
-        
+
         $this->assertTrue($method->isProtected());
         $this->assertFalse($method->isPublic());
         $this->assertFalse($method->isPrivate());

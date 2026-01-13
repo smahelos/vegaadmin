@@ -1,0 +1,274 @@
+name: Architecture Guard (Segmented)
+
+on:
+  push:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: architecture-guard-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  legacy-report:
+    name: 2. Legacy Report Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Run legacy report
+        run: |
+          php artisan ddd:legacy-report --json > legacy_report_latest.json
+          echo 'Legacy report:'
+          cat legacy_report_latest.json | head -n 80
+          RES=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["residuals"];')
+          NEU=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["neutralized_tests"];')
+          echo "Residuals=$RES Neutralized=$NEU"
+          if [ "$RES" -gt 0 ]; then
+            echo '::error::Residual legacy artifacts detected.'
+            exit 1
+          fi
+          if [ "$NEU" -gt 0 ]; then
+            echo "::warning::Neutralized tests present: $NEU"
+          fi
+      - name: Upload legacy report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: legacy-report-latest
+          path: legacy_report_latest.json
+
+  frontend-eloquent-baseline:
+    name: 4a. Frontend Eloquent Baseline Drift
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Show existing baseline (short preview)
+        run: |
+          if [ -f storage/app/metrics/frontend_controller_eloquent_baseline.json ]; then
+            echo 'Existing baseline head:'
+            head -n 40 storage/app/metrics/frontend_controller_eloquent_baseline.json || true
+          else
+            echo '::warning::Baseline file missing (storage/app/metrics/frontend_controller_eloquent_baseline.json). Commit a generated baseline.'
+          fi
+
+      - name: Regenerate baseline (in-place) and detect drift
+        run: |
+          set -e
+          TARGET_FILE="storage/app/metrics/frontend_controller_eloquent_baseline.json"
+          if [ ! -f "$TARGET_FILE" ]; then
+            echo '::error::Missing baseline file. Run locally: php artisan ddd:frontend-eloquent:baseline --save and commit the file.'
+            exit 1
+          fi
+          # Capture pre-change hash
+          BEFORE_HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
+          # Regenerate baseline (this will overwrite file when rules changed)
+          php artisan ddd:frontend-eloquent:baseline --save || { echo '::error::Baseline regeneration command failed.'; exit 1; }
+          AFTER_HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
+          if [ "$BEFORE_HASH" != "$AFTER_HASH" ]; then
+            echo '::error::Frontend controller Eloquent usage baseline drift detected.'
+            echo 'Diff:'
+            git --no-pager diff "$TARGET_FILE" || true
+            echo 'Guidance: Review added/removed controllers or Eloquent static call counts. If intentional, run locally:'
+            echo '  php artisan ddd:frontend-eloquent:baseline --save'
+            echo 'Then commit updated baseline file.'
+            exit 1
+          else
+            echo 'No drift detected in frontend Eloquent usage baseline.'
+          fi
+
+  api-eloquent-baseline:
+    name: 4b. API Eloquent Baseline Drift
+    runs-on: ubuntu-latest
+    needs: [ frontend-eloquent-baseline ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Show existing API baseline (short preview)
+        run: |
+          if [ -f storage/app/metrics/api_controller_eloquent_baseline.json ]; then
+            echo 'Existing API baseline head:'
+            head -n 40 storage/app/metrics/api_controller_eloquent_baseline.json || true
+          else
+            echo '::warning::API baseline file missing (storage/app/metrics/api_controller_eloquent_baseline.json). Commit a generated baseline.'
+          fi
+
+      - name: Regenerate API baseline (in-place) and detect drift
+        run: |
+          set -e
+          TARGET_FILE="storage/app/metrics/api_controller_eloquent_baseline.json"
+          if [ ! -f "$TARGET_FILE" ]; then
+            echo '::error::Missing API baseline file. Run locally: php artisan ddd:api-eloquent:baseline --save and commit the file.'
+            exit 1
+          fi
+          BEFORE_HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
+          php artisan ddd:api-eloquent:baseline --save || { echo '::error::API baseline regeneration command failed.'; exit 1; }
+            AFTER_HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
+          if [ "$BEFORE_HASH" != "$AFTER_HASH" ]; then
+            echo '::error::API controller Eloquent usage baseline drift detected.'
+            echo 'Diff:'
+            git --no-pager diff "$TARGET_FILE" || true
+            echo 'Guidance: Review added/removed controllers or Eloquent static call counts. If intentional, run locally:'
+            echo '  php artisan ddd:api-eloquent:baseline --save'
+            echo 'Then commit updated baseline file.'
+            exit 1
+          else
+            echo 'No drift detected in API Eloquent usage baseline.'
+          fi
+
+  architecture-tests:
+    name: 5. Architecture Enforcement Tests
+    runs-on: ubuntu-latest
+    needs: [ legacy-report, frontend-eloquent-baseline, api-eloquent-baseline, provider-snapshot ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Prepare controller thinness baseline
+        run: |
+          set -e
+          if [ ! -f architecture/baselines/controller_thinness_baseline.json ]; then
+            echo '::error::Missing committed controller thinness baseline (architecture/baselines/controller_thinness_baseline.json).'
+            exit 1
+          fi
+          mkdir -p storage/app/metrics
+          # Generate current snapshot first
+          php artisan ddd:controller-thinness:baseline --save || { echo '::error::Generation failed.'; exit 1; }
+          cp storage/app/metrics/controller_thinness_baseline.json storage/app/metrics/controller_thinness_current.json
+          # Place committed baseline for tests
+          cp architecture/baselines/controller_thinness_baseline.json storage/app/metrics/controller_thinness_baseline.json
+          # Drift detection ignoring timestamp
+          php -r '$b=json_decode(file_get_contents("architecture/baselines/controller_thinness_baseline.json"),true); $c=json_decode(file_get_contents("storage/app/metrics/controller_thinness_current.json"),true); unset($b["summary"]["timestamp"],$c["summary"]["timestamp"]); if($b!=$c){fwrite(STDERR,"::error::Controller thinness baseline drift detected. If intentional regenerate and commit updated baseline.\n"); exit(1);} else {echo "No controller thinness drift.";}'
+          echo 'Controller thinness baseline prepared.'
+
+      - name: Run focused architecture enforcement tests
+        run: |
+          set -e
+          # Run individual known architecture guard tests explicitly for fast feedback
+          php artisan test tests/Feature/Architecture/FrontendControllersEloquentUsageTest.php \
+                                 tests/Feature/Architecture/ApiControllersEloquentUsageTest.php \
+                                 tests/Feature/Architecture/ApiControllersDelegationTest.php \
+                                 tests/Feature/Architecture/ControllerThinnessEnforcementTest.php
+
+      - name: Summarize guard artifacts
+        if: always()
+        run: |
+          echo 'Listing metrics directory:'
+          ls -1 storage/app/metrics || true
+          echo 'Controller thinness baseline head:'
+          head -n 40 storage/app/metrics/controller_thinness_baseline.json || true
+          echo 'API Eloquent baseline head:'
+          head -n 40 storage/app/metrics/api_controller_eloquent_baseline.json || true
+
+  provider-snapshot:
+    name: 3. Provider Snapshot Diff
+    runs-on: ubuntu-latest
+    needs: [ frontend-eloquent-baseline, api-eloquent-baseline ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Verify provider snapshot baseline exists
+        run: |
+          if [ ! -f architecture/baselines/provider_snapshot.json ]; then
+            echo '::error::Missing provider snapshot baseline (architecture/baselines/provider_snapshot.json). Run locally: php artisan ddd:providers:snapshot --write and commit the file.'
+            exit 1
+          fi
+          head -n 30 architecture/baselines/provider_snapshot.json || true
+
+      - name: Run provider snapshot diff
+        id: snapshotdiff
+        run: |
+          set -e
+          php artisan ddd:providers:snapshot --diff --format=json > provider_snapshot_diff.json || SNAP_EXIT=$?
+          echo 'Snapshot diff output (first 120 lines):'
+          head -n 120 provider_snapshot_diff.json || true
+          if [ "${SNAP_EXIT:-0}" -ne 0 ]; then
+            echo '::error::Provider snapshot command returned non-zero exit code.'
+            exit 1
+          fi
+          if ! grep -q '"errors": \[\]' provider_snapshot_diff.json; then
+            echo '::error::Provider snapshot reports errors.'
+            exit 1
+          fi
+          echo 'Provider snapshot diff passed (no errors).'
+
+      - name: Upload snapshot diff artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+            name: provider-snapshot-diff
+            path: provider_snapshot_diff.json
+
+  summary:
+    name: 8. Guard Summary
+    runs-on: ubuntu-latest
+    needs: [ legacy-report, architecture-tests, provider-snapshot ]
+    if: always()
+    steps:
+      - name: Outcome summary
+        run: |
+          echo 'Architecture Guard workflow completed.'
+          echo 'legacy-report result: ${{ needs.legacy-report.result }}'
+          echo 'frontend-eloquent-baseline result: ${{ needs.frontend-eloquent-baseline.result }}'
+          echo 'architecture-tests result: ${{ needs.architecture-tests.result }}'
+          echo 'provider-snapshot result: ${{ needs.provider-snapshot.result }}'
+          if [ "${{ needs.legacy-report.result }}" != 'success' ] || [ "${{ needs.frontend-eloquent-baseline.result }}" != 'success' ] || [ "${{ needs.architecture-tests.result }}" != 'success' ] || [ "${{ needs.provider-snapshot.result }}" != 'success' ]; then
+            echo 'One or more guard steps failed.'
+            exit 1
+          fi
+          echo 'All guard steps passed.'

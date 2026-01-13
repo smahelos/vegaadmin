@@ -3,7 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Contracts\InvoiceProductSyncServiceInterface;
+use App\Domain\Invoice\Contracts\InvoiceProductSyncServiceInterface;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
 
 /**
  * Synchronize products from invoice_text JSON to pivot table
@@ -16,18 +17,18 @@ class SyncInvoiceProducts extends Command
     public function handle(InvoiceProductSyncServiceInterface $syncService): int
     {
         $invoiceId = $this->option('invoice-id');
-        
+
         if ($invoiceId) {
             $invoice = \App\Models\Invoice::find($invoiceId);
-            
+
             if (!$invoice) {
                 $this->error("Invoice with ID {$invoiceId} not found.");
                 return 1;
             }
-            
+
             $this->info("Syncing products for invoice #{$invoiceId}...");
             if ($invoice instanceof \App\Models\Invoice) {
-                $syncService->syncProductsFromJson($invoice);
+                $syncService->syncProductsFromJson(InvoiceId::fromInt($invoiceId));
             } else {
                 $this->error("Invalid invoice data provided.");
                 return 1;
@@ -38,7 +39,7 @@ class SyncInvoiceProducts extends Command
             $syncService->syncAllInvoices();
             $this->info('Done!');
         }
-        
+
         return 0;
     }
 }

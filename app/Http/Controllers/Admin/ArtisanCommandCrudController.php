@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\Admin\ArtisanCommandRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use App\Contracts\ArtisanCommandsServiceInterface;
+use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 
 class ArtisanCommandCrudController extends CrudController
 {
@@ -49,49 +49,49 @@ class ArtisanCommandCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation(ArtisanCommandRequest::class);
-        
+
         // Get available commands from the ArtisanCommandsService
         // and filter them to show only those that are not already in the database
         // This is done to avoid duplicates and ensure that the user can only select from available commands
-        // that are not already registered in the database. 
+        // that are not already registered in the database.
         $availableCommands = $this->commandsService->getAllCommands(true);
 
         CRUD::field('name')
             ->label(__('admin.artisan_commands.fields.name'))
             ->type('text');
-        
+
         CRUD::field('command')
             ->label(__('admin.artisan_commands.fields.command'))
             ->type('select_from_array')
             ->options($availableCommands)
             ->allows_null(false)
             ->hint(__('admin.artisan_commands.hints.command'));
-        
+
         $categories = \App\Models\ArtisanCommandCategory::where('is_active', true)
             ->orderBy('name')
             ->pluck('name', 'id')
             ->toArray();
-        
+
         CRUD::field('category_id')
             ->label(__('admin.artisan_commands.fields.category'))
             ->type('select_from_array')
             ->options($categories)
             ->allows_null(false);
-        
+
         CRUD::field('description')
             ->label(__('admin.artisan_commands.fields.description'))
             ->type('textarea');
-        
+
         CRUD::field('parameters_description')
             ->label(__('admin.artisan_commands.fields.parameters_description'))
             ->type('textarea')
             ->hint(__('admin.artisan_commands.hints.parameters_description'));
-        
+
         CRUD::field('is_active')
             ->label(__('admin.artisan_commands.fields.is_active'))
             ->type('checkbox')
             ->default(true);
-        
+
         CRUD::field('sort_order')
             ->label(__('admin.artisan_commands.fields.sort_order'))
             ->type('number')

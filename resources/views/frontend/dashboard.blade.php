@@ -2,61 +2,61 @@
 
 @section('content')
 <div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl text-amber-600">{{ __('dashboard.title') }}</h1>
+    <h1 class="main_title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight pt-3">{{ __('dashboard.title') }}</h1>
 </div>
 <div class="grid grid-cols-1 gap-6 dashboard-stats-container">
-    <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-        <div class="p-6">
-            <div class="p-6 bg-white border-b border-gray-200">
+    <div class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800">
+        <div class="p-3">
+            <div class="p-3">
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                     <!-- Dashboard cards with overview -->
-                    <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
+                    <div class="bg-blue-50 dark:bg-blue-500 rounded-sm p-6">
                         <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-blue-500 text-white mr-4">
+                            <div class="p-3 rounded-full bg-blue-500 dark:bg-blue-700 text-white mr-4">
                                 <i class="fas fa-file-invoice-dollar text-xl"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500 font-medium">{{ __('dashboard.cards.invoices_count') }}
+                                <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.invoices_count') }}
                                 </p>
                                 <p class="text-3xl font-semibold text-gray-800">{{ $invoiceCount }}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="bg-red-50 dark:bg-red-500 rounded-sm p-6">
                         <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-green-500 text-white mr-4">
+                            <div class="p-3 rounded-full bg-green-500 dark:bg-green-700 text-white mr-4">
                                 <i class="fas fa-users text-xl"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500 font-medium">{{ __('dashboard.cards.clients_count') }}
+                                <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.clients_count') }}
                                 </p>
                                 <p class="text-3xl font-semibold text-gray-800">{{ $clientCount }}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-green-50 rounded-lg p-6 shadow-sm">
+                    <div class="bg-green-50 dark:bg-green-500 rounded-sm p-6">
                         <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-orange-500 text-white mr-4">
+                            <div class="p-3 rounded-full bg-orange-500 dark:bg-orange-700 text-white mr-4">
                                 <i class="fas fa-users text-xl"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500 font-medium">{{ __('dashboard.cards.suppliers_count') }}
+                                <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.suppliers_count') }}
                                 </p>
                                 <p class="text-3xl font-semibold text-gray-800">{{ $suppliersCount }}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-purple-50 rounded-lg p-6 shadow-sm">
+                    <div class="bg-purple-50 dark:bg-purple-500 rounded-sm p-6">
                         <div class="flex items-center">
-                            <div class="p-3 rounded-full bg-purple-500 text-white mr-4">
+                            <div class="p-3 rounded-full bg-purple-500 dark:bg-purple-700 text-white mr-4">
                                 <i class="fas fa-money-bill-wave text-xl"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500 font-medium">{{ __('dashboard.cards.total_amount') }}
+                                <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.total_amount') }}
                                 </p>
                                 <p class="text-1xl font-semibold text-gray-800">{{ number_format($totalAmount, 2, ',', '
                                     ') }} {{ __('general.currency') }}</p>
@@ -65,30 +65,30 @@
                     </div>
                 </div>
 
-                @if(!$clients->isEmpty())
+                @if(!empty($clients))
                 <!-- Statistics filter controls -->
-                <div class="bg-red-50 rounded-lg p-5 mb-6 flex flex-wrap gap-5 items-center">
+                <div class="rounded-sm mb-6 flex flex-wrap gap-5 items-center">
                     <div class="flex w-full gap-5">
 
                         <div class="w-full">
-                            <label for="stats-client-filter" class="block text-base font-semibold text-gray-700 mb-1">{{
+                            <label for="stats-client-filter" class="block text-base font-semibold text-gray-900 dark:text-white mb-1">{{
                                 __('dashboard.filters.clients') }}</label>
                             <select id="stats-client-filter"
-                                class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base bg-[#FDFDFC]"
+                                class="mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-700 focus:border-indigo-600 focus:ring-indigo-600 text-base dark:text-white bg-blue-50 dark:bg-gray-600 px-1 py-1"
                                 multiple>
                                 @foreach($clients as $client)
-                                <option class="@if($loop->iteration % 2 == 0)bg-blue-50 @endif px-4 py-1" value="{{ $client->id }}">{{ $client->name }}</option>
+                                <option class="@if($loop->iteration % 2 == 0)bg-blue-50 dark:bg-gray-600 @else bg-white dark:bg-gray-700 @endif px-2 py-1" value="{{ $client->clientId }}">{{ $client->clientName }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        
-                        <div class="grid md:grid-cols-3 min-w-2/3 bg-red-100 rounded-lg p-5">
+
+                        <div class="grid md:grid-cols-3 min-w-2/3 bg-red-100 dark:bg-pink-700 rounded-sm p-5">
                             <div class="flex gap-2 items-center cols-span-1">
                                 <div>
-                                    <label for="stats-timerange" class="block text-base font-semibold text-gray-700 mb-1">{{
+                                    <label for="stats-timerange" class="block text-base font-semibold text-gray-900 dark:text-white mb-1">{{
                                         __('dashboard.filters.date_range') }}</label>
                                     <select id="stats-timerange"
-                                        class="form-select mt-1 block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-[#FDFDFC]">
+                                        class="form-input mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base dark:text-white px-4 py-2 bg-blue-50 dark:bg-gray-700">
                                         <option value="year">{{ __('dashboard.filters.last_year') }}</option>
                                         <option value="6month">{{ __('dashboard.filters.last_6_months') }}</option>
                                         <option value="quarter">{{ __('dashboard.filters.last_quarter') }}</option>
@@ -99,32 +99,36 @@
                             </div>
 
                             <div class="flex gap-2 items-center cols-span-2 custom-date-range">
-                                <div class="min-w-2/2">
-                                    <label for="stats-date-from" class="block text-base font-semibold text-gray-700 mb-1">{{
+                                <div class="w-full md:min-w-2/2">
+                                    <label for="stats-date-from" class="block text-base font-semibold text-gray-700 dark:text-white mb-1">{{
                                         __('dashboard.filters.date_from') }}</label>
                                     <input type="date" id="stats-date-from"
-                                        class="form-input mt-1 block min-w-3/4 rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-gray-200 text-gray-500" readonly>
+                                        class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-500 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" readonly>
                                 </div>
-                                <div class="min-w-2/2">
-                                    <label for="stats-date-to" class="block text-base font-semibold text-gray-700 mb-1">{{
+                                <div class="w-full md:min-w-2/2">
+                                    <label for="stats-date-to" class="block text-base font-semibold text-gray-700 dark:text-white mb-1">{{
                                         __('dashboard.filters.date_to') }}</label>
                                     <input type="date" id="stats-date-to"
-                                        class="form-input  min-w-3/4 mt-1 block rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 text-base px-4 py-2 bg-gray-200 text-gray-500" readonly>
+                                        class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-500 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" readonly>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 @endif
-
-
-                @if(!$monthlyStats->isEmpty())
+            </div>
+        </div>
+    </div>
+    <div class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800">
+        <div class="p-3">
+            <div class="">
+                @if(!empty($monthlyStats))
                     <!-- Store monthly stats data for JavaScript -->
                     <div id="monthly-stats-data" class="hidden" data-stats="{{ json_encode($monthlyStats ?? []) }}"></div>
 
                     <!-- Main revenue chart (enhanced) -->
-                    <div class="bg-white rounded-lg shadow p-5 mb-8">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.monthly_invoices') }}</h3>
+                    <div class="p-5 mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.monthly_invoices') }}</h3>
                         <div class="h-64">
                             <canvas id="invoicesChart"></canvas>
                         </div>
@@ -134,8 +138,8 @@
                 <!-- Invoice status and payment method charts -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <!-- Invoice status distribution -->
-                    <div class="bg-white rounded-lg shadow p-5">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.charts.invoice_status') }}
+                    <div class="p-5">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.charts.invoice_status') }}
                         </h3>
                         <div class="h-64">
                             <canvas id="invoiceStatusChart"></canvas>
@@ -143,8 +147,8 @@
                     </div>
 
                     <!-- Payment method distribution -->
-                    <div class="bg-white rounded-lg shadow p-5">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.charts.payment_methods') }}
+                    <div class="p-5">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.charts.payment_methods') }}
                         </h3>
                         <div class="h-64">
                             <canvas id="paymentMethodChart"></canvas>
@@ -155,8 +159,8 @@
                 <!-- Revenue by client and Revenue vs Expenses -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <!-- Revenue by client -->
-                    <div class="bg-white rounded-lg shadow p-5">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.charts.revenue_by_client')
+                    <div class="p-5">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.charts.revenue_by_client')
                             }}</h3>
                         <div class="h-64">
                             <canvas id="revenueByClientChart"></canvas>
@@ -164,8 +168,8 @@
                     </div>
 
                     <!-- Revenue vs Expenses trend -->
-                    <div class="bg-white rounded-lg shadow p-5">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('dashboard.charts.revenue_vs_expenses') }}
+                    <div class="p-5">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.charts.revenue_vs_expenses') }}
                         </h3>
                         <div class="h-64">
                             <canvas id="revenueExpensesChart"></canvas>
@@ -173,12 +177,19 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+    <div class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-10 dark:shadow-gray-900/30 dark:bg-gray-800">
+        <div class="p-3">
+            <div class="">
+
                 <!-- Latest invoices -->
                 <div class="mb-8">
-                    <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_invoices') }}</h3>
-                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_invoices') }}</h3>
+                    <div class="overflow-hidden">
                         <!-- Livewire component - Latest invoices -->
-                        @livewire('InvoiceListRecent')
+                        @livewire('invoice.invoice-list-recent')
                     </div>
                 </div>
 
@@ -186,28 +197,21 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Latest clients -->
                     <div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_clients') }}</h3>
-                        <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_clients') }}</h3>
+                        <div class="rounded-sm overflow-hidden">
                             <!-- Livewire component - Latest clients -->
-                            @livewire('ClientListLatest')
+                            @livewire('party.client-list-latest')
                         </div>
                     </div>
 
                     <!-- Latest suppliers -->
                     <div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-3">{{ __('dashboard.recent_suppliers') }}</h3>
-                        <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_suppliers') }}</h3>
+                        <div class="rounded-sm overflow-hidden">
                             <!-- Livewire component - Latest suppliers -->
-                            @livewire('SupplierListLatest')
+                            @livewire('party.supplier-list-latest')
                         </div>
                     </div>
-                </div>
-
-                <div class="flex justify-center mt-6">
-                    <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
-                        class="inline-flex items-center px-4 py-2 bg-blue-300 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                        <i class="fas fa-list mr-2"></i> {{ __('dashboard.actions.view_all_invoices') }}
-                    </a>
                 </div>
             </div>
         </div>
@@ -235,17 +239,17 @@
         cancelled: "{{ __('dashboard.status.cancelled') }}",
         noData: "{{ __('dashboard.charts.no_data') }}",
     };
-    
+
     // Set application currency
     window.appCurrency = "{{ config('app.currency', 'CZK') }}";
-    
+
     // Initialize date range controls
     document.addEventListener('DOMContentLoaded', function() {
         const timeRangeSelector = document.getElementById('stats-timerange');
         const timeRangeDateFrom = document.getElementById('stats-date-from');
         const timeRangeDateTo = document.getElementById('stats-date-to');
         const customDateRange = document.querySelector('.custom-date-range');
-        
+
         if (timeRangeSelector && customDateRange) {
             timeRangeSelector.addEventListener('change', function(e) {
                 if (e.target.value === 'custom') {

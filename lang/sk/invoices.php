@@ -12,6 +12,7 @@ return [
     'fields' => [
         'invoice_vs' => 'Číslo faktúry',
         'invoice_vs_long' => 'Číslo faktúry (VS):',
+        'invoice_number' => 'Číslo faktúry',
         'invoice_ks' => 'Konštantný symbol',
         'invoice_ss' => 'Špecifický symbol',
         'issue_date' => 'Dátum vystavenia',
@@ -23,7 +24,9 @@ return [
         'payment_amount' => 'Suma',
         'payment_currency' => 'Mena',
         'name' => 'Názov',
+        'supplier' => 'Dodávateľ',
         'supplier_id' => 'Dodávateľ',
+        'client' => 'Zákazník',
         'client_id' => 'Zákazník',
         'client_name' => 'Názov zákazníka',
         'client_street' => 'Ulica',
@@ -48,6 +51,8 @@ return [
         'invoice_vs_short' => 'VS',
         'invoice_items' => 'Položky faktúry',
         'invoice_note' => 'Poznámka k faktúre',
+        'invoice_logo' => 'Logo faktúry',
+        'template' => 'Šablóna PDF',
     ],
 
     'sections' => [
@@ -100,19 +105,37 @@ return [
         'invoice_items' => 'Položky faktúry',
         'empty' => 'Zatiaľ nemáte žiadne faktúry',
         'empty_message' => 'Vytvorte svoju prvú faktúru kliknutím na tlačidlo nižšie.',
+        'create_free_invoice' => 'Vytvoriť bezplatnú faktúru',
     ],
 
     'labels' => [
         'created_at' => 'Dátum vystavenia',
+        'total_without_tax' => 'Celkom bez DPH',
+        'total_tax' => 'DPH',
+        'upload_logo' => 'Nahrať logo',
+        'duplicate_item' => 'Duplikovať položku',
+        'remove_item' => 'Odstrániť položku',
+        'company_logo' => 'Logo spoločnosti',
+        'template_settings' => 'Nastavenia šablóny',
+        'select_template' => 'Vybrať šablónu',
+    ],
+
+    'templates' => [
+        'default' => 'Štandard',
+        'modern' => 'Moderný',
+        'minimal' => 'Minimálny',
     ],
 
     'messages' => [
+        'id_required' => 'ID faktúry je povinné.',
+        'not_found' => 'Faktúra nebola nájdená.',
         'created' => 'Faktúra bola úspešne vytvorená.',
         'updated' => 'Faktúra bola úspešne aktualizovaná.',
         'deleted' => 'Faktúra bola úspešne vymazaná.',
         'deleted_guest' => 'Faktúra bola úspešne vymazaná.',
         'confirm_delete' => 'Naozaj chcete vymazať túto faktúru?',
         'create_error' => 'Pri vytváraní faktúry došlo k chybe: ',
+        'validation_failed' => 'Pri validácii formulára boli nájdené chyby. Skontrolujte prosím údaje nižšie.',
         'update_error' => 'Pri aktualizácii faktúry došlo k chybe: ',
         'update_error_unauthorized' => 'Nemáte oprávnenie na úpravu tejto faktúry.',
         'delete_error' => 'Pri vymazávaní faktúry došlo k chybe: ',
@@ -133,6 +156,16 @@ return [
         'invoice_sent' => 'Faktúra bola úspešne odoslaná.',
         'marked_as_paid' => 'Faktúra bola označená ako zaplatená.',
         'status_not_found' => 'Status "zaplatené" nebol nájdený.',
+        'no_image' => 'Žiadny obrázok',
+        'no_invoices' => 'Zatiaľ nemáte žiadne faktúry.',
+        'no_invoices_description' => 'Začnite vytvorením svojej prvej faktúry.',
+        'template_set' => 'Šablóna faktúry bola úspešne nastavená.',
+        'limit_exceeded' => 'Dosiahli ste limit pre počet faktúr.',
+        'status_changed' => 'Stav faktúry bol úspešne zmenený.',
+        'limits_error' => 'Limity faktúr momentálne nie je možné načítať.',
+        'create_failed' => 'Nepodarilo sa vytvoriť faktúru.',
+        'update_failed' => 'Nepodarilo sa aktualizovať faktúru.',
+        'expired' => 'Platnosť faktúry vypršela, kontaktujte prosím vystaviteľa pre nový odkaz.',
     ],
 
     'placeholders' => [
@@ -140,6 +173,7 @@ return [
         'select_status' => 'Vyberte stav...',
         'select_supplier' => 'Vytvorte nového dodávateľa alebo vyberte...',
         'client_select' => 'Vyberte klienta...',
+        'select_product' => 'Vyberte produkt...',
         'payment_method_select' => 'Vyberte spôsob platby',
         'due_in_select' => 'Vyberte splatnosť',
         'suggested_number_desc' => 'Navrhované číslo faktúry môžete zmeniť podľa vašich potrieb',
@@ -155,10 +189,12 @@ return [
         'item_description' => 'Popis',
         'item_price_complete' => 'Celkom',
         'actions' => 'Akcie',
+        'select_item_unit' => 'Vyberte jednotku',
     ],
 
     'status' => [
         'invoice_statuses' => 'Stavy faktúr',
+        'invoice_status' => 'Stav faktúry',
         'sent' => 'Odoslané',
         'paid' => 'Zaplatené',
         'overdue' => 'Po splatnosti',
@@ -208,18 +244,21 @@ return [
         'currency_required' => 'Mena je povinná',
         'issue_date_required' => 'Dátum vystavenia je povinný',
         'payment_status_required' => 'Stav platby je povinný',
-        
+        'invoice_logo_file' => 'Logo faktúry musí byť súbor',
+        'invoice_logo_format' => 'Logo faktúry musí byť vo formáte JPEG, JPG, PNG, GIF alebo SVG',
+        'invoice_logo_size' => 'Logo faktúry nesmie byť väčšie ako :max kB',
+
         // Validácia vystaviteľa/dodávateľa
         'supplier_required_without' => 'Musíte buď vybrať existujúceho dodávateľa alebo zadať údaje nového dodávateľa',
         'supplier_name_required' => 'Názov dodávateľa je povinný, ak nevyberiete existujúceho dodávateľa',
         'supplier_name_min' => 'Názov dodávateľa musí obsahovať aspoň 3 znaky',
         'supplier_required' => 'Najprv musíte vybrať dodávateľa, alebo vyplniť nového.',
-        
+
         // Validácia klienta/odberateľa
         'client_required_without' => 'Musíte buď vybrať existujúceho klienta alebo zadať údaje nového klienta',
         'client_name_required' => 'Názov klienta je povinný, ak nevyberiete existujúceho klienta',
         'client_name_min' => 'Názov klienta musí obsahovať aspoň 3 znaky',
-        
+
         // Všeobecná validácia adresných údajov
         'name_required' => 'Názov faktúry je povinný.',
         'street_required' => 'Ulica je povinná',
@@ -230,6 +269,15 @@ return [
         'client_city_required' => 'Mesto klienta je povinné',
         'client_zip_required' => 'PSČ klienta je povinné',
         'client_country_required' => 'Krajina klienta je povinná',
+        'client_required' => 'Klient je povinný',
+        'user_required' => 'Používateľ je povinný',
+
+        // Validation of invoice items
+        'amount_positive' => 'Musíte pridať aspoň jednu položku faktúry',
+        'invalid_swift' => 'SWIFT kód je neplatný',
+        'item_name_min' => 'Názov položky musí obsahovať aspoň 3 znaky',
+        'invalid_iban' => 'IBAN je neplatný',
+        'invalid_vat_id' => 'Daňové identifikačné číslo je neplatné',
     ],
 
     'hints' => [
@@ -244,6 +292,8 @@ return [
         'payment_currency' => '',
         'status' => '',
         'invoice_text' => '',
+        'invoice_logo' => 'Nahrajte logo pre faktúru (JPEG, PNG, GIF, SVG, max. 2MB)',
+        'template' => 'Vyberte šablonu pre generovanie PDF faktúry',
     ],
 
     'reminders' => [
@@ -251,16 +301,16 @@ return [
         'upcoming_due_subject' => 'Upozornenie na blížiacu sa splatnosť faktúry č. :number',
         'due_today_subject' => 'Faktúra č. :number je dnes splatná',
         'overdue_subject' => 'Upozornenie na faktúru po splatnosti č. :number',
-        
+
         'upcoming_due_intro_supplier' => 'Pripomíname, že faktúra č. :number vystavená klientovi :client bude splatná za :days dní.',
         'upcoming_due_intro_client' => 'Pripomíname, že faktúra č. :number bude splatná za :days dní.',
-        
+
         'due_today_intro_supplier' => 'Faktúra č. :number vystavená klientovi :client je dnes splatná.',
         'due_today_intro_client' => 'Faktúra č. :number je dnes splatná.',
-        
+
         'overdue_intro_supplier' => 'Faktúra č. :number vystavená klientovi :client je po splatnosti :days dní.',
         'overdue_intro_client' => 'Faktúra č. :number je po splatnosti :days dní.',
-        
+
         'due_date_info' => 'Dátum splatnosti: :date',
         'due_date_today' => 'Dátum splatnosti: dnes',
         'due_date_passed' => 'Dátum splatnosti: :date (prekročené)',
@@ -268,6 +318,10 @@ return [
         'view_invoice' => 'Zobraziť faktúru',
         'payment_request' => 'Prosím, uhraďte túto faktúru čo najskôr, aby nedošlo k ďalšiemu omeškaniu.',
         'thank_you' => 'Ďakujeme za spoluprácu.',
+    ],
+
+    'no_input_labels' => [
+        'current_invoice_logo' => 'Aktuálne logo',
     ],
 
     'overdue_days' => ':days dní po splatnosti',

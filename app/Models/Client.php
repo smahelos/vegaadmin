@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Traits\HasPreferredLocale;
+use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -22,7 +22,7 @@ class Client extends Model
     */
     protected $table = 'clients';
     protected $guarded = ['id'];
-    
+
     /**
      * The attributes that should be cast.
      *
@@ -34,13 +34,13 @@ class Client extends Model
 
     /**
      * Boot method for the model
-     * Sets all other clients of the user to is_default = false 
+     * Sets all other clients of the user to is_default = false
      * if this client is set as default
      */
     protected static function boot()
     {
         parent::boot();
-        
+
         static::saving(function (self $model) {
             // If this client is set as default, unset default status for other clients
             if ($model->is_default) {

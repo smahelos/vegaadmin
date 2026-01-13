@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Traits;
 
-use App\Services\FileUploadService;
-use App\Traits\HasFileUploads;
+// FileUploadService is resolved via interface in trait; direct import not required
+use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -15,23 +15,23 @@ use Tests\TestCase;
 class TestModelWithFileUploads extends Model
 {
     use HasFileUploads;
-    
+
     protected $fillable = ['*'];
     public $table = 'test_models';
     public $timestamps = false;
-    
+
     // Override for testing
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
         $this->setRawAttributes($attributes, true);
     }
-    
+
     public function testIsFileImage(string $attribute): bool
     {
         return $this->isFileImage($attribute);
     }
-    
+
     public function callHandleFileUpload(string $attribute, $value, string $path, array $options = []): void
     {
         $reflection = new \ReflectionClass($this);
@@ -39,7 +39,7 @@ class TestModelWithFileUploads extends Model
         $method->setAccessible(true);
         $method->invokeArgs($this, [$attribute, $value, $path, $options]);
     }
-    
+
     public function callGetFileUrl(string $attribute, string $disk = 'public'): ?string
     {
         $reflection = new \ReflectionClass($this);
@@ -47,7 +47,7 @@ class TestModelWithFileUploads extends Model
         $method->setAccessible(true);
         return $method->invokeArgs($this, [$attribute, $disk]);
     }
-    
+
     public function callGetThumbnailUrl(string $attribute, string $thumbnailFolder = 'thumbnails', string $disk = 'public'): ?string
     {
         $reflection = new \ReflectionClass($this);
@@ -205,7 +205,7 @@ class HasFileUploadsFeatureTest extends TestCase
         // Test various image extensions using the test model
         $imageFiles = [
             'test.jpg',
-            'test.jpeg', 
+            'test.jpeg',
             'test.png',
             'test.gif',
             'test.webp',
@@ -329,18 +329,18 @@ class HasFileUploadsFeatureTest extends TestCase
 
         // Act - Upload file
         $model->callHandleFileUpload('profile_image', $file, 'uploads/profiles');
-        
+
         // Verify file was uploaded
         $this->assertNotNull($model->profile_image);
-        
+
         // Get URL
         $url = $model->callGetFileUrl('profile_image');
         $this->assertNotNull($url);
-        
+
         // Check if it's an image
         $isImage = $model->testIsFileImage('profile_image');
         $this->assertTrue($isImage);
-        
+
         // Get thumbnail URL
         $thumbnailUrl = $model->callGetThumbnailUrl('profile_image');
         $this->assertNotNull($thumbnailUrl);
@@ -366,13 +366,13 @@ class HasFileUploadsFeatureTest extends TestCase
         // Act & Assert
         foreach ($uploadedFiles as $index => $filename) {
             $model->current_file = $filename;
-            
+
             $url = $model->callGetFileUrl('current_file');
             $this->assertNotNull($url);
-            
+
             $attributeUrl = $model->getAttributeFileUrl('current_file');
             $this->assertEquals($url, $attributeUrl);
-            
+
             $isImage = $model->testIsFileImage('current_file');
             if ($index === 1) { // PDF file
                 $this->assertFalse($isImage);

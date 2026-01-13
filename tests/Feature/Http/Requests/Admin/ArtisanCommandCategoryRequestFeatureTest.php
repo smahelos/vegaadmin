@@ -10,10 +10,21 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
 
 class ArtisanCommandCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesAdminTestEnvironment;
+
+    protected User $adminUser;
+    protected User $regularUser;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Prepare roles, permissions, and users for tests that rely on authorization
+        $this->setUpAdminTestEnvironment();
+    }
 
     #[Test]
     public function validation_passes_with_valid_data()
@@ -103,7 +114,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
 
         $request = new ArtisanCommandCategoryRequest();
         $request->merge(['id' => $category->id]);
-        
+
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -170,7 +181,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         ];
 
         $request = new ArtisanCommandCategoryRequest();
-        
+
         $validator1 = Validator::make($validData1, $request->rules());
         $validator2 = Validator::make($validData2, $request->rules());
 
@@ -181,8 +192,9 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_when_authenticated()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user, 'backpack');
+        // Ensure full admin test environment (roles & permissions) is prepared
+        $this->setUpAdminTestEnvironment();
+        $this->actingAs($this->adminUser, 'backpack');
 
         $request = new ArtisanCommandCategoryRequest();
         $this->assertTrue($request->authorize());
@@ -234,6 +246,29 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $request = new ArtisanCommandCategoryRequest();
         $validator = Validator::make($validData, $request->rules());
 
+        $this->assertTrue($validator->passes());
+    }
+
+    #[Test]
+    public function slug_is_auto_generated_when_missing()
+    {
+        $data = [
+            'name' => 'Auto Slug Category',
+            // slug intentionally omitted
+        ];
+
+        $request = new ArtisanCommandCategoryRequest();
+        // Simulate prepareForValidation call
+        $reflection = new \ReflectionClass($request);
+        $method = $reflection->getMethod('prepareForValidation');
+        $method->setAccessible(true);
+        $request->merge($data);
+        $method->invoke($request);
+
+        $this->assertNotEmpty($request->slug);
+        $this->assertEquals('auto-slug-category', $request->slug);
+
+        $validator = Validator::make(['name' => $data['name'], 'slug' => $request->slug], $request->rules());
         $this->assertTrue($validator->passes());
     }
 }

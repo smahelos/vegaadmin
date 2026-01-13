@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for PerformanceMetricRequest class.
@@ -18,9 +19,11 @@ use Tests\TestCase;
  */
 class PerformanceMetricRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesAdminTestEnvironment;
 
     private User $user;
+    protected User $adminUser;
+    protected User $regularUser;
 
     /**
      * Set up test environment.
@@ -28,69 +31,14 @@ class PerformanceMetricRequestFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->user = User::factory()->create();
-        
-        // Create necessary permissions for testing
-        $this->createRequiredPermissions();
-        
+
+        // Set up admin test environment with roles and permissions
+        $this->setUpAdminTestEnvironment();
+
         // Define test routes
-        Route::get('/admin/performance-metric', function (PerformanceMetricRequest $request) {
+        Route::get('/test-performance-metric', function (PerformanceMetricRequest $request) {
             return response()->json(['success' => true]);
         })->middleware('web');
-    }
-
-    /**
-     * Create required permissions for testing.
-     */
-    private function createRequiredPermissions(): void
-    {
-        // Define all permissions required for admin operations and navigation
-        $permissions = [
-            // User management permissions
-            'can_create_edit_user',
-            
-            // Business operations permissions
-            'can_create_edit_invoice',
-            'can_create_edit_client',
-            'can_create_edit_supplier',
-            
-            // Financial management permissions
-            'can_create_edit_expense',
-            'can_create_edit_tax',
-            'can_create_edit_bank',
-            'can_create_edit_payment_method',
-            
-            // Inventory management permissions
-            'can_create_edit_product',
-            
-            // System administration permissions
-            'can_create_edit_command',
-            'can_create_edit_cron_task',
-            'can_create_edit_status',
-            'can_configure_system',
-            
-            // Basic backpack access
-            'backpack.access',
-        ];
-
-        // Create all permissions for backpack guard
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate([
-                'name' => $permission, 
-                'guard_name' => 'backpack'
-            ]);
-        }
-
-        // Give the user all necessary permissions for the backpack guard
-        foreach ($permissions as $permissionName) {
-            $permission = Permission::where('name', $permissionName)
-                ->where('guard_name', 'backpack')
-                ->first();
-            if ($permission) {
-                $this->user->givePermissionTo($permission);
-            }
-        }
     }
 
     #[Test]
@@ -121,17 +69,15 @@ class PerformanceMetricRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        $this->actingAs($this->user, 'backpack')
-             ->withoutMiddleware()
-             ->getJson('/admin/performance-metric')
+        $this->actingAs($this->adminUser, 'backpack')
+             ->getJson('/test-performance-metric')
              ->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->withoutMiddleware()
-             ->getJson('/admin/performance-metric')
+        $this->getJson('/test-performance-metric')
              ->assertStatus(403);
     }
 

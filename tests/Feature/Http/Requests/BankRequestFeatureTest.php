@@ -6,20 +6,23 @@ use App\Http\Requests\BankRequest;
 use App\Models\Bank;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
  * Feature tests for BankRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests bank validation scenarios, authorization, and validation with database constraints
  */
 class BankRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected User $user;
     protected array $validBankData;
@@ -34,9 +37,9 @@ class BankRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // Create test user
-        $this->user = User::factory()->create();
-        
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
         // Set up valid bank data
         $this->setupValidBankData();
     }
@@ -50,7 +53,8 @@ class BankRequestFeatureTest extends TestCase
             'name' => $this->faker->company . ' Bank',
             'code' => $this->faker->numerify('####'),
             'swift' => $this->faker->lexify('????????'),
-            'country' => $this->faker->country,
+            // Country must be 2-letter ISO code per updated rules
+            'country' => 'CZ',
             'active' => true,
             'description' => $this->faker->sentence,
         ];
@@ -70,7 +74,7 @@ class BankRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'code', 'country'];
-        
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validBankData;
             unset($invalidData[$field]);
@@ -170,10 +174,10 @@ class BankRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_long_country()
+    public function validation_fails_with_invalid_country_length()
     {
         $invalidData = $this->validBankData;
-        $invalidData['country'] = str_repeat('a', 101); // Too long (max 100)
+        $invalidData['country'] = 'CZE'; // length 3 instead of required size 2
 
         $request = new BankRequest();
         $validator = Validator::make($invalidData, $request->rules(), $request->messages());
@@ -201,7 +205,7 @@ class BankRequestFeatureTest extends TestCase
         $minimalData = [
             'name' => 'Test Bank',
             'code' => '1234',
-            'country' => 'Czech Republic',
+            'country' => 'SK',
         ];
 
         $request = new BankRequest();
@@ -242,7 +246,7 @@ class BankRequestFeatureTest extends TestCase
     public function validation_passes_with_boolean_values_for_active()
     {
         $booleanValues = [true, false, 1, 0, '1', '0'];
-        
+
         foreach ($booleanValues as $value) {
             $validData = $this->validBankData;
             $validData['active'] = $value;
@@ -261,7 +265,7 @@ class BankRequestFeatureTest extends TestCase
         $this->actingAs($this->user);
 
         $request = new BankRequest();
-        
+
         $this->assertTrue($request->authorize());
     }
 
@@ -269,7 +273,7 @@ class BankRequestFeatureTest extends TestCase
     public function authorization_fails_when_not_authenticated()
     {
         $request = new BankRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
@@ -324,7 +328,7 @@ class BankRequestFeatureTest extends TestCase
         $dataWithoutOptional = [
             'name' => 'Test Bank',
             'code' => '5678',
-            'country' => 'Slovakia',
+            'country' => 'DE',
             'active' => false,
         ];
 

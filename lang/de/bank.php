@@ -8,7 +8,7 @@ return [
     'updated_at' => 'Aktualisiert am',
 
     'actions' => [
-        'edit' => 'Bearbeiten',
+        'edit' => 'Regeln',
         'delete' => 'Löschen',
         'view' => 'Anzeigen',
     ],
@@ -18,6 +18,8 @@ return [
         'code' => 'Bankcode',
         'swift' => 'SWIFT-Code',
         'country' => 'Land',
+        'description' => 'Beschreibung',
+        'is_active' => 'Aktiv',
         'active' => 'Aktiv',
     ],
 

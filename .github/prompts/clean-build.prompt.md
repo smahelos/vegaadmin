@@ -7,10 +7,10 @@ Clear Cache and Build Application.
 
 Open terminal and perform next comands:
 
-* cd /_Data/Dockers/Production/vegaadmin
-* docker exec vegaadmin-app php artisan cache:clear
-* docker exec vegaadmin-app php artisan config:clear
-* docker exec vegaadmin-app php artisan view:clear
-* docker exec vegaadmin-app php artisan route:clear
-* docker exec vegaadmin-app php artisan optimize
+* cd /_Data/Dockers/Production/Invoice/data/www/html
+* docker exec INVOICE-php-fpm php artisan cache:clear
+* docker exec INVOICE-php-fpm php artisan config:clear
+* docker exec INVOICE-php-fpm php artisan view:clear
+* docker exec INVOICE-php-fpm php artisan route:clear
+* docker exec INVOICE-php-fpm php artisan optimize
 * npm run build

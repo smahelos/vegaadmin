@@ -102,9 +102,9 @@ class InvoiceProductTest extends TestCase
     #[Test]
     public function calculate_tax_amount_works_correctly(): void
     {
-        $this->model->price = 100.00;
+        $this->model->price = '100.00';
         $this->model->quantity = 2;
-        $this->model->tax_rate = 21.00;
+        $this->model->tax_rate = '21.00';
 
         $result = $this->model->calculateTaxAmount();
 
@@ -115,9 +115,9 @@ class InvoiceProductTest extends TestCase
     #[Test]
     public function calculate_total_price_works_correctly(): void
     {
-        $this->model->price = 100.00;
+        $this->model->price = '100.00';
         $this->model->quantity = 2;
-        $this->model->tax_amount = 42.00;
+        $this->model->tax_amount = '42.00';
 
         $result = $this->model->calculateTotalPrice();
 
@@ -128,9 +128,9 @@ class InvoiceProductTest extends TestCase
     #[Test]
     public function calculate_tax_amount_handles_zero_values(): void
     {
-        $this->model->price = 0;
+        $this->model->price = '0';
         $this->model->quantity = 5;
-        $this->model->tax_rate = 21.00;
+        $this->model->tax_rate = '21.00';
 
         $result = $this->model->calculateTaxAmount();
 
@@ -141,7 +141,7 @@ class InvoiceProductTest extends TestCase
     #[Test]
     public function calculate_total_price_handles_zero_tax(): void
     {
-        $this->model->price = 50.00;
+        $this->model->price = '50.00';
         $this->model->quantity = 3;
         $this->model->tax_amount = 0;
 
@@ -157,7 +157,7 @@ class InvoiceProductTest extends TestCase
         // Check that the boot method exists (protected static)
         $reflection = new \ReflectionClass($this->model);
         $this->assertTrue($reflection->hasMethod('boot'));
-        
+
         $bootMethod = $reflection->getMethod('boot');
         $this->assertTrue($bootMethod->isStatic());
         $this->assertTrue($bootMethod->isProtected());

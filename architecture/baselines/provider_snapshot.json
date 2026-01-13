@@ -1,0 +1,500 @@
+{
+    "generated_at": "2025-09-01T08:59:12+00:00",
+    "providers": {
+        "App\\Providers\\PartyDomainServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "",
+                    "concrete": "\/\/     \\App\\Domain\\Party\\Repositories\\ClientRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\ClientReadRepositoryInterface",
+                    "concrete": "App\\Domain\\Party\\Repositories\\ClientRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\ClientWriteRepositoryInterface",
+                    "concrete": "App\\Domain\\Party\\Repositories\\ClientRepository"
+                },
+                {
+                    "abstract": "",
+                    "concrete": "\/\/     \\App\\Domain\\Party\\Repositories\\SupplierRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierReadRepositoryInterface",
+                    "concrete": "App\\Domain\\Party\\Repositories\\SupplierRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierWriteRepositoryInterface",
+                    "concrete": "App\\Domain\\Party\\Repositories\\SupplierRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface",
+                    "concrete": "App\\Domain\\Party\\Services\\InvoicePartyService"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface",
+                    "concrete": "App\\Domain\\Party\\Validation\\PartyCreationValidator"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\ContentDomainServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\Content\\Contracts\\PageServiceInterface",
+                    "concrete": "App\\Domain\\Content\\Services\\PageService"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\ProductDomainServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\Product\\Contracts\\ProductRepositoryInterface",
+                    "concrete": "App\\Domain\\Product\\Repositories\\ProductRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Product\\Contracts\\ProductServiceInterface",
+                    "concrete": "App\\Domain\\Product\\Services\\ProductService"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\InvoiceDomainServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceServiceInterface",
+                    "concrete": "App\\Domain\\Invoice\\Services\\InvoiceService"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoicePdfServiceInterface",
+                    "concrete": "App\\Domain\\Invoice\\Services\\InvoicePdfService"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\TaxesServiceInterface",
+                    "concrete": "App\\Domain\\Invoice\\Services\\TaxesService"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceProductSyncServiceInterface",
+                    "concrete": "App\\Domain\\Invoice\\Services\\InvoiceProductSyncService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\InvoiceApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\GuestInvoiceApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\GuestInvoiceApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceFrontendActionsApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\InvoiceFrontendActionsApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceRequestAssemblerInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\InvoiceRequestAssembler"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceMutationApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\InvoiceMutationApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoicePdfApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\InvoicePdfApplicationService"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\PaymentDomainServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "QrPaymentServiceInterface",
+                    "concrete": "QrPaymentService"
+                },
+                {
+                    "abstract": "SubscriptionPaymentServiceInterface",
+                    "concrete": "SubscriptionPaymentService"
+                },
+                {
+                    "abstract": "BankServiceInterface",
+                    "concrete": "BankService"
+                },
+                {
+                    "abstract": "payment.gateway.gopay",
+                    "concrete": "GoPayGateway"
+                },
+                {
+                    "abstract": "PaymentApplicationServiceInterface",
+                    "concrete": "PaymentApplicationService"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\SharedDomainServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Status\\Services\\StatusService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\File\\Contracts\\FileUploadServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\File\\Services\\FileUploadService"
+                },
+                {
+                    "abstract": "ImageProcessorInterface",
+                    "concrete": "GdImageProcessor"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\CurrencyExchangeServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Money\\Services\\CurrencyExchangeService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Money\\Services\\CurrencyService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\MoneyFormatterInterface",
+                    "concrete": "App\\Domain\\Shared\\Money\\Services\\MoneyFormatter"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Cache\\Contracts\\CacheServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Cache\\Services\\CacheService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Geography\\Contracts\\CountryServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Geography\\Services\\CountryService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Console\\Services\\ArtisanCommandsService"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\AnalyticsDomainServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface",
+                    "concrete": "App\\Domain\\Analytics\\Services\\DashboardService"
+                },
+                {
+                    "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsApplicationServiceInterface",
+                    "concrete": "App\\Application\\Analytics\\Services\\ApiStatisticsApplicationService"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\UserDomainServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\LocaleServiceInterface",
+                    "concrete": "App\\Domain\\User\\Services\\LocaleService"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\UserServiceInterface",
+                    "concrete": "App\\Domain\\User\\Services\\UserService"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\PermissionLimitResolverInterface",
+                    "concrete": "App\\Domain\\User\\Services\\PermissionLimitResolver"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\UniversalLimitServiceInterface",
+                    "concrete": "App\\Domain\\User\\Services\\UniversalLimitService"
+                }
+            ],
+            "singleton": []
+        }
+    },
+    "contracts": {
+        "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\AnalyticsDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Analytics\\Services\\DashboardService",
+                "provider": "App\\Providers\\AnalyticsDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Product\\Contracts\\ProductServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\ProductDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Product\\Services\\ProductService",
+                "provider": "App\\Providers\\ProductDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Product\\Contracts\\ProductRepositoryInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\ProductDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Product\\Repositories\\ProductRepository",
+                "provider": "App\\Providers\\ProductDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Money\\Contracts\\MoneyFormatterInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Money\\Services\\MoneyFormatter",
+                "provider": "App\\Providers\\SharedDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Money\\Contracts\\CurrencyExchangeServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Money\\Services\\CurrencyExchangeService",
+                "provider": "App\\Providers\\SharedDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Money\\Services\\CurrencyService",
+                "provider": "App\\Providers\\SharedDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Cache\\Contracts\\CacheServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Cache\\Services\\CacheService",
+                "provider": "App\\Providers\\SharedDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Status\\Services\\StatusService",
+                "provider": "App\\Providers\\SharedDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Console\\Services\\ArtisanCommandsService",
+                "provider": "App\\Providers\\SharedDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Geography\\Contracts\\CountryServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Geography\\Services\\CountryService",
+                "provider": "App\\Providers\\SharedDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\File\\Contracts\\ImageProcessorInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Shared\\File\\Contracts\\FileUploadServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\File\\Services\\FileUploadService",
+                "provider": "App\\Providers\\SharedDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Party\\Validation\\PartyCreationValidator",
+                "provider": "App\\Providers\\PartyDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\SupplierRepositoryInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Party\\Contracts\\SupplierWriteRepositoryInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Party\\Repositories\\SupplierRepository",
+                "provider": "App\\Providers\\PartyDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\ClientRepositoryInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Party\\Contracts\\ClientWriteRepositoryInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Party\\Repositories\\ClientRepository",
+                "provider": "App\\Providers\\PartyDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\SupplierReadRepositoryInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Party\\Repositories\\SupplierRepository",
+                "provider": "App\\Providers\\PartyDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\ClientReadRepositoryInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Party\\Repositories\\ClientRepository",
+                "provider": "App\\Providers\\PartyDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Party\\Services\\InvoicePartyService",
+                "provider": "App\\Providers\\PartyDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\UniversalLimitServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\UserDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\User\\Services\\UniversalLimitService",
+                "provider": "App\\Providers\\UserDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\UserServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\UserDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\User\\Services\\UserService",
+                "provider": "App\\Providers\\UserDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\LocaleServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\UserDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\User\\Services\\LocaleService",
+                "provider": "App\\Providers\\UserDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\PermissionLimitResolverInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\UserDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\User\\Services\\PermissionLimitResolver",
+                "provider": "App\\Providers\\UserDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\SubscriptionPaymentServiceInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Payment\\Contracts\\QrPaymentProviderInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Payment\\Contracts\\BankServiceInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Payment\\Contracts\\QrPaymentServiceInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Payment\\Contracts\\PaymentGatewayInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Payment\\Contracts\\GatewayRegistryInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Content\\Contracts\\PageServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\ContentDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Content\\Services\\PageService",
+                "provider": "App\\Providers\\ContentDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\SupplierRepositoryInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Invoice\\Contracts\\InvoicePdfServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Invoice\\Services\\InvoicePdfService",
+                "provider": "App\\Providers\\InvoiceDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\InvoiceProductSyncServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Invoice\\Services\\InvoiceProductSyncService",
+                "provider": "App\\Providers\\InvoiceDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\ClientRepositoryInterface": {
+            "status": "missing_binding",
+            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
+            "actual": []
+        },
+        "App\\Domain\\Invoice\\Contracts\\InvoiceServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Invoice\\Services\\InvoiceService",
+                "provider": "App\\Providers\\InvoiceDomainServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\TaxesServiceInterface": {
+            "status": "ok",
+            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
+            "actual": {
+                "implementation": "App\\Domain\\Invoice\\Services\\TaxesService",
+                "provider": "App\\Providers\\InvoiceDomainServiceProvider",
+                "method": "bind"
+            }
+        }
+    }
+}

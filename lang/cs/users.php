@@ -16,6 +16,14 @@ return [
         'name' => 'Jméno',
         'email' => 'E-mail',
         'phone' => 'Telefon',
+        'ico' => 'IČO',
+        'dic' => 'DIČ',
+        'shortcut' => 'Zkratka',
+        'street' => 'Ulice',
+        'city' => 'Město',
+        'zip' => 'PSČ',
+        'country' => 'Země',
+        'description' => 'Popis',
         'czech_republic' => 'Česká republika',
         'current_password' => 'Současné heslo',
         'current_password_hint' => 'Nutné pro potvrzení',
@@ -25,30 +33,30 @@ return [
         'password_confirmation' => 'Potvrzení hesla',
         'password_confirmation_hint' => 'Zadejte heslo znovu pro potvrzení',
         'remember_me' => 'Zapamatovat si mě',
-        
+
         // Nápovědy a placeholdery
         'email_placeholder' => 'E-mail',
         'password_placeholder' => 'Heslo',
     ],
-    
+
     'titles' => [
         'edit_profile' => 'Úprava profilu',
         'login' => 'Přihlášení',
         'register' => 'Registrace',
         'system_name' => 'Fakturační systém',
     ],
-    
+
     'errors' => [
         'login_errors' => 'Vyskytly se chyby při přihlášení:',
     ],
-    
+
     'sections' => [
         'basic_info' => 'Základní údaje',
         'address' => 'Adresa',
         'change_password' => 'Změna hesla',
         'security' => 'Zabezpečení',
     ],
-    
+
     'actions' => [
         'create' => 'Vytvořit dodavatele',
         'edit' => 'Upravit dodavatele',
@@ -62,7 +70,9 @@ return [
         'register' => 'Registrovat',
         'forgot_password' => 'Zapomenuté heslo?',
         'back_to_login' => 'Zpět na přihlášení',
+        'back_to_list' => 'Zpět na seznam',
     ],
+
     'messages' => [
         'profile_updated' => 'Profil byl úspěšně aktualizován.',
         'password_updated' => 'Profil a jeho heslo bylo úspěšně změněno.',
@@ -75,6 +85,8 @@ return [
         'error_create_client' => 'Chyba při vytváření klienta: ',
         'error_delete_client' => 'Chyba při mazání klienta: ',
         'error_update_client' => 'Chyba při aktualizaci klienta: ',
+        'not_found' => 'Uživatel nenalezen.',
+        'error_loading' => 'Chyba při načítání uživatele.',
         'no_account' => 'Nemáte účet?',
         'register_prompt' => 'Registrujte se',
         'have_account' => 'Již máte účet?',
@@ -93,6 +105,8 @@ return [
         'password_min' => 'Heslo musí mít alespoň :min znaků',
         'password_required' => 'Heslo je povinné pole',
         'password_confirmed' => 'Hesla se neshodují',
+        'password_confirmation_required' => 'Potvrzení hesla je povinné',
+        'phone_format' => 'Formát telefonního čísla je neplatný',
         'required_field' => 'Pole je povinné',
     ],
 

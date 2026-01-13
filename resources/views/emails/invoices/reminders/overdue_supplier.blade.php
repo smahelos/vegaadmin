@@ -36,7 +36,7 @@
                 {{ __('invoices.fields.amount') }}
             </th>
             <td style="text-align: right; padding: 8px; border-bottom: 1px solid #e8e5ef; color: #e53e3e; font-weight: bold;">
-                {{ $invoice->payment_amount }} {{ $invoice->payment_currency }}
+                {{ number_format((float)($paymentAmount['amount'] ?? ($invoice->payment_amount ?? 0)), 2, ',', ' ') }} {{ $paymentAmount['currency'] ?? ($invoice->payment_currency ?? 'CZK') }}
             </td>
         </tr>
         <tr>
@@ -52,9 +52,9 @@
     <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
         <tr>
             <td align="center">
-                <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}" 
-                   class="button" 
-                   target="_blank" 
+                <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}"
+                   class="button"
+                   target="_blank"
                    rel="noopener">
                     {{ __('invoices.reminders.view_invoice') }}
                 </a>

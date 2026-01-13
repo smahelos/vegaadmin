@@ -13,6 +13,9 @@ use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
+use Illuminate\Support\Facades\Route as RouteFacade; // alias if needed
+use Illuminate\Support\Str;
 
 /**
  * Feature test for StatusRequest class.
@@ -20,9 +23,10 @@ use Tests\TestCase;
  */
 class StatusRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesAdminTestEnvironment;
 
-    private User $user;
+    protected User $adminUser;
+    protected User $regularUser;
     private StatusCategory $statusCategory;
 
     /**
@@ -31,76 +35,20 @@ class StatusRequestFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->user = User::factory()->create();
-        
-        // Create necessary permissions for testing
-        $this->createRequiredPermissions();
-        
+
+        // Set up admin test environment with roles and permissions
+        $this->setUpAdminTestEnvironment();
+
         $this->statusCategory = StatusCategory::factory()->create();
-        
+
         // Define test routes
-        Route::post('/admin/status', function (StatusRequest $request) {
+        Route::post('/test-status', function (StatusRequest $request) {
             return response()->json(['success' => true]);
-        })->middleware(['web', 'admin']);
-        
-        Route::put('/admin/status/{id}', function (StatusRequest $request, $id) {
+        })->middleware('web');
+
+        Route::put('/test-status/{id}', function (StatusRequest $request, $id) {
             return response()->json(['success' => true]);
-        })->middleware(['web', 'admin']);
-    }
-
-    /**
-     * Create required permissions for testing.
-     * Based on the permissions checked in the Backpack menu.
-     */
-    private function createRequiredPermissions(): void
-    {
-        // Define all permissions required for admin operations and navigation
-        $permissions = [
-            // User management permissions
-            'can_create_edit_user',
-            
-            // Business operations permissions
-            'can_create_edit_invoice',
-            'can_create_edit_client',
-            'can_create_edit_supplier',
-            
-            // Financial management permissions
-            'can_create_edit_expense',
-            'can_create_edit_tax',
-            'can_create_edit_bank',
-            'can_create_edit_payment_method',
-            
-            // Inventory management permissions
-            'can_create_edit_product',
-            
-            // System administration permissions
-            'can_create_edit_command',
-            'can_create_edit_cron_task',
-            'can_create_edit_status',
-            'can_configure_system',
-            
-            // Basic backpack access
-            'backpack.access',
-        ];
-
-        // Create all permissions for backpack guard
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate([
-                'name' => $permission, 
-                'guard_name' => 'backpack'
-            ]);
-        }
-
-        // Give the user all necessary permissions for the backpack guard
-        foreach ($permissions as $permissionName) {
-            $permission = Permission::where('name', $permissionName)
-                ->where('guard_name', 'backpack')
-                ->first();
-            if ($permission) {
-                $this->user->givePermissionTo($permission);
-            }
-        }
+        })->middleware('web');
     }
 
     /**
@@ -109,7 +57,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_data(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $validData = [
             'name' => 'Test Status',
@@ -120,7 +68,7 @@ class StatusRequestFeatureTest extends TestCase
             'is_active' => true,
         ];
 
-        $response = $this->post('/admin/status', $validData);
+        $response = $this->postJson('/test-status', $validData);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
@@ -132,9 +80,9 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_missing_required_fields(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
-        $response = $this->postJson('/admin/status', []);
+        $response = $this->postJson('/test-status', []);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name', 'slug', 'category_id']);
@@ -146,7 +94,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_name_too_long(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $invalidData = [
             'name' => str_repeat('a', 256), // Exceeds max length of 255
@@ -154,7 +102,7 @@ class StatusRequestFeatureTest extends TestCase
             'category_id' => $this->statusCategory->id,
         ];
 
-        $response = $this->postJson('/admin/status', $invalidData);
+        $response = $this->postJson('/test-status', $invalidData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name']);
@@ -168,7 +116,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_slug_too_long(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $invalidData = [
             'name' => 'Test Status',
@@ -176,7 +124,7 @@ class StatusRequestFeatureTest extends TestCase
             'category_id' => $this->statusCategory->id,
         ];
 
-        $response = $this->postJson('/admin/status', $invalidData);
+        $response = $this->postJson('/test-status', $invalidData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['slug']);
@@ -188,7 +136,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_invalid_category_id(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $invalidData = [
             'name' => 'Test Status',
@@ -196,7 +144,7 @@ class StatusRequestFeatureTest extends TestCase
             'category_id' => 99999, // Non-existent category
         ];
 
-        $response = $this->postJson('/admin/status', $invalidData);
+        $response = $this->postJson('/test-status', $invalidData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['category_id']);
@@ -208,7 +156,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         // Create existing status
         $existingStatus = Status::factory()->create([
@@ -222,7 +170,7 @@ class StatusRequestFeatureTest extends TestCase
             'category_id' => $this->statusCategory->id,
         ];
 
-        $response = $this->postJson('/admin/status', $invalidData);
+        $response = $this->postJson('/test-status', $invalidData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['slug']);
@@ -234,8 +182,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_allows_same_slug_on_update(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $status = Status::factory()->create([
             'slug' => 'test-slug',
@@ -248,7 +195,7 @@ class StatusRequestFeatureTest extends TestCase
             'category_id' => $this->statusCategory->id,
         ];
 
-        $response = $this->put("/admin/status/{$status->id}", $updateData);
+        $response = $this->putJson("/test-status/{$status->id}", $updateData);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
@@ -260,7 +207,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_with_permission(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $validData = [
             'name' => 'Test Status',
@@ -268,7 +215,7 @@ class StatusRequestFeatureTest extends TestCase
             'category_id' => $this->statusCategory->id,
         ];
 
-        $response = $this->post('/admin/status', $validData);
+        $response = $this->postJson('/test-status', $validData);
 
         $response->assertStatus(200);
     }
@@ -289,7 +236,7 @@ class StatusRequestFeatureTest extends TestCase
             'category_id' => $this->statusCategory->id,
         ];
 
-        $response = $this->post('/admin/status', $validData);
+        $response = $this->postJson('/test-status', $validData);
 
         $response->assertStatus(403);
     }
@@ -339,7 +286,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_accepts_boolean_values_for_is_active(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         // Test with boolean true
         $validData = [
@@ -349,28 +296,28 @@ class StatusRequestFeatureTest extends TestCase
             'is_active' => true,
         ];
 
-        $response = $this->post('/admin/status', $validData);
+        $response = $this->postJson('/test-status', $validData);
         $response->assertStatus(200);
 
         // Test with boolean false
         $validData['slug'] = 'test-status-false';
         $validData['is_active'] = false;
 
-        $response = $this->post('/admin/status', $validData);
+        $response = $this->postJson('/test-status', $validData);
         $response->assertStatus(200);
 
         // Test with string '1'
         $validData['slug'] = 'test-status-string-one';
         $validData['is_active'] = '1';
 
-        $response = $this->post('/admin/status', $validData);
+        $response = $this->postJson('/test-status', $validData);
         $response->assertStatus(200);
 
         // Test with string '0'
         $validData['slug'] = 'test-status-string-zero';
         $validData['is_active'] = '0';
 
-        $response = $this->post('/admin/status', $validData);
+        $response = $this->postJson('/test-status', $validData);
         $response->assertStatus(200);
     }
 
@@ -380,7 +327,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_handles_nullable_fields(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $minimalData = [
             'name' => 'Minimal Status',
@@ -390,9 +337,31 @@ class StatusRequestFeatureTest extends TestCase
             // is_active defaults to false if not provided
         ];
 
-        $response = $this->post('/admin/status', $minimalData);
+        $response = $this->postJson('/test-status', $minimalData);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
+    }
+
+    #[Test]
+    public function slug_is_auto_generated_when_missing(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+
+        // Temporary route to capture generated slug
+        Route::post('/test-status-slug', function (StatusRequest $request) {
+            return response()->json(['slug' => $request->slug]);
+        })->middleware('web');
+
+        $data = [
+            'name' => 'My Custom Status Name',
+            'category_id' => $this->statusCategory->id,
+            // slug intentionally omitted
+        ];
+
+        $response = $this->postJson('/test-status-slug', $data);
+        $response->assertStatus(200);
+        $expected = Str::slug($data['name']);
+        $this->assertEquals($expected, $response->json('slug'));
     }
 }

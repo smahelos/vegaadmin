@@ -6,6 +6,8 @@ use App\Http\Requests\UserRequest;
 use App\Http\Requests\Admin\UserRequest as AdminUserRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,15 +17,45 @@ class UserRequestFeatureTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Get roles and permissions created by TestingDatabaseSeeder
+        // $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
+        $frontendUserRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
+        $permission = Permission::firstOrCreate([
+            'name' => 'frontend.can_create_edit_user',
+            'guard_name' => 'web'
+        ]);
+
+        // Create admin user with admin role (has all permissions)
+        // $this->adminUser = User::factory()->create();
+        // $this->adminUser->assignRole($adminRole);
+        // $this->adminUser->givePermissionTo($permission);
+
+        // Create regular user with limited role
+        $this->user = User::factory()->create();
+        $this->user->assignRole($frontendUserRole);
+    $this->user->givePermissionTo($permission);
+    }
+
     #[Test]
     public function frontend_user_request_validation_passes_with_valid_data(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid User Name',
-            'email' => 'valid@example.com',
+            'email' => 'valid_' . uniqid() . '@example.com',
+            'street' => 'Street 1',
+            'city' => 'Prague',
+            'zip' => '11000',
+            'country' => 'Czech Republic',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
         ];
 
         $request = UserRequest::create('/', 'POST', $data);
@@ -38,12 +70,17 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function frontend_user_request_validation_fails_with_invalid_data(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $data = [
-            'name' => '', // Required field empty
-            'email' => 'invalid-email', // Invalid email format
+            'name' => '', // Required
+            'email' => 'invalid-email', // Invalid format
+            'street' => '',
+            'city' => '',
+            'zip' => '',
+            'country' => '',
+            'password' => 'short',
+            'password_confirmation' => 'different',
         ];
 
         $request = UserRequest::create('/', 'POST', $data);
@@ -53,7 +90,7 @@ class UserRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
         $this->assertTrue($validator->fails(), 'Frontend validation should fail with invalid data');
-        
+
         $errors = $validator->errors();
         $this->assertTrue($errors->has('name'));
         $this->assertTrue($errors->has('email'));
@@ -63,27 +100,50 @@ class UserRequestFeatureTest extends TestCase
     public function frontend_user_request_authorization_requires_authenticated_user(): void
     {
         $request = new UserRequest();
-        
+
         // Without authentication, should return false
-        $this->assertFalse($request->authorize());
+    $this->assertFalse($request->authorize());
     }
 
     #[Test]
     public function frontend_user_request_authorization_passes_with_authenticated_user(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
+        $this->actingAs($this->user);
+        // Ensure permission still present
+        if (!$this->user->can('frontend.can_create_edit_user')) {
+            $perm = \Spatie\Permission\Models\Permission::where('name','frontend.can_create_edit_user')->where('guard_name','web')->first();
+            $this->user->givePermissionTo($perm);
+        }
         $request = new UserRequest();
-        
         $this->assertTrue($request->authorize());
+    }
+
+    #[Test]
+    public function frontend_user_request_update_without_password_passes(): void
+    {
+        $this->actingAs($this->user);
+
+        $data = [
+            'name' => 'Updated User',
+            'email' => 'updated_' . uniqid() . '@example.com',
+            'street' => 'Street 2',
+            'city' => 'Brno',
+            'zip' => '60200',
+            'country' => 'Czech Republic',
+        ];
+
+        $request = UserRequest::create('/', 'PUT', $data);
+        $request->setContainer($this->app);
+        $request->setRedirector($this->app['redirect']);
+
+        $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
+        $this->assertFalse($validator->fails(), 'Update without password should pass');
     }
 
     #[Test]
     public function admin_user_request_validation_passes_with_valid_create_data(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Admin User',
@@ -109,8 +169,7 @@ class UserRequestFeatureTest extends TestCase
     public function admin_user_request_validation_passes_with_valid_update_data(): void
     {
         $existingUser = User::factory()->create();
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Updated Admin User',
@@ -135,8 +194,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function admin_user_request_validation_fails_without_required_fields(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             // Missing required fields
@@ -149,7 +207,7 @@ class UserRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
         $this->assertTrue($validator->fails(), 'Admin validation should fail without required fields');
-        
+
         $errors = $validator->errors();
         $this->assertTrue($errors->has('name'));
         $this->assertTrue($errors->has('email'));
@@ -163,8 +221,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function admin_user_request_validation_fails_with_too_long_fields(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => str_repeat('a', 256), // Too long
@@ -184,7 +241,7 @@ class UserRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
         $this->assertTrue($validator->fails(), 'Admin validation should fail with too long fields');
-        
+
         $errors = $validator->errors();
         $this->assertTrue($errors->has('name'));
         $this->assertTrue($errors->has('street'));
@@ -196,8 +253,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function admin_user_request_validation_fails_with_invalid_email(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Name',
@@ -223,9 +279,10 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function admin_user_request_validation_fails_with_duplicate_email(): void
     {
+        $this->actingAs($this->user);
+
+        // Create existing user with the email we'll try to duplicate
         $existingUser = User::factory()->create(['email' => 'existing@example.com']);
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
 
         $data = [
             'name' => 'Valid Name',
@@ -252,8 +309,8 @@ class UserRequestFeatureTest extends TestCase
     public function admin_user_request_validation_allows_same_email_on_update(): void
     {
         $existingUser = User::factory()->create(['email' => 'same@example.com']);
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Updated Name',
@@ -277,8 +334,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function admin_user_request_validation_fails_with_short_password(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Name',
@@ -304,8 +360,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function admin_user_request_validation_fails_with_unconfirmed_password(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Name',
@@ -331,8 +386,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function admin_user_request_validation_passes_with_nullable_fields(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Name',
@@ -360,8 +414,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function admin_user_request_validation_fails_with_invalid_phone(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Name',
@@ -388,8 +441,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function validation_error_messages_use_translations(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => '', // Required field empty
@@ -404,14 +456,14 @@ class UserRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
         $this->assertTrue($validator->fails());
-        
+
         $errors = $validator->errors();
-        
+
         // Check that custom messages are used
         $nameError = $errors->first('name');
         $emailError = $errors->first('email');
         $passwordError = $errors->first('password');
-        
+
         $this->assertEquals(__('users.validation.name_required'), $nameError);
         $this->assertEquals(__('users.validation.email_required'), $emailError);
         $this->assertEquals(__('users.validation.password_required'), $passwordError);
@@ -433,8 +485,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function is_create_operation_method_works_correctly(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         // Test POST request (create)
         $createRequest = AdminUserRequest::create('/', 'POST', []);

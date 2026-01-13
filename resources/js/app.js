@@ -1,8 +1,14 @@
 import './bootstrap';
+import "@fortawesome/fontawesome-free/scss/fontawesome.scss";
+import '@fortawesome/fontawesome-free/scss/brands.scss';
+import '@fortawesome/fontawesome-free/scss/regular.scss';
+import '@fortawesome/fontawesome-free/scss/solid.scss';
+import '@fortawesome/fontawesome-free/scss/v4-shims.scss';
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
 import { initCountrySelect } from './country-select';
 import SlugGenerator from './slug-generator';
+import 'flowbite';
 
 // For None Livewire pages, start Alpine.js when the DOM is ready
 // This is to ensure that Alpine.js is only started when there is no Livewire component on the page
@@ -28,7 +34,7 @@ window.ajax = {
         window.ajax.defaultOptions = defaultOptions;
     },
     request(url, options = {}) {
-        const mergedOptions = { 
+        const mergedOptions = {
             ...window.ajax.defaultOptions,
             ...options,
             headers: {
@@ -36,7 +42,7 @@ window.ajax = {
                 ...(options.headers || {})
             }
         };
-        
+
         return fetch(url, mergedOptions);
     }
 };
@@ -62,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     }
-    
+
     // Responsive menu toggle
     const mobileMenuButton = document.querySelector('[x-data]');
     if (mobileMenuButton) {
@@ -73,20 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initializing country select
     initCountrySelect();
-
-    // // Initialize currency manager for invoice forms
-    // if (document.getElementById('payment_currency') && document.getElementById('invoice-items-list')) {
-    //     // Import the CurrencyManager dynamically to prevent errors if file doesn't exist
-    //     import('./currency-manager.js')
-    //         .then(module => {
-    //             const CurrencyManager = module.default;
-    //             window.currencyManager = new CurrencyManager();
-    //             console.log('Currency manager initialized');
-    //         })
-    //         .catch(err => {
-    //             console.error('Failed to load currency manager:', err);
-    //         });
-    // }
 
     // Initialize dashboard statistics if we are on the dashboard
     if (document.querySelector('.dashboard-stats-container')) {
@@ -119,8 +111,8 @@ async function fetchWithSession(url, options = {}) {
             'X-Requested-With': 'XMLHttpRequest'
         }
     };
-    
-    const mergedOptions = { 
+
+    const mergedOptions = {
         ...defaultOptions,
         ...options,
         headers: {
@@ -128,25 +120,25 @@ async function fetchWithSession(url, options = {}) {
             ...(options.headers || {})
         }
     };
-    
+
     const response = await fetch(url, mergedOptions);
-    
+
     // Check the response for authentication issues
     if (response.status === 401) {
         const data = await response.json();
         console.error('Authentication failed:', data);
-        
+
         // Show dialog with login option
         if (confirm('Your session has expired. Would you like to log in again?')) {
             window.location.href = data.redirect || '/login';
         }
         throw new Error('Your session has expired.');
     }
-    
+
     if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    
+
     return response.json();
 }
 

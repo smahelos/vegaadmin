@@ -7,19 +7,20 @@ use App\Models\ProductCategory;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 use PHPUnit\Framework\Attributes\Test;
 
 class ProductRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     private array $validProductData;
     private User $user;
@@ -29,17 +30,32 @@ class ProductRequestFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Create permissions and roles
-        $this->createPermissionsAndRoles();
-        
-        // Create authenticated user
-        $this->user = $this->createAuthenticatedUser();
-        
+
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        $permission = Permission::where('name', 'frontend.can_create_edit_product')
+            ->where('guard_name', 'web')
+            ->first();
+
+        // Create regular user with limited role
+        if (!$this->user) {
+            $this->user = User::factory()->create([
+                'email' => $this->faker->unique()->safeEmail,
+                'name' => $this->faker->name,
+            ]);
+        } else {
+            $this->user->update([
+                'email' => $this->faker->unique()->safeEmail,
+                'name' => $this->faker->name,
+            ]);
+        }
+        $this->user->givePermissionTo($permission);
+
         // Create related models
         $this->tax = $this->createTax();
         $this->category = $this->createProductCategory();
-        
+
         // Set up valid product data using faker
         $this->validProductData = [
             'name' => $this->faker->words(3, true),
@@ -74,23 +90,6 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     /**
-     * Create authenticated user for testing.
-     *
-     * @return User
-     */
-    private function createAuthenticatedUser(): User
-    {
-        $user = User::factory()->create([
-            'email' => $this->faker->unique()->safeEmail,
-            'name' => $this->faker->name,
-        ]);
-
-        $user->assignRole('product_manager');
-        
-        return $user;
-    }
-
-    /**
      * Create a tax for testing.
      *
      * @return Tax
@@ -114,7 +113,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => $this->faker->word,
         ]);
     }
-    
+
     #[Test]
     public function validation_passes_with_valid_data()
     {
@@ -124,7 +123,7 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
     }
-    
+
     #[Test]
     public function slug_generation_during_validation_preparation()
     {
@@ -144,12 +143,12 @@ class ProductRequestFeatureTest extends TestCase
         // Check that slug was generated
         $this->assertEquals('test-product-name', $productRequest->input('slug'));
     }
-    
+
     #[Test]
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'price', 'currency'];
-        
+
         foreach ($requiredFields as $field) {
             $data = $this->validProductData;
             unset($data[$field]);
@@ -161,7 +160,7 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has($field), "Should have error for missing {$field}");
         }
     }
-    
+
     #[Test]
     public function validation_fails_with_invalid_price_values()
     {
@@ -178,7 +177,7 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has('price'));
         }
     }
-    
+
     #[Test]
     public function validation_fails_with_invalid_currency_values()
     {
@@ -195,7 +194,7 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has('currency'));
         }
     }
-    
+
     #[Test]
     public function validation_passes_with_valid_currency_values()
     {
@@ -211,7 +210,7 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertFalse($validator->fails(), "Validation should pass for valid currency: {$validCurrency}");
         }
     }
-    
+
     #[Test]
     public function validation_fails_when_string_fields_exceed_max_length()
     {
@@ -231,7 +230,7 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has($field));
         }
     }
-    
+
     #[Test]
     public function validation_fails_when_name_is_too_short()
     {
@@ -244,7 +243,7 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('name'));
     }
-    
+
     #[Test]
     public function validation_passes_with_nullable_fields_empty()
     {
@@ -260,7 +259,7 @@ class ProductRequestFeatureTest extends TestCase
             $this->assertFalse($validator->fails(), "Validation should pass when nullable field {$field} is null");
         }
     }
-    
+
     #[Test]
     public function validation_fails_with_invalid_boolean_values()
     {
@@ -280,7 +279,7 @@ class ProductRequestFeatureTest extends TestCase
             }
         }
     }
-    
+
     #[Test]
     public function validation_passes_with_valid_boolean_values()
     {
@@ -299,7 +298,7 @@ class ProductRequestFeatureTest extends TestCase
             }
         }
     }
-    
+
     #[Test]
     public function foreign_key_validation()
     {
@@ -322,7 +321,7 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('category_id'));
     }
-    
+
     #[Test]
     public function image_upload_validation()
     {
@@ -356,7 +355,7 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails(), 'Validation should fail with non-image file');
         $this->assertTrue($validator->errors()->has('image'));
     }
-    
+
     #[Test]
     public function authorization_with_authenticated_user_via_http()
     {
@@ -367,7 +366,7 @@ class ProductRequestFeatureTest extends TestCase
 
         $this->assertTrue($productRequest->authorize());
     }
-    
+
     #[Test]
     public function authorization_fails_with_unauthenticated_user_via_http()
     {
@@ -377,7 +376,7 @@ class ProductRequestFeatureTest extends TestCase
 
         $this->assertFalse($productRequest->authorize());
     }
-    
+
     #[Test]
     public function slug_uniqueness_validation()
     {
@@ -394,7 +393,7 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails(), 'Validation should fail with duplicate slug');
         $this->assertTrue($validator->errors()->has('slug'));
     }
-    
+
     #[Test]
     public function validation_with_actual_http_request()
     {
@@ -404,10 +403,10 @@ class ProductRequestFeatureTest extends TestCase
 
         // We expect either success or redirect (depending on controller implementation)
         // but not validation errors
-        $this->assertNotEquals(422, $response->getStatusCode(), 
+        $this->assertNotEquals(422, $response->getStatusCode(),
             'Request should not fail with validation errors');
     }
-    
+
     #[Test]
     public function custom_attributes_are_applied()
     {
@@ -418,10 +417,10 @@ class ProductRequestFeatureTest extends TestCase
         $validator->setAttributeNames($request->attributes());
 
         $this->assertTrue($validator->fails());
-        
+
         // Check that error messages use custom attribute names
         $errors = $validator->errors();
-        
+
         // Since we can't easily test the exact translation output,
         // we verify that attributes() method is properly structured
         $attributes = $request->attributes();

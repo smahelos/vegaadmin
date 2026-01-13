@@ -12,6 +12,7 @@ return [
     'fields' => [
         'invoice_vs' => 'Rechnungsnummer',
         'invoice_vs_long' => 'Rechnungsnummer (VS):',
+        'invoice_number' => 'Rechnungsnummer',
         'invoice_ks' => 'Konstantsymbol',
         'invoice_ss' => 'Spezifisches Symbol',
         'issue_date' => 'Ausstellungsdatum',
@@ -23,7 +24,9 @@ return [
         'payment_amount' => 'Betrag',
         'payment_currency' => 'Währung',
         'name' => 'Name',
+        'supplier' => 'Lieferant',
         'supplier_id' => 'Lieferant',
+        'client' => 'Kunde',
         'client_id' => 'Kunde',
         'client_name' => 'Kundenname',
         'client_street' => 'Straße',
@@ -48,6 +51,8 @@ return [
         'invoice_vs_short' => 'VS',
         'invoice_items' => 'Rechnungspositionen',
         'invoice_note' => 'Anmerkung zur Rechnung',
+        'invoice_logo' => 'Logo der Rechnung',
+        'template' => 'PDF-Vorlage',
     ],
 
     'sections' => [
@@ -69,7 +74,7 @@ return [
 
     'actions' => [
         'create' => 'Rechnung erstellen',
-        'edit' => 'Bearbeiten',
+        'edit' => 'Regeln',
         'delete' => 'Rechnung löschen',
         'save' => 'Rechnung speichern',
         'cancel' => 'Abbrechen',
@@ -82,7 +87,7 @@ return [
         'preview_pdf' => 'PDF-Vorschau',
         'send' => 'Rechnung senden',
         'pay' => 'Bezahlen',
-        'mark_as_paid' => 'Bezahlt markieren',
+        'mark_as_paid' => 'Bezahlt mark.',
         'duplicate' => 'Duplizieren',
         'send_email' => 'Per E-Mail senden',
         'show' => 'Rechnung anzeigen',
@@ -100,19 +105,37 @@ return [
         'invoice_items' => 'Rechnungspositionen',
         'empty' => 'Sie haben noch keine Rechnungen.',
         'empty_message' => 'Erstellen Sie Ihre erste Rechnung, indem Sie auf die Schaltfläche unten klicken.',
+        'create_free_invoice' => 'Kostenlose Rechnung erstellen',
     ],
 
     'labels' => [
         'created_at' => 'Ausstellungsdatum',
+        'total_without_tax' => 'Gesamt ohne MwSt',
+        'total_tax' => 'MwSt',
+        'upload_logo' => 'Logo hochladen',
+        'duplicate_item' => 'Duplikat der Position',
+        'remove_item' => 'Position entfernen',
+        'company_logo' => 'Logo der Gesellschaft',
+        'template_settings' => 'Vorlagen-Einstellungen',
+        'select_template' => 'Vorlage auswählen',
+    ],
+
+    'templates' => [
+        'default' => 'Standard',
+        'modern' => 'Modern',
+        'minimal' => 'Minimal',
     ],
 
     'messages' => [
+        'id_required' => 'Rechnungs-ID ist erforderlich.',
+        'not_found' => 'Rechnung nicht gefunden.',
         'created' => 'Rechnung wurde erfolgreich erstellt.',
         'updated' => 'Rechnung wurde erfolgreich aktualisiert.',
         'deleted' => 'Rechnung wurde erfolgreich gelöscht.',
         'deleted_guest' => 'Rechnung wurde erfolgreich gelöscht.',
         'confirm_delete' => 'Möchten Sie diese Rechnung wirklich löschen?',
         'create_error' => 'Beim Erstellen der Rechnung ist ein Fehler aufgetreten: ',
+        'validation_failed' => 'Die Validierung ist fehlgeschlagen. Bitte überprüfen Sie die Eingabefelder.',
         'update_error' => 'Beim Aktualisieren der Rechnung ist ein Fehler aufgetreten: ',
         'update_error_unauthorized' => 'Sie sind nicht berechtigt, diese Rechnung zu bearbeiten.',
         'delete_error' => 'Beim Löschen der Rechnung ist ein Fehler aufgetreten: ',
@@ -133,12 +156,23 @@ return [
         'invoice_sent' => 'Rechnung wurde erfolgreich gesendet.',
         'marked_as_paid' => 'Die Rechnung wurde als bezahlt markiert.',
         'status_not_found' => 'Status "bezahlt" wurde nicht gefunden.',
+        'no_image' => 'Kein Bild',
+        'no_invoices' => 'Keine Rechnungen gefunden.',
+        'no_invoices_description' => 'Starten Sie die Erstellung Ihrer ersten Rechnung.',
+        'template_set' => 'Die Vorlage der Rechnung wurde erfolgreich festgelegt.',
+        'limits_error' => 'Rechnungslimits können derzeit nicht geladen werden.',
+        'create_failed' => 'Rechnung konnte nicht erstellt werden.',
+        'update_failed' => 'Rechnung konnte nicht aktualisiert werden.',
+        'limit_exceeded' => 'Sie haben Ihr Rechnungslimit erreicht.',
+        'status_changed' => 'Rechnungsstatus wurde erfolgreich geändert.',
+        'expired' => 'Der Link zum Herunterladen der Rechnung ist abgelaufen. Bitte kontaktieren Sie den Aussteller, um einen neuen Link zu erhalten.',
     ],
 
     'placeholders' => [
         'select_client' => 'Erstellen Sie einen neuen Kunden oder wählen Sie aus...',
         'select_status' => 'Status auswählen...',
         'select_supplier' => 'Erstellen Sie einen neuen Lieferanten oder wählen Sie aus...',
+        'select_product' => 'Produkt auswählen...',
         'client_select' => 'Kunde auswählen...',
         'payment_method_select' => 'Zahlungsart auswählen',
         'due_in_select' => 'Zahlungsfrist auswählen',
@@ -155,10 +189,12 @@ return [
         'item_description' => 'Beschreibung',
         'item_price_complete' => 'Gesamt',
         'actions' => 'Aktionen',
+        'select_item_unit' => 'Einheit auswählen',
     ],
 
     'status' => [
         'invoice_statuses' => 'Rechnungsstatus',
+        'invoice_status' => 'Status der Rechnung',
         'sent' => 'Gesendet',
         'paid' => 'Bezahlt',
         'overdue' => 'Überfällig',
@@ -196,7 +232,7 @@ return [
         'field' => 'Feld',
         'value' => 'Wert',
     ],
-    
+
     'validation' => [
         // Grundlegende Rechnungsdaten
         'invoice_vs_required' => 'Rechnungsnummer (VS) ist erforderlich',
@@ -208,18 +244,21 @@ return [
         'currency_required' => 'Währung ist erforderlich',
         'issue_date_required' => 'Ausstellungsdatum ist erforderlich',
         'payment_status_required' => 'Zahlungsstatus ist erforderlich',
-        
+        'invoice_logo_file' => 'Logo der Rechnung ist erforderlich',
+        'invoice_logo_format' => 'Logo der Rechnung muss im Format JPEG, JPG, PNG, GIF oder SVG vorliegen',
+        'invoice_logo_size' => 'Logo der Rechnung darf nicht größer als :max kB sein',
+
         // Validierung des Ausstellers/Lieferanten
         'supplier_required_without' => 'Sie müssen entweder einen vorhandenen Lieferanten auswählen oder Daten für einen neuen Lieferanten eingeben',
         'supplier_name_required' => 'Lieferantenname ist erforderlich, wenn Sie keinen vorhandenen Lieferanten auswählen',
         'supplier_name_min' => 'Lieferantenname muss mindestens 3 Zeichen enthalten',
         'supplier_required' => 'Sie müssen zuerst einen Lieferanten auswählen oder einen neuen ausfüllen.',
-        
+
         // Validierung des Kunden/Empfängers
         'client_required_without' => 'Sie müssen entweder einen vorhandenen Kunden auswählen oder Daten für einen neuen Kunden eingeben',
         'client_name_required' => 'Kundenname ist erforderlich, wenn Sie keinen vorhandenen Kunden auswählen',
         'client_name_min' => 'Kundenname muss mindestens 3 Zeichen enthalten',
-        
+
         // Allgemeine Validierung der Adressdaten
         'name_required' => 'Rechnungsname ist erforderlich.',
         'street_required' => 'Straße ist erforderlich',
@@ -230,6 +269,15 @@ return [
         'client_city_required' => 'Kundenstadt ist erforderlich',
         'client_zip_required' => 'Kunden-PLZ ist erforderlich',
         'client_country_required' => 'Kundenland ist erforderlich',
+        'client_required' => 'Kunde ist erforderlich',
+        'user_required' => 'Benutzer ist erforderlich',
+
+        // Validierung der Rechnungspositionen
+        'amount_positive' => 'Sie müssen mindestens eine Rechnungsposition hinzufügen',
+        'invalid_swift' => 'SWIFT-Code ist ungültig',
+        'item_name_min' => 'Der Artikelname muss mindestens 3 Zeichen enthalten',
+        'invalid_iban' => 'IBAN ist ungültig',
+        'invalid_vat_id' => 'Umsatzsteuer-ID ist ungültig',
     ],
 
     'hints' => [
@@ -244,6 +292,8 @@ return [
         'payment_currency' => '',
         'status' => '',
         'invoice_text' => '',
+        'invoice_logo' => 'Laden Sie ein Logo hoch, das auf der Rechnung angezeigt werden soll (JPEG, PNG, GIF, SVG, max. 2MB)',
+        'template' => 'Wählen Sie eine Vorlage für die PDF-Rechnung aus',
     ],
 
     'reminders' => [
@@ -251,16 +301,16 @@ return [
         'upcoming_due_subject' => 'Hinweis auf bevorstehende Fälligkeit der Rechnung Nr. :number',
         'due_today_subject' => 'Rechnung Nr. :number ist heute fällig',
         'overdue_subject' => 'Hinweis auf überfällige Rechnung Nr. :number',
-        
+
         'upcoming_due_intro_supplier' => 'Wir möchten Sie daran erinnern, dass die Rechnung Nr. :number für den Kunden :client in :days Tagen fällig wird.',
         'upcoming_due_intro_client' => 'Wir möchten Sie daran erinnern, dass die Rechnung Nr. :number in :days Tagen fällig wird.',
-        
+
         'due_today_intro_supplier' => 'Die Rechnung Nr. :number für den Kunden :client ist heute fällig.',
         'due_today_intro_client' => 'Die Rechnung Nr. :number ist heute fällig.',
-        
+
         'overdue_intro_supplier' => 'Die Rechnung Nr. :number für den Kunden :client ist seit :days Tagen überfällig.',
         'overdue_intro_client' => 'Die Rechnung Nr. :number ist seit :days Tagen überfällig.',
-        
+
         'due_date_info' => 'Fälligkeitsdatum: :date',
         'due_date_today' => 'Fälligkeitsdatum: heute',
         'due_date_passed' => 'Fälligkeitsdatum: :date (überschritten)',
@@ -268,6 +318,10 @@ return [
         'view_invoice' => 'Rechnung anzeigen',
         'payment_request' => 'Bitte begleichen Sie diese Rechnung so bald wie möglich, um weitere Verzögerungen zu vermeiden.',
         'thank_you' => 'Vielen Dank für Ihre Zusammenarbeit.',
+    ],
+
+    'no_input_labels' => [
+        'current_invoice_logo' => 'Aktuelles Logo',
     ],
 
     'overdue_days' => ':days Tage überfällig',

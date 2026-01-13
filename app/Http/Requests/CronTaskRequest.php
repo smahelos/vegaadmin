@@ -24,17 +24,31 @@ class CronTaskRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => 'required|string|min:2|max:255',
             'command' => 'required|string|max:1000',
             'frequency' => 'required|string|in:daily,weekly,monthly,custom',
-            'custom_expression' => 'nullable|required_if:frequency,custom|string|max:100',
             'run_at' => 'nullable|date_format:H:i',
             'day_of_week' => 'nullable|integer|between:0,6',
             'day_of_month' => 'nullable|integer|between:1,31',
-            'is_active' => 'boolean',
+            'is_active' => 'sometimes|boolean',
             'description' => 'nullable|string|max:1000',
         ];
+
+        // Conditional cron expression rule mirroring admin complexity (basic 5-part cron validation)
+        $rules['custom_expression'] = [
+            'nullable', 'required_if:frequency,custom', 'string', 'max:100',
+            function ($attribute, $value, $fail) {
+                if ($this->input('frequency') === 'custom') {
+                    $pattern = '/^(\*|([0-5]?\d)([\-,\/][0-5]?\d)*) (\*|([01]?\d|2[0-3])([\-,\/][01]?\d|2[0-3])*) (\*|([1-9]|[12]\d|3[01])([\-,\/][1-9]|[12]\d|3[01])*) (\*|(1[0-2]|0?[1-9])([\-,\/](1[0-2]|0?[1-9]))*) (\*|([0-6])([\-,\/][0-6])*)$/';
+                    if (!is_string($value) || !preg_match($pattern, $value)) {
+                        $fail(__('admin.cron_tasks.validation.invalid_cron_expression'));
+                    }
+                }
+            }
+        ];
+
+        return $rules;
     }
 
     /**
@@ -45,15 +59,15 @@ class CronTaskRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => trans('cron_tasks.name'),
-            'command' => trans('cron_tasks.command'),
-            'frequency' => trans('cron_tasks.frequency'),
-            'custom_expression' => trans('cron_tasks.custom_expression'),
-            'run_at' => trans('cron_tasks.run_at'),
-            'day_of_week' => trans('cron_tasks.day_of_week'),
-            'day_of_month' => trans('cron_tasks.day_of_month'),
-            'is_active' => trans('cron_tasks.is_active'),
-            'description' => trans('cron_tasks.description'),
+            'name' => trans('admin.cron_tasks.fields.name'),
+            'command' => trans('admin.cron_tasks.fields.command'), // frontend command maps to admin command
+            'frequency' => trans('admin.cron_tasks.fields.frequency'),
+            'custom_expression' => trans('admin.cron_tasks.fields.custom_expression'),
+            'run_at' => trans('admin.cron_tasks.fields.run_at'),
+            'day_of_week' => trans('admin.cron_tasks.fields.day_of_week'),
+            'day_of_month' => trans('admin.cron_tasks.fields.day_of_month'),
+            'is_active' => trans('admin.cron_tasks.fields.is_active'),
+            'description' => trans('admin.cron_tasks.fields.description'),
         ];
     }
 
@@ -65,11 +79,22 @@ class CronTaskRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => trans('cron_tasks.validation.name_required'),
-            'command.required' => trans('cron_tasks.validation.command_required'),
-            'frequency.required' => trans('cron_tasks.validation.frequency_required'),
-            'frequency.in' => trans('cron_tasks.validation.frequency_invalid'),
-            'custom_expression.required_if' => trans('cron_tasks.validation.custom_expression_required'),
+            'name.required' => __('validation.required', ['attribute' => trans('admin.cron_tasks.fields.name')]),
+            'name.min' => __('validation.min.string', ['attribute' => trans('admin.cron_tasks.fields.name'), 'min' => 2]),
+            'name.max' => __('validation.max.string', ['attribute' => trans('admin.cron_tasks.fields.name'), 'max' => 255]),
+            'command.required' => __('validation.required', ['attribute' => trans('admin.cron_tasks.fields.command')]),
+            'command.max' => __('validation.max.string', ['attribute' => trans('admin.cron_tasks.fields.command'), 'max' => 1000]),
+            'frequency.required' => __('validation.required', ['attribute' => trans('admin.cron_tasks.fields.frequency')]),
+            'frequency.in' => __('validation.in', ['attribute' => trans('admin.cron_tasks.fields.frequency')]),
+            'custom_expression.required_if' => __('validation.required', ['attribute' => trans('admin.cron_tasks.fields.custom_expression')]),
+            'custom_expression.max' => __('validation.max.string', ['attribute' => trans('admin.cron_tasks.fields.custom_expression'), 'max' => 100]),
+            'run_at.date_format' => __('validation.date_format', ['attribute' => trans('admin.cron_tasks.fields.run_at'), 'format' => 'H:i']),
+            'day_of_week.integer' => __('validation.integer', ['attribute' => trans('admin.cron_tasks.fields.day_of_week')]),
+            'day_of_week.between' => __('validation.between.numeric', ['attribute' => trans('admin.cron_tasks.fields.day_of_week'), 'min' => 0, 'max' => 6]),
+            'day_of_month.integer' => __('validation.integer', ['attribute' => trans('admin.cron_tasks.fields.day_of_month')]),
+            'day_of_month.between' => __('validation.between.numeric', ['attribute' => trans('admin.cron_tasks.fields.day_of_month'), 'min' => 1, 'max' => 31]),
+            'is_active.boolean' => __('validation.boolean', ['attribute' => trans('admin.cron_tasks.fields.is_active')]),
+            'description.max' => __('validation.max.string', ['attribute' => trans('admin.cron_tasks.fields.description'), 'max' => 1000]),
         ];
     }
 }

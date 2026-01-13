@@ -5,9 +5,12 @@ namespace Tests\Feature\Http\Requests\Admin;
 use App\Http\Requests\Admin\UserRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for UserRequest class.
@@ -15,9 +18,10 @@ use Tests\TestCase;
  */
 class UserRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesAdminTestEnvironment;
 
-    private User $user;
+    protected User $adminUser;
+    protected User $regularUser;
 
     /**
      * Set up test environment.
@@ -26,7 +30,8 @@ class UserRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        // Set up admin test environment with roles and permissions
+        $this->setUpAdminTestEnvironment();
     }
 
     /**
@@ -47,7 +52,8 @@ class UserRequestFeatureTest extends TestCase
             'city' => 'Prague',
             'zip' => '12000',
             'country' => 'Czech Republic',
-            'phone' => 123456789,
+            // Phone must be string to satisfy string + regex rule
+            'phone' => '123456789',
             'ico' => '12345678',
             'dic' => 'CZ12345678',
         ];
@@ -305,7 +311,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_when_authenticated(): void
     {
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $request = new UserRequest();
         $this->assertTrue($request->authorize());
@@ -335,6 +341,13 @@ class UserRequestFeatureTest extends TestCase
             'email' => __('users.fields.email'),
             'password' => __('users.fields.password'),
             'password_confirmation' => __('users.fields.password_confirmation'),
+            'street' => __('users.fields.street'),
+            'city' => __('users.fields.city'),
+            'zip' => __('users.fields.zip'),
+            'country' => __('users.fields.country'),
+            'phone' => __('users.fields.phone'),
+            'ico' => __('users.fields.ico'),
+            'dic' => __('users.fields.dic'),
         ];
 
         $this->assertEquals($expectedAttributes, $attributes);
@@ -359,6 +372,11 @@ class UserRequestFeatureTest extends TestCase
             'password.confirmed' => __('users.validation.password_confirmed'),
             'password_confirmation.required' => __('users.validation.password_confirmation_required'),
             'password_confirmation.required_with' => __('users.validation.password_confirmation_required'),
+            'street.required' => __('users.validation.street_required'),
+            'city.required' => __('users.validation.city_required'),
+            'zip.required' => __('users.validation.zip_required'),
+            'country.required' => __('users.validation.country_required'),
+            'phone.regex' => __('users.validation.phone_format'),
         ];
 
         $this->assertEquals($expectedMessages, $messages);
@@ -446,5 +464,179 @@ class UserRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('name.required', $messages);
         $this->assertArrayHasKey('email.required', $messages);
         $this->assertArrayHasKey('password.required', $messages);
+    }
+
+    /**
+     * Test phone regex accepts various valid formats.
+     */
+    #[Test]
+    public function validation_accepts_valid_phone_formats(): void
+    {
+        $request = new UserRequest();
+        $request->setMethod('POST');
+
+        $validFormats = [
+            '+420 123 456 789',
+            '+1-202-555-0178',
+            '(202) 555 0178',
+            '00420 123456789', // Still digits only, allowed
+            '123-456-789'
+        ];
+
+        foreach ($validFormats as $phone) {
+            $data = [
+                'name' => 'Phone User',
+                'email' => 'phone_' . uniqid() . '@example.com',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'street' => 'Street 1',
+                'city' => 'City',
+                'zip' => '10000',
+                'country' => 'Czech Republic',
+                'phone' => $phone,
+            ];
+            $validator = Validator::make($data, $request->rules());
+            $this->assertTrue($validator->passes(), "Phone format should be valid: {$phone}");
+        }
+    }
+
+    /**
+     * Test phone regex rejects invalid formats (too short / letters / symbols).
+     */
+    #[Test]
+    public function validation_fails_for_invalid_phone_formats(): void
+    {
+        $request = new UserRequest();
+        $request->setMethod('POST');
+
+        $invalidFormats = [
+            '12',            // too short (<3)
+            'abc123',        // letters
+            '123**456',      // invalid symbols
+            '+',             // only plus
+            '()'             // only parentheses
+        ];
+
+        foreach ($invalidFormats as $phone) {
+            $data = [
+                'name' => 'Bad Phone User',
+                'email' => 'badphone_' . uniqid() . '@example.com',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'street' => 'Street 1',
+                'city' => 'City',
+                'zip' => '10000',
+                'country' => 'Czech Republic',
+                'phone' => $phone,
+            ];
+            $validator = Validator::make($data, $request->rules());
+            $this->assertFalse($validator->passes(), "Phone format should be invalid: {$phone}");
+            $this->assertArrayHasKey('phone', $validator->errors()->toArray());
+        }
+    }
+
+    /**
+     * Test email uniqueness on create.
+     */
+    #[Test]
+    public function validation_fails_when_email_not_unique_on_create(): void
+    {
+        $existing = User::factory()->create(['email' => 'duplicate@example.com']);
+
+        $request = new UserRequest();
+        $request->setMethod('POST');
+
+        $data = [
+            'name' => 'Dup User',
+            'email' => 'duplicate@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'street' => 'Street 1',
+            'city' => 'City',
+            'zip' => '10000',
+            'country' => 'Czech Republic',
+        ];
+
+        $validator = Validator::make($data, $request->rules());
+        $this->assertFalse($validator->passes());
+        $this->assertArrayHasKey('email', $validator->errors()->toArray());
+    }
+
+    /**
+     * Test unique email rule ignores current record on update.
+     */
+    #[Test]
+    public function validation_passes_when_email_unchanged_on_update(): void
+    {
+        $user = User::factory()->create(['email' => 'keep@example.com']);
+
+        $request = new UserRequest();
+        $request->setMethod('PUT');
+        // Simulate route/model id presence
+        $request->merge(['id' => $user->id]);
+
+        $data = [
+            'name' => 'Keep Email',
+            'email' => 'keep@example.com',
+            'street' => 'Street 1',
+            'city' => 'City',
+            'zip' => '10000',
+            'country' => 'Czech Republic',
+        ];
+
+        $validator = Validator::make($data, $request->rules());
+        $this->assertTrue($validator->passes());
+    }
+
+    /**
+     * Test password confirmation required when password provided on update.
+     */
+    #[Test]
+    public function validation_fails_when_password_confirmation_missing_on_update(): void
+    {
+        $user = User::factory()->create();
+        $request = new UserRequest();
+        $request->setMethod('PUT');
+        $request->merge(['id' => $user->id]);
+
+        $data = [
+            'name' => 'Pwd Update',
+            'email' => 'pwdupdate_' . uniqid() . '@example.com',
+            'password' => 'newpassword123',
+            // missing password_confirmation
+            'street' => 'Street 1',
+            'city' => 'City',
+            'zip' => '10000',
+            'country' => 'Czech Republic',
+        ];
+
+        $validator = Validator::make($data, $request->rules());
+        $this->assertFalse($validator->passes());
+        $this->assertArrayHasKey('password_confirmation', $validator->errors()->toArray());
+    }
+
+    /**
+     * Test password confirmation required when password provided on create.
+     */
+    #[Test]
+    public function validation_fails_when_password_confirmation_missing_on_create(): void
+    {
+        $request = new UserRequest();
+        $request->setMethod('POST');
+
+        $data = [
+            'name' => 'Pwd Create',
+            'email' => 'pwdcreate_' . uniqid() . '@example.com',
+            'password' => 'password123',
+            // missing password_confirmation
+            'street' => 'Street 1',
+            'city' => 'City',
+            'zip' => '10000',
+            'country' => 'Czech Republic',
+        ];
+
+        $validator = Validator::make($data, $request->rules());
+        $this->assertFalse($validator->passes());
+        $this->assertArrayHasKey('password_confirmation', $validator->errors()->toArray());
     }
 }

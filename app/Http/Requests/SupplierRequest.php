@@ -2,19 +2,27 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\ValidationException;
 
-class SupplierRequest extends FormRequest
+class SupplierRequest extends BaseEntityRequest
 {
     /**
-     * Determine if the user is authorized to make this request
-     *
-     * @return bool
+     * Get the entity type for limit checking
      */
-    public function authorize(): bool
+    protected function getEntityType(): string
     {
-        return Auth::check();
+        return 'supplier';
+    }
+
+    /**
+     * Get required permission for supplier operations
+     */
+    protected function getRequiredPermission(): string
+    {
+        return 'frontend.can_create_edit_supplier';
     }
 
     /**
@@ -24,7 +32,9 @@ class SupplierRequest extends FormRequest
      */
     public function rules(): array
     {
+        $maxFileSize = Config::get('file_upload.contexts.supplier_logo.max_kb', 2048);
         $rules = [
+            'supplier_id' => 'nullable|integer',
             'name' => 'required|string|max:255',
             'shortcut' => 'nullable|string|max:50',
             'phone' => 'required|string|max:255',
@@ -35,8 +45,9 @@ class SupplierRequest extends FormRequest
             'ico' => 'nullable|string|max:20',
             'dic' => 'nullable|string|max:30',
             'description' => 'nullable|string',
+            'supplier_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize,
             'is_default' => 'nullable|boolean',
-            
+
             // Bank account details
             'account_number' => 'nullable|string|max:50',
             'bank_code' => 'nullable|required_with:account_number|string|max:10',
@@ -62,8 +73,41 @@ class SupplierRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            //
+            'name' => __('suppliers.fields.name'),
+            'email' => __('suppliers.fields.email'),
+            'phone' => __('suppliers.fields.phone'),
+            'street' => __('suppliers.fields.street'),
+            'city' => __('suppliers.fields.city'),
+            'zip' => __('suppliers.fields.zip'),
+            'country' => __('suppliers.fields.country'),
+            'ico' => __('suppliers.fields.ico'),
+            'dic' => __('suppliers.fields.dic'),
+            'shortcut' => __('suppliers.fields.shortcut'),
+            'description' => __('suppliers.fields.description'),
+            'supplier_logo' => __('suppliers.fields.supplier_logo'),
+            'is_default' => __('suppliers.fields.is_default'),
+            'account_number' => __('suppliers.fields.account_number'),
+            'bank_code' => __('suppliers.fields.bank_code'),
+            'iban' => __('suppliers.fields.iban'),
+            'swift' => __('suppliers.fields.swift'),
+            'bank_name' => __('suppliers.fields.bank_name'),
         ];
+    }
+
+    /**
+     * Handle a failed validation attempt.
+     *
+     * @param \Illuminate\Contracts\Validation\Validator $validator
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    protected function failedValidation(Validator $validator)
+    {
+        throw new ValidationException($validator,
+            redirect()->back()
+                ->withErrors($validator->errors())
+                ->withInput()
+                ->with('error', trans('suppliers.messages.validation_failed'))
+        );
     }
 
     /**
@@ -83,6 +127,10 @@ class SupplierRequest extends FormRequest
             'zip.required' => __('suppliers.validation.zip_required'),
             'country.required' => __('suppliers.validation.country_required'),
             'ico.max' => __('suppliers.validation.ico_format'),
+            'supplier_logo.file' => __('suppliers.validation.supplier_logo_file'),
+            'supplier_logo.image' => __('suppliers.validation.supplier_logo_format'),
+            'supplier_logo.mimes' => __('suppliers.validation.supplier_logo_format'),
+            'supplier_logo.max' => __('suppliers.validation.supplier_logo_size'),
 
             // Bank account validation messages
             'account_number.max' => __('suppliers.validation.account_number_format'),

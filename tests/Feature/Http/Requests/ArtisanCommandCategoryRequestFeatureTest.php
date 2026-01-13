@@ -6,20 +6,23 @@ use App\Http\Requests\ArtisanCommandCategoryRequest;
 use App\Models\ArtisanCommandCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
  * Feature tests for ArtisanCommandCategoryRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests artisan command category validation scenarios, authorization, and validation with database constraints
  */
 class ArtisanCommandCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected User $user;
     protected array $validCategoryData;
@@ -34,9 +37,9 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // Create test user
-        $this->user = User::factory()->create();
-        
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
         // Set up valid category data
         $this->setupValidCategoryData();
     }
@@ -68,7 +71,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'slug'];
-        
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validCategoryData;
             unset($invalidData[$field]);
@@ -225,7 +228,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     public function validation_passes_with_boolean_values_for_is_active()
     {
         $booleanValues = [true, false, 1, 0, '1', '0'];
-        
+
         foreach ($booleanValues as $value) {
             $validData = $this->validCategoryData;
             $validData['is_active'] = $value;
@@ -244,7 +247,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $this->actingAs($this->user);
 
         $request = new ArtisanCommandCategoryRequest();
-        
+
         $this->assertTrue($request->authorize());
     }
 
@@ -252,7 +255,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     public function authorization_fails_when_not_authenticated()
     {
         $request = new ArtisanCommandCategoryRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
@@ -312,7 +315,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             ['name' => 'Name-with-Dashes', 'slug' => 'name-with-dashes'],
             ['name' => 'Name_with_Underscores', 'slug' => 'name_with_underscores'],
         ];
-        
+
         foreach ($stringTestCases as $index => $testCase) {
             $validData = array_merge($this->validCategoryData, $testCase);
             $validData['slug'] = $testCase['slug'] . '-' . $index; // Make slug unique
@@ -322,5 +325,27 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
 
             $this->assertFalse($validator->fails(), "Validation should pass for name: {$testCase['name']}");
         }
+    }
+
+    #[Test]
+    public function slug_is_auto_generated_when_missing()
+    {
+        $data = [
+            'name' => 'Auto Slug Name',
+            // slug omitted
+        ];
+
+        $request = new ArtisanCommandCategoryRequest();
+        $reflection = new \ReflectionClass($request);
+        $method = $reflection->getMethod('prepareForValidation');
+        $method->setAccessible(true);
+        $request->merge($data);
+        $method->invoke($request);
+
+        $this->assertNotEmpty($request->slug);
+        $this->assertEquals('auto-slug-name', $request->slug);
+
+        $validator = Validator::make(['name' => $data['name'], 'slug' => $request->slug], $request->rules(), $request->messages());
+        $this->assertFalse($validator->fails());
     }
 }

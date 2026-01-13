@@ -12,6 +12,8 @@ return [
     'fields' => [
         'invoice_vs' => 'Invoice Number',
         'invoice_vs_long' => 'Invoice Number (VS):',
+        // Added aliases for tests expecting generic keys
+        'invoice_number' => 'Invoice Number',
         'invoice_ks' => 'Constant Symbol',
         'invoice_ss' => 'Specific Symbol',
         'issue_date' => 'Issue Date',
@@ -24,7 +26,9 @@ return [
         'payment_currency' => 'Currency',
         'name' => 'Name',
         'supplier_id' => 'Supplier',
+        'supplier' => 'Supplier',
         'client_id' => 'Client',
+        'client' => 'Client',
         'client_name' => 'Client Name',
         'client_street' => 'Street',
         'client_city' => 'City',
@@ -48,6 +52,8 @@ return [
         'invoice_vs_short' => 'VS',
         'invoice_items' => 'Invoice items',
         'invoice_note' => 'Invoice note',
+        'invoice_logo' => 'Invoice Logo',
+        'template' => 'PDF Template',
     ],
 
     'sections' => [
@@ -100,19 +106,37 @@ return [
         'invoice_items' => 'Invoice Items',
         'empty' => 'You don’t have any invoices yet.',
         'empty_message' => 'Create your first invoice by clicking the button below.',
+        'create_free_invoice' => 'Create Free Invoice',
     ],
 
     'labels' => [
         'created_at' => 'Issue Date',
+        'total_without_tax' => 'Total without VAT',
+        'total_tax' => 'VAT',
+        'upload_logo' => 'Upload Logo',
+        'duplicate_item' => 'Duplicate Item',
+        'remove_item' => 'Remove Item',
+        'company_logo' => 'Company Logo',
+        'template_settings' => 'Template Settings',
+        'select_template' => 'Select Template',
+    ],
+
+    'templates' => [
+        'default' => 'Standard',
+        'modern' => 'Modern',
+        'minimal' => 'Minimal',
     ],
 
     'messages' => [
+        'id_required' => 'Invoice ID is required.',
+        'not_found' => 'Invoice not found.',
         'created' => 'Invoice was successfully created.',
         'updated' => 'Invoice was successfully updated.',
         'deleted' => 'Invoice was successfully deleted.',
         'deleted_guest' => 'Invoice was successfully deleted.',
         'confirm_delete' => 'Are you sure you want to delete this invoice?',
         'create_error' => 'Error creating invoice: ',
+        'validation_failed' => 'Validation failed. Please check the input fields.',
         'update_error' => 'Error updating invoice: ',
         'update_error_unauthorized' => 'You are not authorized to edit this invoice.',
         'delete_error' => 'Error deleting invoice: ',
@@ -133,6 +157,16 @@ return [
         'invoice_sent' => 'Invoice was successfully sent.',
         'marked_as_paid' => 'Invoice has been marked as paid.',
         'status_not_found' => 'Status "paid" not found.',
+        'no_image' => 'No image',
+        'no_invoices' => 'You don’t have any invoices yet.',
+        'no_invoices_description' => 'Start creating your first invoice.',
+        'template_set' => 'Invoice template has been successfully set.',
+        'limits_error' => 'Unable to load invoice limits at this moment.',
+        'create_failed' => 'Failed to create invoice.',
+        'update_failed' => 'Failed to update invoice.',
+        'limit_exceeded' => 'You have reached your invoice limit.',
+        'status_changed' => 'Invoice status was successfully changed.',
+        'expired' => 'Invoice link has expired, please contact the issuer for a new link.',
     ],
 
     'placeholders' => [
@@ -140,6 +174,7 @@ return [
         'select_status' => 'Select status...',
         'select_supplier' => 'Create a new supplier or select...',
         'client_select' => 'Select client...',
+        'select_product' => 'Select product...',
         'payment_method_select' => 'Select payment method',
         'due_in_select' => 'Select payment terms',
         'suggested_number_desc' => 'You can change the suggested invoice number according to your needs',
@@ -159,6 +194,7 @@ return [
 
     'status' => [
         'invoice_statuses' => 'Invoice Statuses',
+        'invoice_status' => 'Invoice Status',
         'sent' => 'Sent',
         'paid' => 'Paid',
         'overdue' => 'Overdue',
@@ -208,18 +244,21 @@ return [
         'currency_required' => 'Currency is required',
         'issue_date_required' => 'Issue date is required',
         'payment_status_required' => 'Payment status is required',
-        
+        'invoice_logo_file' => 'Invoice logo must be a valid file',
+        'invoice_logo_format' => 'Invoice logo must be an image (jpeg, jpg, png, gif, svg)',
+        'invoice_logo_size' => 'Invoice logo size must not exceed :max kB',
+
         // Supplier validation
         'supplier_required_without' => 'You must either select an existing supplier or enter details for a new supplier',
         'supplier_name_required' => 'Supplier name is required if you don\'t select an existing supplier',
         'supplier_name_min' => 'Supplier name must contain at least 3 characters',
         'supplier_required' => 'You must first select a supplier or fill in details for a new supplier.',
-        
+
         // Client validation
         'client_required_without' => 'You must either select an existing client or enter details for a new client',
         'client_name_required' => 'Client name is required if you don\'t select an existing client',
         'client_name_min' => 'Client name must contain at least 3 characters',
-        
+
         // General address validation
         'name_required' => 'Invoice name is required.',
         'street_required' => 'Street is required',
@@ -230,6 +269,15 @@ return [
         'client_city_required' => 'Client city is required',
         'client_zip_required' => 'Client ZIP code is required',
         'client_country_required' => 'Client country is required',
+        'client_required' => 'Client is required',
+        'user_required' => 'User is required',
+
+        // Validation of invoice items
+        'amount_positive' => 'You must add at least one invoice item',
+        'invalid_swift' => 'SWIFT code is invalid',
+        'item_name_min' => 'Item name must contain at least 3 characters',
+        'invalid_iban' => 'IBAN is invalid',
+        'invalid_vat_id' => 'VAT ID is invalid',
     ],
 
     'hints' => [
@@ -244,23 +292,25 @@ return [
         'payment_currency' => '',
         'status' => '',
         'invoice_text' => '',
+        'invoice_logo' => 'Upload your invoice logo (max 2MB, formats: jpeg, jpg, png, gif, svg)',
+        'template' => 'Select a template for PDF invoice generation',
     ],
-    
+
     'reminders' => [
         'greeting' => 'Hello, :name,',
         'upcoming_due_subject' => 'Reminder: Upcoming due date for Invoice No. :number',
         'due_today_subject' => 'Invoice No. :number is due today',
         'overdue_subject' => 'Overdue Invoice No. :number',
-        
+
         'upcoming_due_intro_supplier' => 'This is a reminder that Invoice No. :number issued to client :client will be due in :days days.',
         'upcoming_due_intro_client' => 'This is a reminder that Invoice No. :number will be due in :days days.',
-        
+
         'due_today_intro_supplier' => 'Invoice No. :number issued to client :client is due today.',
         'due_today_intro_client' => 'Invoice No. :number is due today.',
-        
+
         'overdue_intro_supplier' => 'Invoice No. :number issued to client :client is overdue by :days days.',
         'overdue_intro_client' => 'Invoice No. :number is overdue by :days days.',
-        
+
         'due_date_info' => 'Due date: :date',
         'due_date_today' => 'Due date: today',
         'due_date_passed' => 'Due date: :date (exceeded)',
@@ -268,6 +318,10 @@ return [
         'view_invoice' => 'View invoice',
         'payment_request' => 'Please settle this invoice as soon as possible to avoid further delays.',
         'thank_you' => 'Thank you for your cooperation.',
+    ],
+
+    'no_input_labels' => [
+        'current_invoice_logo' => 'Current logo',
     ],
 
     'overdue_days' => ':days days overdue',

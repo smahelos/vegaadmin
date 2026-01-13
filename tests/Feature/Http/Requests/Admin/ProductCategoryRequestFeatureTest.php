@@ -12,6 +12,9 @@ use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
+use App\Models\EntityLimit;
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 
 /**
  * Feature test for ProductCategoryRequest class.
@@ -19,10 +22,13 @@ use Tests\TestCase;
  */
 class ProductCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesAdminTestEnvironment;
 
-    private User $user;
+    protected User $user;
+    protected User $regularUser;
+    protected User $adminUser;
     private ProductCategory $productCategory;
+    private UniversalLimitService $limitService;
 
     /**
      * Set up test environment.
@@ -30,74 +36,31 @@ class ProductCategoryRequestFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->user = User::factory()->create();
+
+        // Set up admin test environment with roles and permissions
+        $this->setUpAdminTestEnvironment();
+
         $this->productCategory = ProductCategory::factory()->create();
-        
-        // Create necessary permissions for testing
-        $this->createRequiredPermissions();
-        
+        $this->limitService = app(UniversalLimitService::class);
+
+        // Provide generous limit for default tests
+        EntityLimit::factory()->create([
+            'permission_name' => 'can_create_edit_product',
+            'entity_type' => 'product_category',
+            'limit_value' => 100,
+            'period_type' => 'monthly',
+            'metric_type' => 'count',
+            'is_active' => true,
+        ]);
+
         // Define test routes
-        Route::post('/admin/product-category', function (ProductCategoryRequest $request) {
+        Route::post('/test-product-category', function (ProductCategoryRequest $request) {
             return response()->json(['success' => true]);
         })->middleware('web');
-        
-        Route::put('/admin/product-category/{id}', function (ProductCategoryRequest $request, $id) {
+
+        Route::put('/test-product-category/{id}', function (ProductCategoryRequest $request, $id) {
             return response()->json(['success' => true]);
         })->middleware('web');
-    }
-
-    /**
-     * Create required permissions for testing.
-     */
-    private function createRequiredPermissions(): void
-    {
-        // Define all permissions required for admin operations and navigation
-        $permissions = [
-            // User management permissions
-            'can_create_edit_user',
-            
-            // Business operations permissions
-            'can_create_edit_invoice',
-            'can_create_edit_client',
-            'can_create_edit_supplier',
-            
-            // Financial management permissions
-            'can_create_edit_expense',
-            'can_create_edit_tax',
-            'can_create_edit_bank',
-            'can_create_edit_payment_method',
-            
-            // Inventory management permissions
-            'can_create_edit_product',
-            
-            // System administration permissions
-            'can_create_edit_command',
-            'can_create_edit_cron_task',
-            'can_create_edit_status',
-            'can_configure_system',
-            
-            // Basic backpack access
-            'backpack.access',
-        ];
-
-        // Create all permissions for backpack guard
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate([
-                'name' => $permission, 
-                'guard_name' => 'backpack'
-            ]);
-        }
-
-        // Give the user all necessary permissions for the backpack guard
-        foreach ($permissions as $permissionName) {
-            $permission = Permission::where('name', $permissionName)
-                ->where('guard_name', 'backpack')
-                ->first();
-            if ($permission) {
-                $this->user->givePermissionTo($permission);
-            }
-        }
     }
 
     #[Test]
@@ -186,7 +149,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
     public function validation_fails_with_duplicate_slug(): void
     {
         $existingCategory = ProductCategory::factory()->create(['slug' => 'existing-slug']);
-        
+
         $invalidData = [
             'name' => 'Valid Name',
             'slug' => 'existing-slug', // Already exists
@@ -203,7 +166,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
     public function validation_passes_with_same_slug_for_update(): void
     {
         $existingCategory = ProductCategory::factory()->create(['slug' => 'existing-slug']);
-        
+
         $validData = [
             'name' => 'Updated Name',
             'slug' => 'existing-slug', // Same slug for update should be valid
@@ -292,19 +255,64 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        $this->actingAs($this->user, 'backpack')
-             ->withoutMiddleware()
-             ->postJson('/admin/product-category', [
+        $this->actingAs($this->adminUser, 'backpack')
+             ->postJson('/test-product-category', [
                  'name' => 'Test Category',
              ])
              ->assertStatus(200);
     }
 
     #[Test]
+    public function authorization_fails_for_authenticated_user_without_permission(): void
+    {
+        $userNoPerm = User::factory()->create();
+        $this->actingAs($userNoPerm, 'backpack');
+
+        $this->postJson('/test-product-category', [
+            'name' => 'No Perm Category',
+        ])->assertStatus(403);
+    }
+
+    #[Test]
+    public function category_creation_respects_global_entity_limits(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        // Strict limit 1
+        EntityLimit::where('entity_type','product_category')->update(['limit_value'=>1]);
+
+        $this->postJson('/test-product-category', [
+            'name' => 'First Cat',
+        ])->assertStatus(200);
+
+        // Manually record usage so second authorize fails
+        $this->limitService->recordUsage($this->adminUser->id,'product_category','count','monthly','backpack');
+
+        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
+        $request = new class extends ProductCategoryRequest { public function rules(): array { return []; } };
+        $request->replace(['name'=>'Second Cat']);
+        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> null]);
+        $request->setMethod('POST');
+        $request->authorize();
+    }
+
+    #[Test]
+    public function category_update_bypasses_limit_checks(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+    EntityLimit::where('entity_type','product_category')->update(['limit_value'=>0]);
+        $this->limitService->recordUsage($this->adminUser->id,'product_category','count','monthly','backpack');
+
+        $request = new class extends ProductCategoryRequest { public function rules(): array { return []; } };
+        $request->replace(['name'=>'Updated Cat']);
+        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> 'existing-cat']);
+        $request->setMethod('PUT');
+        $this->assertTrue($request->authorize());
+    }
+
+    #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->withoutMiddleware()
-             ->postJson('/admin/product-category', [
+        $this->postJson('/test-product-category', [
                  'name' => 'Test Category',
              ])
              ->assertStatus(403);
@@ -319,11 +327,11 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('name', $attributes);
         $this->assertArrayHasKey('slug', $attributes);
         $this->assertArrayHasKey('description', $attributes);
-        
+
         // Check that translations are being called
-        $this->assertEquals(trans('admin.name'), $attributes['name']);
-        $this->assertEquals(trans('admin.slug'), $attributes['slug']);
-        $this->assertEquals(trans('admin.description'), $attributes['description']);
+        $this->assertEquals(trans('admin.product_categories.name'), $attributes['name']);
+        $this->assertEquals(trans('admin.product_categories.slug'), $attributes['slug']);
+        $this->assertEquals(trans('admin.product_categories.description'), $attributes['description']);
     }
 
     #[Test]

@@ -2,17 +2,24 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
-class ProductRequest extends FormRequest
+class ProductRequest extends BaseEntityRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Get the entity type for limit checking
      */
-    public function authorize(): bool
+    protected function getEntityType(): string
     {
-        // Only allow logged in users to create and update products
-        return backpack_auth()->check();
+        return 'product';
+    }
+
+    /**
+     * Get required permission for product operations
+     */
+    protected function getRequiredPermission(): string
+    {
+        return 'can_create_edit_product';
     }
 
     /**
@@ -20,9 +27,9 @@ class ProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => 'required|min:2|max:255',
-            'slug' => 'nullable|max:255|unique:products,slug,' . $this->id,
+        $rules = [
+            'name' => 'required|string|min:2|max:255',
+            'slug' => 'nullable|string|max:255|unique:products,slug,' . $this->id,
             'user_id' => 'required|exists:users,id',
             'price' => 'required|numeric|min:0',
             'tax_id' => 'nullable|exists:taxes,id',
@@ -32,6 +39,14 @@ class ProductRequest extends FormRequest
             'is_default' => 'boolean',
             'image' => 'nullable|image|max:2048',
         ];
+
+        // For updates, slug becomes sometimes (optional) but must remain unique in products table ignoring current id
+        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
+            $id = $this->route('id') ?: $this->id;
+            $rules['slug'] = 'sometimes|string|max:255|unique:products,slug,' . $id;
+        }
+
+        return $rules;
     }
 
     /**
@@ -73,5 +88,20 @@ class ProductRequest extends FormRequest
             'image.image' => trans('admin.products.validation.image_format'),
             'image.max' => trans('admin.products.validation.image_size'),
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    public function prepareForValidation(): void
+    {
+        // Generate slug if not provided
+        if (empty($this->slug)) {
+            $this->merge([
+                'slug' => Str::slug($this->name),
+            ]);
+        }
     }
 }

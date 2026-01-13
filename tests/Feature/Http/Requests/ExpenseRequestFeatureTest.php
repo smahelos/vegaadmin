@@ -9,26 +9,28 @@ use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for ExpenseRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests expense validation scenarios, authorization, and validation with database constraints
  */
 class ExpenseRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected User $user;
+    protected User $adminUser;
     protected User $targetUser;
     protected Supplier $supplier;
     protected ExpenseCategory $category;
@@ -46,37 +48,20 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // Create permissions and user
-        $this->createPermissionsAndUser();
-        
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        $permission = Permission::where('name', 'frontend.can_create_edit_expense')
+            ->where('guard_name', 'web')
+            ->first();
+
+        $this->user->givePermissionTo($permission);
+
         // Create related models
         $this->createRelatedModels();
-        
+
         // Set up valid expense data
         $this->setupValidExpenseData();
-    }
-
-    /**
-     * Create necessary permissions and test user
-     */
-    private function createPermissionsAndUser(): void
-    {
-        // Create permissions
-        Permission::firstOrCreate(['name' => 'can_create_edit_expense', 'guard_name' => 'web']);
-        
-        // Create role
-        $userRole = Role::firstOrCreate(['name' => 'expense_manager', 'guard_name' => 'web']);
-        $userRole->givePermissionTo('can_create_edit_expense');
-        
-        // Create test user
-        $this->user = User::factory()->create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-        ]);
-        $this->user->assignRole($userRole);
-
-        // Create target user for expenses
-        $this->targetUser = User::factory()->create();
     }
 
     /**
@@ -88,6 +73,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $this->category = ExpenseCategory::factory()->create();
         $this->paymentMethod = PaymentMethod::factory()->create();
         $this->status = Status::factory()->create();
+        $this->targetUser = User::factory()->create();
     }
 
     /**
@@ -114,7 +100,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_data()
     {
         $this->actingAs($this->user);
-        
+
         $request = new ExpenseRequest();
         $validator = Validator::make($this->validExpenseData, $request->rules());
 
@@ -126,9 +112,9 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $this->actingAs($this->user);
-        
+
         $requiredFields = ['expense_date', 'amount', 'currency', 'category_id', 'user_id'];
-        
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validExpenseData;
             unset($invalidData[$field]);
@@ -145,7 +131,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_date()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseData;
         $invalidData['expense_date'] = 'invalid-date';
 
@@ -160,7 +146,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_fails_with_negative_amount()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseData;
         $invalidData['amount'] = -100;
 
@@ -175,7 +161,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_currency_format()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseData;
         $invalidData['currency'] = 'INVALID'; // Must be exactly 3 characters
 
@@ -190,7 +176,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_fails_with_nonexistent_supplier_id()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseData;
         $invalidData['supplier_id'] = 99999;
 
@@ -205,7 +191,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_fails_with_nonexistent_category_id()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseData;
         $invalidData['category_id'] = 99999;
 
@@ -220,7 +206,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_fails_with_nonexistent_user_id()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseData;
         $invalidData['user_id'] = 99999;
 
@@ -235,7 +221,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_passes_with_minimal_required_data()
     {
         $this->actingAs($this->user);
-        
+
         $minimalData = [
             'expense_date' => $this->faker->date(),
             'amount' => 100.50,
@@ -255,7 +241,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_passes_with_nullable_fields_set_to_null()
     {
         $this->actingAs($this->user);
-        
+
         $dataWithNulls = $this->validExpenseData;
         $dataWithNulls['supplier_id'] = null;
         $dataWithNulls['payment_method_id'] = null;
@@ -275,7 +261,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_fails_with_negative_tax_amount()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseData;
         $invalidData['tax_amount'] = -10;
 
@@ -290,7 +276,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_fails_with_too_long_reference_number()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseData;
         $invalidData['reference_number'] = str_repeat('a', 256); // Too long (max 255)
 
@@ -306,9 +292,9 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
         Storage::fake('local');
-        
+
         $file = UploadedFile::fake()->create('receipt.pdf', 1024); // 1MB file
-        
+
         $dataWithFile = $this->validExpenseData;
         $dataWithFile['receipt_file'] = $file;
 
@@ -324,9 +310,9 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
         Storage::fake('local');
-        
+
         $file = UploadedFile::fake()->create('large_receipt.pdf', 11000); // 11MB file (exceeds 10MB limit)
-        
+
         $dataWithFile = $this->validExpenseData;
         $dataWithFile['receipt_file'] = $file;
 
@@ -345,7 +331,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $this->actingAs($userWithoutPermission);
 
         $request = new ExpenseRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
@@ -353,7 +339,7 @@ class ExpenseRequestFeatureTest extends TestCase
     public function authorization_fails_when_not_authenticated()
     {
         $request = new ExpenseRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
@@ -363,7 +349,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $this->actingAs($this->user);
 
         $request = new ExpenseRequest();
-        
+
         $this->assertTrue($request->authorize());
     }
 
@@ -388,9 +374,9 @@ class ExpenseRequestFeatureTest extends TestCase
     public function validation_passes_with_different_valid_currencies()
     {
         $this->actingAs($this->user);
-        
+
         $validCurrencies = ['CZK', 'EUR', 'USD', 'GBP'];
-        
+
         foreach ($validCurrencies as $currency) {
             $validData = $this->validExpenseData;
             $validData['currency'] = $currency;

@@ -14,15 +14,15 @@ use Tests\TestCase;
 class AuthServiceProviderFeatureTest extends TestCase
 {
     use RefreshDatabase;
-    
+
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Boot the AuthServiceProvider manually to register macros
         $provider = new AuthServiceProvider(app());
         $provider->boot();
-        
+
         // Create required permissions for backpack guard
         Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'web']);
@@ -43,7 +43,7 @@ class AuthServiceProviderFeatureTest extends TestCase
         // Manually boot the provider since it may not be auto-registered
         $provider = new AuthServiceProvider(app());
         $provider->boot();
-        
+
         $this->assertTrue(Auth::hasMacro('checkAny'));
     }
 
@@ -53,7 +53,7 @@ class AuthServiceProviderFeatureTest extends TestCase
         // Manually boot the provider since it may not be auto-registered
         $provider = new AuthServiceProvider(app());
         $provider->boot();
-        
+
         $this->assertTrue(Auth::hasMacro('userFromAny'));
     }
 
@@ -69,7 +69,7 @@ class AuthServiceProviderFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
-        
+
         $result = Auth::checkAny();
         $this->assertTrue($result);
     }
@@ -80,7 +80,7 @@ class AuthServiceProviderFeatureTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('backpack.access');
         $this->actingAs($user, 'backpack');
-        
+
         $result = Auth::checkAny();
         $this->assertTrue($result);
     }
@@ -90,10 +90,10 @@ class AuthServiceProviderFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
-        
+
         $result = Auth::checkAny(['web']);
         $this->assertTrue($result);
-        
+
         $result = Auth::checkAny(['backpack']);
         $this->assertFalse($result);
     }
@@ -110,7 +110,7 @@ class AuthServiceProviderFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
-        
+
         $result = Auth::userFromAny();
         $this->assertInstanceOf(User::class, $result);
         $this->assertEquals($user->id, $result->id);
@@ -122,7 +122,7 @@ class AuthServiceProviderFeatureTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('backpack.access');
         $this->actingAs($user, 'backpack');
-        
+
         $result = Auth::userFromAny();
         $this->assertInstanceOf(User::class, $result);
         $this->assertEquals($user->id, $result->id);
@@ -133,10 +133,10 @@ class AuthServiceProviderFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
-        
+
         $result = Auth::userFromAny(['web']);
         $this->assertInstanceOf(User::class, $result);
-        
+
         $result = Auth::userFromAny(['backpack']);
         $this->assertNull($result);
     }
@@ -152,22 +152,50 @@ class AuthServiceProviderFeatureTest extends TestCase
     public function boot_method_executes_without_errors(): void
     {
         $provider = new AuthServiceProvider(app());
-        
+
         // This should not throw any exceptions
         $provider->boot();
-        
+
         $this->assertTrue(true); // If we get here, no exceptions were thrown
     }
 
     #[Test]
-    public function policies_are_empty_by_default(): void
+    public function policies_are_correctly_defined(): void
     {
         $provider = new AuthServiceProvider(app());
         $reflection = new \ReflectionClass($provider);
         $property = $reflection->getProperty('policies');
         $property->setAccessible(true);
-        
+
         $policies = $property->getValue($provider);
-        $this->assertEmpty($policies);
+
+        // Test that expected policies are defined
+        $this->assertArrayHasKey(\App\Models\Subscription::class, $policies);
+        $this->assertEquals(\App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy::class, $policies[\App\Models\Subscription::class]);
+
+        $this->assertArrayHasKey(\App\Models\SubscriptionPlan::class, $policies);
+        $this->assertEquals(\App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy::class, $policies[\App\Models\SubscriptionPlan::class]);
+
+        // Verify policies array contains exactly these mappings
+        $expectedPolicies = [
+            \App\Models\Subscription::class => \App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy::class,
+            \App\Models\SubscriptionPlan::class => \App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy::class,
+        ];
+
+        $this->assertEquals($expectedPolicies, $policies);
+    }
+
+    #[Test]
+    public function policies_are_registered_with_gate(): void
+    {
+        $provider = new AuthServiceProvider(app());
+        $provider->registerPolicies();
+
+        // Test that policies are actually registered with the Gate
+        $subscriptionPolicy = \Illuminate\Support\Facades\Gate::getPolicyFor(\App\Models\Subscription::class);
+        $this->assertInstanceOf(\App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy::class, $subscriptionPolicy);
+
+        $subscriptionPlanPolicy = \Illuminate\Support\Facades\Gate::getPolicyFor(\App\Models\SubscriptionPlan::class);
+        $this->assertInstanceOf(\App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy::class, $subscriptionPlanPolicy);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Traits;
 
-use App\Traits\HasPreferredLocale;
+use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -45,7 +45,7 @@ class HasPreferredLocaleFeatureTest extends TestCase
     {
         $model = new TestLocaleModel();
         $model->attributes = ['country' => 'CZ'];
-        
+
         $this->assertEquals('cs', $model->getPreferredLocale());
     }
 
@@ -54,7 +54,7 @@ class HasPreferredLocaleFeatureTest extends TestCase
     {
         $model = new TestLocaleModel();
         $model->attributes = ['country' => 'cz'];
-        
+
         $this->assertEquals('cs', $model->getPreferredLocale());
     }
 
@@ -63,7 +63,7 @@ class HasPreferredLocaleFeatureTest extends TestCase
     {
         $model = new TestLocaleModel();
         $model->attributes = ['country' => 'US'];
-        
+
         $this->assertEquals('en', $model->getPreferredLocale());
     }
 
@@ -72,10 +72,10 @@ class HasPreferredLocaleFeatureTest extends TestCase
     {
         $address = new \stdClass();
         $address->country = 'SK';
-        
+
         $model = new TestLocaleModel();
         $model->setAddressRelation($address);
-        
+
         $this->assertEquals('sk', $model->getPreferredLocale());
     }
 
@@ -84,10 +84,10 @@ class HasPreferredLocaleFeatureTest extends TestCase
     {
         $address = new \stdClass();
         $address->country = 'sk';
-        
+
         $model = new TestLocaleModel();
         $model->setAddressRelation($address);
-        
+
         $this->assertEquals('sk', $model->getPreferredLocale());
     }
 
@@ -95,7 +95,7 @@ class HasPreferredLocaleFeatureTest extends TestCase
     public function get_preferred_locale_returns_default_when_no_country(): void
     {
         $model = new TestLocaleModel();
-        
+
         $this->assertEquals('en', $model->getPreferredLocale());
     }
 
@@ -104,11 +104,11 @@ class HasPreferredLocaleFeatureTest extends TestCase
     {
         $address = new \stdClass();
         $address->country = 'SK';
-        
+
         $model = new TestLocaleModel();
         $model->attributes = ['country' => 'CZ'];
         $model->setAddressRelation($address);
-        
+
         // Should use direct country attribute over address
         $this->assertEquals('cs', $model->getPreferredLocale());
     }

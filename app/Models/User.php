@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Traits\HasPreferredLocale;
+use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 
 class User extends Authenticatable
 {
@@ -16,6 +17,7 @@ class User extends Authenticatable
     use HasRoles;
     use HasFactory, Notifiable;
     use HasPreferredLocale;
+    use SoftDeletes;
 
     /*
     |--------------------------------------------------------------------------
@@ -85,6 +87,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user's subscriptions
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get user's active subscription
+     */
+    public function activeSubscription()
+    {
+        return $this->subscriptions()->where('status', 'active')->first();
+    }
+
+    /**
+     * Check if user has active subscription
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->activeSubscription() !== null;
+    }
+
+    /**
      * Check if user has admin role
      */
     public function is_admin(): bool
@@ -93,7 +119,7 @@ class User extends Authenticatable
         if (method_exists($this, 'hasRole')) {
             return $this->hasRole('admin');
         }
-        
+
         // Fallback if roles are not assigned - default to false for security
         return false;
     }
@@ -121,7 +147,7 @@ class User extends Authenticatable
     | METHODS
     |--------------------------------------------------------------------------
     */
-    
+
     /**
      * Get preferred locale of the user
      */
@@ -129,7 +155,7 @@ class User extends Authenticatable
     {
         return $this->getPreferredLocale();
     }
-    
+
     /**
      * Get the casts array
      */

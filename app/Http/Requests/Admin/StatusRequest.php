@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class StatusRequest extends FormRequest
 {
@@ -25,14 +26,14 @@ class StatusRequest extends FormRequest
      */
     public function rules(): array
     {
+        $id = $this->route('id') ?: $this->id;
+        $slugRule = Rule::unique('statuses', 'slug');
+        if ($id) {
+            $slugRule = $slugRule->ignore($id);
+        }
         return [
             'name' => 'required|string|max:255',
-            'slug' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('statuses', 'slug')->ignore($this->id),
-            ],
+            'slug' => ['required','string','max:255', $slugRule],
             'category_id' => 'required|exists:status_categories,id',
             'color' => 'nullable|string|max:255',
             'description' => 'nullable|string',
@@ -69,5 +70,20 @@ class StatusRequest extends FormRequest
             'slug.required' => __('statuses.validation.slug_required'),
             'slug.unique' => __('statuses.validation.slug_unique'),
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        // Generate slug if not provided
+        if (empty($this->slug)) {
+            $this->merge([
+                'slug' => Str::slug($this->name),
+            ]);
+        }
     }
 }

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\UploadedFile;
-use App\Traits\HasFileUploads;
+use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 
 class Product extends Model
 {
@@ -48,7 +48,7 @@ class Product extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::saving(function (self $model) {
             // If this product is set as default, unset default status for other products
             if ($model->is_default) {
@@ -84,8 +84,8 @@ class Product extends Model
     {
         return $this->belongsToMany(Invoice::class, 'invoice_products')
                     ->withPivot([
-                        'name', 
-                        'quantity', 
+                        'name',
+                        'quantity',
                         'price',
                         'currency',
                         'unit',
@@ -146,26 +146,25 @@ class Product extends Model
      * @param mixed $value
      * @return void
      */
-    public function setImageAttribute($value)
+    public function setImageAttribute($value): void
     {
-        $this->handleFileUpload('image', $value, 'products', [
-            'disk' => 'public',
-            'createThumbnails' => true,
-            'thumbnailWidth' => 200,
-            'thumbnailHeight' => 200,
-            'thumbnailPath' => 'thumbnails',
-            'allowedFileTypes' => [
-                // Images
-                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-                'jpeg', 'jpg', 'png', 'gif', 'webp',
+        // Use standardized context-based handling (product_image)
+        $this->handleFileUpload(
+            'image',
+            $value,
+            'products/' . ($this->id ?? uniqid()),
+            [
+                'disk' => 'public',
+                'sanitizeFilename' => true,
+                'randomizeFilename' => false,
             ],
-            'maxFileSize' => 10240, // 10MB max file size
-        ]);
+            'product_image'
+        );
     }
 
     /**
      * Get URL to the image file
-     * 
+     *
      * @param string $attribute
      * @return string|null
      */
@@ -176,13 +175,13 @@ class Product extends Model
 
     /**
      * Get a URL to the image thumbnail file
-     * 
+     *
      * @return string|null
      */
     public function getImageThumbUrl()
     {
         if (!empty($this->image)) {
-            return Storage::disk('public')->url($this->image);
+            return Storage::disk('public')->path($this->image);
         }
         return null;
     }

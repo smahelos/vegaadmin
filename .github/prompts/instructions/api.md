@@ -3,56 +3,54 @@ mode: 'agent'
 description: 'API development standards and conventions'
 ---
 
-# API Development Instructions
 
-## API Design Principles
-- Follow RESTful conventions
-- Use consistent response formats
-- Implement proper error handling
-- Include API versioning strategy
+# API Development Instructions (Project-specific)
 
-## Response Format Standards
+## API Structure & Routing
+- Všechny API routes jsou definovány v `routes/api.php` a rozděleny do tří hlavních skupin:
+  - **Admin API** (`/admin` prefix): chráněno middleware `api.require.backpack`, pouze pro autentizované admin uživatele (Backpack guard).
+  - **Frontend API**: chráněno middleware `api.require.frontend`, pouze pro autentizované frontend uživatele.
+  - **Public API**: veřejné endpointy, případně chráněné pouze základním middleware.
+- Vždy používej správné middleware a session refresh middleware dle vzoru v `api.php`.
+- Pro admin API vždy používej Backpack guard a kontroluj oprávnění dle PermissionManageru.
+
+## Kontrolery a odpovědi
+- Kontrolery umisťuj do `app/Http/Controllers/Api/`.
+- Vždy používej API Resources pro formátování odpovědí.
+- Odpovědi musí mít jednotný formát:
 ```json
 {
-    "success": true,
-    "data": {},
-    "message": "Success message",
-    "errors": []
+  "success": true,
+  "data": {},
+  "message": "...",
+  "errors": []
 }
 ```
+- Pro seznamy používej Resource Collections.
+- Chraň citlivá data, do odpovědí je nikdy nezařazuj.
 
-## API Controllers
-- Place in `app/Http/Controllers/Api/`
-- Extend base API controller
-- Use API resources for response formatting
-- Implement proper status codes
+## Autentizace a oprávnění
+- Pro admin API používej Backpack guard (`auth('backpack')`), pro frontend API standardní Laravel autentizaci.
+- Oprávnění spravuj přes PermissionManager (spatie/laravel-permission, Backpack rozhraní).
+- Pro veřejné endpointy nikdy neposkytuj citlivá data.
 
-## Authentication
-- Use Laravel Sanctum for API authentication
-- Implement token-based authentication
-- Add rate limiting for API endpoints
-- Use middleware for API protection
+## Validace
+- Vždy používej Form Requesty (`App/Requests` pro frontend, `App/Requests/Admin` pro admin API).
+- Chybové odpovědi musí být ve stejném formátu jako běžné odpovědi.
+- Všechny validovatelné texty musí být přeložitelné přes Laravel translations.
 
-## Validation
-- Use Form Requests for API validation
-- Return validation errors in consistent format
-- Include field-specific error messages
-- Support multiple locales for error messages
+## Chybové stavy
+- Vždy vracej správné HTTP status kódy (např. 401, 403, 422, 500).
+- Chybové zprávy musí být konzistentní a přeložitelné.
+- Loguj chyby dle závažnosti.
 
-## API Resources
-- Use Laravel API Resources for data transformation
-- Create resource collections for lists
-- Hide sensitive data appropriately
-- Include relationships when needed
+## Dokumentace
+- Každý endpoint musí být zdokumentován (včetně příkladů request/response, potřebných hlaviček, parametrů a chybových stavů).
+- Dokumentace musí být v souladu s aktuální implementací v `routes/api.php`.
 
-## Error Handling
-- Return appropriate HTTP status codes
-- Use consistent error message format
-- Log errors appropriately
-- Include error codes for client handling
+## Další pravidla
+- Nikdy neduplikuj route definice ani kontrolery.
+- Při změně API vždy aktualizuj tuto dokumentaci.
 
-## Documentation
-- Document all API endpoints
-- Include request/response examples
-- Specify required headers and parameters
-- Document error responses
+---
+*Tento soubor je závazný pro všechny úpravy API v projektu. Při nejasnostech vždy ověř aktuální stav v kódu a v databázi.*

@@ -3,19 +3,21 @@
 namespace Tests\Feature\Http\Requests;
 
 use App\Http\Requests\SupplierRequest;
+use App\Models\EntityLimit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 use PHPUnit\Framework\Attributes\Test;
 
 class SupplierRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     private array $validSupplierData;
     private User $user;
@@ -23,13 +25,47 @@ class SupplierRequestFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Create permissions and roles
-        $this->createPermissionsAndRoles();
-        
-        // Create authenticated user
-        $this->user = $this->createAuthenticatedUser();
-        
+
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        // Get roles and permissions created by TestingDatabaseSeeder
+        // $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
+        $frontendUserRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
+        $permission = Permission::where('name', 'frontend.can_create_edit_supplier')
+            ->where('guard_name', 'web')
+            ->first();
+
+        // Create admin user with admin role (has all permissions)
+        // $this->adminUser = User::factory()->create();
+        // $this->adminUser->assignRole($adminRole);
+        // $this->adminUser->givePermissionTo($permission);
+
+        // Create regular user with limited role
+        if (!$this->user) {
+            $this->user = User::factory()->create([
+                'email' => $this->faker->unique()->safeEmail,
+                'name' => $this->faker->name,
+            ]);
+        } else {
+            $this->user->update([
+                'email' => $this->faker->unique()->safeEmail,
+                'name' => $this->faker->name,
+            ]);
+        }
+        $this->user->givePermissionTo($permission);
+
+        // Create entity limit for suppliers to allow test operations
+        EntityLimit::create([
+            'permission_name' => 'frontend.can_create_edit_supplier',
+            'entity_type' => 'supplier',
+            'limit_value' => 10,
+            'period_type' => 'monthly',
+            'metric_type' => 'count',
+            'description' => 'Supplier limit for frontend tests',
+            'is_active' => true,
+        ]);
+
         // Set up valid supplier data using faker
         $this->validSupplierData = [
             'name' => $this->faker->company,
@@ -44,7 +80,7 @@ class SupplierRequestFeatureTest extends TestCase
             'dic' => $this->faker->numerify('CZ########'),
             'description' => $this->faker->paragraph,
             'is_default' => false,
-            
+
             // Bank account details
             'account_number' => $this->faker->bankAccountNumber,
             'bank_code' => $this->faker->numerify('####'),
@@ -54,42 +90,6 @@ class SupplierRequestFeatureTest extends TestCase
         ];
     }
 
-    /**
-     * Create permissions and roles for testing.
-     *
-     * @return void
-     */
-    private function createPermissionsAndRoles(): void
-    {
-        // Create basic permissions
-        Permission::create(['name' => 'suppliers.list', 'guard_name' => 'web']);
-        Permission::create(['name' => 'suppliers.create', 'guard_name' => 'web']);
-        Permission::create(['name' => 'suppliers.show', 'guard_name' => 'web']);
-        Permission::create(['name' => 'suppliers.update', 'guard_name' => 'web']);
-        Permission::create(['name' => 'suppliers.delete', 'guard_name' => 'web']);
-
-        // Create role with permissions
-        $role = Role::create(['name' => 'supplier_manager', 'guard_name' => 'web']);
-        $role->givePermissionTo(['suppliers.list', 'suppliers.create', 'suppliers.show', 'suppliers.update', 'suppliers.delete']);
-    }
-
-    /**
-     * Create authenticated user for testing.
-     *
-     * @return User
-     */
-    private function createAuthenticatedUser(): User
-    {
-        $user = User::factory()->create([
-            'email' => $this->faker->unique()->safeEmail,
-            'name' => $this->faker->name,
-        ]);
-
-        $user->assignRole('supplier_manager');
-        
-        return $user;
-    }
-    
     #[Test]
     public function validation_passes_with_valid_data()
     {
@@ -99,12 +99,12 @@ class SupplierRequestFeatureTest extends TestCase
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
     }
-    
+
     #[Test]
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country'];
-        
+
         foreach ($requiredFields as $field) {
             $data = $this->validSupplierData;
             unset($data[$field]);
@@ -116,7 +116,7 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has($field), "Should have error for missing {$field}");
         }
     }
-    
+
     #[Test]
     public function validation_fails_with_invalid_email()
     {
@@ -133,7 +133,7 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has('email'));
         }
     }
-    
+
     #[Test]
     public function validation_fails_when_string_fields_exceed_max_length()
     {
@@ -165,18 +165,18 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has($field));
         }
     }
-    
+
     #[Test]
     public function validation_passes_with_nullable_fields_empty()
     {
         // Note: bank_code and swift are conditional, not truly nullable
-        $nullableFields = ['shortcut', 'ico', 'dic', 'description', 'is_default', 
+        $nullableFields = ['shortcut', 'ico', 'dic', 'description', 'is_default',
                           'account_number', 'iban', 'bank_name'];
 
         foreach ($nullableFields as $field) {
             $data = $this->validSupplierData;
             $data[$field] = null;
-            
+
             // For conditional fields, also null the related field
             if ($field === 'account_number') {
                 $data['bank_code'] = null;
@@ -191,7 +191,7 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertFalse($validator->fails(), "Validation should pass when nullable field {$field} is null");
         }
     }
-    
+
     #[Test]
     public function validation_fails_with_invalid_boolean_values()
     {
@@ -208,7 +208,7 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertTrue($validator->errors()->has('is_default'));
         }
     }
-    
+
     #[Test]
     public function validation_passes_with_valid_boolean_values()
     {
@@ -224,7 +224,7 @@ class SupplierRequestFeatureTest extends TestCase
             $this->assertFalse($validator->fails(), "Validation should pass for valid boolean: " . json_encode($validBoolean));
         }
     }
-    
+
     #[Test]
     public function conditional_bank_validation_rules()
     {
@@ -249,7 +249,7 @@ class SupplierRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('swift'));
     }
-    
+
     #[Test]
     public function authorization_with_authenticated_user_via_http()
     {
@@ -260,7 +260,7 @@ class SupplierRequestFeatureTest extends TestCase
 
         $this->assertTrue($supplierRequest->authorize());
     }
-    
+
     #[Test]
     public function authorization_fails_with_unauthenticated_user_via_http()
     {
@@ -270,7 +270,7 @@ class SupplierRequestFeatureTest extends TestCase
 
         $this->assertFalse($supplierRequest->authorize());
     }
-    
+
     #[Test]
     public function custom_error_messages_are_displayed()
     {
@@ -289,7 +289,7 @@ class SupplierRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages());
 
         $this->assertTrue($validator->fails());
-        
+
         $errors = $validator->errors();
 
         // Check specific required messages
@@ -306,7 +306,7 @@ class SupplierRequestFeatureTest extends TestCase
         foreach ($expectedRequiredMessages as $field => $expectedMessage) {
             if ($errors->has($field)) {
                 $actualMessages = $errors->get($field);
-                $this->assertContains($expectedMessage, $actualMessages, 
+                $this->assertContains($expectedMessage, $actualMessages,
                     "Custom required message for {$field} should be displayed");
             }
         }
@@ -318,13 +318,13 @@ class SupplierRequestFeatureTest extends TestCase
         $validator = Validator::make($emailData, $request->rules(), $request->messages());
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('email'));
-        
+
         $emailErrors = $validator->errors()->get('email');
         $expectedEmailMessage = __('suppliers.validation.email_valid');
-        $this->assertContains($expectedEmailMessage, $emailErrors, 
+        $this->assertContains($expectedEmailMessage, $emailErrors,
             'Custom email format message should be displayed');
     }
-    
+
     #[Test]
     public function validation_with_actual_http_request()
     {
@@ -334,10 +334,10 @@ class SupplierRequestFeatureTest extends TestCase
 
         // We expect either success or redirect (depending on controller implementation)
         // but not validation errors
-        $this->assertNotEquals(422, $response->getStatusCode(), 
+        $this->assertNotEquals(422, $response->getStatusCode(),
             'Request should not fail with validation errors');
     }
-    
+
     #[Test]
     public function edge_cases_with_whitespace_and_special_characters()
     {
@@ -368,7 +368,7 @@ class SupplierRequestFeatureTest extends TestCase
         $validator = Validator::make($dataWithSpecialChars, $request->rules(), $request->messages());
         $this->assertFalse($validator->fails());
     }
-    
+
     #[Test]
     public function maximum_boundary_values_for_length_constraints()
     {
@@ -396,11 +396,11 @@ class SupplierRequestFeatureTest extends TestCase
             $request = new SupplierRequest();
             $validator = Validator::make($data, $request->rules(), $request->messages());
 
-            $this->assertFalse($validator->fails(), 
+            $this->assertFalse($validator->fails(),
                 "Validation should pass when {$field} is exactly at max length ({$maxLength})");
         }
     }
-    
+
     #[Test]
     public function bank_account_validation_combinations()
     {

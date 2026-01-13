@@ -5,22 +5,26 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\CronTaskRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
  * Feature tests for CronTaskRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests cron task validation scenarios, authorization, and validation with different frequencies
  */
 class CronTaskRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected User $user;
+    protected User $adminUser;
     protected array $validCronTaskData;
 
     /**
@@ -33,9 +37,15 @@ class CronTaskRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // Create test user
-        $this->user = User::factory()->create();
-        
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        $permission = Permission::where('name', 'frontend.can_create_edit_cron_task')
+            ->where('guard_name', 'web')
+            ->first();
+
+        $this->user->givePermissionTo($permission);
+
         // Set up valid cron task data
         $this->setupValidCronTaskData();
     }
@@ -111,7 +121,7 @@ class CronTaskRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'command', 'frequency'];
-        
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validCronTaskData;
             unset($invalidData[$field]);
@@ -155,7 +165,7 @@ class CronTaskRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_day_of_week()
     {
         $invalidValues = [-1, 7, 10];
-        
+
         foreach ($invalidValues as $value) {
             $invalidData = $this->validCronTaskData;
             $invalidData['day_of_week'] = $value;
@@ -172,7 +182,7 @@ class CronTaskRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_day_of_month()
     {
         $invalidValues = [0, 32, 50];
-        
+
         foreach ($invalidValues as $value) {
             $invalidData = $this->validCronTaskData;
             $invalidData['day_of_month'] = $value;
@@ -189,7 +199,7 @@ class CronTaskRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_time_format()
     {
         $invalidTimes = ['25:00', '12:60', 'invalid', '2:30'];
-        
+
         foreach ($invalidTimes as $time) {
             $invalidData = $this->validCronTaskData;
             $invalidData['run_at'] = $time;
@@ -206,7 +216,7 @@ class CronTaskRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_time_formats()
     {
         $validTimes = ['00:00', '12:30', '23:59', '08:15'];
-        
+
         foreach ($validTimes as $time) {
             $validData = $this->validCronTaskData;
             $validData['run_at'] = $time;
@@ -224,7 +234,7 @@ class CronTaskRequestFeatureTest extends TestCase
         $this->actingAs($this->user);
 
         $request = new CronTaskRequest();
-        
+
         $this->assertTrue($request->authorize());
     }
 
@@ -232,7 +242,7 @@ class CronTaskRequestFeatureTest extends TestCase
     public function authorization_fails_when_not_authenticated()
     {
         $request = new CronTaskRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
@@ -291,14 +301,14 @@ class CronTaskRequestFeatureTest extends TestCase
     public function validation_passes_with_all_frequencies()
     {
         $frequencies = ['daily', 'weekly', 'monthly', 'custom'];
-        
+
         foreach ($frequencies as $frequency) {
             $validData = [
                 'name' => "Test Task {$frequency}",
                 'command' => 'php artisan cache:clear',
                 'frequency' => $frequency,
             ];
-            
+
             if ($frequency === 'custom') {
                 $validData['custom_expression'] = '0 2 * * *';
             }

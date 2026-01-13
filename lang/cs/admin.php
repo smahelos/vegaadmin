@@ -30,6 +30,37 @@ return [
         'statuses' => 'Stavy',
         'status_categories' => 'Kategorie stavů',
     ],
+    'uels' => [
+        'title' => 'Správa limitů entit',
+        'dashboard' => 'Dashboard UELS',
+        'configuration' => 'Konfigurace',
+        'entity_limits' => 'Limity entit',
+        'user_overrides' => 'Uživatelské přepsání',
+        'monitoring' => 'Monitorování',
+        'usage_tracking' => 'Sledování využití',
+    ],
+    'system_config' => [
+        'title' => 'Konfigurace systému',
+        'general_settings' => 'Obecná nastavení',
+    ],
+    'cache' => [
+        'title' => 'Cache správa',
+        'clear_cache' => 'Vymazat cache',
+        'clear_config' => 'Vymazat config cache',
+        'clear_views' => 'Vymazat view cache',
+        'clear_routes' => 'Vymazat route cache',
+        'clear_all' => 'Vymazat vše',
+        'cache_cleared_success' => 'Cache byla úspěšně vymazána',
+        'cache_cleared_error' => 'Chyba při mazání cache: :error',
+        'config_cleared_success' => 'Config cache byla úspěšně vymazána',
+        'config_cleared_error' => 'Chyba při mazání config cache: :error',
+        'views_cleared_success' => 'View cache byla úspěšně vymazána',
+        'views_cleared_error' => 'Chyba při mazání view cache: :error',
+        'routes_cleared_success' => 'Route cache byla úspěšně vymazána',
+        'routes_cleared_error' => 'Chyba při mazání route cache: :error',
+        'all_cleared_success' => 'Všechny cache byly úspěšně vymazány',
+        'all_cleared_error' => 'Chyba při mazání cache: :error',
+    ],
 
     'dashboard' => [
         'overview' => 'Přehled',
@@ -38,6 +69,7 @@ return [
         'total_suppliers' => 'Celkem dodavatelů',
         'total_products' => 'Celkem produktů',
         'total_users' => 'Celkem uživatelů',
+        'active_subscriptions' => 'Aktivní předplatá',
         'monthly_revenue' => 'Měsíční tržby',
         'quick_actions' => 'Rychlé akce',
         'create_invoice' => 'Vytvořit fakturu',
@@ -82,7 +114,7 @@ return [
     'system' => [
         'settings' => 'Nastavení',
     ],
-    
+
     'invoices' => [
         'invoice' => 'Faktura',
         'invoices' => 'Faktury',
@@ -162,7 +194,7 @@ return [
     'cron_tasks' => [
         'cron_task' => 'Plánovač úloh',
         'cron_tasks' => 'Plánovače úloh',
-        
+
         'frequency' => [
             'daily' => 'Denně',
             'weekly' => 'Týdně',
@@ -214,13 +246,13 @@ return [
             'custom_expression_examples' => 'Příklady: "*/5 * * * *" (každých 5 minut), "0 0 * * *" (každý den o půlnoci), "0 12 * * 1-5" (každý pracovní den v poledne).',
             'command_params' => 'Zadejte parametry pro příkaz, např. "--days=7 --force", nebo "--days-before=0 --days-after=14"',
         ],
-        
+
         'predefined' => [
             'upcoming_invoices' => 'Upomínky před splatností faktury',
             'overdue_invoices' => 'Upomínky faktur po splatnosti',
             'long_overdue_invoices' => 'Upomínky faktury dlouho po splatnosti',
         ],
-        
+
         'descriptions' => [
             'upcoming_invoices' => 'Odesílá upomínky na faktury, které budou brzy splatné (3 dny před splatností)',
             'overdue_invoices' => 'Odesílá upomínky na faktury, které jsou po splatnosti (až 7 dní)',
@@ -243,7 +275,7 @@ return [
         'categories' => 'Kategorie příkazů',
         'uncategorized' => 'Nezařazené příkazy',
         'uncategorized_description' => 'Automaticky detekované příkazy bez kategorie',
-        
+
         'fields' => [
             'name' => 'Název',
             'command' => 'Příkaz',
@@ -386,6 +418,7 @@ return [
         'leave_empty_for_autogeneration' => 'Ponechte prázdné pro automatické generování',
         'remove_image' => 'Odstranit obrázek',
         'image_help' => 'Podporované formáty: JPG, PNG, GIF (max. 2MB)',
+        'active_only' => 'Pouze aktivní',
     ],
 
     'database' => [
@@ -425,7 +458,7 @@ return [
         'last_optimization' => 'Poslední optimalizace',
         'never' => 'Nikdy',
         'refresh_data' => 'Obnovit data',
-    
+
         // Database maintenance logs
         'maintenance_log' => 'Záznam údržby',
         'maintenance_logs' => 'Záznamy údržby DB',
@@ -556,7 +589,7 @@ return [
         'date_column_detailed_hint' => 'Název sloupce s datem, podle kterého se určuje stáří záznamu (obvykle created_at nebo updated_at)',
         'is_active_detailed_hint' => 'Určuje, zda je archivní politika aktivní a bude se automaticky spouštět',
         'description_detailed_hint' => 'Volitelný popis účelu této archivní politiky pro lepší dokumentaci',
-        
+
         'user_activity_overview' => 'Přehled aktivity uživatelů',
         'based_on_invoices_last_30_days' => 'Na základě faktur vytvořených za posledních 30 dní',
         'active_users' => 'Aktivní uživatelé',
@@ -573,7 +606,7 @@ return [
         'activity_level' => 'Úroveň aktivity',
         'last_invoice' => 'Poslední faktura',
         'no_user_activity_data' => 'Žádná data o aktivitě uživatelů',
-        
+
         'monitor_completed' => 'Monitoring byl úspěšně dokončen',
         'monitor_failed' => 'Monitoring selhal',
         'optimize_completed' => 'Optimalizace byla úspěšně dokončena',
@@ -581,7 +614,7 @@ return [
         'archive_completed' => 'Archivace byla úspěšně dokončena',
         'archive_failed' => 'Archivace selhala',
         'unknown_command' => 'Neznámý příkaz',
-        
+
         'last_30_days' => 'Posledních 30 dní',
         'data_points' => 'datových bodů',
         'sample_data' => 'ukázková data',
@@ -622,7 +655,7 @@ return [
         'alert_resolved_successfully' => 'Výstraha byla úspěšně označena jako vyřešená',
         'alert_resolve_failed' => 'Nepodařilo se vyřešit výstrahu',
         'alert_resolve_error' => 'Chyba při vyřešování výstrahy',
-        
+
         'select_metric_type' => 'Vybrat typ metriky',
         'time_period' => 'Časové období',
         'last_7_days' => 'Posledních 7 dní',
@@ -671,7 +704,7 @@ return [
         'cleaned_all_metrics' => 'Vyčištěno všech :count metrik',
         'invalid_cleanup_type' => 'Neplatný typ čištění',
         'stats_failed' => 'Nepodařilo se načíst statistiky',
-        
+
         'metrics' => [
             'query_time' => 'Doba odezvy dotazů',
             'memory_usage' => 'Využití paměti',
@@ -687,11 +720,337 @@ return [
             'lock_wait_time' => 'Čekání na zámky',
         ],
     ],
-    
+
     'user' => [
         'activity_high' => 'Vysoká aktivita',
         'activity_medium' => 'Střední aktivita',
         'activity_low' => 'Nízká aktivita',
         'activity_inactive' => 'Neaktivní',
+    ],
+
+    'page_categories' => [
+        'page_category' => 'kategorie stránek',
+        'page_categories' => 'Kategorie stránek',
+        'name' => 'Název',
+        'slug' => 'URL slug',
+        'description' => 'Popis',
+        'pages_count' => 'Počet stránek',
+        'leave_empty_for_autogeneration' => 'Nechte prázdné pro automatické generování',
+
+        // Validation messages
+        'name_required' => 'Název je povinný',
+        'name_string' => 'Název musí být text',
+        'name_max' => 'Název může mít maximálně 255 znaků',
+        'slug_required' => 'URL slug je povinný',
+        'slug_string' => 'URL slug musí být text',
+        'slug_max' => 'URL slug může mít maximálně 255 znaků',
+        'slug_unique' => 'Tento URL slug již existuje',
+        'description_string' => 'Popis musí být text',
+        'description_max' => 'Popis může mít maximálně 1000 znaků',
+    ],
+
+    'validation' => [
+        'page_categories' => [
+            'at_least_one_locale_required' => 'Alespoň jeden jazyk musí mít vyplněný název a URL slug',
+            'name' => [
+                'required' => 'Název je povinný',
+                'string' => 'Název musí být text',
+                'max' => 'Název může mít maximálně 255 znaků',
+                'array' => 'Název musí být pole překladů',
+            ],
+            'slug' => [
+                'required' => 'URL slug je povinný',
+                'string' => 'URL slug musí být text',
+                'max' => 'URL slug může mít maximálně 255 znaků',
+                'unique' => 'Tento URL slug již existuje',
+                'array' => 'URL slug musí být pole překladů',
+            ],
+            'description' => [
+                'string' => 'Popis musí být text',
+                'max' => 'Popis může mít maximálně 1000 znaků',
+                'array' => 'Popis musí být pole překladů',
+            ],
+        ],
+        'pages' => [
+            'at_least_one_locale_required' => 'Alespoň jeden jazyk musí mít vyplněný název a URL slug',
+            'name' => [
+                'required' => 'Název je povinný',
+                'string' => 'Název musí být text',
+                'max' => 'Název může mít maximálně 255 znaků',
+                'array' => 'Název musí být pole překladů',
+            ],
+            'slug' => [
+                'required' => 'URL slug je povinný',
+                'string' => 'URL slug musí být text',
+                'max' => 'URL slug může mít maximálně 255 znaků',
+                'unique' => 'Tento URL slug již existuje',
+                'regex' => 'URL slug může obsahovat pouze malá písmena, čísla a pomlčky',
+                'array' => 'URL slug musí být pole překladů',
+            ],
+            'description' => [
+                'string' => 'Popis musí být text',
+                'array' => 'Popis musí být pole překladů',
+            ],
+            'content' => [
+                'string' => 'Obsah musí být text',
+                'array' => 'Obsah musí být pole překladů',
+            ],
+            'meta_title' => [
+                'string' => 'Meta title musí být text',
+                'max' => 'Meta title může mít maximálně 255 znaků',
+                'array' => 'Meta title musí být pole překladů',
+            ],
+            'meta_description' => [
+                'string' => 'Meta popis musí být text',
+                'max' => 'Meta popis může mít maximálně 500 znaků',
+                'array' => 'Meta popis musí být pole překladů',
+            ],
+            'meta_keywords' => [
+                'string' => 'Meta klíčová slova musí být text',
+                'max' => 'Meta klíčová slova mohou mít maximálně 500 znaků',
+                'array' => 'Meta klíčová slova musí být pole překladů',
+            ],
+            'parent_id' => [
+                'exists' => 'Vybraná nadřazená stránka neexistuje',
+            ],
+            'sort_order' => [
+                'integer' => 'Pořadí musí být číslo',
+                'min' => 'Pořadí musí být alespoň 0',
+            ],
+            'status' => [
+                'required' => 'Stav je povinný',
+                'in' => 'Neplatný stav',
+            ],
+            'publish_at' => [
+                'date' => 'Datum publikování musí být platné datum',
+                'after_or_equal' => 'Datum publikování nemůže být v minulosti',
+            ],
+            'unpublish_at' => [
+                'date' => 'Datum ukončení publikování musí být platné datum',
+                'after' => 'Datum ukončení publikování musí být po datu publikování',
+            ],
+            'featured' => [
+                'boolean' => 'Doporučené musí být ano nebo ne',
+            ],
+            'template' => [
+                'max' => 'Název šablony může mít maximálně 100 znaků',
+            ],
+            'image' => [
+                'file' => 'Obrázek musí být soubor',
+                'mimes' => 'Obrázek musí být JPEG, PNG nebo WebP',
+                'max' => 'Obrázek nemůže být větší než 2MB',
+            ],
+            'tags' => [
+                'string' => 'Tagy musí být text',
+            ],
+            'extras' => [
+                'json' => 'Další údaje musí být platný JSON',
+            ],
+        ],
+    ],
+
+    'pages' => [
+        'page' => 'stránka',
+        'pages' => 'Stránky',
+        'name' => 'Název',
+        'slug' => 'URL slug',
+        'parent' => 'Nadřazená stránka',
+        'category' => 'Kategorie',
+        'sort_order' => 'Pořadí',
+        'description' => 'Popis',
+        'content' => 'Obsah',
+        'meta_title' => 'Meta title',
+        'meta_description' => 'Meta popis',
+        'meta_keywords' => 'Meta klíčová slova',
+        'status' => 'Stav',
+        'publish_at' => 'Publikovat od',
+        'unpublish_at' => 'Publikovat do',
+        'featured' => 'Doporučené',
+        'template' => 'Šablona',
+        'image' => 'Obrázek',
+        'tags' => 'Tagy',
+        'extras' => 'Další údaje',
+        'main_image' => 'Hlavní obrázek',
+        'gallery' => 'Galerie obrázků',
+        'published' => 'Publikováno',
+        'published_yes' => 'Publikováno',
+        'published_no' => 'Nepublikováno',
+        'currently_published' => 'Aktuálně publikováno',
+        'yes' => 'Ano',
+        'no' => 'Ne',
+        'publishing_start' => 'Začátek publikování',
+        'publishing_end' => 'Konec publikování',
+        'leave_empty_for_autogeneration' => 'Nechte prázdné pro automatické generování',
+        'sort_order_help' => 'Nastaví se automaticky na další nejvyšší hodnotu',
+        'main_image_help' => 'Maximální velikost: 10MB. Povolené formáty: JPEG, PNG, GIF, WebP',
+        'gallery_help' => 'Můžete nahrát více obrázků najednou. Maximální velikost každého: 10MB',
+        'content_management' => 'Správa obsahu',
+
+        // Validation messages
+        'name_required' => 'Název je povinný',
+        'name_string' => 'Název musí být text',
+        'name_max' => 'Název může mít maximálně 255 znaků',
+        'slug_string' => 'URL slug musí být text',
+        'slug_max' => 'URL slug může mít maximálně 255 znaků',
+        'slug_unique' => 'Tento URL slug již existuje',
+        'parent_exists' => 'Vybraná nadřazená stránka neexistuje',
+        'parent_different' => 'Stránka nemůže být sama sobě nadřazená',
+        'category_exists' => 'Vybraná kategorie neexistuje',
+        'sort_order_integer' => 'Pořadí musí být číslo',
+        'sort_order_min' => 'Pořadí musí být alespoň 0',
+        'description_string' => 'Popis musí být text',
+        'description_max' => 'Popis může mít maximálně 1000 znaků',
+        'content_string' => 'Obsah musí být text',
+        'main_image_image' => 'Hlavní obrázek musí být obrázek',
+        'main_image_mimes' => 'Hlavní obrázek musí být ve formátu: JPEG, PNG, GIF, WebP',
+        'main_image_max' => 'Hlavní obrázek může mít maximálně 10MB',
+        'images_array' => 'Galerie musí být pole obrázků',
+        'images_image' => 'Všechny soubory v galerii musí být obrázky',
+        'images_mimes' => 'Obrázky v galerii musí být ve formátu: JPEG, PNG, GIF, WebP',
+        'images_max' => 'Každý obrázek v galerii může mít maximálně 10MB',
+        'published_boolean' => 'Publikováno musí být ano/ne',
+        'publishing_start_date' => 'Začátek publikování musí být platné datum',
+        'publishing_end_date' => 'Konec publikování musí být platné datum',
+        'publishing_end_after_start' => 'Konec publikování musí být po začátku publikování',
+    ],
+
+    'auth' => [
+        'no_backpack_role' => 'Váš účet nemá oprávnění pro přístup do administrace. Kontaktujte administrátora.',
+        'no_backpack_access' => 'Nemáte oprávnění pro přístup do administračního panelu.',
+    ],
+
+    'subscription_plans' => [
+        'entity_singular' => 'Plán předplatného',
+        'entity_plural' => 'Plány předplatných',
+        'name' => 'Název',
+        'description' => 'Popis',
+        'price' => 'Cena',
+        'currency' => 'Měna',
+        'billing_period' => 'Fakturační období',
+        'billing_interval' => 'Fakturační interval',
+        'features' => 'Funkce',
+        'is_active' => 'Aktivní',
+        'trial_days' => 'Dny zkušebního období',
+        'monthly' => 'Měsíčně',
+        'yearly' => 'Ročně',
+        'active_only' => 'Pouze aktivní',
+        'name_placeholder' => 'Zadejte název plánu',
+        'description_placeholder' => 'Zadejte popis plánu',
+        'price_placeholder' => 'Zadejte cenu',
+        'billing_interval_placeholder' => 'Každý X měsíc/rok',
+        'trial_days_placeholder' => 'Počet dní zkušebního období',
+        'features_placeholder' => 'Zadejte funkce oddělené novým řádkem',
+        'features_hint' => 'Každou funkci zadejte na nový řádek',
+        'validation' => [
+            'name_required' => 'Název je povinný',
+            'name_string' => 'Název musí být text',
+            'name_min' => 'Název musí mít alespoň :min znaků',
+            'name_max' => 'Název může mít maximálně :max znaků',
+            'description_string' => 'Popis musí být text',
+            'description_max' => 'Popis může mít maximálně :max znaků',
+            'price_required' => 'Cena je povinná',
+            'price_numeric' => 'Cena musí být číslo',
+            'price_min' => 'Cena musí být alespoň :min',
+            'price_max' => 'Cena může být maximálně :max',
+            'currency_required' => 'Měna je povinná',
+            'currency_in' => 'Vyberte platnou měnu',
+            'billing_period_required' => 'Fakturační období je povinné',
+            'billing_period_in' => 'Vyberte platné fakturační období',
+            'billing_interval_required' => 'Fakturační interval je povinný',
+            'billing_interval_integer' => 'Fakturační interval musí být celé číslo',
+            'billing_interval_min' => 'Fakturační interval musí být alespoň :min',
+            'billing_interval_max' => 'Fakturační interval může být maximálně :max',
+            'features_array' => 'Funkce musí být seznam',
+            'features_exists' => 'Vybraná funkce neexistuje',
+            'is_active_boolean' => 'Aktivní musí být ano/ne',
+            'trial_days_required' => 'Dny zkušebního období jsou povinné',
+            'trial_days_integer' => 'Dny zkušebního období musí být celé číslo',
+            'trial_days_min' => 'Dny zkušebního období musí být alespoň :min',
+            'trial_days_max' => 'Dny zkušebního období mohou být maximálně :max',
+        ],
+    ],
+
+    'subscriptions' => [
+        'entity_singular' => 'Předplatné',
+        'entity_plural' => 'Předplatná',
+        'user' => 'Uživatel',
+        'subscription_plan' => 'Předplatný plán',
+        'status' => 'Stav',
+        'amount' => 'Částka',
+        'currency' => 'Měna',
+        'starts_at' => 'Začíná',
+        'ends_at' => 'Končí',
+        'trial_ends_at' => 'Zkušební období končí',
+        'next_billing_at' => 'Další fakturace',
+        'metadata' => 'Metadata',
+        'status_pending' => 'Čeká na schválení',
+        'status_active' => 'Aktivní',
+        'status_cancelled' => 'Zrušené',
+        'status_expired' => 'Vypršené',
+        'status_past_due' => 'Po splatnosti',
+        'select_user' => 'Vyberte uživatele',
+        'amount_placeholder' => 'Zadejte částku',
+        'metadata_placeholder' => 'Zadejte JSON metadata',
+        'metadata_hint' => 'JSON formát pro dodatečné informace',
+        'validation' => [
+            'user_required' => 'Uživatel je povinný',
+            'user_integer' => 'Uživatel musí být číslo',
+            'user_exists' => 'Vybraný uživatel neexistuje',
+            'subscription_plan_required' => 'Předplatný plán je povinný',
+            'subscription_plan_integer' => 'Předplatný plán musí být číslo',
+            'subscription_plan_exists' => 'Vybraný předplatný plán neexistuje',
+            'status_required' => 'Stav je povinný',
+            'status_in' => 'Vyberte platný stav',
+            'starts_at_date' => 'Začíná musí být platné datum',
+            'ends_at_date' => 'Končí musí být platné datum',
+            'ends_at_after' => 'Končí musí být po datu začátku',
+            'trial_ends_at_date' => 'Zkušební období končí musí být platné datum',
+            'next_billing_at_date' => 'Další fakturace musí být platné datum',
+            'amount_required' => 'Částka je povinná',
+            'amount_numeric' => 'Částka musí být číslo',
+            'amount_min' => 'Částka musí být alespoň :min',
+            'amount_max' => 'Částka může být maximálně :max',
+            'currency_required' => 'Měna je povinná',
+            'currency_in' => 'Vyberte platnou měnu',
+            'metadata_string' => 'Metadata musí být text',
+            'metadata_max' => 'Metadata mohou mít maximálně :max znaků',
+        ],
+    ],
+
+    'subscription_plan_features' => [
+        'entity_singular' => 'Funkce plánu',
+        'entity_plural' => 'Funkce plánů',
+        'name' => 'Název',
+        'slug' => 'URL identifikátor',
+        'description' => 'Popis',
+        'is_active' => 'Aktivní',
+        'sort_order' => 'Pořadí',
+        'active_only' => 'Pouze aktivní',
+        'name_placeholder' => 'Zadejte název funkce',
+        'slug_placeholder' => 'URL identifikátor (automaticky)',
+        'description_placeholder' => 'Zadejte popis funkce',
+        'sort_order_placeholder' => 'Pořadí řazení (číslo)',
+        'sort_order_hint' => 'Nižší číslo = vyšší pozice',
+        'validation' => [
+            'name_required' => 'Název je povinný',
+            'name_string' => 'Název musí být text',
+            'name_min' => 'Název musí mít alespoň :min znaků',
+            'name_max' => 'Název může mít maximálně :max znaků',
+            'slug_required' => 'URL identifikátor je povinný',
+            'slug_string' => 'URL identifikátor musí být text',
+            'slug_unique' => 'Tento URL identifikátor už existuje',
+            'description_string' => 'Popis musí být text',
+            'description_max' => 'Popis může mít maximálně :max znaků',
+            'sort_order_integer' => 'Pořadí musí být celé číslo',
+            'sort_order_min' => 'Pořadí musí být alespoň :min',
+        ],
+    ],
+
+    'general' => [
+        'id' => 'ID',
+        'created_at' => 'Vytvořeno',
+        'updated_at' => 'Aktualizováno',
+        'yes' => 'Ano',
+        'no' => 'Ne',
     ],
 ];

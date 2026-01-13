@@ -5,19 +5,29 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\ArtisanCommandRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class ArtisanCommandRequestFeatureTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesFrontendTestEnvironment;
+
+    private User $user;
+    private User $adminUser;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
         // Set up a test route for HTTP requests
         Route::post('/test/artisan-command', function (ArtisanCommandRequest $request) {
             return response()->json(['success' => true]);
@@ -28,18 +38,17 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     public function authorize_returns_false_when_user_not_authenticated(): void
     {
         $request = new ArtisanCommandRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
     #[Test]
     public function authorize_returns_true_when_user_authenticated_with_backpack(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user, 'backpack');
-        
+        $this->actingAs($this->adminUser, 'backpack');
+
         $request = new ArtisanCommandRequest();
-        
+
         $this->assertTrue($request->authorize());
     }
 
@@ -52,7 +61,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
 
         $request = new ArtisanCommandRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertTrue($validator->passes());
     }
 
@@ -61,7 +70,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     {
         $request = new ArtisanCommandRequest();
         $attributes = $request->attributes();
-        
+
         $this->assertIsArray($attributes);
         // Currently returns empty array since no attributes are defined
         $this->assertEmpty($attributes);
@@ -72,7 +81,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     {
         $request = new ArtisanCommandRequest();
         $messages = $request->messages();
-        
+
         $this->assertIsArray($messages);
         // Currently returns empty array since no custom messages are defined
         $this->assertEmpty($messages);
@@ -81,8 +90,9 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     #[Test]
     public function http_request_with_valid_data_passes(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user, 'backpack');
+        // we uses backpack authentication in frontend request class, to avoid frontend users can access Artisan commands
+        // App\Http\Requests\ArtisanCommandRequest
+        $this->actingAs($this->adminUser, 'backpack');
 
         $data = [
             // Currently no validation rules, so empty data should pass

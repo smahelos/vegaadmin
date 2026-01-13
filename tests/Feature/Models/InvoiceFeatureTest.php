@@ -137,9 +137,9 @@ class InvoiceFeatureTest extends TestCase
     public function calculate_total_amount_returns_zero_for_new_invoice(): void
     {
         $invoice = new Invoice();
-        
+
         $total = $invoice->calculateTotalAmount();
-        
+
         $this->assertEquals(0.0, $total);
     }
 
@@ -147,7 +147,7 @@ class InvoiceFeatureTest extends TestCase
     public function calculate_total_amount_sums_invoice_products(): void
     {
         $invoice = Invoice::factory()->create();
-        
+
         // Create invoice products with specific values to avoid boot() calculations
         InvoiceProduct::create([
             'invoice_id' => $invoice->id,
@@ -162,7 +162,7 @@ class InvoiceFeatureTest extends TestCase
             'tax_amount' => 0,
             'total_price' => 0 // Will be calculated by boot method: 100.50 * 1 + 0 = 100.50
         ]);
-        
+
         InvoiceProduct::create([
             'invoice_id' => $invoice->id,
             'product_id' => Product::factory()->create()->id,
@@ -178,12 +178,12 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         $total = $invoice->calculateTotalAmount();
-        
+
         $this->assertEquals(300.75, $total);
-        
-        // Check that payment_amount was updated (as integer, so 301)
+
+        // Check that payment_amount was updated (as decimal, preserving precision)
         $invoice->refresh();
-        $this->assertEquals(301, $invoice->payment_amount); // Integer field rounds 300.75 to 301
+        $this->assertEquals(300.75, $invoice->payment_amount); // Decimal field preserves 300.75
     }
 
     #[Test]
@@ -193,7 +193,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['payment_status_id' => $status->id]);
 
         $statusName = $invoice->getPaymentStatusNameAttribute();
-        
+
         $this->assertEquals('Paid', $statusName);
     }
 
@@ -203,7 +203,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['payment_status_id' => null]);
 
         $statusName = $invoice->getPaymentStatusNameAttribute();
-        
+
         $this->assertIsString($statusName);
     }
 
@@ -214,7 +214,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['payment_status_id' => $status->id]);
 
         $slug = $invoice->getPaymentStatusSlugAttribute();
-        
+
         $this->assertEquals('paid', $slug);
     }
 
@@ -224,7 +224,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['payment_status_id' => null]);
 
         $slug = $invoice->getPaymentStatusSlugAttribute();
-        
+
         $this->assertEquals('unknown', $slug);
     }
 
@@ -235,7 +235,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['client_id' => $client->id]);
 
         $clientName = $invoice->getClientNameAttribute();
-        
+
         $this->assertEquals('Test Client', $clientName);
     }
 
@@ -245,7 +245,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['client_id' => null]);
 
         $clientName = $invoice->getClientNameAttribute();
-        
+
         $this->assertIsString($clientName);
     }
 
@@ -256,7 +256,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['payment_status_id' => $status->id]);
 
         $colorClass = $invoice->getStatusColorClassAttribute();
-        
+
         $this->assertEquals('green', $colorClass);
     }
 
@@ -267,7 +267,7 @@ class InvoiceFeatureTest extends TestCase
         // we need to test the mapping logic differently.
         // We'll test that when color attribute is an empty string (falsy),
         // the method falls back to slug mapping
-        
+
         $statusCategory = \App\Models\StatusCategory::factory()->create();
         $status = Status::create([
             'name' => 'Paid Status',
@@ -277,12 +277,12 @@ class InvoiceFeatureTest extends TestCase
             'description' => 'Test status',
             'is_active' => true
         ]);
-        
+
         $client = Client::factory()->create();
         $user = User::factory()->create();
         $supplier = Supplier::factory()->create();
         $paymentMethod = PaymentMethod::factory()->create();
-        
+
         $invoice = Invoice::create([
             'invoice_vs' => 'INV-TEST2',
             'issue_date' => now(),
@@ -298,7 +298,7 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         $colorClass = $invoice->getStatusColorClassAttribute();
-        
+
         // Empty string is falsy, so it falls back to slug mapping: 'paid' -> 'green'
         $this->assertEquals('green', $colorClass);
     }
@@ -309,7 +309,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['payment_status_id' => null]);
 
         $colorClass = $invoice->getStatusColorClassAttribute();
-        
+
         $this->assertEquals('gray', $colorClass);
     }
 
@@ -323,7 +323,7 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         $dueDate = $invoice->getDueDateAttribute();
-        
+
         $this->assertInstanceOf(Carbon::class, $dueDate);
         $this->assertEquals('2025-01-31', $dueDate->format('Y-m-d'));
     }
@@ -337,7 +337,7 @@ class InvoiceFeatureTest extends TestCase
         $supplier = Supplier::factory()->create();
         $status = Status::factory()->create();
         $paymentMethod = PaymentMethod::factory()->create();
-        
+
         $invoice = Invoice::create([
             'invoice_vs' => 'INV-TEST',
             'issue_date' => now(),
@@ -353,7 +353,7 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         $dueDate = $invoice->getDueDateAttribute();
-        
+
         $this->assertNull($dueDate);
     }
 
@@ -361,9 +361,9 @@ class InvoiceFeatureTest extends TestCase
     public function get_subtotal_attribute_returns_zero_for_new_invoice(): void
     {
         $invoice = new Invoice();
-        
+
         $subtotal = $invoice->getSubtotalAttribute();
-        
+
         $this->assertEquals(0.0, $subtotal);
     }
 
@@ -371,13 +371,13 @@ class InvoiceFeatureTest extends TestCase
     public function get_subtotal_attribute_calculates_from_invoice_products(): void
     {
         $invoice = Invoice::factory()->create();
-        
+
         InvoiceProduct::factory()->create([
             'invoice_id' => $invoice->id,
             'price' => 100.00,
             'quantity' => 2
         ]);
-        
+
         InvoiceProduct::factory()->create([
             'invoice_id' => $invoice->id,
             'price' => 50.00,
@@ -385,7 +385,7 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         $subtotal = $invoice->getSubtotalAttribute();
-        
+
         $this->assertEquals(350.0, $subtotal);
     }
 
@@ -393,9 +393,9 @@ class InvoiceFeatureTest extends TestCase
     public function get_total_tax_attribute_returns_zero_for_new_invoice(): void
     {
         $invoice = new Invoice();
-        
+
         $totalTax = $invoice->getTotalTaxAttribute();
-        
+
         $this->assertEquals(0.0, $totalTax);
     }
 
@@ -403,7 +403,7 @@ class InvoiceFeatureTest extends TestCase
     public function get_total_tax_attribute_sums_tax_amounts(): void
     {
         $invoice = Invoice::factory()->create();
-        
+
         // Create invoice products with specific tax amounts
         // Boot method will calculate: tax_amount = price * quantity * tax_rate / 100
         InvoiceProduct::create([
@@ -419,7 +419,7 @@ class InvoiceFeatureTest extends TestCase
             'tax_amount' => 0, // Will be overwritten by boot method
             'total_price' => 0 // Will be overwritten by boot method
         ]);
-        
+
         InvoiceProduct::create([
             'invoice_id' => $invoice->id,
             'product_id' => Product::factory()->create()->id,
@@ -435,7 +435,7 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         $totalTax = $invoice->getTotalTaxAttribute();
-        
+
         // Expected: 21 + 10.5 = 31.5
         $this->assertEquals(31.5, $totalTax);
     }
@@ -447,7 +447,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['supplier_id' => $supplier->id]);
 
         $supplierName = $invoice->supplier_name;
-        
+
         $this->assertEquals('Test Supplier', $supplierName);
     }
 
@@ -457,7 +457,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['supplier_id' => null]);
 
         $supplierName = $invoice->supplier_name;
-        
+
         $this->assertIsString($supplierName);
     }
 
@@ -468,7 +468,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['payment_method_id' => $paymentMethod->id]);
 
         $paymentMethods = $invoice->paymentMethods();
-        
+
         $this->assertInstanceOf(\Illuminate\Support\Collection::class, $paymentMethods);
         $this->assertCount(1, $paymentMethods);
         $this->assertEquals($paymentMethod->id, $paymentMethods->first()->id);
@@ -480,7 +480,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice = Invoice::factory()->create(['payment_method_id' => null]);
 
         $paymentMethods = $invoice->paymentMethods();
-        
+
         $this->assertInstanceOf(\Illuminate\Support\Collection::class, $paymentMethods);
         $this->assertCount(0, $paymentMethods);
     }
@@ -489,7 +489,7 @@ class InvoiceFeatureTest extends TestCase
     public function get_invoice_products_data_attribute_returns_array(): void
     {
         $invoice = Invoice::factory()->create();
-        
+
         InvoiceProduct::factory()->create([
             'invoice_id' => $invoice->id,
             'name' => 'Test Product',
@@ -498,7 +498,7 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         $invoiceProductsData = $invoice->getInvoiceProductsDataAttribute();
-        
+
         $this->assertIsArray($invoiceProductsData);
         $this->assertCount(1, $invoiceProductsData);
         $this->assertEquals('Test Product', $invoiceProductsData[0]['name']);
@@ -546,7 +546,156 @@ class InvoiceFeatureTest extends TestCase
 
         // Should not throw exception
         $invoice->syncProductsFromJson();
-        
+
         $this->assertTrue(true); // Test passes if no exception is thrown
+    }
+
+    #[Test]
+    public function payment_amount_money_attribute_returns_money_value_object(): void
+    {
+        $invoice = Invoice::factory()->create([
+            'payment_amount' => 1234.56,
+            'payment_currency' => 'eur'
+        ]);
+
+        $money = $invoice->payment_amount_money; // Money VO
+    $this->assertEquals('1234.56', $money->getAmount());
+        $this->assertEquals('EUR', $money->getCurrency());
+    }
+
+    #[Test]
+    public function subtotal_money_attribute_aggregates_products_correctly(): void
+    {
+        $invoice = Invoice::factory()->create([
+            'payment_currency' => 'czk'
+        ]);
+
+        // Two products: (100 * 2) + (50 * 3) = 350.00
+        InvoiceProduct::factory()->create([
+            'invoice_id' => $invoice->id,
+            'price' => 100.00,
+            'quantity' => 2,
+            'currency' => 'CZK'
+        ]);
+        InvoiceProduct::factory()->create([
+            'invoice_id' => $invoice->id,
+            'price' => 50.00,
+            'quantity' => 3,
+            'currency' => 'CZK'
+        ]);
+
+        $money = $invoice->subtotal_money; // Money VO
+        $this->assertEquals('350', $money->getAmount());
+        $this->assertEquals('CZK', $money->getCurrency());
+    }
+
+    #[Test]
+    public function total_tax_money_attribute_sums_tax_correctly(): void
+    {
+        $invoice = Invoice::factory()->create([
+            'payment_currency' => 'usd'
+        ]);
+
+        // tax_amount computed in boot: tax_amount = price * quantity * tax_rate / 100
+        InvoiceProduct::create([
+            'invoice_id' => $invoice->id,
+            'product_id' => Product::factory()->create()->id,
+            'name' => 'P1',
+            'quantity' => 1,
+            'price' => 100.00,
+            'currency' => 'USD',
+            'unit' => 'piece',
+            'is_custom_product' => false,
+            'tax_rate' => 21,
+            'tax_amount' => 0,
+            'total_price' => 0
+        ]);
+        InvoiceProduct::create([
+            'invoice_id' => $invoice->id,
+            'product_id' => Product::factory()->create()->id,
+            'name' => 'P2',
+            'quantity' => 2,
+            'price' => 50.00,
+            'currency' => 'USD',
+            'unit' => 'piece',
+            'is_custom_product' => false,
+            'tax_rate' => 10, // 50 * 2 * 10% = 10
+            'tax_amount' => 0,
+            'total_price' => 0
+        ]);
+
+        // Expected tax: (100 * 1 * 21%) = 21 + (50 * 2 * 10%) = 10 => 31.00
+        $money = $invoice->total_tax_money;
+        $this->assertEquals('31', $money->getAmount());
+        $this->assertEquals('USD', $money->getCurrency());
+    }
+
+    #[Test]
+    public function sync_products_from_json_overwrites_duplicate_product_ids_last_wins(): void
+    {
+        $product = Product::factory()->create();
+        $invoice = Invoice::factory()->create([
+            'payment_currency' => 'CZK',
+            'invoice_text' => json_encode([
+                'items' => [
+                    [
+                        'product_id' => $product->id,
+                        'quantity' => 1,
+                        'price' => 100.00,
+                        'tax' => 21
+                    ],
+                    [
+                        'product_id' => $product->id, // duplicate – should overwrite
+                        'quantity' => 3,
+                        'price' => 150.00,
+                        'tax' => 10
+                    ],
+                    [
+                        // invalid (no product_id) – ignored
+                        'quantity' => 99,
+                        'price' => 999.00
+                    ]
+                ]
+            ])
+        ]);
+
+        $invoice->syncProductsFromJson();
+
+        $pivot = $invoice->products()->where('products.id', $product->id)->first();
+        $this->assertNotNull($pivot, 'Product should be synced');
+        $this->assertEquals(3.0, (float)$pivot->pivot->quantity); // last wins
+        $this->assertEquals(150.00, (float)$pivot->pivot->price);
+        $this->assertEquals(10.0, (float)$pivot->pivot->tax_rate);
+    }
+
+    #[Test]
+    public function sync_products_from_json_clears_products_when_no_valid_items(): void
+    {
+        $product = Product::factory()->create();
+        $invoice = Invoice::factory()->create([
+            'payment_currency' => 'CZK'
+        ]);
+
+        // Seed one existing relation via pivot
+        $invoice->products()->sync([
+            $product->id => [
+                'name' => $product->name,
+                'quantity' => 2,
+                'price' => 50.00,
+                'currency' => 'CZK',
+                'tax_rate' => 21,
+                'tax_amount' => 0,
+                'total_price' => 0,
+                'is_custom_product' => 0
+            ]
+        ]);
+
+        // Now set empty/invalid items
+        $invoice->invoice_text = json_encode(['items' => [ ['foo' => 'bar'] ]]);
+        $invoice->save();
+
+        $invoice->syncProductsFromJson();
+
+        $this->assertCount(0, $invoice->products()->get(), 'All products should be cleared when no valid items remain.');
     }
 }

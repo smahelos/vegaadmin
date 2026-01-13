@@ -10,18 +10,27 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
 
 class ExpenseCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesAdminTestEnvironment;
+
+    protected User $adminUser;
+    protected User $regularUser;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Create permission for expense management
-        Permission::firstOrCreate(['name' => 'can_create_edit_expense', 'guard_name' => 'backpack']);
+
+        // Set up admin test environment with roles and permissions
+        $this->setUpAdminTestEnvironment();
+        $permission = Permission::where('name', 'can_create_edit_expense')
+            ->where('guard_name', 'backpack')
+            ->first();
+        $this->regularUser->givePermissionTo($permission);
     }
 
     #[Test]
@@ -165,7 +174,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         ];
 
         $request = new ExpenseCategoryRequest();
-        
+
         $validator1 = Validator::make($validData1, $request->rules());
         $validator2 = Validator::make($validData2, $request->rules());
 
@@ -176,8 +185,9 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_without_permission()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user, 'backpack');
+        // Create user without permission for this specific test
+        $userWithoutPermission = User::factory()->create();
+        $this->actingAs($userWithoutPermission, 'backpack');
 
         $request = new ExpenseCategoryRequest();
         $this->assertFalse($request->authorize());
@@ -193,11 +203,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_with_correct_permission()
     {
-        $user = User::factory()->create();
-        $permission = Permission::where('name', 'can_create_edit_expense')->first();
-        $user->givePermissionTo($permission);
-        
-        $this->actingAs($user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $request = new ExpenseCategoryRequest();
         $this->assertTrue($request->authorize());

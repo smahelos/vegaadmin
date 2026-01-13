@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Traits;
 
-use App\Traits\ProductFormFields;
+use App\Infrastructure\Forms\Products\ProductFormFields;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -56,7 +56,7 @@ class ProductFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(ProductFormFields::class);
         $methods = $reflection->getMethods();
-        
+
         // Should have exactly 1 method
         $this->assertCount(1, $methods);
     }
@@ -66,7 +66,7 @@ class ProductFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(ProductFormFields::class);
         $properties = $reflection->getProperties();
-        
+
         // Trait should not define any properties
         $this->assertEmpty($properties);
     }
@@ -76,13 +76,13 @@ class ProductFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(ProductFormFields::class);
         $source = file_get_contents($reflection->getFileName());
-        
+
         // Check that trait imports required models
-        $this->assertStringContainsString('use App\Models\ProductCategory;', $source);
-        $this->assertStringContainsString('use App\Models\Tax;', $source);
-        $this->assertStringContainsString('use App\Models\Supplier;', $source);
-        $this->assertStringContainsString('use App\Contracts\CurrencyServiceInterface;', $source);
-        $this->assertStringContainsString('use App\Contracts\ProductsServiceInterface;', $source);
+        $this->assertStringContainsString('use App\\Models\\ProductCategory;', $source);
+        $this->assertStringContainsString('use App\\Models\\Tax;', $source);
+        $this->assertStringContainsString('use App\\Models\\Supplier;', $source);
+    $this->assertStringContainsString('use App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface;', $source);
+        $this->assertStringContainsString('use App\\Domain\\Product\\Contracts\\ProductServiceInterface;', $source);
     }
 
     #[Test]
@@ -91,7 +91,7 @@ class ProductFormFieldsTest extends TestCase
         $reflection = new \ReflectionClass(ProductFormFields::class);
         $method = $reflection->getMethod('getProductFields');
         $docComment = $method->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('Get client form fields definitions', $docComment);
     }

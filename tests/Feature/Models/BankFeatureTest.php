@@ -67,6 +67,7 @@ class BankFeatureTest extends TestCase
             'name' => 'Test Bank',
             'code' => '5678',
             'country' => 'CZ',
+            'active' => true, // Explicitly set active to true
         ]);
 
         $this->assertDatabaseHas('banks', [

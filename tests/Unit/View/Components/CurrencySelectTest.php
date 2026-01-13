@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\View\Components;
 
-use App\Services\CurrencyService;
+use App\Domain\Shared\Money\Contracts\CurrencyServiceInterface;
 use App\View\Components\CurrencySelect;
 use Illuminate\View\Component;
 use Illuminate\View\View;
@@ -20,24 +20,24 @@ class CurrencySelectTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Mock CurrencyService using Mockery 1.6 best practices
         // @phpstan-ignore-next-line
-        $mockService = Mockery::mock(CurrencyService::class);
+    $mockService = Mockery::mock(CurrencyServiceInterface::class);
         $currencies = [
             'CZK' => 'Czech Koruna',
-            'EUR' => 'Euro', 
+            'EUR' => 'Euro',
             'USD' => 'US Dollar'
         ];
-        // @phpstan-ignore-next-line  
+        // @phpstan-ignore-next-line
         $mockService
             ->shouldReceive('getCommonCurrencies')
             ->andReturnUsing(function () use ($currencies) {
                 return $currencies;
             });
-            
+
         $this->mockCurrencyService = $mockService;
-            
+
         $this->component = new CurrencySelect(
             $this->mockCurrencyService,
             'currency'
@@ -66,7 +66,7 @@ class CurrencySelectTest extends TestCase
     public function render_method_exists_and_is_public(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));
-        
+
         $reflection = new \ReflectionClass(CurrencySelect::class);
         $method = $reflection->getMethod('render');
         $this->assertTrue($method->isPublic());
@@ -78,9 +78,9 @@ class CurrencySelectTest extends TestCase
         $reflection = new \ReflectionClass(CurrencySelect::class);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
-        $this->assertEquals('Illuminate\View\View', $returnType->getName());
+    $this->assertStringContainsString('Illuminate\\View\\View', (string)$returnType);
     }
 
     #[Test]
@@ -89,7 +89,7 @@ class CurrencySelectTest extends TestCase
         $reflection = new \ReflectionClass(CurrencySelect::class);
         $method = $reflection->getMethod('render');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(0, $parameters);
     }
 
@@ -97,7 +97,7 @@ class CurrencySelectTest extends TestCase
     public function component_has_expected_namespace(): void
     {
         $reflection = new \ReflectionClass(CurrencySelect::class);
-        
+
         $this->assertEquals('App\View\Components', $reflection->getNamespaceName());
     }
 
@@ -105,7 +105,7 @@ class CurrencySelectTest extends TestCase
     public function constructor_sets_default_values_correctly(): void
     {
         $component = new CurrencySelect($this->mockCurrencyService, 'test_name');
-        
+
         $this->assertEquals('test_name', $component->name);
         $this->assertEquals('test_name', $component->id); // Should default to name
         $this->assertEquals('CZK', $component->selected); // Default selected value
@@ -130,7 +130,7 @@ class CurrencySelectTest extends TestCase
             'custom-label-class',
             'Custom hint'
         );
-        
+
         $this->assertEquals('custom_name', $component->name);
         $this->assertEquals('custom_id', $component->id);
         $this->assertEquals('EUR', $component->selected);
@@ -149,7 +149,7 @@ class CurrencySelectTest extends TestCase
             'EUR' => 'Euro',
             'USD' => 'US Dollar'
         ];
-        
+
         $this->assertEquals($expectedCurrencies, $this->component->currencies);
     }
 
@@ -158,14 +158,14 @@ class CurrencySelectTest extends TestCase
     {
         $reflection = new \ReflectionClass(CurrencySelect::class);
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-        
+
         $propertyNames = array_map(fn($prop) => $prop->getName(), $properties);
-        
+
         $expectedProperties = [
-            'currencies', 'name', 'id', 'selected', 'required', 
+            'currencies', 'name', 'id', 'selected', 'required',
             'label', 'class', 'labelClass', 'hint'
         ];
-        
+
         foreach ($expectedProperties as $property) {
             $this->assertContains($property, $propertyNames);
         }
@@ -177,7 +177,7 @@ class CurrencySelectTest extends TestCase
         $reflection = new \ReflectionClass(CurrencySelect::class);
         $method = $reflection->getMethod('render');
         $docComment = $method->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('Render the currency select component', $docComment);
     }
@@ -188,10 +188,10 @@ class CurrencySelectTest extends TestCase
         $reflection = new \ReflectionClass(CurrencySelect::class);
         $constructor = $reflection->getMethod('__construct');
         $docComment = $constructor->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('@param', $docComment);
-        $this->assertStringContainsString('CurrencyService', $docComment);
+    $this->assertStringContainsString('CurrencyServiceInterface', $docComment);
     }
 
     #[Test]
@@ -199,8 +199,8 @@ class CurrencySelectTest extends TestCase
     {
         $reflection = new \ReflectionClass(CurrencySelect::class);
         $fileContent = file_get_contents($reflection->getFileName());
-        
-        $this->assertStringContainsString('use App\Services\CurrencyService;', $fileContent);
+
+    $this->assertStringContainsString('use App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface;', $fileContent);
         $this->assertStringContainsString('use Illuminate\View\Component;', $fileContent);
         $this->assertStringContainsString('use Illuminate\View\View;', $fileContent);
     }

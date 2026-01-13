@@ -5,25 +5,28 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\ClientRequest;
 use App\Models\User;
 use App\Models\Client;
+use App\Models\EntityLimit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
  * Feature tests for ClientRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests validation scenarios, authorization with real users, and validation with database constraints
  */
 class ClientRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected User $user;
+    protected User $adminUser;
     protected array $validClientData;
 
     /**
@@ -36,31 +39,40 @@ class ClientRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // Create permissions and user
-        $this->createPermissionsAndUser();
-        
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        $permission = Permission::where('name', 'frontend.can_create_edit_client')
+            ->where('guard_name', 'web')
+            ->first();
+
+        // Create regular user with limited role
+        if (!$this->user) {
+            $this->user = User::factory()->create([
+                'name' => $this->faker->name,
+                'email' => $this->faker->unique()->safeEmail,
+            ]);
+        } else {
+            $this->user->update([
+                'name' => $this->faker->name,
+                'email' => $this->faker->unique()->safeEmail,
+            ]);
+        }
+        $this->user->givePermissionTo($permission);
+
+        // Create entity limit for clients to allow test operations
+        EntityLimit::create([
+            'permission_name' => 'frontend.can_create_edit_client',
+            'entity_type' => 'client',
+            'limit_value' => 10,
+            'period_type' => 'monthly',
+            'metric_type' => 'count',
+            'description' => 'Client limit for frontend tests',
+            'is_active' => true,
+        ]);
+
         // Set up valid client data
         $this->setupValidClientData();
-    }
-
-    /**
-     * Create necessary permissions and test user
-     */
-    private function createPermissionsAndUser(): void
-    {
-        // Create permissions
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
-        
-        // Create role
-        $frontendRole = Role::firstOrCreate(['name' => 'frontend_user', 'guard_name' => 'web']);
-        $frontendRole->givePermissionTo('frontend.can_create_edit_client');
-        
-        // Create test user
-        $this->user = User::factory()->create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-        ]);
-        $this->user->assignRole($frontendRole);
     }
 
     /**
@@ -111,16 +123,16 @@ class ClientRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country'];
-        
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validClientData;
             unset($invalidData[$field]);
-            
+
             $request = new ClientRequest();
             $validator = Validator::make($invalidData, $request->rules(), $request->messages());
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
-            $this->assertArrayHasKey($field, $validator->errors()->toArray(), 
+            $this->assertArrayHasKey($field, $validator->errors()->toArray(),
                 "Should have error for missing {$field}");
         }
     }
@@ -129,11 +141,11 @@ class ClientRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_email()
     {
         $invalidEmails = ['invalid-email', 'test@', '@example.com', 'test.example.com'];
-        
+
         foreach ($invalidEmails as $invalidEmail) {
             $invalidData = $this->validClientData;
             $invalidData['email'] = $invalidEmail;
-            
+
             $request = new ClientRequest();
             $validator = Validator::make($invalidData, $request->rules(), $request->messages());
 
@@ -160,11 +172,11 @@ class ClientRequestFeatureTest extends TestCase
         foreach ($fieldsWithMaxLength as $field => $maxLength) {
             $invalidData = $this->validClientData;
             $invalidData[$field] = str_repeat('a', $maxLength + 1);
-            
+
             $request = new ClientRequest();
             $validator = Validator::make($invalidData, $request->rules(), $request->messages());
 
-            $this->assertTrue($validator->fails(), 
+            $this->assertTrue($validator->fails(),
                 "Validation should fail when {$field} exceeds {$maxLength} characters");
             $this->assertArrayHasKey($field, $validator->errors()->toArray());
         }
@@ -174,15 +186,15 @@ class ClientRequestFeatureTest extends TestCase
     public function validation_passes_with_nullable_fields_empty()
     {
         $nullableFields = ['shortcut', 'ico', 'dic', 'description', 'is_default'];
-        
+
         foreach ($nullableFields as $field) {
             $dataWithNullField = $this->validClientData;
             $dataWithNullField[$field] = null;
-            
+
             $request = new ClientRequest();
             $validator = Validator::make($dataWithNullField, $request->rules(), $request->messages());
 
-            $this->assertFalse($validator->fails(), 
+            $this->assertFalse($validator->fails(),
                 "Validation should pass when nullable field {$field} is null");
         }
     }
@@ -191,15 +203,15 @@ class ClientRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_boolean_values()
     {
         $invalidBooleanValues = ['invalid', 'yes', 'no', 2, -1, 'true_string'];
-        
+
         foreach ($invalidBooleanValues as $invalidValue) {
             $invalidData = $this->validClientData;
             $invalidData['is_default'] = $invalidValue;
-            
+
             $request = new ClientRequest();
             $validator = Validator::make($invalidData, $request->rules(), $request->messages());
 
-            $this->assertTrue($validator->fails(), 
+            $this->assertTrue($validator->fails(),
                 "Validation should fail for is_default value: " . json_encode($invalidValue));
             $this->assertArrayHasKey('is_default', $validator->errors()->toArray());
         }
@@ -209,15 +221,15 @@ class ClientRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_boolean_values()
     {
         $validBooleanValues = [true, false, 1, 0, '1', '0'];
-        
+
         foreach ($validBooleanValues as $validValue) {
             $validData = $this->validClientData;
             $validData['is_default'] = $validValue;
-            
+
             $request = new ClientRequest();
             $validator = Validator::make($validData, $request->rules(), $request->messages());
 
-            $this->assertFalse($validator->fails(), 
+            $this->assertFalse($validator->fails(),
                 "Validation should pass for is_default value: " . json_encode($validValue));
         }
     }
@@ -230,7 +242,7 @@ class ClientRequestFeatureTest extends TestCase
 
         // Should not get 403 (unauthorized)
         $this->assertNotEquals(403, $response->getStatusCode());
-        
+
         // Should either succeed or have validation errors, but not authorization errors
         $this->assertTrue(in_array($response->getStatusCode(), [200, 201, 302]));
     }
@@ -259,20 +271,20 @@ class ClientRequestFeatureTest extends TestCase
         foreach ($requiredFieldsWithMessages as $field => $expectedMessageKey) {
             $invalidData = $this->validClientData;
             unset($invalidData[$field]);
-            
+
             $request = new ClientRequest();
             $validator = Validator::make($invalidData, $request->rules(), $request->messages());
 
             $this->assertTrue($validator->fails());
             $errors = $validator->errors();
-            
+
             // Check that the error message contains the expected translation key content
             $fieldErrors = $errors->get($field);
             $this->assertNotEmpty($fieldErrors);
-            
+
             // The actual message will be translated, but we can verify it's not the default Laravel message
             $errorMessage = $fieldErrors[0];
-            $this->assertNotEquals("The {$field} field is required.", $errorMessage, 
+            $this->assertNotEquals("The {$field} field is required.", $errorMessage,
                 "Should use custom message, not default Laravel message");
         }
     }
@@ -351,7 +363,7 @@ class ClientRequestFeatureTest extends TestCase
         $request = new ClientRequest();
         $validator = Validator::make($validData, $request->rules(), $request->messages());
 
-        $this->assertFalse($validator->fails(), 
+        $this->assertFalse($validator->fails(),
             'Validation should pass with exact maximum length values');
     }
 }

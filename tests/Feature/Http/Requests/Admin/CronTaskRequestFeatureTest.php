@@ -9,25 +9,30 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
 
 class CronTaskRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
-    private User $user;
+    use RefreshDatabase, CreatesAdminTestEnvironment;
+    protected User $adminUser;
+    protected User $regularUser;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Create required permissions for 'backpack' guard
-        Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
-        
-        $this->user = User::factory()->create();
+
+        // Set up admin test environment with roles and permissions
+        $this->setUpAdminTestEnvironment();
+        $permission = Permission::where('name', 'can_create_edit_cron_task')
+            ->where('guard_name', 'backpack')
+            ->first();
+
+        $this->regularUser->givePermissionTo($permission);
 
         // Set up test route
-        Route::post('/admin/cron-task', function (CronTaskRequest $request) {
+        Route::post('/test-cron-task', function (CronTaskRequest $request) {
             return response()->json(['success' => true]);
         })->middleware('web');
     }
@@ -42,8 +47,9 @@ class CronTaskRequestFeatureTest extends TestCase
     #[Test]
     public function authorize_returns_true_when_user_authenticated_with_backpack(): void
     {
-        $this->actingAs($this->user, 'backpack');
-        
+        // Use admin user with can_create_edit_cron_task permission
+        $this->actingAs($this->adminUser, 'backpack');
+
         $request = new CronTaskRequest();
         $this->assertTrue($request->authorize());
     }
@@ -63,7 +69,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertTrue($validator->passes());
     }
 
@@ -81,7 +87,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertTrue($validator->passes());
     }
 
@@ -99,7 +105,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertTrue($validator->passes());
     }
 
@@ -116,7 +122,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertTrue($validator->passes());
     }
 
@@ -130,7 +136,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
     }
@@ -145,7 +151,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('base_command', $validator->errors()->toArray());
     }
@@ -161,7 +167,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('frequency', $validator->errors()->toArray());
     }
@@ -178,7 +184,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('custom_expression', $validator->errors()->toArray());
     }
@@ -196,10 +202,10 @@ class CronTaskRequestFeatureTest extends TestCase
         // Create actual request instance with data to test real validation
         $request = CronTaskRequest::create('/test', 'POST', $data);
         $request->setContainer(app());
-        
+
         // Run validation through the request
         $validator = app('validator')->make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('custom_expression', $validator->errors()->toArray());
     }
@@ -216,7 +222,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('day_of_week', $validator->errors()->toArray());
     }
@@ -233,7 +239,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('day_of_month', $validator->errors()->toArray());
     }
@@ -250,7 +256,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('run_at', $validator->errors()->toArray());
     }
@@ -266,7 +272,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
     }
@@ -282,7 +288,7 @@ class CronTaskRequestFeatureTest extends TestCase
 
         $request = new CronTaskRequest();
         $validator = Validator::make($data, $request->rules());
-        
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('base_command', $validator->errors()->toArray());
     }
@@ -292,7 +298,7 @@ class CronTaskRequestFeatureTest extends TestCase
     {
         $request = new CronTaskRequest();
         $attributes = $request->attributes();
-        
+
         $this->assertIsArray($attributes);
         $this->assertArrayHasKey('name', $attributes);
         $this->assertArrayHasKey('base_command', $attributes);
@@ -311,10 +317,10 @@ class CronTaskRequestFeatureTest extends TestCase
     {
         $request = new CronTaskRequest();
         $messages = $request->messages();
-        
+
         $this->assertIsArray($messages);
         $this->assertArrayHasKey('name.required', $messages);
-        $this->assertArrayHasKey('command.required', $messages);
+        $this->assertArrayHasKey('base_command.required', $messages);
         $this->assertArrayHasKey('frequency.required', $messages);
     }
 
@@ -322,9 +328,9 @@ class CronTaskRequestFeatureTest extends TestCase
     public function http_request_with_valid_data_passes(): void
     {
         $this->withoutMiddleware();
-        
-        $response = $this->actingAs($this->user, 'backpack')
-            ->postJson('/admin/cron-task', [
+
+        $response = $this->actingAs($this->adminUser, 'backpack')
+            ->postJson('/test-cron-task', [
                 'name' => 'HTTP Test Task',
                 'base_command' => 'test:http',
                 'frequency' => 'daily',
@@ -340,9 +346,9 @@ class CronTaskRequestFeatureTest extends TestCase
     public function http_request_with_invalid_data_fails(): void
     {
         $this->withoutMiddleware();
-        
-        $response = $this->actingAs($this->user, 'backpack')
-            ->postJson('/admin/cron-task', [
+
+        $response = $this->actingAs($this->adminUser, 'backpack')
+            ->postJson('/test-cron-task', [
                 // Missing required fields
                 'description' => 'Task without required fields'
             ]);
@@ -355,8 +361,8 @@ class CronTaskRequestFeatureTest extends TestCase
     public function http_request_without_authentication_fails(): void
     {
         $this->withoutMiddleware();
-        
-        $response = $this->postJson('/admin/cron-task', [
+
+        $response = $this->postJson('/test-cron-task', [
             'name' => 'Unauthorized Test',
             'base_command' => 'test:unauthorized',
             'frequency' => 'daily'

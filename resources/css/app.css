@@ -1,5 +1,29 @@
 @import "tailwindcss";
+@import "flowbite/src/themes/default";
+@plugin "flowbite/plugin";
+@source "../../node_modules/flowbite";
 
+/* Safelist for dynamically used Tailwind classes */
+@source inline('{sm:,md:,lg:,xl:,}grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}');
+@source inline('{sm:,md:,lg:,xl:,}col-span-{1,2,3,4,5,6,7,8,9,10,11,12}');
+@source inline('{dark:,}bg-{gray-100,gray-200,gray-500,gray-700,gray-800,blue-700,blue-500,red-700,red-500,green-700,green-600,green-500,yellow-200,yellow-700,yellow-600,cyan-200,blue-50,indigo-50,indigo-500}');
+@source inline('{dark:,}text-{gray-500,gray-600,gray-700,blue-200,red-200,green-200,yellow-200,yellow-500,yellow-600,cyan-500,white}');
+@source inline('border-{blue-500,gray-200,gray-700}');
+@source inline('border-{l-4,t}');
+@source inline('{pointer-events-none,opacity-50,hidden,fixed,inset-0,z-50,z-10,cursor-not-allowed,leading-5,font-medium,font-semibold}');
+@source inline('{hover:text-white,hover:bg-indigo-500,hover:bg-gray-100,hover:bg-[#490BF4]}');
+@source inline('{transition-colors,duration-200,rounded-sm,min-w-[40px]}');
+@source inline('text-[#490BF4]');
+
+/* input.css */
+@custom-variant dark (&:where(.dark, .dark *));
+
+
+
+body,
+    * {
+        font-family: 'Figtree', sans-serif;
+    }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -50,14 +74,14 @@
     border-color: #6366f1;
 }
 
-.form-select:focus, 
+.form-select:focus,
 .form-input:focus {
   /* Použití přímých CSS vlastností namísto utility tříd */
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
   --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-  --tw-ring-color: rgb(56 189 248); /* primary-400 */
+  --tw-ring-color: #4F46E5; /* primary-400 */
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), 0 0 #0000;
-  border-color: rgb(125 211 252); /* primary-300 */
+  border-color: #4F46E5; /* primary-300 */
 }
 
 /* Stylování required polí */
@@ -235,42 +259,4 @@ label:has(+ select[required]) {
     }
 
     /* Další prvky... */
-}
-
-
-/* Pagination */
-.pagination-container {
-    @apply mt-4;
-}
-
-.pagination-wrapper {
-    @apply flex flex-col sm:flex-row items-center justify-between;
-}
-
-.pagination-info {
-    @apply mb-4 sm:mb-0 text-center sm:text-left;
-}
-
-.pagination-controls {
-    @apply flex justify-center sm:justify-end;
-}
-
-.pagination-links {
-    @apply flex items-center space-x-1;
-}
-
-.pagination-btn {
-    @apply relative inline-flex items-center justify-center px-4 py-2 border-0 bg-indigo-50 text-sm font-semibold text-cyan-600 hover:text-white hover:bg-cyan-600 transition-colors duration-200 rounded-md shadow-sm min-w-[40px];
-}
-
-.pagination-btn-active {
-    @apply z-10 bg-emerald-500 text-white font-semibold shadow-md hover:bg-emerald-500 hover:text-white;
-}
-
-.pagination-btn-disabled {
-    @apply opacity-50 cursor-not-allowed bg-gray-100 text-gray-500 hover:bg-gray-100 shadow-none;
-}
-
-.pagination-dot {
-    @apply relative inline-flex items-center justify-center px-2 py-2 text-sm font-medium text-gray-600;
 }

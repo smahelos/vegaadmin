@@ -21,5 +21,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(CronTasksSeeder::class);
+        $this->call(PageContentSeeder::class);
+        $this->call(SubscriptionPermissionSeeder::class);
+        $this->call(SubscriptionPlanSeeder::class);
+        $this->call(SubscriptionPlanFeaturePermissionSeeder::class);
+        $this->call(TestingDatabaseSeeder::class);
     }
 }

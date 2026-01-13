@@ -5,21 +5,24 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\PasswordUpdateRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for PasswordUpdateRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests password update validation scenarios, authorization, and validation with user authentication
  */
 class PasswordUpdateRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected User $user;
     protected array $validPasswordData;
@@ -35,11 +38,19 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // Create test user with known password
-        $this->user = User::factory()->create([
-            'password' => Hash::make($this->currentPassword),
-        ]);
-        
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        if (!$this->user) {
+            // Create test user with known password
+            $this->user = User::factory()->create([
+                'password' => Hash::make($this->currentPassword),
+            ]);
+        } else {
+            // Ensure user has the correct password
+            $this->user->update(['password' => Hash::make($this->currentPassword)]);
+        }
+
         // Set up valid password data
         $this->setupValidPasswordData();
     }
@@ -60,7 +71,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_data()
     {
         $this->actingAs($this->user);
-        
+
         $request = new PasswordUpdateRequest();
         $validator = Validator::make($this->validPasswordData, $request->rules(), $request->messages());
 
@@ -72,9 +83,9 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $this->actingAs($this->user);
-        
+
         $requiredFields = ['current_password', 'password', 'password_confirmation'];
-        
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validPasswordData;
             unset($invalidData[$field]);
@@ -91,7 +102,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_fails_with_wrong_current_password()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validPasswordData;
         $invalidData['current_password'] = 'wrong-password';
 
@@ -106,7 +117,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_fails_with_short_new_password()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validPasswordData;
         $invalidData['password'] = '123'; // Too short (min 8)
         $invalidData['password_confirmation'] = '123';
@@ -122,7 +133,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_fails_with_unconfirmed_password()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validPasswordData;
         $invalidData['password'] = 'new-password-123';
         $invalidData['password_confirmation'] = 'different-password-123';
@@ -138,7 +149,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_fails_when_password_confirmation_missing()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validPasswordData;
         $invalidData['password'] = 'new-password-123';
         unset($invalidData['password_confirmation']);
@@ -154,7 +165,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_passes_with_minimum_password_length()
     {
         $this->actingAs($this->user);
-        
+
         $validData = $this->validPasswordData;
         $validData['password'] = '12345678'; // Exactly 8 characters (minimum)
         $validData['password_confirmation'] = '12345678';
@@ -170,14 +181,14 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_passes_with_complex_passwords()
     {
         $this->actingAs($this->user);
-        
+
         $complexPasswords = [
             'Complex123!',
             'Very-Secure-Password-2024',
             'P@ssw0rd!#$%',
             'MySecurePassword123',
         ];
-        
+
         foreach ($complexPasswords as $password) {
             $validData = $this->validPasswordData;
             $validData['password'] = $password;
@@ -196,7 +207,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $this->actingAs($this->user);
 
         $request = new PasswordUpdateRequest();
-        
+
         $this->assertTrue($request->authorize());
     }
 
@@ -204,7 +215,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function authorization_fails_when_not_authenticated()
     {
         $request = new PasswordUpdateRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
@@ -256,7 +267,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_passes_with_same_current_and_new_password()
     {
         $this->actingAs($this->user);
-        
+
         // User wants to keep the same password (edge case but should be allowed)
         $validData = [
             'current_password' => $this->currentPassword,
@@ -278,9 +289,9 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $otherUser = User::factory()->create([
             'password' => Hash::make('other-user-password'),
         ]);
-        
+
         $this->actingAs($this->user); // Login as first user
-        
+
         $invalidData = $this->validPasswordData;
         $invalidData['current_password'] = 'other-user-password'; // Try to use other user's password
 
@@ -295,7 +306,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_handles_empty_string_passwords()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = [
             'current_password' => '',
             'password' => '',
@@ -306,7 +317,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules(), $request->messages());
 
         $this->assertTrue($validator->fails());
-        
+
         // Should fail for all three fields
         $this->assertArrayHasKey('current_password', $validator->errors()->toArray());
         $this->assertArrayHasKey('password', $validator->errors()->toArray());

@@ -11,10 +11,20 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
 
 class ArtisanCommandRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesAdminTestEnvironment;
+
+    protected User $adminUser;
+    protected User $regularUser;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpAdminTestEnvironment();
+    }
 
     #[Test]
     public function validation_passes_with_valid_data()
@@ -121,7 +131,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
 
         $request = new ArtisanCommandRequest();
         $request->merge(['id' => $command->id]);
-        
+
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -218,7 +228,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         ];
 
         $request = new ArtisanCommandRequest();
-        
+
         $validator1 = Validator::make($validData1, $request->rules());
         $validator2 = Validator::make($validData2, $request->rules());
 
@@ -266,8 +276,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_when_authenticated()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user, 'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
 
         $request = new ArtisanCommandRequest();
         $this->assertTrue($request->authorize());

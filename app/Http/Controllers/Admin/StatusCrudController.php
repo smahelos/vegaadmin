@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\StatusRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
-use App\Services\StatusService;
+use App\Domain\Shared\Status\Contracts\StatusServiceInterface as DomainStatusServiceInterface;
 use App\Models\Status;
 use App\Models\StatusCategory;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
@@ -23,7 +23,7 @@ class StatusCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object
-     * 
+     *
      * @return void
      */
     public function setup()
@@ -35,12 +35,12 @@ class StatusCrudController extends CrudController
         // Filter by category_id from URL
         if (request()->has('category_id')) {
             $this->crud->addClause('where', 'category_id', request()->input('category_id'));
-            
+
             // Get category name for a more descriptive page title
             $category = \App\Models\StatusCategory::find(request()->input('category_id'));
             if ($category) {
                 CRUD::setEntityNameStrings(
-                    $category->name . ' ' . trans('admin.statuses.status'), 
+                    $category->name . ' ' . trans('admin.statuses.status'),
                     $category->name . ' ' . trans('admin.statuses.statuses')
                 );
             }
@@ -49,14 +49,14 @@ class StatusCrudController extends CrudController
 
     /**
      * Setup list view columns
-     * 
+     *
      * @return void
      */
     protected function setupListOperation()
     {
         CRUD::column('name')->label('Name');
         CRUD::column('slug')->label('Slug');
-        
+
         // Add column for category
         CRUD::addColumn([
             'name' => 'category',
@@ -89,7 +89,7 @@ class StatusCrudController extends CrudController
             ->value(function($entry) {
                 return '<span class="badge bg-'.$entry->color.'">'.$entry->name.'</span>';
         });
-        
+
         CRUD::addColumn([
             'name' => 'is_active',
             'label' => 'Active',
@@ -99,13 +99,13 @@ class StatusCrudController extends CrudController
 
     /**
      * Setup create form fields
-     * 
+     *
      * @return void
      */
     protected function setupCreateOperation()
     {
         CRUD::setValidation(StatusRequest::class);
-        
+
         CRUD::field('name')->label('Name');
         CRUD::field('slug')->label('Slug');
 
@@ -135,7 +135,7 @@ class StatusCrudController extends CrudController
         //     ->pivot(true)
         //     ->attribute('name')
         //     ->options($statusCategories);
-        
+
         CRUD::addField([
             'name' => 'color',
             'label' => 'Color',
@@ -158,7 +158,7 @@ class StatusCrudController extends CrudController
 
     /**
      * Setup update form fields
-     * 
+     *
      * @return void
      */
     protected function setupUpdateOperation()

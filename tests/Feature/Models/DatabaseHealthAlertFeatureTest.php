@@ -6,14 +6,17 @@ use App\Models\DatabaseHealthAlert;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\RequiresOptimizationTables;
 
 class DatabaseHealthAlertFeatureTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, RequiresOptimizationTables;
 
     #[Test]
     public function can_create_database_health_alert(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         $alert = DatabaseHealthAlert::factory()->create([
             'alert_type' => 'memory',
             'severity' => 'warning',
@@ -33,6 +36,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function scope_unresolved_filters_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         DatabaseHealthAlert::factory()->resolved()->create();
         $unresolvedAlert = DatabaseHealthAlert::factory()->unresolved()->create();
 
@@ -46,6 +51,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function scope_severity_filters_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         DatabaseHealthAlert::factory()->info()->create();
         $criticalAlert = DatabaseHealthAlert::factory()->critical()->create();
 
@@ -59,6 +66,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function scope_alert_type_filters_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         DatabaseHealthAlert::factory()->disk()->create();
         $memoryAlert = DatabaseHealthAlert::factory()->memory()->create();
 
@@ -72,11 +81,13 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function scope_recent_filters_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         // Create old alert
         DatabaseHealthAlert::factory()->create([
             'created_at' => now()->subDays(10)
         ]);
-        
+
         // Create recent alert
         $recentAlert = DatabaseHealthAlert::factory()->create([
             'created_at' => now()->subDays(3)
@@ -91,6 +102,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function mark_resolved_updates_alert_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         $alert = DatabaseHealthAlert::factory()->unresolved()->create();
 
         $this->assertFalse($alert->resolved);
@@ -107,6 +120,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function severity_badge_accessor_works_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         $infoAlert = DatabaseHealthAlert::factory()->info()->create();
         $warningAlert = DatabaseHealthAlert::factory()->warning()->create();
         $criticalAlert = DatabaseHealthAlert::factory()->critical()->create();
@@ -124,6 +139,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function resolved_badge_accessor_works_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         $resolvedAlert = DatabaseHealthAlert::factory()->resolved()->create();
         $unresolvedAlert = DatabaseHealthAlert::factory()->unresolved()->create();
 
@@ -137,6 +154,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         $alert = DatabaseHealthAlert::factory()->create([
             'metric_data' => ['value' => 85.5, 'threshold' => 80, 'unit' => '%'],
             'resolved' => '1',
@@ -153,6 +172,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         $criticalAlert = DatabaseHealthAlert::factory()->critical()->create();
         $warningAlert = DatabaseHealthAlert::factory()->warning()->create();
         $infoAlert = DatabaseHealthAlert::factory()->info()->create();
@@ -176,6 +197,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     #[Test]
     public function can_combine_multiple_scopes(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
+
         DatabaseHealthAlert::factory()->critical()->resolved()->create();
         DatabaseHealthAlert::factory()->info()->unresolved()->create();
         $targetAlert = DatabaseHealthAlert::factory()->critical()->unresolved()->create();

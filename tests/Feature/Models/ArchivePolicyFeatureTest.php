@@ -8,14 +8,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\RequiresOptimizationTables;
 
 class ArchivePolicyFeatureTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, RequiresOptimizationTables;
 
     #[Test]
     public function can_create_archive_policy_with_factory(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $archivePolicy = ArchivePolicy::factory()->create();
 
         $this->assertDatabaseHas('archive_policies', [
@@ -27,6 +30,8 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function fillable_attributes_can_be_mass_assigned(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $data = [
             'table_name' => 'test_table',
             'retention_months' => 24,
@@ -46,6 +51,8 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $archivePolicy = ArchivePolicy::factory()->create([
             'enabled' => 1,
             'retention_months' => '36',
@@ -61,12 +68,14 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function get_enabled_badge_attribute_returns_correct_html(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $enabledPolicy = ArchivePolicy::factory()->enabled()->create();
         $disabledPolicy = ArchivePolicy::factory()->disabled()->create();
 
         $this->assertStringContainsString('badge-success', $enabledPolicy->enabled_badge);
         $this->assertStringContainsString('Enabled', $enabledPolicy->enabled_badge);
-        
+
         $this->assertStringContainsString('badge-secondary', $disabledPolicy->enabled_badge);
         $this->assertStringContainsString('Disabled', $disabledPolicy->enabled_badge);
     }
@@ -74,8 +83,10 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function get_retention_period_attribute_formats_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $policy = ArchivePolicy::factory()->create(['retention_months' => 24]);
-        
+
         $expected = '24 months (2 years)';
         $this->assertEquals($expected, $policy->retention_period);
     }
@@ -83,8 +94,10 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function get_retention_period_attribute_handles_fractional_years(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $policy = ArchivePolicy::factory()->create(['retention_months' => 18]);
-        
+
         $expected = '18 months (1.5 years)';
         $this->assertEquals($expected, $policy->retention_period);
     }
@@ -92,9 +105,11 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function get_last_archived_formatted_attribute_with_date(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $date = now()->subDays(5);
         $policy = ArchivePolicy::factory()->create(['last_archived_at' => $date]);
-        
+
         $expected = $date->format('d.m.Y H:i');
         $this->assertEquals($expected, $policy->last_archived_formatted);
     }
@@ -102,40 +117,48 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function get_last_archived_formatted_attribute_without_date(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $policy = ArchivePolicy::factory()->neverRun()->create();
-        
+
         $this->assertEquals('Never', $policy->last_archived_formatted);
     }
 
     #[Test]
     public function get_records_to_archive_attribute_returns_zero_when_disabled(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $policy = ArchivePolicy::factory()->disabled()->create();
-        
+
         $this->assertEquals(0, $policy->records_to_archive);
     }
 
     #[Test]
     public function get_records_to_archive_attribute_handles_nonexistent_table(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $policy = ArchivePolicy::factory()->enabled()->create([
             'table_name' => 'nonexistent_table',
         ]);
-        
+
         $this->assertEquals(0, $policy->records_to_archive);
     }
 
     #[Test]
     public function scope_enabled_filters_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         // Get initial count of enabled policies (from migrations)
         $initialEnabledCount = ArchivePolicy::enabled()->count();
-        
+
         ArchivePolicy::factory()->enabled()->count(3)->create();
         ArchivePolicy::factory()->disabled()->count(2)->create();
-        
+
         $enabledPolicies = ArchivePolicy::enabled()->get();
-        
+
         // Should have initial + 3 new enabled policies
         $this->assertCount($initialEnabledCount + 3, $enabledPolicies);
         foreach ($enabledPolicies as $policy) {
@@ -146,6 +169,8 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $enabledPolicy = ArchivePolicy::factory()->enabled()->create();
         $disabledPolicy = ArchivePolicy::factory()->disabled()->create();
         $neverRunPolicy = ArchivePolicy::factory()->neverRun()->create();
@@ -162,16 +187,18 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function model_can_be_updated(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $policy = ArchivePolicy::factory()->create();
-        
+
         $newData = [
             'table_name' => 'updated_table',
             'retention_months' => 48,
             'enabled' => false,
         ];
-        
+
         $policy->update($newData);
-        
+
         $this->assertDatabaseHas('archive_policies', array_merge(
             ['id' => $policy->id],
             $newData
@@ -181,19 +208,23 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function model_can_be_deleted(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $policy = ArchivePolicy::factory()->create();
         $policyId = $policy->id;
-        
+
         $policy->delete();
-        
+
         $this->assertDatabaseMissing('archive_policies', ['id' => $policyId]);
     }
 
     #[Test]
     public function datetime_cast_works_with_last_archived_at(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $policy = ArchivePolicy::factory()->create(['last_archived_at' => '2024-01-15 10:30:00']);
-        
+
         $this->assertInstanceOf(\Carbon\Carbon::class, $policy->last_archived_at);
         $this->assertEquals('2024-01-15 10:30:00', $policy->last_archived_at->format('Y-m-d H:i:s'));
     }
@@ -201,9 +232,11 @@ class ArchivePolicyFeatureTest extends TestCase
     #[Test]
     public function boolean_cast_works_with_enabled(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['archive_policies']);
+
         $truePolicy = ArchivePolicy::factory()->create(['enabled' => 1]);
         $falsePolicy = ArchivePolicy::factory()->create(['enabled' => 0]);
-        
+
         $this->assertTrue($truePolicy->enabled);
         $this->assertFalse($falsePolicy->enabled);
         $this->assertIsBool($truePolicy->enabled);

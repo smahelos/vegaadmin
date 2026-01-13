@@ -3,7 +3,7 @@
 namespace Tests\Unit\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\BankRequest;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\Admin\BaseEntityRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -18,9 +18,9 @@ class BankRequestTest extends TestCase
     }
 
     #[Test]
-    public function request_extends_form_request(): void
+    public function request_extends_base_entity_request(): void
     {
-        $this->assertInstanceOf(FormRequest::class, $this->request);
+        $this->assertInstanceOf(BaseEntityRequest::class, $this->request);
     }
 
     #[Test]
@@ -29,7 +29,7 @@ class BankRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -40,7 +40,7 @@ class BankRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -51,7 +51,7 @@ class BankRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -62,7 +62,7 @@ class BankRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('messages');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -72,7 +72,7 @@ class BankRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -81,7 +81,7 @@ class BankRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -90,7 +90,7 @@ class BankRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -99,7 +99,7 @@ class BankRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('messages');
-        
+
         $this->assertTrue($method->isPublic());
     }
 }

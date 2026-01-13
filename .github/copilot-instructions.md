@@ -24,7 +24,12 @@ We want to have all code in project in English, so all code should be in English
 
 We want to have project as clean as possible. Formulars loads fields from App/Traits trait files. Frontend formulars requests are laoded from App/Requests folder. Backend formulars requests are laoded from App/Requests/Admin folder. Frontend authorization, validation rules, attributes and messages for formulars are placed in App/Requests folder. backend authorization, validation rules, attributes and messages for formulars are placed in App/Requests/Admin folder.
 
+When adding or changing code, always follow the existing code style and structure and look at database to see real state of application.
+
 ## Testing Guidelines
+
+### General Testing Guidelines
+When creating new tests, always look at similar existing tests in the codebase for inspiration and guidance.
 
 ### Backpack Admin Tests Authentication
 When creating tests for admin functionality that involve HTTP requests:
@@ -51,6 +56,51 @@ Route::post('/admin/resource', function (ResourceRequest $request) {
 ```
 
 ### Testing Strategy Guidelines
+
+#### Database Testing Patterns - CRITICAL RULES
+**Choose the correct database refresh pattern based on test type:**
+
+1. **RefreshDatabaseWithData** - Use for Service and Repository tests
+   - Tests that need **database seeded with basic data** (users, permissions, statuses)
+   - Service layer tests that interact with real database relationships
+   - Repository tests that require complex database operations
+   - **Example Classes**: `UserService`, `ProductService`, `ProductRepository`, `InvoiceService`
+
+2. **RefreshDatabase** - Use for ValueObject and isolated tests  
+   - Tests that can work with **empty database**
+   - ValueObject tests that only validate business logic
+   - Unit-style tests within Feature folder that don't need seeded data
+   - **Example Classes**: `UserPassword`, `ProductPrice`, validation-only tests
+
+```php
+// ✅ CORRECT - Service test with seeded data
+class UserServiceTest extends TestCase
+{
+    use RefreshDatabaseWithData;  // Runs migrations + seeds
+    
+    public function test_user_creation_with_permissions(): void
+    {
+        // Can work with seeded permissions, roles, statuses
+    }
+}
+
+// ✅ CORRECT - ValueObject test with empty database
+class UserPasswordTest extends TestCase
+{
+    use RefreshDatabase;  // Runs migrations only
+    
+    public function test_password_validation(): void
+    {
+        // Works with empty database, no seeds needed
+    }
+}
+```
+
+#### Database Pattern Selection Rules:
+- **Services/Repositories** → `RefreshDatabaseWithData` (need seeded data)
+- **ValueObjects** → `RefreshDatabase` (work independently)  
+- **Complex Domain Logic** → `RefreshDatabaseWithData` (need relationships)
+- **Simple Validation** → `RefreshDatabase` (isolated testing)
 
 #### For Unit Tests with Mockery (Laravel 12 + Mockery 1.6+)
 - **Use string syntax**: `Mockery::mock('App\Models\ClassName')` not arrays or constants
@@ -124,20 +174,20 @@ $returnType = $reflection->getReturnType();
 ### CRITICAL: Unit Test Execution Rules
 - **NEVER use `-v` or `--verbose` options** when running unit tests - these options cause "Unknown option" error
 - Use standard `php artisan test` without verbose flags
-- **ALL artisan commands must be run in the `vegaadmin-app` docker container**
-- Use: `docker exec vegaadmin-app php artisan test ...`
+- **ALL artisan commands must be run in the `INVOICE-php-fpm` docker container**
+- Use: `docker exec INVOICE-php-fpm php artisan test ...`
 - Never run artisan commands directly on host system
 
 ### Correct Test Command Examples
 ```bash
 # ✅ Correct
-docker exec vegaadmin-app php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php
-docker exec vegaadmin-app php artisan test tests/Unit/Http/Requests/Admin/
-docker exec vegaadmin-app php artisan test --filter=RequestTest
+docker exec INVOICE-php-fpm php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php
+docker exec INVOICE-php-fpm php artisan test tests/Unit/Http/Requests/Admin/
+docker exec INVOICE-php-fpm php artisan test --filter=RequestTest
 
 # ❌ Wrong - will cause "Unknown option" error
-docker exec vegaadmin-app php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php -v
-docker exec vegaadmin-app php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php --verbose
+docker exec INVOICE-php-fpm php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php -v
+docker exec INVOICE-php-fpm php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php --verbose
 
 # ❌ Wrong - missing docker container
 php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php
@@ -233,7 +283,34 @@ $this->actingAs($userWithPermission, 'backpack');
 - Use `#[Test]` attribute instead of `test` prefix
 - Use descriptive method names: `validation_fails_when_name_is_missing()`
 - Use `ReflectionClass` instead of `ReflectionMethod`
-- Create unique test data with `uniqid()` to avoid conflicts
+- **Create unique test data with `uniqid()`** to avoid conflicts with seeded data
+
+### Unique Test Data Pattern (REQUIRED)
+When creating test data that might conflict with seeded data, always use unique identifiers:
+
+```php
+// ✅ CORRECT - Unique email to avoid conflicts with seeds
+public function test_creates_user_with_valid_data(): void
+{
+    $uniqueEmail = 'test_' . uniqid() . '@example.com';
+    $email = UserEmail::fromString($uniqueEmail);
+    // ... rest of test
+}
+
+// ✅ CORRECT - Unique name to avoid conflicts
+public function test_creates_product(): void
+{
+    $uniqueName = 'Test Product ' . uniqid();
+    $productData = ['name' => $uniqueName];
+    // ... rest of test
+}
+
+// ❌ WRONG - Static data might conflict with seeds
+public function test_creates_user(): void
+{
+    $email = UserEmail::fromString('test@example.com'); // Might exist in seeds
+}
+```
 
 ### Request Class Return Types (REQUIRED)
 All Request classes must have proper return type annotations:
@@ -248,8 +325,8 @@ public function messages(): array    // or array<string, string>
 ## 🚨 VERY IMPORTANT: Workspace Path Safety
 
 ### CRITICAL RULE: Never Write to Wrong Directories
-- **ONLY work within the current workspace**: `/_Data/Dockers/Production/vegaadmin/`
-- **NEVER write files to similar-named directories** like `vegalladmin`, `vegladmin`, etc.
+- **ONLY work within the current workspace**: `/_Data/Dockers/Production/Invoice/data/www/html/`
+- **NEVER write files to similar-named directories
 - **ALWAYS double-check file paths** before any write operation
 - **Use absolute paths** and verify they start with the correct workspace root
 - **If unsure about path, ASK USER** before writing anything
@@ -260,7 +337,7 @@ public function messages(): array    // or array<string, string>
 - ❌ `/_Data/Dockers/Production/vegadmin/` (missing 'a')
 
 ### Correct Workspace Root:
-- ✅ `/_Data/Dockers/Production/vegaadmin/`
+- ✅ `/_Data/Dockers/Production/Invoice/data/www/html/`
 
 Writing to wrong directories causes:
 - Files not found by tests

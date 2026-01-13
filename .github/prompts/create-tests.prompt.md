@@ -1,9 +1,444 @@
+# Quick Reference: Auth, Mockery, Test Patterns
+
+## Autentizace a prostředí (Quickref)
+
+### Service Test s DB (transaction-safe)
+```php
+use Tests\Traits\RefreshDatabaseWithData;
+class ServiceFeatureTest extends TestCase
+{
+    use RefreshDatabaseWithData;
+    private Service $service;
+    private User $user;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->service = app(Service::class);
+        $this->user = User::create([
+            'name' => 'Test User ' . uniqid(),
+            'email' => 'test' . uniqid() . '@example.com',
+            'password' => bcrypt('password'),
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'frontend.can_create_edit_invoice',
+            'guard_name' => 'web'
+        ]);
+        $this->user->givePermissionTo('frontend.can_create_edit_invoice');
+    }
+    #[Test]
+    public function service_method_works_with_authenticated_user(): void
+    {
+        Auth::login($this->user);
+        $result = $this->service->someMethod();
+        $this->assertNotNull($result);
+    }
+}
+```
+
+### Admin Controller Test (Backpack)
+```php
+use Tests\Traits\CreatesAdminTestEnvironment;
+class AdminControllerTest extends TestCase
+{
+    use RefreshDatabase, CreatesAdminTestEnvironment;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpAdminTestEnvironment();
+        // Provides $this->adminUser and $this->regularUser
+    }
+    #[Test]
+    public function admin_can_access_resource(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $response = $this->get('/admin/resource');
+        $response->assertOk();
+    }
+}
+```
+
+### Frontend Controller Test
+```php
+use Tests\Traits\CreatesFrontendTestEnvironment;
+class FrontendTest extends TestCase
+{
+    use RefreshDatabase, CreatesFrontendTestEnvironment;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpFrontendTestEnvironment();
+        $this->user = User::factory()->create();
+    }
+    #[Test]
+    public function user_can_access_frontend_resource(): void
+    {
+        $this->actingAs($this->user, 'web');
+        $response = $this->get('/frontend/resource');
+        $response->assertOk();
+    }
+}
+```
+
+### Unauthenticated Test
+```php
+public function test_unauthenticated(): void
+{
+    $response = $this->get('/protected/resource');
+    $response->assertRedirect(); // 302 redirect to login
+}
+```
+
+## Mockery & Unit Test Quickref
+
+### Správná syntaxe Mockery (Laravel 12 + Mockery 1.6+)
+```php
+$mock = Mockery::mock('App\\Models\\User');
+$mock->shouldReceive('getAttribute')->with('id')->andReturn(123);
+$mock->shouldReceive('hasPermissionTo')->with('permission')->andReturn(true);
+$mock->shouldReceive('hasRole')->with('role')->andReturn(false);
+```
+
+### Policy Unit Test (doporučený vzor)
+```php
+class ProductPolicyTest extends TestCase
+{
+    private ProductPolicy $policy;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->policy = new ProductPolicy();
+    }
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
+    #[Test]
+    public function view_returns_true_for_owner(): void
+    {
+        $userId = 123;
+        $mockUser = Mockery::mock('App\\Models\\User');
+        $mockUser->shouldReceive('getAttribute')->with('id')->andReturn($userId);
+        $mockProduct = Mockery::mock('App\\Models\\Product');
+        $mockProduct->shouldReceive('getAttribute')->with('user_id')->andReturn($userId);
+        $result = $this->policy->view($mockUser, $mockProduct);
+        $this->assertTrue($result);
+    }
+}
+```
+
+### Repository Feature Test (doporučený vzor)
+```php
+class ClientRepositoryTest extends TestCase
+{
+    use RefreshDatabase;
+    private ClientRepository $repository;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->repository = new ClientRepository();
+    }
+    #[Test]
+    public function find_by_id_returns_client_when_belongs_to_current_user(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::factory()->create(['user_id' => $user->id]);
+        $this->actingAs($user);
+        $result = $this->repository->findById($client->id);
+        $this->assertInstanceOf(Client::class, $result);
+        $this->assertEquals($client->id, $result->id);
+    }
+}
+```
+
+## Anti-patterns & Troubleshooting
+
+- ❌ Nepoužívej složité unit testy pro Eloquent repozitáře (raději feature testy)
+- ❌ Nepřiřazuj přímo vlastnosti na Mockery objekty (používej getAttribute)
+- ❌ Nikdy netestuj Eloquent statické metody v unit testech (používej feature testy)
+- ❌ Nikdy nevytvářej všechny práva ručně v každém testu (používej helpery nebo minimální setup)
+- ❌ Nikdy nepoužívej `$this->actingAs($user)` bez správného guardu
+- ❌ Nikdy nečekej 401 pro web aplikace, vždy 302 redirect
+
+---
 ---
 mode: 'agent'
 description: 'Prompt for creating comprehensive tests for any component'
 ---
 
+
+
+# Quick Testing & Docker Reference
+
+## 🚨 CRITICAL RULES - ALWAYS FOLLOW
+
+### Docker Container
+- **ALWAYS** use `docker exec INVOICE-php-fpm php artisan [command]`
+- **NEVER** run artisan commands directly on host
+- **NEVER** use `-v` or `--verbose` with test commands
+
+### Modern PHPUnit
+- **ALWAYS** use `#[Test]` attribute (not `test` prefix)
+- **ALWAYS** use `ReflectionClass` (not `ReflectionMethod`)
+- **ALWAYS** test return types with reflection
+- **ALWAYS** create unique test data with `uniqid()`
+
+### Unit Test Isolation - CRITICAL
+- **Unit tests MUST NOT depend on Laravel framework** (database, container, boot methods)
+- **Avoid `new Model()` in Unit tests** - triggers boot methods requiring database
+- **Move Laravel-dependent tests to Feature tests**: relationships, database ops, auth
+- **Unit tests for pure business logic only**: calculations, transformations
+
+### Request Test Structure
+1. `request_extends_form_request()`
+2. `authorize_uses_backpack_auth()` (test false/true scenarios)
+3. `authorize_method_has_correct_return_type()`
+4. `rules_returns_correct_validation_rules()`
+5. `rules_method_has_correct_return_type()`
+6. `attributes_returns_correct_custom_attributes()`
+7. `attributes_method_has_correct_return_type()`
+8. `messages_returns_correct_custom_messages()`
+9. `messages_method_has_correct_return_type()`
+10. `validation_passes_with_valid_data()`
+11. `validation_fails_when_required_fields_missing()`
+12. Additional business logic tests and edge cases
+
+### Permission Setup
+```php
+// Always use firstOrCreate to avoid conflicts
+Permission::firstOrCreate(['name' => 'permission_name', 'guard_name' => 'backpack']);
+
+// Test authorization properly
+$user = User::factory()->create();
+$user->givePermissionTo('permission_name');
+$this->actingAs($user, 'backpack');
+```
+
+### Required Return Types in Request Classes
+```php
+public function authorize(): bool
+public function rules(): array
+public function attributes(): array
+public function messages(): array
+```
+
+## ✅ Correct Commands
+```bash
+docker exec INVOICE-php-fpm php artisan test tests/Unit/Http/Requests/Admin/SomeTest.php
+docker exec INVOICE-php-fpm php artisan test tests/Unit/Http/Requests/Admin/
+docker exec INVOICE-php-fpm php artisan test --filter=RequestTest
+```
+
+## ❌ Wrong Commands (Will Fail)
+```bash
+# Missing docker container
+php artisan test file.php
+
+# Using verbose options
+docker exec INVOICE-php-fpm php artisan test file.php -v
+docker exec INVOICE-php-fpm php artisan test file.php --verbose
+```
+
 # Create Tests for Component
+
+## 🚨 CRITICAL: Test Patterns, Authentication & Naming
+
+### 1. Rozhodovací matice: Jaký vzor použít?
+
+| Typ testu                | Database trait              | Environment trait                | Autentizace                        | Hlavní helper/vzor                |
+|--------------------------|-----------------------------|----------------------------------|-------------------------------------|-----------------------------------|
+| **Service + DB**         | RefreshDatabaseWithData     | žádný (ručně práva)              | Auth::login($user)                  | Viz Service Test Template         |
+| **Admin Controller**     | RefreshDatabase             | CreatesAdminTestEnvironment      | $this->actingAs($this->adminUser, 'backpack') | Viz Admin Controller Template     |
+| **Frontend Controller**  | RefreshDatabase             | CreatesFrontendTestEnvironment   | $this->actingAs($user, 'web')       | Viz Frontend Controller Template  |
+| **Unit Test**            | žádný                      | žádný                            | žádný                              | Viz Unit Test Template            |
+
+### 2. Anti-duplikační pravidla
+- **Nikdy netvoř více testů pro stejnou třídu** (pokud netestují zásadně odlišné aspekty)
+- **Vždy hledej existující testy** před tvorbou nových: `find tests/ -name "*ComponentName*Test.php"`
+- **Přednost má jeden komplexní test před více malými**
+- **Odstraň zastaralé testy** při tvorbě lepších verzí
+
+### 3. Pojmenování a organizace
+- **Feature testy**: vždy obsahují "Feature" v názvu (např. `ClientControllerFeatureTest.php`)
+- **Unit testy**: nikdy "Unit" v názvu (např. `ClientListTest.php`)
+- **Žádné duplikáty**: nikdy nevytvářej `ClassName.php` a `ClassNameUnitTest.php` současně
+- **Popisné názvy**: jasně vystihují, co testují
+
+### 4. Helpery a prostředí
+- **Admin/Backpack**: vždy `CreatesAdminTestEnvironment` (automaticky práva, role, uživatelé)
+- **Frontend**: vždy `CreatesFrontendTestEnvironment`
+- **Service**: pouze minimální práva ručně, nikdy ne helper pro admin prostředí
+
+### 5. Autentizace
+- **Admin testy**: `$this->actingAs($this->adminUser, 'backpack')`
+- **Frontend testy**: `$this->actingAs($user, 'web')`
+- **Service testy**: `Auth::login($user)`
+- **Vždy správný guard!**
+
+---
+
+## Šablony a příklady
+
+### Service Test (business logic, DB, práva ručně)
+```php
+class InvoiceServiceFeatureTest extends TestCase
+{
+    use RefreshDatabaseWithData;
+    private InvoiceService $service;
+    private User $user;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->service = app(InvoiceService::class);
+        $this->user = User::create([
+            'name' => 'Test User ' . uniqid(),
+            'email' => 'test' . uniqid() . '@example.com',
+            'password' => bcrypt('password'),
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'frontend.can_create_edit_invoice',
+            'guard_name' => 'web'
+        ]);
+        $this->user->givePermissionTo('frontend.can_create_edit_invoice');
+    }
+    #[Test]
+    public function service_method_works_with_authenticated_user(): void
+    {
+        Auth::login($this->user);
+        $result = $this->service->someMethod();
+        $this->assertNotNull($result);
+    }
+}
+```
+
+### Admin Controller Test (Backpack, prostředí helper)
+```php
+class PageCrudControllerTest extends TestCase
+{
+    use RefreshDatabase, CreatesAdminTestEnvironment;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpAdminTestEnvironment();
+    }
+    #[Test]
+    public function admin_can_access_page_list(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $response = $this->get('/admin/page');
+        $response->assertOk();
+    }
+    #[Test]
+    public function unauthenticated_user_redirected(): void
+    {
+        $response = $this->get('/admin/page');
+        $this->assertEquals(302, $response->getStatusCode());
+    }
+}
+```
+
+### Frontend Controller Test (prostředí helper)
+```php
+class FrontendControllerTest extends TestCase
+{
+    use RefreshDatabase, CreatesFrontendTestEnvironment;
+    private User $user;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpFrontendTestEnvironment();
+        $this->user = User::factory()->create();
+    }
+    #[Test]
+    public function user_can_access_frontend_resource(): void
+    {
+        $this->actingAs($this->user, 'web');
+        $response = $this->get('/frontend/resource');
+        $response->assertOk();
+    }
+}
+```
+
+### Unit Test (čistá business logika, žádné DB)
+```php
+class ExampleModelTest extends TestCase
+{
+    #[Test]
+    public function model_has_correct_fillable_attributes(): void
+    {
+        // Test class structure and methods without external dependencies
+    }
+}
+```
+
+---
+
+## Další klíčové principy
+
+- **Všechny Feature testy musí používat RefreshDatabase**
+- **Všechny Service testy s DB musí používat RefreshDatabaseWithData**
+- **Všechny Request testy musí mít explicitní návratové typy**
+- **Všechny testy musí používat #[Test] a ReflectionClass**
+- **Všechny modely musí mít factory**
+- **Vždy testuj úspěch i selhání, okrajové případy, práva, status kódy**
+- **Nikdy nepoužívej deprecated metody, vždy oprav warningy**
+
+---
+
+## Odkazy na hlavní instrukce
+
+- `.github/prompts/instructions/testing.md` – Kompletní testovací standardy
+- `.github/prompts/test-authentication.prompt.md` – Vzory autentizace a prostředí
+- `.github/prompts/lessons-learned/backpack-crud-testing-refactoring.md` – Lessons learned
+
+---
+
+## Nejčastější chyby a jak se jim vyhnout
+
+- ❌ Ruční vytváření všech práv v každém testu (používej helpery nebo minimální setup)
+- ❌ Špatný guard v actingAs (vždy 'backpack' pro admin, 'web' pro frontend)
+- ❌ Duplicitní testy pro stejnou třídu
+- ❌ Chybějící factory nebo špatná data ve factory
+- ❌ Deprecated metody nebo warningy v testech
+
+---
+
+## Vzor pro Request Unit Test (moderní, povinný)
+```php
+class SomeRequestTest extends TestCase
+{
+    private SomeRequest $request;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Permission::firstOrCreate(['name' => 'required_permission', 'guard_name' => 'backpack']);
+        $this->request = new SomeRequest();
+    }
+    #[Test]
+    public function request_extends_form_request(): void
+    {
+        $this->assertInstanceOf(FormRequest::class, $this->request);
+    }
+    #[Test]
+    public function authorize_uses_backpack_auth(): void
+    {
+        $this->assertFalse($this->request->authorize());
+        $user = User::factory()->create();
+        $this->actingAs($user, 'backpack');
+        $this->assertTrue($this->request->authorize());
+    }
+    #[Test]
+    public function authorize_method_has_correct_return_type(): void
+    {
+        $reflection = new \ReflectionClass($this->request);
+        $method = $reflection->getMethod('authorize');
+        $returnType = $method->getReturnType();
+        $this->assertNotNull($returnType);
+        $this->assertEquals('bool', $returnType->getName());
+    }
+    // ... další testy pro rules, attributes, messages, valid/invalid data ...
+}
+```
 
 ## 🚨 VERY IMPORTANT: Test-Driven Development (TDD) Principles
 
@@ -71,8 +506,8 @@ public function test_command_handles_invalid_user(): void
 ## 🚨 CRITICAL: Docker Container & Testing Rules
 
 ### Docker Container Execution
-- **ALL artisan commands MUST be run in the `vegaadmin-app` docker container**
-- Use: `docker exec vegaadmin-app php artisan test ...`
+- **ALL artisan commands MUST be run in the `INVOICE-php-fpm` docker container**
+- Use: `docker exec INVOICE-php-fpm php artisan test ...`
 - Never run artisan commands directly on host system
 
 ### Testing Commands - NEVER Use Verbose Options
@@ -83,18 +518,144 @@ public function test_command_handles_invalid_user(): void
 ### Correct Test Execution Examples
 ```bash
 # ✅ Correct
-docker exec vegaadmin-app php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php
-docker exec vegaadmin-app php artisan test tests/Unit/Http/Requests/Admin/
-docker exec vegaadmin-app php artisan test --filter=RequestTest
+docker exec INVOICE-php-fpm php artisan test tests/Unit/Http/Requests/Admin/InvoiceRequestTest.php
+docker exec INVOICE-php-fpm php artisan test tests/Unit/Http/Requests/Admin/
+docker exec INVOICE-php-fpm php artisan test --filter=RequestTest
 
 # ❌ Wrong - will cause "Unknown option" error
-docker exec vegaadmin-app php artisan test file.php -v
-docker exec vegaadmin-app php artisan test file.php --verbose
+docker exec INVOICE-php-fpm php artisan test file.php -v
+docker exec INVOICE-php-fpm php artisan test file.php --verbose
 
 # ❌ Wrong - missing docker container
 php artisan test file.php
 ```
 
+## 🚨 CRITICAL: Transaction Conflicts Resolution 
+
+### Service Tests Database Pattern (FINALIZED)
+
+**For Service tests that interact with database and permissions:**
+
+```php
+<?php
+
+namespace Tests\Feature\Services;
+
+use Tests\Traits\RefreshDatabaseWithData; // ✅ CRITICAL for Service tests
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+class ServiceFeatureTest extends TestCase
+{
+    use RefreshDatabaseWithData; // Prevents "There is already an active transaction" errors
+
+    private Service $service;
+    private User $user;
+    
+    // Optional: Disable seeding if test needs clean database
+    protected bool $seedDatabase = false;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        $this->service = app(Service::class);
+        
+        // Create test user with unique identifiers to prevent conflicts
+        $this->user = User::create([
+            'name' => 'Test User ' . uniqid(),
+            'email' => 'test' . uniqid() . '@example.com',
+            'password' => bcrypt('password'),
+        ]);
+        
+        // Create specific permissions if needed
+        Permission::firstOrCreate([
+            'name' => 'frontend.can_create_edit_resource',
+            'guard_name' => 'web'
+        ]);
+        $this->user->givePermissionTo('frontend.can_create_edit_resource');
+    }
+    
+    #[Test]
+    public function service_functionality_works(): void
+    {
+        $result = $this->service->someMethod($this->user);
+        $this->assertNotNull($result);
+    }
+}
+```
+
+### RefreshDatabaseWithData Features:
+- ✅ **Eliminates transaction conflicts** with Spatie Permission package
+- ✅ **Prevents database locking** through DB::disconnect()
+- ✅ **Complete test isolation** with fresh migrations for each test
+- ✅ **Optional seeding** - set `$seedDatabase = false` to disable automatic seeding
+- ✅ **Performance optimized** for Service test requirements
+
+### Environment Traits for Complex Tests
+
+**For comprehensive permission testing:**
+
+#### Admin Tests (Backpack)
+```php
+<?php
+
+namespace Tests\Feature\Http\Requests\Admin;
+
+use Tests\Traits\CreatesAdminTestEnvironment;
+use Tests\TestCase;
+
+class AdminRequestFeatureTest extends TestCase
+{
+    use RefreshDatabase, CreatesAdminTestEnvironment;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpAdminTestEnvironment();
+        // Provides $this->adminUser and $this->regularUser automatically
+    }
+
+    #[Test]
+    public function admin_can_access_resource(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        // Test admin functionality
+    }
+}
+```
+
+#### Frontend Tests
+```php
+<?php
+
+namespace Tests\Feature\Http\Requests;
+
+use Tests\Traits\CreatesFrontendTestEnvironment;
+use Tests\TestCase;
+
+class FrontendRequestFeatureTest extends TestCase
+{
+    use RefreshDatabase, CreatesFrontendTestEnvironment;
+
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpFrontendTestEnvironment();
+        
+        $this->user = User::factory()->create();
+    }
+
+    #[Test]
+    public function user_can_access_frontend_resource(): void
+    {
+        $this->actingAs($this->user, 'web');
+        // Test frontend functionality
+    }
+}
+```
 ## 🚨 IMPORTANT: Code Quality First
 **When tests fail due to missing return types or method signatures:**
 1. **PREFER fixing the code** over changing tests
@@ -103,6 +664,22 @@ php artisan test file.php
 4. **Only modify tests** if the expectation is genuinely wrong
 5. **Always test functionality** after any code changes
 6. **Report any problematic code patterns** and suggest better solutions
+
+## Test Pattern Selection Guide
+
+### Database Trait Selection
+| Test Type | Recommended Trait | Reason |
+|-----------|------------------|---------|
+| **Service tests** with database | `RefreshDatabaseWithData` | Prevents transaction conflicts |
+| **HTTP Feature tests** | `RefreshDatabase` | Standard Laravel testing |
+| **Unit tests** | None | No database needed |
+
+### Environment Trait Selection
+| Test Context | Recommended Trait | Provides |
+|-------------|------------------|----------|
+| **Admin/Backpack** | `CreatesAdminTestEnvironment` | Backpack permissions + admin users |
+| **Frontend** | `CreatesFrontendTestEnvironment` | Frontend permissions + roles |
+| **Simple Service** | None | Create minimal permissions manually |
 
 ## Modern PHPUnit Testing Standards (REQUIRED)
 
@@ -500,8 +1077,8 @@ class ExampleRequestFeatureTest extends TestCase
 
 ## Authentication and Authorization in Tests
 
-### Backpack Admin Tests Setup
-For admin Feature tests that test HTTP requests, you need proper authentication setup:
+### ✅ RECOMMENDED: Backpack Admin Tests with Helper Method
+For admin Feature tests, use the elegant `setupBackpackAdminTest()` helper method:
 
 ```php
 use Spatie\Permission\Models\Permission;
@@ -511,64 +1088,30 @@ protected function setUp(): void
 {
     parent::setUp();
     
+    // Create test user
     $this->user = User::factory()->create();
     
-    // Create necessary permissions for testing
-    $this->createRequiredPermissions();
+    // Create only specific permissions for this controller
+    Permission::firstOrCreate(['name' => 'can_create_edit_resource', 'guard_name' => 'backpack']);
+    Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
     
-    // Define test routes if testing HTTP behavior
-    Route::post('/admin/resource', function (ResourceRequest $request) {
-        return response()->json(['success' => true]);
-    })->middleware('web');
-}
-
-private function createRequiredPermissions(): void
-{
-    $permissions = [
-        'can_create_edit_user',
-        'can_create_edit_invoice', 
-        'can_create_edit_client',
-        'can_create_edit_supplier',
-        'can_create_edit_expense',
-        'can_create_edit_tax',
-        'can_create_edit_bank',
-        'can_create_edit_payment_method',
-        'can_create_edit_product',
-        'can_create_edit_command',
-        'can_create_edit_cron_task',
-        'can_create_edit_status',
-        'can_configure_system',
-        'backpack.access',
-    ];
-
-    foreach ($permissions as $permission) {
-        Permission::firstOrCreate([
-            'name' => $permission, 
-            'guard_name' => 'backpack'
-        ]);
-    }
-
-    foreach ($permissions as $permissionName) {
-        $permission = Permission::where('name', $permissionName)
-            ->where('guard_name', 'backpack')
-            ->first();
-        if ($permission) {
-            $this->user->givePermissionTo($permission);
-        }
-    }
+    // Create admin role and assign permissions
+    $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
+    $adminRole->givePermissionTo('can_create_edit_resource');
+    $adminRole->givePermissionTo('backpack.access');
+    $this->user->assignRole($adminRole);
 }
 ```
 
-### Test HTTP Requests with Authentication
+### Test HTTP Requests with Authentication (UPDATED)
 ```php
 public function test_authenticated_request(): void
 {
-    $this->withoutMiddleware(); // Bypass Backpack middleware in tests
-    $this->actingAs($this->user, 'backpack'); // Use backpack guard
+    $this->setupBackpackAdminTest($this->user); // One-liner authentication!
 
     $data = ['name' => 'Test Data'];
     
-    $response = $this->postJson('/admin/resource', $data); // Use postJson for JSON responses
+    $response = $this->postJson('/admin/resource', $data);
     
     $response->assertStatus(200);
     $response->assertJson(['success' => true]);
@@ -576,21 +1119,34 @@ public function test_authenticated_request(): void
 
 public function test_unauthenticated_request(): void
 {
+    // No authentication = test unauthenticated access
     $data = ['name' => 'Test Data'];
     
     $response = $this->postJson('/admin/resource', $data);
     
-    $response->assertStatus(403); // Expect 403 for unauthenticated in admin
+    $response->assertStatus(302); // Redirect to login for admin
 }
 ```
 
-### Key Authentication Points:
-1. **Always use 'backpack' guard** for admin tests: `$this->actingAs($user, 'backpack')`
-2. **Create all required permissions** in setUp() method
-3. **Use withoutMiddleware()** to bypass Backpack middleware complications
-4. **Use postJson/putJson** instead of post/put for proper JSON validation responses
-5. **Expect 403** for unauthenticated admin requests (not 401)
-6. **Always assign permissions to test users** for the 'backpack' guard
+### Key Authentication Points (UPDATED):
+1. **Use helper method**: `$this->setupBackpackAdminTest($user)` handles all menu permissions
+2. **Create specific permissions**: Only what your controller actually needs
+3. **Use 'backpack' guard**: All admin permissions must use 'backpack' guard  
+4. **Expect 302**: Unauthenticated admin requests redirect to login
+5. **Maintainable**: No dependency on menu permission changes
+
+### ❌ DEPRECATED: Manual Permission Creation
+**No longer recommended:** Creating all menu permissions manually in each test:
+```php
+// ❌ DEPRECATED - Creates maintenance burden
+private function createRequiredPermissions(): void
+{
+    $permissions = [
+        'can_create_edit_user', 'can_create_edit_invoice', // ... 15+ permissions
+    ];
+    // Complex setup code that breaks when menu changes...
+}
+```
 
 ## Assertions to Include
 - Test success and failure scenarios
@@ -637,7 +1193,7 @@ class ExampleModelFactory extends Factory
 ```
 
 ## Common Test Patterns to Follow
-1. **Always use RefreshDatabase for Feature tests**
+1. **Always use RefreshDatabase or RefreshDatabaseWithData for Feature tests**
 2. **Mock external dependencies in Unit tests**
 3. **Test both success and failure paths**
 4. **Use descriptive test method names**

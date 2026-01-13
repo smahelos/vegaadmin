@@ -10,14 +10,18 @@ export default class InvoiceItemManager {
         this.itemTemplate = null;
         this.jsonInput = null;
         this.paymentAmountInput = null;
+        this.taxAmountInput = null;
+        this.paymentWithoutTaxAmountInput = null;
         this.totalDisplay = null;
+        this.totalTaxDisplay = null;
+        this.totalWithoutTaxDisplay = null;
         this.currencySelect = null;
         this.productModal = null;
         this.activeItemRow = null;
         this.invoiceProductsInput = null;
         console.log('InvoiceItemManager initialized');
     }
-    
+
     init() {
         // References to container elements and buttons
         this.itemsContainer = document.getElementById('invoice-items-list');
@@ -25,19 +29,23 @@ export default class InvoiceItemManager {
         this.itemTemplate = document.querySelector('.invoice-item-template').innerHTML;
         this.jsonInput = document.getElementById('invoice-products');
         this.paymentAmountInput = document.getElementById('payment_amount');
+        this.taxAmountInput = document.getElementById('tax_amount');
+        this.paymentWithoutTaxAmountInput = document.getElementById('payment_without_tax_amount');
         this.totalDisplay = document.getElementById('invoice-items-total');
+        this.totalTaxDisplay = document.getElementById('invoice-items-total-tax');
+        this.totalWithoutTaxDisplay = document.getElementById('invoice-items-total-without-tax');
         this.currencySelect = document.getElementById('payment_currency');
         this.productModal = document.getElementById('product-selection-modal');
         this.invoiceProductsInput = document.getElementById('invoice-products');
-        
+
         if (!this.itemsContainer || !this.addButton || !this.itemTemplate) {
             console.warn('Some invoice item elements not found. Invoice items functionality might be limited.');
             return;
         }
-        
+
         // Event listeners
         this.addButton.addEventListener('click', () => this.addItem());
-        
+
         // Event delegation for buttons and value changes
         this.itemsContainer.addEventListener('click', this.handleItemButtonClicks.bind(this));
         this.itemsContainer.addEventListener('input', this.handleItemInputChanges.bind(this));
@@ -48,7 +56,7 @@ export default class InvoiceItemManager {
             }
         }, true);
         this.itemsContainer.addEventListener('change', this.handleItemSelectChanges.bind(this));
-        
+
         // Listeners for currency selection
         if (this.currencySelect) {
             this.currencySelect.addEventListener('change', () => this.updateTotalDisplay());
@@ -56,10 +64,10 @@ export default class InvoiceItemManager {
 
         // Initialize product selection modal
         this.initializeProductSelectionModal();
-        
+
         // Loading existing data
         this.loadExistingData();
-        
+
         // Add the first item if none exists
         if (this.itemsContainer.children.length === 0) {
             this.addItem();
@@ -80,27 +88,27 @@ export default class InvoiceItemManager {
                 this.closeProductModal();
             });
         });
-        
+
         // Multiple event listeners to ensure we catch the event regardless of how it's dispatched
-    
+
         // 1. Standard Livewire 3 event listener
         document.addEventListener('livewire:initialized', () => {
             console.log('Livewire initialized, setting up event listeners');
         });
-        
+
         // 2. Direct event listener on window (this should catch our manual dispatch)
         window.addEventListener('product-selected', (event) => {
             // Check if modal exists (only for logged in users)
             this.productModal = document.getElementById('product-selection-modal');
-            
+
             if (!this.productModal) {
                 console.log('Product selection modal not found - user is not logged in or modal is missing');
                 return;
             }
-            
+
             try {
                 let productData = null;
-                
+
                 if (event.detail && event.detail.productData) {
                     productData = event.detail.productData;
                     console.log('Found product data in event.detail.productData:', productData);
@@ -108,7 +116,7 @@ export default class InvoiceItemManager {
                     productData = event.detail;
                     console.log('Found product data directly in event.detail:', productData);
                 }
-                
+
                 if (productData && (productData.id || productData.name)) {
                     console.log('Valid product data found, processing selection...');
                     this.handleProductSelection(productData);
@@ -120,14 +128,14 @@ export default class InvoiceItemManager {
                 console.error('Error processing product selection:', error);
             }
         });
-        
+
         // 3. Direct document event listener (fallback)
         document.addEventListener('product-selected', (event) => {
             console.log('Product selected event captured on document:', event);
             // Same processing logic as above
             try {
                 let productData = null;
-                
+
                 if (event.detail && event.detail.productData) {
                     productData = event.detail.productData;
                     console.log('Found product data in event.detail.productData:', productData);
@@ -135,7 +143,7 @@ export default class InvoiceItemManager {
                     productData = event.detail;
                     console.log('Found product data directly in event.detail:', productData);
                 }
-                
+
                 if (productData && (productData.id || productData.name)) {
                     console.log('Valid product data found, processing selection...');
                     this.handleProductSelection(productData);
@@ -155,7 +163,7 @@ export default class InvoiceItemManager {
             }
         });
     }
-    
+
     handleItemButtonClicks(e) {
         // Removing item
         if (e.target.classList.contains('remove-item') || e.target.parentElement.classList.contains('remove-item')) {
@@ -166,7 +174,7 @@ export default class InvoiceItemManager {
                 this.updateTotalAmount();
             }
         }
-        
+
         // Duplicating item
         if (e.target.classList.contains('duplicate-item') || e.target.parentElement.classList.contains('duplicate-item')) {
             const itemElement = e.target.closest('.invoice-item');
@@ -178,7 +186,7 @@ export default class InvoiceItemManager {
                 const currencyValue = itemElement.querySelector('.item-currency').value;
                 const taxValue = itemElement.querySelector('.item-tax').value;
                 const productId = itemElement.dataset.productId || null;
-                
+
                 this.addItem(nameValue, quantityValue, unitValue, priceValue, taxValue, productId, currencyValue);
             }
         }
@@ -188,32 +196,32 @@ export default class InvoiceItemManager {
             const itemElement = e.target.closest('.invoice-item');
             if (itemElement) {
                 console.log('Product selection button clicked for row:', itemElement);
-                
+
                 // Store reference to the active row before opening modal
                 this.activeItemRow = itemElement;
-                
+
                 // Mark the row as active with a visual indicator
                 const allRows = this.itemsContainer.querySelectorAll('.invoice-item');
                 allRows.forEach(row => row.classList.remove('bg-blue-50'));
                 itemElement.classList.add('bg-blue-50');
-                
+
                 this.openProductModal();
             } else {
                 console.error('Could not find invoice-item parent for the clicked button');
             }
         }
     }
-    
+
     handleItemInputChanges(e) {
         console.log(`Item input change - type: ${e.type}, target class: ${e.target.className}`, e.target.value);
-    
+
         const itemElement = e.target.closest('.invoice-item');
         if (!itemElement) return;
-        
-        if (e.target.classList.contains('item-quantity') || 
+
+        if (e.target.classList.contains('item-quantity') ||
             e.target.classList.contains('item-price') ||
             e.target.classList.contains('item-tax')) {
-            
+
             // Special handling for item-price field
             if (e.target.classList.contains('item-price')) {
                 const currentValue = e.target.value.trim();
@@ -241,12 +249,12 @@ export default class InvoiceItemManager {
     handlePriceFieldBlur(e) {
         const priceField = e.target;
         const itemRow = priceField.closest('.invoice-item');
-        
+
         if (!itemRow) return;
-        
+
         // Get the current value of the price field
         const currentValue = priceField.value.trim();
-        
+
         console.log('Price field blur detected:', {
             field: priceField,
             value: currentValue,
@@ -261,10 +269,10 @@ export default class InvoiceItemManager {
         if (currentValue) {
             // Store the value for identification
             itemRow.dataset.lastPrice = currentValue;
-            
+
             // Ensure the value is properly set in the field
             priceField.value = currentValue;
-            
+
             // Calculate item price and update JSON
             this.calculateItemPrice(itemRow);
             this.updateJsonData();
@@ -274,13 +282,13 @@ export default class InvoiceItemManager {
 
     calculateTotalFromItems() {
         let total = 0;
-        
+
         // Check all invoice items and sum their prices
         const items = document.querySelectorAll('.invoice-item');
         items.forEach(item => {
             const priceField = item.querySelector('.item-price');
             const quantityField = item.querySelector('.item-quantity');
-            
+
             if (priceField && priceField.value && quantityField && quantityField.value) {
                 const price = parseFloat(priceField.value.trim().replace(/,/g, '.')) || 0;
                 const quantity = parseFloat(quantityField.value.trim().replace(/,/g, '.')) || 0;
@@ -288,17 +296,17 @@ export default class InvoiceItemManager {
                 total += price * quantity;
             }
         });
-        
+
         return total;
     }
-    
+
     handleItemSelectChanges(e) {
         const itemRow = e.target.closest('.invoice-item');
         if (!itemRow) {
             console.error('Could not find parent invoice-item for select change event');
             return;
         }
-        
+
         if (e.target.classList.contains('item-tax')) {
             console.log('Tax value changed, recalculating price');
             this.calculateItemPrice(itemRow);
@@ -306,22 +314,22 @@ export default class InvoiceItemManager {
             this.updateTotalAmount();
         } else if (e.target.classList.contains('item-currency')) {
             console.log('Currency value changed', e.target.value);
-            
+
             // Get the previous and new currency
             const previousCurrency = itemRow.dataset.currentCurrency || 'CZK';
             const newCurrency = e.target.value;
-            
+
             console.log(`Currency changed from ${previousCurrency} to ${newCurrency}`);
-            
+
             // If currency manager is available, let it handle the currency change
             if (window.currencyManager) {
                 console.log('Using CurrencyManager for conversion');
-                
+
                 // Store information about the change that's about to happen
                 itemRow.dataset.previousCurrency = previousCurrency;
                 itemRow.dataset.newCurrency = newCurrency;
                 itemRow.dataset.conversionRequested = 'true';
-                
+
                 // CurrencyManager will handle the conversion
             } else {
                 console.log('No CurrencyManager available, using basic recalculation');
@@ -338,13 +346,13 @@ export default class InvoiceItemManager {
             this.updateJsonData();
         }
     }
-    
+
     // Add a new item to the invoice
     addItem(name = '', quantity = '1', unit = 'pieces', price = '0', tax = '0', productId = null, currency = null) {
         const itemWrapper = document.createElement('div');
         itemWrapper.innerHTML = this.itemTemplate;
         const itemElement = itemWrapper.firstElementChild;
-        
+
         // Set values if provided
         if (name) itemElement.querySelector('.item-name').value = name;
         if (quantity) itemElement.querySelector('.item-quantity').value = quantity;
@@ -355,12 +363,12 @@ export default class InvoiceItemManager {
         if (productId) {
             itemElement.dataset.productId = productId;
         }
-        
+
         // Set currency if provided or use the payment currency
         const currencySelect = itemElement.querySelector('.item-currency');
         if (currencySelect) {
             const currencyToUse = currency || (this.currencySelect ? this.currencySelect.value : 'CZK');
-            
+
             // Find option with value currency and set it as selected
             for (let i = 0; i < currencySelect.options.length; i++) {
                 if (currencySelect.options[i].value === currencyToUse) {
@@ -368,11 +376,11 @@ export default class InvoiceItemManager {
                     break;
                 }
             }
-            
+
             // Store the current currency in data attribute
             itemElement.dataset.currentCurrency = currencyToUse;
         }
-        
+
         // Store the current price in data attribute
         itemElement.dataset.currentPrice = price;
 
@@ -386,13 +394,13 @@ export default class InvoiceItemManager {
                 }
             }
         }
-        
+
         this.itemsContainer.appendChild(itemElement);
         this.calculateItemPrice(itemElement);
         this.updateJsonData();
         this.updateTotalAmount();
     }
-    
+
     // Calculate total item price
     calculateItemPrice(itemElement) {
         // Ensure we have the actual DOM element, not a cached reference
@@ -400,14 +408,14 @@ export default class InvoiceItemManager {
             console.error('Invalid item element provided to calculateItemPrice:', itemElement);
             return;
         }
-        
+
         // Force access current DOM values instead of potentially stale data
         const quantityInput = itemElement.querySelector('.item-quantity');
         const priceInput = itemElement.querySelector('.item-price');
         const taxRateSelect = itemElement.querySelector('.item-tax');
         const priceCompleteInput = itemElement.querySelector('.item-price-complete');
         const currencySelect = itemElement.querySelector('.item-currency');
-        
+
         // Verify all required elements are found
         if (!quantityInput || !priceInput || !taxRateSelect || !priceCompleteInput || !currencySelect) {
             console.error('Required elements not found in item element:', {
@@ -419,38 +427,38 @@ export default class InvoiceItemManager {
             });
             return;
         }
-        
+
         // Get current values directly from DOM
         const quantity = parseFloat(quantityInput.value) || 0;
         const price = parseFloat(priceInput.value) || 0;
         const taxRate = parseFloat(taxRateSelect.value) || 0;
         const currency = currencySelect.value;
-        
+
         // Store the current currency and price in data attributes for future reference
         itemElement.dataset.currentCurrency = currency;
         itemElement.dataset.currentPrice = price;
-        
+
         console.log('Calculating item price with values:', {
             quantity,
-            price, 
+            price,
             taxRate,
             currency,
             itemElement: itemElement.outerHTML.slice(0, 100) + '...' // Log partial HTML for debugging
         });
-        
+
         // Calculate price with VAT
         const totalWithoutTax = quantity * price;
         const totalWithTax = totalWithoutTax * (1 + (taxRate / 100));
-        
+
         // Round to 2 decimal places
         const totalRounded = Math.round(totalWithTax * 100) / 100;
-        
+
         // Format number with thousand separator and 2 decimal places
         const formattedTotal = this.formatNumber(totalRounded);
-        
+
         // Set resulting value to the price complete field
         priceCompleteInput.value = formattedTotal;
-        
+
         console.log('Item price calculation completed:', {
             totalWithoutTax,
             totalWithTax,
@@ -460,31 +468,41 @@ export default class InvoiceItemManager {
             storedPrice: itemElement.dataset.currentPrice
         });
     }
-    
+
     // Update total invoice amount
     updateTotalAmount() {
         let total = 0;
+        let totalTax = 0;
+        let totalWithoutTax = 0;
         let hasNonZeroPrices = false;
-        
+
         // Iterate through all items and sum their prices
         const itemElements = this.itemsContainer.querySelectorAll('.invoice-item');
         itemElements.forEach(itemElement => {
             const quantity = parseFloat(itemElement.querySelector('.item-quantity').value) || 0;
             const price = parseFloat(itemElement.querySelector('.item-price').value) || 0;
             const taxRate = parseFloat(itemElement.querySelector('.item-tax').value) || 0;
-            
+
             const itemTotal = quantity * price * (1 + (taxRate / 100));
             total += itemTotal;
-            
+            totalTax += itemTotal * (taxRate / 100);
+            totalWithoutTax += itemTotal - (itemTotal * (taxRate / 100));
+
             // Check if there are non-zero prices
             if (price > 0) {
                 hasNonZeroPrices = true;
             }
         });
-        
+
         // Round to 2 decimal places
         const roundedTotal = Math.round(total * 100) / 100;
-        
+
+        // Round to 2 decimal places for tax
+        const roundedTotalTax = Math.round(totalTax * 100) / 100;
+
+        // Round to 2 decimal places for total without tax
+        const roundedTotalWithoutTax = Math.round(totalWithoutTax * 100) / 100;
+
         // Set readonly for total invoice amount if there are items with non-zero price
         if (this.paymentAmountInput) {
             if (hasNonZeroPrices) {
@@ -496,25 +514,83 @@ export default class InvoiceItemManager {
                 this.paymentAmountInput.classList.remove('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
             }
         }
-        
+
+        // Set readonly for total tax invoice amount if there are items with non-zero price
+        if (this.taxAmountInput) {
+            if (hasNonZeroPrices) {
+                this.taxAmountInput.value = roundedTotal;
+                this.taxAmountInput.readOnly = true;
+                this.taxAmountInput.classList.add('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
+            } else {
+                this.taxAmountInput.readOnly = false;
+                this.taxAmountInput.classList.remove('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
+            }
+        }
+
+        // Set readonly for total tax invoice amount if there are items with non-zero price
+        if (this.paymentWithoutTaxAmountInput) {
+            if (hasNonZeroPrices) {
+                this.paymentWithoutTaxAmountInput.value = roundedTotal;
+                this.paymentWithoutTaxAmountInput.readOnly = true;
+                this.paymentWithoutTaxAmountInput.classList.add('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
+            } else {
+                this.paymentWithoutTaxAmountInput.readOnly = false;
+                this.paymentWithoutTaxAmountInput.classList.remove('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
+            }
+        }
+
         // Update displayed total amount
         this.updateTotalDisplay(roundedTotal);
+
+        // Update displayed tax total amount
+        this.updateTaxTotalDisplay(roundedTotalTax);
+
+        // Update displayed total without tax amount
+        this.updateTotalWithoutTaxDisplay(roundedTotalWithoutTax);
     }
-    
+
     // Update total display
     updateTotalDisplay(total = null) {
         if (total === null && this.paymentAmountInput) {
             total = parseFloat(this.paymentAmountInput.value) || 0;
         }
-        
+
         const formattedTotal = this.formatNumber(total);
         const currency = this.currencySelect ? this.currencySelect.value : 'CZK';
-        
+
         if (this.totalDisplay) {
             this.totalDisplay.textContent = `${formattedTotal} ${currency}`;
         }
     }
-    
+
+    // Update total display
+    updateTaxTotalDisplay(taxTotal = null) {
+        if (taxTotal === null && this.taxAmountInput) {
+            taxTotal = parseFloat(this.taxAmountInput.value) || 0;
+        }
+
+        const formattedTaxTotal = this.formatNumber(taxTotal);
+        const currency = this.currencySelect ? this.currencySelect.value : 'CZK';
+
+        if (this.totalTaxDisplay) {
+            this.totalTaxDisplay.textContent = `${formattedTaxTotal} ${currency}`;
+        }
+    }
+
+    // Update total display
+    updateTotalWithoutTaxDisplay(noTaxTotal = null) {
+        if (noTaxTotal === null && this.paymentWithoutTaxAmountInput) {
+            noTaxTotal = parseFloat(this.paymentWithoutTaxAmountInput.value) || 0;
+        }
+
+        const formattedNoTaxTotal = this.formatNumber(noTaxTotal);
+        const currency = this.currencySelect ? this.currencySelect.value : 'CZK';
+
+        if (this.totalWithoutTaxDisplay) {
+            this.totalWithoutTaxDisplay.textContent = `${formattedNoTaxTotal} ${currency}`;
+        }
+    }
+
     // Format number for display
     formatNumber(number) {
         return number.toLocaleString('cs-CZ', {
@@ -522,11 +598,11 @@ export default class InvoiceItemManager {
             maximumFractionDigits: 2
         });
     }
-    
+
     // Update JSON data
     updateJsonData() {
         if (!this.jsonInput) return;
-        
+
         const items = [];
         const itemElements = this.itemsContainer.querySelectorAll('.invoice-item');
 
@@ -538,10 +614,10 @@ export default class InvoiceItemManager {
             const currency = itemElement.querySelector('.item-currency').value.trim();
             const taxRate = itemElement.querySelector('.item-tax').value.trim();
             const priceComplete = itemElement.querySelector('.item-price-complete').value.trim();
-        
+
             // Add product_id only if available
             const productId = itemElement.dataset.productId || null;
-            
+
             if (name || quantity || price) {
                 const item = {
                     name,
@@ -551,32 +627,32 @@ export default class InvoiceItemManager {
                     currency,
                     tax_rate: taxRate,
                 };
-                
+
                 // Add product ID if available
                 if (productId) {
                     item.product_id = productId;
                 }
-            
+
                 items.push(item);
             }
         });
-        
+
         const jsonData = {
             items,
         };
-        
+
         this.jsonInput.value = JSON.stringify(jsonData);
 
         if (this.invoiceProductsInput) {
             this.invoiceProductsInput.value = JSON.stringify(items);
         }
     }
-    
+
     // Load existing data
     loadExistingData(existingData = null) {
         try {
             let jsonData;
-            
+
             if (existingData) {
                 jsonData = existingData;
             } else if (window.existingInvoiceData && window.existingInvoiceData.length > 0) {
@@ -595,17 +671,17 @@ export default class InvoiceItemManager {
                     jsonData = null;
                 }
             }
-            
+
             // Check if item data exists
             if (jsonData && jsonData.items && Array.isArray(jsonData.items)) {
                 // Clear existing items
                 this.itemsContainer.innerHTML = '';
-                
+
                 // Add items from JSON
                 jsonData.items.forEach(item => {
                     // Check if this is a custom product or a regular product
                     const isCustomProduct = item.is_custom_product || !item.product_id;
-                    
+
                     // Determine product name based on structure
                     let productName = '';
                     if (isCustomProduct) {
@@ -620,9 +696,9 @@ export default class InvoiceItemManager {
                             productName = item.name || '';
                         }
                     }
-                    
+
                     this.addItem(
-                        productName, 
+                        productName,
                         item.quantity || '1',
                         item.unit || 'pieces',
                         item.price || '0',
@@ -631,17 +707,17 @@ export default class InvoiceItemManager {
                         item.currency || 'CZK'
                     );
                 });
-                
+
                 // Update total amount
                 this.updateTotalAmount();
             } else {
                 // Add at least one empty item
                 this.addItem();
             }
-            
+
             // Update JSON data
             this.updateJsonData();
-            
+
         } catch (error) {
             console.error('Error loading existing data:', error);
             // Add at least one empty item
@@ -655,30 +731,30 @@ export default class InvoiceItemManager {
             console.error('Product modal not found in DOM');
             return;
         }
-        
+
         // Debug check if active row is set
         if (!this.activeItemRow) {
             console.warn('Opening product modal but no active row is set');
         } else {
             console.log('Opening product modal with active row:', this.activeItemRow);
         }
-        
+
         // Store a reference to the active row in the modal element itself as a fallback
         if (this.activeItemRow) {
             this.productModal.dataset.activeRowIndex = Array.from(
                 this.itemsContainer.querySelectorAll('.invoice-item')
             ).indexOf(this.activeItemRow);
         }
-        
+
         // Get IDs of already selected products
         const selectedProductIds = this.getSelectedProductIds();
         console.log('Already selected product IDs:', selectedProductIds);
-        
+
         // Dispatch event to notify Livewire component about already selected products
         window.dispatchEvent(new CustomEvent('invoice-products-loaded', {
             detail: { selectedProductIds }
         }));
-        
+
         this.productModal.classList.remove('hidden');
         document.body.classList.add('overflow-hidden'); // Prevent scrolling
     }
@@ -686,10 +762,10 @@ export default class InvoiceItemManager {
     // Close product selection modal
     closeProductModal() {
         if (!this.productModal) return;
-    
+
         this.productModal.classList.add('hidden');
         document.body.classList.remove('overflow-hidden'); // Enable scrolling
-        
+
         // Remove the visual indicator from rows
         const allRows = this.itemsContainer.querySelectorAll('.invoice-item');
         allRows.forEach(row => row.classList.remove('bg-blue-50'));
@@ -698,7 +774,7 @@ export default class InvoiceItemManager {
     logProductData(data) {
         console.group('Product Data Analysis');
         console.log('Raw product data:', data);
-        
+
         // Check data structure
         console.log('Data structure:');
         console.log('- id:', typeof data.id, data.id);
@@ -707,10 +783,10 @@ export default class InvoiceItemManager {
         console.log('- tax_rate:', typeof data.tax_rate, data.tax_rate);
         console.log('- unit:', typeof data.unit, data.unit);
         console.log('- currency:', typeof data.currency, data.currency);
-        
+
         // Check if active row exists
         console.log('Active row:', this.activeItemRow ? 'Found' : 'Missing');
-        
+
         // Check form field existence
         if (this.activeItemRow) {
             const fields = {
@@ -720,13 +796,13 @@ export default class InvoiceItemManager {
                 unit: this.activeItemRow.querySelector('.item-unit'),
                 currency: this.activeItemRow.querySelector('.item-currency')
             };
-            
+
             console.log('Form fields found:');
             for (const [fieldName, element] of Object.entries(fields)) {
                 console.log(`- ${fieldName}: ${element ? 'Found' : 'Missing'}`);
             }
         }
-        
+
         console.groupEnd();
     }
 
@@ -752,7 +828,7 @@ export default class InvoiceItemManager {
 
             // Get current currency from the payment field
             const currentCurrency = document.getElementById('payment_currency')?.value || 'CZK';
-            
+
             // Get product's original currency and price
             const productCurrency = data.currency || 'CZK';
             const productPrice = parseFloat(data.price) || 0;
@@ -767,17 +843,17 @@ export default class InvoiceItemManager {
                     hasCurrencyManager: !!window.currencyManager,
                     needsConversion: productCurrency !== currentCurrency
                 });
-                
+
                 // Check if we need to convert the price
                 if (productCurrency !== currentCurrency && window.currencyManager) {
                     try {
                         // Use currency manager to convert the price
                         const convertedPrice = await window.currencyManager.convertAmount(
-                            productPrice, 
-                            productCurrency, 
+                            productPrice,
+                            productCurrency,
                             currentCurrency
                         );
-                        
+
                         console.log(`Converting price from ${productPrice} ${productCurrency} to ${convertedPrice} ${currentCurrency}`);
 
                         // Ensure we have a valid number after conversion
@@ -804,7 +880,7 @@ export default class InvoiceItemManager {
             const currencySelect = this.activeItemRow.querySelector('.item-currency');
             if (currencySelect) {
                 currencySelect.value = currentCurrency;
-            
+
                 // Important: Update the dataset to reflect the current currency
                 this.activeItemRow.dataset.currentCurrency = currentCurrency;
             }
@@ -819,12 +895,12 @@ export default class InvoiceItemManager {
             if (taxField && data.tax_rate !== undefined && data.tax_rate !== null) {
                 console.log('Setting tax rate:', data.tax_rate);
                 const taxRate = parseFloat(data.tax_rate);
-                
+
                 // Find option with closest tax rate value
                 const options = taxField.options;
                 let bestMatch = 0;
                 let minDiff = Number.MAX_VALUE;
-                
+
                 for (let i = 0; i < options.length; i++) {
                     const diff = Math.abs(parseFloat(options[i].value) - taxRate);
                     if (diff < minDiff) {
@@ -832,7 +908,7 @@ export default class InvoiceItemManager {
                         bestMatch = i;
                     }
                 }
-                
+
                 taxField.selectedIndex = bestMatch;
                 console.log(`Set tax rate to option index ${bestMatch} with value ${options[bestMatch].value}`);
             }
@@ -846,11 +922,11 @@ export default class InvoiceItemManager {
             setTimeout(() => {
                 // Recalculate the item price based on quantity and tax
                 this.calculateItemPrice(this.activeItemRow);
-                
+
                 // Update the JSON data and total
                 this.updateJsonData();
                 this.updateTotalAmount();
-                
+
                 console.log('Completed product selection processing with recalculations');
             }, 50);
 
@@ -875,14 +951,14 @@ export default class InvoiceItemManager {
     getSelectedProductIds() {
         const selectedIds = [];
         const itemElements = this.itemsContainer.querySelectorAll('.invoice-item');
-        
+
         itemElements.forEach(itemElement => {
             const productId = itemElement.dataset.productId;
             if (productId) {
                 selectedIds.push(parseInt(productId, 10));
             }
         });
-        
+
         return selectedIds;
     }
 }

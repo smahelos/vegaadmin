@@ -2,18 +2,22 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class InvoiceRequest extends FormRequest
+class InvoiceRequest extends BaseEntityRequest
 {
     /**
-     * Determine if the user is authorized to make this request
-     *
-     * @return bool
+     * Get the entity type for limit checking
      */
-    public function authorize(): bool
+    protected function getEntityType(): string
     {
-        return backpack_auth()->check();
+        return 'invoice';
+    }
+
+    /**
+     * Get required permission for invoice operations
+     */
+    protected function getRequiredPermission(): string
+    {
+        return 'can_create_edit_invoice';
     }
 
     /**
@@ -43,7 +47,9 @@ class InvoiceRequest extends FormRequest
             'zip' => 'required|string|max:20',
             'country' => 'required|string|max:100',
             'invoice_text' => 'nullable|string',
-            'user_id' => 'required|exists:users,id'
+            'user_id' => 'required|exists:users,id',
+            'invoice_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:2048',
+            'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
         ];
     }
 
@@ -55,11 +61,13 @@ class InvoiceRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            // Use generic keys for consistency with tests and other request
             'client_id' => __('invoices.fields.client'),
             'supplier_id' => __('invoices.fields.supplier'),
             'invoice_vs' => __('invoices.fields.invoice_number'),
             'payment_amount' => __('invoices.fields.amount'),
             'issue_date' => __('invoices.fields.issue_date'),
+            'invoice_logo' => __('invoices.fields.invoice_logo'),
         ];
     }
 
@@ -75,6 +83,9 @@ class InvoiceRequest extends FormRequest
             'name.required_without' => __('invoices.validation.supplier_required'),
             'client_id.required' => __('invoices.validation.client_required'),
             'user_id.required' => __('invoices.validation.user_required'),
+            'invoice_logo.file' => __('invoices.validation.invoice_logo_file'),
+            'invoice_logo.mimes' => __('invoices.validation.invoice_logo_format'),
+            'invoice_logo.max' => __('invoices.validation.invoice_logo_size'),
         ];
     }
 }

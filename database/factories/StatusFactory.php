@@ -25,22 +25,15 @@ class StatusFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->unique()->words(2, true);
-        
+        $rand = uniqid();
+        $name = 'Status '.substr($rand,-5);
         return [
             'name' => $name,
             'slug' => \Illuminate\Support\Str::slug($name),
             'category_id' => StatusCategory::factory(),
-            'color' => fake()->randomElement([
-                'bg-green-100 text-green-800',
-                'bg-blue-100 text-blue-800',
-                'bg-yellow-100 text-yellow-800',
-                'bg-red-100 text-red-800',
-                'bg-purple-100 text-purple-800',
-                'bg-gray-100 text-gray-800',
-            ]),
-            'description' => fake()->sentence(),
-            'is_active' => fake()->boolean(80), // 80% chance of being active
+            'color' => 'bg-blue-100 text-blue-800',
+            'description' => 'Test status '.$name,
+            'is_active' => true,
         ];
     }
 

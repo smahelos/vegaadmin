@@ -2,19 +2,22 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class ExpenseRequest extends FormRequest
+/**
+ * Admin Expense Request
+ * Implements permission & entity limit enforcement via BaseEntityRequest.
+ * Permission: can_create_edit_expense
+ * Entity type: expense
+ */
+class ExpenseRequest extends BaseEntityRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
      * @return bool
      */
-    public function authorize(): bool
+    protected function getRequiredPermission(): string
     {
-        // Only allow updates if the user has permission to manage expenses
-        return backpack_user() && backpack_user()->can('can_create_edit_expense');
+        return 'can_create_edit_expense';
     }
 
     /**
@@ -24,7 +27,7 @@ class ExpenseRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'expense_date' => 'required|date',
             'amount' => 'required|numeric|min:0',
             'currency' => 'required|string|size:3',
@@ -33,12 +36,25 @@ class ExpenseRequest extends FormRequest
             'payment_method_id' => 'nullable|exists:payment_methods,id',
             'reference_number' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'receipt_file' => 'nullable|sometimes|file|max:1024000', // Max 10MB
+            'attachments' => 'sometimes|array',
+            'attachments.*' => 'sometimes|string',
             'tax_amount' => 'nullable|numeric|min:0',
             'status_id' => 'nullable|exists:statuses,id',
             'user_id' => 'required|exists:users,id',
             'tax_included' => 'nullable|boolean',
         ];
+
+        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
+            foreach (['expense_date','amount','currency','category_id','user_id'] as $field) {
+                $rules[$field] = str_replace('required','sometimes',$rules[$field]);
+            }
+            // Ensure description is marked as sometimes so it is validated when alone
+            if (isset($rules['description']) && !str_contains($rules['description'], 'sometimes')) {
+                $rules['description'] = 'sometimes|string';
+            }
+        }
+
+        return $rules;
     }
 
     /**
@@ -79,5 +95,18 @@ class ExpenseRequest extends FormRequest
             'category_id.required' => __('admin.expenses.validation.category_required'),
             'user_id.required' => __('admin.expenses.validation.user_required'),
         ];
+    }
+
+    /**
+     * Normalize data before validation.
+     */
+    public function prepareForValidation(): void
+    {
+        if ($this->has('currency') && is_string($this->currency)) {
+            $this->merge(['currency' => strtoupper($this->currency)]);
+        }
+        if ($this->has('reference_number') && is_string($this->reference_number)) {
+            $this->merge(['reference_number' => trim($this->reference_number)]);
+        }
     }
 }

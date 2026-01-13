@@ -3,38 +3,39 @@ mode: 'agent'
 description: 'Backpack 6.8 admin panel instructions and conventions'
 ---
 
-# Backpack 6.8 Admin Panel Instructions
 
-## Version
-- Always use Backpack 6.8 features and syntax
-- Follow Backpack 6.8 conventions and best practices
-- Use Backpack 6.8 specific components and methods
+# Backpack 6.8 Admin Panel Instructions (Project-specific)
 
-## CRUD Controllers
-- Extend `CrudController` for admin operations
-- Use `setupListOperation()`, `setupCreateOperation()`, `setupUpdateOperation()`, etc.
-- Place admin controllers in `app/Http/Controllers/Admin/`
-- Use admin-specific requests in `app/Http/Requests/Admin/`
+## Version & Conventions
+- Vždy používej Backpack 6.8 a jeho aktuální syntax a komponenty.
+- Dodržuj konvence a best practices Backpack 6.8.
+- Všechny úpravy musí být v souladu s aktuálními konfiguračními soubory v `config/backpack/`.
 
-## Permissions and Authentication
-- Use Laravel-Backpack/PermissionManager extension
-- Base all authentication on spatie/laravel-permission
-- Use roles and permissions for access control
-- Check permissions in controllers and views
+## CRUD Controllers & Requests
+- Všechny admin controllery dědí z `CrudController` a jsou v `app/Http/Controllers/Admin/`.
+- Pro každý admin formulář používej request třídu z `App/Http/Requests/Admin/` (autorizace, validace, překlady).
+- Všechna pole načítej přes vlastní traity v `App/Traits/` (např. BankFormFields, InvoiceFormFields, ...).
 
-## Field Types and Operations
-- Use Backpack field types for forms
-- Utilize Backpack column types for lists
-- Implement custom operations when needed
-- Use Backpack's built-in validation
+## Permissions & Authentication
+- Vždy používej Laravel-Backpack/PermissionManager (spatie/laravel-permission, Backpack rozhraní).
+- Všechna oprávnění a role spravuj pouze přes PermissionManager, používej správný guard (`backpack`).
+- Oprávnění kontroluj v controllerech i v pohledech.
+- Všechny admin requesty a validace musí být vázány na Backpack guard.
+
+## Field Types, Operations & Validation
+- Používej Backpack field types pro formuláře a column types pro seznamy.
+- Implementuj vlastní operace pouze pokud je to nutné, jinak využívej vestavěné.
+- Všechny validace a chybové zprávy musí být přeložitelné (Laravel translations).
 
 ## Admin Routes
-- Define admin routes in `routes/backpack/`
-- Use Backpack's route protection middleware
-- Follow Backpack URL conventions
+- Admin routes definuj v `routes/backpack/` (např. custom.php).
+- Vždy používej Backpack middleware a prefix (`admin`).
+- Dodržuj Backpack URL konvence.
 
-## Views and Templates
-- Extend Backpack base templates
-- Use Backpack's blade components
-- Follow Backpack's CSS/JS conventions
-- Customize views in `resources/views/vendor/backpack/`
+## Views & Templates
+- Vždy rozšiřuj Backpack base šablony a používej Backpack blade komponenty.
+- Vlastní úpravy ukládej do `resources/views/vendor/backpack/`.
+- Dodržuj Backpack CSS/JS konvence.
+
+---
+*Tento soubor je závazný pro všechny úpravy admin rozhraní. Při nejasnostech ověř aktuální stav v kódu, konfiguraci a dokumentaci.*

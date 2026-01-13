@@ -4,9 +4,9 @@ use Illuminate\Support\Facades\Auth;
 
 if (!function_exists('backpack_auth')) {
     /**
-     * Get authentication manager instance for Backpack guard
+     * Resolve the configured Backpack auth guard instance.
      *
-     * @return \Illuminate\Contracts\Auth\StatefulGuard|\Illuminate\Contracts\Auth\Guard
+     * @return \Illuminate\Contracts\Auth\StatefulGuard|\Illuminate\Contracts\Auth\Guard Auth guard for Backpack
      */
     function backpack_auth()
     {
@@ -16,9 +16,9 @@ if (!function_exists('backpack_auth')) {
 
 if (!function_exists('backpack_guard_name')) {
     /**
-     * Get the guard name used for Backpack
+     * Determine the guard name used for Backpack (falls back to auth default if unset).
      *
-     * @return string
+     * @return string Guard name
      */
     function backpack_guard_name(): string
     {
@@ -28,9 +28,9 @@ if (!function_exists('backpack_guard_name')) {
 
 if (!function_exists('backpack_user')) {
     /**
-     * Get the currently authenticated user in Backpack
+     * Retrieve the currently authenticated Backpack user model.
      *
-     * @return \App\Models\User|null
+     * @return \App\Models\User|null Authenticated user or null
      */
     function backpack_user(): ?\App\Models\User
     {
@@ -40,16 +40,16 @@ if (!function_exists('backpack_user')) {
 
 if (!function_exists('backpack_url')) {
     /**
-     * Create URL with Backpack prefix
+     * Build a URL under the Backpack route prefix.
      *
-     * @param string $path
-     * @return string
+     * @param string|null $path Optional sub-path under the Backpack prefix
+     * @return string Absolute URL
      */
     function backpack_url(?string $path = null): string
     {
         $prefix = config('backpack.base.route_prefix', 'admin');
-        
-        if (empty($path)) {
+
+        if ($path === null || $path === '') {
             return url($prefix);
         }
 
@@ -59,7 +59,8 @@ if (!function_exists('backpack_url')) {
 
 if (!function_exists('backpack_pro')) {
     /**
-     * Get authentication manager instance for Backpack guard
+     * Indicate whether Backpack Pro (or extended feature set) is enabled.
+     * Placeholder always returns true; adjust when feature gating is introduced.
      *
      * @return bool
      */

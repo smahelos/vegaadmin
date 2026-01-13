@@ -12,25 +12,26 @@ class SupplierFactory extends Factory
 
     public function definition(): array
     {
+        $rand = random_int(1000,9999);
         return [
-            'name' => $this->faker->company(),
-            'email' => $this->faker->unique()->safeEmail(),
-            'phone' => $this->faker->phoneNumber(),
-            'street' => $this->faker->streetAddress(),
-            'city' => $this->faker->city(),
-            'zip' => $this->faker->postcode(),
-            'country' => $this->faker->randomElement(['CZ', 'SK', 'DE', 'AT']),
-            'ico' => $this->faker->optional()->numerify('########'),
-            'dic' => $this->faker->optional()->regexify('CZ[0-9]{8,10}'),
-            'description' => $this->faker->optional()->sentence(),
+            'name' => 'Supplier '.$rand,
+            'email' => 'supplier'.$rand.'@example.test',
+            'phone' => '+420'.random_int(100000000,999999999),
+            'street' => 'Street '.$rand,
+            'city' => 'City'.$rand,
+            'zip' => str_pad((string)random_int(10000,99999),5,'0',STR_PAD_LEFT),
+            'country' => 'CZ',
+            'ico' => (string)random_int(10000000,99999999),
+            'dic' => 'CZ'.random_int(10000000,99999999),
+            'description' => 'Test supplier '.$rand,
             'is_default' => false,
             'user_id' => User::factory(),
-            'account_number' => $this->faker->optional()->numerify('##########'),
-            'bank_code' => $this->faker->optional()->numerify('####'),
-            'iban' => $this->faker->optional()->iban(),
-            'swift' => $this->faker->optional()->swiftBicNumber(),
-            'bank_name' => $this->faker->optional()->randomElement(['Česká spořitelna', 'ČSOB', 'Komerční banka', 'UniCredit Bank']),
-            'has_payment_info' => $this->faker->boolean(),
+            'account_number' => (string)random_int(100000000,999999999),
+            'bank_code' => (string)random_int(1000,9999),
+            'iban' => null,
+            'swift' => null,
+            'bank_name' => 'Test Bank',
+            'has_payment_info' => true,
         ];
     }
 

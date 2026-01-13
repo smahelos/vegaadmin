@@ -3,37 +3,42 @@ mode: 'agent'
 description: 'Tailwind CSS 4.1.3 styling instructions and conventions'
 ---
 
-# Tailwind CSS 4.1.3 Styling Instructions
+
+# Tailwind CSS 4.1.3 Styling Instructions (Project-specific)
 
 ## Version
-- Always use Tailwind CSS 4.1.3 features and syntax
-- Follow Tailwind CSS 4.1.3 conventions and best practices
-- Use Tailwind CSS 4.1.3 specific utilities and components
+- Vždy používej Tailwind CSS 4.1.3 a jeho aktuální utility a komponenty.
+- Dodržuj konvence a best practices Tailwindu 4.1.3.
+- Všechny nové komponenty, třídy a komentáře musí být v angličtině.
 
 ## Utility Classes
-- Use utility-first approach
-- Prefer Tailwind utilities over custom CSS
-- Use responsive prefixes for different screen sizes
-- Utilize Tailwind's color palette and spacing scale
+- Vždy používej utility-first přístup.
+- Preferuj Tailwind utility před vlastním CSS (custom CSS pouze výjimečně).
+- Používej responsive prefixy pro různé velikosti obrazovek.
+- Využívej Tailwind color palette a spacing scale.
 
 ## Configuration
-- Tailwind config is in `tailwind.config.js`
-- Custom utilities and components in `resources/css/`
-- Build process managed by Vite in `vite.config.js`
+- Konfigurace Tailwindu je v `tailwind.config.js`.
+- Vlastní utility a komponenty v `resources/css/`.
+- Build proces je řízen přes Vite (`vite.config.js`) a PostCSS (`postcss.config.js`).
 
 ## Best Practices
-- Use semantic class names when grouping utilities
-- Leverage Tailwind's component layer for reusable styles
-- Use @apply directive sparingly, prefer utility classes
-- Follow mobile-first responsive design approach
+- Při seskupování utilit používej sémantické názvy tříd.
+- Využívej Tailwind component layer pro znovupoužitelné styly.
+- Používej `@apply` pouze výjimečně, preferuj utility classes.
+- Dodržuj mobile-first přístup.
+- Všechny úpravy a komponenty testuj ve všech podporovaných prohlížečích a na různých zařízeních.
 
 ## Integration with Backpack
-- Override Backpack styles using Tailwind utilities
-- Maintain Backpack's admin panel consistency
-- Use Tailwind for custom frontend components
-- Ensure accessibility with Tailwind utilities
+- Pro admin rozhraní (Backpack) vždy přepisuj styly pomocí Tailwind utilit, ne custom CSS.
+- Zachovej konzistenci admin rozhraní.
+- Pro vlastní frontend komponenty používej výhradně Tailwind.
+- Dbej na přístupnost (accessibility) pomocí Tailwind utilit.
 
 ## File Organization
-- Main CSS file: `resources/css/app.css`
-- Component styles in dedicated files
-- Use PostCSS for processing (configured in `postcss.config.js`)
+- Hlavní CSS soubor: `resources/css/app.css`
+- Komponentové styly v samostatných souborech.
+- Pro zpracování používej PostCSS (`postcss.config.js`).
+
+---
+*Tento soubor je závazný pro práci se styly v projektu. Při nejasnostech ověř aktuální stav v kódu, konfiguraci a dokumentaci.*

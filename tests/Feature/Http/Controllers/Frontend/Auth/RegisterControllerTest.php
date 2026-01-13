@@ -6,10 +6,9 @@ use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Requests\RegistrationRequest;
 use App\Models\User;
 use App\Models\Supplier;
-use App\Services\BankService;
-use App\Services\CountryService;
-use App\Services\LocaleService;
-use App\Repositories\SupplierRepository;
+use App\Domain\Payment\Services\BankService;
+use App\Domain\Shared\Geography\Services\CountryService;
+use App\Domain\User\Services\LocaleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Auth;
@@ -20,11 +19,12 @@ use Illuminate\Support\Facades\Event;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 use PHPUnit\Framework\Attributes\Test;
 
 class RegisterControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected string $validEmail;
     protected string $validPassword;
@@ -53,13 +53,12 @@ class RegisterControllerTest extends TestCase
     {
         parent::setUp();
 
-        // Create permissions and roles
-        $this->createPermissionsAndRoles();
+        $this->setUpFrontendTestEnvironment();
 
         // Set up test data with unique email using faker
         $this->validEmail = $this->faker->unique()->safeEmail;
         $this->validPassword = 'password123';
-        
+
         $this->validUserData = [
             'name' => $this->faker->name,
             'email' => $this->validEmail,
@@ -79,62 +78,6 @@ class RegisterControllerTest extends TestCase
             'swift' => 'KOMBCZPP',
             'bank_name' => 'Komerční banka',
         ];
-    }
-
-    /**
-     * Create necessary permissions and roles for frontend registration testing
-     * Sets up web guard permissions and frontend_user role
-     * Note: The controller creates role without guard_name, so we need to handle both cases
-     */
-    private function createPermissionsAndRoles(): void
-    {
-        // Frontend permissions for registered users
-        Permission::firstOrCreate(['name' => 'frontend.api.access', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.clients', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.suppliers', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.invoices', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.statistics', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_view_client', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_delete_client', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_supplier', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_view_supplier', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_delete_supplier', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_view_invoice', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_delete_invoice', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_product', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_view_product', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_delete_product', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.products', 'guard_name' => 'web']);
-        
-        // Create frontend role - the controller creates it without guard_name, 
-        // so we create it the same way to match controller behavior
-        $frontendRole = Role::firstOrCreate(['name' => 'frontend_user']);
-        
-        // Only sync permissions if role has the web guard  
-        if ($frontendRole->guard_name === 'web') {
-            $frontendRole->syncPermissions([
-                'frontend.api.access',
-                'frontend.api.clients',
-                'frontend.api.suppliers',
-                'frontend.api.invoices',
-                'frontend.api.statistics',
-                'frontend.can_create_edit_client',
-                'frontend.can_view_client',
-                'frontend.can_delete_client',
-                'frontend.can_create_edit_supplier',
-                'frontend.can_view_supplier',
-                'frontend.can_delete_supplier',
-                'frontend.can_create_edit_invoice',
-                'frontend.can_view_invoice',
-                'frontend.can_delete_invoice',
-                'frontend.can_create_edit_product',
-                'frontend.can_view_product',
-                'frontend.can_delete_product',
-                'frontend.api.products',
-            ]);
-        }
     }
 
     /**
@@ -165,24 +108,24 @@ class RegisterControllerTest extends TestCase
         $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertRedirect();
-        
+
         // Check user was created first before checking auth
         $user = User::where('email', $this->validEmail)->first();
         $this->assertNotNull($user, 'User was not created');
-        
+
         $this->assertTrue(Auth::check(), 'User is not authenticated after registration');
-        
+
         $this->assertEquals($this->validUserData['name'], $user->name);
         $this->assertTrue(Hash::check($this->validPassword, $user->password));
-        
+
         // Check user has frontend_user role
         $this->assertTrue($user->hasRole('frontend_user'));
-        
+
         // Check supplier was created
         $supplier = Supplier::where('user_id', $user->id)->first();
         $this->assertNotNull($supplier);
         $this->assertTrue($supplier->is_default);
-        
+
         // Check registered event was fired
         Event::assertDispatched(Registered::class);
     }
@@ -285,7 +228,7 @@ class RegisterControllerTest extends TestCase
         $response = $this->post('/en/register', $minimalData);
 
         $response->assertRedirect();
-        
+
         // Check if user was created (might fail if validation requires more fields)
         $user = User::where('email', $minimalEmail)->first();
         if ($user) {
@@ -315,10 +258,10 @@ class RegisterControllerTest extends TestCase
         $response = $this->post('/en/register', $dataWithPayment);
 
         $response->assertRedirect();
-        
+
         $user = User::where('email', $this->validEmail)->first();
         $supplier = Supplier::where('user_id', $user->id)->first();
-        
+
         $this->assertTrue($supplier->has_payment_info);
         $this->assertEquals('123456789', $supplier->account_number);
         $this->assertEquals('0100', $supplier->bank_code);
@@ -336,7 +279,7 @@ class RegisterControllerTest extends TestCase
 
         // Use a different email for this test to avoid conflicts
         $noPaymentEmail = $this->faker->unique()->safeEmail;
-        
+
         // Test without payment info - but keep other required fields
         $dataWithoutPayment = $this->validUserData;
         $dataWithoutPayment['email'] = $noPaymentEmail;
@@ -349,10 +292,10 @@ class RegisterControllerTest extends TestCase
         $response = $this->post('/en/register', $dataWithoutPayment);
 
         $response->assertRedirect();
-        
+
         $user = User::where('email', $noPaymentEmail)->first();
         $supplier = Supplier::where('user_id', $user->id)->first();
-        
+
         $this->assertFalse($supplier->has_payment_info);
     }
 
@@ -371,11 +314,11 @@ class RegisterControllerTest extends TestCase
         $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertRedirect();
-        
+
         // Check role exists (should exist from setUp)
         $role = Role::where('name', 'frontend_user')->first();
         $this->assertNotNull($role);
-        
+
         // Check user has the role
         $user = User::where('email', $this->validEmail)->first();
         $this->assertTrue($user->hasRole('frontend_user'));
@@ -393,7 +336,7 @@ class RegisterControllerTest extends TestCase
 
         // Use a different email for this test to avoid conflicts
         $bankEmail = $this->faker->unique()->safeEmail;
-        
+
         $bankData = $this->validUserData;
         $bankData['email'] = $bankEmail;
         $bankData['iban'] = 'CZ65' . $this->faker->numerify('################');
@@ -403,10 +346,10 @@ class RegisterControllerTest extends TestCase
         $response = $this->post('/en/register', $bankData);
 
         $response->assertRedirect();
-        
+
         $user = User::where('email', $bankEmail)->first();
         $supplier = Supplier::where('user_id', $user->id)->first();
-        
+
         $this->assertEquals($bankData['iban'], $supplier->iban);
         $this->assertEquals('KOMBCZPP', $supplier->swift);
         $this->assertEquals('Komerční banka', $supplier->bank_name);
@@ -425,8 +368,8 @@ class RegisterControllerTest extends TestCase
 
         // Use a different email for this test to avoid conflicts
         $countryEmail = $this->faker->unique()->safeEmail;
-        
-        // Since country is required in RegistrationRequest validation, 
+
+        // Since country is required in RegistrationRequest validation,
         // we need to test this with a valid country value
         $dataWithValidCountry = $this->validUserData;
         $dataWithValidCountry['email'] = $countryEmail;
@@ -435,13 +378,13 @@ class RegisterControllerTest extends TestCase
         $response = $this->post('/en/register', $dataWithValidCountry);
 
         $response->assertRedirect();
-        
+
         $user = User::where('email', $countryEmail)->first();
         $this->assertNotNull($user, 'User should be created');
-        
+
         $supplier = Supplier::where('user_id', $user->id)->first();
         $this->assertNotNull($supplier, 'Supplier should be created for the user');
-        
+
         // Verify the country was set correctly (not default)
         $this->assertEquals('SK', $supplier->country);
     }
@@ -459,7 +402,7 @@ class RegisterControllerTest extends TestCase
         $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertRedirect();
-        
+
         // Check that the redirect URL contains locale - either /en/ or ends with /en
         $targetUrl = $response->getTargetUrl();
         $this->assertTrue(
@@ -482,7 +425,7 @@ class RegisterControllerTest extends TestCase
 
         $response->assertRedirect();
         $this->assertTrue(Auth::check());
-        
+
         $user = User::where('email', $this->validEmail)->first();
         $this->assertEquals($user->id, Auth::id());
     }
@@ -500,10 +443,10 @@ class RegisterControllerTest extends TestCase
         $response = $this->post('/en/register', $this->validUserData);
 
         $response->assertRedirect();
-        
+
         $user = User::where('email', $this->validEmail)->first();
         $supplier = Supplier::where('user_id', $user->id)->first();
-        
+
         $this->assertEquals($this->validUserData['street'], $supplier->street);
         $this->assertEquals($this->validUserData['city'], $supplier->city);
         $this->assertEquals($this->validUserData['zip'], $supplier->zip);
@@ -541,6 +484,6 @@ class RegisterControllerTest extends TestCase
     {
         $traits = class_uses(RegisterController::class);
 
-        $this->assertContains(\App\Traits\UserFormFields::class, $traits);
+        $this->assertContains(\App\Infrastructure\Forms\User\UserFormFields::class, $traits);
     }
 }

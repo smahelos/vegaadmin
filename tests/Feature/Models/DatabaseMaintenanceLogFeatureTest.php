@@ -7,14 +7,17 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\RequiresOptimizationTables;
 
 class DatabaseMaintenanceLogFeatureTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, RequiresOptimizationTables;
 
     #[Test]
     public function can_create_database_maintenance_log(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $data = [
             'task_type' => 'optimize',
             'table_name' => 'users',
@@ -39,6 +42,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function can_use_factory_to_create_database_maintenance_log(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->create();
 
         $this->assertInstanceOf(DatabaseMaintenanceLog::class, $log);
@@ -50,6 +55,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function factory_pending_state_creates_pending_log(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->pending()->create();
 
         $this->assertEquals('pending', $log->status);
@@ -60,6 +67,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function factory_running_state_creates_running_log(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->running()->create();
 
         $this->assertEquals('running', $log->status);
@@ -70,6 +79,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function factory_completed_state_creates_completed_log(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->completed()->create();
 
         $this->assertEquals('completed', $log->status);
@@ -81,6 +92,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function factory_failed_state_creates_failed_log(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->failed()->create();
 
         $this->assertEquals('failed', $log->status);
@@ -93,6 +106,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function results_attribute_is_cast_to_array(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->create([
             'results' => ['test' => 'value']
         ]);
@@ -104,6 +119,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function started_at_attribute_is_cast_to_datetime(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->create([
             'started_at' => '2023-01-01 10:00:00'
         ]);
@@ -115,6 +132,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function completed_at_attribute_is_cast_to_datetime(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->create([
             'completed_at' => '2023-01-01 11:00:00'
         ]);
@@ -126,6 +145,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function duration_attribute_calculates_correctly(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $startedAt = Carbon::parse('2023-01-01 10:00:00');
         $completedAt = Carbon::parse('2023-01-01 10:05:00');
 
@@ -142,6 +163,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function can_query_logs_by_status(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         DatabaseMaintenanceLog::factory()->pending()->create();
         DatabaseMaintenanceLog::factory()->running()->create();
         DatabaseMaintenanceLog::factory()->completed()->createMany(2);
@@ -158,6 +181,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function can_query_logs_by_task_type(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         DatabaseMaintenanceLog::factory()->create(['task_type' => 'optimize']);
         DatabaseMaintenanceLog::factory()->create(['task_type' => 'analyze']);
         DatabaseMaintenanceLog::factory()->create(['task_type' => 'optimize']);
@@ -172,6 +197,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function can_query_logs_by_table_name(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         DatabaseMaintenanceLog::factory()->create(['table_name' => 'users']);
         DatabaseMaintenanceLog::factory()->create(['table_name' => 'invoices']);
         DatabaseMaintenanceLog::factory()->create(['table_name' => 'users']);
@@ -186,6 +213,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function can_update_database_maintenance_log(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->pending()->create();
 
         $log->update([
@@ -200,6 +229,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function can_delete_database_maintenance_log(): void
     {
+        $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
+
         $log = DatabaseMaintenanceLog::factory()->create();
         $logId = $log->id;
 

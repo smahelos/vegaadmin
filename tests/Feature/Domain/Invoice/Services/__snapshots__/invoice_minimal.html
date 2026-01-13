@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Faktura SNAP-001</title>
+ <style>
+ @page {
+ margin: 15mm 10mm;
+ }
+ body {
+ font-family: DejaVu Sans, Arial, sans-serif;
+ font-size: 10px;
+ line-height: 1.3;
+ color: #2d3748;
+ margin: 0;
+ padding: 0;
+ }
+ .header {
+ margin-bottom: 20px;
+ padding-bottom: 10px;
+ border-bottom: 1px solid #5c5e60;
+ }
+ .header-logo-container {
+ max-height: 40px;
+ float: left;
+ text-align: right;
+ width: 30%;
+ object-fit: contain;
+ }
+ .header-logo {
+ width: 100%;
+ height: auto;
+ object-fit: contain;
+ }
+ .header-content {
+ float: left;
+ text-align: left;
+ width: 70%;
+ }
+ .invoice-title {
+ font-size: 20px;
+ font-weight: bold;
+ margin-bottom: 3px;
+ text-transform: uppercase;
+ letter-spacing: 3px;
+ color: #2d3748;
+ }
+ .invoice-number {
+ font-size: 12px;
+ margin-bottom: 0;
+ color: #718096;
+ }
+ .section {
+ margin-bottom: 20px;
+ }
+ .section-title {
+ font-size: 11px;
+ font-weight: bold;
+ border-bottom: 1px solid #e2e8f0;
+ padding-bottom: 3px;
+ margin-bottom: 10px;
+ color: #2d3748;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ }
+ .parties {
+ display: flex;
+ margin-bottom: 25px;
+ justify-content: space-between;
+ }
+ .supplier-info {
+ width: 97%;
+ margin-right: 3%;
+ }
+ .client-info {
+ width: 97%;
+ margin-left: 3%;
+ }
+ .supplier-info h3,
+ .client-info h3 {
+ margin-top: 0;
+ margin-bottom: 10px;
+ font-size: 11px;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ color: #2d3748;
+ }
+ .supplier-info p,
+ .client-info p {
+ margin: 3px 0;
+ line-height: 1.4;
+ }
+ .row {
+ display: flex;
+ margin-bottom: 3px;
+ }
+ .col {
+ flex: 1;
+ }
+ .col-left {
+ width: 48%;
+ float: left;
+ }
+ .col-right {
+ width: 48%;
+ float: right;
+ }
+ .clearfix:after {
+ content: "";
+ display: table;
+ clear: both;
+ }
+ .info-row {
+ margin-bottom: 3px;
+ line-height: 1.4;
+ display: flex;
+ justify-content: space-between;
+ }
+ .info-label {
+ font-weight: normal;
+ color: #718096;
+ min-width: 120px;
+ }
+ .info-value {
+ font-weight: bold;
+ color: #2d3748;
+ text-align: right;
+ }
+ .payment-info {
+ padding-right: 15px;
+ }
+ .payment-info-title {
+ font-weight: bold;
+ margin-bottom: 10px;
+ color: #2d3748;
+ font-size: 11px;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ }
+ .qr-code {
+ text-align: left;
+ padding-right: 15px;
+ }
+ .qr-code h3 {
+ margin-top: 0;
+ color: #2d3748;
+ font-size: 11px;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ }
+ .qr-code img {
+ max-width: 100px;
+ max-height: 100px;
+ border: 1px solid #e2e8f0;
+ padding: 3px;
+ background: white;
+ }
+ .footer {
+ margin-top: 25px;
+ text-align: center;
+ font-size: 9px;
+ color: #718096;
+ padding-top: 15px;
+ border-top: 1px solid #e2e8f0;
+ }
+ table {
+ width: 100%;
+ border-collapse: collapse;
+ margin: 10px 0;
+ background: white;
+ }
+ table th {
+ background-color: #ebf1f6;
+ color: #2d3748;
+ text-align: left;
+ font-weight: bold;
+ font-size: 9px;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ }
+ table th,
+ table td {
+ border: 1px solid #e2e8f0;
+ padding: 8px 10px;
+ }
+ table tr:nth-child(even) {
+ background: #f7fafc;
+ }
+ .text-right {
+ text-align: right;
+ }
+ .amount-total {
+ background-color: #ebf1f6;
+ color: #2d3748;
+ font-weight: bold;
+ }
+ .payment-details {
+ background-color: #fed7d7;
+ color: #c53030;
+ padding: 10px;
+ margin-bottom: 20px;
+ font-weight: bold;
+ text-align: center;
+ border: 1px solid #fc8181;
+ }
+ .red {
+ color: #c53030;
+ font-weight: bold;
+ }
+ </style>
+</head>
+<body>
+ <div class="header">
+ 
+ <div class="header-content">
+ <div class="invoice-title">Faktura</div>
+ <div class="invoice-number">Číslo: SNAP-001</div>
+ </div>
+ 
+ 
+ <div style="width: 100px;"></div>
+ <div class="clearfix"></div>
+ </div>
+ <div class="parties clearfix">
+ <div class="col-left">
+ 
+ <div class="supplier-info"><DYNAMIC_SUPPLIER_BLOCK/></div>
+ <p><strong>Snapshot Supplier s.r.o.</strong></p>
+ <p><NUMERIC_LINE/></p>
+ <p><NUMERIC_LINE/></p>
+ <p><NUMERIC_LINE/></p>
+ 
+ <p><NUMERIC_LINE/></p>
+ </div>
+ </div>
+ <div class="col-right">
+ 
+ <div class="client-info"><DYNAMIC_CLIENT_BLOCK/></div>
+ <p><strong>Snapshot Client a.s.</strong></p>
+ <p><NUMERIC_LINE/></p>
+ <p><NUMERIC_LINE/></p>
+ <p><NUMERIC_LINE/></p>
+ 
+ <p><NUMERIC_LINE/></p>
+ </div>
+ </div>
+ </div>
+ <div class="section clearfix">
+ <div class="section-title">Údaje o faktuře</div>
+ <div class="clearfix">
+ <div class="col-left">
+ <div class="info-row">
+ <span class="info-label">Datum vystavení:</span>
+ <span class="info-value"><DATE></span>
+ </div>
+ <div class="info-row">
+ <span class="info-label">Datum zdanitelného plnění:</span>
+ <span class="info-value"><DATE></span>
+ </div>
+ <div class="info-row">
+ <span class="info-label">Splatnost:</span>
+ <span class="info-value"><DUE_IN></span>
+ </div>
+ <div class="info-row">
+ <span class="info-label red">Datum splatnosti:</span>
+ <span class="info-value red"><DATE></span>
+ </div>
+ </div>
+ <div class="col-right">
+ <div class="info-row">
+ <span class="info-label">Způsob platby:</span>
+ <span class="info-value">
+ invoices.labels.bank_transfer
+ </span>
+ </div>
+ <div class="info-row">
+ <span class="info-label">Číslo faktury:</span>
+ <span class="info-value">SNAP-001</span>
+ </div>
+ 
+ 
+ <div class="info-row">
+ <span class="info-label">Specifický symbol:</span>
+ <span class="info-value">2489</span>
+ </div>
+ </div>
+ </div>
+ </div>
+ <!-- Invoice amounts -->
+ <div class="section">
+ <div class="section-title">Položky faktury</div>
+ </div>
+ <!-- Payment information and QR code -->
+ 
+ <div class="clearfix">
+ <div class="">
+ <div class="payment-info">
+ <div class="section-title">Informace pro platbu</div>
+ <div class="info-row">
+ <span class="info-label">Název banky:</span>
+ <span class="info-value">Test Bank</span>
+ </div>
+ 
+ 
+ 
+ 
+ <div class="info-row">
+ <span class="info-label">Částka:</span>
+ <span class="info-value">€1 234,56</span>
+ </div>
+ <div class="info-row">
+ <span class="info-label">Číslo faktury:</span>
+ <span class="info-value">SNAP-001</span>
+ </div>
+ </div>
+ </div>
+ 
+ </div>
+ <div class="footer">
+ <p>Vygenerováno: <DATE> 18:38</p>
+ <p>Děkujeme za vytvoření PDF faktury!</p>
+ </div>
+</body>
+</html>

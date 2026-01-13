@@ -78,7 +78,7 @@ return [
     */
 
     //'connection' => env('SESSION_CONNECTION'),
-    
+
     //uses the 'session' connection from the redis driver in config/database.php
     'connection' => 'session',
 
@@ -221,4 +221,13 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Session Refresh Interval (seconds)
+    |--------------------------------------------------------------------------
+    | Controls how often (at most) the custom refresh middlewares regenerate
+    | the session ID. Default 900 seconds (15 minutes). Override via env:
+    | SESSION_REFRESH_INTERVAL=1200
+    */
+    'interval_seconds' => (int) env('SESSION_REFRESH_INTERVAL', 900),
 ];

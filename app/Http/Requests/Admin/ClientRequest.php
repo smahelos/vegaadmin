@@ -2,23 +2,27 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class ClientRequest extends FormRequest
+class ClientRequest extends BaseEntityRequest
 {
     /**
-     * Determine if the user is authorized to make this request
-     *
-     * @return bool
+     * Get the entity type for limit checking
      */
-    public function authorize(): bool
+    protected function getEntityType(): string
     {
-        return backpack_auth()->check();
+        return 'client';
+    }
+
+    /**
+     * Get required permission for client operations
+     */
+    protected function getRequiredPermission(): string
+    {
+        return 'can_create_edit_client';
     }
 
     /**
      * Get the validation rules that apply to the request
-     * 
+     *
      * @return array
      */
     public function rules(): array

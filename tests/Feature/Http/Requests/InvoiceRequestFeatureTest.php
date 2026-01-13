@@ -7,22 +7,29 @@ use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\Client;
+use App\Models\User;
+use App\Models\EntityLimit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for InvoiceRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests invoice validation scenarios, authorization, and validation with database constraints
  */
 class InvoiceRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
+    protected User $user;
+    protected User $adminUser;
     protected PaymentMethod $paymentMethod;
     protected Status $paymentStatus;
     protected Supplier $supplier;
@@ -39,9 +46,12 @@ class InvoiceRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
         // Create related models
         $this->createRelatedModels();
-        
+
         // Set up valid invoice data
         $this->setupValidInvoiceData();
     }
@@ -73,24 +83,24 @@ class InvoiceRequestFeatureTest extends TestCase
             'tax_point_date' => $this->faker->date(),
             'due_in' => $this->faker->numberBetween(1, 30),
             'payment_status_id' => $this->paymentStatus->id,
-            
+
             // Using supplier
             'supplier_id' => $this->supplier->id,
             'email' => $this->faker->email,
             'phone' => $this->faker->phoneNumber,
-            
+
             // Bank details
             'account_number' => $this->faker->numerify('##########'),
             'bank_code' => $this->faker->numerify('####'),
             'bank_name' => $this->faker->company . ' Bank',
             'iban' => 'CZ' . $this->faker->numerify('####################'),
             'swift' => $this->faker->lexify('????????'),
-            
+
             // Using client
             'client_id' => $this->client->id,
             'client_email' => $this->faker->email,
             'client_phone' => $this->faker->phoneNumber,
-            
+
             'invoice_text' => $this->faker->paragraph,
         ];
     }
@@ -116,7 +126,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'issue_date' => $this->faker->date(),
             'due_in' => 14,
             'payment_status_id' => $this->paymentStatus->id,
-            
+
             // Manual supplier data (no supplier_id)
             'name' => $this->faker->company,
             'street' => $this->faker->streetAddress,
@@ -125,7 +135,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'country' => $this->faker->country,
             'ico' => $this->faker->numerify('########'),
             'dic' => $this->faker->numerify('CZ########'),
-            
+
             // Manual client data (no client_id)
             'client_name' => $this->faker->company,
             'client_street' => $this->faker->streetAddress,
@@ -147,10 +157,10 @@ class InvoiceRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = [
-            'invoice_vs', 'payment_method_id', 'payment_amount', 
+            'invoice_vs', 'payment_method_id', 'payment_amount',
             'payment_currency', 'issue_date', 'due_in', 'payment_status_id'
         ];
-        
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validInvoiceData;
             unset($invalidData[$field]);
@@ -174,11 +184,11 @@ class InvoiceRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules(), $request->messages());
 
         $this->assertTrue($validator->fails());
-        
+
         // Should fail for required fields when supplier_id is missing
         $requiredWhenNoSupplierId = ['name', 'street', 'city', 'zip', 'country'];
         foreach ($requiredWhenNoSupplierId as $field) {
-            $this->assertArrayHasKey($field, $validator->errors()->toArray(), 
+            $this->assertArrayHasKey($field, $validator->errors()->toArray(),
                 "Should have error for {$field} when supplier_id is missing");
         }
     }
@@ -194,11 +204,11 @@ class InvoiceRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules(), $request->messages());
 
         $this->assertTrue($validator->fails());
-        
+
         // Should fail for required fields when client_id is missing
         $requiredWhenNoClientId = ['client_name', 'client_street', 'client_city', 'client_zip', 'client_country'];
         foreach ($requiredWhenNoClientId as $field) {
-            $this->assertArrayHasKey($field, $validator->errors()->toArray(), 
+            $this->assertArrayHasKey($field, $validator->errors()->toArray(),
                 "Should have error for {$field} when client_id is missing");
         }
     }
@@ -220,7 +230,7 @@ class InvoiceRequestFeatureTest extends TestCase
     public function validation_fails_with_zero_or_negative_due_in()
     {
         $invalidValues = [0, -1, -10];
-        
+
         foreach ($invalidValues as $value) {
             $invalidData = $this->validInvoiceData;
             $invalidData['due_in'] = $value;
@@ -250,7 +260,7 @@ class InvoiceRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_email_formats()
     {
         $invalidEmails = ['invalid-email', 'test@', '@test.com', 'test.com'];
-        
+
         foreach ($invalidEmails as $email) {
             $invalidData = $this->validInvoiceData;
             $invalidData['email'] = $email;
@@ -272,7 +282,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'supplier_id' => 99999,
             'client_id' => 99999,
         ];
-        
+
         foreach ($foreignKeyFields as $field => $invalidId) {
             $invalidData = $this->validInvoiceData;
             $invalidData[$field] = $invalidId;
@@ -292,10 +302,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'name' => 'AB', // min 3
             'client_name' => 'AB', // min 3
         ];
-        
+
         foreach ($shortNameFields as $field => $shortValue) {
             $invalidData = $this->validInvoiceData;
-            
+
             // Remove IDs so manual data is required
             if ($field === 'name') {
                 unset($invalidData['supplier_id']);
@@ -310,7 +320,7 @@ class InvoiceRequestFeatureTest extends TestCase
                 $invalidData['client_zip'] = '12345';
                 $invalidData['client_country'] = 'Test Country';
             }
-            
+
             $invalidData[$field] = $shortValue;
 
             $request = new InvoiceRequest();
@@ -331,7 +341,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'bank_name', 'iban', 'swift', 'client_email', 'client_phone',
             'client_ico', 'client_dic', 'client_shortcut', 'invoice_text'
         ];
-        
+
         foreach ($nullableFields as $field) {
             $dataWithNulls[$field] = null;
         }
@@ -344,10 +354,33 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_always_returns_true()
+    public function authorization_without_authenticated_user_returns_false()
     {
         $request = new InvoiceRequest();
-        
+
+        // Without authenticated user, should return false
+        $this->assertFalse($request->authorize());
+    }
+
+    #[Test]
+    public function authorization_with_authenticated_user_succeeds()
+    {
+        // Create EntityLimit to avoid EntityLimitExceededException
+        EntityLimit::create([
+            'permission_name' => 'frontend.can_create_edit_invoice',
+            'entity_type' => 'invoice',
+            'limit_value' => 10,
+            'period_type' => 'monthly',
+            'metric_type' => 'count',
+            'description' => 'Invoice limit for frontend tests',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->user, 'web');
+
+        $request = new InvoiceRequest();
+
+        // With authenticated user and proper limits, should return true
         $this->assertTrue($request->authorize());
     }
 
@@ -355,7 +388,7 @@ class InvoiceRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_currencies()
     {
         $validCurrencies = ['CZK', 'EUR', 'USD', 'GBP'];
-        
+
         foreach ($validCurrencies as $currency) {
             $validData = $this->validInvoiceData;
             $validData['payment_currency'] = $currency;
@@ -371,7 +404,7 @@ class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_handles_fallback_fields_in_prepare_for_validation()
     {
-        // Test that validation passes with minimal but complete data 
+        // Test that validation passes with minimal but complete data
         $minimalData = [
             'invoice_vs' => 'INV-MINIMAL',
             'payment_method_id' => $this->paymentMethod->id,
@@ -380,7 +413,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'issue_date' => $this->faker->date(),
             'due_in' => 14,
             'payment_status_id' => $this->paymentStatus->id,
-            
+
             // Provide supplier_id so supplier fields are not required
             'supplier_id' => $this->supplier->id,
             // Provide client_id so client fields are not required
@@ -388,10 +421,10 @@ class InvoiceRequestFeatureTest extends TestCase
         ];
 
         $request = new InvoiceRequest();
-        
+
         // Test that validation works with minimal data
         $validator = Validator::make($minimalData, $request->rules());
-        
+
         // This should pass validation as all required fields have values
         $this->assertFalse($validator->fails());
         if ($validator->fails()) {
@@ -419,6 +452,78 @@ class InvoiceRequestFeatureTest extends TestCase
 
         foreach ($expectedKeys as $key) {
             $this->assertArrayHasKey($key, $messages, "Should have custom message for {$key}");
+        }
+    }
+
+    #[Test]
+    public function validation_passes_with_valid_invoice_logo_file()
+    {
+        // Create a fake image file
+        $file = \Illuminate\Http\UploadedFile::fake()->image('logo.png', 100, 100)->size(1000); // 1MB
+
+        $data = $this->validInvoiceData;
+        $data['invoice_logo'] = $file;
+
+        $validator = Validator::make($data, (new InvoiceRequest())->rules());
+
+        $this->assertTrue($validator->passes(), 'Validation should pass with valid image file');
+    }
+
+    #[Test]
+    public function validation_fails_with_invalid_invoice_logo_format()
+    {
+        // Create a fake file with invalid format
+        $file = \Illuminate\Http\UploadedFile::fake()->create('document.pdf', 1000);
+
+        $data = $this->validInvoiceData;
+        $data['invoice_logo'] = $file;
+
+        $validator = Validator::make($data, (new InvoiceRequest())->rules());
+
+        $this->assertFalse($validator->passes(), 'Validation should fail with invalid file format');
+        $this->assertArrayHasKey('invoice_logo', $validator->errors()->toArray());
+    }
+
+    #[Test]
+    public function validation_fails_with_oversized_invoice_logo()
+    {
+        // Create a fake image file that's too large (3MB)
+        $file = \Illuminate\Http\UploadedFile::fake()->image('logo.png', 100, 100)->size(3000);
+
+        $data = $this->validInvoiceData;
+        $data['invoice_logo'] = $file;
+
+        $validator = Validator::make($data, (new InvoiceRequest())->rules());
+
+        $this->assertFalse($validator->passes(), 'Validation should fail with oversized file');
+        $this->assertArrayHasKey('invoice_logo', $validator->errors()->toArray());
+    }
+
+    #[Test]
+    public function validation_passes_with_null_invoice_logo()
+    {
+        $data = $this->validInvoiceData;
+        $data['invoice_logo'] = null;
+
+        $validator = Validator::make($data, (new InvoiceRequest())->rules());
+
+        $this->assertTrue($validator->passes(), 'Validation should pass with null invoice logo');
+    }
+
+    #[Test]
+    public function validation_passes_with_various_valid_image_formats()
+    {
+        $formats = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+
+        foreach ($formats as $format) {
+            $file = \Illuminate\Http\UploadedFile::fake()->image("logo.{$format}", 100, 100)->size(1000);
+
+            $data = $this->validInvoiceData;
+            $data['invoice_logo'] = $file;
+
+            $validator = Validator::make($data, (new InvoiceRequest())->rules());
+
+            $this->assertTrue($validator->passes(), "Validation should pass with .{$format} format");
         }
     }
 }

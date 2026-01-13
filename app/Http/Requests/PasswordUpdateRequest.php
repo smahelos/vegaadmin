@@ -4,8 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rules\Password;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 class PasswordUpdateRequest extends FormRequest
 {
@@ -25,11 +24,12 @@ class PasswordUpdateRequest extends FormRequest
      * @return array
      */
     public function rules(): array
-    {   
+    {
         return [
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'password_confirmation' => ['required', 'string'],
+            // Use Laravel Password rule (keeps min 8; can be extended later for complexity)
+            'password' => ['required', PasswordRule::min(8), 'confirmed'],
+            'password_confirmation' => ['required'],
         ];
     }
 
@@ -55,10 +55,8 @@ class PasswordUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'current_password.required' => __('users.validation.current_password_required'),
-            'current_password.current_password_invalid' => __('users.validation.current_password_invalid'),
-            'current_password.min' => __('users.validation.current_password', ['min' => 8]),
-            'current_password.current_password' => __('users.validation.current_password_invalid'),
+            'current_password.required' => __('users.validation.password_required'), // Reuse generic password required text
+            'current_password.current_password' => __('users.messages.profile_error_update_password_current'),
             'password.required' => __('users.validation.password_required'),
             'password.min' => __('users.validation.password_min', ['min' => 8]),
             'password.confirmed' => __('users.validation.password_confirmed'),

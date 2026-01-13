@@ -2,53 +2,60 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class TaxRequest extends FormRequest
+/**
+ * Frontend Tax Request
+ * Mirrors admin validation while using web guard & frontend permission namespace.
+ */
+class TaxRequest extends BaseEntityRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
+     * Entity type for limit checks
      */
-    public function authorize(): bool
+    protected function getEntityType(): string
     {
-        return true; // Zde můžete přidat logiku pro autorizaci uživatele
+        return 'tax';
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
+     * Required permission for frontend tax operations
+     */
+    protected function getRequiredPermission(): string
+    {
+        return 'frontend.can_create_edit_tax';
+    }
+
+    /**
+     * Validation rules
      */
     public function rules(): array
     {
         return [
-            // 'name' => 'required|min:5|max:255'
+            'name' => 'required|string|max:255',
+            'rate' => 'required|numeric|min:0',
         ];
     }
 
     /**
-     * Get the validation attributes that apply to the request.
-     *
-     * @return array
+     * Attribute translations
      */
     public function attributes(): array
     {
         return [
-            //
+            'name' => __('tax.name'),
+            'rate' => __('tax.rate'),
         ];
     }
 
     /**
-     * Get the validation messages that apply to the request.
-     *
-     * @return array
+     * Custom validation messages
      */
     public function messages(): array
     {
         return [
-            //
+            'name.required' => __('tax.name_required'),
+            'rate.required' => __('tax.rate_required'),
+            'rate.numeric' => __('tax.rate_numeric'),
+            'rate.min' => __('tax.rate_min'),
         ];
     }
 }

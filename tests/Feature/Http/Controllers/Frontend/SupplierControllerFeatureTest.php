@@ -2,15 +2,17 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Http\Controllers\Frontend\SupplierController;
 use App\Http\Requests\SupplierRequest;
+use App\Models\EntityLimit;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\Invoice;
-use App\Services\CountryService;
-use App\Services\LocaleService;
-use App\Services\BankService;
-use App\Repositories\SupplierRepository;
+use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface as CountryServiceInterface;
+use App\Application\Payment\Contracts\BankApplicationServiceInterface as BankServiceInterface;
+use App\Application\Party\Contracts\PartyApplicationServiceInterface as InvoicePartyServiceInterface;
+use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Auth;
@@ -19,17 +21,18 @@ use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
  * Feature tests for Frontend\SupplierController
- * 
+ *
  * Tests all frontend supplier management endpoints: index, create, store, show, edit, update, destroy, setDefault
  * Tests authentication scenarios, authorization (user ownership checks), validation, error handling
  * Tests view rendering, form processing, and security boundaries for supplier management
  */
 class SupplierControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected User $user;
     protected string $validEmail;
@@ -49,12 +52,12 @@ class SupplierControllerFeatureTest extends TestCase
             // Single parameter (like ID)
             return route($routeName, ['locale' => $this->defaultLocale, 'id' => $parameters]);
         }
-        
+
         if (is_array($parameters)) {
             // Multiple parameters
             return route($routeName, array_merge(['locale' => $this->defaultLocale], $parameters));
         }
-        
+
         // No additional parameters
         return route($routeName, ['locale' => $this->defaultLocale]);
     }
@@ -69,11 +72,16 @@ class SupplierControllerFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // Create permissions and roles
-        $this->createPermissionsAndRoles();
-        
-        // Create test user with proper roles
-        $this->createTestUser();
+        $this->setUpFrontendTestEnvironment();
+
+        // Give user specific permission for supplier operations
+        $permission = Permission::where('name', 'frontend.can_create_edit_supplier')
+                               ->where('guard_name', 'web')
+                               ->first();
+        $this->user->givePermissionTo($permission);
+
+        // Create entity limit for suppliers
+        $this->createSupplierEntityLimit();
 
         // Set up valid supplier data for testing
         $this->setupValidSupplierData();
@@ -105,46 +113,19 @@ class SupplierControllerFeatureTest extends TestCase
     }
 
     /**
-     * Create necessary permissions and roles for frontend supplier testing
-     * Sets up web guard permissions and frontend_user role
+     * Create entity limit for suppliers to allow test operations
      */
-    private function createPermissionsAndRoles(): void
+    private function createSupplierEntityLimit(): void
     {
-        // Frontend permissions
-        Permission::firstOrCreate(['name' => 'frontend.api.access', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.suppliers', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_delete_products', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_supplier', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_product', 'guard_name' => 'web']);
-        
-        // Create frontend role
-        $frontendRole = Role::firstOrCreate(['name' => 'frontend_user', 'guard_name' => 'web']);
-        $frontendRole->syncPermissions([
-            'frontend.api.access',
-            'frontend.api.suppliers',
-            'frontend.can_delete_products',
-            'frontend.can_create_edit_client',
-            'frontend.can_create_edit_supplier',
-            'frontend.can_create_edit_product'
+        EntityLimit::create([
+            'permission_name' => 'frontend.can_create_edit_supplier',
+            'entity_type' => 'supplier',
+            'limit_value' => 100,
+            'period_type' => 'monthly',
+            'metric_type' => 'count',
+            'description' => 'Supplier limit for frontend tests',
+            'is_active' => true,
         ]);
-    }
-
-    /**
-     * Create test user with proper frontend roles and permissions
-     * Creates a user with frontend_user role for supplier management
-     */
-    private function createTestUser(): void
-    {
-        // Create test user
-        $this->validEmail = 'test-' . uniqid() . '@example.com';
-        $this->user = User::factory()->create([
-            'name' => 'Test User',
-            'email' => $this->validEmail,
-        ]);
-        
-        $frontendRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
-        $this->user->assignRole($frontendRole);
     }
 
     /**
@@ -187,30 +168,15 @@ class SupplierControllerFeatureTest extends TestCase
     #[Test]
     public function create_returns_correct_view_with_data()
     {
-        // Clean any existing output buffers
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        // Start output buffering to catch any stray output
-        ob_start();
-        
-        try {
-            $response = $this->actingAs($this->user)->get($this->localizedRoute('frontend.supplier.create'));
+        $response = $this->actingAs($this->user)->get($this->localizedRoute('frontend.supplier.create'));
 
-            $response->assertStatus(200);
-            $response->assertViewIs('frontend.suppliers.create');
-            $response->assertViewHas('fields');
-            $response->assertViewHas('supplierInfo');
-            $response->assertViewHas('banks');
-            $response->assertViewHas('banksData');
-            $response->assertViewHas('countries');
-        } finally {
-            // Clean any captured output
-            if (ob_get_level()) {
-                ob_end_clean();
-            }
-        }
+        $response->assertStatus(200);
+        $response->assertViewIs('frontend.suppliers.create');
+        $response->assertViewHas('fields');
+        $response->assertViewHas('supplierInfo');
+        $response->assertViewHas('banks');
+        $response->assertViewHas('banksData');
+        $response->assertViewHas('countries');
     }
 
     /**
@@ -241,6 +207,51 @@ class SupplierControllerFeatureTest extends TestCase
             'email' => 'supplier@example.com',
             'user_id' => $this->user->id,
         ]);
+    }
+
+    #[Test]
+    public function supplier_creation_records_entity_usage_and_increments_usage(): void
+    {
+        $this->actingAs($this->user, 'web');
+
+        $limitService = app(UniversalLimitService::class);
+        $initial = $limitService->checkLimit($this->user->id, 'supplier', 'count', 'monthly');
+        $initialUsage = $initial['current_usage'] ?? 0;
+
+        $data = $this->validSupplierData;
+        $data['name'] = 'New Supplier ' . uniqid();
+        $data['email'] = 'supplier_' . uniqid() . '@example.com';
+
+        $response = $this->post(route('frontend.supplier.store', ['locale' => 'cs']), $data);
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $after = $limitService->checkLimit($this->user->id, 'supplier', 'count', 'monthly');
+        $afterUsage = $after['current_usage'] ?? 0;
+        $this->assertEquals($initialUsage + 1, $afterUsage, 'Usage should increment by one for new supplier');
+    }
+
+    #[Test]
+    public function reusing_existing_supplier_does_not_increment_usage(): void
+    {
+        $this->actingAs($this->user, 'web');
+        $existing = Supplier::factory()->create(['user_id' => $this->user->id]);
+
+        $limitService = app(UniversalLimitService::class);
+        $initial = $limitService->checkLimit($this->user->id, 'supplier', 'count', 'monthly');
+        $initialUsage = $initial['current_usage'] ?? 0;
+
+        $payload = $this->validSupplierData;
+        $payload['supplier_id'] = $existing->id;
+        $payload['name'] = $existing->name; // validation requirement
+        $payload['email'] = $existing->email; // reuse
+
+        $response = $this->post(route('frontend.supplier.store', ['locale' => 'cs']), $payload);
+        $response->assertRedirect();
+
+        $after = $limitService->checkLimit($this->user->id, 'supplier', 'count', 'monthly');
+        $afterUsage = $after['current_usage'] ?? 0;
+        $this->assertEquals($initialUsage, $afterUsage, 'Usage should remain when reusing supplier');
     }
 
     /**
@@ -275,9 +286,9 @@ class SupplierControllerFeatureTest extends TestCase
     #[Test]
     public function store_handles_exceptions_gracefully()
     {
-        // Mock the SupplierRepository to throw an exception
-        $this->mock(SupplierRepository::class, function ($mock) {
-            $mock->shouldReceive('create')->andThrow(new \Exception('Database error'));
+        // Mock party service to throw exception during supplier creation
+        $this->mock(InvoicePartyServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('resolveOrCreateSupplier')->andThrow(new \Exception('Database error'));
         });
 
         $response = $this->actingAs($this->user)
@@ -304,7 +315,7 @@ class SupplierControllerFeatureTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewIs('frontend.suppliers.show');
         $response->assertViewHas('supplier', $supplier);
-        $response->assertViewHas('invoices');
+        $response->assertViewHas('limitsData');
     }
 
     /**
@@ -330,7 +341,7 @@ class SupplierControllerFeatureTest extends TestCase
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
-        
+
         $supplier = Supplier::factory()->create([
             'user_id' => $otherUser->id,
         ]);
@@ -391,10 +402,10 @@ class SupplierControllerFeatureTest extends TestCase
             ->get($this->localizedRoute('frontend.supplier.show', $supplier->id));
 
         $response->assertStatus(200);
-        $response->assertViewHas('invoices');
-        $invoices = $response->viewData('invoices');
-        $this->assertCount(1, $invoices);
-        $this->assertEquals($invoice->id, $invoices->first()->id);
+        $response->assertViewHas('supplier');
+        $response->assertViewHas('limitsData');
+        $supplierViewData = $response->viewData('supplier');
+        $this->assertEquals($supplier->id, $supplierViewData->id);
     }
 
     /**
@@ -403,32 +414,17 @@ class SupplierControllerFeatureTest extends TestCase
     #[Test]
     public function edit_returns_correct_view_with_supplier_data()
     {
-        // Clean any existing output buffers
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        // Start output buffering to catch any stray output
-        ob_start();
-        
-        try {
-            $supplier = Supplier::factory()->create([
-                'user_id' => $this->user->id,
-                'name' => 'Test Supplier',
-            ]);
+        $supplier = Supplier::factory()->create([
+            'user_id' => $this->user->id,
+            'name' => 'Test Supplier',
+        ]);
 
-            $response = $this->actingAs($this->user)
-                ->get($this->localizedRoute('frontend.supplier.edit', $supplier->id));
+        $response = $this->actingAs($this->user)
+            ->get($this->localizedRoute('frontend.supplier.edit', $supplier->id));
 
-            $response->assertStatus(200);
-            $response->assertViewIs('frontend.suppliers.edit');
-            $response->assertViewHasAll(['supplier', 'fields', 'banks', 'banksData', 'countries']);
-        } finally {
-            // Clean any captured output
-            if (ob_get_level()) {
-                ob_end_clean();
-            }
-        }
+        $response->assertStatus(200);
+        $response->assertViewIs('frontend.suppliers.edit');
+        $response->assertViewHasAll(['supplier', 'fields', 'banks', 'banksData', 'countries']);
     }
 
     /**
@@ -454,7 +450,7 @@ class SupplierControllerFeatureTest extends TestCase
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
-        
+
         $supplier = Supplier::factory()->create([
             'user_id' => $otherUser->id,
         ]);
@@ -517,7 +513,7 @@ class SupplierControllerFeatureTest extends TestCase
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
-        
+
         $supplier = Supplier::factory()->create([
             'user_id' => $otherUser->id,
         ]);
@@ -594,7 +590,7 @@ class SupplierControllerFeatureTest extends TestCase
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
-        
+
         $supplier = Supplier::factory()->create([
             'user_id' => $otherUser->id,
         ]);
@@ -693,7 +689,7 @@ class SupplierControllerFeatureTest extends TestCase
     {
         // Create another user with proper role
         $otherUser = $this->createUserWithRole();
-        
+
         $supplier = Supplier::factory()->create([
             'user_id' => $otherUser->id,
         ]);
@@ -713,10 +709,10 @@ class SupplierControllerFeatureTest extends TestCase
     public function controller_uses_supplier_form_fields_trait()
     {
         $controller = new SupplierController(
-            app(BankService::class),
-            app(LocaleService::class),
-            app(CountryService::class),
-            app(SupplierRepository::class)
+            app(BankServiceInterface::class),
+            app(CountryServiceInterface::class),
+            app(InvoicePartyServiceInterface::class),
+            app(UELSService::class)
         );
 
         $this->assertTrue(method_exists($controller, 'getSupplierFields'));
@@ -747,23 +743,61 @@ class SupplierControllerFeatureTest extends TestCase
     public function controller_dependency_injection()
     {
         $controller = app(SupplierController::class);
+        $this->assertInstanceOf(SupplierController::class, $controller);
+    }
 
-        $reflection = new \ReflectionClass($controller);
-        
-        $bankServiceProperty = $reflection->getProperty('bankService');
-        $bankServiceProperty->setAccessible(true);
-        $this->assertInstanceOf(BankService::class, $bankServiceProperty->getValue($controller));
+    #[Test]
+    public function supplier_creation_records_entity_usage(): void
+    {
+        $this->actingAs($this->user, 'web');
 
-        $localeServiceProperty = $reflection->getProperty('localeService');
-        $localeServiceProperty->setAccessible(true);
-        $this->assertInstanceOf(LocaleService::class, $localeServiceProperty->getValue($controller));
+        // Create valid supplier data with unique email
+        $supplierData = $this->validSupplierData;
+        $supplierData['email'] = 'unique_' . uniqid() . '@example.com';
 
-        $countryServiceProperty = $reflection->getProperty('countryService');
-        $countryServiceProperty->setAccessible(true);
-        $this->assertInstanceOf(CountryService::class, $countryServiceProperty->getValue($controller));
+        // Act
+        $response = $this->post($this->localizedRoute('frontend.supplier.store'), $supplierData);
 
-        $supplierRepositoryProperty = $reflection->getProperty('supplierRepository');
-        $supplierRepositoryProperty->setAccessible(true);
-        $this->assertInstanceOf(SupplierRepository::class, $supplierRepositoryProperty->getValue($controller));
+        // Assert
+        $response->assertRedirect($this->localizedRoute('frontend.suppliers'));
+        $response->assertSessionHas('success');
+
+        // Verify supplier was created
+        $this->assertDatabaseHas('suppliers', [
+            'name' => $supplierData['name'],
+            'email' => $supplierData['email'],
+            'user_id' => $this->user->id,
+        ]);
+    }
+
+    #[Test]
+    public function supplier_creation_respects_entity_limits(): void
+    {
+        $this->actingAs($this->user, 'web');
+
+        // Set supplier limit to 1 for testing
+        EntityLimit::where([
+            'entity_type' => 'supplier'
+        ])->update(['limit_value' => 1]);
+
+        // First supplier creation - should succeed
+        $supplier1Data = $this->validSupplierData;
+        $supplier1Data['email'] = 'first_' . uniqid() . '@example.com';
+
+        $response1 = $this->post($this->localizedRoute('frontend.supplier.store'), $supplier1Data);
+        $response1->assertRedirect($this->localizedRoute('frontend.suppliers'));
+        $response1->assertSessionHas('success');
+
+        // Second supplier creation - should fail due to limit
+        $supplier2Data = $this->validSupplierData;
+        $supplier2Data['email'] = 'second_' . uniqid() . '@example.com';
+
+        $response2 = $this->post($this->localizedRoute('frontend.supplier.store'), $supplier2Data);
+        $response2->assertRedirect();
+        $response2->assertSessionHas('error');
+
+        // Verify first supplier was created but second wasn't
+        $this->assertDatabaseHas('suppliers', ['email' => $supplier1Data['email']]);
+        $this->assertDatabaseMissing('suppliers', ['email' => $supplier2Data['email']]);
     }
 }

@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
-use App\Contracts\ArtisanCommandsServiceInterface;
+use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use Illuminate\Console\Command;
 
 class SyncArtisanCommands extends Command
@@ -24,7 +24,7 @@ class SyncArtisanCommands extends Command
     {
         $availableCommands = $this->commandsService->getAllCommandsWithDetails();
         $databaseCommands = ArtisanCommand::pluck('command')->toArray();
-        
+
         // Set category for uncategorized commands
         $uncategorizedCategory = ArtisanCommandCategory::firstOrCreate(
             ['slug' => 'uncategorized'],
@@ -34,14 +34,14 @@ class SyncArtisanCommands extends Command
                 'is_active' => true
             ]
         );
-        
+
         // Find new commands that are not in the database
         $newCommands = array_diff(array_keys($availableCommands), $databaseCommands);
-        
+
         // Add new commands to the database
         foreach ($newCommands as $command) {
             $commandData = $availableCommands[$command];
-            
+
             ArtisanCommand::create([
                 'name' => $commandData['name'],
                 'command' => $command,
@@ -51,21 +51,21 @@ class SyncArtisanCommands extends Command
                 'is_active' => false,
             ]);
         }
-        
+
         // Mark commands that are no longer available
         // as inactive in the database
         $missingCommands = array_diff($databaseCommands, array_keys($availableCommands));
         if (count($missingCommands) > 0) {
             ArtisanCommand::whereIn('command', $missingCommands)->update(['is_active' => false]);
         }
-        
+
         // Clear the commands cache
         $this->commandsService->clearCommandsCache();
-        
+
         $this->info('Synchronisation finished.');
         $this->info('New commands added: ' . count($newCommands));
         $this->info('Marked as inactive commands: ' . count($missingCommands));
-        
+
         return 0;
     }
 }

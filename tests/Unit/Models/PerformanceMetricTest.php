@@ -8,9 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\RequiresOptimizationTables;
 
 class PerformanceMetricTest extends TestCase
 {
+    use RequiresOptimizationTables;
+
     private PerformanceMetric $model;
 
     protected function setUp(): void
@@ -70,9 +73,9 @@ class PerformanceMetricTest extends TestCase
     #[Test]
     public function get_formatted_value_attribute_formats_correctly(): void
     {
-        $this->model->metric_value = 123.456;
+        $this->model->metric_value = '123.456';
         $this->model->metric_unit = 'ms';
-        
+
         $expected = '123.46 ms';
         $this->assertEquals($expected, $this->model->getFormattedValueAttribute());
     }
@@ -80,9 +83,9 @@ class PerformanceMetricTest extends TestCase
     #[Test]
     public function get_formatted_value_attribute_handles_integers(): void
     {
-        $this->model->metric_value = 100;
+        $this->model->metric_value = '100';
         $this->model->metric_unit = 'MB';
-        
+
         $expected = '100.00 MB';
         $this->assertEquals($expected, $this->model->getFormattedValueAttribute());
     }
@@ -91,7 +94,7 @@ class PerformanceMetricTest extends TestCase
     public function get_metric_type_formatted_attribute_formats_underscored_type(): void
     {
         $this->model->metric_type = 'query_time';
-        
+
         $expected = 'Query time';
         $this->assertEquals($expected, $this->model->getMetricTypeFormattedAttribute());
     }
@@ -100,7 +103,7 @@ class PerformanceMetricTest extends TestCase
     public function get_metric_type_formatted_attribute_capitalizes_simple_type(): void
     {
         $this->model->metric_type = 'performance';
-        
+
         $expected = 'Performance';
         $this->assertEquals($expected, $this->model->getMetricTypeFormattedAttribute());
     }

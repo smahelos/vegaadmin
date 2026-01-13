@@ -5,26 +5,31 @@ services:
         build:
             context: .
             dockerfile: app.dockerfile
-        container_name: vegaadmin-app
+        container_name: "${CONTAINER_PREFIX}-app"
         user: 'www-data:www-data'
         working_dir: /var/www
         volumes:
-            - ./:/var/www
-            - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+            - ${DATA_DIR}/www/adminer:/var/www/adminer
+            - ./php/development-opcache.ini:/usr/local/etc/php/conf.d/zzz-development-opcache.ini:ro
+            - /etc/timezone:/etc/timezone:ro
+            - /etc/localtime:/etc/localtime:ro
+        env_file:
+            - ./global.env
         depends_on:
             - "database"
         environment:
-            PHP_IDE_CONFIG: "serverName=vegaadmin.local"
+            PHP_IDE_CONFIG: "serverName=billex-dev.local"
             PHP_MEMORY_LIMIT: "512M"
             PHP_MAX_EXECUTION_TIME: "30"
         networks:
-            - vegaadmin-network
+            - billex-network
     # Web Server
     web:
+        hostname: ${BASE_NAME}.${BASE_HOST}
         build:
             context: .
             dockerfile: web.dockerfile
-        working_dir: /var/www
+        #working_dir: /var/www
         volumes:
             - ./:/var/www
             - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
@@ -33,26 +38,34 @@ services:
         ports:
             - 80:80
         networks:
-            - vegaadmin-network
+            - billex-network
 
     # MySQL Database
     database:
+        hostname: ${BASE_NAME}.db.${BASE_HOST}
+        restart: unless-stopped
         image: mysql:8.0
-        container_name: vegaadmin-mysql
+        container_name: "${CONTAINER_PREFIX}-db"
         volumes:
-            - ./docker/mysql:/var/lib/mysql
-            - ./docker/mysql/init:/docker-entrypoint-initdb.d
-            - ./docker/mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
+            #- ./docker/mysql:/var/lib/mysql
+            #- ./docker/mysql/init:/docker-entrypoint-initdb.d
+            #- ./docker/mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
+            - data-db:/var/lib/mysql
+            - ${DATA_DIR}/db/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
+            #- ${DATA_DIR}/log/mysql_slow.log:/var/lib/mysql/mysql_slow.log
+            - /etc/timezone:/etc/timezone:ro
+            - /etc/localtime:/etc/localtime:ro
         environment:
             MYSQL_DATABASE: ${DB_DATABASE}
             MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
             MYSQL_ROOT_USER: ${DB_ROOT_USERNAME}
             MYSQL_PASSWORD: ${DB_PASSWORD}
             MYSQL_USER: ${DB_USERNAME}
+            TZ: "Europe/Prague"
         ports:
             - 3306:3306
         networks:
-            - vegaadmin-network
+            - billex-network
         healthcheck:
             test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
             timeout: 5s
@@ -72,32 +85,33 @@ services:
         ports:
             - 8888:80
         networks:
-            - vegaadmin-network
+            - billex-network
 
     # MailHog for email testing
     mailhog:
         image: mailhog/mailhog
-        container_name: vegaadmin-mailhog
+        container_name: "${CONTAINER_PREFIX}-mail"
+        hostname: ${BASE_NAME}.mail.${BASE_HOST}
         logging:
             driver: 'none'
         ports:
             - 1025:1025
             - 8025:8025
         networks:
-            - vegaadmin-network
+            - billex-network
 
     # Redis
     redis:
         image: redis:alpine
-        container_name: vegaadmin-redis
+        container_name: "${CONTAINER_PREFIX}-redis"
         #command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
         command: redis-server --appendonly yes --save 60 1
         volumes:
-            - ./data/redis:/data
-        ports:
-            - "8002:6379"
+            - ${DATA_DIR}/redis:/data
         networks:
-            - vegaadmin-network
+            - billex-network
+        # ports:
+        #     - "8002:6379"
 
     cron:
         image: php:8.3-cli # upravte verzi PHP podle vaší aplikace
@@ -109,9 +123,11 @@ services:
 
 # Custom network
 networks:
-    vegaadmin-network:
+    billex-network:
         driver: bridge
 
 volumes:
-    dbdata:
-        driver: local
+    #dbdata:
+    #    driver: local
+    data-db:
+    data-redis:

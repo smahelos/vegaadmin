@@ -62,6 +62,7 @@ return [
         'is_default_explanation' => 'Pokud je tento klient nastaven jako výchozí, bude automaticky vybrán při vytváření nových faktur.',
         'not_found' => 'Klient nebyl nalezen.',
         'no_clients' => 'Zatím nemáte žádné klienty.',
+        'limit_exceeded' => 'Dosáhli jste limitu počtu klientů pro tento měsíc. Důvod: :reason, Limit: :limit',
     ],
     'validation' => [
         'name_required' => 'Název klienta je povinný.',

@@ -3,19 +3,13 @@
 namespace Tests\Unit\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\ExpenseRequest;
+use App\Http\Requests\Admin\BaseEntityRequest;
 use Illuminate\Foundation\Http\FormRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Unit tests for Admin\ExpenseRequest - CRITICAL RULE: Only pure business logic, no Laravel dependencies
- * 
- * According to Unit Test Isolation rule, this class tests only:
- * - Class structure and inheritance
- * - Method signatures and return types
- * - Class introspection without executing Laravel-dependent methods
- * 
- * Authorization and validation business logic has been moved to Feature tests.
+ * Unit tests for Admin\\ExpenseRequest focusing on structure only.
  */
 class ExpenseRequestTest extends TestCase
 {
@@ -34,14 +28,9 @@ class ExpenseRequestTest extends TestCase
     }
 
     #[Test]
-    public function authorize_method_has_correct_return_type(): void
+    public function request_extends_base_entity_request(): void
     {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('authorize');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('bool', $returnType->getName());
+        $this->assertInstanceOf(BaseEntityRequest::class, $this->request);
     }
 
     #[Test]
@@ -50,7 +39,6 @@ class ExpenseRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -61,7 +49,6 @@ class ExpenseRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -72,7 +59,6 @@ class ExpenseRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('messages');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -80,22 +66,17 @@ class ExpenseRequestTest extends TestCase
     #[Test]
     public function has_required_methods(): void
     {
-        $requiredMethods = ['authorize', 'rules', 'attributes', 'messages'];
-
+        $requiredMethods = ['rules', 'attributes', 'messages', 'prepareForValidation'];
         foreach ($requiredMethods as $method) {
-            $this->assertTrue(
-                method_exists($this->request, $method),
-                "Method {$method} does not exist in Admin\ExpenseRequest class"
-            );
+            $this->assertTrue(method_exists($this->request, $method), "Method {$method} does not exist in Admin\\ExpenseRequest class");
         }
     }
 
     #[Test]
-    public function all_methods_are_public(): void
+    public function all_public_methods_are_public(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        $methods = ['authorize', 'rules', 'attributes', 'messages'];
-        
+        $methods = ['rules', 'attributes', 'messages', 'prepareForValidation'];
         foreach ($methods as $methodName) {
             $method = $reflection->getMethod($methodName);
             $this->assertTrue($method->isPublic(), "Method {$methodName} should be public");

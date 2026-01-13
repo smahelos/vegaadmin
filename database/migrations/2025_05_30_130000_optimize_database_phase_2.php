@@ -15,6 +15,11 @@ class OptimizeDatabasePhase2 extends Migration
      */
     public function up()
     {
+        // Skip optimization migrations in testing environment with SQLite
+        if (app()->environment('testing') && DB::connection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Only show progress in production environment, not during tests
         if (!app()->environment('testing')) {
             echo "Phase 2: Adding composite indexes and performance optimizations...\n";
@@ -25,16 +30,16 @@ class OptimizeDatabasePhase2 extends Migration
             // Primary user filtering with chronological sorting
             $table->index(['user_id', 'created_at'], 'idx_invoices_user_created');
             $table->index(['user_id', 'issue_date'], 'idx_invoices_user_issue_date');
-            
+
             // Dashboard queries (user + client relationships)
             $table->index(['user_id', 'client_id'], 'idx_invoices_user_client');
-            
+
             // Payment status checking (user + payment calculations)
             $table->index(['user_id', 'issue_date', 'due_in'], 'idx_invoices_payment_calc');
-            
+
             // Payment status filtering with user context
             $table->index(['user_id', 'payment_status_id'], 'idx_invoices_user_payment_status');
-            
+
             // Invoice number lookups within user context
             $table->index(['user_id', 'invoice_vs'], 'idx_invoices_user_invoice_vs');
         });
@@ -43,22 +48,22 @@ class OptimizeDatabasePhase2 extends Migration
         Schema::table('clients', function (Blueprint $table) {
             // Primary user filtering with chronological sorting
             $table->index(['user_id', 'created_at'], 'idx_clients_user_created');
-            
+
             // Default client selection per user
             $table->index(['user_id', 'is_default'], 'idx_clients_user_default');
-            
+
             // ICO searches within user context (business logic allows duplicates across users)
             $table->index(['user_id', 'ico'], 'idx_clients_user_ico');
         });
 
-        // 3. SUPPLIERS TABLE - User-scoped operations  
+        // 3. SUPPLIERS TABLE - User-scoped operations
         Schema::table('suppliers', function (Blueprint $table) {
             // Primary user filtering with chronological sorting
             $table->index(['user_id', 'created_at'], 'idx_suppliers_user_created');
-            
+
             // Default supplier selection per user
             $table->index(['user_id', 'is_default'], 'idx_suppliers_user_default');
-            
+
             // ICO searches within user context (business logic allows duplicates across users)
             $table->index(['user_id', 'ico'], 'idx_suppliers_user_ico');
         });
@@ -67,7 +72,7 @@ class OptimizeDatabasePhase2 extends Migration
         Schema::table('invoice_products', function (Blueprint $table) {
             // Invoice detail loading (most common query)
             $table->index(['invoice_id', 'created_at'], 'idx_invoice_products_invoice_created');
-            
+
             // Product-based analytics if needed
             $table->index(['product_id', 'created_at'], 'idx_invoice_products_product_created');
         });
@@ -88,7 +93,7 @@ class OptimizeDatabasePhase2 extends Migration
         });
 
         Schema::table('suppliers', function (Blueprint $table) {
-            // Text search within user context  
+            // Text search within user context
             $table->index(['user_id', 'name'], 'idx_suppliers_user_name_search');
             $table->index(['user_id', 'email'], 'idx_suppliers_user_email_search');
         });

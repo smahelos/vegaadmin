@@ -2,15 +2,27 @@
 
 namespace App\Http\Requests\Admin;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class TaxRequest extends FormRequest
+class TaxRequest extends BaseEntityRequest
 {
-    public function authorize(): bool
+    /**
+     * Entity type for limit checks
+     */
+    protected function getEntityType(): string
     {
-        return backpack_auth()->check();
+        return 'tax';
     }
 
+    /**
+     * Required permission name
+     */
+    protected function getRequiredPermission(): string
+    {
+        return 'can_create_edit_tax';
+    }
+
+    /**
+     * Validation rules
+     */
     public function rules(): array
     {
         return [
@@ -19,6 +31,9 @@ class TaxRequest extends FormRequest
         ];
     }
 
+    /**
+     * Attribute translations
+     */
     public function attributes(): array
     {
         return [
@@ -27,6 +42,9 @@ class TaxRequest extends FormRequest
         ];
     }
 
+    /**
+     * Custom validation messages
+     */
     public function messages(): array
     {
         return [

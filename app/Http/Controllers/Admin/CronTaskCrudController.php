@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\Admin\CronTaskRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Prologue\Alerts\Facades\Alert;
-use App\Services\ArtisanCommandsService;
+use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use Illuminate\Support\Facades\Log;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
@@ -55,6 +55,20 @@ class CronTaskCrudController extends CrudController
         CRUD::addButton('line', 'run_cron', 'view', 'admin.buttons.run_cron', 'end');
     }
 
+    /**
+     * @var ArtisanCommandsServiceInterface
+     */
+    protected ArtisanCommandsServiceInterface $commandsService;
+
+    /**
+     * Inject dependencies instead of instantiating directly to respect DDD & DI rules.
+     */
+    public function __construct(ArtisanCommandsServiceInterface $commandsService)
+    {
+        parent::__construct();
+        $this->commandsService = $commandsService;
+    }
+
     protected function setupCreateOperation()
     {
         CRUD::setValidation(CronTaskRequest::class);
@@ -62,12 +76,10 @@ class CronTaskCrudController extends CrudController
         CRUD::field('name')->label(__('admin.cron_tasks.fields.name'))
             ->type('text')
             ->tab(__('admin.cron_tasks.tabs.basic'));
-        
-        // Get all available commands
-        $commandsService = new ArtisanCommandsService();
-        // Prepare commands for select form 'cron' command category
-        $commands = $commandsService->getCommandsByCategory('cron');
-        
+
+    // Prepare commands for select form (cron command category) via injected service
+    $commands = $this->commandsService->getCommandsByCategory('cron');
+
         // Base command
         CRUD::field('base_command')
             ->label(__('admin.cron_tasks.fields.base_command'))
@@ -78,7 +90,7 @@ class CronTaskCrudController extends CrudController
                 'class' => 'form-group col-md-6'
             ])
             ->tab(__('admin.cron_tasks.tabs.basic'));
-        
+
         // Command parameters
         CRUD::field('command_params')
             ->label(__('admin.cron_tasks.fields.command_params'))
@@ -88,12 +100,12 @@ class CronTaskCrudController extends CrudController
                 'class' => 'form-group col-md-6'
             ])
             ->tab(__('admin.cron_tasks.tabs.basic'));
-        
+
         // Hidden field for complete command
         CRUD::field('command')
             ->type('hidden')
             ->tab(__('admin.cron_tasks.tabs.basic'));
-        
+
         CRUD::field('frequency')->label(__('admin.cron_tasks.fields.frequency'))
             ->type('select_from_array')
             ->options([
@@ -103,13 +115,13 @@ class CronTaskCrudController extends CrudController
                 'custom' => __('admin.cron_tasks.frequency.custom'),
             ])
             ->tab(__('admin.cron_tasks.tabs.schedule'));
-        
+
         CRUD::field('run_at')
             ->label(__('admin.cron_tasks.fields.run_at'))
             ->type('time')
             ->tab(__('admin.cron_tasks.tabs.schedule'))
             ->depends('frequency', ['daily', 'weekly', 'monthly']);
-        
+
         CRUD::field('day_of_week')
             ->label(__('admin.cron_tasks.fields.day_of_week'))
             ->type('select_from_array')
@@ -124,37 +136,37 @@ class CronTaskCrudController extends CrudController
             ])
             ->tab(__('admin.cron_tasks.tabs.schedule'))
             ->depends('frequency', 'weekly');
-        
+
         CRUD::field('day_of_month')
             ->label(__('admin.cron_tasks.fields.day_of_month'))
             ->type('number')
             ->attributes(['min' => 1, 'max' => 31])
             ->tab(__('admin.cron_tasks.tabs.schedule'))
             ->depends('frequency', 'monthly');
-        
+
         CRUD::field('custom_expression')
             ->label(__('admin.cron_tasks.fields.custom_expression'))
             ->type('text')
             ->hint(__('admin.cron_tasks.hints.custom_expression') . ' ' . __('admin.cron_tasks.hints.custom_expression_examples'))
             ->tab(__('admin.cron_tasks.tabs.schedule'))
             ->depends('frequency', 'custom');
-        
+
         CRUD::field('is_active')->label(__('admin.cron_tasks.fields.is_active'))
             ->type('checkbox')
             ->default(true)
             ->tab(__('admin.cron_tasks.tabs.basic'));
-        
+
         CRUD::field('description')->label(__('admin.cron_tasks.fields.description'))
             ->type('textarea')
             ->tab(__('admin.cron_tasks.tabs.basic'));
-        
+
         CRUD::field('last_run')
             ->label(__('admin.cron_tasks.fields.last_run'))
             ->type('datetime')
             ->attributes(['readonly' => 'readonly'])
             ->tab(__('admin.cron_tasks.tabs.history'))
             ->wrapper(['class' => 'form-group col-md-6']);
-        
+
         CRUD::field('last_output')
             ->label(__('admin.cron_tasks.fields.last_output'))
             ->type('textarea')
@@ -183,7 +195,7 @@ class CronTaskCrudController extends CrudController
     protected function setupShowOperation()
     {
         $this->setupListOperation();
-        
+
         CRUD::column('custom_expression')
             ->label(__('admin.cron_tasks.fields.custom_expression'));
         CRUD::column('run_at')
@@ -219,14 +231,14 @@ class CronTaskCrudController extends CrudController
     public function runCronTask($id)
     {
         $task = \App\Models\CronTask::findOrFail($id);
-        
+
         try {
             $task->simulateRun();
             Alert::success(__('admin.cron_tasks.messages.task_executed'))->flash();
         } catch (\Exception $e) {
             Alert::error(__('admin.cron_tasks.messages.execution_failed') . ': ' . $e->getMessage())->flash();
         }
-        
+
         return redirect()->back();
     }
 }

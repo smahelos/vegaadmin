@@ -191,6 +191,15 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'supplier_logo' => 'Lieferantenlogo',
+        'invoice_logo' => 'Rechnungslogo',
+        'image' => 'Produktbild',
+    ],
+
+    'file_upload' => [
+        'type_not_allowed' => 'Der Dateityp ist für :attribute nicht erlaubt.',
+        'size_exceeded' => 'Die Datei überschreitet die maximale Größe für :attribute.',
+    ],
 
 ];

@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\Client;
 use App\Models\Supplier;
 use App\Models\Product;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Models\UserActivitySummary;
 use Illuminate\Support\Facades\Log;
@@ -32,7 +33,7 @@ class AdminController extends BackpackAdminController
 
         // Get basic statistics
         $dashboardStats = $this->getDashboardStats();
-        
+
         // Get user activity statistics
         $userActivityStats = $this->getUserActivityStats();
 
@@ -61,6 +62,9 @@ class AdminController extends BackpackAdminController
                 ->whereYear('created_at', now()->year)
                 ->sum('payment_amount');
 
+            // Subscriptions statistics
+            $subscriptions = Subscription::where('status', '=', 'active')->count();
+
             return [
                 'total_invoices' => $totalInvoices,
                 'total_clients' => $totalClients,
@@ -70,7 +74,8 @@ class AdminController extends BackpackAdminController
                 'recent_invoices' => $recentInvoices,
                 'recent_clients' => $recentClients,
                 'total_revenue' => $totalRevenue,
-                'monthly_revenue' => $monthlyRevenue
+                'monthly_revenue' => $monthlyRevenue,
+                'total_subscriptions' => $subscriptions
             ];
         } catch (\Exception $e) {
             Log::error('Failed to get dashboard stats: ' . $e->getMessage());
@@ -83,7 +88,8 @@ class AdminController extends BackpackAdminController
                 'recent_invoices' => 0,
                 'recent_clients' => 0,
                 'total_revenue' => 0,
-                'monthly_revenue' => 0
+                'monthly_revenue' => 0,
+                'total_subscriptions' => 0
             ];
         }
     }

@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Traits\UserFormFields;
-use App\Contracts\BankServiceInterface;
-use App\Contracts\CountryServiceInterface;
-use App\Contracts\LocaleServiceInterface;
-use App\Contracts\SupplierRepositoryInterface;
+use App\Infrastructure\Forms\User\UserFormFields;
+use App\Application\Payment\Contracts\BankApplicationServiceInterface;
+use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
+use App\Application\Shared\Geography\Contracts\LocaleApplicationServiceInterface;
+use App\Application\Party\Contracts\PartyApplicationServiceInterface;
+use App\Application\User\Contracts\UELSApplicationServiceInterface;
 use Spatie\Permission\Models\Role;
 
 class RegisterController extends Controller
@@ -25,50 +26,60 @@ class RegisterController extends Controller
 
     /**
      * Bank service instance
-     * 
-     * @var BankServiceInterface
+     *
+     * @var BankApplicationServiceInterface
      */
     protected $bankService;
 
     /**
      * Country service instance
-     * 
-     * @var CountryServiceInterface
+     *
+     * @var CountryApplicationServiceInterface
      */
     protected $countryService;
 
     /**
      * Locale service instance
-     * 
-     * @var LocaleServiceInterface
+     *
+     * @var LocaleApplicationServiceInterface
      */
     protected $localeService;
 
     /**
-     * Supplier repository instance
-     * 
-     * @var SupplierRepositoryInterface
+    * Party service facade instance
+    *
+    * @var PartyApplicationServiceInterface
+    */
+    protected $partyService;
+
+    /**
+     * UELS application service (limits & usage) instance
+     *
+     * @var UELSApplicationServiceInterface
      */
-    protected $supplierRepository;
+    protected $uelsService;
 
     /**
      * Constructor
-     * 
-     * @param BankServiceInterface $bankService
-     * @param CountryServiceInterface $countryService
-     * @param LocaleServiceInterface $localeService
-     * @param SupplierRepositoryInterface $supplierRepository
+     *
+     * @param BankApplicationServiceInterface $bankService
+     * @param CountryApplicationServiceInterface $countryService
+     * @param LocaleApplicationServiceInterface $localeService
+     * @param PartyApplicationServiceInterface $partyService
+     * @param UELSApplicationServiceInterface $uelsService
      */
     public function __construct(
-        BankServiceInterface $bankService,
-        CountryServiceInterface $countryService,
-        LocaleServiceInterface $localeService,
-        SupplierRepositoryInterface $supplierRepository
+        BankApplicationServiceInterface $bankService,
+        CountryApplicationServiceInterface $countryService,
+        LocaleApplicationServiceInterface $localeService,
+        PartyApplicationServiceInterface $partyService,
+        UELSApplicationServiceInterface $uelsService
     ) {
         $this->bankService = $bankService;
         $this->countryService = $countryService;
         $this->localeService = $localeService;
-        $this->supplierRepository = $supplierRepository;
+        $this->partyService = $partyService;
+        $this->uelsService = $uelsService;
     }
 
     /**
@@ -80,7 +91,7 @@ class RegisterController extends Controller
     {
         $userFields = $this->getUserFields();
         $passwordFields = $this->getPasswordFields();
-            
+
         // Get banks for dropdown
         $banks = $this->bankService->getBanksForDropdown();
 
@@ -108,7 +119,7 @@ class RegisterController extends Controller
     public function register(RegistrationRequest $request)
     {
         $validatedData = $request->validated();
-        
+
         try {
             // Create new user
             $user = User::create([
@@ -142,18 +153,18 @@ class RegisterController extends Controller
                 'bank_name' => $request->bank_name,
                 'has_payment_info' => (!empty($request->account_number) && !empty($request->bank_code)),
             ];
-                
-            $supplier = $this->supplierRepository->create($supplierData);
-        
+
+            $supplier = $this->partyService->resolveOrCreateSupplierWithFlag($user->id, $supplierData);
+
             // Fire registered event
             event(new Registered($user));
-        
+
             // Login user automatically
             Auth::login($user);
-        
+
             // Set locale and redirect
             $locale = $this->localeService->determineLocale($request->get('lang'));
-            
+
             return redirect()->route('home', ['locale' => $locale])->with('success', __('users.auth.registration_success'));
         } catch (\Exception $e) {
             Log::error('Registration error: ' . $e->getMessage(), [
@@ -161,12 +172,12 @@ class RegisterController extends Controller
                 'ip' => $request->ip(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             // If error occurs, try to delete partially created user to avoid data inconsistency
             if (isset($user) && $user->exists) {
                 $user->delete();
             }
-            
+
             return back()->withInput()->with('error', __('users.auth.registration_failed'));
         }
     }
