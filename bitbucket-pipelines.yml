@@ -1,0 +1,222 @@
+# bitbucket-pipelines.yml
+image: php:8.3-cli
+
+pipelines:
+  pull-requests:
+    '**':
+    - step:
+      name: 1. Unified Baselines Refresh
+          caches:
+            - composer
+          script:
+            - apt-get update && apt-get install -y git unzip libzip-dev
+            - docker-php-ext-install zip
+            - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+            - composer install --no-interaction --no-progress --prefer-dist
+            - php artisan ddd:baselines:refresh --include-legacy --include-provider --write --update-versioned --json-summary > baselines_summary.json
+            - cp architecture/baselines/legacy_report_latest.json legacy_report_latest.json || true
+            - |
+              RES=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["residuals"];' 2>/dev/null || echo 0)
+              NEU=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["neutralized_tests"];' 2>/dev/null || echo 0)
+              echo "Residuals=$RES Neutralized=$NEU"
+              if [ "$RES" -gt 0 ]; then echo "Residual legacy artifacts detected ($RES)."; exit 1; fi
+              if [ "$NEU" -gt 0 ]; then echo "(Warning) Neutralized tests present: $NEU"; fi
+              # Controller thinness early gate (delta must be 0)
+              CTR_DELTA=$(php -r '$s=json_decode(file_get_contents("baselines_summary.json"),true); echo $s["diff"]["controller_thinness"]["delta"] ?? "";')
+              if [ "${CTR_DELTA}" != "0" ]; then
+                echo "Controller thinness drift detected (delta=${CTR_DELTA}). If intentional regenerate baseline locally and commit.";
+                exit 1;
+              fi
+          artifacts:
+            - baselines_summary.json
+            - legacy_report_latest.json
+    - step:
+      name: 2. Guard & Provider Diff
+          caches:
+            - composer
+          script:
+            - apt-get update && apt-get install -y git unzip libzip-dev
+            - docker-php-ext-install zip
+            - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+            - composer install --no-interaction --no-progress --prefer-dist
+            - php artisan payment:adapter:guard --ci
+            - php artisan ddd:guard --di --format=json || true
+            - test -f storage/app/ddd_guard_report.json && echo "(Info) ddd_guard_report generated" || echo "(Warn) ddd_guard_report missing"
+            - php artisan ddd:guard # human format hard fail
+            # Provider snapshot diff (non-blocking initial, will fail on unexpected changes)
+            - test -f architecture/baselines/provider_snapshot.json || (echo "Missing provider snapshot baseline. Run: php artisan ddd:providers:snapshot --write && cp storage/app/ddd_provider_snapshot.json architecture/baselines/provider_snapshot.json" && exit 1)
+            - php artisan ddd:providers:snapshot --diff --format=json > provider_snapshot_diff.json || SNAP_EXIT=$?; cat provider_snapshot_diff.json || true; if [ "${SNAP_EXIT:-0}" -ne 0 ]; then echo "Provider snapshot diff failed"; exit 1; fi
+            - grep '"errors": \[\]' provider_snapshot_diff.json || (echo 'Provider snapshot has errors'; exit 1)
+          artifacts:
+            - storage/app/ddd_guard_report.json
+            - provider_snapshot_diff.json
+     - step:
+       name: 3. Architecture Drift & Tests
+           caches:
+             - composer
+           script:
+             - apt-get update && apt-get install -y git unzip libzip-dev
+             - docker-php-ext-install zip
+             - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+             - composer install --no-interaction --no-progress --prefer-dist
+            # Controller thinness baseline (copy committed -> storage if not present)
+            - test -f architecture/baselines/controller_thinness_baseline.json || (echo "Missing architecture/baselines/controller_thinness_baseline.json baseline. Generate & commit." && exit 1)
+            - mkdir -p storage/app/metrics
+            # Generate current controller thinness metrics snapshot
+            - php artisan ddd:controller-thinness:baseline --save
+            - cp storage/app/metrics/controller_thinness_baseline.json storage/app/metrics/controller_thinness_current.json
+            # Copy committed baseline over (used by test) AFTER capturing current snapshot
+            - cp architecture/baselines/controller_thinness_baseline.json storage/app/metrics/controller_thinness_baseline.json
+            # Drift detection (ignore timestamp)
+            - |
+              php -r '$base=json_decode(file_get_contents("architecture/baselines/controller_thinness_baseline.json"),true); $cur=json_decode(file_get_contents("storage/app/metrics/controller_thinness_current.json"),true); unset($base["summary"]["timestamp"],$cur["summary"]["timestamp"]); if ($base!=$cur){fwrite(STDERR,"Controller thinness baseline drift detected. If intentional regenerate via: php artisan ddd:controller-thinness:baseline --save && cp storage/app/metrics/controller_thinness_baseline.json architecture/baselines/controller_thinness_baseline.json\n"); exit(1);} else {echo "No controller thinness baseline drift.";}'
+             # Frontend baseline drift detection
+             - test -f storage/app/metrics/frontend_controller_eloquent_baseline.json || (echo "Missing frontend baseline file. Run locally: php artisan ddd:frontend-eloquent:baseline --save" && exit 1)
+             - php artisan ddd:frontend-eloquent:baseline --save
+             - |
+               git diff --exit-code storage/app/metrics/frontend_controller_eloquent_baseline.json || {
+                 echo "Frontend Eloquent baseline drift detected. If intentional regenerate & commit.";
+                 git --no-pager diff storage/app/metrics/frontend_controller_eloquent_baseline.json || true;
+                 exit 1; }
+             # API baseline drift detection
+             - test -f storage/app/metrics/api_controller_eloquent_baseline.json || (echo "Missing API baseline file. Run locally: php artisan ddd:api-eloquent:baseline --save" && exit 1)
+             - php artisan ddd:api-eloquent:baseline --save
+             - |
+               git diff --exit-code storage/app/metrics/api_controller_eloquent_baseline.json || {
+                 echo "API Eloquent baseline drift detected. If intentional regenerate & commit.";
+                 git --no-pager diff storage/app/metrics/api_controller_eloquent_baseline.json || true;
+                 exit 1; }
+             # Run architecture enforcement tests only
+             - php artisan test tests/Feature/Architecture/FrontendControllersEloquentUsageTest.php \
+                                       tests/Feature/Architecture/ApiControllersEloquentUsageTest.php \
+                                       tests/Feature/Architecture/ApiControllersDelegationTest.php \
+                                       tests/Feature/Architecture/ControllerThinnessEnforcementTest.php
+             # Optional near-limit payment scan (non-blocking if no data)
+             - php artisan payment:limits:report --threshold=0.9 --fail-on-threshold || echo "(Info) No data or near-limit records"
+    - step:
+      name: 4. Test Suite (Parallel)
+          caches:
+            - composer
+          script:
+            - apt-get update && apt-get install -y git unzip libzip-dev sqlite3 libsqlite3-dev
+            - docker-php-ext-install zip pdo_sqlite
+            - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+            - composer install --no-interaction --no-progress --prefer-dist
+            # Run PHPUnit in parallel with single automatic sequential retry for potential flakes
+            - php artisan ddd:guard || exit 1
+            - |
+              set -e
+              echo "[Paratest] Starting parallel test run";
+              PARATEST_CMD="vendor/bin/paratest --processes=$(nproc) --configuration=phpunit.xml --testsuite=Unit,Feature"
+              if ! eval "$PARATEST_CMD"; then
+                echo "[Paratest] Parallel run failed – attempting single sequential retry (flaky mitigation)";
+                if php artisan test --testsuite=Unit,Feature; then
+                  echo "[Paratest] Sequential retry passed – treating failure as flaky (non-fatal).";
+                else
+                  echo "[Paratest] Sequential retry also failed – failing pipeline.";
+                  exit 1;
+                fi
+              fi
+  branches:
+    main:
+    - step:
+      name: 1. Unified Baselines Refresh (main)
+          caches:
+            - composer
+          script:
+              - apt-get update && apt-get install -y git unzip libzip-dev
+              - docker-php-ext-install zip
+              - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+              - composer install --no-interaction --no-progress --prefer-dist
+              - php artisan ddd:baselines:refresh --include-legacy --include-provider --write --update-versioned --json-summary > baselines_summary.json
+              - cp architecture/baselines/legacy_report_latest.json legacy_report_latest.json || true
+              - |
+                RES=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["residuals"];' 2>/dev/null || echo 0)
+                NEU=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["neutralized_tests"];' 2>/dev/null || echo 0)
+                echo "Residuals=$RES Neutralized=$NEU"
+                if [ "$RES" -gt 0 ]; then echo "Residual legacy artifacts detected ($RES)."; exit 1; fi
+                if [ "$NEU" -gt 0 ]; then echo "(Warning) Neutralized tests present: $NEU"; fi
+          artifacts:
+            - baselines_summary.json
+            - legacy_report_latest.json
+    - step:
+      name: 2. Guard & Provider Diff (main)
+          caches:
+            - composer
+          script:
+              - apt-get update && apt-get install -y git unzip libzip-dev
+              - docker-php-ext-install zip
+              - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+              - composer install --no-interaction --no-progress --prefer-dist
+              - php artisan payment:adapter:guard --ci
+              - php artisan ddd:guard --di --format=json || true
+              - test -f storage/app/ddd_guard_report.json && echo "(Info) ddd_guard_report generated" || echo "(Warn) ddd_guard_report missing"
+              - php artisan ddd:guard
+              # Provider snapshot diff (main)
+              - test -f architecture/baselines/provider_snapshot.json || (echo "Missing provider snapshot baseline. Run locally and commit." && exit 1)
+              - php artisan ddd:providers:snapshot --diff --format=json > provider_snapshot_diff.json || SNAP_EXIT=$?; cat provider_snapshot_diff.json || true; if [ "${SNAP_EXIT:-0}" -ne 0 ]; then echo "Provider snapshot diff failed"; exit 1; fi
+              - grep '"errors": \[\]' provider_snapshot_diff.json || (echo 'Provider snapshot has errors'; exit 1)
+          artifacts:
+            - storage/app/ddd_guard_report.json
+            - provider_snapshot_diff.json
+     - step:
+       name: 3. Architecture Drift & Tests (main)
+           caches:
+             - composer
+           script:
+             - apt-get update && apt-get install -y git unzip libzip-dev
+             - docker-php-ext-install zip
+             - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+             - composer install --no-interaction --no-progress --prefer-dist
+            - test -f architecture/baselines/controller_thinness_baseline.json || (echo "Missing architecture/baselines/controller_thinness_baseline.json baseline. Generate & commit." && exit 1)
+            - mkdir -p storage/app/metrics
+            - php artisan ddd:controller-thinness:baseline --save
+            - cp storage/app/metrics/controller_thinness_baseline.json storage/app/metrics/controller_thinness_current.json
+            - cp architecture/baselines/controller_thinness_baseline.json storage/app/metrics/controller_thinness_baseline.json
+            - |
+              php -r '$base=json_decode(file_get_contents("architecture/baselines/controller_thinness_baseline.json"),true); $cur=json_decode(file_get_contents("storage/app/metrics/controller_thinness_current.json"),true); unset($base["summary"]["timestamp"],$cur["summary"]["timestamp"]); if ($base!=$cur){fwrite(STDERR,"Controller thinness baseline drift detected. If intentional regenerate via: php artisan ddd:controller-thinness:baseline --save && cp storage/app/metrics/controller_thinness_baseline.json architecture/baselines/controller_thinness_baseline.json\n"); exit(1);} else {echo "No controller thinness baseline drift.";}'
+             - test -f storage/app/metrics/frontend_controller_eloquent_baseline.json || (echo "Missing frontend baseline file. Run locally: php artisan ddd:frontend-eloquent:baseline --save" && exit 1)
+             - php artisan ddd:frontend-eloquent:baseline --save
+             - |
+               git diff --exit-code storage/app/metrics/frontend_controller_eloquent_baseline.json || {
+                 echo "Frontend Eloquent baseline drift detected. If intentional regenerate & commit.";
+                 git --no-pager diff storage/app/metrics/frontend_controller_eloquent_baseline.json || true;
+                 exit 1; }
+             - test -f storage/app/metrics/api_controller_eloquent_baseline.json || (echo "Missing API baseline file. Run locally: php artisan ddd:api-eloquent:baseline --save" && exit 1)
+             - php artisan ddd:api-eloquent:baseline --save
+             - |
+               git diff --exit-code storage/app/metrics/api_controller_eloquent_baseline.json || {
+                 echo "API Eloquent baseline drift detected. If intentional regenerate & commit.";
+                 git --no-pager diff storage/app/metrics/api_controller_eloquent_baseline.json || true;
+                 exit 1; }
+             - php artisan test tests/Feature/Architecture/FrontendControllersEloquentUsageTest.php \
+                                       tests/Feature/Architecture/ApiControllersEloquentUsageTest.php \
+                                       tests/Feature/Architecture/ApiControllersDelegationTest.php \
+                                       tests/Feature/Architecture/ControllerThinnessEnforcementTest.php
+             - php artisan payment:limits:report --threshold=0.9 --fail-on-threshold || echo "(Info) No data or near-limit records"
+    - step:
+      name: 4. Test Suite (Parallel - main)
+          caches:
+            - composer
+          script:
+            - apt-get update && apt-get install -y git unzip libzip-dev sqlite3 libsqlite3-dev
+            - docker-php-ext-install zip pdo_sqlite
+            - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+            - composer install --no-interaction --no-progress --prefer-dist
+            - php artisan ddd:guard || exit 1
+            - |
+              set -e
+              echo "[Paratest] Starting parallel test run (main)";
+              PARATEST_CMD="vendor/bin/paratest --processes=$(nproc) --configuration=phpunit.xml --testsuite=Unit,Feature"
+              if ! eval "$PARATEST_CMD"; then
+                echo "[Paratest] Parallel run failed – attempting single sequential retry (flaky mitigation)";
+                if php artisan test --testsuite=Unit,Feature; then
+                  echo "[Paratest] Sequential retry passed – treating failure as flaky (non-fatal).";
+                else
+                  echo "[Paratest] Sequential retry also failed – failing pipeline.";
+                  exit 1;
+                fi
+              fi
+definitions:
+  caches:
+    composer: ~/.composer/cache

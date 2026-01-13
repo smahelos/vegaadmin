@@ -1,0 +1,63 @@
+<svg width="200" height="260" viewBox="0 0 200 260" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="260" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Header with simple border -->
+  <rect x="10" y="10" width="180" height="35" fill="#ffffff" stroke="#2d3748" stroke-width="2"/>
+  <rect x="15" y="15" width="20" height="10" fill="#e2e8f0"/>
+  <text x="100" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2d3748">INVOICE</text>
+  
+  <!-- Company and Client Info -->
+  <rect x="10" y="55" width="85" height="40" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="15" y="60" width="50" height="3" fill="#e2e8f0"/>
+  <rect x="15" y="65" width="40" height="2" fill="#e2e8f0"/>
+  <rect x="15" y="69" width="45" height="2" fill="#e2e8f0"/>
+  <rect x="15" y="73" width="35" height="2" fill="#e2e8f0"/>
+  
+  <rect x="105" y="55" width="85" height="40" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="110" y="60" width="50" height="3" fill="#e2e8f0"/>
+  <rect x="110" y="65" width="40" height="2" fill="#e2e8f0"/>
+  <rect x="110" y="69" width="45" height="2" fill="#e2e8f0"/>
+  <rect x="110" y="73" width="35" height="2" fill="#e2e8f0"/>
+  
+  <!-- Invoice Details -->
+  <rect x="10" y="105" width="180" height="20" fill="#ffffff"/>
+  <rect x="15" y="110" width="30" height="2" fill="#718096"/>
+  <rect x="50" y="110" width="40" height="2" fill="#2d3748"/>
+  <rect x="15" y="115" width="25" height="2" fill="#718096"/>
+  <rect x="50" y="115" width="35" height="2" fill="#2d3748"/>
+  
+  <!-- Items Table -->
+  <rect x="10" y="135" width="180" height="15" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="15" y="145" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#2d3748">Item</text>
+  <text x="80" y="145" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#2d3748">Qty</text>
+  <text x="120" y="145" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#2d3748">Price</text>
+  <text x="165" y="145" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#2d3748">Total</text>
+  
+  <!-- Item rows -->
+  <rect x="10" y="150" width="180" height="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="15" y="154" width="45" height="2" fill="#e2e8f0"/>
+  <rect x="80" y="154" width="8" height="2" fill="#e2e8f0"/>
+  <rect x="120" y="154" width="20" height="2" fill="#e2e8f0"/>
+  <rect x="165" y="154" width="20" height="2" fill="#e2e8f0"/>
+  
+  <rect x="10" y="162" width="180" height="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="0.5"/>
+  <rect x="15" y="166" width="40" height="2" fill="#e2e8f0"/>
+  <rect x="80" y="166" width="8" height="2" fill="#e2e8f0"/>
+  <rect x="120" y="166" width="20" height="2" fill="#e2e8f0"/>
+  <rect x="165" y="166" width="20" height="2" fill="#e2e8f0"/>
+  
+  <!-- Totals -->
+  <rect x="105" y="185" width="85" height="25" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="110" y="190" width="25" height="2" fill="#718096"/>
+  <rect x="160" y="190" width="20" height="2" fill="#2d3748"/>
+  <rect x="110" y="195" width="20" height="2" fill="#718096"/>
+  <rect x="160" y="195" width="20" height="2" fill="#2d3748"/>
+  <rect x="110" y="200" width="30" height="3" fill="#2d3748" font-weight="bold"/>
+  <rect x="160" y="200" width="25" height="3" fill="#2d3748" font-weight="bold"/>
+  
+  <!-- Footer -->
+  <rect x="10" y="230" width="180" height="20" fill="#f8fafc"/>
+  <rect x="15" y="235" width="60" height="2" fill="#e2e8f0"/>
+  <rect x="15" y="240" width="50" height="2" fill="#e2e8f0"/>
+</svg>
