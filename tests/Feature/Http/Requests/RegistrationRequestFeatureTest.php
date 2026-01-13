@@ -5,6 +5,8 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\RegistrationRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
@@ -12,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for RegistrationRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests user registration validation scenarios, authorization, and validation with database constraints
  */
@@ -31,7 +33,7 @@ class RegistrationRequestFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Set up valid registration data
         $this->setupValidRegistrationData();
     }
@@ -76,7 +78,7 @@ class RegistrationRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = ['name', 'email', 'password', 'street', 'city', 'zip', 'country'];
-        
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validRegistrationData;
             unset($invalidData[$field]);
@@ -119,7 +121,7 @@ class RegistrationRequestFeatureTest extends TestCase
         // Check if error message is translated or contains key parts
         $errorMessage = $validator->errors()->first('email');
         $this->assertTrue(
-            str_contains($errorMessage, 'unique') || 
+            str_contains($errorMessage, 'unique') ||
             str_contains($errorMessage, 'již používán') ||
             str_contains($errorMessage, 'already taken')
         );
@@ -250,7 +252,7 @@ class RegistrationRequestFeatureTest extends TestCase
     public function authorize_always_returns_true()
     {
         $request = new RegistrationRequest();
-        
+
         $this->assertTrue($request->authorize());
     }
 

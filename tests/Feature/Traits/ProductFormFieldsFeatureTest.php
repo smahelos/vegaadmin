@@ -5,7 +5,7 @@ namespace Tests\Feature\Traits;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
 use App\Models\Tax;
-use App\Traits\ProductFormFields;
+use App\Infrastructure\Forms\Products\ProductFormFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;

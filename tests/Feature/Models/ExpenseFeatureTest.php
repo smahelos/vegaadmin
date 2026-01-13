@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 /**
  * Feature tests for Expense Model
- * 
+ *
  * Tests database relationships, business logic, and model behavior requiring database interactions
  * Tests expense interactions with users, suppliers, categories, payment methods, and file uploads
  */
@@ -43,12 +43,12 @@ class ExpenseFeatureTest extends TestCase
         $category = ExpenseCategory::factory()->create();
         $paymentMethod = PaymentMethod::factory()->create();
         $status = Status::factory()->create();
-        
+
         $data = [
             'user_id' => $user->id,
             'supplier_id' => $supplier->id,
             'category_id' => $category->id,
-            'expense_date' => '2025-06-18',
+            'expense_date' => '2025-06-18 00:00:00',
             'amount' => 150.75,
             'currency' => 'USD',
             'payment_method_id' => $paymentMethod->id,
@@ -184,18 +184,18 @@ class ExpenseFeatureTest extends TestCase
     public function attachments_mutator_works(): void
     {
         $expense = Expense::factory()->make();
-        
+
         // Test that setAttachmentsAttribute method exists and can be called
         $this->assertTrue(method_exists($expense, 'setAttachmentsAttribute'));
-        
+
         // Test setting attachments value
         $attachments = ['file1.pdf', 'file2.jpg'];
         $expense->setAttachmentsAttribute($attachments);
-        
+
         // The actual implementation depends on HasFileUploads trait
         $this->assertTrue(
-            is_null($expense->attachments) || 
-            is_array($expense->attachments) || 
+            is_null($expense->attachments) ||
+            is_array($expense->attachments) ||
             is_string($expense->attachments)
         );
     }
@@ -204,10 +204,10 @@ class ExpenseFeatureTest extends TestCase
     public function file_upload_methods_exist(): void
     {
         $expense = Expense::factory()->create();
-        
+
         // Test file URL method exists and returns string or null
         $fileUrl = $expense->getFileUrl('attachments');
-        
+
         $this->assertTrue(is_string($fileUrl) || is_null($fileUrl));
         $this->assertTrue(method_exists($expense, 'getFileUrl'));
     }
@@ -216,15 +216,15 @@ class ExpenseFeatureTest extends TestCase
     public function can_update_expense(): void
     {
         $expense = Expense::factory()->create();
-        
+
         $newData = [
             'amount' => 299.99,
             'description' => 'Updated expense description',
             'tax_included' => false,
         ];
-        
+
         $expense->update($newData);
-        
+
         $this->assertDatabaseHas('expenses', array_merge(
             ['id' => $expense->id],
             $newData
@@ -236,9 +236,9 @@ class ExpenseFeatureTest extends TestCase
     {
         $expense = Expense::factory()->create();
         $expenseId = $expense->id;
-        
+
         $expense->delete();
-        
+
         $this->assertDatabaseMissing('expenses', ['id' => $expenseId]);
     }
 
@@ -246,10 +246,10 @@ class ExpenseFeatureTest extends TestCase
     public function can_create_expense_without_optional_fields(): void
     {
         $user = User::factory()->create();
-        
+
         $data = [
             'user_id' => $user->id,
-            'expense_date' => '2025-06-18',
+            'expense_date' => '2025-06-18 00:00:00',
             'amount' => 75.00,
             'description' => 'Simple expense',
             'attachments' => null,
@@ -285,7 +285,7 @@ class ExpenseFeatureTest extends TestCase
     public function reference_number_can_be_null(): void
     {
         $expense = Expense::factory()->create(['reference_number' => null]);
-        
+
         $this->assertNull($expense->reference_number);
     }
 

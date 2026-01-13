@@ -17,7 +17,7 @@ class InvoiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->invoice = new Invoice();
     }
 
@@ -62,11 +62,11 @@ class InvoiceTest extends TestCase
     public function model_has_correct_casts(): void
     {
         $expectedCasts = [
-            'issue_date' => 'date',
-            'tax_point_date' => 'date',
+            'issue_date' => 'datetime:Y-m-d',
+            'tax_point_date' => 'datetime:Y-m-d',
             'due_in' => 'integer',
         ];
-        
+
         foreach ($expectedCasts as $attribute => $cast) {
             $this->assertEquals($cast, $this->invoice->getCasts()[$attribute]);
         }
@@ -77,7 +77,7 @@ class InvoiceTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->invoice);
         $method = $reflection->getMethod('calculateTotalAmount');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertFalse($method->isStatic());
     }
@@ -147,7 +147,7 @@ class InvoiceTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->invoice);
         $method = $reflection->getMethod('supplierName');
-        
+
         $this->assertTrue($method->isProtected());
     }
 
@@ -156,7 +156,7 @@ class InvoiceTest extends TestCase
     {
         $relationshipMethods = [
             'clients',
-            'suppliers', 
+            'suppliers',
             'statuses',
             'client',
             'supplier',

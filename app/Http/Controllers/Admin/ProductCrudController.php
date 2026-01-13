@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\ProductRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
-use App\Contracts\ProductsServiceInterface;
-use App\Contracts\TaxesServiceInterface;
+use App\Domain\Product\Contracts\ProductServiceInterface;
+use App\Domain\Shared\Tax\Contracts\TaxServiceInterface; // fixed namespace
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use App\Models\User;
+use App\Models\Supplier;
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 
 class ProductCrudController extends CrudController
 {
@@ -14,17 +17,17 @@ class ProductCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation; // Usage recording via generic observer
 
-    private ProductsServiceInterface $productsService;
-    private TaxesServiceInterface $taxesService;
+    private ProductServiceInterface $productService;
+    private TaxServiceInterface $taxesService;
 
     public function __construct(
-        ProductsServiceInterface $productsService,
-        TaxesServiceInterface $taxesService
+        ProductServiceInterface $productService,
+        TaxServiceInterface $taxesService
     ) {
         parent::__construct();
-        $this->productsService = $productsService;
+        $this->productService = $productService;
         $this->taxesService = $taxesService;
     }
 
@@ -46,18 +49,66 @@ class ProductCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name');
-        CRUD::column('price');
+        // Add filters
+        CRUD::addFilter([
+            'type' => 'simple',
+            'name' => 'is_active',
+            'label' => trans('admin.products.active_only'),
+        ],
+        false,
+        function () {
+            CRUD::addClause('where', 'is_active', '1');
+        });
+
+        CRUD::filter('user_id')
+            ->type('select2')
+            ->label('User')
+            ->values(
+                User::all()->pluck('name', 'id')->toArray(),
+            )
+            ->whenActive(function($value) {
+                CRUD::addClause('where', 'user_id', $value);
+            });
+
+        CRUD::filter('supplier_id')
+            ->type('select2')
+            ->label('Supplier')
+            ->values(
+                Supplier::all()->pluck('name', 'id')->toArray(),
+            )
+            ->whenActive(function($value) {
+                CRUD::addClause('where', 'supplier_id', $value);
+            });
+
         CRUD::column('user_id')
             ->type('integer')
             ->label('Owner')
             ->entity('user')
-            ->attribute('name');
-        CRUD::column('category_id')->type('select_from_array');
-        CRUD::column('tax_id')->type('select_from_array');
+            ->attribute('name')
+            ->value(function($entry) {
+                return $entry->user_id ? $entry->user->name : 'N/A';
+            });
+
+        CRUD::column('name');
+        CRUD::column('price');
+        CRUD::column('supplier_id')
+            ->type('select_from_array')
+            ->value(function($entry) {
+                return $entry->supplier ? $entry->supplier->name : 'N/A';
+            });
+        CRUD::column('category_id')
+            ->type('select_from_array')
+            ->value(function($entry) {
+                return $entry->category ? $entry->category->name : 'N/A';
+            });
+        CRUD::column('tax_id')
+            ->type('select_from_array')
+            ->value(function($entry) {
+                return $entry->tax ? $entry->tax->name : 'N/A';
+            });
         CRUD::column('is_default')->type('boolean');
         CRUD::column('created_at');
-        CRUD::column('updated_at');
+        // CRUD::column('updated_at');
     }
 
     /**
@@ -69,7 +120,7 @@ class ProductCrudController extends CrudController
 
         CRUD::field('name');
         CRUD::field('slug')->hint(trans('admin.products.leave_empty_for_autogeneration'));
-        
+
         CRUD::field('user_id')
         ->type('hidden')
         ->label('Owner')
@@ -78,7 +129,7 @@ class ProductCrudController extends CrudController
         ->options(function ($query) {
             return $query->orderBy('name', 'ASC')->get();
         });
-        
+
         CRUD::field('supplier_id')
             ->type('select')
             ->label(trans('admin.products.supplier'))
@@ -88,11 +139,11 @@ class ProductCrudController extends CrudController
             ->options(function ($query) {
                 return $query->orderBy('name', 'ASC')->get();
             });
-        
+
         CRUD::field('price')->type('number')->attributes(['step' => '0.01']);
         // Get taxes from the service
         $taxes = $this->taxesService->getAllTaxesForSelect();
-            
+
         CRUD::field('tax_id')
             ->type('select_from_array')
             ->label(trans('admin.products.tax'))
@@ -102,7 +153,7 @@ class ProductCrudController extends CrudController
             ->options($taxes);
 
         // Get product categories from the service
-        $productCategories = $this->productsService->getAllCategories();
+        $productCategories = $this->productService->getAllCategories();
 
         CRUD::field('category_id')
             ->type('select_from_array')
@@ -138,7 +189,7 @@ class ProductCrudController extends CrudController
                     document.querySelector("form").addEventListener("submit", function() {
                         const removeCheckbox = document.getElementById("image_remove");
                         const inputField = document.getElementById("image_input");
-                        
+
                         if (removeCheckbox && removeCheckbox.checked && inputField.files.length === 0) {
                             // If remove is checked but no new file is selected
                             const hiddenInput = document.createElement("input");
@@ -160,4 +211,27 @@ class ProductCrudController extends CrudController
     {
         $this->setupCreateOperation();
     }
+
+    /**
+     * Ensure user_id is always set to the current backpack user before storing.
+     */
+    protected function beforeEntityStore(): void
+    {
+        if (backpack_user()) {
+            $request = $this->crud->getRequest();
+            if (!$request->has('user_id') || empty($request->input('user_id'))) {
+                $request->merge(['user_id' => backpack_user()->id]);
+            }
+        }
+    }
+
+    /**
+     * Override store only for user assignment; usage recorded by ProductObserver.
+     */
+    public function store()
+    {
+        $this->beforeEntityStore();
+        return parent::store();
+    }
+
 }

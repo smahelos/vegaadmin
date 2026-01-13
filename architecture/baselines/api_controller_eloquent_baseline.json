@@ -1,0 +1,6 @@
+{
+  "moved_from": null,
+  "rule": {"description": "Each API controller must have at most 1 direct Eloquent static call.","max_eloquent_static_calls": 1,"justification": "API thin controller guideline"},
+  "controllers": ["Http/Controllers/Api/ApiBackpackController.php","Http/Controllers/Api/AresLookupController.php","Http/Controllers/Api/ClientController.php","Http/Controllers/Api/CountryController.php","Http/Controllers/Api/CurrencyController.php","Http/Controllers/Api/InvoiceController.php","Http/Controllers/Api/SessionController.php","Http/Controllers/Api/StatisticsController.php","Http/Controllers/Api/SupplierController.php","Http/Controllers/Api/UELSController.php","Http/Controllers/Api/UserController.php"],
+  "generated_at": "2025-09-01T08:48:20+00:00"
+}

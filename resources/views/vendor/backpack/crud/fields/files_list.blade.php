@@ -45,7 +45,7 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
             @php
             $fileUrl = method_exists($entry, 'getFileUrl') ? $entry->getFileUrl($field['name'], $key) : asset('storage/'
             . $file);
-            $fileService = app(\App\Services\FileUploadService::class);
+            $fileService = app(\App\Domain\Shared\File\Contracts\FileUploadServiceInterface::class);
             $fileIcon = $fileService->getFileTypeIcon($file);
             $fileName = basename($file);
             $fileSize = Storage::disk('public')->exists($file) ? Storage::disk('public')->size($file) : 0;
@@ -117,12 +117,12 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
         if (typeof element === 'string') {
             element = document.querySelector(`[data-field-name="${element}"]`);
         }
-        
+
         // Pro případ, že element je jQuery objekt
         if (element.jquery) {
             element = element[0];
         }
-        
+
         // Kontrola, zda element existuje a má požadovaný atribut
         if (!element || typeof element.getAttribute !== 'function') {
             console.error('Invalid element passed to bpFieldInitFilesList');
@@ -137,40 +137,40 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
         const progressBar = document.getElementById(`${fieldName}_progress`);
         const progressArea = document.getElementById(`${fieldName}_progress_area`);
         const removedFilesArray = [];
-        
+
         // Setup drag and drop area
         if (uploadArea) {
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 uploadArea.addEventListener(eventName, preventDefaults, false);
             });
-            
+
             function preventDefaults(e) {
                 e.preventDefault();
                 e.stopPropagation();
             }
-            
+
             ['dragenter', 'dragover'].forEach(eventName => {
                 uploadArea.addEventListener(eventName, () => {
                     uploadArea.classList.add('active');
                 }, false);
             });
-            
+
             ['dragleave', 'drop'].forEach(eventName => {
                 uploadArea.addEventListener(eventName, () => {
                     uploadArea.classList.remove('active');
                 }, false);
             });
-            
+
             uploadArea.addEventListener('drop', (e) => {
                 const droppedFiles = e.dataTransfer.files;
                 filesInput.files = droppedFiles;
-                
+
                 // Trigger change event
                 const event = new Event('change', { bubbles: true });
                 filesInput.dispatchEvent(event);
             }, false);
         }
-        
+
         // Add new files when selected
         if (filesInput) {
             filesInput.addEventListener('change', function(e) {
@@ -178,24 +178,24 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
                     // Show progress area when files are selected
                     progressArea.style.display = 'block';
                     progressBar.style.width = '0%';
-                    
+
                     // Simulate progress (in a real app, this would track actual upload progress)
                     let progress = 0;
                     const interval = setInterval(() => {
                         progress += 5;
                         progressBar.style.width = `${progress}%`;
                         progressBar.setAttribute('aria-valuenow', progress);
-                        
+
                         if (progress >= 100) {
                             clearInterval(interval);
-                            
+
                             // Hide progress after completion
                             setTimeout(() => {
                                 progressArea.style.display = 'none';
                             }, 1000);
                         }
                     }, 50);
-                    
+
                     Array.from(e.target.files).forEach(file => {
                         const reader = new FileReader();
                         reader.onload = function() {
@@ -234,17 +234,17 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
                                     <i class="la la-trash"></i>
                                 </button>
                             `;
-                            
+
                             // Add remove button event
                             const removeBtn = fileItem.querySelector('.remove-file');
                             removeBtn.addEventListener('click', function() {
                                 fileItem.remove();
                             });
-                            
+
                             // Add animation for new items
                             fileItem.style.opacity = '0';
                             filesList.appendChild(fileItem);
-                            
+
                             // Fade in animation
                             setTimeout(() => {
                                 fileItem.style.opacity = '1';
@@ -255,19 +255,19 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
                 }
             });
         }
-        
+
         // Add event listeners to existing remove buttons
         document.querySelectorAll(`#${fieldName}_list .remove-file`).forEach(button => {
             button.addEventListener('click', function() {
                 const fileItem = this.closest('.file-item');
                 const hiddenInput = fileItem.querySelector('input[type="hidden"]');
-                
+
                 if (hiddenInput) {
                     // Add this file to the removed list
                     removedFilesArray.push(hiddenInput.value);
                     removedFiles.value = JSON.stringify(removedFilesArray);
                 }
-                
+
                 // Fade out animation before removing
                 fileItem.style.opacity = '0';
                 setTimeout(() => {

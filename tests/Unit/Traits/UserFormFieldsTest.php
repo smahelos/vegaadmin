@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Traits;
 
-use App\Traits\UserFormFields;
+use App\Infrastructure\Forms\User\UserFormFields;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -21,10 +21,10 @@ class UserFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(UserFormFields::class);
         $this->assertTrue($reflection->hasMethod('getUserFields'));
-        
+
         $method = $reflection->getMethod('getUserFields');
         $this->assertTrue($method->isPublic());
-        
+
         // Check method return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -36,10 +36,10 @@ class UserFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(UserFormFields::class);
         $this->assertTrue($reflection->hasMethod('getPasswordFields'));
-        
+
         $method = $reflection->getMethod('getPasswordFields');
         $this->assertTrue($method->isPublic());
-        
+
         // Check method return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -51,7 +51,7 @@ class UserFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(UserFormFields::class);
         $method = $reflection->getMethod('getUserFields');
-        
+
         // Should have no parameters
         $this->assertCount(0, $method->getParameters());
     }
@@ -61,16 +61,16 @@ class UserFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(UserFormFields::class);
         $method = $reflection->getMethod('getPasswordFields');
-        
+
         // Should have one optional parameter
         $parameters = $method->getParameters();
         $this->assertCount(1, $parameters);
-        
+
         $param = $parameters[0];
         $this->assertEquals('isEdit', $param->getName());
         $this->assertTrue($param->isOptional());
         $this->assertFalse($param->getDefaultValue());
-        
+
         // Check parameter type
         $paramType = $param->getType();
         $this->assertNotNull($paramType);
@@ -81,14 +81,14 @@ class UserFormFieldsTest extends TestCase
     public function trait_has_proper_docblocks(): void
     {
         $reflection = new \ReflectionClass(UserFormFields::class);
-        
+
         // Check getUserFields method docblock
         $getUserFieldsMethod = $reflection->getMethod('getUserFields');
         $getUserFieldsDocComment = $getUserFieldsMethod->getDocComment();
         $this->assertNotFalse($getUserFieldsDocComment);
         $this->assertStringContainsString('Get user form fields definitions', $getUserFieldsDocComment);
         $this->assertStringContainsString('@return array', $getUserFieldsDocComment);
-        
+
         // Check getPasswordFields method docblock
         $getPasswordFieldsMethod = $reflection->getMethod('getPasswordFields');
         $getPasswordFieldsDocComment = $getPasswordFieldsMethod->getDocComment();
@@ -102,10 +102,10 @@ class UserFormFieldsTest extends TestCase
     public function trait_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(UserFormFields::class);
-        
+
         // Check namespace
-        $this->assertEquals('App\Traits', $reflection->getNamespaceName());
-        
+        $this->assertEquals('App\\Infrastructure\\Forms\\User', $reflection->getNamespaceName());
+
         // Check that it's not abstract, final, etc.
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isFinal());
@@ -117,10 +117,10 @@ class UserFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(UserFormFields::class);
         $methods = $reflection->getMethods();
-        
+
         // Should have exactly 2 methods
         $this->assertCount(2, $methods);
-        
+
         $methodNames = array_map(fn($method) => $method->getName(), $methods);
         $this->assertContains('getUserFields', $methodNames);
         $this->assertContains('getPasswordFields', $methodNames);

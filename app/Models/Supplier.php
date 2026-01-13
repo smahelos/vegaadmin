@@ -3,7 +3,8 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use App\Traits\HasPreferredLocale;
+use App\Infrastructure\Shared\File\Traits\HasFileUploads as SharedHasFileUploads;
+use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Supplier extends Model
 {
-    use HasFactory, Notifiable, CrudTrait, HasPreferredLocale;
+    use HasFactory, Notifiable, CrudTrait, HasPreferredLocale, SharedHasFileUploads;
 
     /*
     |--------------------------------------------------------------------------
@@ -31,6 +32,7 @@ class Supplier extends Model
         'dic',
         'phone',
         'description',
+        'supplier_logo',
         'is_default',
         'user_id',
         'account_number',
@@ -40,7 +42,27 @@ class Supplier extends Model
         'bank_name',
         'has_payment_info',
     ];
-    
+
+    /**
+     * Mutator for supplier_logo using centralized FileUploadService with hash dedupe.
+     */
+    public function setSupplierLogoAttribute($value): void
+    {
+        $this->handleFileUpload(
+            'supplier_logo',
+            $value,
+            'suppliers/logos/' . ($this->id ?? uniqid()),
+            ['disk' => 'public', 'sanitizeFilename' => true, 'randomizeFilename' => false],
+            'supplier_logo'
+        );
+    }
+
+    /** Accessor URL helper */
+    public function getSupplierLogoUrlAttribute(): ?string
+    {
+        return $this->getFileUrl('supplier_logo');
+    }
+
     protected $casts = [
         'is_default' => 'boolean',
         'has_payment_info' => 'boolean',
@@ -54,11 +76,11 @@ class Supplier extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::saving(function (self $supplier) {
             // Update payment info flag
             $supplier->has_payment_info = $supplier->hasCompletePaymentInfo();
-            
+
             // If this supplier is set as default, unset default status for other suppliers
             if ($supplier->is_default) {
                 self::where('user_id', $supplier->user_id)
@@ -112,7 +134,7 @@ class Supplier extends Model
 
     /**
      * Format account number in number/code format
-     * 
+     *
      * @return string|null
      */
     public function getFullAccountNumberAttribute(): ?string

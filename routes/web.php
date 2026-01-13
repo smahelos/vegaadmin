@@ -7,6 +7,9 @@ use App\Http\Controllers\Frontend\ClientController;
 use App\Http\Controllers\Frontend\SupplierController;
 use App\Http\Controllers\Frontend\ProfileController;
 use App\Http\Controllers\Frontend\ProductController;
+use App\Http\Controllers\Frontend\PageController;
+use App\Http\Controllers\Frontend\PaymentController;
+use App\Http\Controllers\Frontend\SubscriptionController;
 use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\Auth\LoginController;
 use Illuminate\Support\Facades\Auth;
@@ -17,30 +20,36 @@ use Illuminate\Support\Facades\Auth;
 |--------------------------------------------------------------------------
 */
 
+// Root redirect to default locale
+Route::get('/', function () {
+    $defaultLocale = config('app.locale', 'cs');
+    return redirect("/{$defaultLocale}");
+})->name('root');
+
 // Middleware application for frontend routes
 // This middleware will refresh the session for the frontend
 // and ensure that the session is always up to date
 // with the latest data from the database.
 Route::middleware([
-    'web', 
+    'web',
     'set.locale',
     'refresh.frontend.session',
 ])->group(function () {
-    
+
     // Routes with optional locale parameter
     Route::localized(function () {
-        Route::get('/', function () {
-            return view('frontend.invoices.create');
-        })->name('home');
+        // Route::get('/', function () {
+        //     return view('frontend.invoices.create');
+        // })->name('home');
 
-        Route::get('/dashboard', function () {
-            return view('frontend.dashboard');
-        })->middleware(['auth', 'verified'])->name('dashboard');
+        // Route::get('/dashboard', function () {
+        //     return view('frontend.dashboard');
+        // })->middleware(['auth', 'verified'])->name('dashboard');
 
         Route::middleware('auth')->group(function () {
             // Dashboard
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('frontend.dashboard');
-            
+
             // Invoices
             Route::get('/invoice', [InvoiceController::class, 'index'])->name('frontend.invoices');
             Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('frontend.invoice.create');
@@ -50,7 +59,9 @@ Route::middleware([
             Route::put('/invoice/{id}', [InvoiceController::class, 'update'])->name('frontend.invoice.update');
             Route::get('/invoice/{id}/download', [InvoiceController::class, 'download'])->name('frontend.invoice.download');
             Route::put('/invoice/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('frontend.invoice.mark-as-paid');
-            
+            Route::put('/invoice/{id}/set-template/{template}', [InvoiceController::class, 'setTemplate'])->name('frontend.invoice.set-template');
+            Route::post('/invoice/{id}/actions', [InvoiceController::class, 'batchActions'])->name('frontend.invoice.batch-actions');
+
             // Clients
             Route::get('/client', [ClientController::class, 'index'])->name('frontend.clients');
             Route::get('/client/create', [ClientController::class, 'create'])->name('frontend.client.create');
@@ -60,7 +71,7 @@ Route::middleware([
             Route::put('/client/{id}', [ClientController::class, 'update'])->name('frontend.client.update');
             Route::delete('/client/{id}', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
             Route::get('/client/{id}/set-default', [ClientController::class, 'setDefault'])->name('frontend.client.set-default');
-            
+
             // Suppliers
             Route::get('/supplier', [SupplierController::class, 'index'])->name('frontend.suppliers');
             Route::get('/supplier/create', [SupplierController::class, 'create'])->name('frontend.supplier.create');
@@ -70,7 +81,7 @@ Route::middleware([
             Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('frontend.supplier.update');
             Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('frontend.supplier.destroy');
             Route::get('/supplier/{id}/set-default', [SupplierController::class, 'setDefault'])->name('frontend.supplier.set-default');
-            
+
             // Profile
             Route::get('/profile', [ProfileController::class, 'edit'])->name('frontend.profile.edit');
             Route::put('/profile', [ProfileController::class, 'update'])->name('frontend.profile.update');
@@ -84,6 +95,13 @@ Route::middleware([
             Route::get('/product/{id}', [ProductController::class, 'show'])->name('frontend.product.show');
             Route::get('/product/{id}/edit', [ProductController::class, 'edit'])->name('frontend.product.edit');
             Route::put('/product/{id}', [ProductController::class, 'update'])->name('frontend.product.update');
+
+            // Subscriptions
+            Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+            Route::get('/subscription-plans/{plan}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
+            Route::post('/subscribe/{plan}', [SubscriptionController::class, 'subscribe'])->name('subscriptions.subscribe');
+            Route::delete('/subscription/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+            Route::get('/my-subscription', [SubscriptionController::class, 'mySubscription'])->name('subscriptions.my-subscription');
         });
 
         // Frontend Authentication Routes - pouze pro nepřihlášené uživatele
@@ -91,15 +109,23 @@ Route::middleware([
             // Registration
             Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('frontend.register');
             Route::post('/register', [RegisterController::class, 'register']);
-            
+
             // Login
             Route::get('/login', [LoginController::class, 'showLoginForm'])->name('frontend.login');
             Route::post('/login', [LoginController::class, 'login']);
+
+            // Test route for HomeController (used only in automated tests to verify behavior)
+            Route::get('/test-home-controller', [\App\Http\Controllers\Frontend\HomeController::class, 'index'])
+                ->name('frontend.home.test');
         });
 
 
         // Public routes (for guests)
-        Route::get('/', [InvoiceController::class, 'createForGuest'])->name('home');
+        Route::get('/', [PageController::class, 'homepage'])->name('home');
+
+        // Guest invoice creation - moved from homepage
+        Route::get('/create-invoice', [InvoiceController::class, 'createForGuest'])->name('frontend.invoice.create.guest');
+
         Route::post('/guest-invoices', [InvoiceController::class, 'storeGuest'])
             ->name('frontend.invoice.store.guest')
             ->withoutMiddleware(['auth']);
@@ -114,6 +140,14 @@ Route::middleware([
             ->name('frontend.invoice.delete.token')
             ->withoutMiddleware(['auth']);
 
+        // Page routes
+        Route::get('/pages', [PageController::class, 'index'])->name('frontend.pages.index');
+        Route::get('/pages/search', [PageController::class, 'search'])->name('frontend.pages.search');
+        Route::get('/pages/sitemap', [PageController::class, 'sitemap'])->name('frontend.pages.sitemap');
+        Route::get('/pages/category/{slug}', [PageController::class, 'categoryBySlug'])->name('frontend.pages.category.slug');
+        Route::get('/pages/category/id/{categoryId}', [PageController::class, 'category'])->name('frontend.pages.category')->where('categoryId', '[0-9]+');
+        Route::get('/pages/{slug}', [PageController::class, 'show'])->name('frontend.pages.show');
+
         // Logout route
         Route::post('/logout', [LoginController::class, 'logout'])->name('frontend.logout');
     });
@@ -124,17 +158,8 @@ Route::middleware(['web', 'guest'])->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 });
 
-// // Public routes (for guests) - outside locale prefix for token access
-// Route::post('/guest-invoices', [InvoiceController::class, 'storeGuest'])
-//     ->name('frontend.invoice.store.guest')
-//     ->withoutMiddleware(['auth']);
-
-// // Download invoice with token (for guests)
-// Route::get('/invoices/download/{token}', [InvoiceController::class, 'downloadWithToken'])
-//     ->name('frontend.invoice.download.token')
-//     ->withoutMiddleware(['auth']);
-
-// // Delete invoice with token (for guests)
-// Route::get('/invoices/delete/{token}', [InvoiceController::class, 'deleteGuestInvoice'])
-//     ->name('frontend.invoice.delete.token')
-//     ->withoutMiddleware(['auth']);
+// Payment callback routes (outside locale and auth middleware)
+Route::middleware(['web'])->group(function () {
+    Route::get('/payment/return', [PaymentController::class, 'return'])->name('payment.return');
+    Route::post('/payment/notify', [PaymentController::class, 'notify'])->name('payment.notify');
+});

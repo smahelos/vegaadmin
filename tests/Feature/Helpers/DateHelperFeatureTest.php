@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Helpers;
 
-use App\Helpers\DateHelper;
+use App\Infrastructure\Shared\Support\DateHelper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,9 +16,9 @@ class DateHelperFeatureTest extends TestCase
     public function format_returns_czech_format_for_czech_locale(): void
     {
         App::setLocale('cs');
-        
+
         $format = DateHelper::format();
-        
+
         $this->assertEquals('d.m.Y', $format);
     }
 
@@ -26,9 +26,9 @@ class DateHelperFeatureTest extends TestCase
     public function format_returns_english_format_for_english_locale(): void
     {
         App::setLocale('en');
-        
+
         $format = DateHelper::format();
-        
+
         $this->assertEquals('Y-m-d', $format);
     }
 
@@ -36,9 +36,9 @@ class DateHelperFeatureTest extends TestCase
     public function format_returns_default_format_for_unknown_locale(): void
     {
         App::setLocale('fr'); // Not defined in the helper
-        
+
         $format = DateHelper::format();
-        
+
         $this->assertEquals('d.m.Y', $format); // Should fall back to default
     }
 
@@ -46,9 +46,9 @@ class DateHelperFeatureTest extends TestCase
     public function format_returns_default_format_for_empty_locale(): void
     {
         App::setLocale('');
-        
+
         $format = DateHelper::format();
-        
+
         $this->assertEquals('d.m.Y', $format);
     }
 
@@ -63,7 +63,7 @@ class DateHelperFeatureTest extends TestCase
             'de' => 'd.m.Y', // Fallback to default
             'sk' => 'd.m.Y'  // Fallback to default
         ];
-        
+
         foreach ($locales as $locale) {
             App::setLocale($locale);
             $format = DateHelper::format();
@@ -76,11 +76,11 @@ class DateHelperFeatureTest extends TestCase
     {
         // Set locale and verify it persists across multiple calls
         App::setLocale('cs');
-        
+
         $format1 = DateHelper::format();
         $format2 = DateHelper::format();
         $format3 = DateHelper::format();
-        
+
         $this->assertEquals('d.m.Y', $format1);
         $this->assertEquals('d.m.Y', $format2);
         $this->assertEquals('d.m.Y', $format3);
@@ -95,17 +95,17 @@ class DateHelperFeatureTest extends TestCase
         App::setLocale('cs');
         $czechFormat = DateHelper::format();
         $this->assertEquals('d.m.Y', $czechFormat);
-        
+
         // Change to English
         App::setLocale('en');
         $englishFormat = DateHelper::format();
         $this->assertEquals('Y-m-d', $englishFormat);
-        
+
         // Back to Czech
         App::setLocale('cs');
         $czechFormatAgain = DateHelper::format();
         $this->assertEquals('d.m.Y', $czechFormatAgain);
-        
+
         // Verify formats are different
         $this->assertNotEquals($czechFormat, $englishFormat);
         $this->assertEquals($czechFormat, $czechFormatAgain);
@@ -115,15 +115,15 @@ class DateHelperFeatureTest extends TestCase
     public function format_returns_valid_date_formats(): void
     {
         $testLocales = ['cs', 'en', 'unknown'];
-        
+
         foreach ($testLocales as $locale) {
             App::setLocale($locale);
             $format = DateHelper::format();
-            
+
             // Should be a valid string
             $this->assertIsString($format);
             $this->assertNotEmpty($format);
-            
+
             // Should contain date format characters
             $this->assertMatchesRegularExpression('/[dDjlNSwzWFmMntLoYyaABgGhHisuveIOPTZcrU]/', $format);
         }
@@ -137,11 +137,11 @@ class DateHelperFeatureTest extends TestCase
             'cs' => 'd.m.Y',
             'en' => 'Y-m-d'
         ];
-        
+
         foreach ($supportedLocales as $locale => $expectedFormat) {
             App::setLocale($locale);
             $format = DateHelper::format();
-            
+
             $this->assertEquals($expectedFormat, $format, "Locale {$locale} should return {$expectedFormat}");
         }
     }
@@ -151,11 +151,11 @@ class DateHelperFeatureTest extends TestCase
     {
         // Verify that the same locale always returns the same format
         $testRuns = 5;
-        
+
         foreach (['cs', 'en'] as $locale) {
             App::setLocale($locale);
             $firstResult = DateHelper::format();
-            
+
             for ($i = 0; $i < $testRuns; $i++) {
                 $result = DateHelper::format();
                 $this->assertEquals($firstResult, $result, "Format should be consistent for locale: {$locale}");
@@ -169,12 +169,12 @@ class DateHelperFeatureTest extends TestCase
         // Test that the returned formats actually work with PHP date functions
         $testDate = '2024-06-15';
         $timestamp = strtotime($testDate);
-        
+
         App::setLocale('cs');
         $czechFormat = DateHelper::format();
         $czechFormatted = date($czechFormat, $timestamp);
         $this->assertEquals('15.06.2024', $czechFormatted);
-        
+
         App::setLocale('en');
         $englishFormat = DateHelper::format();
         $englishFormatted = date($englishFormat, $timestamp);

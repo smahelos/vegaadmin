@@ -28,17 +28,5 @@ class BladeServiceProvider extends ServiceProvider
                 }
                 return '';
             });
-
-        Blade::directive('getColumnSpan', function ($fieldName) {
-                if(in_array($fieldName, ['payment_amount', 'account_number'])) {
-                    return 'md:col-span-4';
-                } elseif(in_array($fieldName, ['bank_code', 'bank_name'])) {
-                    return 'md:col-span-3';
-                } elseif(in_array($fieldName, ['city', 'zip', 'client_city', 'client_zip'])) {
-                    return 'md:col-span-2';
-                } else {
-                    return 'md:col-span-1';
-                }
-        });
     }
 }

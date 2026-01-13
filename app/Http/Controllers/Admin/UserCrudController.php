@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use App\Traits\UserFormFields;
+use App\Application\User\Contracts\CrudAccessServiceInterface;
+use App\Infrastructure\Forms\User\UserFormFields;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\Admin\UserRequest;
 use Backpack\PermissionManager\app\Http\Requests\UserStoreCrudRequest as StoreRequest;
@@ -25,30 +26,29 @@ class UserCrudController extends CrudController
     }
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-    use \App\Traits\CrudPermissionTrait;
+    // Access control is configured via application CrudAccessServiceInterface in setup()
     use UserFormFields;
 
     /**
      * Configure the CrudPanel object and check user permissions
-     * 
+     *
      * @return void
      */
     public function setup()
     {
-        // Check permissions first
-        if(!backpack_user()->hasPermissionTo('can_view_user', 'backpack')) {
-            // Deny access to operations
-            CRUD::denyAccess(['list','show','create','update','delete']);
-        }
-
         CRUD::setModel(\App\Models\User::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/user');
         CRUD::setEntityNameStrings('user', 'users');
+
+        // Configure access using centralized service
+        $userId = optional(backpack_user())->id ?? 0;
+        app(\App\Application\User\Contracts\CrudAccessServiceInterface::class)
+            ->configureCrudAccess($this->crud, (int) $userId);
     }
 
     /**
      * Setup list view columns
-     * 
+     *
      * @return void
      */
     public function setupListOperation()
@@ -72,14 +72,14 @@ class UserCrudController extends CrudController
                 'attribute' => 'name',
                 'model'     => config('permission.models.role'),
             ],
-            [ // n-n relationship (with pivot table)
-                'label'     => trans('backpack::permissionmanager.extra_permissions'),
-                'type'      => 'select_multiple',
-                'name'      => 'permissions',
-                'entity'    => 'permissions',
-                'attribute' => 'name',
-                'model'     => config('permission.models.permission'),
-            ],
+            // [ // n-n relationship (with pivot table)
+            //     'label'     => trans('backpack::permissionmanager.extra_permissions'),
+            //     'type'      => 'select_multiple',
+            //     'name'      => 'permissions',
+            //     'entity'    => 'permissions',
+            //     'attribute' => 'name',
+            //     'model'     => config('permission.models.permission'),
+            // ],
         ]);
 
         if (backpack_pro()) {
@@ -87,7 +87,7 @@ class UserCrudController extends CrudController
             $this->crud->addFilter(
                 [
                     'name'  => 'role',
-                    'type'  => 'dropdown',
+                    'type'  => 'select2',
                     'label' => trans('backpack::permissionmanager.role'),
                 ],
                 config('permission.models.role')::all()->pluck('name', 'id')->toArray(),
@@ -107,8 +107,12 @@ class UserCrudController extends CrudController
                 ],
                 config('permission.models.permission')::all()->pluck('name', 'id')->toArray(),
                 function ($value) {
-                    $this->crud->addClause('whereHas', 'permissions', function ($query) use ($value) {
-                        $query->where('permission_id', '=', $value);
+                    $this->crud->addClause(function ($query) use ($value) {
+                        $query->whereHas('permissions', function ($q) use ($value) {
+                            $q->where('id', $value);
+                        })->orWhereHas('roles.permissions', function ($q) use ($value) {
+                            $q->where('id', $value);
+                        });
                     });
                 }
             );
@@ -117,7 +121,7 @@ class UserCrudController extends CrudController
 
     /**
      * Setup create form fields
-     * 
+     *
      * @return void
      */
     protected function setupCreateOperation()
@@ -128,7 +132,7 @@ class UserCrudController extends CrudController
 
     /**
      * Setup update form fields
-     * 
+     *
      * @return void
      */
     protected function setupUpdateOperation()
@@ -139,8 +143,8 @@ class UserCrudController extends CrudController
 
     /**
      * Setup show operation
-     * 
-     * @return void 
+     *
+     * @return void
      */
     public function setupShowOperation()
     {
@@ -176,7 +180,7 @@ class UserCrudController extends CrudController
 
     /**
      * Custom store method for password hashing
-     * 
+     *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store()
@@ -184,13 +188,13 @@ class UserCrudController extends CrudController
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest($this->handlePasswordInput($this->crud->getRequest()));
         $this->crud->unsetValidation();
-        
+
         return $this->traitStore();
     }
-    
+
     /**
      * Custom update method for password hashing
-     * 
+     *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function update()
@@ -198,13 +202,13 @@ class UserCrudController extends CrudController
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest($this->handlePasswordInput($this->crud->getRequest()));
         $this->crud->unsetValidation();
-        
+
         return $this->traitUpdate();
     }
-    
+
     /**
      * Process password field - hash if provided
-     * 
+     *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Request
      */
@@ -215,18 +219,18 @@ class UserCrudController extends CrudController
             $request->request->remove('password');
             $request->request->remove('password_confirmation');
         }
-        
+
         // Hash password if provided
         if ($request->has('password')) {
             $request->request->set('password', Hash::make($request->input('password')));
         }
-        
+
         return $request;
     }
 
     /**
      * Add user field definitions to the form
-     * 
+     *
      * @return void
      */
     protected function addUserFields()

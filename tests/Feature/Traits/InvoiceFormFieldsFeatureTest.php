@@ -6,8 +6,8 @@ use App\Models\Client;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
-use App\Services\CountryService;
-use App\Traits\InvoiceFormFields;
+use App\Domain\Shared\Geography\Services\CountryService;
+use App\Infrastructure\Forms\Invoice\InvoiceFormFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
@@ -25,7 +25,7 @@ class InvoiceFormFieldsFeatureTest extends TestCase
 
         // Assert
         $this->assertIsArray($result);
-        
+
         // Find country fields
         $supplierCountryField = collect($result)->firstWhere('name', 'country');
         $clientCountryField = collect($result)->firstWhere('name', 'client_country');
@@ -103,22 +103,22 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         // Assert - Check that we have all expected fields
         // Based on the trait implementation, there should be multiple fields
         $this->assertGreaterThan(30, count($result)); // Expecting at least 30+ fields
-        
+
         // Verify we have fields from all sections
         $fieldNames = collect($result)->pluck('name')->toArray();
-        
+
         // Invoice section
         $this->assertContains('invoice_vs', $fieldNames);
         $this->assertContains('payment_amount', $fieldNames);
-        
-        // Supplier section  
+
+        // Supplier section
         $this->assertContains('supplier_id', $fieldNames);
         $this->assertContains('name', $fieldNames);
-        
+
         // Client section
         $this->assertContains('client_id', $fieldNames);
         $this->assertContains('client_name', $fieldNames);
-        
+
         // Payment section
         $this->assertContains('account_number', $fieldNames);
         $this->assertContains('iban', $fieldNames);
@@ -132,9 +132,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
 
         // Assert - Check required fields
         $requiredFields = collect($result)->where('required', true);
-        
+
         $requiredFieldNames = $requiredFields->pluck('name')->toArray();
-        
+
         // These fields should be required
         $this->assertContains('invoice_vs', $requiredFieldNames);
         $this->assertContains('issue_date', $requiredFieldNames);
@@ -193,9 +193,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
 
         // Assert - Check that fields have hints
         $fieldsWithHints = collect($result)->whereNotNull('hint');
-        
+
         $this->assertGreaterThan(5, $fieldsWithHints->count());
-        
+
         // Check specific hint exists
         $invoiceVsField = collect($result)->firstWhere('name', 'invoice_vs');
         $this->assertArrayHasKey('hint', $invoiceVsField);
@@ -210,14 +210,14 @@ class InvoiceFormFieldsFeatureTest extends TestCase
 
         // Assert
         $dueInField = collect($result)->firstWhere('name', 'due_in');
-        
+
         $this->assertArrayHasKey('options', $dueInField);
         $this->assertArrayHasKey(1, $dueInField['options']);
         $this->assertArrayHasKey(3, $dueInField['options']);
         $this->assertArrayHasKey(7, $dueInField['options']);
         $this->assertArrayHasKey(14, $dueInField['options']);
         $this->assertArrayHasKey(30, $dueInField['options']);
-        
+
         // Check format includes days unit
         $this->assertTrue(str_contains($dueInField['options'][1], 'days') || str_contains($dueInField['options'][1], 'dní'));
     }

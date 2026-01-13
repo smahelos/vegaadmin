@@ -5,8 +5,10 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\HasFileUploads;
-use App\Services\FileUploadService;
+use App\Infrastructure\Shared\File\Traits\HasFileUploads;
+use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
+use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 class Expense extends Model
@@ -105,90 +107,49 @@ class Expense extends Model
      */
     public function setAttachmentsAttribute($value)
     {
-        // Get the service
-        $fileUploadService = app(FileUploadService::class);
-        
-        // Current attachments
-        $currentAttachments = $this->attachments ?? [];
-        
-        // Process removed files
+        $fileUploadService = app(FileUploadServiceInterface::class);
+        $current = $this->attachments ?? [];
+
+        // Handle removals
         if (request()->has('attachments_removed')) {
-            $removedFiles = json_decode(request()->input('attachments_removed'), true) ?? [];
-            foreach ($removedFiles as $file) {
-                // Remove from storage
+            $removed = json_decode(request()->input('attachments_removed'), true) ?? [];
+            foreach ($removed as $file) {
                 $fileUploadService->deleteFile($file, 'public');
-                
-                // Remove from current files array
-                $currentAttachments = array_filter($currentAttachments, function($item) use ($file) {
-                    return $item !== $file;
-                });
+                $current = array_values(array_filter($current, fn($f) => $f !== $file));
             }
         }
-        
-        // Process new uploads
+
+        // Process new uploads via context aware service (context: attachment)
         if (request()->hasFile('attachments')) {
-            $files = request()->file('attachments');
             $destinationPath = 'expenses/attachments/' . ($this->id ?? uniqid());
-            
-            foreach ($files as $file) {
-                // Set options for file upload
-                $options = [
-                    'disk' => 'public',
-                    'randomizeFilename' => true,
-                    'allowedFileTypes' => [
-                        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-                        'jpeg', 'jpg', 'png', 'gif', 'webp',
-                        'application/pdf', 'pdf',
-                        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        'doc', 'docx',
-                        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                        'xls', 'xlsx',
-                        'text/plain', 'txt'
+            foreach (request()->file('attachments') as $file) {
+                $stored = $fileUploadService->handleFileUpload(
+                    $file instanceof UploadedFile ? IncomingFileFactory::fromUploadedFile($file) : $file,
+                    'attachments',
+                    $destinationPath,
+                    [
+                        'disk' => 'public',
+                        'randomizeFilename' => false, // unique ensured by generateUniqueFilename in service when sanitize true
+                        'sanitizeFilename' => true,
+                        'createThumbnails' => false,
                     ],
-                    'maxFileSize' => 10240, // 10MB
-                    'sanitizeFilename' => true,
-                ];
-                
-                // Generate filename
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $extension = strtolower($file->getClientOriginalExtension());
-            
-                // Remove diacritics and special characters
-                $sanitizedName = $fileUploadService->sanitizeFilename($originalName);
-            
-                // Check for duplicate filenames
-                $baseName = $sanitizedName;
-                $counter = 1;
-                $filename = $baseName . '.' . $extension;
-            
-                // Keep checking for duplicates until we find a unique name
-                while (Storage::disk('public')->exists($destinationPath . '/' . $filename)) {
-                    $filename = $baseName . '_' . $counter . '.' . $extension;
-                    $counter++;
-                }
-            
-                // Store the file with sanitized name
-                $filePath = $file->storeAs($destinationPath, $filename, 'public');
-                
-                // Add to attachments array
-                if ($filePath) {
-                    $currentAttachments[] = $filePath;
-                }
+                    null,
+                    'attachment'
+                );
+                if ($stored) { $current[] = $stored; }
             }
         }
-        
-        // Keep current attachments if value is hidden input
+
         if (is_array($value) && isset($value[0]) && is_string($value[0])) {
             $this->attributes['attachments'] = json_encode($value);
         } else {
-            // Set the attribute with the updated array
-            $this->attributes['attachments'] = json_encode(array_values($currentAttachments));
+            $this->attributes['attachments'] = json_encode(array_values($current));
         }
     }
 
     /**
      * Get URL to the receipt file
-     * 
+     *
      * @param string $attribute
      * @return string|null
      */

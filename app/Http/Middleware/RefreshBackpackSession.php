@@ -14,14 +14,23 @@ class RefreshBackpackSession
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Set unique identifier for backpack session
+        // Ensure a flag exists to mark that backpack session middleware has run
         if (!session()->has('backpack_session_state')) {
             session(['backpack_session_state' => true]);
         }
 
-        // Refresh session expiration
-        Session::migrate(true);
-        
+        // Regenerate session ID on first pass and then only after the defined interval
+        // Keep session data across regeneration
+        $now = time();
+        $lastRegenerated = (int) session('backpack_session_last_regenerated', 0);
+        $intervalSeconds = 15 * 60; // 15 minutes
+
+        if ($lastRegenerated === 0 || ($now - $lastRegenerated) >= $intervalSeconds) {
+            // Regenerate session ID without destroying existing data
+            Session::migrate(false);
+            session(['backpack_session_last_regenerated' => $now]);
+        }
+
         return $next($request);
     }
 }

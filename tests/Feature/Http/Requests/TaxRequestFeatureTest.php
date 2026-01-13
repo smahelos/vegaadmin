@@ -7,25 +7,42 @@ use App\Http\Requests\Admin\TaxRequest as AdminTaxRequest;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class TaxRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        $permission = Permission::where('name', 'frontend.can_create_edit_tax')
+            ->where('guard_name', 'web')
+            ->first();
+
+        $this->user->givePermissionTo($permission);
+    }
 
     #[Test]
-    public function frontend_tax_request_validation_passes_with_any_data(): void
+    public function frontend_tax_request_validation_passes_with_valid_data(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $data = [
-            'name' => 'Any Name',
-            'rate' => 'any value',
-            'invalid_field' => 'should pass',
+            'name' => 'Frontend VAT 21%',
+            'rate' => 21,
         ];
 
         $request = TaxRequest::create('/', 'POST', $data);
@@ -33,15 +50,13 @@ class TaxRequestFeatureTest extends TestCase
         $request->setRedirector($this->app['redirect']);
 
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
-
-        $this->assertFalse($validator->fails(), 'Frontend validation should pass with any data');
+        $this->assertFalse($validator->fails(), 'Frontend validation should pass with valid data');
     }
 
     #[Test]
     public function admin_tax_request_validation_passes_with_valid_data(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Tax Name',
@@ -60,8 +75,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function admin_tax_request_validation_fails_with_invalid_data(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => '', // Required field empty
@@ -75,7 +89,7 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
         $this->assertTrue($validator->fails(), 'Admin validation should fail with invalid data');
-        
+
         $errors = $validator->errors();
         $this->assertTrue($errors->has('name'));
         $this->assertTrue($errors->has('rate'));
@@ -84,8 +98,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function admin_tax_request_validation_fails_without_required_fields(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             // Missing required fields
@@ -98,7 +111,7 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
         $this->assertTrue($validator->fails(), 'Admin validation should fail without required fields');
-        
+
         $errors = $validator->errors();
         $this->assertTrue($errors->has('name'));
         $this->assertTrue($errors->has('rate'));
@@ -107,8 +120,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function admin_tax_request_validation_fails_with_too_long_name(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => str_repeat('a', 256), // Too long
@@ -128,8 +140,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function admin_tax_request_validation_fails_with_negative_rate(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Name',
@@ -149,8 +160,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function admin_tax_request_validation_passes_with_zero_rate(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Zero Rate Tax',
@@ -169,8 +179,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function admin_tax_request_validation_passes_with_decimal_rate(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Decimal Rate Tax',
@@ -189,8 +198,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function admin_tax_request_validation_passes_with_integer_rate(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Integer Rate Tax',
@@ -209,8 +217,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function admin_tax_request_validation_passes_with_string_numeric_rate(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'String Numeric Rate Tax',
@@ -229,8 +236,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_error_messages_use_translations(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => '', // Required field empty
@@ -244,13 +250,13 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
         $this->assertTrue($validator->fails());
-        
+
         $errors = $validator->errors();
-        
+
         // Check that custom messages are used
         $nameError = $errors->first('name');
         $rateError = $errors->first('rate');
-        
+
         $this->assertEquals(__('tax.name_required'), $nameError);
         $this->assertEquals(__('tax.rate_required'), $rateError);
     }
@@ -267,29 +273,26 @@ class TaxRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function admin_request_has_strict_validation_unlike_frontend(): void
+    public function frontend_and_admin_requests_share_same_core_rules(): void
     {
         $frontendRequest = new TaxRequest();
         $adminRequest = new AdminTaxRequest();
-        
+
         $frontendRules = $frontendRequest->rules();
         $adminRules = $adminRequest->rules();
-        
-        // Frontend should have no or minimal rules
-        $this->assertCount(0, array_filter($frontendRules));
-        
-        // Admin should have strict validation rules
-        $this->assertArrayHasKey('name', $adminRules);
-        $this->assertArrayHasKey('rate', $adminRules);
-        $this->assertStringContainsString('required', $adminRules['name']);
-        $this->assertStringContainsString('required', $adminRules['rate']);
+
+        $this->assertEquals($adminRules['name'], $frontendRules['name']);
+        $this->assertEquals($adminRules['rate'], $frontendRules['rate']);
     }
 
     #[Test]
-    public function frontend_request_authorization_always_passes(): void
+    public function frontend_request_authorization_requires_authentication(): void
     {
-        $request = new TaxRequest();
-        
-        $this->assertTrue($request->authorize());
+        $unauthenticatedRequest = new TaxRequest();
+        $this->assertFalse($unauthenticatedRequest->authorize(), 'Unauthenticated user should not authorize');
+
+        $this->actingAs($this->user); // user has permission assigned in setUp
+        $authenticatedRequest = new TaxRequest();
+        $this->assertTrue($authenticatedRequest->authorize(), 'Authenticated user with permission should authorize');
     }
 }

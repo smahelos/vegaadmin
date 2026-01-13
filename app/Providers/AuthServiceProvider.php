@@ -13,7 +13,8 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        //
+        \App\Models\Subscription::class => \App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy::class,
+        \App\Models\SubscriptionPlan::class => \App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy::class,
     ];
 
     /**
@@ -21,29 +22,32 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register policies
+        $this->registerPolicies();
+
         // Define macro for multi-guard authentication check
         Auth::macro('checkAny', function (array $guards = null) {
             $guards = $guards ?: ['web', 'backpack', 'api'];
-            
+
             foreach ($guards as $guard) {
                 if (Auth::guard($guard)->check()) {
                     return true;
                 }
             }
-            
+
             return false;
         });
-        
+
         // Define macro for getting user from any guard
         Auth::macro('userFromAny', function (array $guards = null) {
             $guards = $guards ?: ['web', 'backpack', 'api'];
-            
+
             foreach ($guards as $guard) {
                 if (Auth::guard($guard)->check()) {
                     return Auth::guard($guard)->user();
                 }
             }
-            
+
             return null;
         });
     }

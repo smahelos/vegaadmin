@@ -36,6 +36,11 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
+
+            // Load user override routes after other backpack routes
+            if (file_exists(base_path('routes/backpack/user-override.php'))) {
+                $this->loadRoutesFrom(base_path('routes/backpack/user-override.php'));
+            }
         });
     }
 
@@ -58,17 +63,8 @@ class RouteServiceProvider extends ServiceProvider
             $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
             $supportedLocales = implode('|', $availableLocales);
 
-            Route::group([], $group);
-
+            // Register routes only with locale prefix to avoid duplicates
             Route::group(['prefix' => '{locale}', 'where'=> ['locale' => $supportedLocales]], $group);
-            // foreach ($availableLocales as $locale) {
-            //     $localizedUri = $locale . '/' . ltrim($uri, '/');
-            //     $localizedName = $locale . '.' . $name;
-                
-            //     Route::get($localizedUri, $action)
-            //         ->name($localizedName)
-            //         ->where('locale', $locale);
-            // }
         });
     }
 }

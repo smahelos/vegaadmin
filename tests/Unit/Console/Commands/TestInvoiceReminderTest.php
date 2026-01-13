@@ -14,7 +14,7 @@ class TestInvoiceReminderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->command = new TestInvoiceReminder();
     }
 
@@ -28,11 +28,11 @@ class TestInvoiceReminderTest extends TestCase
     public function command_has_correct_signature(): void
     {
         $expectedSignature = 'invoices:test-reminder {invoice_id? : Invoice ID to test} {--invoice= : Invoice ID to test (alternative option)} {--type=all : Reminder type (upcoming, due, overdue, all)}';
-        
+
         $reflection = new \ReflectionClass($this->command);
         $property = $reflection->getProperty('signature');
         $property->setAccessible(true);
-        
+
         $this->assertEquals($expectedSignature, $property->getValue($this->command));
     }
 
@@ -40,11 +40,11 @@ class TestInvoiceReminderTest extends TestCase
     public function command_has_correct_description(): void
     {
         $expectedDescription = 'Invoice reminder test for selected invoice';
-        
+
         $reflection = new \ReflectionClass($this->command);
         $property = $reflection->getProperty('description');
         $property->setAccessible(true);
-        
+
         $this->assertEquals($expectedDescription, $property->getValue($this->command));
     }
 
@@ -60,7 +60,7 @@ class TestInvoiceReminderTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('handle');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('int', $returnType->getName());
     }
@@ -69,15 +69,15 @@ class TestInvoiceReminderTest extends TestCase
     public function command_structure_validation(): void
     {
         $reflection = new \ReflectionClass($this->command);
-        
+
         // Check that class uses proper namespace
         $this->assertEquals('App\Console\Commands', $reflection->getNamespaceName());
-        
+
         // Check that signature property exists and is protected
         $signatureProperty = $reflection->getProperty('signature');
         $this->assertTrue($signatureProperty->isProtected());
-        
-        // Check that description property exists and is protected  
+
+        // Check that description property exists and is protected
         $descriptionProperty = $reflection->getProperty('description');
         $this->assertTrue($descriptionProperty->isProtected());
     }
@@ -94,13 +94,13 @@ class TestInvoiceReminderTest extends TestCase
     public function command_helper_methods_are_private(): void
     {
         $reflection = new \ReflectionClass($this->command);
-        
+
         $upcomingMethod = $reflection->getMethod('testUpcomingReminder');
         $this->assertTrue($upcomingMethod->isPrivate());
-        
+
         $dueMethod = $reflection->getMethod('testDueReminder');
         $this->assertTrue($dueMethod->isPrivate());
-        
+
         $overdueMethod = $reflection->getMethod('testOverdueReminder');
         $this->assertTrue($overdueMethod->isPrivate());
     }
@@ -111,12 +111,13 @@ class TestInvoiceReminderTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $fileName = $reflection->getFileName();
         $content = file_get_contents($fileName);
-        
+
         $this->assertStringContainsString('use Illuminate\Console\Command;', $content);
         $this->assertStringContainsString('use App\Models\Invoice;', $content);
-        $this->assertStringContainsString('use App\Notifications\InvoiceDueReminder;', $content);
-        $this->assertStringContainsString('use App\Notifications\InvoiceOverdueReminder;', $content);
-        $this->assertStringContainsString('use App\Notifications\InvoiceUpcomingDueReminder;', $content);
+        $this->assertStringContainsString('use App\\Domain\\Invoice\\Notifications\\Contracts\\InvoiceReminderNotifierInterface;', $content);
+        $this->assertStringContainsString('use App\\Domain\\Invoice\\Notifications\\DTO\\InvoiceReminderPayload;', $content);
+        $this->assertStringContainsString('use App\\Domain\\Invoice\\Notifications\\Enums\\InvoiceReminderType;', $content);
+        $this->assertStringContainsString('use App\\Domain\\Shared\\Notifications\\DTO\\Recipient;', $content);
     }
 
     #[Test]
@@ -124,7 +125,7 @@ class TestInvoiceReminderTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->command);
         $docComment = $reflection->getDocComment();
-        
+
         $this->assertNotEmpty($docComment);
     }
 
@@ -134,7 +135,7 @@ class TestInvoiceReminderTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $fileName = $reflection->getFileName();
         $content = file_get_contents($fileName);
-        
+
         // Check that command handles different types
         $this->assertStringContainsString('upcoming', $content);
         $this->assertStringContainsString('due', $content);

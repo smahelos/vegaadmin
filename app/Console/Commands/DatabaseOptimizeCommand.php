@@ -59,10 +59,24 @@ class DatabaseOptimizeCommand extends Command
      */
     private function getAllTables()
     {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            return $this->getMySQLTables();
+        } else {
+            return $this->getSQLiteTables();
+        }
+    }
+
+    /**
+     * Get all tables from MySQL
+     */
+    private function getMySQLTables()
+    {
         $tables = DB::select("
-            SELECT TABLE_NAME 
-            FROM information_schema.TABLES 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            SELECT TABLE_NAME
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
             AND TABLE_TYPE = 'BASE TABLE'
             ORDER BY TABLE_NAME
         ");
@@ -73,18 +87,32 @@ class DatabaseOptimizeCommand extends Command
     }
 
     /**
+     * Get all tables from SQLite
+     */
+    private function getSQLiteTables()
+    {
+        $tables = DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+
+        return array_map(function($table) {
+            return $table->name;
+        }, $tables);
+    }
+
+    /**
      * Optimize a specific table
      */
     private function optimizeTable($tableName, $analyze = false, $repair = false)
     {
         $this->info("\n🔧 Optimizing table: {$tableName}");
 
+        $driver = DB::connection()->getDriverName();
+
         // Log maintenance task
         $maintenanceId = DB::table('database_maintenance_logs')->insertGetId([
             'task_type' => 'optimize',
             'table_name' => $tableName,
             'status' => 'running',
-            'description' => "Optimizing table {$tableName}",
+            'description' => "Optimizing table {$tableName} ({$driver})",
             'started_at' => now(),
             'created_at' => now(),
             'updated_at' => now()
@@ -97,26 +125,11 @@ class DatabaseOptimizeCommand extends Command
             $beforeStats = $this->getTableStats($tableName);
             $results['before'] = $beforeStats;
 
-            // Repair table if requested
-            if ($repair) {
-                $this->line("  🔨 Repairing table...");
-                $repairResult = DB::select("REPAIR TABLE `{$tableName}`");
-                $results['repair'] = $repairResult;
-                $this->line("  ✅ Repair completed");
+            if ($driver === 'mysql') {
+                $this->optimizeMySQLTable($tableName, $analyze, $repair, $results);
+            } else {
+                $this->optimizeSQLiteTable($tableName, $results);
             }
-
-            // Analyze table if requested
-            if ($analyze) {
-                $this->line("  📊 Analyzing table...");
-                $analyzeResult = DB::select("ANALYZE TABLE `{$tableName}`");
-                $results['analyze'] = $analyzeResult;
-                $this->line("  ✅ Analysis completed");
-            }
-
-            // Optimize table
-            $this->line("  ⚡ Optimizing table...");
-            $optimizeResult = DB::select("OPTIMIZE TABLE `{$tableName}`");
-            $results['optimize'] = $optimizeResult;
 
             // Check table status after optimization
             $afterStats = $this->getTableStats($tableName);
@@ -153,7 +166,8 @@ class DatabaseOptimizeCommand extends Command
                 'metric_unit' => 'percent',
                 'metadata' => json_encode([
                     'size_before_mb' => $sizeBefore,
-                    'size_after_mb' => $sizeAfter
+                    'size_after_mb' => $sizeAfter,
+                    'driver' => $driver
                 ]),
                 'measured_at' => now(),
                 'created_at' => now(),
@@ -176,20 +190,80 @@ class DatabaseOptimizeCommand extends Command
     }
 
     /**
+     * Optimize MySQL table
+     */
+    private function optimizeMySQLTable($tableName, $analyze, $repair, &$results)
+    {
+        // Repair table if requested
+        if ($repair) {
+            $this->line("  🔨 Repairing table...");
+            $repairResult = DB::select("REPAIR TABLE `{$tableName}`");
+            $results['repair'] = $repairResult;
+            $this->line("  ✅ Repair completed");
+        }
+
+        // Analyze table if requested
+        if ($analyze) {
+            $this->line("  📊 Analyzing table...");
+            $analyzeResult = DB::select("ANALYZE TABLE `{$tableName}`");
+            $results['analyze'] = $analyzeResult;
+            $this->line("  ✅ Analysis completed");
+        }
+
+        // Optimize table
+        $this->line("  ⚡ Optimizing table...");
+        $optimizeResult = DB::select("OPTIMIZE TABLE `{$tableName}`");
+        $results['optimize'] = $optimizeResult;
+    }
+
+    /**
+     * Optimize SQLite table (simplified)
+     */
+    private function optimizeSQLiteTable($tableName, &$results)
+    {
+        $this->line("  📝 SQLite optimization (limited operations):");
+
+        // SQLite equivalent: VACUUM is database-wide, REINDEX is per-table
+        $this->line("  📊 Reindexing table...");
+        try {
+            DB::statement("REINDEX `{$tableName}`");
+            $results['reindex'] = 'completed';
+            $this->line("  ✅ Reindex completed");
+        } catch (\Exception $e) {
+            $this->line("  ⚠️ Reindex skipped: " . $e->getMessage());
+            $results['reindex'] = 'skipped';
+        }
+    }
+
+    /**
      * Get table statistics
      */
     private function getTableStats($tableName)
     {
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            return $this->getMySQLTableStats($tableName);
+        } else {
+            return $this->getSQLiteTableStats($tableName);
+        }
+    }
+
+    /**
+     * Get MySQL table statistics
+     */
+    private function getMySQLTableStats($tableName)
+    {
         $stats = DB::selectOne("
-            SELECT 
+            SELECT
                 TABLE_ROWS as row_count,
                 ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) as size_mb,
                 ROUND(DATA_LENGTH / 1024 / 1024, 2) as data_size_mb,
                 ROUND(INDEX_LENGTH / 1024 / 1024, 2) as index_size_mb,
                 ENGINE as storage_engine,
                 DATA_FREE as data_free
-            FROM information_schema.TABLES 
-            WHERE TABLE_SCHEMA = DATABASE() 
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
             AND TABLE_NAME = ?
         ", [$tableName]);
 
@@ -201,5 +275,33 @@ class DatabaseOptimizeCommand extends Command
             'storage_engine' => $stats->storage_engine ?? 'unknown',
             'data_free' => $stats->data_free ?? 0
         ];
+    }
+
+    /**
+     * Get SQLite table statistics (simplified)
+     */
+    private function getSQLiteTableStats($tableName)
+    {
+        try {
+            $rowCount = DB::selectOne("SELECT COUNT(*) as count FROM `{$tableName}`");
+
+            return [
+                'row_count' => $rowCount->count ?? 0,
+                'size_mb' => 0, // Size info not readily available in SQLite
+                'data_size_mb' => 0,
+                'index_size_mb' => 0,
+                'storage_engine' => 'sqlite',
+                'data_free' => 0
+            ];
+        } catch (\Exception $e) {
+            return [
+                'row_count' => 0,
+                'size_mb' => 0,
+                'data_size_mb' => 0,
+                'index_size_mb' => 0,
+                'storage_engine' => 'sqlite',
+                'data_free' => 0
+            ];
+        }
     }
 }

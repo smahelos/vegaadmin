@@ -18,11 +18,11 @@ class SyncArtisanCommandsTest extends TestCase
         $this->assertTrue(class_exists('App\Console\Commands\SyncArtisanCommands'));
     }
 
-    #[Test] 
+    #[Test]
     public function command_has_required_properties(): void
     {
         $reflection = new \ReflectionClass('App\Console\Commands\SyncArtisanCommands');
-        
+
         $this->assertTrue($reflection->hasProperty('signature'));
         $this->assertTrue($reflection->hasProperty('description'));
         $this->assertTrue($reflection->hasMethod('handle'));
@@ -35,7 +35,7 @@ class SyncArtisanCommandsTest extends TestCase
         $reflection = new \ReflectionClass('App\Console\Commands\SyncArtisanCommands');
         $constructor = $reflection->getMethod('__construct');
         $parameters = $constructor->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('commandsService', $parameters[0]->getName());
     }
@@ -45,7 +45,7 @@ class SyncArtisanCommandsTest extends TestCase
     {
         $reflection = new \ReflectionClass('App\Console\Commands\SyncArtisanCommands');
         $signatureProperty = $reflection->getProperty('signature');
-        
+
         $this->assertTrue($signatureProperty->isProtected());
     }
 
@@ -54,7 +54,7 @@ class SyncArtisanCommandsTest extends TestCase
     {
         $reflection = new \ReflectionClass('App\Console\Commands\SyncArtisanCommands');
         $descriptionProperty = $reflection->getProperty('description');
-        
+
         $this->assertTrue($descriptionProperty->isProtected());
     }
 
@@ -63,8 +63,8 @@ class SyncArtisanCommandsTest extends TestCase
     {
         $reflection = new \ReflectionClass('App\Console\Commands\SyncArtisanCommands');
         $fileContent = file_get_contents($reflection->getFileName());
-        
-        $this->assertStringContainsString('App\Contracts\ArtisanCommandsServiceInterface', $fileContent);
+
+    $this->assertStringContainsString('App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsServiceInterface', $fileContent);
         $this->assertStringContainsString('App\Models\ArtisanCommand', $fileContent);
         $this->assertStringContainsString('Illuminate\Console\Command', $fileContent);
     }

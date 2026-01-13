@@ -24,25 +24,15 @@ class PaymentMethodFactory extends Factory
      */
     public function definition(): array
     {
-        $name = $this->faker->randomElement([
-            'Cash',
-            'Credit Card',
-            'Debit Card', 
-            'Bank Transfer',
-            'PayPal',
-            'Stripe',
-            'Bitcoin',
-            'Check',
-            'Wire Transfer',
-            'Online Payment'
-        ]);
-        
+        $options = ['Cash','Card','Bank Transfer','PayPal'];
+        $name = $options[array_rand($options)];
+        $slug = \Illuminate\Support\Str::slug($name.'-'.uniqid());
         return [
             'name' => $name,
-            'slug' => $this->faker->unique()->slug(),
-            'country' => $this->faker->optional()->countryCode(),
-            'currency' => $this->faker->optional()->currencyCode(),
-            'icon' => $this->faker->optional()->word(),
+            'slug' => $slug,
+            'country' => 'CZ',
+            'currency' => 'CZK',
+            'icon' => null,
         ];
     }
 

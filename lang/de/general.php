@@ -6,7 +6,7 @@ return [
     'currency' => '€',
     'yes' => 'Ja',
     'no' => 'Nein',
-    
+
     // Monate für Datumsformatierung
     'months' => [
         1 => 'Januar',
@@ -22,7 +22,7 @@ return [
         11 => 'November',
         12 => 'Dezember',
     ],
-    
+
     'navigation' => [
         'dashboard' => 'Übersicht',
         'invoices' => 'Rechnungen',
@@ -30,8 +30,10 @@ return [
         'suppliers' => 'Lieferanten',
         'profile' => 'Profil',
         'products' => 'Produkte',
+        'create_invoice' => 'Rechnung erstellen',
+        'pages' => 'Seiten',
     ],
-    
+
     'placeholders' => [
         'select_client' => 'Wählen Sie einen Kunden oder erstellen Sie einen neuen...',
         'select_status' => 'Status auswählen...',
@@ -68,7 +70,7 @@ return [
 
     'actions' => [
         'create' => 'Erstellen',
-        'edit' => 'Bearbeiten',
+        'edit' => 'Regeln',
         'delete' => 'Löschen',
         'view' => 'Anzeigen',
         'save' => 'Speichern',

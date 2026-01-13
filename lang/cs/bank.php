@@ -18,6 +18,8 @@ return [
         'code' => 'Kód banky',
         'swift' => 'SWIFT kód',
         'country' => 'Země',
+        'description' => 'Popis',
+        'is_active' => 'Aktivní',
         'active' => 'Aktivní',
     ],
 

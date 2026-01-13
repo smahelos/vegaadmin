@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import { copyFileSync, mkdirSync, existsSync } from 'fs';
+import { resolve } from 'path';
 
 export default defineConfig({
     plugins: [
@@ -14,13 +16,16 @@ export default defineConfig({
                 'resources/js/client-form-data.js',
                 'resources/js/slug-generator.js',
                 'resources/js/product-selector.js',
-                'resources/js/product-image-preview.js',
+                'resources/js/image-preview.js',
+                'resources/js/template-selector.js',
+                'resources/js/template-selector-updating.js',
+                'resources/js/uels-manager.js',
             ],
             refresh: true,
         }),
     ],
     build: {
-        // Sertup sourcemap for easier debugging
+        // Setup sourcemap for easier debugging
         // Vite generates sourcemaps for all files by default
         sourcemap: true,
         // Disable code splitting
@@ -29,7 +34,7 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
-                    // Set the source map pathes to be relative to the root directory
+                    // Set the source map paths to be relative to the root directory
                     return relativeSourcePath;
                 },
                 manualChunks: undefined,

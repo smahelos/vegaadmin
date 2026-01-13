@@ -8,11 +8,13 @@
     "require": {
         "php": "^8.2",
         "backpack/crud": "^6.8",
+        "backpack/language-switcher": "^2.0",
         "backpack/permissionmanager": "^7.2",
         "backpack/theme-tabler": "^1.2",
         "barryvdh/laravel-dompdf": "^3.1",
         "cviebrock/eloquent-sluggable": "^12.0",
         "doctrine/dbal": "^4.2",
+        "gopay/payments-sdk-php": "^1.10",
         "intervention/image": "^3.11",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
@@ -23,10 +25,10 @@
     },
     "require-dev": {
         "backpack/generators": "^4.0",
+        "brianium/paratest": "^7.8",
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.13",
-        "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "phpunit/phpunit": "^11.5.3"

@@ -24,13 +24,12 @@ class RequireBackpackApiAccess
                 'path' => $request->path(),
                 'backpack_check' => backpack_auth()->check(),
                 'laravel_auth_check' => auth()->check(),
-                'laravel_auth_guard' => auth()->getDefaultDriver(),
             ]);
-            return $this->unauthorized();
+            return $this->unauthorized($request);
         }
 
         $user = backpack_auth()->user();
-        Log::warning('Backpack user authenticated', [
+        Log::debug('Backpack user authenticated', [
             'user_id' => $user->id,
             'email' => $user->email,
             'path' => $request->path(),
@@ -40,7 +39,7 @@ class RequireBackpackApiAccess
                 return $p->name . ' (' . $p->guard_name . ')';
             })->toArray(),
         ]);
-        
+
         // Check if user has backpack API access permission
         if (!$user->hasPermissionTo('backpack.api.access', 'backpack')) {
             Log::warning('Backpack user lacks API access permission', [
@@ -50,7 +49,7 @@ class RequireBackpackApiAccess
                 'checked_permission' => 'backpack.api.access',
                 'checked_guard' => 'backpack',
             ]);
-            return $this->forbidden();
+            return $this->forbidden($request);
         }
 
         return $next($request);
@@ -59,30 +58,30 @@ class RequireBackpackApiAccess
     /**
      * Return unauthorized response
      */
-    private function unauthorized()
+    private function unauthorized(Request $request)
     {
-        if (request()->expectsJson() || request()->ajax()) {
+        if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'error' => __('backpack::base.unauthorized'),
                 'code' => 401
             ], 401);
         }
-        
+
         return redirect()->guest(backpack_url('login'));
     }
 
     /**
      * Return forbidden response
      */
-    private function forbidden()
+    private function forbidden(Request $request)
     {
-        if (request()->expectsJson() || request()->ajax()) {
+        if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
-                'error' => __('backpack::base.forbidden'),
+                'error' => __('backpack::crud.unauthorized_access'),
                 'code' => 403
             ], 403);
         }
-        
-        return redirect()->route(backpack_url('dashboard'))->with('error', __('backpack::base.forbidden'));
+        // Redirect to dashboard URL (backpack_url already returns full path)
+        return redirect(backpack_url('dashboard'))->with('error', __('backpack::crud.unauthorized_access'));
     }
 }

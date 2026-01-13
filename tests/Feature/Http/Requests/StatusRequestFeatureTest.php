@@ -8,20 +8,40 @@ use App\Models\Status;
 use App\Models\StatusCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Route;
 
 class StatusRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        $permission = Permission::where('name', 'frontend.can_create_edit_status')
+            ->where('guard_name', 'web')
+            ->first();
+
+        $this->user->givePermissionTo($permission);
+    }
 
     #[Test]
     public function frontend_status_request_validation_passes_with_valid_data(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Status Name',
@@ -43,8 +63,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function frontend_status_request_validation_fails_with_invalid_data(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => '', // Required field empty
@@ -60,7 +79,7 @@ class StatusRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
         $this->assertTrue($validator->fails(), 'Validation should fail with invalid data');
-        
+
         $errors = $validator->errors();
         $this->assertTrue($errors->has('name'));
         $this->assertTrue($errors->has('slug'));
@@ -71,9 +90,9 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function admin_status_request_validation_passes_with_valid_data(): void
     {
-        $user = User::factory()->create();
+        $this->actingAs($this->user);
+
         $category = StatusCategory::factory()->create();
-        $this->actingAsBackpackUser($user);
 
         $data = [
             'name' => 'Valid Admin Status',
@@ -96,8 +115,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function admin_status_request_validation_fails_without_category_id(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Name',
@@ -121,8 +139,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function admin_status_request_validation_fails_with_non_existent_category_id(): void
     {
-        $user = User::factory()->create();
-        $this->actingAsBackpackUser($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Valid Name',
@@ -148,8 +165,7 @@ class StatusRequestFeatureTest extends TestCase
     {
         Status::factory()->create(['slug' => 'existing-slug']);
 
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'New Status',
@@ -173,8 +189,7 @@ class StatusRequestFeatureTest extends TestCase
     {
         $status = Status::factory()->create(['slug' => 'existing-slug']);
 
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Updated Name',
@@ -196,8 +211,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_optional_fields_null(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => 'Minimal Status',
@@ -219,8 +233,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_with_boolean_variations_for_is_active(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $validBooleanValues = [true, false, 1, 0, '1', '0'];
 
@@ -244,8 +257,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_invalid_boolean_for_is_active(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $invalidBooleanValues = ['yes', 'no', 'true', 'false', 2, -1, 'active', 'inactive'];
 
@@ -270,8 +282,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function validation_error_messages_use_translations(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $data = [
             'name' => '', // Required field empty
@@ -285,12 +296,12 @@ class StatusRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
         $this->assertTrue($validator->fails());
-        
+
         $errors = $validator->errors();
-        
+
         $nameError = $errors->first('name');
         $slugError = $errors->first('slug');
-        
+
         $this->assertEquals(__('statuses.validation.name_required'), $nameError);
         $this->assertEquals(__('statuses.validation.slug_required'), $slugError);
     }
@@ -321,5 +332,24 @@ class StatusRequestFeatureTest extends TestCase
         $this->assertEquals(__('statuses.fields.category'), $adminAttributes['category_id']);
 
         $this->assertArrayNotHasKey('category_id', $frontendAttributes);
+    }
+
+    #[Test]
+    public function frontend_slug_is_auto_generated_when_missing(): void
+    {
+        $this->actingAs($this->user);
+
+        Route::post('/frontend-status-slug', function (StatusRequest $request) {
+            return response()->json(['slug' => $request->slug]);
+        })->middleware('web');
+
+        $data = [
+            'name' => 'Frontend Fancy Status',
+            // slug omitted
+        ];
+
+        $response = $this->postJson('/frontend-status-slug', $data);
+        $response->assertStatus(200);
+        $this->assertEquals(Str::slug($data['name']), $response->json('slug'));
     }
 }

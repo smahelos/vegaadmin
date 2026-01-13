@@ -21,21 +21,25 @@ class ExpenseCategoryRequest extends FormRequest
             return false;
         }
 
-        return $user->can('can_create_edit_expense');
+        return $user->can('frontend.can_create_edit_expense');
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function rules(): array
     {
-        $id = $this->get('id') ?? 'NULL';
-        
+        $id = $this->route('id');
+        if (!$id && $this->has('id')) {
+            $id = $this->get('id');
+        }
+        $id = $id ?: 'NULL';
+
         return [
-            'name' => 'required|min:2|max:255',
-            'slug' => 'required|min:2|max:255|unique:expense_categories,slug,'.$id,
+            'name' => 'required|string|min:2|max:255',
+            'slug' => 'required|string|min:2|max:255|unique:expense_categories,slug,' . $id,
             'color' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -45,7 +49,7 @@ class ExpenseCategoryRequest extends FormRequest
     /**
      * Get custom attributes for validator errors.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function attributes(): array
     {
@@ -60,21 +64,23 @@ class ExpenseCategoryRequest extends FormRequest
 
     /**
      * Get the error messages for the defined validation rules.
+     * Only custom messages that differ from default Laravel messages are defined here.
+     * Other validation rules will fall back to the default Laravel translation lines using attributes().
      *
-     * @return array
+     * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'name.required' => trans('admin.validation.required', ['field' => trans('admin.expenses.name')]),
-            'name.min' => trans('admin.validation.min', ['field' => trans('admin.expenses.name'), 'min' => 2]),
-            'name.max' => trans('admin.validation.max', ['field' => trans('admin.expenses.name'), 'max' => 255]),
-            'slug.required' => trans('admin.validation.required', ['field' => trans('admin.expenses.slug')]),
-            'slug.min' => trans('admin.validation.min', ['field' => trans('admin.expenses.slug'), 'min' => 2]),
-            'slug.max' => trans('admin.validation.max', ['field' => trans('admin.expenses.slug'), 'max' => 255]),
-            'slug.unique' => trans('admin.validation.unique', ['field' => trans('admin.expenses.slug')]),
-            'color.max' => trans('admin.validation.max', ['field' => trans('admin.expenses.color'), 'max' => 50]),
-            'is_active.boolean' => trans('admin.validation.boolean', ['field' => trans('admin.expenses.is_active')]),
+            'name.required' => __('validation.required', ['attribute' => trans('admin.expenses.name')]),
+            'name.min' => __('validation.min.string', ['attribute' => trans('admin.expenses.name'), 'min' => 2]),
+            'name.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.name'), 'max' => 255]),
+            'slug.required' => __('validation.required', ['attribute' => trans('admin.expenses.slug')]),
+            'slug.min' => __('validation.min.string', ['attribute' => trans('admin.expenses.slug'), 'min' => 2]),
+            'slug.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.slug'), 'max' => 255]),
+            'slug.unique' => __('validation.unique', ['attribute' => trans('admin.expenses.slug')]),
+            'color.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.color'), 'max' => 50]),
+            'is_active.boolean' => __('validation.boolean', ['attribute' => trans('admin.expenses.is_active')]),
         ];
     }
 
@@ -83,7 +89,7 @@ class ExpenseCategoryRequest extends FormRequest
      *
      * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         // Generate slug if not provided
         if (empty($this->slug)) {

@@ -191,6 +191,16 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'supplier_logo' => 'supplier logo',
+        'invoice_logo' => 'invoice logo',
+        'image' => 'product image',
+    ],
+
+    // Custom file upload errors
+    'file_upload' => [
+        'type_not_allowed' => 'The selected file type is not allowed for :attribute.',
+        'size_exceeded' => 'The file exceeds the maximum size for :attribute.',
+    ],
 
 ];

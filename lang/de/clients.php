@@ -30,7 +30,7 @@ return [
     'actions' => [
         'create' => 'Kunde erstellen',
         'edit' => 'Kunde bearbeiten',
-        'edit_short' => 'Bearbeiten',
+        'edit_short' => 'Regeln',
         'delete' => 'Kunde löschen',
         'save' => 'Kunde speichern',
         'save_changes' => 'Änderungen speichern',

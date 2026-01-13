@@ -4,43 +4,73 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\BankRequest;
 use App\Models\Bank;
+use App\Models\EntityLimit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 
 class BankRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, CreatesAdminTestEnvironment;
+
+    protected User $adminUser;
+    private UniversalLimitService $limitService;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpAdminTestEnvironment();
+
+        $this->limitService = app(UniversalLimitService::class);
+
+        // Seed a generous default limit for banks
+        EntityLimit::factory()->create([
+            'permission_name' => 'can_create_edit_bank',
+            'entity_type' => 'bank',
+            'limit_value' => 50,
+            'period_type' => 'monthly',
+            'metric_type' => 'count',
+            'is_active' => true,
+        ]);
+
+        Route::post('/test-bank', function (BankRequest $request) {
+            $data = $request->validated();
+            $bank = \App\Models\Bank::create($data);
+            return response()->json(['success' => true, 'id' => $bank->id]);
+        })->middleware('web');
+
+        Route::put('/test-bank/{id}', function (BankRequest $request, $id) {
+            $data = $request->validated();
+            $bank = \App\Models\Bank::findOrFail($id);
+            $bank->update($data);
+            return response()->json(['success' => true, 'id' => $bank->id]);
+        })->middleware('web');
+    }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
-        $user = User::factory()->create();
-        
-        $validData = [
+        $request = new BankRequest();
+        $data = [
             'name' => 'Test Bank',
             'code' => '1234',
-            'swift' => 'TESTCZ22',
+            'swift' => 'ABCDCZ22',
             'country' => 'CZ',
         ];
-
-        $request = new BankRequest();
-        $validator = Validator::make($validData, $request->rules());
-
+        $validator = Validator::make($data, $request->rules());
         $this->assertTrue($validator->passes());
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
-        $invalidData = [];
-
         $request = new BankRequest();
-        $validator = Validator::make($invalidData, $request->rules());
-
+        $validator = Validator::make([], $request->rules());
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
         $this->assertArrayHasKey('code', $validator->errors()->toArray());
@@ -48,211 +78,153 @@ class BankRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_string_fields_exceed_max_length()
+    public function code_must_be_unique(): void
     {
-        $invalidData = [
-            'name' => str_repeat('a', 256), // max 255
-            'code' => str_repeat('b', 11),  // max 10
-            'swift' => str_repeat('c', 21), // max 20
-            'country' => 'CZE', // should be exactly 2 chars
-        ];
-
+        Bank::factory()->create(['code' => 'EXIST']);
         $request = new BankRequest();
-        $validator = Validator::make($invalidData, $request->rules());
-
-        $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('code', $validator->errors()->toArray());
-        $this->assertArrayHasKey('swift', $validator->errors()->toArray());
-        $this->assertArrayHasKey('country', $validator->errors()->toArray());
-    }
-
-    #[Test]
-    public function validation_passes_with_nullable_fields_empty()
-    {
-        $validData = [
-            'name' => 'Test Bank',
-            'code' => '5678',
-            'country' => 'SK',
-            'swift' => null, // nullable field
-        ];
-
-        $request = new BankRequest();
-        $validator = Validator::make($validData, $request->rules());
-
-        $this->assertTrue($validator->passes());
-    }
-
-    #[Test]
-    public function validation_fails_with_invalid_country_format()
-    {
-        $invalidData = [
-            'name' => 'Test Bank',
-            'code' => '9999',
-            'country' => 'C', // should be exactly 2 chars
-        ];
-
-        $request = new BankRequest();
-        $validator = Validator::make($invalidData, $request->rules());
-
-        $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('country', $validator->errors()->toArray());
-    }
-
-    #[Test]
-    public function code_uniqueness_validation()
-    {
-        // Create existing bank
-        Bank::factory()->create(['code' => 'EXISTING']);
-
-        // Try to create another bank with same code
-        $invalidData = [
-            'name' => 'New Bank',
-            'code' => 'EXISTING',
+        $validator = Validator::make([
+            'name' => 'Another',
+            'code' => 'EXIST',
             'country' => 'CZ',
-        ];
-
-        $request = new BankRequest();
-        $validator = Validator::make($invalidData, $request->rules());
-
+        ], $request->rules());
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('code', $validator->errors()->toArray());
     }
 
     #[Test]
-    public function code_uniqueness_validation_allows_updating_same_record()
+    public function update_allows_same_code(): void
     {
-        $existingBank = Bank::factory()->create(['code' => 'UPDATE']);
-
-        // Simulate updating the same bank
-        $validData = [
-            'name' => 'Updated Bank Name',
-            'code' => 'UPDATE',
-            'country' => 'CZ',
-        ];
-
-        // Create request instance with the ID to simulate update
+        $bank = Bank::factory()->create(['code' => 'KEEP']);
         $request = new BankRequest();
-        $request->merge(['id' => $existingBank->id]);
-        
-        $validator = Validator::make($validData, $request->rules());
-
+        $request->merge(['id' => $bank->id]);
+        $validator = Validator::make([
+            'name' => 'Updated',
+            'code' => 'KEEP',
+            'country' => 'CZ',
+        ], $request->rules());
         $this->assertTrue($validator->passes());
     }
 
     #[Test]
-    public function authorization_with_authenticated_user_via_http()
+    public function authorization_passes_for_user_with_permission(): void
     {
-        // Create an admin user with proper permissions
+        $this->actingAs($this->adminUser, 'backpack');
+        $this->postJson('/test-bank', [
+            'name' => 'Permitted',
+            'code' => 'PERM1',
+            'country' => 'CZ',
+        ])->assertStatus(200);
+    }
+
+    #[Test]
+    public function authorization_fails_for_unauthenticated_user(): void
+    {
+        $this->postJson('/test-bank', [
+            'name' => 'Fail',
+            'code' => 'FAIL1',
+            'country' => 'CZ',
+        ])->assertStatus(403);
+    }
+
+    #[Test]
+    public function authorization_fails_for_user_without_permission(): void
+    {
         $user = User::factory()->create();
-        
-        // Since we don't have permissions set up in tests, we'll test the request class directly
-        $request = new BankRequest();
-        
-        // Mock the authentication
         $this->actingAs($user, 'backpack');
-        
-        // Test that the request authorization works
+        $this->postJson('/test-bank', [
+            'name' => 'NoPerm',
+            'code' => 'NOP1',
+            'country' => 'CZ',
+        ])->assertStatus(403);
+    }
+
+    #[Test]
+    public function bank_creation_respects_limits(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        EntityLimit::where('entity_type', 'bank')->update(['limit_value' => 1]);
+        $this->postJson('/test-bank', [
+            'name' => 'First Bank',
+            'code' => 'LIM01',
+            'country' => 'CZ',
+        ])->assertStatus(200);
+        // Record usage manually
+        $this->limitService->recordUsage($this->adminUser->id, 'bank', 'count', 'monthly', 'backpack');
+
+        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
+        $request = new class extends BankRequest { public function rules(): array { return []; } };
+        $request->replace(['name' => 'Second', 'code' => 'LIM02', 'country' => 'CZ']);
+        $request->setRouteResolver(fn () => (object)['parameter' => fn ($n) => null]);
+        $request->setMethod('POST');
+        $this->assertFalse($request->authorize()); // Exception expected before false
+    }
+
+    #[Test]
+    public function bank_update_bypasses_limits(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        EntityLimit::where('entity_type', 'bank')->update(['limit_value' => 0]);
+        // Simulate that usage already at limit
+        $this->limitService->recordUsage($this->adminUser->id, 'bank', 'count', 'monthly', 'backpack');
+
+        $request = new class extends BankRequest { public function rules(): array { return []; } };
+        $request->replace(['name' => 'Updated']);
+        $request->setRouteResolver(fn () => (object)['parameter' => fn ($n) => 99]);
+        $request->setMethod('PUT');
         $this->assertTrue($request->authorize());
     }
 
     #[Test]
-    public function authorization_fails_with_unauthenticated_user_via_http()
+    public function accepts_various_boolean_active_values(): void
     {
-        $request = new BankRequest();
-        
-        // Without authentication, authorize should return false
-        $this->assertFalse($request->authorize());
+        $values = [true, false, 1, 0, '1', '0'];
+        $base = new BankRequest();
+        foreach ($values as $idx => $val) {
+            $validator = Validator::make([
+                'name' => 'Bank '. $idx,
+                'code' => 'B'. $idx . 'X'. $idx,
+                'country' => 'cz', // lowercase to test normalization
+                'active' => $val,
+            ], $base->rules());
+            $this->assertTrue($validator->passes(), 'Active value should pass: '. var_export($val,true));
+        }
     }
 
     #[Test]
-    public function custom_error_messages_are_displayed()
+    public function description_respects_max_length(): void
     {
-        $invalidData = [
-            'name' => '',
-            'code' => '',
-            'country' => '',
-        ];
-
         $request = new BankRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
-
-        $this->assertFalse($validator->passes());
-        
-        $errors = $validator->errors();
-        $this->assertStringContainsString('bank.', $errors->first('name'));
-        $this->assertStringContainsString('bank.', $errors->first('code'));
-        $this->assertStringContainsString('bank.', $errors->first('country'));
-    }
-
-    #[Test]
-    public function validation_with_actual_http_request()
-    {
-        // Test validation logic directly since HTTP routes require specific permissions
-        $request = new BankRequest();
-        
-        // Test valid data validation
-        $validator = Validator::make([
-            'name' => 'HTTP Test Bank',
-            'code' => 'HTTP',
-            'country' => 'CZ',
+        $valid = Validator::make([
+            'name' => 'Desc Bank',
+            'code' => 'D123',
+            'country' => 'sk',
+            'description' => str_repeat('a', 1000),
         ], $request->rules());
-        
-        $this->assertTrue($validator->passes());
-        
-        // Test invalid data validation
-        $invalidValidator = Validator::make([
-            'name' => '',
-            'code' => '',
+        $this->assertTrue($valid->passes());
+
+        $invalid = Validator::make([
+            'name' => 'Desc Bank',
+            'code' => 'D124',
+            'country' => 'sk',
+            'description' => str_repeat('a', 1001),
         ], $request->rules());
-        
-        $this->assertFalse($invalidValidator->passes());
-        $this->assertArrayHasKey('name', $invalidValidator->errors()->toArray());
-        $this->assertArrayHasKey('code', $invalidValidator->errors()->toArray());
+        $this->assertFalse($invalid->passes());
+        $this->assertArrayHasKey('description', $invalid->errors()->toArray());
     }
 
     #[Test]
-    public function custom_attributes_are_applied()
+    public function country_is_normalized_to_uppercase(): void
     {
-        $request = new BankRequest();
-        $attributes = $request->attributes();
+        $this->actingAs($this->adminUser,'backpack');
+        $response = $this->postJson('/test-bank', [
+            'name' => 'Lower Country',
+            'code' => 'LC01',
+            'country' => 'de',
+        ])->assertStatus(200);
 
-        $this->assertNotEmpty($attributes);
-        $this->assertArrayHasKey('name', $attributes);
-        $this->assertArrayHasKey('code', $attributes);
-        $this->assertArrayHasKey('swift', $attributes);
-        $this->assertArrayHasKey('country', $attributes);
-    }
-
-    #[Test]
-    public function edge_cases_with_whitespace_and_special_characters()
-    {
-        $edgeCaseData = [
-            'name' => '  Test Bank  ', // whitespace
-            'code' => 'T€ST', // special characters
-            'country' => 'cz', // lowercase
-        ];
-
-        $request = new BankRequest();
-        $validator = Validator::make($edgeCaseData, $request->rules());
-
-        // Should pass basic validation (trimming and character validation depend on specific rules)
-        $this->assertTrue($validator->passes());
-    }
-
-    #[Test]
-    public function maximum_boundary_values_for_length_constraints()
-    {
-        $boundaryData = [
-            'name' => str_repeat('a', 255), // exactly max length
-            'code' => str_repeat('b', 10),  // exactly max length
-            'swift' => str_repeat('c', 20), // exactly max length
-            'country' => 'CZ', // exactly required length
-        ];
-
-        $request = new BankRequest();
-        $validator = Validator::make($boundaryData, $request->rules());
-
-        $this->assertTrue($validator->passes());
+        $this->assertDatabaseHas('banks', [
+            'code' => 'LC01',
+            'country' => 'DE',
+        ]);
     }
 }

@@ -1,0 +1,110 @@
+#name: Architecture Baselines Full Parity
+#
+#on:
+#  pull_request:
+#    branches: [ main, develop ]
+#
+#jobs:
+#  baselines-parity:
+#    name: Baselines / Guard / Drift / Tests (Parity)
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 25
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Setup PHP 8.3
+#        uses: shivammathur/setup-php@v2
+#        with:
+#            php-version: '8.3'
+#            extensions: zip
+#            coverage: none
+#            tools: composer
+#
+#      - name: Install Dependencies
+#        run: |
+#          composer install --no-interaction --no-progress --prefer-dist
+#
+#      - name: 1. Unified Baselines Refresh
+#        run: |
+#          set -e
+#          php artisan ddd:baselines:refresh --include-legacy --include-provider --write --update-versioned --json-summary > baselines_summary.json
+#          cp architecture/baselines/legacy_report_latest.json legacy_report_latest.json || true
+#          RES=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["residuals"] ?? 0;')
+#          NEU=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["neutralized_tests"] ?? 0;')
+#          echo "Residuals=$RES Neutralized=$NEU"
+#          if [ "$RES" -gt 0 ]; then echo "Residual legacy artifacts detected ($RES)."; exit 1; fi
+#          if [ "$NEU" -gt 0 ]; then echo "(Warning) Neutralized tests present: $NEU"; fi
+#          CTR_DELTA=$(php -r '$s=json_decode(file_get_contents("baselines_summary.json"),true); echo $s["diff"]["controller_thinness"]["delta"] ?? "";')
+#          if [ "${CTR_DELTA}" != "0" ]; then
+#            echo "::error::Controller thinness drift detected (delta=${CTR_DELTA}). If intentional regenerate baseline.";
+#            exit 1;
+#          fi
+#
+#      - name: 2. Guard & Provider Diff
+#        run: |
+#          set -e
+#          php artisan payment:adapter:guard --ci
+#          php artisan ddd:guard --di --format=json || true
+#          test -f storage/app/ddd_guard_report.json && echo "(Info) ddd_guard_report generated" || echo "(Warn) ddd_guard_report missing"
+#          # Human readable hard fail (regex / forbidden patterns)
+#            php artisan ddd:guard
+#          # Provider snapshot diff
+#          test -f architecture/baselines/provider_snapshot.json || (echo "Missing provider snapshot baseline. Run locally & commit." && exit 1)
+#          php artisan ddd:providers:snapshot --diff --format=json > provider_snapshot_diff.json || SNAP_EXIT=$?; cat provider_snapshot_diff.json || true; if [ "${SNAP_EXIT:-0}" -ne 0 ]; then echo "Provider snapshot diff failed"; exit 1; fi
+#          grep '"errors": \[\]' provider_snapshot_diff.json || (echo 'Provider snapshot has errors'; exit 1)
+#
+#      - name: 3. Architecture Drift & Focused Tests
+#        run: |
+#          set -e
+#          # Controller Thinness
+#          test -f architecture/baselines/controller_thinness_baseline.json || (echo "Missing architecture/baselines/controller_thinness_baseline.json baseline." && exit 1)
+#          mkdir -p storage/app/metrics
+#          php artisan ddd:controller-thinness:baseline --save
+#          cp storage/app/metrics/controller_thinness_baseline.json storage/app/metrics/controller_thinness_current.json
+#          cp architecture/baselines/controller_thinness_baseline.json storage/app/metrics/controller_thinness_baseline.json
+#          php -r '$base=json_decode(file_get_contents("architecture/baselines/controller_thinness_baseline.json"),true); $cur=json_decode(file_get_contents("storage/app/metrics/controller_thinness_current.json"),true); unset($base["summary"]["timestamp"],$cur["summary"]["timestamp"]); if ($base!=$cur){fwrite(STDERR,"Controller thinness baseline drift detected. Regenerate intentionally if acceptable.\n"); exit(1);} else {echo "No controller thinness baseline drift.";}'
+#          # Frontend drift
+#          test -f storage/app/metrics/frontend_controller_eloquent_baseline.json || (echo "Missing frontend baseline file. Generate & commit." && exit 1)
+#          php artisan ddd:frontend-eloquent:baseline --save
+#          git diff --exit-code storage/app/metrics/frontend_controller_eloquent_baseline.json || { echo "Frontend Eloquent baseline drift detected."; git --no-pager diff storage/app/metrics/frontend_controller_eloquent_baseline.json || true; exit 1; }
+#          # API drift
+#          test -f storage/app/metrics/api_controller_eloquent_baseline.json || (echo "Missing API baseline file. Generate & commit." && exit 1)
+#          php artisan ddd:api-eloquent:baseline --save
+#          git diff --exit-code storage/app/metrics/api_controller_eloquent_baseline.json || { echo "API Eloquent baseline drift detected."; git --no-pager diff storage/app/metrics/api_controller_eloquent_baseline.json || true; exit 1; }
+#          # Focused architecture enforcement tests
+#          php artisan test tests/Feature/Architecture/FrontendControllersEloquentUsageTest.php \
+#                                 tests/Feature/Architecture/ApiControllersEloquentUsageTest.php \
+#                                 tests/Feature/Architecture/ApiControllersDelegationTest.php \
+#                                 tests/Feature/Architecture/ControllerThinnessEnforcementTest.php
+#          # Optional payment limits scan
+#          php artisan payment:limits:report --threshold=0.9 --fail-on-threshold || echo "(Info) No data or near-limit records"
+#
+#      - name: 4. Test Suite (Parallel with Retry)
+#        run: |
+#          set -e
+#          php artisan ddd:guard || exit 1
+#          echo "[Paratest] Starting parallel test run"
+#          PARATEST_CMD="vendor/bin/paratest --processes=$(nproc) --configuration=phpunit.xml --testsuite=Unit,Feature"
+#          if ! eval "$PARATEST_CMD"; then
+#            echo "[Paratest] Parallel run failed – attempting single sequential retry (flaky mitigation)";
+#            if php artisan test --testsuite=Unit,Feature; then
+#              echo "[Paratest] Sequential retry passed – treating failure as flaky (non-fatal).";
+#            else
+#              echo "[Paratest] Sequential retry also failed – failing workflow.";
+#              exit 1;
+#            fi
+#          fi
+#
+#      - name: 5. Upload Artifacts
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: baselines-parity-artifacts
+#          path: |
+#            baselines_summary.json
+#            legacy_report_latest.json
+#            provider_snapshot_diff.json
+#            storage/app/metrics/controller_thinness_current.json
+#            storage/app/metrics/frontend_controller_eloquent_baseline.json
+#            storage/app/metrics/api_controller_eloquent_baseline.json

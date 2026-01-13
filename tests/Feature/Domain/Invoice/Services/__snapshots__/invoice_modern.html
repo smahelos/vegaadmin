@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Faktura SNAP-001</title>
+ <style>
+ @page {
+ margin: 20mm 15mm;
+ }
+ body {
+ font-family: DejaVu Sans, Arial, sans-serif;
+ font-size: 11px;
+ line-height: 1.4;
+ color: #1a1a1a;
+ margin: 0;
+ padding: 0;
+ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+ }
+ .container {
+ background: white;
+ box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+ }
+ .header {
+ margin-bottom: 20px;
+ padding-bottom: 10px;
+ border-bottom: 1px solid #5c5e60;
+ }
+ .header-logo-container {
+ max-height: 40px;
+ float: left;
+ text-align: right;
+ width: 30%;
+ object-fit: contain;
+ }
+ .header-logo {
+ max-height: 60px;
+ max-width: 140px;
+ object-fit: contain;
+ border-radius: 8px;
+ background: rgba(255, 255, 255, 0.1);
+ padding: 5px;
+ }
+ .header-content {
+ float: left;
+ text-align: left;
+ width: 70%;
+ }
+ .invoice-title {
+ font-size: 20px;
+ font-weight: bold;
+ margin-bottom: 0px;
+ text-transform: uppercase;
+ letter-spacing: 2px;
+ }
+ .invoice-number {
+ font-size: 12px;
+ margin-bottom: 0;
+ color: #4975b7;
+ }
+ .section {
+ margin-bottom: 15px;
+ background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+ padding: 5px 10px 10px 10px;
+ border-radius: 8px;
+ box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+ border: 2px solid #667eea;
+ }
+ .section-red {
+ border: 2px solid #d34356;
+ }
+ .section-title {
+ font-size: 14px;
+ font-weight: bold;
+ color: #667eea;
+ margin-bottom: 5px;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ }
+ .section-red .section-title {
+ color: #d34356;
+ }
+ .parties {
+ display: flex;
+ margin-bottom: 15px;
+ justify-content: space-between;
+ }
+ .supplier-info {
+ width: calc(99% - 24px);
+ /* Adjusted width to fit within the container */
+ background: linear-gradient(145deg, #ffffff, #f1f5f9);
+ border: 2px solid #10b981;
+ padding: 5px 10px 10px 10px;
+ border-radius: 8px;
+ margin-right: 1%;
+ box-shadow: 0 8px 25px rgba(16, 185, 129, 0.1);
+ }
+ .client-info {
+ width: calc(99% - 24px);
+ /* Adjusted width to fit within the container */
+ background: linear-gradient(145deg, #ffffff, #f1f5f9);
+ border: 2px solid #f59e0b;
+ padding: 5px 10px 10px 10px;
+ border-radius: 8px;
+ margin-left: 1%;
+ box-shadow: 0 8px 25px rgba(245, 158, 11, 0.1);
+ }
+ .supplier-info h3,
+ .client-info h3 {
+ margin-top: 0;
+ margin-bottom: 5px;
+ font-size: 14px;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ color: #1a1a1a;
+ }
+ .supplier-info h3 {
+ color: #10b981;
+ }
+ .client-info h3 {
+ color: #f59e0b;
+ }
+ .supplier-info p,
+ .client-info p {
+ margin: 3px 0;
+ line-height: 1.3;
+ }
+ .row {
+ display: flex;
+ margin-bottom: 8px;
+ }
+ .col {
+ flex: 1;
+ }
+ .col-left {
+ width: 48%;
+ float: left;
+ }
+ .col-right {
+ width: 48%;
+ float: right;
+ }
+ .clearfix:after {
+ content: "";
+ display: table;
+ clear: both;
+ }
+ .info-row {
+ margin-bottom: 2px;
+ line-height: 1.4;
+ display: flex;
+ justify-content: space-between;
+ }
+ .info-label {
+ font-weight: bold;
+ color: #64748b;
+ min-width: 150px;
+ }
+ .info-value {
+ font-weight: bold;
+ color: #1a1a1a;
+ text-align: right;
+ }
+ .payment-info {
+ border: 2px solid #3b82f6;
+ padding: 5px 10px 10px 10px;
+ background: #dbeafe;
+ border-radius: 8px;
+ }
+ .payment-info-title {
+ font-weight: bold;
+ margin-bottom: 5px;
+ color: #1e40af;
+ font-size: 14px;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ }
+ .qr-code {
+ text-align: left;
+ background: #f1f5f9;
+ padding: 5px 10px 10px 10px;
+ border-radius: 8px;
+ border: 2px solid #dbeafe;
+ }
+ .qr-code h3 {
+ margin-top: 0;
+ color: #1e40af;
+ font-size: 14px;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ margin-bottom: 5px;
+ }
+ .qr-code img {
+ max-width: 100px;
+ max-height: 100px;
+ border: 2px solid #e5e7eb;
+ border-radius: 8px;
+ padding: 8px;
+ background: white;
+ box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+ }
+ .footer {
+ margin-top: 30px;
+ text-align: center;
+ font-size: 10px;
+ color: #64748b;
+ padding-top: 20px;
+ border-top: 2px solid #e2e8f0;
+ }
+ table {
+ width: 100%;
+ border-collapse: collapse;
+ margin: 0 0 10px 0;
+ background: white;
+ overflow: hidden;
+ box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+ }
+ table th {
+ background: #ebf1f6;
+ color: #1a1a1a;
+ text-align: left;
+ font-weight: bold;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ }
+ table th,
+ table td {
+ border: none;
+ padding: 3px 5px 3px 5px;
+ }
+ table tr:nth-child(even) {
+ background: rgba(102, 126, 234, 0.05);
+ }
+ .text-right {
+ text-align: right;
+ }
+ .amount-total {
+ background: #ebf1f6;
+ color: #1a1a1a;
+ font-weight: bold;
+ }
+ .payment-details {
+ background: linear-gradient(145deg, #fee2e2, #fecaca);
+ color: #b91c1c;
+ padding: 15px;
+ border-radius: 8px;
+ margin-bottom: 25px;
+ font-weight: bold;
+ text-align: center;
+ border: 2px solid #fca5a5;
+ }
+ .red {
+ color: #b91c1c;
+ font-weight: bold;
+ }
+ </style>
+</head>
+<body>
+ <div class="container">
+ <div class="header">
+ 
+ <div class="header-content">
+ <div class="invoice-title">Faktura</div>
+ <div class="invoice-number">Číslo: SNAP-001</div>
+ </div>
+ 
+ 
+ <div style="width: 140px;"></div>
+ <div class="clearfix"></div>
+ </div>
+ <div class="parties clearfix">
+ <div class="col-left">
+ 
+ <div class="supplier-info"><DYNAMIC_SUPPLIER_BLOCK/></div>
+ </div>
+ <div class="col-right">
+ 
+ <div class="client-info"><DYNAMIC_CLIENT_BLOCK/></div>
+ </div>
+ </div>
+ <div class="section clearfix">
+ <div class="section-title">Údaje o faktuře</div>
+ <div class="clearfix">
+ <div class="col-left">
+ <div class="info-row">
+ <span class="info-label">Datum vystavení:</span>
+ <span class="info-value"><DATE></span>
+ </div>
+ <div class="info-row">
+ <span class="info-label">Datum zdanitelného plnění:</span>
+ <span class="info-value"><DATE></span>
+ </div>
+ <div class="info-row">
+ <span class="info-label">Splatnost:</span>
+ <span class="info-value"><DUE_IN></span>
+ </div>
+ <div class="info-row">
+ <span class="info-label red">Datum splatnosti:</span>
+ <span class="info-value red"><DATE></span>
+ </div>
+ </div>
+ <div class="col-right">
+ <div class="info-row">
+ <span class="info-label">Způsob platby:</span>
+ <span class="info-value">
+ invoices.labels.bank_transfer
+ </span>
+ </div>
+ <div class="info-row">
+ <span class="info-label">Číslo faktury:</span>
+ <span class="info-value">SNAP-001</span>
+ </div>
+ 
+ 
+ <div class="info-row">
+ <span class="info-label">Specifický symbol:</span>
+ <span class="info-value">2489</span>
+ </div>
+ </div>
+ </div>
+ </div>
+ <!-- Invoice amounts -->
+ <div class="section section-red">
+ <div class="section-title">Položky faktury</div>
+ </div>
+ <!-- Payment information and QR code -->
+ 
+ <div class="clearfix">
+ <div class="">
+ <div class="payment-info">
+ <div class="payment-info-title">Informace pro platbu</div>
+ <div class="info-row">
+ <span class="info-label">Název banky:</span>
+ <span class="info-value">Test Bank</span>
+ </div>
+ 
+ 
+ 
+ 
+ <div class="info-row">
+ <span class="info-label">Částka:</span>
+ <span class="info-value">€1 234,56</span>
+ </div>
+ <div class="info-row">
+ <span class="info-label">Číslo faktury:</span>
+ <span class="info-value">SNAP-001</span>
+ </div>
+ </div>
+ </div>
+ 
+ </div>
+ <div class="footer">
+ <p>Vygenerováno: <DATE> 18:38</p>
+ <p>Děkujeme za vytvoření PDF faktury!</p>
+ </div>
+ </div>
+ 
+ 
+ 
+ 
+</body>
+</html>

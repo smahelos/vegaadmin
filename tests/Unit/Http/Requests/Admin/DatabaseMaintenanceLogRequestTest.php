@@ -13,7 +13,6 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
 
     protected function setUp(): void
     {
-        parent::setUp();
         $this->request = new DatabaseMaintenanceLogRequest();
     }
 
@@ -29,10 +28,11 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
-        $this->assertEquals('bool', $returnType->getName());
+        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType;
+        $this->assertEquals('bool', $typeName);
     }
+
 
     #[Test]
     public function rules_method_has_correct_return_type(): void
@@ -40,9 +40,9 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
+        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType;
+        $this->assertEquals('array', $typeName);
     }
 
     #[Test]
@@ -51,9 +51,9 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
+        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType;
+        $this->assertEquals('array', $typeName);
     }
 
     #[Test]
@@ -62,9 +62,9 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('messages');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
+        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType;
+        $this->assertEquals('array', $typeName);
     }
 
     #[Test]
@@ -72,7 +72,7 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -81,7 +81,7 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -90,7 +90,7 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -99,7 +99,7 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('messages');
-        
+
         $this->assertTrue($method->isPublic());
     }
 }

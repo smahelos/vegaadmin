@@ -2,12 +2,14 @@
 
 namespace Tests\Unit\Traits;
 
-use App\Traits\HasPreferredLocale;
+use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class HasPreferredLocaleTest extends TestCase
 {
+    use HasPreferredLocale;
+
     #[Test]
     public function trait_exists_and_is_trait(): void
     {
@@ -21,10 +23,10 @@ class HasPreferredLocaleTest extends TestCase
     {
         $reflection = new \ReflectionClass(HasPreferredLocale::class);
         $this->assertTrue($reflection->hasMethod('getPreferredLocale'));
-        
+
         $method = $reflection->getMethod('getPreferredLocale');
         $this->assertTrue($method->isPublic());
-        
+
         // Check method return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -36,11 +38,11 @@ class HasPreferredLocaleTest extends TestCase
     {
         $reflection = new \ReflectionClass(HasPreferredLocale::class);
         $this->assertTrue($reflection->hasMethod('localeFromCountry'));
-        
+
         $method = $reflection->getMethod('localeFromCountry');
         $this->assertTrue($method->isPublic());
         $this->assertTrue($method->isStatic());
-        
+
         // Check method return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -52,7 +54,7 @@ class HasPreferredLocaleTest extends TestCase
     {
         $reflection = new \ReflectionClass(HasPreferredLocale::class);
         $method = $reflection->getMethod('getPreferredLocale');
-        
+
         // Should have no parameters
         $this->assertCount(0, $method->getParameters());
     }
@@ -62,15 +64,15 @@ class HasPreferredLocaleTest extends TestCase
     {
         $reflection = new \ReflectionClass(HasPreferredLocale::class);
         $method = $reflection->getMethod('localeFromCountry');
-        
+
         // Should have one nullable parameter
         $parameters = $method->getParameters();
         $this->assertCount(1, $parameters);
-        
+
         $param = $parameters[0];
         $this->assertEquals('country', $param->getName());
         $this->assertTrue($param->allowsNull());
-        
+
         // Check parameter type
         $paramType = $param->getType();
         $this->assertNotNull($paramType);
@@ -82,14 +84,14 @@ class HasPreferredLocaleTest extends TestCase
     public function trait_has_proper_docblocks(): void
     {
         $reflection = new \ReflectionClass(HasPreferredLocale::class);
-        
+
         // Check getPreferredLocale method docblock
         $getPreferredLocaleMethod = $reflection->getMethod('getPreferredLocale');
         $getPreferredLocaleDocComment = $getPreferredLocaleMethod->getDocComment();
         $this->assertNotFalse($getPreferredLocaleDocComment);
         $this->assertStringContainsString('Determines preferred language', $getPreferredLocaleDocComment);
         $this->assertStringContainsString('@return string', $getPreferredLocaleDocComment);
-        
+
         // Check localeFromCountry method docblock
         $localeFromCountryMethod = $reflection->getMethod('localeFromCountry');
         $localeFromCountryDocComment = $localeFromCountryMethod->getDocComment();
@@ -103,10 +105,10 @@ class HasPreferredLocaleTest extends TestCase
     public function trait_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(HasPreferredLocale::class);
-        
+
         // Check namespace
-        $this->assertEquals('App\Traits', $reflection->getNamespaceName());
-        
+        $this->assertEquals('App\Infrastructure\Shared\Locale\Traits', $reflection->getNamespaceName());
+
         // Check that it's not abstract, final, etc.
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isFinal());
@@ -118,10 +120,10 @@ class HasPreferredLocaleTest extends TestCase
     {
         $reflection = new \ReflectionClass(HasPreferredLocale::class);
         $methods = $reflection->getMethods();
-        
+
         // Should have exactly 2 methods
         $this->assertCount(2, $methods);
-        
+
         $methodNames = array_map(fn($method) => $method->getName(), $methods);
         $this->assertContains('getPreferredLocale', $methodNames);
         $this->assertContains('localeFromCountry', $methodNames);
@@ -132,7 +134,8 @@ class HasPreferredLocaleTest extends TestCase
     {
         $reflection = new \ReflectionClass(HasPreferredLocale::class);
         $method = $reflection->getMethod('localeFromCountry');
-        
+
+        $this->assertEquals('App\Infrastructure\Shared\Locale\Traits', $reflection->getNamespaceName());
         $this->assertTrue($method->isStatic());
         $this->assertTrue($method->isPublic());
     }

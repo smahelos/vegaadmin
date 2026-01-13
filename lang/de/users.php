@@ -11,7 +11,7 @@ return [
         'registration_failed' => 'Registrierung ist fehlgeschlagen.',
         'failed' => 'Anmeldung ist fehlgeschlagen.',
     ],
-    
+
     'fields' => [
         'name' => 'Name',
         'email' => 'E-Mail',
@@ -26,37 +26,37 @@ return [
         'description' => 'Beschreibung',
         'czech_republic' => 'Tschechische Republik',
         'current_password' => 'Aktuelles Passwort',
-        'current_password_hint' => 'Geben Sie Ihr aktuelles Passwort zur Bestätigung ein',
-        'password_hint' => 'Das Passwort muss mindestens 8 Zeichen haben',
+        'current_password_hint' => 'Passwort zur Bestätigung',
+        'password_hint' => 'Mindestens 8 Zeichen haben',
         'password' => 'Passwort',
         'new_password' => 'Neues Passwort',
         'password_confirmation' => 'Passwortbestätigung',
         'password_confirmation_hint' => 'Geben Sie das Passwort erneut zur Bestätigung ein',
         'remember_me' => 'Angemeldet bleiben',
-        
+
         // Hinweise und Platzhalter
         'email_placeholder' => 'E-Mail',
         'password_placeholder' => 'Passwort',
     ],
-    
+
     'titles' => [
         'edit_profile' => 'Profil bearbeiten',
         'login' => 'Anmelden',
         'register' => 'Registrieren',
         'system_name' => 'Rechnungssystem',
     ],
-    
+
     'errors' => [
         'login_errors' => 'Bei der Anmeldung sind Fehler aufgetreten:',
     ],
-    
+
     'sections' => [
         'basic_info' => 'Grunddaten',
         'address' => 'Adresse',
         'change_password' => 'Passwort ändern',
         'security' => 'Sicherheit',
     ],
-    
+
     'actions' => [
         'create' => 'Lieferant erstellen',
         'edit' => 'Lieferant bearbeiten',
@@ -70,7 +70,9 @@ return [
         'register' => 'Registrieren',
         'forgot_password' => 'Passwort vergessen?',
         'back_to_login' => 'Zurück zur Anmeldung',
+        'back_to_list' => 'Zurück zur Liste',
     ],
+
     'messages' => [
         'profile_updated' => 'Profil wurde erfolgreich aktualisiert.',
         'password_updated' => 'Profil und Passwort wurden erfolgreich geändert.',
@@ -83,6 +85,8 @@ return [
         'error_create_client' => 'Fehler beim Erstellen des Kunden: ',
         'error_delete_client' => 'Fehler beim Löschen des Kunden: ',
         'error_update_client' => 'Fehler bei der Aktualisierung des Kunden: ',
+        'not_found' => 'Benutzer nicht gefunden.',
+        'error_loading' => 'Fehler beim Laden des Benutzers.',
         'no_account' => 'Sie haben kein Konto?',
         'register_prompt' => 'Registrieren Sie sich',
         'have_account' => 'Sie haben bereits ein Konto?',
@@ -101,6 +105,8 @@ return [
         'password_min' => 'Das Passwort muss mindestens :min Zeichen haben',
         'password_required' => 'Passwort ist erforderlich',
         'password_confirmed' => 'Die Passwörter stimmen nicht überein',
+        'password_confirmation_required' => 'Passwortbestätigung ist erforderlich',
+        'phone_format' => 'Telefonnummernformat ist ungültig',
         'required_field' => 'Dieses Feld ist erforderlich',
     ],
 

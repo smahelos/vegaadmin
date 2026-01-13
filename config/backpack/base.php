@@ -111,15 +111,16 @@ return [
     // The classes for the middleware to check if the visitor is an admin
     // Can be a single class or an array of classes
     'middleware_class' => [
-        App\Http\Middleware\CheckIfAdmin::class,
+        App\Http\Middleware\RequireBackpackAccess::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \Backpack\CRUD\app\Http\Middleware\AuthenticateSession::class,
-        // \Backpack\CRUD\app\Http\Middleware\UseBackpackAuthGuardInsteadOfDefaultAuthGuard::class,
+        \Backpack\CRUD\app\Http\Middleware\UseBackpackAuthGuardInsteadOfDefaultAuthGuard::class,
+        \Backpack\LanguageSwitcher\Http\Middleware\LanguageSwitcherMiddleware::class,
     ],
 
     // Nastavení přesměrování po přihlášení
     'redirect_after_login' => 'admin/dashboard',
-    
+
     // Route pro login - upravíme, aby byl v admin sekci
     'login_url' => config('backpack.base.route_prefix', 'admin') . '/login',
     'logout_url' => config('backpack.base.route_prefix', 'admin') . '/logout',

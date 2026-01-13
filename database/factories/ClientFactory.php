@@ -12,18 +12,19 @@ class ClientFactory extends Factory
 
     public function definition(): array
     {
+        $rand = random_int(1000,9999);
         return [
             'user_id' => User::factory(),
-            'name' => $this->faker->company(),
-            'email' => $this->faker->unique()->safeEmail(),
-            'street' => $this->faker->streetAddress(),
-            'city' => $this->faker->city(),
-            'zip' => $this->faker->postcode(),
-            'country' => $this->faker->countryCode(),
-            'ico' => $this->faker->optional()->numerify('########'),
-            'dic' => $this->faker->optional()->numerify('CZ########'),
-            'phone' => $this->faker->optional()->phoneNumber(),
-            'description' => $this->faker->optional()->sentence(),
+            'name' => 'Client '.$rand,
+            'email' => 'client'.$rand.'@example.test',
+            'street' => 'Client Street '.$rand,
+            'city' => 'ClientCity'.$rand,
+            'zip' => str_pad((string)random_int(10000,99999),5,'0',STR_PAD_LEFT),
+            'country' => 'CZ',
+            'ico' => (string)random_int(10000000,99999999),
+            'dic' => 'CZ'.random_int(10000000,99999999),
+            'phone' => '+420'.random_int(100000000,999999999),
+            'description' => 'Test client '.$rand,
             'is_default' => false,
         ];
     }

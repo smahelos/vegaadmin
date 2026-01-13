@@ -18,7 +18,7 @@ return [
     // and choosing that view_namespace instead of the default one. Backpack will load a file from there
     // if it exists, otherwise it will load it from the fallback namespace.
 
-    'view_namespace' => 'backpack.theme-tabler::',
+    'view_namespace' => 'vendor.backpack.theme-tabler.',
     'view_namespace_fallback' => 'backpack.theme-tabler::',
 
     /*
@@ -63,7 +63,7 @@ return [
     'home_link' => '',
 
     // Menu logo. You can replace this with an <img> tag if you have a logo.
-    'project_logo' => '<b>Back</b>pack',
+    'project_logo' => '<img src="/assets/images/billex_logo.svg" alt="Invoice Manager" height="32">',
 
     // Show / hide breadcrumbs on admin panel pages.
     'breadcrumbs' => true,
@@ -73,13 +73,13 @@ return [
     // ------
 
     // Developer or company name. Shown in footer.
-    'developer_name' => 'Cristian Tabacitu',
+    'developer_name' => 'Lukáš Šmahel | Vega Design',
 
     // Developer website. Link in footer. Type false if you want to hide it.
-    'developer_link' => 'http://tabacitu.ro',
+    'developer_link' => 'https://vegadesign.com',
 
     // Show powered by Laravel Backpack in the footer? true/false
-    'show_powered_by' => true,
+    'show_powered_by' => false,
 
     // ---------
     // DASHBOARD

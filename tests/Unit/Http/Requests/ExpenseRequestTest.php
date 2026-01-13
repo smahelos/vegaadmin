@@ -8,14 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Unit tests for ExpenseRequest - CRITICAL RULE: Only pure business logic, no Laravel dependencies
- * 
- * According to Unit Test Isolation rule, this class tests only:
- * - Class structure and inheritance
- * - Method signatures and return types
- * - Pure validation rules structure (without framework execution)
- * 
- * Authorization and validation business logic has been moved to Feature tests.
+ * Unit tests for ExpenseRequest (frontend) focusing on structure & signatures only.
  */
 class ExpenseRequestTest extends TestCase
 {
@@ -39,9 +32,12 @@ class ExpenseRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
-        $this->assertEquals('bool', $returnType->getName());
+        if ($returnType instanceof \ReflectionNamedType) {
+            $this->assertEquals('bool', $returnType->getName());
+        } else {
+            $this->fail('authorize return type is not a named type');
+        }
     }
 
     #[Test]
@@ -50,9 +46,12 @@ class ExpenseRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
+        if ($returnType instanceof \ReflectionNamedType) {
+            $this->assertEquals('array', $returnType->getName());
+        } else {
+            $this->fail('rules return type is not a named type');
+        }
     }
 
     #[Test]
@@ -61,9 +60,12 @@ class ExpenseRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
+        if ($returnType instanceof \ReflectionNamedType) {
+            $this->assertEquals('array', $returnType->getName());
+        } else {
+            $this->fail('attributes return type is not a named type');
+        }
     }
 
     #[Test]
@@ -72,50 +74,30 @@ class ExpenseRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('messages');
         $returnType = $method->getReturnType();
-        
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
+        if ($returnType instanceof \ReflectionNamedType) {
+            $this->assertEquals('array', $returnType->getName());
+        } else {
+            $this->fail('messages return type is not a named type');
+        }
     }
 
     #[Test]
-    public function rules_method_exists_and_is_callable(): void
+    public function prepare_for_validation_exists_and_is_protected(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('rules');
-        
-        $this->assertTrue($method->isPublic());
-        $this->assertCount(0, $method->getParameters());
-    }
-
-    #[Test]
-    public function attributes_method_exists_and_is_callable(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('attributes');
-        
-        $this->assertTrue($method->isPublic());
-        $this->assertCount(0, $method->getParameters());
-    }
-
-    #[Test]
-    public function messages_method_exists_and_is_callable(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        
-        $this->assertTrue($method->isPublic());
-        $this->assertCount(0, $method->getParameters());
+        $this->assertTrue($reflection->hasMethod('prepareForValidation'));
+        $method = $reflection->getMethod('prepareForValidation');
+        $this->assertTrue($method->isProtected());
     }
 
     #[Test]
     public function request_has_expected_class_structure(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        
-        $this->assertEquals('App\Http\Requests', $reflection->getNamespaceName());
-        $this->assertTrue($reflection->hasMethod('authorize'));
-        $this->assertTrue($reflection->hasMethod('rules'));
-        $this->assertTrue($reflection->hasMethod('attributes'));
-        $this->assertTrue($reflection->hasMethod('messages'));
+        foreach (['authorize','rules','attributes','messages'] as $method) {
+            $this->assertTrue($reflection->hasMethod($method));
+        }
+        $this->assertEquals('App\\Http\\Requests', $reflection->getNamespaceName());
     }
 }

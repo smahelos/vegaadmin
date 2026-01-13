@@ -7,30 +7,38 @@ use App\Http\Requests\Admin\StatusCategoryRequest as AdminStatusCategoryRequest;
 use App\Models\User;
 use App\Models\StatusCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class StatusCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+
+    private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Create permission if it doesn't exist
-        Permission::firstOrCreate(['name' => 'can_create_edit_status']);
+
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        $permission = Permission::where('name', 'frontend.can_create_edit_status')
+            ->where('guard_name', 'web')
+            ->first();
+
+        $this->user->givePermissionTo($permission);
     }
 
     #[Test]
     public function frontend_request_validation_passes_with_valid_data()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $validData = [
             'name' => 'Test Category',
@@ -47,9 +55,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function frontend_request_validation_fails_when_name_is_missing()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $invalidData = [
             'slug' => 'test-category',
@@ -66,9 +72,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function frontend_request_validation_fails_when_slug_is_missing()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $invalidData = [
             'name' => 'Test Category',
@@ -85,9 +89,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function frontend_request_validation_fails_when_name_is_too_short()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $invalidData = [
             'name' => 'A', // Too short (min:2)
@@ -105,9 +107,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function frontend_request_validation_fails_when_name_is_too_long()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $invalidData = [
             'name' => str_repeat('a', 256), // Too long (max:255)
@@ -125,9 +125,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function frontend_request_validation_fails_when_slug_is_too_short()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $invalidData = [
             'name' => 'Test Category',
@@ -145,9 +143,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function frontend_request_validation_fails_when_slug_is_not_unique()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         // Create existing category
         StatusCategory::factory()->create(['slug' => 'existing-slug']);
@@ -168,9 +164,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function frontend_request_validation_passes_with_nullable_description()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $validData = [
             'name' => 'Test Category',
@@ -196,7 +190,10 @@ class StatusCategoryRequestFeatureTest extends TestCase
 
         // User with permission
         $userWithPermission = User::factory()->create();
-        $userWithPermission->givePermissionTo('can_create_edit_status');
+        $permission = Permission::where('name', 'frontend.can_create_edit_status')
+            ->where('guard_name', 'web')
+            ->first();
+        $userWithPermission->givePermissionTo($permission);
         $this->actingAs($userWithPermission);
 
         $request = new StatusCategoryRequest();
@@ -245,9 +242,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_allows_slug_update_for_existing_record()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         // Create existing category
         $existingCategory = StatusCategory::factory()->create(['slug' => 'existing-slug']);
@@ -261,7 +256,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
 
         $request = StatusCategoryRequest::create('/', 'PUT', $updateData);
         $request->merge(['id' => $existingCategory->id]);
-        
+
         $validator = Validator::make($updateData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -270,9 +265,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_uses_translated_attributes()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         $request = new StatusCategoryRequest();
         $attributes = $request->attributes();
@@ -303,9 +296,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_handles_edge_cases()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_status');
-        $this->actingAs($user);
+        $this->actingAs($this->user);
 
         // Test minimum valid length
         $minValidData = [

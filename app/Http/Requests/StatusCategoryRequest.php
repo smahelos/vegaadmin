@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class StatusCategoryRequest extends FormRequest
 {
@@ -18,7 +19,7 @@ class StatusCategoryRequest extends FormRequest
             return false;
         }
 
-        return $user->can('can_create_edit_status');
+        return $user->can('frontend.can_create_edit_status');
     }
 
     /**
@@ -26,13 +27,16 @@ class StatusCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->get('id') ?? 'NULL';
-        
-        return [
-            'name' => 'required|min:2|max:255',
-            'slug' => 'required|min:2|max:255|unique:status_categories,slug,'.$id,
+        // Determine current model id for update scenario (consistent with admin request)
+        $id = $this->get('id') ?? $this->route('id') ?? $this->route('status_category');
+
+        $rules = [
+            'name' => 'required|string|min:2|max:255',
+            'slug' => 'required|string|min:2|max:255|unique:status_categories,slug,' . ($id ?? 'NULL'),
             'description' => 'nullable|string',
         ];
+
+        return $rules;
     }
 
     /**
@@ -61,5 +65,20 @@ class StatusCategoryRequest extends FormRequest
             'slug.max' => trans('admin.validation.max', ['field' => trans('admin.status_categories.slug'), 'max' => 255]),
             'slug.unique' => trans('admin.validation.unique', ['field' => trans('admin.status_categories.slug')]),
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        // Generate slug if not provided and name present
+        if (empty($this->slug) && !empty($this->name)) {
+            $this->merge([
+                'slug' => Str::slug($this->name),
+            ]);
+        }
     }
 }

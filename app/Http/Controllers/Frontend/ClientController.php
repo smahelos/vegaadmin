@@ -3,51 +3,50 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Client;
+// Removed direct Client model usage; delegate to party service
 use App\Http\Requests\ClientRequest;
-use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\ModelNotFoundException; // still used for catch blocks
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Traits\ClientFormFields;
-use App\Contracts\CountryServiceInterface;
-use App\Contracts\LocaleServiceInterface;
-use App\Contracts\ClientRepositoryInterface;
+use App\Infrastructure\Forms\Party\ClientFormFields;
+use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
+use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService;
+use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 
 class ClientController extends Controller
 {
-    use ClientFormFields;
+    use ClientFormFields; // Frontend limits via observers
 
     /**
-     * @var ClientRepositoryInterface
-     */
-    protected $clientRepository;
+    * @var PartyApplicationServiceInterface
+    */
+    protected $partyService;
 
     /**
-     * @var CountryServiceInterface
+     * @var CountryApplicationServiceInterface
      */
     protected $countryService;
 
     /**
-     * @var LocaleServiceInterface
+     * @var UELSService
      */
-    protected $localeService;
+    protected $limitService;
 
     /**
      * Constructor
-     * 
-     * @param ClientRepositoryInterface $clientRepository
-     * @param CountryServiceInterface $countryService
-     * @param LocaleServiceInterface $localeService
+     *
+     * @param PartyApplicationServiceInterface $partyService
+     * @param CountryApplicationServiceInterface $countryService
+     * @param UELSService $limitService
      */
     public function __construct(
-        ClientRepositoryInterface $clientRepository,
-        CountryServiceInterface $countryService,
-        LocaleServiceInterface $localeService
+        PartyApplicationServiceInterface $partyService,
+        CountryApplicationServiceInterface $countryService,
+        UELSService $limitService
     ) {
-        $this->clientRepository = $clientRepository;
+        $this->partyService = $partyService;
         $this->countryService = $countryService;
-        $this->localeService = $localeService;
+        $this->limitService = $limitService;
     }
 
     /**
@@ -56,8 +55,11 @@ class ClientController extends Controller
      * @return \Illuminate\View\View
      */
     public function index()
-    {       
-        return view('frontend.clients.index');
+    {
+        // get current logged user's client limits
+        $limitsData = $this->getClientsLimitStats();
+
+        return view('frontend.clients.index', compact('limitsData'));
     }
 
     /**
@@ -69,7 +71,12 @@ class ClientController extends Controller
     {
         $fields = $this->getClientFields();
 
+        // Get current logged user
         $user = Auth::user();
+
+        // get current logged user's client limits
+        $limitsData = $this->getClientsLimitStats($user);
+
         $userInfo = [
             'name' => $user->name ?? '',
             'street' => $user->street ?? '',
@@ -82,17 +89,18 @@ class ClientController extends Controller
             'phone' => $user->phone ?? '',
             'description' => $user->description ?? '',
         ];
-        
+
         // Get countries for dropdown
         $countries = $this->countryService->getCountryCodesForSelect();
-        
+
         return view('frontend.clients.create', [
             'fields' => $fields,
             'userInfo' => $userInfo,
             'countries' => $countries,
+            'limitsData' => $limitsData
         ]);
     }
-    
+
     /**
      * Store a new client
      *
@@ -103,23 +111,34 @@ class ClientController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            
-            // Use repository to create the client
-            $client = $this->clientRepository->create($validatedData);
-            
+
+            // Get User
+            $user = Auth::user();
+            // Pre-limit check (generic)
+            if ($user) {
+                $canCreate = $this->limitService->canUserCreateEntity($user->id, 'client');
+                if (!$canCreate) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', trans('clients.messages.limit_exceeded'));
+                }
+            }
+            $resolved = $this->partyService->resolveOrCreateClientWithFlag($user->id, $validatedData);
+            $client = $resolved['client'];
+
             // Get locale from route parameters (since we're in localized route group)
             $locale = $request->route('locale') ?? 'cs';
-            
+
             return redirect()->route('frontend.clients', ['locale' => $locale])
                             ->with('success', __('clients.messages.created'));
         } catch (\Exception $e) {
             Log::error('Error creating client: ' . $e->getMessage());
-            
+
             return back()->withInput()
                         ->with('error', __('clients.messages.error_create'));
         }
     }
-    
+
     /**
      * Display client details and related invoices
      *
@@ -131,35 +150,37 @@ class ClientController extends Controller
     {
         try {
             // Ignore requests for static files
-            if (preg_match('/\.(js\.map|css\.map|js|css|png|jpg|gif|svg|woff|woff2|ttf|eot)$/', $id)) {
-                return response()->json(['error' => 'Not found'], 404);
+            if (preg_match('/\.(js\.map|css\.map|js|css|png|jpg|gif|svg|woff|woff2|ttf|eot)$/', (string)$id)) {
+                return redirect()
+                    ->route('frontend.clients', ['locale' => $locale])
+                    ->with('error', __('clients.messages.not_found'));
             }
-            
+
+            // Get current logged user
+            $user = Auth::user();
+
             // Get client using repository
-            $client = Client::where('user_id', Auth::id())->findOrFail($id);
-            
-            // Get related invoices with eager loading
-            $invoices = $client->invoices()
-                ->with(['paymentMethod', 'paymentStatus'])
-                ->orderBy('created_at', 'desc')
-                ->get();
-            
-            return view('frontend.clients.show', compact('client', 'invoices'));
+            $client = $this->partyService->findClient($user->id, $id);
+
+            // get current logged user's client limits
+            $limitsData = $this->getClientsLimitStats($user);
+
+            return view('frontend.clients.show', compact('client', 'limitsData'));
         } catch (ModelNotFoundException $e) {
             Log::warning('Trying to view nonexistent client with ID: ' . $id);
-            
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
-                ->with('error', __('clients.messages.error_show'));
+                ->with('error', __('clients.messages.not_found'));
         } catch (\Exception $e) {
             Log::error('Error viewing client: ' . $e->getMessage());
-            
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
-                ->with('error', __('clients.messages.error_show'));
+                ->with('error', __('clients.messages.not_found'));
         }
     }
-    
+
     /**
      * Show form for editing a client
      *
@@ -170,34 +191,39 @@ class ClientController extends Controller
     public function edit(string $locale, int $id)
     {
         try {
+            // Get current logged user
+            $user = Auth::user();
+
             // Get client using repository
-            $client = Client::where('user_id', Auth::id())
-                            ->findOrFail($id);
-                            
+            $client = $this->partyService->findClient($user->id, $id);
+
             $fields = $this->getClientFields();
-            
+
             // Get countries for dropdown
             $countries = $this->countryService->getCountryCodesForSelect();
-            
+
+            // get current logged user's client limits
+            $limitsData = $this->getClientsLimitStats($user);
+
             return view('frontend.clients.edit', [
                 'client' => $client,
                 'fields' => $fields,
-                'countries' => $countries
+                'countries' => $countries,
+                'limitsData' => $limitsData
             ]);
-            
+
         } catch (ModelNotFoundException $e) {
             Log::error('Client not found for edit: ' . $e->getMessage());
-            
+
             return redirect()->route('frontend.clients', ['locale' => $locale])
                              ->with('error', __('clients.messages.error_update'));
         } catch (\Exception $e) {
             Log::error('Error editing client: ' . $e->getMessage());
-            
             return redirect()->route('frontend.clients', ['locale' => $locale])
-                             ->with('error', __('clients.messages.error_edit'));
+                             ->with('error', __('clients.messages.error_update'));
         }
     }
-    
+
     /**
      * Update client data
      *
@@ -209,34 +235,35 @@ class ClientController extends Controller
     public function update(ClientRequest $request, string $locale, int $id)
     {
         try {
-            $client = Client::where('user_id', Auth::id())->findOrFail($id);
-            
+            // Get current logged user
+            $user = Auth::user();
+
+            // Get client using party service
+            $client = $this->partyService->findClient($user->id, $id);
+
             $validatedData = $request->validated();
             $validatedData['is_default'] = isset($validatedData['is_default']) && $validatedData['is_default'] == 1;
 
             // Update client
-            $client->update($validatedData);
-            
+            $this->partyService->updateClient($client->id, $validatedData);
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
                 ->with('success', __('clients.messages.updated'));
         } catch (ModelNotFoundException $e) {
             Log::error('Client not found during update #' . $id . ': ' . $e->getMessage());
-            
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
                 ->with('error', __('clients.messages.error_update'));
         } catch (\Exception $e) {
-            Log::error('Error updating client #' . $id . ': ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
+            Log::error('Error updating client #' . $id . ': ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
                 ->with('error', __('clients.messages.error_update'));
         }
     }
-    
+
     /**
      * Delete client if it has no associated invoices
      *
@@ -247,38 +274,33 @@ class ClientController extends Controller
     public function destroy(string $locale, int $id)
     {
         try {
-            $client = Client::where('user_id', Auth::id())->findOrFail($id);
-            
-            // Check if client has invoices
-            if ($client->invoices->count() > 0) {
-                return redirect()
-                    ->route('frontend.clients', ['locale' => $locale])
+            // Get current logged user
+            $user = Auth::user();
+
+            // Get client using repository
+            $client = $this->partyService->findClient($user->id, $id);
+            if (!$this->partyService->deleteClient($user->id, $client->id)) {
+                return redirect()->route('frontend.clients', ['locale' => $locale])
                     ->with('error', __('clients.messages.error_delete_invoices'));
             }
-            
-            // Delete client
-            $client->delete();
-            
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
                 ->with('success', __('clients.messages.deleted'));
         } catch (ModelNotFoundException $e) {
             Log::error('Client not found for delete #' . $id . ': ' . $e->getMessage());
-            
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
                 ->with('error', __('clients.messages.error_delete'));
         } catch (\Exception $e) {
-            Log::error('Error deleting client #' . $id . ': ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
-            
+            Log::error('Error deleting client #' . $id . ': ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
                 ->with('error', __('clients.messages.error_delete'));
         }
     }
-    
+
     /**
      * Set client as default
      *
@@ -289,32 +311,59 @@ class ClientController extends Controller
     public function setDefault(string $locale, int $id)
     {
         try {
-            // Find client
-            $client = Client::where('user_id', Auth::id())->findOrFail($id);
-            
-            // Remove default flag from all other clients
-            Client::where('user_id', Auth::id())
-                ->where('id', '!=', $id)
-                ->update(['is_default' => false]);
-            
-            // Set this client as default
-            $client->update(['is_default' => true]);
-            
+            // Get current logged user
+            $user = Auth::user();
+
+            // Get client using repository
+            $client = $this->partyService->findClient($user->id, $id);
+            $this->partyService->setClientDefault($user->id, $client->id);
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
-                ->with('success', __('clients.messages.set_default'));
+                ->with('success', __('clients.messages.updated'));
         } catch (ModelNotFoundException $e) {
             Log::error('Client not found for setting default #' . $id . ': ' . $e->getMessage());
-            
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
-                ->with('error', __('clients.messages.error_set_default'));
+                ->with('error', __('clients.messages.error_update'));
         } catch (\Exception $e) {
             Log::error('Error setting client as default #' . $id . ': ' . $e->getMessage());
-            
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
-                ->with('error', __('clients.messages.error_set_default'));
+                ->with('error', __('clients.messages.error_update'));
+        }
+    }
+
+    /**
+     * Get current user's products limits
+     *
+     * @param \App\Models\User|null $user
+     * @return array
+     */
+    public function getClientsLimitStats($user = null): array
+    {
+        if ($user === null) {
+            $user = Auth::user();
+        }
+        if ($user) {
+            $bestPeriod = $this->limitService->getBestPeriodType($user->id, 'client', 'count');
+            $stats = $this->limitService->getUsageStatistics($user->id, 'client', 'count', $bestPeriod);
+            $limit = $stats['limit'] ?? (($stats['remaining'] ?? null) !== null ? (int)$stats['remaining'] + (int)($stats['current_usage'] ?? 0) : 0);
+            $current = (int)($stats['current_usage'] ?? 0);
+            $canCreate = $stats['can_create'] ?? ($limit > $current);
+            return [
+                'limit' => $limit,
+                'current_usage' => $current,
+                'allowed' => (bool)$canCreate,
+            ];
+        }
+        else {
+            return [
+                'limit' => 0,
+                'current_usage' => 0,
+                'allowed' => false
+            ];
         }
     }
 }

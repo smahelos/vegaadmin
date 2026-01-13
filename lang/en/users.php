@@ -26,37 +26,37 @@ return [
         'description' => 'Description',
         'czech_republic' => 'Czech Republic',
         'current_password' => 'Current password',
-        'current_password_hint' => 'Enter your current password for confirmation',
-        'password_hint' => 'Password must be at least 8 characters long',
+        'current_password_hint' => 'Confirm password change',
+        'password_hint' => 'At least 8 characters long',
         'password' => 'Password',
         'new_password' => 'New password',
         'password_confirmation' => 'Password confirmation',
         'password_confirmation_hint' => 'Enter the password again for confirmation',
         'remember_me' => 'Remember me',
-        
+
         // Hints and placeholders
         'email_placeholder' => 'Email',
         'password_placeholder' => 'Password',
     ],
-    
+
     'titles' => [
         'edit_profile' => 'Edit Profile',
         'login' => 'Login',
         'register' => 'Register',
         'system_name' => 'Invoicing System',
     ],
-    
+
     'errors' => [
         'login_errors' => 'There were errors during login:',
     ],
-    
+
     'sections' => [
         'basic_info' => 'Basic Information',
         'address' => 'Address',
         'change_password' => 'Change Password',
         'security' => 'Security',
     ],
-    
+
     'actions' => [
         'create' => 'Create Supplier',
         'edit' => 'Edit Supplier',
@@ -70,7 +70,9 @@ return [
         'register' => 'Register',
         'forgot_password' => 'Forgot Password?',
         'back_to_login' => 'Back to Login',
+        'back_to_list' => 'Back to List',
     ],
+
     'messages' => [
         'profile_updated' => 'Profile was successfully updated.',
         'password_updated' => 'Profile and password were successfully changed.',
@@ -83,6 +85,8 @@ return [
         'error_create_client' => 'Error creating client: ',
         'error_delete_client' => 'Error deleting client: ',
         'error_update_client' => 'Error updating client: ',
+        'not_found' => 'User not found.',
+        'error_loading' => 'Error loading user.',
         'no_account' => 'Don\'t have an account?',
         'register_prompt' => 'Register now',
         'have_account' => 'Already have an account?',
@@ -101,6 +105,8 @@ return [
         'password_min' => 'Password must be at least :min characters long',
         'password_required' => 'Password is required',
         'password_confirmed' => 'Passwords do not match',
+        'password_confirmation_required' => 'Password confirmation is required',
+        'phone_format' => 'Phone number format is invalid',
         'required_field' => 'This field is required',
     ],
 

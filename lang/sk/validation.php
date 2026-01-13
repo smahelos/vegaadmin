@@ -191,6 +191,15 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'supplier_logo' => 'logo dodávateľa',
+        'invoice_logo' => 'logo faktúry',
+        'image' => 'obrázok produktu',
+    ],
+
+    'file_upload' => [
+        'type_not_allowed' => 'Tento typ súboru nie je pre :attribute povolený.',
+        'size_exceeded' => 'Súbor presahuje maximálnu veľkosť pre :attribute.',
+    ],
 
 ];

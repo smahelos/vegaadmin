@@ -3,6 +3,17 @@
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         stopOnError="false"
+         beStrictAboutOutputDuringTests="true"
+         executionOrder="defects"
+         resolveDependencies="true"
+         enforceTimeLimit="true"
+         defaultTimeLimit="60"
+         timeoutForSmallTests="10"
+         timeoutForMediumTests="20"
+         timeoutForLargeTests="60"
 >
     <testsuites>
         <testsuite name="Unit">
@@ -22,12 +33,8 @@
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="mysql"/>
-        <env name="DB_HOST" value="database"/>
-        <env name="DB_PORT" value="3306"/>
-        <env name="DB_DATABASE" value="vegaadmin_testing"/>
-        <env name="DB_USERNAME" value="root"/>
-        <env name="DB_PASSWORD" value="password"/>
+        <env name="DB_CONNECTION" value="testing"/>
+        <env name="DB_DATABASE" value=":memory:"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
@@ -36,5 +43,15 @@
         <env name="REDIS_DB" value="15"/>
         <env name="REDIS_CACHE_DB" value="14"/>
         <env name="REDIS_SESSION_DB" value="13"/>
+        <env name="FX_DETERMINISTIC" value="true"/>
+        <env name="BACKPACK_BASSET_ENABLED" value="false"/>
+        <!-- Memory management for tests -->
+        <ini name="memory_limit" value="2G"/>
+        <ini name="max_execution_time" value="600"/>
+        <!-- Disable xdebug for faster tests -->
+        <ini name="xdebug.mode" value="off"/>
+        <!-- Garbage collection optimization -->
+        <ini name="opcache.enable" value="0"/>
+        <ini name="opcache.enable_cli" value="0"/>
     </php>
 </phpunit>

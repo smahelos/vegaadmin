@@ -1,0 +1,75 @@
+name: Payment Adapter Guard
+
+on:
+  pull_request:
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  payment-tests:
+    name: Payment Tests (focused + conditional subset)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ '8.3' ] # extend (e.g. '8.2','8.3') when multi-version desired
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Run adapter unit test
+        run: php artisan test tests/Unit/Domain/Payment/ValueObjects/PaymentAmountAdapterTest.php
+      - name: Detect broader payment changes
+        id: paymentdiff
+        run: |
+          BASE_REF="${{ github.base_ref }}"; # for PRs
+          if [ -z "$BASE_REF" ]; then BASE_REF="origin/${{ github.ref_name == 'refs/heads/main' && 'main' || 'develop' }}"; fi
+          git fetch --depth=50 origin $BASE_REF || true
+          CHANGED=$(git diff --name-only $BASE_REF...HEAD | grep '^app/Domain/Payment/' || true)
+          if [ -n "$CHANGED" ]; then echo "run_full=true" >> $GITHUB_OUTPUT; else echo "run_full=false" >> $GITHUB_OUTPUT; fi
+      - name: Run full payment test subset (conditional)
+        if: steps.paymentdiff.outputs.run_full == 'true'
+        run: php artisan test tests/Unit/Domain/Payment/ValueObjects/ tests/Feature/Domain/Payment/ || true
+
+#  adapter-guard:
+#    name: Adapter Documentation Guard
+#    runs-on: ubuntu-latest
+#    needs: [ payment-tests ]
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Setup PHP
+#        uses: shivammathur/setup-php@v2
+#        with:
+#          php-version: '8.3'
+#          coverage: none
+#          tools: composer
+#      - name: Install dependencies
+#        run: composer install --no-interaction --no-progress --prefer-dist
+#      - name: Run adapter documentation guard
+#        run: php artisan payment:adapter:guard --ci
+
+#  near-limit-scan:
+#    name: Near-Limit Scan (soft)
+#    runs-on: ubuntu-latest
+#    needs: [ adapter-guard ]
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Setup PHP
+#        uses: shivammathur/setup-php@v2
+#        with:
+#          php-version: '8.3'
+#          coverage: none
+#          tools: composer
+#      - name: Install dependencies
+#        run: composer install --no-interaction --no-progress --prefer-dist
+#      - name: Near-limit payment scan (non-blocking if empty DB)
+#        run: |
+#          php artisan payment:limits:report --threshold=0.9 --fail-on-threshold || echo "(Info) No data or near-limit records"

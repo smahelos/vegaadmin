@@ -3,7 +3,7 @@
 namespace Tests\Feature\Providers;
 
 use App\Models\Invoice;
-use App\Observers\InvoiceObserver;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
 use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
@@ -31,9 +31,9 @@ class AppServiceProviderFeatureTest extends TestCase
                 ['name' => 'Test Product', 'quantity' => 1, 'price' => 100]
             ])
         ]);
-        
+
         $this->assertDatabaseHas('invoices', ['id' => $invoice->id]);
-        
+
         // Check if observer is registered by testing that observer class exists
         $this->assertTrue(class_exists(InvoiceObserver::class));
     }
@@ -43,7 +43,7 @@ class AppServiceProviderFeatureTest extends TestCase
     {
         // Test that the directive exists by checking if it's been registered
         $blade = app('blade.compiler');
-        
+
         // The directive should be available in the custom directives
         $customDirectives = $blade->getCustomDirectives();
         $this->assertArrayHasKey('backpackUser', $customDirectives);
@@ -54,7 +54,7 @@ class AppServiceProviderFeatureTest extends TestCase
     {
         $components = [
             'application-logo',
-            'nav-link', 
+            'nav-link',
             'responsive-nav-link',
             'dropdown',
             'dropdown-link',
@@ -67,7 +67,7 @@ class AppServiceProviderFeatureTest extends TestCase
             // Test that component can be compiled
             $blade = app('blade.compiler');
             $compiled = $blade->compileString("<x-{$component} />");
-            
+
             $this->assertStringContainsString('<?php', $compiled);
         }
     }
@@ -77,7 +77,7 @@ class AppServiceProviderFeatureTest extends TestCase
     {
         $originalController = \Backpack\PermissionManager\app\Http\Controllers\UserCrudController::class;
         $customController = \App\Http\Controllers\Admin\UserCrudController::class;
-        
+
         $resolved = app($originalController);
         $this->assertInstanceOf($customController, $resolved);
     }
@@ -85,9 +85,6 @@ class AppServiceProviderFeatureTest extends TestCase
     #[Test]
     public function helper_files_are_loaded(): void
     {
-        // Test that helper classes are available since they're loaded via require_once
-        $this->assertTrue(class_exists(\App\Helpers\UserHelpers::class));
-        
         // Test that BackpackHelpers functions are available
         $this->assertTrue(function_exists('backpack_auth'));
         $this->assertTrue(function_exists('backpack_guard_name'));
@@ -105,10 +102,10 @@ class AppServiceProviderFeatureTest extends TestCase
     public function register_method_executes_without_errors(): void
     {
         $provider = new AppServiceProvider(app());
-        
+
         // This should not throw any exceptions
         $provider->register();
-        
+
         $this->assertTrue(true); // If we get here, no exceptions were thrown
     }
 
@@ -116,10 +113,10 @@ class AppServiceProviderFeatureTest extends TestCase
     public function boot_method_executes_without_errors(): void
     {
         $provider = new AppServiceProvider(app());
-        
+
         // This should not throw any exceptions
         $provider->boot();
-        
+
         $this->assertTrue(true); // If we get here, no exceptions were thrown
     }
 }

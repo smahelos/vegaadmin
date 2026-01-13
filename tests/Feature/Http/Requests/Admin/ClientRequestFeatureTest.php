@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Http\Requests\Admin\ClientRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -11,6 +12,8 @@ use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+use Tests\Traits\CreatesAdminTestEnvironment;
+use App\Models\EntityLimit;
 
 /**
  * Feature test for ClientRequest class.
@@ -18,9 +21,11 @@ use Tests\TestCase;
  */
 class ClientRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, CreatesAdminTestEnvironment;
 
-    private User $user;
+    protected User $adminUser;
+    protected User $regularUser;
+    protected UniversalLimitService $limitService;
     private User $clientUser;
 
     /**
@@ -29,74 +34,43 @@ class ClientRequestFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->user = User::factory()->create();
+
+        // Set up admin test environment with roles and permissions
+        $this->setUpAdminTestEnvironment();
+        $permission = Permission::where('name', 'can_create_edit_client')
+            ->where('guard_name', 'backpack')
+            ->first();
+        $this->regularUser->givePermissionTo($permission);
+
+        // Create a client user for testing
         $this->clientUser = User::factory()->create();
-        
-        // Create necessary permissions for testing
-        $this->createRequiredPermissions();
-        
+
+        // Initialize the UniversalLimitService
+        $this->limitService = app(UniversalLimitService::class);
+
+        // create clients entity limit
+        $this->createClientsEntityLimit();
+
         // Define test routes
-        Route::post('/admin/client', function (ClientRequest $request) {
+        Route::post('/test-client', function (ClientRequest $request) {
             return response()->json(['success' => true]);
         })->middleware('web');
-        
-        Route::put('/admin/client/{id}', function (ClientRequest $request, $id) {
+
+        Route::put('/test-client/{id}', function (ClientRequest $request, $id) {
             return response()->json(['success' => true]);
         })->middleware('web');
     }
 
-    /**
-     * Create required permissions for testing.
-     */
-    private function createRequiredPermissions(): void
+    protected function createClientsEntityLimit(): void
     {
-        // Define all permissions required for admin operations and navigation
-        $permissions = [
-            // User management permissions
-            'can_create_edit_user',
-            
-            // Business operations permissions
-            'can_create_edit_invoice',
-            'can_create_edit_client',
-            'can_create_edit_supplier',
-            
-            // Financial management permissions
-            'can_create_edit_expense',
-            'can_create_edit_tax',
-            'can_create_edit_bank',
-            'can_create_edit_payment_method',
-            
-            // Inventory management permissions
-            'can_create_edit_product',
-            
-            // System administration permissions
-            'can_create_edit_command',
-            'can_create_edit_cron_task',
-            'can_create_edit_status',
-            'can_configure_system',
-            
-            // Basic backpack access
-            'backpack.access',
-        ];
-
-        // Create all permissions for backpack guard
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate([
-                'name' => $permission, 
-                'guard_name' => 'backpack'
-            ]);
-        }
-
-        // Give the user all necessary permissions for the backpack guard
-        foreach ($permissions as $permissionName) {
-            $permission = Permission::where('name', $permissionName)
-                ->where('guard_name', 'backpack')
-                ->first();
-            if ($permission) {
-                $this->user->givePermissionTo($permission);
-            }
-        }
+        EntityLimit::factory()->create([
+            'permission_name' => 'can_create_edit_client',
+            'entity_type' => 'client',
+            'limit_value' => 10,
+            'period_type' => 'monthly',
+            'metric_type' => 'count',
+            'is_active' => true,
+        ]);
     }
 
     #[Test]
@@ -201,8 +175,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function field_length_validations(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->regularUser, 'backpack');
 
         $invalidData = [
             'name' => str_repeat('a', 256), // Max 255
@@ -218,7 +191,7 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => $this->clientUser->id,
         ];
 
-        $response = $this->postJson('/admin/client', $invalidData);
+        $response = $this->postJson('/test-client', $invalidData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors([
@@ -233,8 +206,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function email_accepts_valid_formats(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->regularUser, 'backpack');
 
         $validEmails = [
             'simple@example.com',
@@ -250,7 +222,7 @@ class ClientRequestFeatureTest extends TestCase
                 'user_id' => $this->clientUser->id,
             ];
 
-            $response = $this->postJson('/admin/client', $validData);
+            $response = $this->postJson('/test-client', $validData);
             $response->assertStatus(200);
         }
     }
@@ -261,8 +233,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function phone_accepts_various_formats(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->regularUser, 'backpack');
 
         $validPhones = [
             '+420123456789',
@@ -279,7 +250,7 @@ class ClientRequestFeatureTest extends TestCase
                 'user_id' => $this->clientUser->id,
             ];
 
-            $response = $this->postJson('/admin/client', $validData);
+            $response = $this->postJson('/test-client', $validData);
             $response->assertStatus(200);
         }
     }
@@ -290,8 +261,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function ico_dic_accept_valid_formats(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->regularUser, 'backpack');
 
         $validData = [
             'name' => 'Czech Client',
@@ -300,7 +270,7 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => $this->clientUser->id,
         ];
 
-        $response = $this->postJson('/admin/client', $validData);
+        $response = $this->postJson('/test-client', $validData);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
@@ -312,8 +282,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function description_accepts_long_text(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->regularUser, 'backpack');
 
         $longDescription = str_repeat('This is a long description. ', 100);
 
@@ -323,7 +292,7 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => $this->clientUser->id,
         ];
 
-        $response = $this->postJson('/admin/client', $validData);
+        $response = $this->postJson('/test-client', $validData);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
@@ -335,15 +304,14 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_when_authenticated(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->regularUser, 'backpack');
 
         $validData = [
             'name' => 'Authorized Client',
             'user_id' => $this->clientUser->id,
         ];
 
-        $response = $this->postJson('/admin/client', $validData);
+        $response = $this->postJson('/test-client', $validData);
 
         $response->assertStatus(200);
     }
@@ -360,7 +328,7 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => $this->clientUser->id,
         ];
 
-        $response = $this->postJson('/admin/client', $validData);
+        $response = $this->postJson('/test-client', $validData);
 
         $response->assertStatus(403);
     }
@@ -407,8 +375,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function nullable_fields_work_correctly(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->regularUser, 'backpack');
 
         $dataWithNulls = [
             'name' => 'Client with Nulls',
@@ -425,7 +392,7 @@ class ClientRequestFeatureTest extends TestCase
             'description' => null,
         ];
 
-        $response = $this->postJson('/admin/client', $dataWithNulls);
+        $response = $this->postJson('/test-client', $dataWithNulls);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
@@ -437,8 +404,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function edge_case_values(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->regularUser, 'backpack');
 
         // Test with very short values
         $edgeData = [
@@ -455,7 +421,7 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => $this->clientUser->id,
         ];
 
-        $response = $this->postJson('/admin/client', $edgeData);
+        $response = $this->postJson('/test-client', $edgeData);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
@@ -467,8 +433,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function maximum_valid_lengths(): void
     {
-        $this->withoutMiddleware();
-        $this->actingAs($this->user, 'backpack');
+        $this->actingAs($this->regularUser, 'backpack');
 
         $maxData = [
             'name' => str_repeat('a', 255), // Max valid length
@@ -484,9 +449,80 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => $this->clientUser->id,
         ];
 
-        $response = $this->postJson('/admin/client', $maxData);
+        $response = $this->postJson('/test-client', $maxData);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
+    }
+
+    #[Test]
+    public function authorization_fails_for_authenticated_user_without_permission(): void
+    {
+        $userNoPerm = User::factory()->create();
+        $this->actingAs($userNoPerm, 'backpack');
+
+        $response = $this->postJson('/test-client', [
+            'name' => 'No Perm Client',
+            'user_id' => $this->clientUser->id,
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    #[Test]
+    public function client_creation_respects_global_entity_limits(): void
+    {
+        $this->actingAs($this->regularUser, 'backpack');
+
+        // Reduce existing limit to 1
+        $limit = \App\Models\EntityLimit::where('entity_type','client')
+            ->where('permission_name','can_create_edit_client')
+            ->first();
+        if ($limit) { $limit->update(['limit_value' => 1]); }
+
+        // First creation (should pass)
+        $this->postJson('/test-client', [
+            'name' => 'Client One',
+            'user_id' => $this->clientUser->id,
+        ])->assertStatus(200);
+
+        // Manually record usage because authorize() only checks
+        $this->limitService->recordUsage($this->regularUser->id, 'client', 'count', 'monthly', 'backpack');
+
+        // Second creation should exceed limit via direct authorize() check
+        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
+        $request = new class extends ClientRequest { public function rules(): array { return []; } };
+        $request->replace([
+            'name' => 'Client Two',
+            'user_id' => $this->clientUser->id,
+        ]);
+        $request->setRouteResolver(fn() => (object)['parameter'=>fn($n)=> null]);
+        $request->setMethod('POST');
+        $request->authorize();
+    }
+
+    #[Test]
+    public function client_update_bypasses_limit_checks(): void
+    {
+        $this->actingAs($this->regularUser, 'backpack');
+
+        // Ensure limit is zero to simulate exceeded state
+        $limit = \App\Models\EntityLimit::where('entity_type','client')
+            ->where('permission_name','can_create_edit_client')
+            ->first();
+        if ($limit) { $limit->update(['limit_value' => 0]); }
+
+        // Record usage (not strictly needed with limit 0 but keeps pattern consistent)
+        $this->limitService->recordUsage($this->regularUser->id, 'client', 'count', 'monthly', 'backpack');
+
+        // Simulate update request (PUT should bypass limit)
+        $request = new class extends ClientRequest { public function rules(): array { return []; } };
+        $request->replace([
+            'name' => 'Updated Client',
+            'user_id' => $this->clientUser->id,
+        ]);
+        $request->setRouteResolver(fn() => (object)['parameter'=>fn($n)=> 'existing-client-id']);
+        $request->setMethod('PUT');
+        $this->assertTrue($request->authorize());
     }
 }

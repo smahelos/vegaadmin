@@ -3,26 +3,28 @@
 namespace Tests\Feature\Http\Requests;
 
 use App\Http\Requests\ExpenseCategoryRequest;
-use App\Models\User;
 use App\Models\ExpenseCategory;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
  * Feature tests for ExpenseCategoryRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests expense category validation scenarios, authorization, and validation with database constraints
  */
 class ExpenseCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
+    protected User $adminUser;
     protected User $user;
     protected array $validExpenseCategoryData;
 
@@ -36,31 +38,15 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // Create permissions and user
-        $this->createPermissionsAndUser();
-        
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+        $permission = Permission::where('name', 'frontend.can_create_edit_expense')
+            ->where('guard_name', 'web')
+            ->first();
+        $this->user->givePermissionTo($permission);
+
         // Set up valid expense category data
         $this->setupValidExpenseCategoryData();
-    }
-
-    /**
-     * Create necessary permissions and test user
-     */
-    private function createPermissionsAndUser(): void
-    {
-        // Create permissions
-        Permission::firstOrCreate(['name' => 'can_create_edit_expense', 'guard_name' => 'web']);
-        
-        // Create role
-        $userRole = Role::firstOrCreate(['name' => 'expense_manager', 'guard_name' => 'web']);
-        $userRole->givePermissionTo('can_create_edit_expense');
-        
-        // Create test user
-        $this->user = User::factory()->create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-        ]);
-        $this->user->assignRole($userRole);
     }
 
     /**
@@ -81,7 +67,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_data()
     {
         $this->actingAs($this->user);
-        
+
         $request = new ExpenseCategoryRequest();
         $validator = Validator::make($this->validExpenseCategoryData, $request->rules());
 
@@ -93,9 +79,9 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $this->actingAs($this->user);
-        
+
         $requiredFields = ['name', 'slug'];
-        
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validExpenseCategoryData;
             unset($invalidData[$field]);
@@ -112,7 +98,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_fails_with_short_name()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['name'] = 'a'; // Too short (min 2)
 
@@ -127,7 +113,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_fails_with_long_name()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['name'] = str_repeat('a', 256); // Too long (max 255)
 
@@ -142,7 +128,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_fails_with_duplicate_slug()
     {
         $this->actingAs($this->user);
-        
+
         // Create existing expense category
         ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
 
@@ -160,7 +146,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_passes_with_same_slug_for_update()
     {
         $this->actingAs($this->user);
-        
+
         // Create existing expense category
         $existingCategory = ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
 
@@ -180,7 +166,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_passes_with_minimal_required_data()
     {
         $this->actingAs($this->user);
-        
+
         $minimalData = [
             'name' => 'Test Category',
             'slug' => 'test-category',
@@ -197,7 +183,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_boolean_is_active()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['is_active'] = 'invalid-boolean';
 
@@ -212,9 +198,9 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_passes_with_boolean_values_for_is_active()
     {
         $this->actingAs($this->user);
-        
+
         $booleanValues = [true, false, 1, 0, '1', '0'];
-        
+
         foreach ($booleanValues as $value) {
             $validData = $this->validExpenseCategoryData;
             $validData['is_active'] = $value;
@@ -235,7 +221,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $this->actingAs($userWithoutPermission);
 
         $request = new ExpenseCategoryRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
@@ -243,17 +229,17 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function authorization_fails_when_not_authenticated()
     {
         $request = new ExpenseCategoryRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
     #[Test]
     public function authorization_passes_with_correct_permission()
     {
-        $this->actingAs($this->user);
+        $this->actingAs($this->user, 'web');
 
         $request = new ExpenseCategoryRequest();
-        
+
         $this->assertTrue($request->authorize());
     }
 
@@ -274,7 +260,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function slug_is_auto_generated_when_missing()
     {
         $this->actingAs($this->user);
-        
+
         // Test that the validation requires slug when not provided
         $dataWithoutSlug = [
             'name' => 'Test Category Name',
@@ -283,7 +269,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
 
         $request = new ExpenseCategoryRequest();
         $validator = Validator::make($dataWithoutSlug, $request->rules());
-        
+
         // Should fail because slug is required and not provided in validation rules
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('slug', $validator->errors()->toArray());
@@ -293,7 +279,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function validation_fails_with_too_long_color()
     {
         $this->actingAs($this->user);
-        
+
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['color'] = str_repeat('a', 51); // Too long (max 50)
 

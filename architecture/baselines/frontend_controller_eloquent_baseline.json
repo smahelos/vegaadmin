@@ -1,0 +1,6 @@
+{
+  "moved_from": null,
+  "rule": {"description": "Each frontend controller must have at most 1 direct Eloquent static call.","max_eloquent_static_calls": 1,"justification": "Thin controller guideline Phase 1"},
+  "controllers": ["Http/Controllers/Frontend/Auth/LoginController.php","Http/Controllers/Frontend/Auth/RegisterController.php","Http/Controllers/Frontend/ClientController.php","Http/Controllers/Frontend/DashboardController.php","Http/Controllers/Frontend/HomeController.php","Http/Controllers/Frontend/InvoiceController.php","Http/Controllers/Frontend/PageController.php","Http/Controllers/Frontend/PaymentController.php","Http/Controllers/Frontend/ProductController.php","Http/Controllers/Frontend/ProfileController.php","Http/Controllers/Frontend/SubscriptionController.php","Http/Controllers/Frontend/SupplierController.php"],
+  "generated_at": "2025-09-01T08:48:19+00:00"
+}

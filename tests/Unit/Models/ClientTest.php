@@ -8,12 +8,12 @@ use Tests\TestCase;
 
 /**
  * Unit tests for Client model - CRITICAL RULE: Only pure business logic, no Laravel dependencies
- * 
+ *
  * According to Unit Test Isolation rule, this class tests only:
  * - Class structure and traits (without instantiation)
  * - Static methods and pure calculations (if any)
  * - Class constants and basic reflection
- * 
+ *
  * All Eloquent-dependent tests (fillable, casts, table name, accessors, mutators, relationships)
  * have been moved to Feature tests.
  */
@@ -24,15 +24,15 @@ class ClientTest extends TestCase
     {
         // Test traits on the actual class without instantiation
         $traits = class_uses_recursive(Client::class);
-        
+
         $expectedTraits = [
             'Illuminate\Database\Eloquent\Factories\HasFactory',
             'Spatie\Permission\Traits\HasRoles',
             'Illuminate\Notifications\Notifiable',
             'Backpack\CRUD\app\Models\Traits\CrudTrait',
-            'App\Traits\HasPreferredLocale',
+            'App\\Infrastructure\\Shared\\Locale\\Traits\\HasPreferredLocale',
         ];
-        
+
         foreach ($expectedTraits as $trait) {
             $this->assertContains($trait, $traits, "Client model should use {$trait} trait");
         }
@@ -42,7 +42,7 @@ class ClientTest extends TestCase
     public function client_class_exists_and_is_instantiable(): void
     {
         $this->assertTrue(class_exists(Client::class));
-        
+
         $reflection = new \ReflectionClass(Client::class);
         $this->assertTrue($reflection->isInstantiable());
     }
@@ -58,12 +58,12 @@ class ClientTest extends TestCase
     public function client_has_expected_class_structure(): void
     {
         $reflection = new \ReflectionClass(Client::class);
-        
+
         // Test that class is not abstract or interface
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isInterface());
         $this->assertTrue($reflection->isInstantiable());
-        
+
         // Test namespace
         $this->assertEquals('App\Models', $reflection->getNamespaceName());
     }
@@ -73,7 +73,7 @@ class ClientTest extends TestCase
     {
         $reflection = new \ReflectionClass(Client::class);
         $constants = $reflection->getConstants();
-        
+
         // This model doesn't define custom constants, but the test structure is here for future use
         $this->assertIsArray($constants);
     }

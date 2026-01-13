@@ -21,15 +21,20 @@ class ExpenseCategoryRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, mixed>
+     * @return array<string, string>
      */
     public function rules(): array
     {
-        $id = $this->get('id') ?? 'NULL';
-        
+        // Determine current ID (if updating) using route parameter; fall back to NULL for create.
+        $id = $this->route('id');
+        if (!$id && $this->has('id')) {
+            $id = $this->get('id');
+        }
+        $id = $id ?: 'NULL';
+
         return [
-            'name' => 'required|min:2|max:255',
-            'slug' => 'required|min:2|max:255|unique:expense_categories,slug,'.$id,
+            'name' => 'required|string|min:2|max:255',
+            'slug' => 'required|string|min:2|max:255|unique:expense_categories,slug,' . $id,
             'color' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
@@ -54,15 +59,24 @@ class ExpenseCategoryRequest extends FormRequest
 
     /**
      * Get custom error messages for validation rules.
+     * Mirrors frontend pattern using generic Laravel validation lines with translated attributes.
+     *
+     * Only rules that differ from default or where explicit attribute substitution is desired are specified.
      *
      * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'name.required' => trans('admin.expenses.validation.name_required'),
-            'slug.required' => trans('admin.expenses.validation.slug_required'),
-            'slug.unique' => trans('admin.expenses.validation.slug_unique'),
+            'name.required' => __('validation.required', ['attribute' => trans('admin.expenses.name')]),
+            'name.min' => __('validation.min.string', ['attribute' => trans('admin.expenses.name'), 'min' => 2]),
+            'name.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.name'), 'max' => 255]),
+            'slug.required' => __('validation.required', ['attribute' => trans('admin.expenses.slug')]),
+            'slug.min' => __('validation.min.string', ['attribute' => trans('admin.expenses.slug'), 'min' => 2]),
+            'slug.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.slug'), 'max' => 255]),
+            'slug.unique' => __('validation.unique', ['attribute' => trans('admin.expenses.slug')]),
+            'color.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.color'), 'max' => 50]),
+            'is_active.boolean' => __('validation.boolean', ['attribute' => trans('admin.expenses.is_active')]),
         ];
     }
 

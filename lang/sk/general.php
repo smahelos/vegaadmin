@@ -6,7 +6,7 @@ return [
     'currency' => '€',
     'yes' => 'Áno',
     'no' => 'Nie',
-    
+
     // Mesiace pre formátovanie dátumov
     'months' => [
         1 => 'január',
@@ -30,8 +30,10 @@ return [
         'suppliers' => 'Dodávatelia',
         'profile' => 'Profil',
         'products' => 'Produkty',
+        'create_invoice' => 'Vytvoriť faktúru',
+        'pages' => 'Stránky',
     ],
-    
+
     'placeholders' => [
         'select_client' => 'Vyberte klienta alebo vytvorte nového...',
         'select_status' => 'Vyberte stav...',

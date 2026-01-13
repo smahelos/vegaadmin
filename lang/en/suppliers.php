@@ -25,7 +25,11 @@ return [
         'bank_name' => 'Bank Name',
         'iban' => 'IBAN',
         'swift' => 'SWIFT',
+        'supplier_logo' => 'Supplier Logo',
         'select_bank' => 'Select bank',
+    ],
+    'no_input_labels' => [
+        'current_supplier_logo' => 'Current Logo',
     ],
     'actions' => [
         'create' => 'Create Supplier',
@@ -68,12 +72,14 @@ return [
         'error_show' => 'An error occurred while viewing the supplier.',
         'error_set_default' => 'An error occurred while setting the supplier as default.',
         'error_delete_invoices' => 'The supplier cannot be deleted because it has associated invoices.',
+        'validation_failed' => 'Validation failed. Please check the input fields.',
         'error_loading' => 'An error occurred while loading suppliers. Please try again later.',
         'no_suppliers' => 'No suppliers found.',
         'confirm_delete' => 'Are you sure you want to delete this supplier?',
         'is_default_explanation' => 'If this supplier is set as default, it will be automatically selected when creating new invoices.',
         'not_found' => 'Supplier not found.',
         'invalid_id' => 'Invalid supplier ID.',
+        'no_image' => 'No logo provided.',
     ],
     'validation' => [
         'name_required' => 'Company name/name is required',
@@ -89,9 +95,13 @@ return [
         'bank_code_required' => 'Bank code is required when account number is provided',
         'iban_format' => 'IBAN must not exceed 50 characters',
         'swift_required' => 'SWIFT code is required when IBAN is provided',
+        'supplier_logo_file' => 'Supplier logo must be a valid file',
+        'supplier_logo_format' => 'Supplier logo must be an image (jpeg, jpg, png, gif, svg)',
+        'supplier_logo_size' => 'Supplier logo size must not exceed :max kB',
     ],
     'hints' => [
         'supplier' => '',
+        'supplier_logo' => '',
         'email' => '',
         'phone' => '',
         'name' => '',
@@ -108,6 +118,7 @@ return [
         'iban' => '',
         'swift' => '',
         'bank_name' => '',
+        'supplier_logo' => 'Upload your supplier logo (max 2MB, formats: jpeg, jpg, png, gif, svg)',
     ],
     'placeholders' => [
         'account_number' => '123456789',

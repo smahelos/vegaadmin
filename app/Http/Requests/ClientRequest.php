@@ -2,20 +2,25 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
-class ClientRequest extends FormRequest
+class ClientRequest extends BaseEntityRequest
 {
     /**
-     * Determine if the user is authorized to make this request
-     *
-     * @return bool
+     * Get the entity type for limit checking
      */
-    public function authorize(): bool
+    protected function getEntityType(): string
     {
-        return Auth::check();
+        return 'client';
+    }
+
+    /**
+     * Get required permission for client operations
+     */
+    protected function getRequiredPermission(): string
+    {
+        return 'frontend.can_create_edit_client';
     }
 
     /**
@@ -26,6 +31,7 @@ class ClientRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
+            'client_id' => 'nullable|integer',
             'name' => 'required|string|max:255',
             'shortcut' => 'nullable|string|max:50',
             'phone' => 'required|string|max:255',
@@ -56,7 +62,18 @@ class ClientRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            //
+            'name' => trans('clients.fields.name'),
+            'email' => trans('clients.fields.email'),
+            'phone' => trans('clients.fields.phone'),
+            'street' => trans('clients.fields.street'),
+            'city' => trans('clients.fields.city'),
+            'zip' => trans('clients.fields.zip'),
+            'country' => trans('clients.fields.country'),
+            'ico' => trans('clients.fields.ico'),
+            'dic' => trans('clients.fields.dic'),
+            'description' => trans('clients.fields.description'),
+            'shortcut' => trans('clients.fields.shortcut'),
+            'is_default' => trans('clients.fields.is_default'),
         ];
     }
 
@@ -70,10 +87,14 @@ class ClientRequest extends FormRequest
         return [
             'name.required' => __('clients.validation.name_required'),
             'email.required' => __('clients.validation.email_required'),
+            'email.email' => __('clients.validation.email_valid'),
             'street.required' => __('clients.validation.street_required'),
             'city.required' => __('clients.validation.city_required'),
             'zip.required' => __('clients.validation.zip_required'),
             'country.required' => __('clients.validation.country_required'),
+            'ico.regex' => __('clients.validation.ico_format'),
+            'zip.regex' => __('clients.validation.zip_format'),
+            'user_id.exists' => __('clients.validation.user_exists'),
         ];
     }
 }

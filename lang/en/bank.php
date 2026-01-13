@@ -18,6 +18,8 @@ return [
         'code' => 'Bank Code',
         'swift' => 'SWIFT Code',
         'country' => 'Country',
+        'description' => 'Description',
+        'is_active' => 'Active',
         'active' => 'Active',
     ],
 

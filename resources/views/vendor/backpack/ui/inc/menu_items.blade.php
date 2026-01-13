@@ -11,6 +11,12 @@
         :link="backpack_url('role')" />
     <x-backpack::menu-dropdown-item title="{{ __('admin.user_management.permissions') }}" icon="la la-key"
         :link="backpack_url('permission')" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin.subscriptions.entity_plural') }}" icon="la la-handshake"
+        :link="backpack_url('subscription')" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin.subscription_plans.entity_plural') }}" icon="la la-id-card"
+        :link="backpack_url('subscription-plan')" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin.subscription_plan_features.entity_plural') }}"
+        icon="la la-check-square" :link="backpack_url('subscription-plan-feature')" />
 </x-backpack::menu-dropdown>
 @endif
 
@@ -90,10 +96,11 @@ backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
 @endif
 
 {{-- 5. System Administration --}}
-@if(backpack_user()->hasPermissionTo('can_create_edit_command', 'backpack') ||
+@if(backpack_user()->hasPermissionTo('can_configure_system', 'backpack') &&
+(backpack_user()->hasPermissionTo('can_create_edit_command', 'backpack') ||
 backpack_user()->hasPermissionTo('can_create_edit_cron_task', 'backpack') ||
-backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack'))
-<x-backpack::menu-dropdown title="{{ __('admin.system_admin.title') }}" icon="la la-cogs text-secondary">
+backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
+<x-backpack::menu-dropdown title="{{ __('admin.system_config.title') }}" icon="la la-cogs text-secondary">
     @if(backpack_user()->hasPermissionTo('can_create_edit_command', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.system_admin.automation') }}" />
     <x-backpack::menu-dropdown-item title="{{ trans('admin.artisan_commands.commands') }}" icon="la la-hammer"
@@ -132,5 +139,45 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.database.configuration') }}" />
     <x-backpack::menu-dropdown-item title="{{ __('admin.database.archive_policies') }}" icon="la la-archive"
         :link="backpack_url('archive-policy')" />
+</x-backpack::menu-dropdown>
+@endif
+
+{{-- 7. Content Management --}}
+@if(backpack_user()->hasPermissionTo('can_create_edit_page', 'backpack'))
+<x-backpack::menu-dropdown title="{{ __('admin.pages.content_management') }}" icon="la la-paperclip  text-success">
+    <x-backpack::menu-dropdown-item title="Page categories" icon="la la-tags" :link="backpack_url('page-category')" />
+    <x-backpack::menu-dropdown-item title="Pages" icon="la la-paragraph" :link="backpack_url('page')" />
+</x-backpack::menu-dropdown>
+@endif
+
+{{-- 8. Entity Limits Management (UELS) --}}
+@if(backpack_user()->hasPermissionTo('can_configure_system', 'backpack'))
+<x-backpack::menu-dropdown title="{{ __('admin.uels.title') }}" icon="la la-shield-alt text-purple">
+    <x-backpack::menu-dropdown-item title="{{ __('admin.uels.dashboard') }}" icon="la la-tachometer-alt"
+        :link="backpack_url('uels-dashboard')" />
+
+    <x-backpack::menu-dropdown-header title="{{ __('admin.uels.configuration') }}" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin.uels.entity_limits') }}" icon="la la-cog"
+        :link="backpack_url('entity-limit')" />
+
+    <x-backpack::menu-dropdown-header title="{{ __('admin.uels.monitoring') }}" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin.uels.usage_tracking') }}" icon="la la-chart-bar"
+        :link="backpack_url('entity-usage')" />
+</x-backpack::menu-dropdown>
+@endif
+
+{{-- 9. System Configuration --}}
+@if(backpack_user()->hasPermissionTo('can_configure_system', 'backpack'))
+<x-backpack::menu-dropdown title="{{ __('admin.cache.title') }}" icon="la la-cogs text-danger">
+    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_cache') }}" icon="la la-trash"
+        :link="route('admin.cache.clear')" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_config') }}" icon="la la-cog"
+        :link="route('admin.cache.clear-config')" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_views') }}" icon="la la-eye"
+        :link="route('admin.cache.clear-views')" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_routes') }}" icon="la la-route"
+        :link="route('admin.cache.clear-routes')" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_all') }}" icon="la la-broom"
+        :link="route('admin.cache.clear-all')" />
 </x-backpack::menu-dropdown>
 @endif

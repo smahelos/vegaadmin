@@ -63,14 +63,28 @@ class DatabaseMonitorCommand extends Command
         $this->info("\n📊 Database Size Analysis:");
         $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            $this->checkMySQLDatabaseSize($store);
+        } else {
+            $this->checkSQLiteDatabaseSize($store);
+        }
+    }
+
+    /**
+     * Check MySQL database size
+     */
+    private function checkMySQLDatabaseSize($store = false)
+    {
         $sizes = DB::select("
-            SELECT 
+            SELECT
                 TABLE_NAME as table_name,
                 TABLE_ROWS as row_count,
                 ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) as size_mb,
                 ROUND(DATA_LENGTH / 1024 / 1024, 2) as data_size_mb,
                 ROUND(INDEX_LENGTH / 1024 / 1024, 2) as index_size_mb
-            FROM information_schema.TABLES 
+            FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
             AND TABLE_TYPE = 'BASE TABLE'
             ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC
@@ -99,9 +113,9 @@ class DatabaseMonitorCommand extends Command
 
         // Total database size
         $totalSize = DB::selectOne("
-            SELECT 
+            SELECT
                 ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) as total_mb
-            FROM information_schema.TABLES 
+            FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
         ");
 
@@ -109,22 +123,67 @@ class DatabaseMonitorCommand extends Command
     }
 
     /**
+     * Check SQLite database size (simplified)
+     */
+    private function checkSQLiteDatabaseSize($store = false)
+    {
+        // Get table names from SQLite
+        $tables = DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+
+        $headers = ['Table', 'Rows'];
+        $data = [];
+
+        foreach ($tables as $table) {
+            $count = DB::selectOne("SELECT COUNT(*) as count FROM {$table->name}");
+            $data[] = [
+                $table->name,
+                number_format($count->count)
+            ];
+
+            if ($store) {
+                $this->storeMetric('table_rows', $table->name, $count->count, 'rows');
+            }
+        }
+
+        $this->table($headers, $data);
+                $this->info("💾 Database Type: SQLite (size metrics limited)");
+    }
+
+    /**
      * Check index usage and efficiency
      */
     private function checkIndexUsage($store = false)
     {
-        $this->info("\n🔍 Index Usage Analysis:");
+        $this->info("
+🔍 Index Usage Analysis:");
         $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━");
 
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            $this->checkMySQLIndexUsage($store);
+        } else {
+            $this->info("📝 Index analysis limited for SQLite");
+            if ($store) {
+                $this->storeMetric('index_count', null, 0, 'indexes');
+            }
+        }
+    }
+
+    /**
+     * Check MySQL index usage
+     */
+    private function checkMySQLIndexUsage($store = false)
+    {
         // Get index statistics
         $indexes = DB::select("
-            SELECT 
+            SELECT
                 TABLE_NAME as table_name,
                 INDEX_NAME as index_name,
                 NON_UNIQUE as non_unique,
                 CARDINALITY as cardinality,
                 COLUMN_NAME as column_name
-            FROM information_schema.STATISTICS 
+            FROM information_schema.STATISTICS
             WHERE TABLE_SCHEMA = DATABASE()
             AND INDEX_NAME != 'PRIMARY'
             ORDER BY TABLE_NAME, INDEX_NAME
@@ -132,7 +191,7 @@ class DatabaseMonitorCommand extends Command
 
         $indexData = [];
         $currentIndex = null;
-        
+
         foreach ($indexes as $index) {
             if ($currentIndex !== $index->index_name) {
                 if ($currentIndex !== null) {
@@ -140,7 +199,7 @@ class DatabaseMonitorCommand extends Command
                 }
                 $currentIndex = $index->index_name;
             }
-            
+
             $indexData[] = [
                 $index->table_name,
                 $index->index_name,
@@ -166,6 +225,20 @@ class DatabaseMonitorCommand extends Command
         $this->info("\n⚡ Query Performance Analysis:");
         $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            $this->checkMySQLSlowQueries($store);
+        } else {
+            $this->checkSQLiteQueryPerformance($store);
+        }
+    }
+
+    /**
+     * Check MySQL slow queries
+     */
+    private function checkMySQLSlowQueries($store = false)
+    {
         // Check if slow query log is enabled
         $slowLogStatus = DB::selectOne("SHOW VARIABLES LIKE 'slow_query_log'");
         $longQueryTime = DB::selectOne("SHOW VARIABLES LIKE 'long_query_time'");
@@ -173,30 +246,50 @@ class DatabaseMonitorCommand extends Command
         $this->info("Slow Query Log: " . ($slowLogStatus->Value === 'ON' ? '✅ Enabled' : '❌ Disabled'));
         $this->info("Long Query Time: {$longQueryTime->Value}s");
 
+        $this->performQueryTests($store);
+    }
+
+    /**
+     * Check SQLite query performance (simplified)
+     */
+    private function checkSQLiteQueryPerformance($store = false)
+    {
+        $this->info("📝 SQLite Query Performance (basic testing):");
+        $this->performQueryTests($store);
+    }
+
+    /**
+     * Perform query performance tests
+     */
+    private function performQueryTests($store = false)
+    {
         // Test query performance on main tables
         $this->info("\n📈 Testing Query Performance:");
-        
+
         $testQueries = [
-            'invoices_user_filter' => "SELECT COUNT(*) FROM invoices WHERE user_id = 1",
-            'clients_user_filter' => "SELECT COUNT(*) FROM clients WHERE user_id = 1",
-            'suppliers_user_filter' => "SELECT COUNT(*) FROM suppliers WHERE user_id = 1",
-            'invoices_date_range' => "SELECT COUNT(*) FROM invoices WHERE issue_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)",
+            'invoices_count' => "SELECT COUNT(*) FROM invoices",
+            'clients_count' => "SELECT COUNT(*) FROM clients",
+            'suppliers_count' => "SELECT COUNT(*) FROM suppliers",
         ];
 
         foreach ($testQueries as $queryName => $query) {
-            $startTime = microtime(true);
-            DB::select($query);
-            $endTime = microtime(true);
-            $executionTime = round(($endTime - $startTime) * 1000, 2);
+            try {
+                $startTime = microtime(true);
+                DB::select($query);
+                $endTime = microtime(true);
+                $executionTime = round(($endTime - $startTime) * 1000, 2);
 
-            $status = $executionTime < 10 ? '✅' : ($executionTime < 50 ? '⚠️' : '❌');
-            $this->line("{$status} {$queryName}: {$executionTime}ms");
+                $status = $executionTime < 10 ? '✅' : ($executionTime < 50 ? '⚠️' : '❌');
+                $this->line("{$status} {$queryName}: {$executionTime}ms");
 
-            if ($store) {
-                $this->storeMetric('query_time', null, $executionTime, 'ms', [
-                    'query_name' => $queryName,
-                    'query' => $query
-                ]);
+                if ($store) {
+                    $this->storeMetric('query_time', null, $executionTime, 'ms', [
+                        'query_name' => $queryName,
+                        'query' => $query
+                    ]);
+                }
+            } catch (\Exception $e) {
+                $this->line("❌ {$queryName}: Error - " . $e->getMessage());
             }
         }
     }
@@ -209,6 +302,25 @@ class DatabaseMonitorCommand extends Command
         $this->info("\n🔗 Connection Analysis:");
         $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━");
 
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            $this->checkMySQLConnections($store);
+        } else {
+            $this->info("📝 Connection analysis limited for SQLite");
+            $this->info("Current Connection: 1 (SQLite file-based)");
+
+            if ($store) {
+                $this->storeMetric('connections_current', null, 1, 'connections');
+            }
+        }
+    }
+
+    /**
+     * Check MySQL connections
+     */
+    private function checkMySQLConnections($store = false)
+    {
         $processlist = DB::select("SHOW PROCESSLIST");
         $connections = count($processlist);
 
@@ -233,37 +345,55 @@ class DatabaseMonitorCommand extends Command
         $this->info("\n👥 User Activity Summary:");
         $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-        $userStats = DB::select("
-            SELECT 
-                user_id,
-                user_name,
-                user_email,
-                total_invoices,
-                total_clients,
-                total_suppliers,
-                invoices_last_30_days,
-                invoices_last_7_days
-            FROM user_activity_summary 
-            ORDER BY total_invoices DESC 
-            LIMIT 10
-        ");
+        try {
+            // Try to use the view if it exists (MySQL only)
+            $userStats = DB::select("
+                SELECT
+                    user_id,
+                    user_name,
+                    user_email,
+                    total_invoices,
+                    total_clients,
+                    total_suppliers,
+                    invoices_last_30_days,
+                    invoices_last_7_days
+                FROM user_activity_summary
+                ORDER BY total_invoices DESC
+                LIMIT 10
+            ");
 
-        $headers = ['User ID', 'Name', 'Total Invoices', 'Last 30d', 'Last 7d', 'Clients', 'Suppliers'];
-        $data = [];
+            $headers = ['User ID', 'Name', 'Total Invoices', 'Last 30d', 'Last 7d', 'Clients', 'Suppliers'];
+            $data = [];
 
-        foreach ($userStats as $stat) {
-            $data[] = [
-                $stat->user_id,
-                substr($stat->user_name, 0, 20),
-                $stat->total_invoices,
-                $stat->invoices_last_30_days,
-                $stat->invoices_last_7_days,
-                $stat->total_clients,
-                $stat->total_suppliers
-            ];
+            foreach ($userStats as $stat) {
+                $data[] = [
+                    $stat->user_id,
+                    substr($stat->user_name, 0, 20),
+                    $stat->total_invoices,
+                    $stat->invoices_last_30_days,
+                    $stat->invoices_last_7_days,
+                    $stat->total_clients,
+                    $stat->total_suppliers
+                ];
+            }
+
+            $this->table($headers, $data);
+        } catch (\Exception $e) {
+            // Fallback for SQLite - basic user count
+            $this->info("📝 Basic user statistics (view not available):");
+
+            try {
+                $userCount = DB::selectOne("SELECT COUNT(*) as count FROM users");
+                $invoiceCount = DB::selectOne("SELECT COUNT(*) as count FROM invoices");
+                $clientCount = DB::selectOne("SELECT COUNT(*) as count FROM clients");
+
+                $this->info("Total Users: {$userCount->count}");
+                $this->info("Total Invoices: {$invoiceCount->count}");
+                $this->info("Total Clients: {$clientCount->count}");
+            } catch (\Exception $e2) {
+                $this->info("❌ Unable to fetch user statistics: " . $e2->getMessage());
+            }
         }
-
-        $this->table($headers, $data);
     }
 
     /**

@@ -20,14 +20,14 @@ class RequireFrontendApiAccess
     {
         // Only check web guard - never mix with backpack
         if (!Auth::guard('web')->check()) {
-            return $this->unauthorized();
+            return $this->unauthorized($request);
         }
 
         $user = Auth::guard('web')->user();
-        
+
         // Check if user has frontend API access permission
         if (!$user->can('frontend.api.access')) {
-            return $this->forbidden();
+            return $this->forbidden($request);
         }
 
         return $next($request);
@@ -36,30 +36,30 @@ class RequireFrontendApiAccess
     /**
      * Return unauthorized response
      */
-    private function unauthorized()
+    private function unauthorized(Request $request)
     {
-        if (request()->expectsJson() || request()->ajax()) {
+        if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'error' => __('users.auth.unauthenticated'),
                 'code' => 401
             ], 401);
         }
-        
+
         return redirect()->guest(route('frontend.login', ['locale' => app()->getLocale()]));
     }
 
     /**
      * Return forbidden response
      */
-    private function forbidden()
+    private function forbidden(Request $request)
     {
-        if (request()->expectsJson() || request()->ajax()) {
+        if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'error' => __('users.auth.forbidden'),
                 'code' => 403
             ], 403);
         }
-        
+
         return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()])->with('error', __('users.auth.forbidden'));
     }
 }

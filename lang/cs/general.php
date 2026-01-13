@@ -6,7 +6,7 @@ return [
     'currency' => 'Kč',
     'yes' => 'Ano',
     'no' => 'Ne',
-    
+
     // Měsíce pro formátování dat
     'months' => [
         1 => 'leden',
@@ -30,8 +30,10 @@ return [
         'suppliers' => 'Dodavatelé',
         'profile' => 'Profil',
         'products' => 'Produkty',
+        'create_invoice' => 'Vytvořit fakturu',
+        'pages' => 'Stránky',
     ],
-    
+
     'placeholders' => [
         'select_client' => 'Vyberte klienta nebo vytvořte nového...',
         'select_status' => 'Vyberte stav...',
@@ -84,5 +86,35 @@ return [
     'common' => [
         'created_at' => 'Vytvořeno',
         'updated_at' => 'Aktualizováno',
+    ],
+
+    // Systém limitů entit
+    'entity_limits' => [
+        'exceeded' => [
+            'title' => 'Limit překročen',
+            'message' => 'Dosáhli jste svého limitu pro :entity_type. Maximální povolené: :max_count za :period_type.',
+            'current_usage' => 'Aktuální využití: :current_count',
+            'period_info' => 'Období: :period_start do :period_end',
+            'contact_admin' => 'Pro zvýšení limitu kontaktujte administrátora.',
+        ],
+        'entities' => [
+            'invoice' => 'faktury',
+            'client' => 'klienti',
+            'supplier' => 'dodavatelé',
+            'product' => 'produkty',
+            'expense' => 'výdaje',
+        ],
+        'periods' => [
+            'daily' => 'den',
+            'weekly' => 'týden',
+            'monthly' => 'měsíc',
+            'yearly' => 'rok',
+            'lifetime' => 'celková doba',
+        ],
+        'limit_types' => [
+            'count' => 'počet',
+            'value' => 'hodnota',
+            'size' => 'velikost',
+        ],
     ],
 ];

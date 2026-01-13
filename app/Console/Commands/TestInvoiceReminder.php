@@ -3,9 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Models\Invoice;
-use App\Notifications\InvoiceDueReminder;
-use App\Notifications\InvoiceOverdueReminder;
-use App\Notifications\InvoiceUpcomingDueReminder;
+use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
+use App\Domain\Shared\Notifications\DTO\Recipient;
 use Illuminate\Console\Command;
 
 /**
@@ -32,19 +33,19 @@ class TestInvoiceReminder extends Command
     {
         $invoiceId = $this->argument('invoice_id') ?: $this->option('invoice');
         $type = $this->option('type');
-        
+
         // Validate type
         $validTypes = ['upcoming', 'due', 'overdue', 'all'];
         if (!in_array($type, $validTypes)) {
             $this->error("Invalid type '{$type}'. Valid types are: " . implode(', ', $validTypes));
             return 1;
         }
-        
+
         if (!$invoiceId) {
             $this->info('No invoice ID provided. Testing with sample data for type: ' . $type);
             return $this->handleTestWithoutInvoice($type);
         }
-        
+
         $invoice = Invoice::find($invoiceId);
         if (!$invoice) {
             $this->error("Invoice with ID {$invoiceId} not found");
@@ -57,11 +58,11 @@ class TestInvoiceReminder extends Command
         if ($type === 'upcoming' || $type === 'all') {
             $this->testUpcomingReminder($invoice);
         }
-        
+
         if ($type === 'due' || $type === 'all') {
             $this->testDueReminder($invoice);
         }
-        
+
         if ($type === 'overdue' || $type === 'all') {
             $this->testOverdueReminder($invoice);
         }
@@ -73,16 +74,16 @@ class TestInvoiceReminder extends Command
     private function testUpcomingReminder(Invoice $invoice): void
     {
         $this->info('Invoice reminder test about upcomming due date...');
-        
+
         if ($invoice->supplier && $invoice->supplier->email) {
-            $invoice->supplier->notify(new InvoiceUpcomingDueReminder($invoice));
+            $this->sendViaNotifier(InvoiceReminderType::UPCOMING_DUE, $invoice, 'supplier', $invoice->supplier->preferredLocale());
             $this->info("Sent to supplier: {$invoice->supplier->email}");
         } else {
             $this->warn('Supplier has not email to send information to.');
         }
-        
+
         if ($invoice->client && $invoice->client->email) {
-            $invoice->client->notify(new InvoiceUpcomingDueReminder($invoice, 'client'));
+            $this->sendViaNotifier(InvoiceReminderType::UPCOMING_DUE, $invoice, 'client', $invoice->client->preferredLocale());
             $this->info("Sent to client: {$invoice->client->email}");
         } else {
             $this->warn('Client  has not email to send information to.');
@@ -92,16 +93,16 @@ class TestInvoiceReminder extends Command
     private function testDueReminder(Invoice $invoice): void
     {
         $this->info('Invoice reminder test about due date is today...');
-        
+
         if ($invoice->supplier && $invoice->supplier->email) {
-            $invoice->supplier->notify(new InvoiceDueReminder($invoice));
+            $this->sendViaNotifier(InvoiceReminderType::DUE_TODAY, $invoice, 'supplier', $invoice->supplier->preferredLocale());
             $this->info("Sent to supplier: {$invoice->supplier->email}");
         } else {
             $this->warn('Supplier has not email to send information to.');
         }
-        
+
         if ($invoice->client && $invoice->client->email) {
-            $invoice->client->notify(new InvoiceDueReminder($invoice, 'client'));
+            $this->sendViaNotifier(InvoiceReminderType::DUE_TODAY, $invoice, 'client', $invoice->client->preferredLocale());
             $this->info("Sent to client: {$invoice->client->email}");
         } else {
             $this->warn('Client has not email to send information to.');
@@ -111,16 +112,16 @@ class TestInvoiceReminder extends Command
     private function testOverdueReminder(Invoice $invoice): void
     {
         $this->info('Invoice reminder test about overdue...');
-        
+
         if ($invoice->supplier && $invoice->supplier->email) {
-            $invoice->supplier->notify(new InvoiceOverdueReminder($invoice));
+            $this->sendViaNotifier(InvoiceReminderType::OVERDUE, $invoice, 'supplier', $invoice->supplier->preferredLocale());
             $this->info("Sent to supplier: {$invoice->supplier->email}");
         } else {
             $this->warn('Supplier has not email to send information to.');
         }
-        
+
         if ($invoice->client && $invoice->client->email) {
-            $invoice->client->notify(new InvoiceOverdueReminder($invoice, 'client'));
+            $this->sendViaNotifier(InvoiceReminderType::OVERDUE, $invoice, 'client', $invoice->client->preferredLocale());
             $this->info("Sent to client: {$invoice->client->email}");
         } else {
             $this->warn('Client has not email to send information to.');
@@ -130,20 +131,41 @@ class TestInvoiceReminder extends Command
     private function handleTestWithoutInvoice(string $type): int
     {
         $this->info("Testing {$type} reminder functionality without specific invoice...");
-        
+
         if ($type === 'upcoming' || $type === 'all') {
             $this->info('Testing upcoming reminder logic...');
         }
-        
+
         if ($type === 'due' || $type === 'all') {
             $this->info('Testing due reminder logic...');
         }
-        
+
         if ($type === 'overdue' || $type === 'all') {
             $this->info('Testing overdue reminder logic...');
         }
-        
+
         $this->info('Testing completed successfully.');
         return 0;
+    }
+
+    /**
+     * Build and send notification via notifier port
+     */
+    private function sendViaNotifier(InvoiceReminderType $type, Invoice $invoice, string $recipientType, ?string $locale = null): void
+    {
+        /** @var InvoiceReminderNotifierInterface $notifier */
+        $notifier = app(InvoiceReminderNotifierInterface::class);
+        $payload = new InvoiceReminderPayload(
+            invoiceNumber: $invoice->invoice_vs,
+            dueDate: new \DateTimeImmutable(\Carbon\Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->format('Y-m-d')),
+            recipientType: $recipientType,
+            locale: $locale,
+        );
+        $recipient = new Recipient(
+            name: $recipientType === 'supplier' ? ($invoice->supplier->name ?? '') : ($invoice->client->name ?? ''),
+            email: $recipientType === 'supplier' ? ($invoice->supplier->email ?? '') : ($invoice->client->email ?? ''),
+            preferredLocale: $locale,
+        );
+        $notifier->send($type, $payload, $recipient);
     }
 }

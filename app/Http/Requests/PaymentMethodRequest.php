@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class PaymentMethodRequest extends FormRequest
 {
@@ -23,12 +24,20 @@ class PaymentMethodRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:payment_methods,slug,' . $this->id,
+            // Slug can be nullable (auto-generated if empty), unique within payment_methods
+            'slug' => 'nullable|string|max:255|unique:payment_methods,slug,' . $this->id,
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ];
+
+        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
+            $id = $this->route('id') ?: $this->id;
+            $rules['slug'] = 'sometimes|string|max:255|unique:payment_methods,slug,' . $id;
+        }
+
+        return $rules;
     }
 
     /**
@@ -55,8 +64,20 @@ class PaymentMethodRequest extends FormRequest
     {
         return [
             'name.required' => __('payment_methods.validation.name_required'),
-            'slug.required' => __('payment_methods.validation.slug_required'),
             'slug.unique' => __('payment_methods.validation.slug_unique'),
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        // Auto-generate slug only if empty and name present
+        if (!$this->filled('slug') && $this->filled('name')) {
+            $this->merge(['slug' => Str::slug($this->input('name'))]);
+        }
     }
 }

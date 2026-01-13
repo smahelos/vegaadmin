@@ -6,20 +6,23 @@ use App\Http\Requests\PaymentMethodRequest;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for PaymentMethodRequest
- * 
+ *
  * Tests complete validation flow with HTTP context and database interactions
  * Tests payment method validation scenarios, authorization, and validation with database constraints
  */
 class PaymentMethodRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected User $user;
     protected array $validPaymentMethodData;
@@ -34,9 +37,15 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        // Create test user
-        $this->user = User::factory()->create();
-        
+        // Set up frontend test environment with roles and permissions
+        $this->setUpFrontendTestEnvironment();
+
+        $permission = Permission::where('name', 'frontend.can_create_edit_payment_method')
+            ->where('guard_name', 'web')
+            ->first();
+
+        $this->user->givePermissionTo($permission);
+
         // Set up valid payment method data
         $this->setupValidPaymentMethodData();
     }
@@ -67,8 +76,9 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_required_fields_missing()
     {
-        $requiredFields = ['name', 'slug'];
-        
+    // Only 'name' is strictly required now; 'slug' auto-generates if missing
+    $requiredFields = ['name'];
+
         foreach ($requiredFields as $field) {
             $invalidData = $this->validPaymentMethodData;
             unset($invalidData[$field]);
@@ -185,7 +195,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
     public function validation_passes_with_boolean_values_for_is_active()
     {
         $booleanValues = [true, false, 1, 0, '1', '0'];
-        
+
         foreach ($booleanValues as $value) {
             $validData = $this->validPaymentMethodData;
             $validData['is_active'] = $value;
@@ -204,7 +214,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
         $this->actingAs($this->user);
 
         $request = new PaymentMethodRequest();
-        
+
         $this->assertTrue($request->authorize());
     }
 
@@ -212,7 +222,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
     public function authorization_fails_when_not_authenticated()
     {
         $request = new PaymentMethodRequest();
-        
+
         $this->assertFalse($request->authorize());
     }
 
@@ -237,7 +247,6 @@ class PaymentMethodRequestFeatureTest extends TestCase
 
         $expectedKeys = [
             'name.required',
-            'slug.required',
             'slug.unique',
         ];
 
@@ -271,7 +280,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
             ['name' => 'Name-with-Dashes', 'slug' => 'name-with-dashes'],
             ['name' => 'Name_with_Underscores', 'slug' => 'name_with_underscores'],
         ];
-        
+
         foreach ($stringTestCases as $index => $testCase) {
             $validData = array_merge($this->validPaymentMethodData, $testCase);
             $validData['slug'] = $testCase['slug'] . '-' . $index; // Make slug unique

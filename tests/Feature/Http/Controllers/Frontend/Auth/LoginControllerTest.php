@@ -12,14 +12,15 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\CreatesFrontendTestEnvironment;
 use Mockery;
 
 class LoginControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
 
     protected LoginController $controller;
-    protected User $testUser;
+    protected User $user;
     protected string $validEmail;
     protected string $validPassword;
 
@@ -33,15 +34,26 @@ class LoginControllerTest extends TestCase
     {
         parent::setUp();
 
+        $this->setUpFrontendTestEnvironment();
+
         // Set up test data with unique email using faker
         $this->validEmail = $this->faker->unique()->safeEmail;
         $this->validPassword = 'password123';
 
         // Create test user with valid credentials
-        $this->testUser = User::factory()->create([
-            'email' => $this->validEmail,
-            'password' => Hash::make($this->validPassword),
-        ]);
+        if (!$this->user) {
+            $this->user = User::factory()->create([
+                'email' => $this->validEmail,
+                'password' => Hash::make($this->validPassword),
+            ]);
+        } else {
+            // Ensure user exists with valid credentials
+            $this->user->update([
+                'email' => $this->validEmail,
+                'password' => Hash::make($this->validPassword),
+            ]);
+
+        }
 
         // Initialize controller instance for testing
         $this->controller = new LoginController();
@@ -56,7 +68,7 @@ class LoginControllerTest extends TestCase
     public function constructor_applies_guest_middleware()
     {
         $middleware = $this->controller->getMiddleware();
-        
+
         $this->assertNotEmpty($middleware);
         $this->assertEquals('guest', $middleware[0]['middleware']);
         $this->assertEquals(['logout'], $middleware[0]['options']['except']);
@@ -71,7 +83,7 @@ class LoginControllerTest extends TestCase
     public function show_login_form_returns_correct_view()
     {
         $response = $this->controller->showLoginForm();
-        
+
         $this->assertEquals('auth.login', $response->name());
     }
 
@@ -83,14 +95,14 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_successful_with_valid_credentials()
     {
-        $response = $this->post('/login', [
+        $response = $this->post('/en/login', [
             'email' => $this->validEmail,
             'password' => $this->validPassword,
         ]);
 
         $response->assertRedirect();
         $this->assertTrue(Auth::check());
-        $this->assertEquals($this->testUser->id, Auth::id());
+        $this->assertEquals($this->user->id, Auth::id());
     }
 
     /**
@@ -101,7 +113,7 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_fails_with_invalid_credentials()
     {
-        $response = $this->post('/login', [
+        $response = $this->post('/en/login', [
             'email' => $this->validEmail,
             'password' => 'wrongpassword',
         ]);
@@ -118,7 +130,7 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_fails_with_nonexistent_email()
     {
-        $response = $this->post('/login', [
+        $response = $this->post('/en/login', [
             'email' => 'nonexistent-' . uniqid() . '@example.com',
             'password' => $this->validPassword,
         ]);
@@ -135,7 +147,7 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_validation_fails_with_empty_email()
     {
-        $response = $this->post('/login', [
+        $response = $this->post('/en/login', [
             'email' => '',
             'password' => $this->validPassword,
         ]);
@@ -154,7 +166,7 @@ class LoginControllerTest extends TestCase
     {
         // Laravel 12's AuthenticatesUsers trait doesn't validate email format by default
         // It only checks required|string|email and Laravel is lenient with email validation
-        $response = $this->post('/login', [
+        $response = $this->post('/en/login', [
             'email' => 'invalid-email-format',
             'password' => $this->validPassword,
         ]);
@@ -172,7 +184,7 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_validation_fails_with_empty_password()
     {
-        $response = $this->post('/login', [
+        $response = $this->post('/en/login', [
             'email' => $this->validEmail,
             'password' => '',
         ]);
@@ -194,7 +206,7 @@ class LoginControllerTest extends TestCase
             ->once()
             ->with('web')
             ->andReturnSelf();
-            
+
         Auth::shouldReceive('attempt')
             ->once()
             ->andThrow(new \Exception('Database connection error'));
@@ -232,7 +244,7 @@ class LoginControllerTest extends TestCase
     public function authenticated_redirects_to_frontend_dashboard()
     {
         $request = Request::create('/login', 'POST');
-        
+
         // Set app locale
         app()->setLocale('en');
 
@@ -241,7 +253,7 @@ class LoginControllerTest extends TestCase
         $method = $reflection->getMethod('authenticated');
         $method->setAccessible(true);
 
-        $response = $method->invoke($this->controller, $request, $this->testUser);
+        $response = $method->invoke($this->controller, $request, $this->user);
 
         $this->assertEquals(302, $response->getStatusCode());
         // Check that it redirects to dashboard with locale in URL path
@@ -258,7 +270,7 @@ class LoginControllerTest extends TestCase
     public function authenticated_uses_correct_locale()
     {
         $request = Request::create('/login', 'POST');
-        
+
         // Set different locale
         app()->setLocale('cs');
 
@@ -267,7 +279,7 @@ class LoginControllerTest extends TestCase
         $method = $reflection->getMethod('authenticated');
         $method->setAccessible(true);
 
-        $response = $method->invoke($this->controller, $request, $this->testUser);
+        $response = $method->invoke($this->controller, $request, $this->user);
 
         $this->assertStringContainsString('/cs/', $response->getTargetUrl());
     }
@@ -281,13 +293,13 @@ class LoginControllerTest extends TestCase
     public function logout_user_successfully()
     {
         // Login user first
-        $this->actingAs($this->testUser);
+        $this->actingAs($this->user);
         $this->assertTrue(Auth::check());
 
         // Set app locale
         app()->setLocale('en');
 
-        $response = $this->post('/logout');
+        $response = $this->post('/en/logout');
 
         $response->assertRedirect();
         // Check that it redirects to home page with locale in URL path
@@ -307,14 +319,14 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function logout_invalidates_session()
     {
-        $this->actingAs($this->testUser);
-        
+        $this->actingAs($this->user);
+
         // Store original session ID
         $originalSessionId = session()->getId();
-        
+
         app()->setLocale('en');
 
-        $response = $this->post('/logout');
+        $response = $this->post('/en/logout');
 
         $response->assertRedirect();
         // Session should be invalidated (new ID generated)
@@ -343,7 +355,7 @@ class LoginControllerTest extends TestCase
 
         $this->assertTrue($result);
         $this->assertTrue(Auth::check());
-        $this->assertEquals($this->testUser->id, Auth::id());
+        $this->assertEquals($this->user->id, Auth::id());
     }
 
     /**
@@ -475,7 +487,7 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_with_remember_me()
     {
-        $response = $this->post('/login', [
+        $response = $this->post('/en/login', [
             'email' => $this->validEmail,
             'password' => $this->validPassword,
             'remember' => 'on',
@@ -483,7 +495,7 @@ class LoginControllerTest extends TestCase
 
         $response->assertRedirect();
         $this->assertTrue(Auth::check());
-        $this->assertEquals($this->testUser->id, Auth::id());
+        $this->assertEquals($this->user->id, Auth::id());
     }
 
     /**
@@ -499,7 +511,7 @@ class LoginControllerTest extends TestCase
             ->once()
             ->with('web')
             ->andReturnSelf();
-            
+
         Auth::shouldReceive('attempt')
             ->once()
             ->andThrow(new \Exception('Test exception'));
@@ -541,7 +553,7 @@ class LoginControllerTest extends TestCase
             ->once()
             ->with('web')
             ->andReturnSelf();
-            
+
         Auth::shouldReceive('attempt')
             ->once()
             ->andThrow(new \Exception('Test exception'));
@@ -560,7 +572,7 @@ class LoginControllerTest extends TestCase
         $response = $this->controller->login($request);
 
         $this->assertEquals(302, $response->getStatusCode());
-        
+
         // Check that error message is flashed to session
         $session = $request->getSession();
         $this->assertTrue($session->has('error'));
