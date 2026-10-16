@@ -32,11 +32,21 @@ class InvoiceNumberTest extends TestCase
     #[Test]
     public function generates_next_number_for_new_sequence(): void
     {
-        // Mock current year as 2025
-        $invoiceNumber = InvoiceNumber::generateNext('20250005');
-        
-        $this->assertEquals(2025, $invoiceNumber->getYear());
+        $currentYear = (int) date('Y');
+        $invoiceNumber = InvoiceNumber::generateNext($currentYear . '0005');
+
+        $this->assertEquals($currentYear, $invoiceNumber->getYear());
         $this->assertEquals(6, $invoiceNumber->getSequence());
+    }
+
+    #[Test]
+    public function restarts_sequence_when_last_number_is_from_previous_year(): void
+    {
+        $currentYear = (int) date('Y');
+        $invoiceNumber = InvoiceNumber::generateNext(($currentYear - 1) . '0005');
+
+        $this->assertEquals($currentYear, $invoiceNumber->getYear());
+        $this->assertEquals(1, $invoiceNumber->getSequence());
     }
 
     #[Test]

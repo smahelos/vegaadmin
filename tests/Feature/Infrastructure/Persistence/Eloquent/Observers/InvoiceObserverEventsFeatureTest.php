@@ -59,9 +59,9 @@ class InvoiceObserverEventsFeatureTest extends TestCase
         Event::assertNotDispatched(UserDataChanged::class);
 
         // Case 2: update watched field (payment_amount)
-//        Event::fake([UserDataChanged::class]);
-//        $invoice->payment_amount = 150; // dirty field watched by observer
-//        $invoice->save();
+        Event::fake([UserDataChanged::class]);
+        $invoice->payment_amount = 150; // dirty field watched by observer
+        $invoice->save();
         Event::assertDispatched(UserDataChanged::class, function ($event) use ($invoice) {
             return $event->userId === $invoice->user_id && $event->changeType === 'invoice';
         });
