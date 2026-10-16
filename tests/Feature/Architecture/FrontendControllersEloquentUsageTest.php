@@ -7,7 +7,7 @@ use Tests\TestCase;
 
 /**
  * Ensures no Frontend controller exceeds 1 direct Eloquent static call (thin controller rule).
- * Baseline controllers listed in storage/app/metrics/frontend_controller_eloquent_baseline.json.
+ * Baseline controllers listed in architecture/baselines/frontend_controller_eloquent_baseline.json.
  */
 class FrontendControllersEloquentUsageTest extends TestCase
 {
@@ -17,7 +17,7 @@ class FrontendControllersEloquentUsageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $path = storage_path('app/metrics/frontend_controller_eloquent_baseline.json');
+        $path = base_path('architecture/baselines/frontend_controller_eloquent_baseline.json');
         $this->assertFileExists($path, 'Missing baseline JSON: generate or commit frontend_controller_eloquent_baseline.json');
         $json = json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
         $this->baselineControllers = $json['controllers'];

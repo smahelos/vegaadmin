@@ -4,10 +4,16 @@ This directory stores committed architecture baseline JSON snapshots used by gua
 
 Files:
 - controller_thinness_baseline.json – Baseline metrics for controller thinness enforcement (drift check, timestamp ignored).
-- frontend_controller_eloquent_baseline.json – Frontend controllers' allowed Eloquent usages (hash/drift enforcement job).
-- api_controller_eloquent_baseline.json – API controllers' allowed Eloquent usages (hash/drift enforcement job).
+- frontend_controller_eloquent_baseline.json – Frontend controllers' allowed Eloquent usages (drift check, generated_at ignored).
+- api_controller_eloquent_baseline.json – API controllers' allowed Eloquent usages (drift check, generated_at ignored).
 - provider_snapshot.json – Provider registration snapshot baseline (diff guard via artisan ddd:providers:snapshot --diff).
 - legacy_report_latest.json – Snapshot of residual legacy artifacts & neutralized tests (regenerated via legacy report or unified command).
+
+The architecture tests in `tests/Feature/Architecture` read these committed files directly (not `storage/app/metrics`, which is git-ignored).
+
+Commands below run artisan in a throwaway container with the working tree mounted, because the `BILLEX-app` container has no bind mount and its `--save` output would never reach the host:
+
+    ARTISAN='docker run --rm -e HOME=/tmp -v "$PWD":/var/www -w /var/www --user "$(id -u):$(id -g)" billex-app php artisan'
 
 Maintenance Rules:
 1. Regenerate only when an intentional architectural change is approved.
@@ -15,30 +21,31 @@ Maintenance Rules:
 3. Never edit these JSON files manually; always use the appropriate artisan command.
 4. Keep changes minimal; investigate large diffs before committing.
 5. For controller thinness: regenerate with
-	docker exec INVOICE-php-fpm php artisan ddd:controller-thinness:baseline --save && \
+	eval $ARTISAN ddd:controller-thinness:baseline --save && \
 	cp storage/app/metrics/controller_thinness_baseline.json architecture/baselines/controller_thinness_baseline.json
-	then commit.
+	then commit (copy the file verbatim; CI compares everything except summary.timestamp).
 6. Controller thinness CI drift detection ignores only summary.timestamp; any structural/metric difference fails the build.
-7. Frontend/API Eloquent baselines are regenerated in CI and hash compared; update by re-running respective artisan baseline command then copying file here.
-8. Provider snapshot baseline refresh:
-	docker exec INVOICE-php-fpm php artisan ddd:providers:snapshot --write
-	# output artifact path may differ (check command output), then copy into architecture/baselines/provider_snapshot.json
+7. Frontend/API Eloquent baselines are regenerated in CI and compared ignoring generated_at; update with
+	eval $ARTISAN ddd:frontend-eloquent:baseline --save --path=architecture/baselines
+	eval $ARTISAN ddd:api-eloquent:baseline --save --path=architecture/baselines
+8. Provider snapshot baseline refresh (writes directly to architecture/baselines/provider_snapshot.json):
+	eval $ARTISAN ddd:providers:snapshot --write
 9. Never manually edit JSON; always regenerate.
 10. Unified regeneration command examples:
 	# Dry-run (inspect deltas only, nothing written)
-	docker exec INVOICE-php-fpm php artisan ddd:baselines:refresh --include-legacy --include-provider --dry-run --json-summary
+	eval $ARTISAN ddd:baselines:refresh --include-legacy --include-provider --dry-run --json-summary
 
 	# Regenerate all (thinness + frontend/api + provider + legacy) and update versioned files
-	docker exec INVOICE-php-fpm php artisan ddd:baselines:refresh --include-legacy --include-provider --write --update-versioned --json-summary > baselines_summary.json
+	eval $ARTISAN ddd:baselines:refresh --include-legacy --include-provider --write --update-versioned --json-summary > baselines_summary.json
 
 	# Skip provider & legacy
-	docker exec INVOICE-php-fpm php artisan ddd:baselines:refresh --write --update-versioned
+	eval $ARTISAN ddd:baselines:refresh --write --update-versioned
 
 	# Only frontend + api (skip thinness & legacy)
-	docker exec INVOICE-php-fpm php artisan ddd:baselines:refresh --write --no-controller-thinness --include-provider=false --update-versioned
+	eval $ARTISAN ddd:baselines:refresh --write --no-controller-thinness --include-provider=false --update-versioned
 
 11. Legacy report baseline refresh manually:
-	docker exec INVOICE-php-fpm php artisan ddd:legacy-report --json --write-baseline
+	eval $ARTISAN ddd:legacy-report --json --write-baseline
 
 12. JSON summary output (when --json-summary used) includes diff entries:
 ```json
