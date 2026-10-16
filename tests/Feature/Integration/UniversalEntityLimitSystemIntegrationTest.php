@@ -2,11 +2,12 @@
 
 namespace Tests\Feature\Integration;
 
+use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\ClientRequest;
 use App\Http\Requests\InvoiceRequest;
 use App\Http\Requests\SupplierRequest;
-use App\Models\Client;
 use App\Models\EntityLimit;
 use App\Models\Supplier;
 use App\Models\User;
@@ -123,8 +124,8 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
             'is_active' => true,
         ]);
 
-    // Create one client (at limit) - observer will record usage automatically
-    Client::factory()->create(['user_id' => $this->user->id]);
+        // Create one client (at limit) - ClientCreated domain event records usage
+        $this->createClientViaService();
         
         $clientRequest = new ClientRequest();
         $clientRequest->setMethod('POST');
@@ -269,9 +270,9 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
             'is_active' => true,
         ]);
 
-    // Create actual entities (observer records usage)
-    Client::factory()->create(['user_id' => $this->user->id]);
-    Client::factory()->create(['user_id' => $this->user->id]);
+        // Create actual entities (ClientCreated domain event records usage)
+        $this->createClientViaService();
+        $this->createClientViaService();
 
         // Check statistics
         $stats = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', 'monthly');
@@ -280,5 +281,13 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         $this->assertEquals(2, $stats['current_usage']);
         $this->assertEquals(10, $stats['limit']);
         $this->assertEquals('monthly', $stats['period_type']);
+    }
+
+    private function createClientViaService(): void
+    {
+        app(InvoicePartyServiceInterface::class)->resolveOrCreateClientWithFlag(UserId::fromInt($this->user->id), [
+            'name' => 'Test Client ' . uniqid(),
+            'email' => 'client_' . uniqid() . '@example.com',
+        ]);
     }
 }

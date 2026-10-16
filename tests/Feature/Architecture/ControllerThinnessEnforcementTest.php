@@ -21,17 +21,8 @@ class ControllerThinnessEnforcementTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $path = storage_path('app/metrics/controller_thinness_baseline.json');
-        if (!file_exists($path)) {
-            // Fallback to committed docs baseline (first-time CI run or cleared storage)
-            $docsBaseline = base_path('architecture/baselines/controller_thinness_baseline.json');
-            $this->assertFileExists($docsBaseline, 'Committed controller thinness baseline missing (architecture/baselines/controller_thinness_baseline.json). Generate with: docker exec INVOICE-php-fpm php artisan ddd:controller-thinness:baseline --save then copy to architecture/baselines and commit.');
-            // Ensure target directory exists
-            if (!is_dir(dirname($path))) {
-                mkdir(dirname($path), 0777, true);
-            }
-            copy($docsBaseline, $path);
-        }
+        $path = base_path('architecture/baselines/controller_thinness_baseline.json');
+        $this->assertFileExists($path, 'Committed controller thinness baseline missing. Generate with: php artisan ddd:controller-thinness:baseline --save and copy storage/app/metrics/controller_thinness_baseline.json to architecture/baselines.');
         $json = json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
         $this->baseline = $json['controllers'];
     }

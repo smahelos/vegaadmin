@@ -31,8 +31,8 @@ class InvoiceControllerMarkAsPaidDelegationTest extends TestCase
         $this->assertStringNotContainsString('->markInvoiceAsPaid(', $source, 'Direct markInvoiceAsPaid usage detected – should delegate through changeStatus');
         $this->assertStringNotContainsString('->changeInvoiceStatus(', $source, 'Direct changeInvoiceStatus usage detected – should delegate via frontend actions service');
 
-        // Ensure delegation to frontend actions changeStatus with paid slug exists
-        $this->assertStringContainsString('->changeStatus($user, $id, \'paid\')', $source, 'Expected delegation call to changeStatus($user, $id, \'paid\') missing');
+        // Ensure delegation to frontend actions changeStatus with paid slug exists (service takes int $userId)
+        $this->assertMatchesRegularExpression('/->changeStatus\(\s*\$user->id\s*,\s*\$id\s*,\s*\'paid\'\s*\)/', $source, 'Expected delegation call to changeStatus($user->id, $id, \'paid\') missing');
 
         // Guard against future added branching logic (heuristic: method body should not contain multiple if statements besides initial user check)
         if (preg_match('/function\s+markAsPaid\s*\(.*?\)\s*\{(.*?)\}/s', $source, $m)) {

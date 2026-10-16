@@ -21,9 +21,11 @@ use Tests\TestCase;
  * Ensures we detect unintended structural/formatting changes (totals, money component output, labels, order).
  *
  * Snapshot management strategy:
- * - On first run (no snapshot file) the HTML is written and the test is marked incomplete for manual review.
- * - Subsequent runs compare normalized HTML with the stored snapshot (strict string match).
- * - To intentionally update snapshots: delete the snapshot files or set env UPDATE_PDF_SNAPSHOTS=1.
+ * - Missing snapshot file: the HTML is written and the test is marked incomplete for manual review.
+ * - Otherwise normalized HTML is compared with the stored snapshot (strict string match); files are never rewritten.
+ * - To intentionally update snapshots: delete the snapshot files or run with UPDATE_PDF_SNAPSHOTS=1.
+ *
+ * Money formatting is locale-aware via intl; the environment needs full ICU data (see app.dockerfile).
  */
 class InvoicePdfSnapshotTest extends TestCase
 {
@@ -60,12 +62,15 @@ class InvoicePdfSnapshotTest extends TestCase
             'payment_method_id' => $paymentMethod->id,
             'payment_status_id' => $status->id,
             'invoice_vs' => 'SNAP-001',
+            'invoice_ks' => '0308',
+            'invoice_ss' => '1234',
             'payment_amount' => 1234.56,
             'payment_currency' => 'EUR',
         ]);
 
         $templates = ['default','modern','minimal'];
         $failures = [];
+        $created = [];
 
         foreach ($templates as $template) {
             $html = $this->renderTemplate($invoice, $template, 'cs');
@@ -75,50 +80,27 @@ class InvoicePdfSnapshotTest extends TestCase
             $normalized = preg_replace('/<div class="client-info">.*?<\\/div>/s','<div class="client-info"><DYNAMIC_CLIENT_BLOCK/></div>',$normalized);
             $snapshotFile = $this->snapshotDir.'/invoice_'.$template.'.html';
 
-            // Snapshot updates controlled manually (set to false by default to avoid env dependency)
-            // Force one-time regeneration after normalization change if snapshot lacks placeholder markers
-            $existingContent = '';
-            if (file_exists($snapshotFile)) {
-                $existingContent = file_get_contents($snapshotFile) ?: '';
-            }
-            $updateFlag = (bool) getenv('UPDATE_PDF_SNAPSHOTS');
-            // Update if placeholder blocks missing OR date placeholder missing OR update flag set
-            $shouldUpdate = strpos($existingContent, '<DYNAMIC_SUPPLIER_BLOCK/>') === false
-                || strpos($existingContent, '<DATE>') === false
-                || strpos($existingContent, '<DUE_IN>') === false
-                || strpos($existingContent, '<NUMERIC_LINE/>') === false
-                || strpos($existingContent, '<ICO_LINE/>') === false
-                || strpos($existingContent, '<DIC_LINE/>') === false
-                || $updateFlag;
-
-            if (!file_exists($snapshotFile) || $shouldUpdate) {
+            if (!file_exists($snapshotFile)) {
                 file_put_contents($snapshotFile, $normalized);
-                // Do not mark incomplete when auto-updating; continue to next template
+                $created[] = $template;
                 continue;
-            } else {
-                $expected = file_get_contents($snapshotFile);
-                if ($expected !== $normalized) {
-                    // If difference only introduces new placeholders, treat as update
-                    $placeholders = ['<DATE>', '<DUE_IN>', '<DYNAMIC_SUPPLIER_BLOCK/>','<NUMERIC_LINE/>','<ICO_LINE/>','<DIC_LINE/>'];
-                    $missing = false;
-                    foreach ($placeholders as $ph) {
-                        if (str_contains($normalized, $ph) && !str_contains($expected, $ph)) {
-                            $missing = true; break;
-                        }
-                    }
-                    // If update flag set, refresh snapshot silently
-                    if ($updateFlag || $missing) {
-                        file_put_contents($snapshotFile, $normalized);
-                    } else {
-                        $diff = $this->stringDiff($expected, $normalized, 5);
-                        $failures[] = "Template {$template} snapshot mismatch:\n".$diff;
-                    }
-                }
+            }
+            if (getenv('UPDATE_PDF_SNAPSHOTS')) {
+                file_put_contents($snapshotFile, $normalized);
+                continue;
+            }
+
+            $expected = file_get_contents($snapshotFile);
+            if ($expected !== $normalized) {
+                $failures[] = "Template {$template} snapshot mismatch:\n".$this->stringDiff($expected, $normalized, 5);
             }
         }
 
         if (!empty($failures)) {
             $this->fail(implode("\n\n", $failures));
+        }
+        if (!empty($created)) {
+            $this->markTestIncomplete('New snapshots written for review: '.implode(', ', $created));
         }
         $this->assertTrue(true); // all matched
     }
@@ -155,6 +137,8 @@ class InvoicePdfSnapshotTest extends TestCase
         $html = preg_replace('/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/', '<DATETIME>', $html);
     // Replace standalone dates in format dd.mm.YYYY (e.g. due dates, issue dates) with placeholder
     $html = preg_replace('/\b\d{2}\.\d{2}\.\d{4}\b/', '<DATE>', $html);
+    // Replace generation time (HH:MM) following a date placeholder
+    $html = preg_replace('/<DATE> \d{2}:\d{2}\b/', '<DATE> <TIME>', $html);
     // Replace Czech due_in value pattern (robust) "NN ... dní" with placeholder
     $html = preg_replace('/<span class="info-value">\s*\d+[^<]*dní\s*<\/span>/', '<span class="info-value"><DUE_IN></span>', $html);
     // Normalize supplier/client numeric lines (street, zip+city, ICO, DIC) to reduce snapshot churn

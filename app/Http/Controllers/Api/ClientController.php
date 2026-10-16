@@ -121,15 +121,11 @@ class ClientController extends Controller
             // Find default client
             $client = $this->partyService->defaultClientOrFirst((int)Auth::id());
             if (!$client) {
-                return response()->json([
-                    'error' => __('clients.messages.not_found')
-                ], 404);
+                return response()->json(['error' => __('clients.messages.not_found')], 404);
             }
             return response()->json($client);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => __('clients.messages.error_loading')
-            ], 500);
+            return response()->json(['error' => __('clients.messages.error_loading')], 500);
         }
     }
 

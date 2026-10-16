@@ -1,86 +1,274 @@
 {
-    "generated_at": "2025-09-01T08:59:12+00:00",
+    "generated_at": "2026-10-16T16:18:31+00:00",
     "providers": {
-        "App\\Providers\\PartyDomainServiceProvider": {
+        "App\\Providers\\AppServiceProvider": {
             "bind": [
                 {
-                    "abstract": "",
-                    "concrete": "\/\/     \\App\\Domain\\Party\\Repositories\\ClientRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\ClientReadRepositoryInterface",
-                    "concrete": "App\\Domain\\Party\\Repositories\\ClientRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\ClientWriteRepositoryInterface",
-                    "concrete": "App\\Domain\\Party\\Repositories\\ClientRepository"
-                },
-                {
-                    "abstract": "",
-                    "concrete": "\/\/     \\App\\Domain\\Party\\Repositories\\SupplierRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierReadRepositoryInterface",
-                    "concrete": "App\\Domain\\Party\\Repositories\\SupplierRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierWriteRepositoryInterface",
-                    "concrete": "App\\Domain\\Party\\Repositories\\SupplierRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface",
-                    "concrete": "App\\Domain\\Party\\Services\\InvoicePartyService"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface",
-                    "concrete": "App\\Domain\\Party\\Validation\\PartyCreationValidator"
+                    "abstract": "Backpack\\PermissionManager\\app\\Http\\Controllers\\UserCrudController",
+                    "concrete": "App\\Http\\Controllers\\Admin\\UserCrudController"
                 }
             ],
             "singleton": []
         },
-        "App\\Providers\\ContentDomainServiceProvider": {
+        "App\\Providers\\AuthServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Application\\Auth\\Contracts\\AuthorizationServiceInterface",
+                    "concrete": "App\\Application\\Auth\\Services\\AuthorizationService"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\DomainEventsServiceProvider": {
+            "bind": [],
+            "singleton": [
+                {
+                    "abstract": "App\\Domain\\Shared\\Events\\DomainEventDispatcher",
+                    "concrete": "closure"
+                }
+            ]
+        },
+        "App\\Providers\\SharedServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Status\\Services\\StatusService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\CurrencyExchangeServiceInterface",
+                    "concrete": "closure"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\CurrencyExchangeServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Money\\Services\\CurrencyExchangeService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Money\\Services\\CurrencyService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\MoneyFormatterInterface",
+                    "concrete": "App\\Domain\\Shared\\Money\\Services\\MoneyFormatter"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Geography\\Contracts\\CountryServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Geography\\Services\\CountryService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Console\\Services\\ArtisanCommandsService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Tax\\Contracts\\TaxServiceInterface",
+                    "concrete": "App\\Domain\\Shared\\Tax\\Services\\TaxService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Events\\Contracts\\EventPublisherInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Events\\LaravelEventPublisher"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\File\\Contracts\\FileUploadServiceInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\File\\Services\\LaravelFileUploadService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\File\\Contracts\\ImageProcessorInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\File\\Processors\\GdImageProcessor"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Translation\\Contracts\\TranslatorInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Translation\\LaravelTranslator"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Cache\\Contracts\\CacheServiceInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Cache\\CacheService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Time\\Contracts\\ClockInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Time\\CarbonClock"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Time\\Contracts\\PeriodServiceInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Time\\CarbonPeriodService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Log\\Contracts\\LogInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Log\\LaravelLogger"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Config\\Contracts\\Config",
+                    "concrete": "App\\Infrastructure\\Shared\\Config\\Services\\LaravelConfigAdapter"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Session\\Contracts\\SessionInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Session\\LaravelSessionStore"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Str\\Contracts\\Str",
+                    "concrete": "App\\Infrastructure\\Shared\\Str\\Services\\LaravelStrAdapter"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Hash\\Contracts\\HashInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Hash\\LaravelHash"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Http\\Contracts\\HttpClientInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Http\\Services\\HttpClientService"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Database\\Contracts\\TransactionBoundaryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Database\\EloquentTransactionBoundary"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusDtoRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusCategoryDtoRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusCategoryDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Tax\\Contracts\\TaxDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Tax\\Repositories\\EloquentTaxDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Tax\\Contracts\\TaxDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Tax\\Repositories\\EloquentTaxDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsDtoRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Console\\Repositories\\EloquentArtisanCommandsDtoRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Shared\\Console\\Contracts\\ArtisanCommandsRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Console\\Repositories\\EloquentArtisanCommandsRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Shared\\Money\\Contracts\\CurrencyApplicationServiceInterface",
+                    "concrete": "App\\Application\\Shared\\Money\\Services\\CurrencyApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Shared\\Geography\\Contracts\\CountryApplicationServiceInterface",
+                    "concrete": "App\\Application\\Shared\\Geography\\Services\\CountryApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Shared\\Geography\\Contracts\\LocaleApplicationServiceInterface",
+                    "concrete": "App\\Application\\Shared\\Geography\\Services\\LocaleApplicationService"
+                }
+            ],
+            "singleton": [
+                {
+                    "abstract": "App\\Domain\\Shared\\File\\Config\\FileUploadConfig",
+                    "concrete": "closure"
+                }
+            ]
+        },
+        "App\\Providers\\AnalyticsServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface",
+                    "concrete": "App\\Domain\\Analytics\\Services\\DashboardService"
+                },
+                {
+                    "abstract": "App\\Application\\Analytics\\Contracts\\AnalyticsReadRepository",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsReadRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Analytics\\Contracts\\AnalyticsDtoReadRepository",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsDtoReadRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsRepository",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentApiStatisticsRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsApplicationServiceInterface",
+                    "concrete": "App\\Application\\Analytics\\Services\\ApiStatisticsApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Analytics\\Contracts\\DashboardApplicationServiceInterface",
+                    "concrete": "App\\Application\\Analytics\\Services\\DashboardApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Analytics\\Contracts\\UserStatisticsPresenterInterface",
+                    "concrete": "App\\Application\\Analytics\\Presenters\\UserStatisticsPresenter"
+                },
+                {
+                    "abstract": "App\\Application\\Analytics\\Contracts\\MonthlyStatPresenterInterface",
+                    "concrete": "App\\Application\\Analytics\\Presenters\\MonthlyStatPresenter"
+                },
+                {
+                    "abstract": "App\\Application\\Analytics\\Contracts\\ClientTotalPresenterInterface",
+                    "concrete": "App\\Application\\Analytics\\Presenters\\ClientTotalPresenter"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\ContentServiceProvider": {
             "bind": [
                 {
                     "abstract": "App\\Domain\\Content\\Contracts\\PageServiceInterface",
                     "concrete": "App\\Domain\\Content\\Services\\PageService"
-                }
-            ],
-            "singleton": []
-        },
-        "App\\Providers\\ProductDomainServiceProvider": {
-            "bind": [
-                {
-                    "abstract": "App\\Domain\\Product\\Contracts\\ProductRepositoryInterface",
-                    "concrete": "App\\Domain\\Product\\Repositories\\ProductRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Product\\Contracts\\ProductServiceInterface",
-                    "concrete": "App\\Domain\\Product\\Services\\ProductService"
+                    "abstract": "App\\Application\\Content\\Contracts\\PageReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Content\\Contracts\\PageWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Content\\Contracts\\PageDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Content\\Contracts\\PageDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageDtoRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Content\\Contracts\\PageApplicationServiceInterface",
+                    "concrete": "App\\Application\\Content\\Services\\PageApplicationService"
                 }
             ],
             "singleton": []
         },
-        "App\\Providers\\InvoiceDomainServiceProvider": {
+        "App\\Providers\\InvoiceServiceProvider": {
             "bind": [
                 {
                     "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceServiceInterface",
                     "concrete": "App\\Domain\\Invoice\\Services\\InvoiceService"
                 },
                 {
-                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoicePdfServiceInterface",
-                    "concrete": "App\\Domain\\Invoice\\Services\\InvoicePdfService"
-                },
-                {
-                    "abstract": "App\\Domain\\Invoice\\Contracts\\TaxesServiceInterface",
-                    "concrete": "App\\Domain\\Invoice\\Services\\TaxesService"
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoicePrintDataBuilderInterface",
+                    "concrete": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder"
                 },
                 {
                     "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceProductSyncServiceInterface",
                     "concrete": "App\\Domain\\Invoice\\Services\\InvoiceProductSyncService"
                 },
                 {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\InvoiceApplicationService"
+                    "abstract": "App\\Domain\\Invoice\\Notifications\\Contracts\\InvoiceReminderNotifierInterface",
+                    "concrete": "App\\Infrastructure\\Notifications\\Invoice\\LaravelInvoiceReminderNotifier"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceProductsSyncRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceProductsSyncRepository"
                 },
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\GuestInvoiceApplicationServiceInterface",
@@ -101,90 +289,260 @@
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\InvoicePdfApplicationServiceInterface",
                     "concrete": "App\\Application\\Invoice\\Services\\InvoicePdfApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoicePdfRendererInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\InvoicePdfRenderer"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\TemporaryInvoiceStoreInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\TemporaryInvoiceStore"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\TemporaryInvoicePrintDataFactoryInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\TemporaryInvoicePrintDataFactory"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceFormApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceFormApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceCrudApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceCrudApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceListingApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceListingApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceStatusApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceStatusApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceLimitApplicationServiceInterface",
+                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceLimitApplicationService"
                 }
             ],
             "singleton": []
         },
-        "App\\Providers\\PaymentDomainServiceProvider": {
+        "App\\Providers\\PartyServiceProvider": {
             "bind": [
                 {
-                    "abstract": "QrPaymentServiceInterface",
-                    "concrete": "QrPaymentService"
+                    "abstract": "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface",
+                    "concrete": "App\\Domain\\Party\\Services\\InvoicePartyService"
                 },
                 {
-                    "abstract": "SubscriptionPaymentServiceInterface",
-                    "concrete": "SubscriptionPaymentService"
+                    "abstract": "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface",
+                    "concrete": "App\\Domain\\Party\\Validation\\PartyCreationValidator"
                 },
                 {
-                    "abstract": "BankServiceInterface",
-                    "concrete": "BankService"
+                    "abstract": "App\\Application\\Party\\Contracts\\ClientReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository"
                 },
                 {
-                    "abstract": "payment.gateway.gopay",
-                    "concrete": "GoPayGateway"
+                    "abstract": "App\\Application\\Party\\Contracts\\ClientWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository"
                 },
                 {
-                    "abstract": "PaymentApplicationServiceInterface",
-                    "concrete": "PaymentApplicationService"
+                    "abstract": "App\\Domain\\Party\\Contracts\\ClientDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\ClientDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Party\\Contracts\\SupplierReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Party\\Contracts\\SupplierWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Party\\Contracts\\PartyApplicationServiceInterface",
+                    "concrete": "App\\Application\\Party\\Services\\PartyApplicationService"
                 }
             ],
-            "singleton": []
+            "singleton": [
+                {
+                    "abstract": "App\\Application\\Party\\Services\\PartyAuthorizationService",
+                    "concrete": "App\\Application\\Party\\Services\\PartyAuthorizationService"
+                },
+                {
+                    "abstract": "App\\Application\\Party\\Mappers\\ClientArrayMapper",
+                    "concrete": "App\\Application\\Party\\Mappers\\ClientArrayMapper"
+                },
+                {
+                    "abstract": "App\\Application\\Party\\Mappers\\SupplierArrayMapper",
+                    "concrete": "App\\Application\\Party\\Mappers\\SupplierArrayMapper"
+                },
+                {
+                    "abstract": "App\\Application\\Party\\Services\\PartyInputValidationService",
+                    "concrete": "App\\Application\\Party\\Services\\PartyInputValidationService"
+                }
+            ]
         },
-        "App\\Providers\\SharedDomainServiceProvider": {
+        "App\\Providers\\PaymentServiceProvider": {
             "bind": [
                 {
-                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface",
-                    "concrete": "App\\Domain\\Shared\\Status\\Services\\StatusService"
+                    "abstract": "App\\Domain\\Payment\\Contracts\\QrPaymentServiceInterface",
+                    "concrete": "App\\Domain\\Payment\\Services\\QrPaymentService"
                 },
                 {
-                    "abstract": "App\\Domain\\Shared\\File\\Contracts\\FileUploadServiceInterface",
-                    "concrete": "App\\Domain\\Shared\\File\\Services\\FileUploadService"
+                    "abstract": "App\\Domain\\Payment\\Contracts\\SubscriptionPaymentServiceInterface",
+                    "concrete": "App\\Domain\\Payment\\Services\\SubscriptionPaymentService"
                 },
                 {
-                    "abstract": "ImageProcessorInterface",
-                    "concrete": "GdImageProcessor"
+                    "abstract": "App\\Domain\\Payment\\Contracts\\BankServiceInterface",
+                    "concrete": "App\\Domain\\Payment\\Services\\BankService"
                 },
                 {
-                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\CurrencyExchangeServiceInterface",
-                    "concrete": "App\\Domain\\Shared\\Money\\Services\\CurrencyExchangeService"
+                    "abstract": "App\\Application\\Payment\\Contracts\\PaymentWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentWriteRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface",
-                    "concrete": "App\\Domain\\Shared\\Money\\Services\\CurrencyService"
+                    "abstract": "App\\Application\\Payment\\Contracts\\PaymentReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentReadRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Shared\\Money\\Contracts\\MoneyFormatterInterface",
-                    "concrete": "App\\Domain\\Shared\\Money\\Services\\MoneyFormatter"
+                    "abstract": "App\\Domain\\Payment\\Contracts\\PaymentDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentDtoWriteRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Shared\\Cache\\Contracts\\CacheServiceInterface",
-                    "concrete": "App\\Domain\\Shared\\Cache\\Services\\CacheService"
+                    "abstract": "App\\Domain\\Payment\\Contracts\\PaymentDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentDtoReadRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Shared\\Geography\\Contracts\\CountryServiceInterface",
-                    "concrete": "App\\Domain\\Shared\\Geography\\Services\\CountryService"
+                    "abstract": "App\\Application\\Payment\\Contracts\\SubscriptionWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionWriteRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsServiceInterface",
-                    "concrete": "App\\Domain\\Shared\\Console\\Services\\ArtisanCommandsService"
+                    "abstract": "App\\Application\\Payment\\Contracts\\SubscriptionReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionReadRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Payment\\Contracts\\SubscriptionDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionDtoWriteRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Payment\\Contracts\\SubscriptionDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionDtoReadRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Payment\\Contracts\\PaymentMethodDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentMethodDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Payment\\Contracts\\PaymentMethodDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentMethodDtoRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Payment\\Contracts\\BankRepository",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentBankRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Payment\\Contracts\\BankDtoRepository",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentBankDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Payment\\Contracts\\QrCodeRendererInterface",
+                    "concrete": "App\\Infrastructure\\Renderers\\Qr\\SimpleQrCodeRenderer"
+                },
+                {
+                    "abstract": "App\\Application\\Payment\\Contracts\\PaymentApplicationServiceInterface",
+                    "concrete": "App\\Application\\Payment\\Services\\PaymentApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Payment\\Contracts\\BankApplicationServiceInterface",
+                    "concrete": "App\\Application\\Payment\\Services\\BankApplicationService"
                 }
             ],
-            "singleton": []
+            "singleton": [
+                {
+                    "abstract": "App\\Domain\\Payment\\Contracts\\GatewayRegistryInterface",
+                    "concrete": "App\\Domain\\Payment\\Services\\GatewayRegistry"
+                },
+                {
+                    "abstract": "App\\Infrastructure\\Providers\\Payment\\GoPayGateway",
+                    "concrete": "App\\Infrastructure\\Providers\\Payment\\GoPayGateway"
+                },
+                {
+                    "abstract": "App\\Application\\Payment\\Mappers\\QrPaymentPayloadMapper",
+                    "concrete": "App\\Application\\Payment\\Mappers\\QrPaymentPayloadMapper"
+                }
+            ]
         },
-        "App\\Providers\\AnalyticsDomainServiceProvider": {
+        "App\\Providers\\ProductServiceProvider": {
             "bind": [
                 {
-                    "abstract": "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface",
-                    "concrete": "App\\Domain\\Analytics\\Services\\DashboardService"
+                    "abstract": "App\\Domain\\Product\\Contracts\\ProductServiceInterface",
+                    "concrete": "App\\Domain\\Product\\Services\\ProductService"
                 },
                 {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsApplicationServiceInterface",
-                    "concrete": "App\\Application\\Analytics\\Services\\ApiStatisticsApplicationService"
+                    "abstract": "App\\Domain\\Product\\Validation\\ProductCreationValidator",
+                    "concrete": "App\\Domain\\Product\\Validation\\ProductCreationValidator"
+                },
+                {
+                    "abstract": "App\\Application\\Product\\Contracts\\ProductRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentProductRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Product\\Contracts\\ProductDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentProductDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Product\\Contracts\\ProductDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentProductDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Product\\Contracts\\InvoiceProductDtoReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Product\\Contracts\\InvoiceProductDtoWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductDtoRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Product\\Contracts\\InvoiceProductReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Product\\Contracts\\InvoiceProductWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductRepository"
+                },
+                {
+                    "abstract": "App\\Infrastructure\\Interfaces\\Product\\ProductFormDataServiceInterface",
+                    "concrete": "App\\Infrastructure\\Services\\Product\\ProductFormDataService"
+                },
+                {
+                    "abstract": "App\\Application\\Product\\Contracts\\ProductApplicationServiceInterface",
+                    "concrete": "App\\Application\\Product\\Services\\ProductApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\Product\\Services\\ProductAuthorizationService",
+                    "concrete": "App\\Application\\Product\\Services\\ProductAuthorizationService"
+                },
+                {
+                    "abstract": "App\\Application\\Product\\Services\\ProductInputValidationService",
+                    "concrete": "App\\Application\\Product\\Services\\ProductInputValidationService"
+                },
+                {
+                    "abstract": "App\\Application\\Product\\Mappers\\ProductArrayMapper",
+                    "concrete": "App\\Application\\Product\\Mappers\\ProductArrayMapper"
                 }
             ],
             "singleton": []
         },
-        "App\\Providers\\UserDomainServiceProvider": {
+        "App\\Providers\\UserServiceProvider": {
             "bind": [
                 {
                     "abstract": "App\\Domain\\User\\Contracts\\LocaleServiceInterface",
@@ -201,298 +559,961 @@
                 {
                     "abstract": "App\\Domain\\User\\Contracts\\UniversalLimitServiceInterface",
                     "concrete": "App\\Domain\\User\\Services\\UniversalLimitService"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\Locale",
+                    "concrete": "App\\Infrastructure\\Shared\\Locale\\Services\\LaravelLocaleAdapter"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\EntityLimitRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EntityLimitRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\EntityLimitUsageRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EntityLimitUsageRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\UserReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserDtoRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\UserWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserDtoRepository"
+                },
+                {
+                    "abstract": "App\\Application\\User\\Contracts\\UserAuthorizationAdapterInterface",
+                    "concrete": "App\\Infrastructure\\Authorization\\Adapters\\User\\SpatieAuthorizationAdapter"
+                },
+                {
+                    "abstract": "App\\Application\\User\\Contracts\\CrudAccessServiceInterface",
+                    "concrete": "App\\Infrastructure\\Authorization\\Services\\CrudAccessService"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\UserPermissionServiceInterface",
+                    "concrete": "App\\Infrastructure\\Services\\User\\LaravelUserPermissionService"
+                },
+                {
+                    "abstract": "App\\Application\\User\\Contracts\\UserApplicationServiceInterface",
+                    "concrete": "App\\Application\\User\\Services\\UserApplicationService"
+                },
+                {
+                    "abstract": "App\\Application\\User\\Contracts\\UELSApplicationServiceInterface",
+                    "concrete": "App\\Application\\User\\Services\\UELSApplicationService"
                 }
             ],
             "singleton": []
         }
     },
     "contracts": {
+        "App\\Application\\Analytics\\Contracts\\ApiStatisticsApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Analytics\\Services\\ApiStatisticsApplicationService",
+                "provider": "App\\Providers\\AnalyticsServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Analytics\\Contracts\\ClientTotalPresenterInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Analytics\\Presenters\\ClientTotalPresenter",
+                "provider": "App\\Providers\\AnalyticsServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Analytics\\Contracts\\DashboardApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Analytics\\Services\\DashboardApplicationService",
+                "provider": "App\\Providers\\AnalyticsServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Analytics\\Contracts\\MonthlyStatPresenterInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Analytics\\Presenters\\MonthlyStatPresenter",
+                "provider": "App\\Providers\\AnalyticsServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Analytics\\Contracts\\UserStatisticsPresenterInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Analytics\\Presenters\\UserStatisticsPresenter",
+                "provider": "App\\Providers\\AnalyticsServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Auth\\Contracts\\AuthorizationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Auth\\Services\\AuthorizationService",
+                "provider": "App\\Providers\\AuthServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Content\\Contracts\\PageApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Content\\Services\\PageApplicationService",
+                "provider": "App\\Providers\\ContentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Content\\Contracts\\PageReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageRepository",
+                "provider": "App\\Providers\\ContentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Content\\Contracts\\PageWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageRepository",
+                "provider": "App\\Providers\\ContentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\GuestInvoiceApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\GuestInvoiceApplicationService",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceCrudApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceCrudApplicationService",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceFormApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceFormApplicationService",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceFrontendActionsApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\InvoiceFrontendActionsApplicationService",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceLimitApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceLimitApplicationService",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceListingApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceListingApplicationService",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceMutationApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\InvoiceMutationApplicationService",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoicePdfApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\InvoicePdfApplicationService",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoicePdfRendererInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\InvoicePdfRenderer",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceRequestAssemblerInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\InvoiceRequestAssembler",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceStatusApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceStatusApplicationService",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\InvoiceWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\TemporaryInvoicePrintDataFactoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\TemporaryInvoicePrintDataFactory",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Invoice\\Contracts\\TemporaryInvoiceStoreInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Invoice\\Services\\TemporaryInvoiceStore",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Party\\Contracts\\ClientReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Party\\Contracts\\ClientWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Party\\Contracts\\PartyApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Party\\Services\\PartyApplicationService",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Party\\Contracts\\SupplierReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Party\\Contracts\\SupplierWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Payment\\Contracts\\BankApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Payment\\Services\\BankApplicationService",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Payment\\Contracts\\PaymentApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Payment\\Services\\PaymentApplicationService",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Payment\\Contracts\\PaymentReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentReadRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Payment\\Contracts\\PaymentWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentWriteRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Payment\\Contracts\\SubscriptionReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionReadRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Payment\\Contracts\\SubscriptionWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionWriteRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Product\\Contracts\\InvoiceProductReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductRepository",
+                "provider": "App\\Providers\\ProductServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Product\\Contracts\\InvoiceProductWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductRepository",
+                "provider": "App\\Providers\\ProductServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Product\\Contracts\\ProductApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Product\\Services\\ProductApplicationService",
+                "provider": "App\\Providers\\ProductServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Product\\Contracts\\ProductRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentProductRepository",
+                "provider": "App\\Providers\\ProductServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Shared\\Console\\Contracts\\ArtisanCommandsRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Console\\Repositories\\EloquentArtisanCommandsRepository",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Shared\\Geography\\Contracts\\CountryApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Shared\\Geography\\Services\\CountryApplicationService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Shared\\Geography\\Contracts\\LocaleApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Shared\\Geography\\Services\\LocaleApplicationService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\Shared\\Money\\Contracts\\CurrencyApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\Shared\\Money\\Services\\CurrencyApplicationService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\User\\Contracts\\CrudAccessServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Authorization\\Services\\CrudAccessService",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\User\\Contracts\\UELSApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\User\\Services\\UELSApplicationService",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\User\\Contracts\\UserApplicationServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Application\\User\\Services\\UserApplicationService",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Application\\User\\Contracts\\UserAuthorizationAdapterInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Authorization\\Adapters\\User\\SpatieAuthorizationAdapter",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
         "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface": {
             "status": "ok",
-            "expected_provider": "App\\Providers\\AnalyticsDomainServiceProvider",
             "actual": {
                 "implementation": "App\\Domain\\Analytics\\Services\\DashboardService",
-                "provider": "App\\Providers\\AnalyticsDomainServiceProvider",
+                "provider": "App\\Providers\\AnalyticsServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Product\\Contracts\\ProductServiceInterface": {
+        "App\\Domain\\Content\\Contracts\\PageDtoReadRepositoryInterface": {
             "status": "ok",
-            "expected_provider": "App\\Providers\\ProductDomainServiceProvider",
             "actual": {
-                "implementation": "App\\Domain\\Product\\Services\\ProductService",
-                "provider": "App\\Providers\\ProductDomainServiceProvider",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageDtoRepository",
+                "provider": "App\\Providers\\ContentServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Product\\Contracts\\ProductRepositoryInterface": {
+        "App\\Domain\\Content\\Contracts\\PageDtoWriteRepositoryInterface": {
             "status": "ok",
-            "expected_provider": "App\\Providers\\ProductDomainServiceProvider",
             "actual": {
-                "implementation": "App\\Domain\\Product\\Repositories\\ProductRepository",
-                "provider": "App\\Providers\\ProductDomainServiceProvider",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageDtoRepository",
+                "provider": "App\\Providers\\ContentServiceProvider",
                 "method": "bind"
             }
-        },
-        "App\\Domain\\Shared\\Money\\Contracts\\MoneyFormatterInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\Money\\Services\\MoneyFormatter",
-                "provider": "App\\Providers\\SharedDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\Money\\Contracts\\CurrencyExchangeServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\Money\\Services\\CurrencyExchangeService",
-                "provider": "App\\Providers\\SharedDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\Money\\Services\\CurrencyService",
-                "provider": "App\\Providers\\SharedDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\Cache\\Contracts\\CacheServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\Cache\\Services\\CacheService",
-                "provider": "App\\Providers\\SharedDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\Status\\Services\\StatusService",
-                "provider": "App\\Providers\\SharedDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\Console\\Services\\ArtisanCommandsService",
-                "provider": "App\\Providers\\SharedDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\Geography\\Contracts\\CountryServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\Geography\\Services\\CountryService",
-                "provider": "App\\Providers\\SharedDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\File\\Contracts\\ImageProcessorInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
-            "actual": []
-        },
-        "App\\Domain\\Shared\\File\\Contracts\\FileUploadServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\SharedDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\File\\Services\\FileUploadService",
-                "provider": "App\\Providers\\SharedDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Party\\Validation\\PartyCreationValidator",
-                "provider": "App\\Providers\\PartyDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Party\\Contracts\\SupplierRepositoryInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
-            "actual": []
-        },
-        "App\\Domain\\Party\\Contracts\\SupplierWriteRepositoryInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Party\\Repositories\\SupplierRepository",
-                "provider": "App\\Providers\\PartyDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Party\\Contracts\\ClientRepositoryInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
-            "actual": []
-        },
-        "App\\Domain\\Party\\Contracts\\ClientWriteRepositoryInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Party\\Repositories\\ClientRepository",
-                "provider": "App\\Providers\\PartyDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Party\\Contracts\\SupplierReadRepositoryInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Party\\Repositories\\SupplierRepository",
-                "provider": "App\\Providers\\PartyDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Party\\Contracts\\ClientReadRepositoryInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Party\\Repositories\\ClientRepository",
-                "provider": "App\\Providers\\PartyDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\PartyDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\Party\\Services\\InvoicePartyService",
-                "provider": "App\\Providers\\PartyDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\User\\Contracts\\UniversalLimitServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\UserDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\User\\Services\\UniversalLimitService",
-                "provider": "App\\Providers\\UserDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\User\\Contracts\\UserServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\UserDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\User\\Services\\UserService",
-                "provider": "App\\Providers\\UserDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\User\\Contracts\\LocaleServiceInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\UserDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\User\\Services\\LocaleService",
-                "provider": "App\\Providers\\UserDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\User\\Contracts\\PermissionLimitResolverInterface": {
-            "status": "ok",
-            "expected_provider": "App\\Providers\\UserDomainServiceProvider",
-            "actual": {
-                "implementation": "App\\Domain\\User\\Services\\PermissionLimitResolver",
-                "provider": "App\\Providers\\UserDomainServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Payment\\Contracts\\SubscriptionPaymentServiceInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
-            "actual": []
-        },
-        "App\\Domain\\Payment\\Contracts\\QrPaymentProviderInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
-            "actual": []
-        },
-        "App\\Domain\\Payment\\Contracts\\BankServiceInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
-            "actual": []
-        },
-        "App\\Domain\\Payment\\Contracts\\QrPaymentServiceInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
-            "actual": []
-        },
-        "App\\Domain\\Payment\\Contracts\\PaymentGatewayInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
-            "actual": []
-        },
-        "App\\Domain\\Payment\\Contracts\\GatewayRegistryInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\PaymentDomainServiceProvider",
-            "actual": []
         },
         "App\\Domain\\Content\\Contracts\\PageServiceInterface": {
             "status": "ok",
-            "expected_provider": "App\\Providers\\ContentDomainServiceProvider",
             "actual": {
                 "implementation": "App\\Domain\\Content\\Services\\PageService",
-                "provider": "App\\Providers\\ContentDomainServiceProvider",
+                "provider": "App\\Providers\\ContentServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Invoice\\Contracts\\SupplierRepositoryInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
-            "actual": []
-        },
-        "App\\Domain\\Invoice\\Contracts\\InvoicePdfServiceInterface": {
+        "App\\Domain\\Invoice\\Contracts\\InvoiceDtoReadRepositoryInterface": {
             "status": "ok",
-            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
             "actual": {
-                "implementation": "App\\Domain\\Invoice\\Services\\InvoicePdfService",
-                "provider": "App\\Providers\\InvoiceDomainServiceProvider",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceDtoRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\InvoiceDtoWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceDtoRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\InvoicePrintDataBuilderInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
         },
         "App\\Domain\\Invoice\\Contracts\\InvoiceProductSyncServiceInterface": {
             "status": "ok",
-            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
             "actual": {
                 "implementation": "App\\Domain\\Invoice\\Services\\InvoiceProductSyncService",
-                "provider": "App\\Providers\\InvoiceDomainServiceProvider",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Invoice\\Contracts\\ClientRepositoryInterface": {
-            "status": "missing_binding",
-            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
-            "actual": []
+        "App\\Domain\\Invoice\\Contracts\\InvoiceProductsSyncRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceProductsSyncRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
         },
         "App\\Domain\\Invoice\\Contracts\\InvoiceServiceInterface": {
             "status": "ok",
-            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
             "actual": {
                 "implementation": "App\\Domain\\Invoice\\Services\\InvoiceService",
-                "provider": "App\\Providers\\InvoiceDomainServiceProvider",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Invoice\\Contracts\\TaxesServiceInterface": {
+        "App\\Domain\\Invoice\\Notifications\\Contracts\\InvoiceReminderNotifierInterface": {
             "status": "ok",
-            "expected_provider": "App\\Providers\\InvoiceDomainServiceProvider",
             "actual": {
-                "implementation": "App\\Domain\\Invoice\\Services\\TaxesService",
-                "provider": "App\\Providers\\InvoiceDomainServiceProvider",
+                "implementation": "App\\Infrastructure\\Notifications\\Invoice\\LaravelInvoiceReminderNotifier",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\ClientDtoReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\ClientDtoWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Party\\Services\\InvoicePartyService",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Party\\Validation\\PartyCreationValidator",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\SupplierDtoReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\SupplierDtoWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\BankServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Payment\\Services\\BankService",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\GatewayRegistryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Payment\\Services\\GatewayRegistry",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "singleton"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\PaymentDtoReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentDtoReadRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\PaymentDtoWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentDtoWriteRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\PaymentGatewayInterface": {
+            "status": "missing_binding",
+            "actual": []
+        },
+        "App\\Domain\\Payment\\Contracts\\PaymentMethodDtoReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentMethodDtoRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\PaymentMethodDtoWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentMethodDtoRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\QrCodeRendererInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Renderers\\Qr\\SimpleQrCodeRenderer",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\QrPaymentProviderInterface": {
+            "status": "missing_binding",
+            "actual": []
+        },
+        "App\\Domain\\Payment\\Contracts\\QrPaymentServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Payment\\Services\\QrPaymentService",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\SubscriptionDtoReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionDtoReadRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\SubscriptionDtoWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionDtoWriteRepository",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\SubscriptionPaymentServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Payment\\Services\\SubscriptionPaymentService",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Product\\Contracts\\InvoiceProductDtoReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductDtoRepository",
+                "provider": "App\\Providers\\ProductServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Product\\Contracts\\InvoiceProductDtoWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductDtoRepository",
+                "provider": "App\\Providers\\ProductServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Product\\Contracts\\ProductDtoReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentProductDtoRepository",
+                "provider": "App\\Providers\\ProductServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Product\\Contracts\\ProductDtoWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentProductDtoRepository",
+                "provider": "App\\Providers\\ProductServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Product\\Contracts\\ProductServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Product\\Services\\ProductService",
+                "provider": "App\\Providers\\ProductServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Cache\\Contracts\\CacheServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Cache\\CacheService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsDtoRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Console\\Repositories\\EloquentArtisanCommandsDtoRepository",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Console\\Services\\ArtisanCommandsService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Database\\Contracts\\TransactionBoundaryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Database\\EloquentTransactionBoundary",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Events\\Contracts\\EventPublisherInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Events\\LaravelEventPublisher",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\File\\Contracts\\FileUploadServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\File\\Services\\LaravelFileUploadService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\File\\Contracts\\ImageProcessorInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\File\\Processors\\GdImageProcessor",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Geography\\Contracts\\CountryServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Geography\\Services\\CountryService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Hash\\Contracts\\HashInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Hash\\LaravelHash",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Http\\Contracts\\HttpClientInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Http\\Services\\HttpClientService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Log\\Contracts\\LogInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Log\\LaravelLogger",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Money\\Contracts\\CurrencyExchangeServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "closure",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Money\\Services\\CurrencyService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Money\\Contracts\\MoneyFormatterInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Money\\Services\\MoneyFormatter",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Session\\Contracts\\SessionInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Session\\LaravelSessionStore",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Status\\Contracts\\StatusCategoryDtoRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusCategoryDtoRepository",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Status\\Contracts\\StatusDtoRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusDtoRepository",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Status\\Services\\StatusService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Tax\\Contracts\\TaxDtoReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Tax\\Repositories\\EloquentTaxDtoRepository",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Tax\\Contracts\\TaxDtoWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Tax\\Repositories\\EloquentTaxDtoRepository",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Tax\\Contracts\\TaxServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\Shared\\Tax\\Services\\TaxService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Time\\Contracts\\ClockInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Time\\CarbonClock",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Time\\Contracts\\PeriodServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Time\\CarbonPeriodService",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Translation\\Contracts\\TranslatorInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Translation\\LaravelTranslator",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\EntityLimitRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EntityLimitRepository",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\EntityLimitUsageRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EntityLimitUsageRepository",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\LocaleServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\User\\Services\\LocaleService",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\PermissionLimitResolverInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\User\\Services\\PermissionLimitResolver",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\UniversalLimitServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\User\\Services\\UniversalLimitService",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\UserPermissionServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Services\\User\\LaravelUserPermissionService",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\UserReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserDtoRepository",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\UserServiceInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Domain\\User\\Services\\UserService",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\UserWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserDtoRepository",
+                "provider": "App\\Providers\\UserServiceProvider",
                 "method": "bind"
             }
         }

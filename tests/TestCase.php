@@ -16,17 +16,31 @@ abstract class TestCase extends BaseTestCase
     use CreatesApplication;
 
     /**
+     * Whether this process tests against in-memory SQLite (detected on the first test).
+     */
+    private static bool $usesInMemoryDatabase = false;
+
+    /**
      * Set up the test environment.
      *
      * @return void
      */
     protected function setUp(): void
     {
+        // In-memory SQLite: give every test a fresh, freshly migrated database in both sequential
+        // and parallel runs. Laravel otherwise reuses the PDO cached by a previous test and skips
+        // migrations, so a test that disconnects or wipes it breaks every later test in the process.
+        if (self::$usesInMemoryDatabase) {
+            RefreshDatabaseState::$inMemoryConnections = [];
+            RefreshDatabaseState::$migrated = false;
+        }
+
         parent::setUp();
 
-        // Pro sekvenční testování spusť migrace pouze jednou
-        // Pro paralelní testování se Laravel postará o databáze automaticky
-        if (! $this->isParallelTestEnvironment()) {
+        self::$usesInMemoryDatabase = $this->usesInMemorySqlite();
+
+        // Persistent databases (sequential runs only): migrate and seed once per process
+        if (! self::$usesInMemoryDatabase && ! $this->isParallelTestEnvironment()) {
             $this->setupSequentialTesting();
         }
 
@@ -50,23 +64,17 @@ abstract class TestCase extends BaseTestCase
         return isset($_ENV['TEST_TOKEN']) && $_ENV['TEST_TOKEN'];
     }
 
+    private function usesInMemorySqlite(): bool
+    {
+        $conn = config('database.connections.'.config('database.default'));
+        return ($conn['driver'] ?? null) === 'sqlite' && in_array($conn['database'] ?? null, [':memory:', null], true);
+    }
+
     /**
-     * Setup for sequential testing - shared database with migrations run once
+     * Setup for sequential testing against a persistent database - migrations run once
      */
     protected function setupSequentialTesting(): void
     {
-        // Detect in-memory sqlite; let RefreshDatabase handle migrations per test
-        $default = config('database.default');
-        $conn = config("database.connections.$default");
-        $isInMemorySqlite = ($conn['driver'] ?? null) === 'sqlite' && (($conn['database'] ?? null) === ':memory:' || ($conn['database'] ?? null) === null);
-
-        if ($isInMemorySqlite) {
-            // Ensure trait can run migrations; do not run artisan here (separate connection would discard schema)
-            RefreshDatabaseState::$migrated = false;
-            return;
-        }
-
-        // Use the original approach for persistent databases
         if (! RefreshDatabaseState::$migrated) {
             $this->artisan('migrate:fresh');
             $this->artisan('db:seed', ['--class' => 'DatabaseSeeder']);

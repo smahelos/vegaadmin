@@ -7,7 +7,7 @@ use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Ensures no API controller exceeds 1 direct Eloquent static call.
- * Baseline stored in storage/app/metrics/api_controller_eloquent_baseline.json
+ * Baseline stored in architecture/baselines/api_controller_eloquent_baseline.json
  */
 class ApiControllersEloquentUsageTest extends TestCase
 {
@@ -17,7 +17,7 @@ class ApiControllersEloquentUsageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $path = storage_path('app/metrics/api_controller_eloquent_baseline.json');
+        $path = base_path('architecture/baselines/api_controller_eloquent_baseline.json');
         $this->assertFileExists($path, 'Missing API controller baseline JSON: create api_controller_eloquent_baseline.json');
         $json = json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
         $this->controllers = $json['controllers'];

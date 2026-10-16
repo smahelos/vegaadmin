@@ -48,7 +48,7 @@ class EventServiceProvider extends ServiceProvider
     public function boot(): void
     {
     parent::boot();
-    // Model observers now registered in InfrastructureServiceProvider.
+    // Model observers are registered in the bounded context providers (ADR D-042).
     }
 
     /**

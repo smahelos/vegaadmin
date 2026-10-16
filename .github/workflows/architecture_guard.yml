@@ -66,39 +66,22 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Show existing baseline (short preview)
-        run: |
-          if [ -f storage/app/metrics/frontend_controller_eloquent_baseline.json ]; then
-            echo 'Existing baseline head:'
-            head -n 40 storage/app/metrics/frontend_controller_eloquent_baseline.json || true
-          else
-            echo '::warning::Baseline file missing (storage/app/metrics/frontend_controller_eloquent_baseline.json). Commit a generated baseline.'
-          fi
-
-      - name: Regenerate baseline (in-place) and detect drift
+      - name: Regenerate Frontend baseline and detect drift against committed baseline
         run: |
           set -e
-          TARGET_FILE="storage/app/metrics/frontend_controller_eloquent_baseline.json"
-          if [ ! -f "$TARGET_FILE" ]; then
-            echo '::error::Missing baseline file. Run locally: php artisan ddd:frontend-eloquent:baseline --save and commit the file.'
+          COMMITTED="architecture/baselines/frontend_controller_eloquent_baseline.json"
+          if [ ! -f "$COMMITTED" ]; then
+            echo "::error::Missing committed baseline ($COMMITTED). Run locally: php artisan ddd:frontend-eloquent:baseline --save --path=architecture/baselines and commit the file."
             exit 1
           fi
-          # Capture pre-change hash
-          BEFORE_HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
-          # Regenerate baseline (this will overwrite file when rules changed)
-          php artisan ddd:frontend-eloquent:baseline --save || { echo '::error::Baseline regeneration command failed.'; exit 1; }
-          AFTER_HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
-          if [ "$BEFORE_HASH" != "$AFTER_HASH" ]; then
-            echo '::error::Frontend controller Eloquent usage baseline drift detected.'
-            echo 'Diff:'
-            git --no-pager diff "$TARGET_FILE" || true
-            echo 'Guidance: Review added/removed controllers or Eloquent static call counts. If intentional, run locally:'
-            echo '  php artisan ddd:frontend-eloquent:baseline --save'
-            echo 'Then commit updated baseline file.'
+          php artisan ddd:frontend-eloquent:baseline --save --path=build/metrics || { echo '::error::Frontend baseline regeneration command failed.'; exit 1; }
+          # Drift detection ignoring generated_at
+          php -r '$b=json_decode(file_get_contents($argv[1]),true); $c=json_decode(file_get_contents($argv[2]),true); unset($b["generated_at"],$c["generated_at"]); if($b!=$c){fwrite(STDERR,"::error::Frontend controller Eloquent usage baseline drift detected.\n"); exit(1);} echo "No drift detected in Frontend Eloquent usage baseline.\n";' "$COMMITTED" "build/metrics/frontend_controller_eloquent_baseline.json" || {
+            diff <(php -r 'echo json_encode(json_decode(file_get_contents($argv[1]),true)["controllers"], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);' "$COMMITTED") \
+                 <(php -r 'echo json_encode(json_decode(file_get_contents($argv[1]),true)["controllers"], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);' "build/metrics/frontend_controller_eloquent_baseline.json") || true
+            echo 'If intentional, run locally: php artisan ddd:frontend-eloquent:baseline --save --path=architecture/baselines and commit the updated file.'
             exit 1
-          else
-            echo 'No drift detected in frontend Eloquent usage baseline.'
-          fi
+          }
 
   api-eloquent-baseline:
     name: 4b. API Eloquent Baseline Drift
@@ -118,37 +101,22 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Show existing API baseline (short preview)
-        run: |
-          if [ -f storage/app/metrics/api_controller_eloquent_baseline.json ]; then
-            echo 'Existing API baseline head:'
-            head -n 40 storage/app/metrics/api_controller_eloquent_baseline.json || true
-          else
-            echo '::warning::API baseline file missing (storage/app/metrics/api_controller_eloquent_baseline.json). Commit a generated baseline.'
-          fi
-
-      - name: Regenerate API baseline (in-place) and detect drift
+      - name: Regenerate API baseline and detect drift against committed baseline
         run: |
           set -e
-          TARGET_FILE="storage/app/metrics/api_controller_eloquent_baseline.json"
-          if [ ! -f "$TARGET_FILE" ]; then
-            echo '::error::Missing API baseline file. Run locally: php artisan ddd:api-eloquent:baseline --save and commit the file.'
+          COMMITTED="architecture/baselines/api_controller_eloquent_baseline.json"
+          if [ ! -f "$COMMITTED" ]; then
+            echo "::error::Missing committed baseline ($COMMITTED). Run locally: php artisan ddd:api-eloquent:baseline --save --path=architecture/baselines and commit the file."
             exit 1
           fi
-          BEFORE_HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
-          php artisan ddd:api-eloquent:baseline --save || { echo '::error::API baseline regeneration command failed.'; exit 1; }
-            AFTER_HASH=$(sha256sum "$TARGET_FILE" | awk '{print $1}')
-          if [ "$BEFORE_HASH" != "$AFTER_HASH" ]; then
-            echo '::error::API controller Eloquent usage baseline drift detected.'
-            echo 'Diff:'
-            git --no-pager diff "$TARGET_FILE" || true
-            echo 'Guidance: Review added/removed controllers or Eloquent static call counts. If intentional, run locally:'
-            echo '  php artisan ddd:api-eloquent:baseline --save'
-            echo 'Then commit updated baseline file.'
+          php artisan ddd:api-eloquent:baseline --save --path=build/metrics || { echo '::error::API baseline regeneration command failed.'; exit 1; }
+          # Drift detection ignoring generated_at
+          php -r '$b=json_decode(file_get_contents($argv[1]),true); $c=json_decode(file_get_contents($argv[2]),true); unset($b["generated_at"],$c["generated_at"]); if($b!=$c){fwrite(STDERR,"::error::API controller Eloquent usage baseline drift detected.\n"); exit(1);} echo "No drift detected in API Eloquent usage baseline.\n";' "$COMMITTED" "build/metrics/api_controller_eloquent_baseline.json" || {
+            diff <(php -r 'echo json_encode(json_decode(file_get_contents($argv[1]),true)["controllers"], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);' "$COMMITTED") \
+                 <(php -r 'echo json_encode(json_decode(file_get_contents($argv[1]),true)["controllers"], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);' "build/metrics/api_controller_eloquent_baseline.json") || true
+            echo 'If intentional, run locally: php artisan ddd:api-eloquent:baseline --save --path=architecture/baselines and commit the updated file.'
             exit 1
-          else
-            echo 'No drift detected in API Eloquent usage baseline.'
-          fi
+          }
 
   architecture-tests:
     name: 5. Architecture Enforcement Tests
@@ -168,41 +136,29 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Prepare controller thinness baseline
+      - name: Controller thinness baseline drift
         run: |
           set -e
           if [ ! -f architecture/baselines/controller_thinness_baseline.json ]; then
             echo '::error::Missing committed controller thinness baseline (architecture/baselines/controller_thinness_baseline.json).'
             exit 1
           fi
-          mkdir -p storage/app/metrics
-          # Generate current snapshot first
           php artisan ddd:controller-thinness:baseline --save || { echo '::error::Generation failed.'; exit 1; }
-          cp storage/app/metrics/controller_thinness_baseline.json storage/app/metrics/controller_thinness_current.json
-          # Place committed baseline for tests
-          cp architecture/baselines/controller_thinness_baseline.json storage/app/metrics/controller_thinness_baseline.json
           # Drift detection ignoring timestamp
-          php -r '$b=json_decode(file_get_contents("architecture/baselines/controller_thinness_baseline.json"),true); $c=json_decode(file_get_contents("storage/app/metrics/controller_thinness_current.json"),true); unset($b["summary"]["timestamp"],$c["summary"]["timestamp"]); if($b!=$c){fwrite(STDERR,"::error::Controller thinness baseline drift detected. If intentional regenerate and commit updated baseline.\n"); exit(1);} else {echo "No controller thinness drift.";}'
-          echo 'Controller thinness baseline prepared.'
+          php -r '$b=json_decode(file_get_contents("architecture/baselines/controller_thinness_baseline.json"),true); $c=json_decode(file_get_contents("storage/app/metrics/controller_thinness_baseline.json"),true); unset($b["summary"]["timestamp"],$c["summary"]["timestamp"]); if($b!=$c){fwrite(STDERR,"::error::Controller thinness baseline drift detected. If intentional regenerate and commit updated baseline.\n"); exit(1);} else {echo "No controller thinness drift.";}'
 
-      - name: Run focused architecture enforcement tests
+      - name: Run architecture enforcement tests
         run: |
           set -e
-          # Run individual known architecture guard tests explicitly for fast feedback
-          php artisan test tests/Feature/Architecture/FrontendControllersEloquentUsageTest.php \
-                                 tests/Feature/Architecture/ApiControllersEloquentUsageTest.php \
-                                 tests/Feature/Architecture/ApiControllersDelegationTest.php \
-                                 tests/Feature/Architecture/ControllerThinnessEnforcementTest.php
+          php artisan test tests/Feature/Architecture tests/Feature/Providers/ContextProviderBindingOriginTest.php
 
       - name: Summarize guard artifacts
         if: always()
         run: |
-          echo 'Listing metrics directory:'
-          ls -1 storage/app/metrics || true
-          echo 'Controller thinness baseline head:'
-          head -n 40 storage/app/metrics/controller_thinness_baseline.json || true
-          echo 'API Eloquent baseline head:'
-          head -n 40 storage/app/metrics/api_controller_eloquent_baseline.json || true
+          echo 'Committed baselines:'
+          ls -1 architecture/baselines || true
+          echo 'Controller thinness baseline summary:'
+          php -r 'print_r(json_decode(file_get_contents("architecture/baselines/controller_thinness_baseline.json"),true)["summary"] ?? []);' || true
 
   provider-snapshot:
     name: 3. Provider Snapshot Diff

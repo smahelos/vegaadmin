@@ -3,7 +3,7 @@
 namespace App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories;
 
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsDtoRepositoryInterface;
-use App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories\EloquentArtisanCommandsRepository;
+use App\Application\Shared\Console\Contracts\ArtisanCommandsRepositoryInterface;
 
 /**
  * Eloquent implementation of Artisan Commands DTO repository.
@@ -12,7 +12,7 @@ use App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories\Eloquent
 class EloquentArtisanCommandsDtoRepository implements ArtisanCommandsDtoRepositoryInterface
 {
     public function __construct(
-        private readonly EloquentArtisanCommandsRepository $acRepository,
+        private readonly ArtisanCommandsRepositoryInterface $acRepository,
     ) {}
 
     /**

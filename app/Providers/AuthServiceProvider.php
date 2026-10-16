@@ -18,6 +18,19 @@ class AuthServiceProvider extends ServiceProvider
     ];
 
     /**
+     * Composition root of the Auth application context (ADR D-042).
+     */
+    public function register(): void
+    {
+        parent::register();
+
+        $this->app->bind(
+            \App\Application\Auth\Contracts\AuthorizationServiceInterface::class,
+            \App\Application\Auth\Services\AuthorizationService::class
+        );
+    }
+
+    /**
      * Register any authentication / authorization services
      */
     public function boot(): void

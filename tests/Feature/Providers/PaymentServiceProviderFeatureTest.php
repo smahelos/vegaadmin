@@ -11,12 +11,12 @@ use App\Domain\Payment\Services\SubscriptionPaymentService;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\Services\BankService;
 use App\Domain\Payment\Services\GatewayRegistry;
-use App\Providers\PaymentDomainServiceProvider;
+use App\Providers\PaymentServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class PaymentDomainServiceProviderFeatureTest extends TestCase
+class PaymentServiceProviderFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -50,7 +50,7 @@ class PaymentDomainServiceProviderFeatureTest extends TestCase
     public function service_provider_is_registered_in_application(): void
     {
         $providers = $this->app->getLoadedProviders();
-        $this->assertArrayHasKey(PaymentDomainServiceProvider::class, $providers);
+        $this->assertArrayHasKey(PaymentServiceProvider::class, $providers);
     }
 
     #[Test]

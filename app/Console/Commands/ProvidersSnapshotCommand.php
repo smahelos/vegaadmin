@@ -8,7 +8,7 @@ use Symfony\Component\Finder\Finder;
 class ProvidersSnapshotCommand extends Command
 {
     protected $signature = 'ddd:providers:snapshot {--write : Persist current snapshot} {--diff : Compare with existing snapshot} {--format=json : Output format json|human} {--strict : Treat warnings as errors}';
-    protected $description = 'Generate or diff a snapshot of domain service provider bindings (contract -> implementation -> provider)';
+    protected $description = 'Generate or diff a snapshot of app service provider bindings (contract -> implementation -> provider)';
 
     public function handle(): int
     {
@@ -71,45 +71,45 @@ class ProvidersSnapshotCommand extends Command
     private function buildCurrentSnapshot(): array
     {
         $providers = [];
-        $bindings = []; // contract => [impl, provider]
-        $providerFiles = (new Finder())
-            ->files()
-            ->in(app_path('Providers'))
-            ->name('*DomainServiceProvider.php');
+        $bindings = []; // contract => provider => [implementation, provider, method]
 
-        foreach ($providerFiles as $file) {
-            $contents = $file->getContents();
-            $providerClass = $this->fqcnFromFile($contents) ?? $file->getFilenameWithoutExtension();
-            $binds = $this->extractBinds($contents, 'bind');
-            $singletons = $this->extractBinds($contents, 'singleton');
+        foreach ($this->applicationProviderFiles() as $providerClass => $path) {
+            $contents = $this->stripComments(file_get_contents($path));
+            $imports = $this->extractImports($contents, $providerClass);
+            $binds = $this->extractBinds($contents, 'bind', $imports);
+            $singletons = $this->extractBinds($contents, 'singleton', $imports);
+            if (empty($binds) && empty($singletons)) {
+                continue;
+            }
 
             $providers[$providerClass] = [
                 'bind' => $binds,
                 'singleton' => $singletons,
             ];
-            // Map contracts
+            // Map contracts; repeated bindings inside one provider (e.g. config-driven if/else) count as one
             foreach (['bind' => $binds, 'singleton' => $singletons] as $method => $pairs) {
                 foreach ($pairs as $pair) {
                     $contract = $pair['abstract'];
-                    $impl = $pair['concrete'];
-                    if (!isset($bindings[$contract])) {
-                        $bindings[$contract] = [];
+                    if (isset($bindings[$contract][$providerClass])) {
+                        continue;
                     }
-                    $bindings[$contract][] = [
-                        'implementation' => $impl,
+                    $bindings[$contract][$providerClass] = [
+                        'implementation' => $pair['concrete'],
                         'provider' => $providerClass,
                         'method' => $method,
                     ];
                 }
             }
         }
+        $bindings = array_map('array_values', $bindings);
 
         // Contract files (expected baseline)
         $contracts = [];
         $contractFiles = (new Finder())
             ->files()
-            ->in(app_path('Domain'))
-            ->name('*Interface.php');
+            ->in([app_path('Domain'), app_path('Application')])
+            ->name('*Interface.php')
+            ->sortByName();
         foreach ($contractFiles as $cf) {
             $cfPath = $cf->getRealPath();
             $rel = str_replace(app_path().'/', '', $cfPath);
@@ -124,16 +124,66 @@ class ProvidersSnapshotCommand extends Command
         ];
     }
 
-    private function extractBinds(string $contents, string $method): array
+    /**
+     * App-owned providers registered in bootstrap/providers.php, keyed by FQCN.
+     */
+    private function applicationProviderFiles(): array
     {
-        $pattern = '/\\$this->app->'.$method.'\(\s*([^,]+?)\s*,\s*([^\)]+?)\s*\)\s*;/';
+        $files = [];
+        foreach (require base_path('bootstrap/providers.php') as $providerClass) {
+            if (!str_starts_with($providerClass, 'App\\') || !class_exists($providerClass)) {
+                continue;
+            }
+            $files[$providerClass] = (new \ReflectionClass($providerClass))->getFileName();
+        }
+        return $files;
+    }
+
+    private function stripComments(string $contents): string
+    {
+        $code = '';
+        foreach (token_get_all($contents) as $token) {
+            if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+                continue;
+            }
+            $code .= is_array($token) ? $token[1] : $token;
+        }
+        return $code;
+    }
+
+    /**
+     * Map of short class name (or alias) => FQCN from top-level `use` statements.
+     * Key '' holds the provider's own namespace for resolving unqualified names.
+     */
+    private function extractImports(string $contents, string $providerClass): array
+    {
+        $imports = ['' => substr($providerClass, 0, strrpos($providerClass, '\\'))];
+        preg_match_all('/^use\s+([\w\\\\]+)(?:\s+as\s+(\w+))?\s*;/m', $contents, $matches, PREG_SET_ORDER);
+        foreach ($matches as $m) {
+            $fqcn = ltrim($m[1], '\\');
+            $imports[$m[2] ?? substr(strrchr('\\'.$fqcn, '\\'), 1)] = $fqcn;
+        }
+        return $imports;
+    }
+
+    /**
+     * Extract `$this->app->{method}(Abstract::class, Concrete::class|closure)` registrations.
+     * String keys (e.g. 'payment.gateway.gopay') are skipped: they are not contracts.
+     */
+    private function extractBinds(string $contents, string $method, array $imports): array
+    {
+        $pattern = '/\$this->app->'.$method.'\(\s*([\w\\\\]+)::class\s*(?:,\s*(?:([\w\\\\]+)::class)?)?/';
         if (!preg_match_all($pattern, $contents, $matches, PREG_SET_ORDER)) {
             return [];
         }
         $result = [];
         foreach ($matches as $m) {
-            $abstract = $this->normalizeArgument($m[1]);
-            $concrete = $this->normalizeArgument($m[2]);
+            $abstract = $this->resolveClassName($m[1], $imports);
+            $concrete = match (true) {
+                !empty($m[2]) => $this->resolveClassName($m[2], $imports),
+                str_ends_with(rtrim($m[0]), ',') => 'closure',
+                default => $abstract,
+            };
             $result[] = [
                 'abstract' => $abstract,
                 'concrete' => $concrete,
@@ -142,76 +192,37 @@ class ProvidersSnapshotCommand extends Command
         return $result;
     }
 
-    private function normalizeArgument(string $raw): string
+    private function resolveClassName(string $name, array $imports): string
     {
-        $raw = trim($raw);
-        // Remove wrapping quotes
-        $raw = trim($raw, "'\"");
-        // Remove trailing inline comments if any
-        if (str_contains($raw, '//')) {
-            $raw = preg_replace('/\/\/.*$/', '', $raw);
-            $raw = trim($raw);
+        if (str_starts_with($name, '\\')) {
+            return ltrim($name, '\\');
         }
-        // If it's an array or closure we just return raw (not a simple FQCN binding)
-        if (str_starts_with($raw, '[') || str_starts_with($raw, 'function') || str_starts_with($raw, 'fn(')) {
-            return $raw;
+        $first = explode('\\', $name)[0];
+        if (isset($imports[$first])) {
+            return $imports[$first].substr($name, strlen($first));
         }
-        // Strip trailing ::class to get the FQCN string
-        if (preg_match('/::class$/', $raw)) {
-            $raw = preg_replace('/::class$/', '', $raw);
-        }
-        // Remove leading backslashes
-        $raw = ltrim($raw, '\\');
-        // Normalize whitespace
-        $raw = trim($raw);
-        return $raw;
-    }
-
-    private function fqcnFromFile(string $contents): ?string
-    {
-        if (preg_match('/namespace\s+([^;]+);/', $contents, $ns) && preg_match('/class\s+(\w+)/', $contents, $cl)) {
-            return trim($ns[1]).'\\'.trim($cl[1]);
-        }
-        return null;
+        return str_contains($name, '\\') ? $name : $imports[''].'\\'.$name;
     }
 
     private function classifyContract(string $fqcn, array $bindings): array
     {
-        $expectedProvider = $this->expectedProviderForContract($fqcn);
         $entries = $bindings[$fqcn] ?? [];
         if (empty($entries)) {
             return [
                 'status' => 'missing_binding',
-                'expected_provider' => $expectedProvider,
                 'actual' => [],
             ];
         }
         if (count($entries) > 1) {
             return [
                 'status' => 'duplicate_bindings',
-                'expected_provider' => $expectedProvider,
                 'actual' => $entries,
             ];
         }
-        $entry = $entries[0];
-        $status = ($entry['provider'] === $expectedProvider) ? 'ok' : 'wrong_provider';
         return [
-            'status' => $status,
-            'expected_provider' => $expectedProvider,
-            'actual' => $entry,
+            'status' => 'ok',
+            'actual' => $entries[0],
         ];
-    }
-
-    private function expectedProviderForContract(string $fqcn): string
-    {
-        // Pattern: App\Domain\<Domain>\Contracts\FooInterface
-        if (!str_starts_with($fqcn, 'App\\Domain\\')) {
-            return '';
-        }
-        $parts = explode('\\', substr($fqcn, strlen('App\\Domain\\')));
-        if (count($parts) < 2) { return ''; }
-        $domain = $parts[0];
-        return 'App\\Providers\\'.$domain.'DomainServiceProvider';
     }
 
     private function diffSnapshots(array $previous, array $current, array $allowedMoves, bool $strictMoves): array

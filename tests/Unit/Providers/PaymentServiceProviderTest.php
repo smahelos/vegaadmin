@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Providers;
 
-use App\Providers\PaymentDomainServiceProvider;
+use App\Providers\PaymentServiceProvider;
 use App\Domain\Payment\Contracts\PaymentGatewayInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface; // domain interface
 use App\Infrastructure\Providers\Payment\GoPayGateway; // corrected import
@@ -11,20 +11,20 @@ use Illuminate\Support\ServiceProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class PaymentDomainServiceProviderTest extends TestCase
+class PaymentServiceProviderTest extends TestCase
 {
-    private PaymentDomainServiceProvider $provider;
+    private PaymentServiceProvider $provider;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->provider = new PaymentDomainServiceProvider($this->app);
+        $this->provider = new PaymentServiceProvider($this->app);
     }
 
     #[Test]
     public function provider_can_be_instantiated(): void
     {
-        $this->assertInstanceOf(PaymentDomainServiceProvider::class, $this->provider);
+        $this->assertInstanceOf(PaymentServiceProvider::class, $this->provider);
     }
 
     #[Test]
@@ -47,19 +47,6 @@ class PaymentDomainServiceProviderTest extends TestCase
     $this->assertEquals('void', $rtName);
     }
 
-    #[Test]
-    public function provider_has_boot_method(): void
-    {
-        $this->assertTrue(method_exists($this->provider, 'boot'));
-        
-        $reflection = new \ReflectionClass($this->provider);
-        $method = $reflection->getMethod('boot');
-    $returnType = $method->getReturnType();
-        
-    $this->assertNotNull($returnType);
-    $rtName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string) $returnType;
-    $this->assertEquals('void', $rtName);
-    }
 
     #[Test]
     public function register_method_binds_services(): void
@@ -90,7 +77,7 @@ class PaymentDomainServiceProviderTest extends TestCase
     public function provider_has_correct_namespace(): void
     {
         $reflection = new \ReflectionClass($this->provider);
-        $this->assertEquals('App\\Providers\\PaymentDomainServiceProvider', $reflection->getName());
+        $this->assertEquals('App\\Providers\\PaymentServiceProvider', $reflection->getName());
     }
 
     #[Test]
