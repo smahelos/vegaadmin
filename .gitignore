@@ -9,7 +9,6 @@
 #/vendor
 /docker/mysql
 /data/redis
-/docker/php/8.3-fpm
 /design/
 .env
 .env.backup

@@ -9,18 +9,14 @@ services:
         user: 'www-data:www-data'
         working_dir: /var/www
         volumes:
-            - ${DATA_DIR}/www/adminer:/var/www/adminer
+            - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
             - ./docker/php/development-opcache.ini:/usr/local/etc/php/conf.d/zzz-development-opcache.ini:ro
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
-        env_file:
-            - ./global.env
         depends_on:
             - "database"
         environment:
             PHP_IDE_CONFIG: "serverName=billex-dev.local"
-            PHP_MEMORY_LIMIT: "512M"
-            PHP_MAX_EXECUTION_TIME: "30"
         networks:
             - billex-network
     # Web Server
