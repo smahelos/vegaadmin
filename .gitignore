@@ -9,6 +9,7 @@
 #/vendor
 /docker/mysql
 /data/redis
+/dbdata/
 /design/
 .env
 .env.backup
