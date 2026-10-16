@@ -3,12 +3,11 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class UserActivitySummary extends Model
 {
-    use CrudTrait, HasFactory;
+    use CrudTrait;
 
     /**
      * The table associated with the model (database view).
