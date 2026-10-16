@@ -46,6 +46,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** IBAN is validated with a simplified regex (no mod-97 checksum); QR providers format accounts themselves.
 - **Fix:** validate and convert through the value object. It is stricter, so check existing supplier data first.
 
+### Payment adapter guard checks nothing
+- **Where:** `app/Console/Commands/PaymentAdapterGuardCommand.php`, `app/Domain/Payment/Services/GatewayRegistry.php`
+- **Problem:** `php artisan payment:adapter-guard` reports "No gateways registered" in the console, so the CI step passes without validating any gateway.
+- **Fix:** register the gateways (GoPay) where the guard can see them, or let the guard resolve the registry the same way the application does.
+
 ## Party / Admin
 
 ### Admin bank CRUD validates with the frontend request
