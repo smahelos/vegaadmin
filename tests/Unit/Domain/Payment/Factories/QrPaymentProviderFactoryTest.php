@@ -203,16 +203,6 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertTrue(QrPaymentProviderFactory::hasProvider('sk'));
     }
 
-    public function test_register_new_provider()
-    {
-        $mockProviderClass = 'App\\Domain\\Payment\\Providers\\QrPayment\\TestQrPaymentProvider';
-        QrPaymentProviderFactory::registerProvider('TEST', $mockProviderClass);
-        $this->assertTrue(QrPaymentProviderFactory::hasProvider('TEST'));
-        $providers = QrPaymentProviderFactory::getAvailableProviders();
-        $this->assertArrayHasKey('TEST', $providers);
-        $this->assertEquals($mockProviderClass, $providers['TEST']);
-    }
-
     public function test_auto_detect_with_iban_spaces()
     {
         $invoice = new QrPaymentPayload(

@@ -153,18 +153,6 @@ class QrPaymentProviderFactory
     }
 
     /**
-     * Register a new provider
-     *
-     * @param string $countryCode
-     * @param string $providerClass
-     * @return void
-     */
-    public static function registerProvider(string $countryCode, string $providerClass): void
-    {
-        self::$providers[strtoupper($countryCode)] = $providerClass;
-    }
-
-    /**
      * Check if provider exists for country code
      *
      * @param string $countryCode
