@@ -63,7 +63,7 @@ class BankFormFieldsFeatureTest extends TestCase
         $this->assertNotNull($countryField);
         $this->assertEquals('select_from_array', $countryField['type']);
         $this->assertTrue($countryField['required']);
-        $this->assertEquals('cz', $countryField['default']);
+        $this->assertEquals('CZ', $countryField['default']);
         $this->assertFalse($countryField['allows_null']);
         $this->assertArrayHasKey('options', $countryField);
 
@@ -174,7 +174,7 @@ class BankFormFieldsFeatureTest extends TestCase
         $fields = $this->traitInstance->callGetBankFields();
 
         $countryField = collect($fields)->firstWhere('name', 'country');
-        $this->assertEquals('cz', $countryField['default']);
+        $this->assertEquals('CZ', $countryField['default']);
 
         $activeField = collect($fields)->firstWhere('name', 'active');
         $this->assertTrue($activeField['default']);
