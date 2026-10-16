@@ -71,7 +71,7 @@ jobs:
           set -e
           COMMITTED="architecture/baselines/frontend_controller_eloquent_baseline.json"
           if [ ! -f "$COMMITTED" ]; then
-            echo '::error::Missing committed baseline ($COMMITTED). Run locally: php artisan ddd:frontend-eloquent:baseline --save --path=architecture/baselines and commit the file.'
+            echo "::error::Missing committed baseline ($COMMITTED). Run locally: php artisan ddd:frontend-eloquent:baseline --save --path=architecture/baselines and commit the file."
             exit 1
           fi
           php artisan ddd:frontend-eloquent:baseline --save --path=build/metrics || { echo '::error::Frontend baseline regeneration command failed.'; exit 1; }
@@ -106,7 +106,7 @@ jobs:
           set -e
           COMMITTED="architecture/baselines/api_controller_eloquent_baseline.json"
           if [ ! -f "$COMMITTED" ]; then
-            echo '::error::Missing committed baseline ($COMMITTED). Run locally: php artisan ddd:api-eloquent:baseline --save --path=architecture/baselines and commit the file.'
+            echo "::error::Missing committed baseline ($COMMITTED). Run locally: php artisan ddd:api-eloquent:baseline --save --path=architecture/baselines and commit the file."
             exit 1
           fi
           php artisan ddd:api-eloquent:baseline --save --path=build/metrics || { echo '::error::API baseline regeneration command failed.'; exit 1; }
