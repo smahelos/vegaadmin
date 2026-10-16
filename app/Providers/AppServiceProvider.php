@@ -14,9 +14,7 @@ use App\View\Components\Select;
 use App\View\Components\CurrencySelect;
 use App\View\Components\Pagination;
 
-// Infrastructure services and repositories bindings moved to app/Infrastructure/InfrastructureServiceProvider
-// Observers registrations moved to app/Infrastructure/InfrastructureServiceProvider
-// Application service bindings moved to app/Application/ApplicationServiceProvider
+// Context bindings and observers live in the bounded context providers (ADR D-042)
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,7 +39,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Model observers moved to their respective domain service providers
         // Add Blade directive for checking users with admin access
         Blade::if('backpackUser', function () {
             return Auth::check() && function_exists('backpack_user') && backpack_user() !== null;
