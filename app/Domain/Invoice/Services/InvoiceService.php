@@ -7,6 +7,7 @@ use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\Events\InvoiceCreated;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
@@ -254,17 +255,17 @@ class InvoiceService implements InvoiceServiceInterface
      */
     public function generateInvoiceNumber(UserId $userId, int $year): string
     {
-        $currentYear = date('Y');
-        if ($userId->toInt() <= 0) { return $currentYear . '0001'; }
-        $lastInvoiceNumber = $this->invoiceReadRepository->findLastInvoiceNumber($userId, (int)$currentYear);
-        if ($lastInvoiceNumber && strlen($lastInvoiceNumber) >= 8) {
-            $sequencePart = substr($lastInvoiceNumber, 4);
-            if (ctype_digit($sequencePart)) {
-                $nextSeq = (int)$sequencePart + 1;
-                return $currentYear . str_pad((string)$nextSeq, 4, '0', STR_PAD_LEFT);
-            }
+        if ($userId->toInt() <= 0) {
+            return InvoiceNumber::generateNext()->getNumber();
         }
-        return $currentYear . '0001';
+        $lastInvoiceNumber = $this->invoiceReadRepository->findLastInvoiceNumber($userId, (int) date('Y'));
+        try {
+            $last = $lastInvoiceNumber ? new InvoiceNumber($lastInvoiceNumber) : null;
+        } catch (\InvalidArgumentException) {
+            // Last number in a non-standard format: start a new sequence
+            $last = null;
+        }
+        return InvoiceNumber::generateNext($last?->getNumber())->getNumber();
     }
 
     /**
