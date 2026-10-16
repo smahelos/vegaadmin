@@ -6,7 +6,7 @@
 /public/storage
 /storage/*.key
 /storage/pail
-#/vendor
+/vendor
 /docker/mysql
 /data/redis
 /dbdata/
