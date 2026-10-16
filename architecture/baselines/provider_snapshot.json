@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-16T10:31:13+00:00",
+    "generated_at": "2026-10-16T16:18:31+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -137,6 +137,10 @@
                 {
                     "abstract": "App\\Domain\\Shared\\Console\\Contracts\\ArtisanCommandsDtoRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Console\\Repositories\\EloquentArtisanCommandsDtoRepository"
+                },
+                {
+                    "abstract": "App\\Application\\Shared\\Console\\Contracts\\ArtisanCommandsRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Console\\Repositories\\EloquentArtisanCommandsRepository"
                 },
                 {
                     "abstract": "App\\Application\\Shared\\Money\\Contracts\\CurrencyApplicationServiceInterface",
@@ -914,8 +918,12 @@
             }
         },
         "App\\Application\\Shared\\Console\\Contracts\\ArtisanCommandsRepositoryInterface": {
-            "status": "missing_binding",
-            "actual": []
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Console\\Repositories\\EloquentArtisanCommandsRepository",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
         },
         "App\\Application\\Shared\\Geography\\Contracts\\CountryApplicationServiceInterface": {
             "status": "ok",

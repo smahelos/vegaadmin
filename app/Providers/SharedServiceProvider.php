@@ -201,6 +201,10 @@ class SharedServiceProvider extends ServiceProvider
             \App\Domain\Shared\Console\Contracts\ArtisanCommandsDtoRepositoryInterface::class,
             \App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories\EloquentArtisanCommandsDtoRepository::class
         );
+        $this->app->bind(
+            \App\Application\Shared\Console\Contracts\ArtisanCommandsRepositoryInterface::class,
+            \App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories\EloquentArtisanCommandsRepository::class
+        );
     }
 
     /**
