@@ -37,6 +37,9 @@ abstract class TestCase extends BaseTestCase
 
         parent::setUp();
 
+        // Built assets (public/build) are not versioned and CI does not run the Vite build
+        $this->withoutVite();
+
         self::$usesInMemoryDatabase = $this->usesInMemorySqlite();
 
         // Persistent databases (sequential runs only): migrate and seed once per process
