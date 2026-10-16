@@ -72,12 +72,12 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
         return new Invoice($attributes);
     }
 
-    public function findLastInvoiceForYear(int $userId, int $year): ?Invoice
+    public function findInvoiceNumbersForYear(int $userId, int $year): array
     {
         return Invoice::where('user_id', $userId)
             ->where('invoice_vs', 'like', $year . '%')
-            ->orderBy('invoice_vs', 'desc')
-            ->first();
+            ->pluck('invoice_vs')
+            ->all();
     }
 
     public function markAsPaid(int $id, int $paidStatusId): bool

@@ -283,4 +283,26 @@ class InvoiceServiceFeatureTest extends TestCase
 
 		$this->assertSame($year . '0001', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
 	}
+
+	#[Test]
+	public function generate_invoice_number_continues_past_9999(): void
+	{
+		$year = (int) date('Y');
+		$user = User::factory()->create();
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '9999']);
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '10000']);
+
+		$this->assertSame($year . '10001', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+	}
+
+	#[Test]
+	public function generate_invoice_number_ignores_non_standard_numbers(): void
+	{
+		$year = (int) date('Y');
+		$user = User::factory()->create();
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0005']);
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '-ZZZ-LONG-NUMBER']);
+
+		$this->assertSame($year . '0006', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+	}
 }

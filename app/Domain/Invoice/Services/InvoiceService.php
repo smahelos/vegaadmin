@@ -251,21 +251,12 @@ class InvoiceService implements InvoiceServiceInterface
      *
      * @param UserId $userId
      * @param int $year Current year for the invoice number
-     * @return string Generated invoice number in format YYYYNNNN
+     * @return string Generated invoice number (see InvoiceNumber)
      */
     public function generateInvoiceNumber(UserId $userId, int $year): string
     {
-        if ($userId->toInt() <= 0) {
-            return InvoiceNumber::generateNext()->getNumber();
-        }
         $lastInvoiceNumber = $this->invoiceReadRepository->findLastInvoiceNumber($userId, (int) date('Y'));
-        try {
-            $last = $lastInvoiceNumber ? new InvoiceNumber($lastInvoiceNumber) : null;
-        } catch (\InvalidArgumentException) {
-            // Last number in a non-standard format: start a new sequence
-            $last = null;
-        }
-        return InvoiceNumber::generateNext($last?->getNumber())->getNumber();
+        return InvoiceNumber::generateNext($lastInvoiceNumber)->getNumber();
     }
 
     /**

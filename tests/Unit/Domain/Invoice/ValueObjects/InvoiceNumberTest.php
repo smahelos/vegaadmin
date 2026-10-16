@@ -150,8 +150,47 @@ class InvoiceNumberTest extends TestCase
     public function throws_exception_for_out_of_range_sequence_in_factory(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Sequence must be between 1 and 9999');
+        $this->expectExceptionMessage('Sequence must be between 1 and 999999');
         
         InvoiceNumber::fromYearAndSequence(2025, 0);
+    }
+
+    #[Test]
+    public function continues_with_five_digit_sequence_after_9999(): void
+    {
+        $currentYear = (int) date('Y');
+        $invoiceNumber = InvoiceNumber::generateNext($currentYear . '9999');
+
+        $this->assertSame($currentYear . '10000', $invoiceNumber->getNumber());
+        $this->assertSame(10000, $invoiceNumber->getSequence());
+    }
+
+    #[Test]
+    public function parses_longer_sequence_and_compares_numerically(): void
+    {
+        $longer = new InvoiceNumber('202510000');
+
+        $this->assertSame(2025, $longer->getYear());
+        $this->assertTrue($longer->isGreaterThan(new InvoiceNumber('20259999')));
+    }
+
+    #[Test]
+    public function rejects_non_canonical_padding(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid invoice number format');
+
+        new InvoiceNumber('2025010000');
+    }
+
+    #[Test]
+    public function throws_when_yearly_sequence_is_exhausted(): void
+    {
+        $currentYear = (int) date('Y');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Invoice number sequence for year {$currentYear} is exhausted");
+
+        InvoiceNumber::generateNext($currentYear . '999999');
     }
 }
