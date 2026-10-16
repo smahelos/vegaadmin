@@ -11,6 +11,8 @@ RUN apk add --no-cache \
     zip \
     unzip \
     icu-dev \
+    # kompletní ICU data (Alpine má jen angličtinu; nutné pro formátování čísel cs/sk/de)
+    icu-data-full \
     libwebp-dev \
     libjpeg-turbo-dev \
     freetype-dev \

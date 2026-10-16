@@ -10,7 +10,7 @@ services:
         working_dir: /var/www
         volumes:
             - ${DATA_DIR}/www/adminer:/var/www/adminer
-            - ./php/development-opcache.ini:/usr/local/etc/php/conf.d/zzz-development-opcache.ini:ro
+            - ./docker/php/development-opcache.ini:/usr/local/etc/php/conf.d/zzz-development-opcache.ini:ro
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
         env_file:
