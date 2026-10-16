@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Persistence\Eloquent\Product\Repositories;
 
 use App\Domain\Invoice\DTO\InvoiceProductDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Product\Contracts\InvoiceProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
@@ -37,15 +38,20 @@ class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoReadReposi
         }, $products);
     }
 
-    public function create(array $data): InvoiceProductDTO
+    public function create(InvoiceId $invoiceId, InvoiceProductWriteData $data): InvoiceProductDTO
     {
-        $product = $this->productRepository->create($data)->toArray();
+        $product = $this->productRepository->create(['invoice_id' => $invoiceId->getValue()] + $data->toArray())->toArray();
         return InvoiceProductDTO::fromArray($product);
     }
 
+    /**
+     * @param array<int, InvoiceProductWriteData> $products
+     */
     public function bulkCreate(InvoiceId $invoiceId, array $products): void
     {
-        $this->productRepository->bulkCreate($invoiceId->getValue(), $products);
+        foreach ($products as $product) {
+            $this->productRepository->create(['invoice_id' => $invoiceId->getValue()] + $product->toArray());
+        }
     }
 
     public function deleteByInvoiceId(InvoiceId $invoiceId): void

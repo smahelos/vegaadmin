@@ -98,7 +98,7 @@ class InvoiceServiceSequenceTest extends TestCase
             public function existsWithNumber(UserId $userId, string $number): bool { return false; }
         };
         $productRepo = new class implements InvoiceProductDtoWriteRepositoryInterface {
-            public function create(array $data): \App\Domain\Invoice\DTO\InvoiceProductDTO { throw new \RuntimeException('not needed'); }
+            public function create(InvoiceId $invoiceId, \App\Domain\Invoice\DTO\InvoiceProductWriteData $data): \App\Domain\Invoice\DTO\InvoiceProductDTO { throw new \RuntimeException('not needed'); }
             public function allForInvoice(InvoiceId $invoiceId): array { return []; }
             public function bulkCreate(InvoiceId $invoiceId, array $products): void {}
             public function deleteByInvoiceId(InvoiceId $invoiceId): void {}

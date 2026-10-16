@@ -4,6 +4,7 @@ namespace App\Domain\Invoice\Services;
 
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\Events\InvoiceCreated;
@@ -34,7 +35,10 @@ class InvoiceService implements InvoiceServiceInterface
      */
     public function saveInvoiceProducts(InvoiceId $invoiceId, array $products): void
     {
-        $this->invoiceProductRepository->bulkCreate($invoiceId, $products);
+        $this->invoiceProductRepository->bulkCreate(
+            $invoiceId,
+            array_map(fn (array $product) => InvoiceProductWriteData::fromArray($product), $products)
+        );
     }
 
     /**

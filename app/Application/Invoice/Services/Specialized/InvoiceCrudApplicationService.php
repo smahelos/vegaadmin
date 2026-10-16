@@ -7,6 +7,7 @@ use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
 use App\Domain\Product\Contracts\InvoiceProductDtoReadRepositoryInterface;
 use App\Domain\User\ValueObjects\UserId;
@@ -198,7 +199,10 @@ class InvoiceCrudApplicationService implements InvoiceCrudApplicationServiceInte
         // For updates, delete existing products first
         if ($invoiceId) {
             $this->invoiceProductWriteRepository->deleteByInvoiceId($invoiceId);
-            $this->invoiceProductWriteRepository->bulkCreate($invoiceId, $products);
+            $this->invoiceProductWriteRepository->bulkCreate(
+                $invoiceId,
+                array_map(fn (array $product) => InvoiceProductWriteData::fromArray($product), $products)
+            );
             
             // Calculate totals from freshly created products
             $createdProducts = $this->invoiceProductReadRepository->allForInvoice($invoiceId);

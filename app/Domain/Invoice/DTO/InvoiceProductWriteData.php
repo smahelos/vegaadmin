@@ -22,21 +22,30 @@ class InvoiceProductWriteData
         public readonly bool $is_custom_product = false,
     ) {}
 
+    /**
+     * Build a product row from raw form data. A row without product_id (or flagged custom) is a
+     * custom product; tax_amount and total_price are always derived from quantity, price and tax rate.
+     */
     public static function fromArray(array $data): self
     {
+        $isCustom = empty($data['product_id']) || !empty($data['is_custom_product']);
+        $quantity = (float)($data['quantity'] ?? 1);
+        $price = (float)($data['price'] ?? 0);
+        $taxRate = (float)($data['tax_rate'] ?? 21);
+
         return new self(
-            product_id: isset($data['product_id']) ? (int)$data['product_id'] : null,
+            product_id: $isCustom ? null : (int)$data['product_id'],
             name: (string)($data['name'] ?? ''),
-            quantity: isset($data['quantity']) ? (float)$data['quantity'] : 1.0,
-            price: isset($data['price']) ? (float)$data['price'] : 0.0,
+            quantity: $quantity,
+            price: $price,
             currency: (string)($data['currency'] ?? 'CZK'),
-            unit: $data['unit'] ?? null,
+            unit: $data['unit'] ?? 'ks',
             category: $data['category'] ?? null,
             description: $data['description'] ?? null,
-            tax_rate: isset($data['tax_rate']) ? (float)$data['tax_rate'] : 0.0,
-            tax_amount: isset($data['tax_amount']) ? (float)$data['tax_amount'] : 0.0,
-            total_price: isset($data['total_price']) ? (float)$data['total_price'] : 0.0,
-            is_custom_product: (bool)($data['is_custom_product'] ?? false),
+            tax_rate: $taxRate,
+            tax_amount: ($quantity * $price * $taxRate) / 100,
+            total_price: $quantity * $price * (1 + $taxRate / 100),
+            is_custom_product: $isCustom,
         );
     }
 
