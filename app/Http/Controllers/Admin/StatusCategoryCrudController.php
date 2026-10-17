@@ -103,22 +103,12 @@ class StatusCategoryCrudController extends CrudController
     {
         $this->setupListOperation();
         
-        // Add a tab with related statuses
-        CRUD::addTab(trans('admin.status_categories.statuses_tab'));
-        
-        CRUD::addField([
-            'name'          => 'statuses',
-            'label'         => trans('admin.status_categories.statuses'),
-            'type'          => 'relationship_table',
-            'columns'       => [
-                'name'          => trans('admin.statuses.name'),
-                'slug'          => trans('admin.statuses.slug'),
-                'color_preview' => trans('admin.statuses.color'),
-                'type'          => trans('admin.statuses.type'),
-                'is_active'     => trans('admin.statuses.is_active'),
-            ],
-            'button_create' => true,
-            'button_delete' => false,
-        ]);
+        // Statuses of the category (Show renders columns; tabs and relationship_table are Backpack PRO)
+        CRUD::column('statuses')
+            ->type('select_multiple')
+            ->label(trans('admin.status_categories.statuses_tab'))
+            ->entity('statuses')
+            ->model(\App\Models\Status::class)
+            ->attribute('name');
     }
 }

@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\EntityLimit;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -111,5 +112,18 @@ class ProductCrudControllerTest extends TestCase
             'id' => $product1->id,
             'user_id' => $this->regularUser->id,
         ]);
+    }
+
+    #[Test]
+    public function create_form_offers_product_categories(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $category = ProductCategory::factory()->create(['name' => 'Category ' . uniqid()]);
+
+        $response = $this->get('/admin/product/create');
+
+        $response->assertOk();
+        $response->assertSee('<option value="' . $category->id . '"', false);
+        $response->assertSee($category->name);
     }
 }
