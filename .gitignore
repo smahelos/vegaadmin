@@ -29,3 +29,6 @@ Homestead.yaml
 robots.txt
 /.DS_Store
 /vendor/_laravel_ide
+
+# Local archive of unused Backpack templates/assets (see backup/README.md), not distributed
+/backup
