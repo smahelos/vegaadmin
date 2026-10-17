@@ -159,7 +159,10 @@ return [
     // Other options:
     // - null (generic image with their first letter)
     // - example_method_name (specify the method on the User model that returns the URL)
-    'avatar_type' => 'gravatar',
+    // Billex: no avatars yet (the initial letter is shown). Gravatar sent each admin's email hash to
+    // gravatar.com, and in Basset dev mode the second avatar on a page pointed to a missing local copy.
+    // When avatar uploads exist, set this to a User method returning the uploaded image URL.
+    'avatar_type' => null,
 
     // Gravatar fallback options are 'identicon', 'monsterid', 'wavatar', 'retro', 'robohash', 'blank'
     // 'blank' will keep the generic image with the user first letter
