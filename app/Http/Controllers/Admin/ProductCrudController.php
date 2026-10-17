@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\ProductRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
-use App\Domain\Product\Contracts\ProductServiceInterface;
+use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Domain\Shared\Tax\Contracts\TaxServiceInterface; // fixed namespace
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\User;
@@ -19,11 +19,11 @@ class ProductCrudController extends CrudController
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation; // Usage recording via generic observer
 
-    private ProductServiceInterface $productService;
+    private ProductApplicationServiceInterface $productService;
     private TaxServiceInterface $taxesService;
 
     public function __construct(
-        ProductServiceInterface $productService,
+        ProductApplicationServiceInterface $productService,
         TaxServiceInterface $taxesService
     ) {
         parent::__construct();
