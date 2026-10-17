@@ -2,9 +2,15 @@ services:
 
     # Application
     app:
+        # explicit name so the cron service can reuse the image
+        image: billex-app
         build:
             context: .
             dockerfile: app.dockerfile
+            args:
+                # set in .env when the host user is not 1000:1000 (storage/ is bind-mounted)
+                WWW_UID: ${WWW_UID:-1000}
+                WWW_GID: ${WWW_GID:-1000}
         container_name: "${CONTAINER_PREFIX}-app"
         user: 'www-data:www-data'
         working_dir: /var/www
@@ -111,13 +117,24 @@ services:
         # ports:
         #     - "8002:6379"
 
+    # Scheduler: same image, user and storage as app; schedule:work runs schedule:run every minute
     cron:
-        image: php:8.3-cli # upravte verzi PHP podle vaší aplikace
+        image: billex-app
+        container_name: "${CONTAINER_PREFIX}-cron"
+        user: 'www-data:www-data'
+        working_dir: /var/www
+        command: php artisan schedule:work
         volumes:
-            - .:/var/www/html
-        command: bash -c "apt-get update && apt-get install -y cron && echo '* * * * * cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1' | crontab - && cron -f"
+            - ./storage:/var/www/storage
+            - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+            - /etc/timezone:/etc/timezone:ro
+            - /etc/localtime:/etc/localtime:ro
         depends_on:
             - app
+            - database
+            - redis
+        networks:
+            - billex-network
 
 # Custom network
 networks:
