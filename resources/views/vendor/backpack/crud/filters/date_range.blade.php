@@ -121,8 +121,12 @@
                         applyRange(null, null);
                     });
 
-                    // "Remove filters" button of the filters navbar
+                    // Clear link and the "Remove filters" button of the filters navbar: also reset the picker's
+                    // selection, otherwise Apply would bring the cleared range back.
                     item.on('filter:clear', function () {
+                        var picker = input.data('daterangepicker');
+                        picker.setStartDate(moment().startOf('month'));
+                        picker.setEndDate(moment().endOf('month'));
                         item.removeClass('active');
                         showRange(null, null);
                     });
