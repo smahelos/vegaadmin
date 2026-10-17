@@ -102,8 +102,13 @@ class ExpenseCrudController extends CrudController
         // Filters
         CRUD::filter('expense_date')
             ->type('date_range')
-            ->label(trans('admin.expenses.date_range'));
-            
+            ->label(trans('admin.expenses.date_range'))
+            ->whenActive(function ($value) {
+                $dates = json_decode($value);
+                CRUD::addClause('where', 'expense_date', '>=', $dates->from);
+                CRUD::addClause('where', 'expense_date', '<=', $dates->to);
+            });
+
         CRUD::filter('supplier_id')
             ->type('select2')
             ->label(trans('admin.expenses.supplier'))
