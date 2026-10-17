@@ -77,7 +77,7 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** ARES is called with `Http::get()` directly from a controller without a timeout; exchange rates and countries go through `HttpClientService` without timeouts. A circuit breaker exists only in the unused Analytics base class.
 - **Fix:** timeouts and a circuit breaker in `Shared` around `HttpClientService`; move the ARES call into a service.
 
-### Backpack PRO templates and assets
+### Rewrite the Backpack PRO templates still in use
 - **Where:** `resources/views/vendor/backpack/crud/*`, `public/packages/*`
-- **Problem:** templates and JS libraries copied from Backpack PRO (not in `composer.json`) in commit `a007295e`; about 36 templates and 8 asset packages are unused. Check the licence for the used ones.
-- **Fix:** decide on the licence, then remove what is unused.
+- **Problem:** templates copied from Backpack PRO (not licensed, not in `composer.json`) in commit `a007295e` are still used: fields `datetime_picker`, `relationship` (+ `relationship/relationship_select`), `select2`, `select2_from_ajax`, `select2_from_array`; column `relationship`; filters `select2`, `simple`, `date_range`. As overrides of package views they would also shadow the Backpack 7 views. The unused copies were moved out of the repository (local `backup/`, gitignored).
+- **Fix:** rewrite them as Billex's own templates on the free Backpack API before upgrading to Backpack 7; then review the remaining overrides (`columns/closure`, identical `inc/filters_navbar`, own `multilingual_*`, `image_with_preview`, `files_list`, theme/UI overrides).
