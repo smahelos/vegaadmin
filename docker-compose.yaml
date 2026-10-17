@@ -9,6 +9,8 @@ services:
         user: 'www-data:www-data'
         working_dir: /var/www
         volumes:
+            # Shared with web (serves storage/app/public) and cron; survives image rebuilds
+            - ./storage:/var/www/storage
             - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
             - ./docker/php/development-opcache.ini:/usr/local/etc/php/conf.d/zzz-development-opcache.ini:ro
             - /etc/timezone:/etc/timezone:ro
