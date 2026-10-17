@@ -1052,5 +1052,6 @@ return [
         'updated_at' => 'Aktualizováno',
         'yes' => 'Ano',
         'no' => 'Ne',
+        'select' => 'Vyberte…',
     ],
 ];

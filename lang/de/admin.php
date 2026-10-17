@@ -997,5 +997,6 @@ return [
         'updated_at' => 'Aktualisiert am',
         'yes' => 'Ja',
         'no' => 'Nein',
+        'select' => 'Auswählen…',
     ],
 ];

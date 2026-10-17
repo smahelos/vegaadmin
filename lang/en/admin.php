@@ -1042,5 +1042,6 @@ return [
         'updated_at' => 'Updated At',
         'yes' => 'Yes',
         'no' => 'No',
+        'select' => 'Select…',
     ],
 ];

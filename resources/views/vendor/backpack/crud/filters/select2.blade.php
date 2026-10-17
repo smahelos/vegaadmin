@@ -1,136 +1,87 @@
-{{-- Select2 Backpack CRUD filter --}}
+{{--
+    Select2 filter (Billex implementation): picks one of $filter->values and sends its key as the
+    GET parameter named after the filter; the filter logic in the CRUD controller applies it.
+--}}
+@php
+    $isActive = $filter->isActive();
+    $locale = app()->getLocale();
+@endphp
+
 <li filter-name="{{ $filter->name }}"
-  filter-type="{{ $filter->type }}"
-  filter-key="{{ $filter->name }}"
-  class="nav-item dropdown {{ Request::get($filter->name) ? 'active' : '' }}">
-  <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ $filter->label }} <span class="caret"></span></a>
+    filter-type="{{ $filter->type }}"
+    class="nav-item dropdown {{ $isActive ? 'active' : '' }}">
+    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ $filter->label }} <span class="caret"></span></a>
     <div class="dropdown-menu p-0">
-      <div class="form-group backpack-filter mb-0">
-			<select id="filter_{{ $filter->name }}" name="filter_{{ $filter->name }}" class="form-control input-sm select2 select2-hidden-accessible" data-filter-key="{{ $filter->name }}" data-filter-type="select2" data-filter-name="{{ $filter->name }}" placeholder="{{ $filter->placeholder }}">
-				<option value="">{{  __('admin.placeholders.select_category')  }}</option>
-				@if (is_array($filter->values) && count($filter->values))
-					@foreach($filter->values as $key => $value)
-						<option value="{{ $key }}"
-							@if($filter->isActive() && $filter->currentValue == $key)
-								selected
-							@endif
-							>
-							{{ $value }}
-						</option>
-					@endforeach
-				@endif
-			</select>
-		</div>
+        <div class="form-group backpack-filter mb-0">
+            <select class="form-control"
+                    data-select2-filter="{{ $filter->name }}"
+                    data-placeholder="{{ $filter->placeholder ?: trans('admin.general.select') }}">
+                <option value=""></option>
+                @foreach ((array) $filter->values as $key => $label)
+                    <option value="{{ $key }}" @selected($isActive && (string) $filter->currentValue === (string) $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
-  </li>
-
-{{-- ########################################### --}}
-{{-- Extra CSS and JS for this particular filter --}}
-
-{{-- FILTERS EXTRA CSS  --}}
-{{-- push things in the after_styles section --}}
+</li>
 
 @push('crud_list_styles')
-    <!-- include select2 css-->
-    <link href="{{ asset('packages/select2/dist/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
-    <link href="{{ asset('packages/select2-bootstrap-theme/dist/select2-bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
-    <style>
-	  .form-inline .select2-container {
-	    display: inline-block;
-	  }
-	  .select2-drop-active {
-	  	border:none;
-	  }
-	  .select2-container .select2-choices .select2-search-field input, .select2-container .select2-choice, .select2-container .select2-choices {
-	  	border: none;
-	  }
-	  .select2-container-active .select2-choice {
-	  	border: none;
-	  	box-shadow: none;
-	  }
-	  .select2-container--bootstrap .select2-dropdown {
-	  	margin-top: -2px;
-	  	margin-left: -1px;
-	  }
-	  .select2-container--bootstrap {
-	  	position: relative!important;
-	  	top: 0px!important;
-        min-width: 174px !important;
-	  }
-    
-    </style>
+    @once
+        <link rel="stylesheet" type="text/css" href="{{ asset('packages/select2/dist/css/select2.min.css') }}" />
+        <link rel="stylesheet" type="text/css" href="{{ asset('packages/select2-bootstrap-theme/dist/select2-bootstrap.min.css') }}" />
+        <style>
+            .navbar-filters [data-select2-filter] + .select2-container { min-width: 220px; }
+        </style>
+    @endonce
 @endpush
-
-
-{{-- FILTERS EXTRA JS --}}
-{{-- push things in the after_scripts section --}}
 
 @push('crud_list_scripts')
-	<!-- include select2 js-->
-    <script src="{{ asset('packages/select2/dist/js/select2.full.min.js') }}"></script>
-    @if (app()->getLocale() !== 'en')
-    <script src="{{ asset('packages/select2/dist/js/i18n/' . app()->getLocale() . '.js') }}"></script>
-    @endif
+    @once
+        <script src="{{ asset('packages/select2/dist/js/select2.full.min.js') }}"></script>
+        @if ($locale !== 'en' && file_exists(public_path('packages/select2/dist/js/i18n/' . $locale . '.js')))
+            <script src="{{ asset('packages/select2/dist/js/i18n/' . $locale . '.js') }}"></script>
+        @endif
+        <script>
+            jQuery(function ($) {
+                $('[data-select2-filter]').each(function () {
+                    var select = $(this);
+                    var name = select.data('select2-filter');
+                    var item = $('li[filter-name="' + name + '"]');
 
-    <script>
-        jQuery(document).ready(function($) {
-            // trigger select2 for each untriggered select2 box
-            $('select[data-filter-type=select2]').not('[data-filter-enabled]').each(function () {
-            	var filterName = $(this).attr('data-filter-name');
-                var filterKey = $(this).attr('data-filter-key');
-            	var element = $(this);
+                    select.select2({
+                        theme: 'bootstrap',
+                        width: '100%',
+                        allowClear: true,
+                        placeholder: select.data('placeholder'),
+                        language: @json($locale),
+                        // inside the filter dropdown, so picking an option does not close it
+                        dropdownParent: select.parent(),
+                    });
 
-            	$(this).attr('data-filter-enabled', 'true');
+                    select.on('change', function () {
+                        var value = select.val() || '';
 
-            	var obj = $(this).select2({
-	            	allowClear: true,
-		            closeOnSelect: false,
-					theme: "bootstrap",
-					dropdownParent: $(this).parent('.form-group'),
-	        	    placeholder: $(this).attr('placeholder'),
-	            }).on('change', function(c) {
-					var value = $(this).val();
-					var parameter = $(this).attr('data-filter-name');
+                        updateDatatablesOnFilterChange(name, value, true, 0);
 
-                    if(!value) {
-                       return;
-                    }
+                        if (value) {
+                            item.addClass('active');
+                        } else {
+                            item.removeClass('active').trigger('filter:clear');
+                        }
+                    });
 
-                    var new_url = updateDatatablesOnFilterChange(filterName, value, true, 0);
+                    item.on('shown.bs.dropdown', function () {
+                        select.select2('open');
+                    });
 
-                    // mark this filter as active in the navbar-filters
-                    if (URI(new_url).hasQuery(filterName, true)) {
-                        $("li[filter-key="+filterKey+"]").addClass('active');
-                    }
-				}).on('select2:unselecting', function (e) {
-
-                    updateDatatablesOnFilterChange(filterName, null, true, 0);
-
-                    $('#filter_'+filterKey).val(null)
-                    $("li[filter-key="+filterKey+"]").removeClass("active");
-                    $("li[filter-key="+filterKey+"]").find('.dropdown-menu').removeClass("show");
-
-                    e.stopPropagation();
-                    return true;
+                    // "Remove filters" button of the filters navbar (it updates the URL itself):
+                    // reset the select without firing the change handler above
+                    item.on('filter:clear', function () {
+                        item.removeClass('active');
+                        select.val(null).trigger('change.select2');
+                    });
                 });
-
-
-				// when the dropdown is opened, autofocus on the select2
-				$("li[filter-key="+filterKey+"]").on('shown.bs.dropdown', function () {
-					setTimeout(() => {
-						$('select[data-filter-key='+filterKey+']').select2('open');
-						element.data('select2').dropdown.$search.get(0).focus();
-					}, 50);
-				});
-
-				// clear filter event (used here and by the Remove all filters button)
-				$("li[filter-key="+filterKey+"]").on('filter:clear', function(e) {
-					$("li[filter-key="+filterKey+"]").removeClass('active');
-	                $('#filter_'+filterKey).val(null).trigger('change');
-				});
             });
-		});
-	</script>
+        </script>
+    @endonce
 @endpush
-{{-- End of Extra CSS and JS --}}
-{{-- ########################################## --}}
