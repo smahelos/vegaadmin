@@ -33,6 +33,14 @@ RUN pecl install imagick \
 # Instalace Redis extenze
 RUN pecl install redis && docker-php-ext-enable redis
 
+# storage/ is bind-mounted from the host: give www-data the host user's UID/GID
+# so both sides can write the same files
+ARG WWW_UID=1000
+ARG WWW_GID=1000
+RUN apk add --no-cache shadow \
+    && groupmod -o -g ${WWW_GID} www-data \
+    && usermod -o -u ${WWW_UID} -g ${WWW_GID} www-data
+
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 

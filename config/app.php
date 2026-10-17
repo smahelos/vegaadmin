@@ -67,6 +67,10 @@ return [
 
     'timezone' => 'UTC',
 
+    // Times in routes/console.php and in cron tasks (Backpack) are local time;
+    // stored timestamps stay in UTC (see 'timezone')
+    'schedule_timezone' => 'Europe/Prague',
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
