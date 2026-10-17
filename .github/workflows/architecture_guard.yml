@@ -3,6 +3,8 @@ name: Architecture Guard (Segmented)
 on:
   push:
     branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
 
 permissions:
   contents: read
@@ -213,7 +215,7 @@ jobs:
   summary:
     name: 8. Guard Summary
     runs-on: ubuntu-latest
-    needs: [ legacy-report, architecture-tests, provider-snapshot ]
+    needs: [ legacy-report, frontend-eloquent-baseline, api-eloquent-baseline, provider-snapshot, architecture-tests ]
     if: always()
     steps:
       - name: Outcome summary
@@ -221,9 +223,10 @@ jobs:
           echo 'Architecture Guard workflow completed.'
           echo 'legacy-report result: ${{ needs.legacy-report.result }}'
           echo 'frontend-eloquent-baseline result: ${{ needs.frontend-eloquent-baseline.result }}'
+          echo 'api-eloquent-baseline result: ${{ needs.api-eloquent-baseline.result }}'
           echo 'architecture-tests result: ${{ needs.architecture-tests.result }}'
           echo 'provider-snapshot result: ${{ needs.provider-snapshot.result }}'
-          if [ "${{ needs.legacy-report.result }}" != 'success' ] || [ "${{ needs.frontend-eloquent-baseline.result }}" != 'success' ] || [ "${{ needs.architecture-tests.result }}" != 'success' ] || [ "${{ needs.provider-snapshot.result }}" != 'success' ]; then
+          if [ "${{ needs.legacy-report.result }}" != 'success' ] || [ "${{ needs.frontend-eloquent-baseline.result }}" != 'success' ] || [ "${{ needs.api-eloquent-baseline.result }}" != 'success' ] || [ "${{ needs.architecture-tests.result }}" != 'success' ] || [ "${{ needs.provider-snapshot.result }}" != 'success' ]; then
             echo 'One or more guard steps failed.'
             exit 1
           fi
