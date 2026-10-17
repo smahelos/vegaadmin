@@ -50,7 +50,7 @@ class EloquentInvoiceRepositoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function find_last_invoice_for_year_returns_latest(): void
+    public function find_invoice_numbers_for_year_returns_numbers_of_that_year(): void
     {
     $userId = \App\Models\User::factory()->create()->id;
         $year = (int)date('Y');
@@ -58,8 +58,9 @@ class EloquentInvoiceRepositoryFeatureTest extends TestCase
         Invoice::factory()->create(['user_id'=>$userId,'invoice_vs'=> $year.'0001']);
         Invoice::factory()->create(['user_id'=>$userId,'invoice_vs'=> $year.'0003']);
         Invoice::factory()->create(['user_id'=>$userId,'invoice_vs'=> $year.'0002']);
-    $latest = $this->read->findLastInvoiceForYear($userId, $year);
-        $this->assertNotNull($latest);
-        $this->assertEquals($year.'0003', $latest->invoice_vs);
+        Invoice::factory()->create(['user_id'=>$userId,'invoice_vs'=> ($year - 1).'0009']);
+        $numbers = $this->read->findInvoiceNumbersForYear($userId, $year);
+        sort($numbers);
+        $this->assertSame([$year.'0001', $year.'0002', $year.'0003'], $numbers);
     }
 }

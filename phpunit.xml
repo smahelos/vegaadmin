@@ -45,6 +45,7 @@
         <env name="REDIS_SESSION_DB" value="13"/>
         <env name="FX_DETERMINISTIC" value="true"/>
         <env name="BACKPACK_BASSET_ENABLED" value="false"/>
+        <env name="BASSET_CACHE_MAP" value="false"/>
         <!-- Memory management for tests -->
         <ini name="memory_limit" value="2G"/>
         <ini name="max_execution_time" value="600"/>

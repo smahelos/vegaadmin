@@ -6,10 +6,10 @@
 /public/storage
 /storage/*.key
 /storage/pail
-#/vendor
+/vendor
 /docker/mysql
 /data/redis
-/docker/php/8.3-fpm
+/dbdata/
 /design/
 .env
 .env.backup

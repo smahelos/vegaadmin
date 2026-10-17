@@ -27,7 +27,7 @@ interface InvoiceDtoReadRepositoryInterface
     /** Get invoice count for a user. */
     public function getUserInvoiceCount(UserId $userId): int;
 
-    /** Find last invoice number for a user and year. */
+    /** Highest invoice number of a user and year in the standard format (see InvoiceNumber), null if none. */
     public function findLastInvoiceNumber(UserId $userId, int $year): ?string;
 
     /** Check if invoice exists with given number for a user. */

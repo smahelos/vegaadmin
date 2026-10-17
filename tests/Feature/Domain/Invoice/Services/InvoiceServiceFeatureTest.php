@@ -251,4 +251,58 @@ class InvoiceServiceFeatureTest extends TestCase
 			$this->assertEquals($template, Invoice::find($invoice->id)->template);
 		}
 	}
+
+	// --- Invoice number generation ---
+
+	#[Test]
+	public function generate_invoice_number_starts_sequence_for_user_without_invoices(): void
+	{
+		$year = (int) date('Y');
+		$user = User::factory()->create();
+
+		$this->assertSame($year . '0001', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+	}
+
+	#[Test]
+	public function generate_invoice_number_continues_sequence_of_current_year(): void
+	{
+		$year = (int) date('Y');
+		$user = User::factory()->create();
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0007']);
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0012']);
+
+		$this->assertSame($year . '0013', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+	}
+
+	#[Test]
+	public function generate_invoice_number_restarts_sequence_after_non_standard_last_number(): void
+	{
+		$year = (int) date('Y');
+		$user = User::factory()->create();
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '-A1']);
+
+		$this->assertSame($year . '0001', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+	}
+
+	#[Test]
+	public function generate_invoice_number_continues_past_9999(): void
+	{
+		$year = (int) date('Y');
+		$user = User::factory()->create();
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '9999']);
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '10000']);
+
+		$this->assertSame($year . '10001', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+	}
+
+	#[Test]
+	public function generate_invoice_number_ignores_non_standard_numbers(): void
+	{
+		$year = (int) date('Y');
+		$user = User::factory()->create();
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0005']);
+		Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '-ZZZ-LONG-NUMBER']);
+
+		$this->assertSame($year . '0006', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+	}
 }

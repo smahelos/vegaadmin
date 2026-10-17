@@ -1,0 +1,15 @@
+# Installed inside the image by composer install (app.dockerfile)
+/vendor
+/node_modules
+
+# Not needed in the application image
+/.git
+/data
+/.idea
+/.vscode
+/.qodo
+/.claude
+/.swm
+/.mcp.json
+/.phpunit.result.cache
+/storage/logs/*.log

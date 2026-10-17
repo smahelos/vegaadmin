@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history for the change detection diff below
       - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
         with:
@@ -23,19 +25,26 @@ jobs:
           tools: composer
       - name: Install dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
-      - name: Run adapter unit test
-        run: php artisan test tests/Unit/Domain/Payment/ValueObjects/PaymentAmountAdapterTest.php
+      - name: Run payment gateway adapter tests
+        run: php artisan test tests/Unit/Domain/Payment/Providers/PaymentGateways tests/Feature/Domain/Payment/Services/GatewayRegistryTest.php
       - name: Detect broader payment changes
         id: paymentdiff
         run: |
-          BASE_REF="${{ github.base_ref }}"; # for PRs
-          if [ -z "$BASE_REF" ]; then BASE_REF="origin/${{ github.ref_name == 'refs/heads/main' && 'main' || 'develop' }}"; fi
-          git fetch --depth=50 origin $BASE_REF || true
-          CHANGED=$(git diff --name-only $BASE_REF...HEAD | grep '^app/Domain/Payment/' || true)
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="origin/${{ github.base_ref }}"
+          else
+            BASE="${{ github.event.before }}"
+          fi
+          # New branch push (no previous commit) or unknown base: run the full subset
+          if [ -z "$BASE" ] || ! git rev-parse --verify --quiet "$BASE^{commit}" >/dev/null; then
+            echo "run_full=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          CHANGED=$(git diff --name-only "$BASE"...HEAD | grep '^app/Domain/Payment/' || true)
           if [ -n "$CHANGED" ]; then echo "run_full=true" >> $GITHUB_OUTPUT; else echo "run_full=false" >> $GITHUB_OUTPUT; fi
       - name: Run full payment test subset (conditional)
         if: steps.paymentdiff.outputs.run_full == 'true'
-        run: php artisan test tests/Unit/Domain/Payment/ValueObjects/ tests/Feature/Domain/Payment/ || true
+        run: php artisan test tests/Unit/Domain/Payment/ValueObjects/ tests/Feature/Domain/Payment/
 
 #  adapter-guard:
 #    name: Adapter Documentation Guard

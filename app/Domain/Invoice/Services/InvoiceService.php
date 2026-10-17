@@ -4,8 +4,10 @@ namespace App\Domain\Invoice\Services;
 
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\Events\InvoiceCreated;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
@@ -34,7 +36,10 @@ class InvoiceService implements InvoiceServiceInterface
      */
     public function saveInvoiceProducts(InvoiceId $invoiceId, array $products): void
     {
-        $this->invoiceProductRepository->bulkCreate($invoiceId, $products);
+        $this->invoiceProductRepository->bulkCreate(
+            $invoiceId,
+            array_map(fn (array $product) => InvoiceProductWriteData::fromArray($product), $products)
+        );
     }
 
     /**
@@ -246,21 +251,12 @@ class InvoiceService implements InvoiceServiceInterface
      *
      * @param UserId $userId
      * @param int $year Current year for the invoice number
-     * @return string Generated invoice number in format YYYYNNNN
+     * @return string Generated invoice number (see InvoiceNumber)
      */
     public function generateInvoiceNumber(UserId $userId, int $year): string
     {
-        $currentYear = date('Y');
-        if ($userId->toInt() <= 0) { return $currentYear . '0001'; }
-        $lastInvoiceNumber = $this->invoiceReadRepository->findLastInvoiceNumber($userId, (int)$currentYear);
-        if ($lastInvoiceNumber && strlen($lastInvoiceNumber) >= 8) {
-            $sequencePart = substr($lastInvoiceNumber, 4);
-            if (ctype_digit($sequencePart)) {
-                $nextSeq = (int)$sequencePart + 1;
-                return $currentYear . str_pad((string)$nextSeq, 4, '0', STR_PAD_LEFT);
-            }
-        }
-        return $currentYear . '0001';
+        $lastInvoiceNumber = $this->invoiceReadRepository->findLastInvoiceNumber($userId, (int) date('Y'));
+        return InvoiceNumber::generateNext($lastInvoiceNumber)->getNumber();
     }
 
     /**

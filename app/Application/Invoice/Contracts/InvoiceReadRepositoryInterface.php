@@ -44,7 +44,9 @@ interface InvoiceReadRepositoryInterface
     public function allForUser(int $userId): Collection;
 
     /**
-     * Find last invoice for specific year
+     * Invoice numbers (invoice_vs) of a user that start with the given year
+     *
+     * @return array<int, string>
      */
-    public function findLastInvoiceForYear(int $userId, int $year): ?Invoice;
+    public function findInvoiceNumbersForYear(int $userId, int $year): array;
 }

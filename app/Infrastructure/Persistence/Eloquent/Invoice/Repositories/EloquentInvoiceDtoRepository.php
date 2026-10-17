@@ -7,6 +7,7 @@ use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use Illuminate\Support\Collection;
@@ -81,8 +82,20 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
 
     public function findLastInvoiceNumber(UserId $userId, int $year): ?string
     {
-        $invoice = $this->invoiceRepository->findLastInvoiceForYear($userId->toInt(), $year);
-        return $invoice ? $invoice->invoice_vs : null;
+        // Highest sequence among numbers in the standard format; sorting the strings would put
+        // 20259999 after 202510000, and non-standard numbers must not affect the sequence
+        $last = null;
+        foreach ($this->invoiceRepository->findInvoiceNumbersForYear($userId->toInt(), $year) as $number) {
+            try {
+                $candidate = new InvoiceNumber($number);
+            } catch (\InvalidArgumentException) {
+                continue;
+            }
+            if ($candidate->getYear() === $year && ($last === null || $candidate->isGreaterThan($last))) {
+                $last = $candidate;
+            }
+        }
+        return $last?->getNumber();
     }
 
     public function existsWithNumber(UserId $userId, string $number): bool

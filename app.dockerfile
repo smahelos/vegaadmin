@@ -34,10 +34,19 @@ RUN pecl install imagick \
 RUN pecl install redis && docker-php-ext-enable redis
 
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
 # Set working directory
 WORKDIR /var/www
 
+# Dependencies first so this layer is cached until composer.json/lock change.
+# Dev dependencies are included: the test suite runs inside this container.
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --no-progress --prefer-dist --no-scripts --no-autoloader
+
 ADD . /var/www
+
+# Autoloader and package discovery need the application code
+RUN composer dump-autoload --optimize --no-interaction
 
 RUN chown -R www-data:www-data /var/www

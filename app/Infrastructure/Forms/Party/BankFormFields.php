@@ -42,7 +42,7 @@ trait BankFormFields
             [
                 'name' => 'country',
                 'label' => __('bank.fields.country'),
-                'default' => 'cz',
+                'default' => 'CZ',
                 'type' => 'select_from_array',
                 'options' => $countries,
                 'hint' => __('suppliers.hints.country'),

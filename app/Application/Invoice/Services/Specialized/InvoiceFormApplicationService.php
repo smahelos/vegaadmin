@@ -9,6 +9,8 @@ use App\Application\Product\Contracts\InvoiceProductReadRepositoryInterface;
 use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 use App\Domain\User\ValueObjects\UserId;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\InvoiceNumber;
+use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
@@ -38,7 +40,8 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         private TaxDtoReadRepositoryInterface $taxRepository,
         private InvoiceReadRepositoryInterface $invoiceReadRepository,
         private StatusDtoRepositoryInterface $statusRepository,
-        private InvoiceLimitApplicationServiceInterface $invoiceLimitService
+        private InvoiceLimitApplicationServiceInterface $invoiceLimitService,
+        private InvoiceServiceInterface $invoiceService,
     ) {}
 
     /**
@@ -193,22 +196,12 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
      */
     private function generateNextInvoiceNumber(int $userId): string
     {
-        $currentYear = date('Y');
-        if ($userId <= 0) { 
-            return $currentYear . '0001'; 
+        // Guests have no numbering history: first number of the year
+        if ($userId <= 0) {
+            return InvoiceNumber::generateNext()->getNumber();
         }
-        
-        $lastCurrentYear = $this->invoiceReadRepository->findLastInvoiceForYear($userId, (int)$currentYear);
-        
-        if ($lastCurrentYear && strlen($lastCurrentYear->invoice_vs) >= 8) {
-            $sequencePart = substr($lastCurrentYear->invoice_vs, 4);
-            if (ctype_digit($sequencePart)) {
-                $nextSeq = (int)$sequencePart + 1;
-                return $currentYear . str_pad((string)$nextSeq, 4, '0', STR_PAD_LEFT);
-            }
-        }
-        
-        return $currentYear . '0001';
+
+        return $this->invoiceService->generateInvoiceNumber(UserId::fromInt($userId), (int) date('Y'));
     }
 
     /**

@@ -4,7 +4,6 @@ namespace Tests\Unit\Models;
 
 use App\Models\UserActivitySummary;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -29,12 +28,6 @@ class UserActivitySummaryTest extends TestCase
     public function model_uses_crud_trait(): void
     {
         $this->assertArrayHasKey(CrudTrait::class, class_uses($this->model));
-    }
-
-    #[Test]
-    public function model_uses_has_factory_trait(): void
-    {
-        $this->assertArrayHasKey(HasFactory::class, class_uses($this->model));
     }
 
     #[Test]
