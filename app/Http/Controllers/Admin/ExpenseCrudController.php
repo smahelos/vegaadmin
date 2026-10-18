@@ -183,12 +183,11 @@ class ExpenseCrudController extends CrudController
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('payment_method_id')
-            ->name('paymentMethod')
             ->label(trans('admin.expenses.payment_method'))
             ->type('relationship')
+            ->entity('paymentMethod')
             ->model(\App\Models\PaymentMethod::class)
             ->attribute('name')
-            ->relation_type('BelongsTo')
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('status_id')

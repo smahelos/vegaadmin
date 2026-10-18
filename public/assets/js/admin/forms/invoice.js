@@ -133,6 +133,17 @@ function hasInvoiceVs() {
     return idField && idField.input && idField.input.value && idField.input.value !== '';
 }
 
+/**
+ * Set the value of a select field and announce the change, so select2 shows the new value
+ * @param {string} name - field name
+ * @param {string} value - option value
+ */
+function setSelectValue(name, value) {
+    const field = crud.field(name);
+    field.input.value = value;
+    field.change();
+}
+
 crud.field('client_id').onChange(function(field) {
     getClientData(field.value, function(clientData) {
         console.log('Data klienta:', clientData);
@@ -142,7 +153,7 @@ crud.field('client_id').onChange(function(field) {
         crud.field('client_street').input.value = clientData.street;
         crud.field('client_city').input.value = clientData.city;
         crud.field('client_zip').input.value = clientData.zip;
-        crud.field('client_country').input.value = clientData.country;
+        setSelectValue('client_country', clientData.country);
         crud.field('client_ico').input.value = clientData.ico;
         crud.field('client_dic').input.value = clientData.dic;
     });
@@ -157,7 +168,7 @@ crud.field('supplier_id').onChange(function(field) {
         crud.field('street').input.value = supplierData.street;
         crud.field('city').input.value = supplierData.city;
         crud.field('zip').input.value = supplierData.zip;
-        crud.field('country').input.value = supplierData.country;
+        setSelectValue('country', supplierData.country);
         crud.field('ico').input.value = supplierData.ico;
         crud.field('dic').input.value = supplierData.dic;
         crud.field('account_number').input.value = supplierData.account_number;

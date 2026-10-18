@@ -33,6 +33,11 @@ class InvoiceCrudController extends CrudController
     use InvoiceFormFields; // Usage recording handled by generic observer
 
     /**
+     * Fields rendered with their type from InvoiceFormFields (date, select, select_from_array).
+     */
+    private const PAYMENT_FIELDS = ['issue_date', 'tax_point_date', 'payment_method_id', 'due_in', 'payment_currency'];
+
+    /**
      * Configure the CrudPanel object
      *
      * @return void
@@ -143,7 +148,7 @@ class InvoiceCrudController extends CrudController
                     ->model(Status::class)
                     ->attribute('name')
                     ->options(function ($query) {
-                        // Get the category ID for 'expense'
+                        // Get the category ID for 'invoice'
                         $categoryId = StatusCategory::where('slug', 'invoice-statuses')->first()->id ?? null;
 
                         // Return only active statuses for the category
@@ -151,13 +156,12 @@ class InvoiceCrudController extends CrudController
                     })
                     ->wrapper(['class' => 'form-group col-md-12']);
 
+            } else if (in_array($field['name'], self::PAYMENT_FIELDS, true)) {
+                $this->addPaymentField($field);
+
             } else if (
                 $field['name'] === 'invoice_ks' ||
-                $field['name'] === 'invoice_ss' ||
-                $field['name'] === 'issue_date' ||
-                $field['name'] === 'tax_point_date' ||
-                $field['name'] === 'payment_method_id' ||
-                $field['name'] === 'due_in'
+                $field['name'] === 'invoice_ss'
                 ) {
                     CRUD::field($field['name'])
                     ->type('text')
@@ -183,23 +187,9 @@ class InvoiceCrudController extends CrudController
                         ]
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-5'
+                        'class' => 'form-group col-md-4'
                     ]);
 
-            } else if (
-                $field['name'] === 'payment_currency'
-                ) {
-                    CRUD::field($field['name'])
-                    ->type('text')
-                    ->label($field['label'])
-                    ->attributes(
-                        [
-                            'class' => 'form-control bg-white text-gray-900',
-                        ]
-                    )
-                    ->wrapper([
-                        'class' => 'form-group col-md-1'
-                    ]);
 
             } else if (
                 $field['name'] === 'name' ||
@@ -428,13 +418,12 @@ class InvoiceCrudController extends CrudController
                     })
                     ->wrapper(['class' => 'form-group col-md-6']);
 
+            } else if (in_array($field['name'], self::PAYMENT_FIELDS, true)) {
+                $this->addPaymentField($field);
+
             } else if (
                 $field['name'] === 'invoice_ks' ||
-                $field['name'] === 'invoice_ss' ||
-                $field['name'] === 'issue_date' ||
-                $field['name'] === 'tax_point_date' ||
-                $field['name'] === 'payment_method_id' ||
-                $field['name'] === 'due_in'
+                $field['name'] === 'invoice_ss'
                 ) {
                     CRUD::field($field['name'])
                     ->type('text')
@@ -460,23 +449,9 @@ class InvoiceCrudController extends CrudController
                         ]
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-5'
+                        'class' => 'form-group col-md-4'
                     ]);
 
-            } else if (
-                $field['name'] === 'payment_currency'
-                ) {
-                    CRUD::field($field['name'])
-                    ->type('text')
-                    ->label($field['label'])
-                    ->attributes(
-                        [
-                            'class' => 'form-control bg-white text-gray-900',
-                        ]
-                    )
-                    ->wrapper([
-                        'class' => 'form-group col-md-1'
-                    ]);
 
             } else if (
                 $field['name'] === 'name' ||
@@ -634,4 +609,28 @@ class InvoiceCrudController extends CrudController
     }
 
     // Usage recording handled by InvoiceObserver
+
+    /**
+     * Add an invoice date or payment field with the type defined in InvoiceFormFields
+     * (selects get select2).
+     */
+    private function addPaymentField(array $field): void
+    {
+        $config = CRUD::field($field['name'])
+            ->label($field['label'])
+            ->wrapper(['class' => 'form-group ' . ($field['name'] === 'payment_currency' ? 'col-md-2' : 'col-md-6')]);
+
+        match ($field['type']) {
+            'select' => $config->type('select2')->entity($field['entity'])->model($field['model'])->attribute($field['attribute']),
+            'select_from_array' => $config->type('select2_from_array')->options($field['options']),
+            default => $config->type($field['type']),
+        };
+
+        if (isset($field['default'])) {
+            $config->default($field['default']);
+        }
+        if (! empty($field['required'])) {
+            $config->required(true);
+        }
+    }
 }
