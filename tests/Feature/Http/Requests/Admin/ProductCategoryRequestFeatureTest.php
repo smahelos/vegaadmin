@@ -276,6 +276,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function category_creation_respects_global_entity_limits(): void
     {
+        $this->revokeUnlimitedAccess('product_category');
         $this->actingAs($this->adminUser, 'backpack');
         // Strict limit 1
         EntityLimit::where('entity_type','product_category')->update(['limit_value'=>1]);

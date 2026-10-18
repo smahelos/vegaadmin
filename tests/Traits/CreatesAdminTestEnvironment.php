@@ -84,4 +84,13 @@ trait CreatesAdminTestEnvironment
             $this->regularUser->givePermissionTo($backpackAccessPermission);
         }
     }
+
+    /**
+     * Take the admin role's bypass of the entity limits (can_create_{entity}_unlimited) away,
+     * so that admin creation is limited like any user without the bypass.
+     */
+    protected function revokeUnlimitedAccess(string $entityType): void
+    {
+        Role::findByName('admin', 'backpack')->revokePermissionTo("can_create_{$entityType}_unlimited");
+    }
 }

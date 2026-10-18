@@ -397,6 +397,7 @@ class SupplierRequestFeatureTest extends TestCase
     #[Test]
     public function supplier_creation_respects_global_entity_limits(): void
     {
+        $this->revokeUnlimitedAccess('supplier');
         $this->actingAs($this->adminUser, 'backpack');
 
         // Strict limit of 1 supplier creation
