@@ -47,9 +47,12 @@ class ExpenseCategoryCrudController extends CrudController
 
         CRUD::column('color_preview')
             ->type('custom_html')
-            ->value(function($entry) {
-                return '<span class="badge bg-'.$entry->color.'">'.$entry->name.'</span>';
-        });
+            ->value(function ($entry) {
+                // Tabler has no plain bg-gray badge color
+                $color = ['gray' => 'secondary'][$entry->color ?? 'gray'] ?? $entry->color;
+
+                return '<span class="badge bg-' . e($color) . ' text-' . e($color) . '-fg">' . e($entry->name) . '</span>';
+            });
         /**
          * Columns can be defined using the fluent syntax:
          * - CRUD::column('price')->type('number');
@@ -90,7 +93,7 @@ class ExpenseCategoryCrudController extends CrudController
                 'pink' => 'Pink',
             ],
             'allows_null' => false,
-            'default' => 'bg-gray-100 text-gray-800',
+            'default' => 'gray',
         ]);
         /**
          * Fields can be defined using the fluent syntax:

@@ -350,6 +350,10 @@ return [
         'rejected' => 'Rejected',
         'category' => 'Category',
         'filter_by_category' => 'Filter by Category',
+        'name' => 'Name',
+        'slug' => 'Slug',
+        'color' => 'Color',
+        'is_active' => 'Active',
     ],
 
     'status_categories' => [
