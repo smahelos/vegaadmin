@@ -492,6 +492,7 @@ class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function invoice_creation_respects_global_entity_limits(): void
     {
+        $this->revokeUnlimitedAccess('invoice');
         $this->actingAs($this->adminUser, 'backpack');
 
         // Strict limit 1

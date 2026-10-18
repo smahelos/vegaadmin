@@ -243,6 +243,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function tax_creation_respects_global_entity_limits(): void
     {
+        $this->revokeUnlimitedAccess('tax');
         $this->actingAs($this->adminUser, 'backpack');
         EntityLimit::where('entity_type','tax')->update(['limit_value'=>1]);
 
@@ -259,6 +260,19 @@ class TaxRequestFeatureTest extends TestCase
         $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> null]);
         $request->setMethod('POST');
         $request->authorize();
+    }
+
+    #[Test]
+    public function admin_creation_bypasses_entity_limits(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        EntityLimit::where('entity_type','tax')->update(['limit_value'=>0]);
+
+        $request = new class extends TaxRequest { public function rules(): array { return []; } };
+        $request->replace(['name'=>'Tax','rate'=>10]);
+        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> null]);
+        $request->setMethod('POST');
+        $this->assertTrue($request->authorize());
     }
 
     #[Test]

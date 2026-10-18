@@ -142,6 +142,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function payment_method_creation_respects_limits(): void
     {
+        $this->revokeUnlimitedAccess('payment_method');
         $this->actingAs($this->adminUser,'backpack');
         EntityLimit::where('entity_type','payment_method')->update(['limit_value'=>1]);
         $this->postJson('/test-payment-method', [

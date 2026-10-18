@@ -473,6 +473,7 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function product_creation_respects_global_entity_limits(): void
     {
+        $this->revokeUnlimitedAccess('product');
         $this->actingAs($this->adminUser, 'backpack');
 
         EntityLimit::factory()->create([

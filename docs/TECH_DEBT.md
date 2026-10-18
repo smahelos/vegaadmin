@@ -58,6 +58,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** uses `App\Http\Requests\BankRequest` (only `auth()->check()`) instead of `App\Http\Requests\Admin\BankRequest`.
 - **Fix:** switch to the admin request; resolve together with the entity limit rules for admins.
 
+### Unused frontend form requests with nonexistent permissions
+- **Where:** `app/Http/Requests/{TaxRequest,StatusRequest,StatusCategoryRequest,SubscriptionPlanFeatureRequest}.php`, non-profile branch of `app/Http/Requests/UserRequest.php`
+- **Problem:** no route uses these requests (the admin uses the `Admin\` variants); they check `frontend.can_create_edit_{tax,status,subscription_plan_feature,user}`, which are not in `PermissionCatalog`. `PermissionCatalogCoverageTest` allowlists them as unreachable.
+- **Fix:** delete the unused requests and the unreachable branch, then drop the allowlist.
+
 ## Product
 
 ### Product SKU

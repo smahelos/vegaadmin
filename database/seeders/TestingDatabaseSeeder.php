@@ -45,75 +45,11 @@ class TestingDatabaseSeeder extends Seeder
     }
 
     /**
-     * Create basic permissions needed for testing based on production data
+     * Create the test-only permissions; the catalog permissions come from the
+     * sync_permission_catalog migration (PermissionCatalog).
      */
     private function createBasicPermissions(): void
     {
-        // Core Backpack permissions
-        Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
-
-        // API permissions (backpack)
-        Permission::firstOrCreate(['name' => 'backpack.api.access', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'backpack.api.clients', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'backpack.api.extended', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'backpack.api.invoices', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'backpack.api.products', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'backpack.api.suppliers', 'guard_name' => 'backpack']);
-
-        // System configuration permissions (backpack)
-        Permission::firstOrCreate(['name' => 'can_configure_system', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_bank', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_command', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_cron_task', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_page', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_payment_method', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_status', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_tax', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_view_payment_method', 'guard_name' => 'backpack']);
-
-        // User permissions (backpack)
-        Permission::firstOrCreate(['name' => 'can_create_edit_user', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_user', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_delete_user', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_update_user', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_view_user', 'guard_name' => 'backpack']);
-
-        // Client permissions (backpack)
-        Permission::firstOrCreate(['name' => 'can_create_edit_client', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_client', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_delete_client', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_update_client', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_view_client', 'guard_name' => 'backpack']);
-
-        // Supplier permissions (backpack)
-        Permission::firstOrCreate(['name' => 'can_create_edit_supplier', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_supplier', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_delete_supplier', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_update_supplier', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_view_supplier', 'guard_name' => 'backpack']);
-
-        // Invoice permissions (backpack)
-        Permission::firstOrCreate(['name' => 'can_create_edit_invoice', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_invoice', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_delete_invoice', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_update_invoice', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_view_invoice', 'guard_name' => 'backpack']);
-
-        // Product permissions (backpack)
-        Permission::firstOrCreate(['name' => 'can_create_edit_product', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_product', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_delete_product', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_update_product', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_view_product', 'guard_name' => 'backpack']);
-
-        // Expense permissions (backpack)
-        Permission::firstOrCreate(['name' => 'can_create_edit_expense', 'guard_name' => 'backpack']);
-
-        // Subscription permissions (backpack)
-        Permission::firstOrCreate(['name' => 'can_create_edit_subscription', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_subscription_plan', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_subscription_plan_feature', 'guard_name' => 'backpack']);
-
         // Limit permissions (backpack)
         Permission::firstOrCreate(['name' => 'limit_daily_invoices_basic', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'limit_lifetime_products_basic', 'guard_name' => 'backpack']);
@@ -122,41 +58,10 @@ class TestingDatabaseSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'limit_yearly_clients_basic', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'limit_yearly_suppliers_basic', 'guard_name' => 'backpack']);
 
-        // Frontend API permissions (web)
-        Permission::firstOrCreate(['name' => 'frontend.api.access', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.clients', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.extended', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.invoices', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.products', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.statistics', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.suppliers', 'guard_name' => 'web']);
-
-        // Frontend business permissions (web)
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_expense', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_product', 'guard_name' => 'web']);
+        // Frontend status permissions (web)
         Permission::firstOrCreate(['name' => 'frontend.can_create_edit_status', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_supplier', 'guard_name' => 'web']);
-
-        // Frontend view permissions (web)
-        Permission::firstOrCreate(['name' => 'frontend.can_view_client', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_view_invoice', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_view_product', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'frontend.can_view_status', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_view_supplier', 'guard_name' => 'web']);
-
-        // Frontend delete permissions (web)
-        Permission::firstOrCreate(['name' => 'frontend.can_delete_client', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_delete_invoice', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_delete_product', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'frontend.can_delete_status', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_delete_supplier', 'guard_name' => 'web']);
-
-        // Frontend subscription permissions (web)
-        Permission::firstOrCreate(['name' => 'frontend.can_cancel_subscription', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_create_subscription', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.can_view_subscription', 'guard_name' => 'web']);
     }
 
     /**
