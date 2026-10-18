@@ -256,7 +256,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/StatusCrudController.php": {
-            "loc": 151,
+            "loc": 149,
             "eloquent_static_calls": 1,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -408,7 +408,7 @@
             "public_method_count": 4
         },
         "Http/Controllers/Admin/ExpenseCategoryCrudController.php": {
-            "loc": 98,
+            "loc": 100,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,

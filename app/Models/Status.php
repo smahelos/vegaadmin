@@ -52,20 +52,15 @@ class Status extends Model
     |--------------------------------------------------------------------------
     */
     /**
-     * Generate HTML representation of status color for admin panel
+     * Admin badge in the status color. The color is a plain name (green, yellow, ...) as chosen in the
+     * admin form; the frontend builds Tailwind classes from it (bg-{color}-100).
      */
-    public function getColorPreviewAttribute()
+    public function getColorPreviewAttribute(): string
     {
-        $color = $this->color ?? 'bg-gray-100 text-gray-800';
-        
-        // Extract background color for preview
-        $bgColor = '';
-        if (preg_match('/bg-(\w+)-\d+/', $color, $matches)) {
-            $bgColor = $matches[1];
-        }
-        
-        return '<span class="px-2 py-1 rounded '.$color.'" style="background-color: '.($bgColor ? $bgColor : '#f3f4f6').'">
-                '.$this->name.'</span>';
+        // Tabler has no plain bg-gray badge color
+        $color = ['gray' => 'secondary'][$this->color ?? 'gray'] ?? $this->color;
+
+        return '<span class="badge bg-' . e($color) . ' text-' . e($color) . '-fg">' . e($this->name) . '</span>';
     }
 
     /**
@@ -104,14 +99,6 @@ class Status extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', 1);
-    }
-
-    /**
-     * Get the status color
-     */
-    public function getColorAttribute($value)
-    {
-        return $value ?? 'bg-gray-100 text-gray-800';
     }
 
     /*
