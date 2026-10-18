@@ -37,7 +37,9 @@ class StatusCategoryCrudControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee(__('admin.status_categories.statuses_tab'));
-        $response->assertSee($status->name);
+        $response->assertSeeInOrder(['<th>' . __('admin.statuses.slug') . '</th>', $status->name, $status->slug], false);
         $response->assertDontSee($otherStatus->name);
+        $response->assertSeeInOrder([__('admin.status_categories.statuses_count'), '<span>', '1'], false);
+        $response->assertSee(__('admin.general.created_at'));
     }
 }
