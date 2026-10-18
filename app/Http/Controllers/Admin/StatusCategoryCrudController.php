@@ -46,13 +46,12 @@ class StatusCategoryCrudController extends CrudController
         CRUD::column('slug')->label(trans('admin.status_categories.slug'));
         CRUD::column('description')->label(trans('admin.status_categories.description'));
         
-        // Add a column showing the number of statuses in each category
+        // Add a column showing the number of statuses in each category (counted in the list query)
+        CRUD::addClause('withCount', 'statuses');
         CRUD::addColumn([
             'name'      => 'statuses_count',
             'label'     => trans('admin.status_categories.statuses_count'),
-            'type'      => 'relationship_count',
-            'value'     => fn ($entry) => $entry->statuses,
-            'suffix'    => '',
+            'type'      => 'text',
             'wrapper'   => [
                 'href' => function ($crud, $column, $entry, $related_key) {
                     return backpack_url('status?category_id='.$entry->getKey());
