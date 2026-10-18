@@ -46,11 +46,12 @@ class StatusCategoryCrudController extends CrudController
         CRUD::column('slug')->label(trans('admin.status_categories.slug'));
         CRUD::column('description')->label(trans('admin.status_categories.description'));
         
-        // Add a column showing the number of statuses in each category
+        // Add a column showing the number of statuses in each category (counted in the list query)
+        CRUD::addClause('withCount', 'statuses');
         CRUD::addColumn([
             'name'      => 'statuses_count',
             'label'     => trans('admin.status_categories.statuses_count'),
-            'type'      => 'relationship_count',
+            'type'      => 'text',
             'wrapper'   => [
                 'href' => function ($crud, $column, $entry, $related_key) {
                     return backpack_url('status?category_id='.$entry->getKey());
@@ -59,11 +60,11 @@ class StatusCategoryCrudController extends CrudController
         ]);
         
         CRUD::column('created_at')
-            ->label(trans('admin.common.created_at'))
+            ->label(trans('admin.general.created_at'))
             ->type('datetime');
             
         CRUD::column('updated_at')
-            ->label(trans('admin.common.updated_at'))
+            ->label(trans('admin.general.updated_at'))
             ->type('datetime');
     }
 
@@ -103,12 +104,15 @@ class StatusCategoryCrudController extends CrudController
     {
         $this->setupListOperation();
         
-        // Statuses of the category (Show renders columns; tabs and relationship_table are Backpack PRO)
         CRUD::column('statuses')
-            ->type('select_multiple')
+            ->type('relationship_table')
             ->label(trans('admin.status_categories.statuses_tab'))
-            ->entity('statuses')
-            ->model(\App\Models\Status::class)
-            ->attribute('name');
+            ->columns([
+                'name' => trans('admin.statuses.name'),
+                'slug' => trans('admin.statuses.slug'),
+                'color_preview' => trans('admin.statuses.color'),
+                'is_active' => trans('admin.statuses.is_active'),
+            ])
+            ->raw(['color_preview']);
     }
 }

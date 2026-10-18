@@ -75,7 +75,7 @@ class PageCategoryCrudController extends CrudController
             });
         
         CRUD::column('created_at')
-            ->label(trans('admin.common.created_at'));
+            ->label(trans('admin.general.created_at'));
     }
 
     /**
@@ -134,11 +134,11 @@ class PageCategoryCrudController extends CrudController
         
         // Add more detailed columns for show view
         CRUD::column('created_at')
-            ->label(trans('admin.common.created_at'))
+            ->label(trans('admin.general.created_at'))
             ->type('datetime');
             
         CRUD::column('updated_at')
-            ->label(trans('admin.common.updated_at'))
+            ->label(trans('admin.general.updated_at'))
             ->type('datetime');
     }
 

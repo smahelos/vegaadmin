@@ -302,4 +302,24 @@ class StatusFeatureTest extends TestCase
         $this->assertIsBool($status->is_active);
         $this->assertFalse($status->is_active);
     }
+
+    #[Test]
+    public function color_preview_is_a_badge_in_the_status_color(): void
+    {
+        $status = Status::factory()->create(['name' => 'Paid <b>', 'color' => 'green']);
+
+        $this->assertSame('<span class="badge bg-green text-green-fg">Paid &lt;b&gt;</span>', $status->color_preview);
+    }
+
+    #[Test]
+    public function gray_or_missing_color_uses_the_secondary_badge(): void
+    {
+        $gray = Status::factory()->create(['color' => 'gray']);
+        $none = Status::factory()->create(['color' => null]);
+
+        $this->assertStringContainsString('badge bg-secondary text-secondary-fg', $gray->color_preview);
+        $this->assertStringContainsString('badge bg-secondary text-secondary-fg', $none->color_preview);
+        // no Tailwind default: the frontend falls back to its own color map
+        $this->assertNull($none->color);
+    }
 }
