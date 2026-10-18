@@ -8,15 +8,15 @@ services:
             context: .
             dockerfile: app.dockerfile
             args:
-                # set in .env when the host user is not 1000:1000 (storage/ is bind-mounted)
+                # set in .env when the host user is not 1000:1000 (the source is bind-mounted)
                 WWW_UID: ${WWW_UID:-1000}
                 WWW_GID: ${WWW_GID:-1000}
         container_name: "${CONTAINER_PREFIX}-app"
         user: 'www-data:www-data'
         working_dir: /var/www
         volumes:
-            # Shared with web (serves storage/app/public) and cron; survives image rebuilds
-            - ./storage:/var/www/storage
+            # Development: source (incl. vendor/ and storage/) from the host, code changes apply without a rebuild
+            - ./:/var/www
             - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
             - ./docker/php/development-opcache.ini:/usr/local/etc/php/conf.d/zzz-development-opcache.ini:ro
             - /etc/timezone:/etc/timezone:ro
@@ -125,7 +125,7 @@ services:
         working_dir: /var/www
         command: php artisan schedule:work
         volumes:
-            - ./storage:/var/www/storage
+            - ./:/var/www
             - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
