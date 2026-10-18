@@ -35,7 +35,7 @@ class UserController extends Controller
                 return response()->json(['error' => __('users.auth.unauthenticated')], 401);
             }
             // Permission check via adapter (backpack guard)
-            if (!$this->auth->hasBackpackPermission((int)$current->id, 'can_view_client')) {
+            if (!$this->auth->hasBackpackPermission((int)$current->id, 'can_view_user')) {
                 return response()->json(['error' => __('users.auth.unauthorized')], 403);
             }
 
@@ -65,8 +65,8 @@ class UserController extends Controller
             return response()->json(['error' => __('users.auth.unauthenticated'), 'code' => 401], 401);
         }
 
-        // Check if user has permission to view clients
-        if (!$this->auth->hasBackpackPermission((int)$user->id, 'can_view_client')) {
+        // Check if user has permission to view users
+        if (!$this->auth->hasBackpackPermission((int)$user->id, 'can_view_user')) {
             return response()->json(['error' => __('users.auth.unauthorized')], 403);
         }
 
@@ -92,7 +92,7 @@ class UserController extends Controller
             return response()->json(['error' => __('users.auth.unauthenticated'), 'code' => 401], 401);
         }
 
-        if (!$this->auth->hasBackpackPermission((int)$user->id, 'can_view_client')) {
+        if (!$this->auth->hasBackpackPermission((int)$user->id, 'can_view_user')) {
             return response()->json(['error' => __('users.auth.unauthorized')], 403);
         }
 

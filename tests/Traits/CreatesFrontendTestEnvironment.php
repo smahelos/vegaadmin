@@ -68,7 +68,8 @@ trait CreatesFrontendTestEnvironment
         $requiredApiBackendPermissions = [
             'backpack.access',
             'backpack.api.access',
-            'can_view_client'
+            'can_view_client',
+            'can_view_user'
         ];
 
         foreach ($requiredFrontendPermissions as $permissionName) {
@@ -104,7 +105,7 @@ trait CreatesFrontendTestEnvironment
             'guard_name' => 'backpack'
         ]);
 
-        // Create unauthorized admin role (without can_view_client etc. permissions)
+        // Create unauthorized admin role (without can_view_client, can_view_user etc. permissions)
         $unauthorizedRole = Role::firstOrCreate([
             'name' => 'unauthorized_admin',
             'guard_name' => 'backpack'
