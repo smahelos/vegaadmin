@@ -20,7 +20,6 @@ class EloquentUserMapper
             'id' => $model->getAttribute('id'),
             'name' => $model->getAttribute('name'),
             'email' => $model->getAttribute('email'),
-            'password' => $model->getAttribute('password'),
             'email_verified_at' => $model->getAttribute('email_verified_at')?->toDateTimeString(),
             'created_at' => $model->getAttribute('created_at')?->toDateTimeString(),
             'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
@@ -35,7 +34,6 @@ class EloquentUserMapper
         return [
             'name' => $dto->name,
             'email' => $dto->email,
-            'password' => $dto->password,
             'email_verified_at' => $dto->email_verified_at ? \Carbon\Carbon::parse($dto->email_verified_at) : null,
             'created_at' => $dto->created_at ? \Carbon\Carbon::parse($dto->created_at) : null,
             'updated_at' => $dto->updated_at ? \Carbon\Carbon::parse($dto->updated_at) : null,
