@@ -160,6 +160,7 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         $this->registerTestRoutes();
         $this->ensureLimit(1);
+        $this->revokeUnlimitedAccess('expense');
         $this->actingAs($this->adminUser, 'backpack');
         $this->adminUser->givePermissionTo('can_create_edit_expense');
 
