@@ -334,6 +334,10 @@ return [
         'rejected' => 'Abgelehnt',
         'category' => 'Kategorie',
         'filter_by_category' => 'Nach Kategorie filtern',
+        'name' => 'Name',
+        'slug' => 'Slug',
+        'color' => 'Farbe',
+        'is_active' => 'Aktiv',
     ],
 
     'status_categories' => [

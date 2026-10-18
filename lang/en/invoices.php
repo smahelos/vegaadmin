@@ -19,7 +19,7 @@ return [
         'issue_date' => 'Issue Date',
         'tax_point_date' => 'Tax Point Date',
         'due_date' => 'Due Date',
-        'due_in' => 'Payment Terms',
+        'due_in' => 'Due in',
         'payment_method_id' => 'Payment Method',
         'payment_method' => 'Payment Method',
         'payment_amount' => 'Amount',

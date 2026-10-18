@@ -86,9 +86,7 @@ class StatusCrudController extends CrudController
 
         CRUD::column('color_preview')
             ->type('custom_html')
-            ->value(function($entry) {
-                return '<span class="badge bg-'.$entry->color.'">'.$entry->name.'</span>';
-        });
+            ->value(fn ($entry) => $entry->color_preview);
 
         CRUD::addColumn([
             'name' => 'is_active',
@@ -151,7 +149,7 @@ class StatusCrudController extends CrudController
                 'pink' => 'Pink',
             ],
             'allows_null' => false,
-            'default' => 'bg-gray-100 text-gray-800',
+            'default' => 'gray',
         ]);
         CRUD::field('is_active')->label('Active')->type('boolean');
     }

@@ -332,6 +332,10 @@ return [
         'rejected' => 'Zamietnuté',
         'category' => 'Kategória',
         'filter_by_category' => 'Filtrovať podľa kategórie',
+        'name' => 'Názov',
+        'slug' => 'Slug',
+        'color' => 'Farba',
+        'is_active' => 'Aktívny',
     ],
 
     'status_categories' => [

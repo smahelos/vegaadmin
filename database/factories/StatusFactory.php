@@ -31,7 +31,7 @@ class StatusFactory extends Factory
             'name' => $name,
             'slug' => \Illuminate\Support\Str::slug($name),
             'category_id' => StatusCategory::factory(),
-            'color' => 'bg-blue-100 text-blue-800',
+            'color' => 'blue',
             'description' => 'Test status '.$name,
             'is_active' => true,
         ];

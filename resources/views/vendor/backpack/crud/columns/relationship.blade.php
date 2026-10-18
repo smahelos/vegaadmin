@@ -1,12 +1,6 @@
-{{-- relationships (switchboard; supports both single and multiple: 1-1, 1-n, n-n) --}}
+{{-- Relationship column (Billex implementation): the free `select` column for single relations, `select_multiple` for many. --}}
 @php
-   $relationshipType = new ReflectionClass($entry->{$column['name']}());
-   $relationshipType = $relationshipType->getShortName();
-   $allows_multiple = $crud->guessIfFieldHasMultipleFromRelationType($relationshipType);
+    $relationType = $column['relation_type'] ?? class_basename($entry->{$column['entity'] ?? $column['name']}());
 @endphp
 
-@if ($allows_multiple)
-	@include('crud::columns.select_multiple')
-@else
-	@include('crud::columns.select')
-@endif
+@include($crud->guessIfFieldHasMultipleFromRelationType($relationType) ? 'crud::columns.select_multiple' : 'crud::columns.select')
