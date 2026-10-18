@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\Expense;
+use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -91,6 +92,18 @@ class AdminSelect2FieldsTest extends TestCase
         $this->assertSelect2Field($content, 'payment_method_id', 'bpFieldInitBillexSelect2');
         $this->assertSelect2Field($content, 'due_in', 'bpFieldInitBillexSelect2');
         $this->assertSelect2Field($content, 'payment_currency', 'bpFieldInitBillexSelect2');
+    }
+
+    #[Test]
+    public function invoice_edit_form_keeps_stored_payment_values(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $invoice = Invoice::factory()->create(['user_id' => $this->adminUser->id, 'tax_point_date' => null, 'due_in' => 21]);
+
+        $content = $this->get("/admin/invoice/{$invoice->id}/edit")->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<input[^>]*type="date"[^>]*name="tax_point_date"[^>]*value=""/s', $content);
+        $this->assertMatchesRegularExpression('/<option value="21"\s+selected/', $content);
     }
 
     #[Test]

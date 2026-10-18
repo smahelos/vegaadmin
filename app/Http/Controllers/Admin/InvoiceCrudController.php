@@ -157,7 +157,7 @@ class InvoiceCrudController extends CrudController
                     ->wrapper(['class' => 'form-group col-md-12']);
 
             } else if (in_array($field['name'], self::PAYMENT_FIELDS, true)) {
-                $this->addPaymentField($field);
+                $this->addPaymentField($field, true);
 
             } else if (
                 $field['name'] === 'invoice_ks' ||
@@ -419,7 +419,7 @@ class InvoiceCrudController extends CrudController
                     ->wrapper(['class' => 'form-group col-md-6']);
 
             } else if (in_array($field['name'], self::PAYMENT_FIELDS, true)) {
-                $this->addPaymentField($field);
+                $this->addPaymentField($field, false);
 
             } else if (
                 $field['name'] === 'invoice_ks' ||
@@ -612,13 +612,21 @@ class InvoiceCrudController extends CrudController
 
     /**
      * Add an invoice date or payment field with the type defined in InvoiceFormFields
-     * (selects get select2).
+     * (selects get select2). On create the field defaults apply; on update an empty value stays
+     * empty and a stored option missing from the list (e.g. due_in of 21 days) is kept.
      */
-    private function addPaymentField(array $field): void
+    private function addPaymentField(array $field, bool $create): void
     {
         $config = CRUD::field($field['name'])
             ->label($field['label'])
             ->wrapper(['class' => 'form-group ' . ($field['name'] === 'payment_currency' ? 'col-md-2' : 'col-md-6')]);
+
+        if (! $create && $field['type'] === 'select_from_array') {
+            $current = CRUD::getCurrentEntry()?->{$field['name']};
+            if (filled($current) && ! array_key_exists($current, $field['options'])) {
+                $field['options'][$current] = $field['name'] === 'due_in' ? $current . ' ' . __('invoices.units.days') : $current;
+            }
+        }
 
         match ($field['type']) {
             'select' => $config->type('select2')->entity($field['entity'])->model($field['model'])->attribute($field['attribute']),
@@ -626,7 +634,7 @@ class InvoiceCrudController extends CrudController
             default => $config->type($field['type']),
         };
 
-        if (isset($field['default'])) {
+        if ($create && isset($field['default'])) {
             $config->default($field['default']);
         }
         if (! empty($field['required'])) {
