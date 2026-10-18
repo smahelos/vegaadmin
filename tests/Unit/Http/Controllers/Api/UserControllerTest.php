@@ -7,7 +7,7 @@ use App\Application\User\Contracts\UserApplicationServiceInterface;
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -112,7 +112,7 @@ class UserControllerTest extends TestCase
         
         $this->assertNotNull($returnType);
         $resolvedReturn = method_exists($returnType,'getName') ? $returnType->getName() : (string)$returnType;
-        $this->assertEquals(LengthAwarePaginator::class, $resolvedReturn);
+        $this->assertEquals(JsonResponse::class, $resolvedReturn);
     }
 
     #[Test]
@@ -134,7 +134,7 @@ class UserControllerTest extends TestCase
         $this->assertStringContainsString('@param', $docComment);
         $this->assertStringContainsString('@return', $docComment);
         $this->assertStringContainsString('Request', $docComment);
-        $this->assertStringContainsString('LengthAwarePaginator', $docComment);
+        $this->assertStringContainsString('JsonResponse', $docComment);
     }
 
     #[Test]

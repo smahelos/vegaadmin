@@ -258,9 +258,37 @@ class UserControllerFeatureTest extends TestCase
         $this->assertLessThanOrEqual(10, count($payload['data']));
     }
 
+    #[Test]
+    public function search_users_admin_returns_403_for_admin_without_permission(): void
+    {
+        $this->actingAs($this->unauthorizedAdmin, 'backpack')
+            ->getJson('/api/admin/user/search?q=Test')
+            ->assertStatus(403)
+            ->assertJson(['error' => __('users.auth.unauthorized')]);
+    }
+
     // ========================================================================
     // Security and Edge Case Tests
     // ========================================================================
+
+    #[Test]
+    public function admin_user_endpoints_do_not_expose_password_hashes(): void
+    {
+        // Real user service instead of the stub, which builds DTOs from the model's toArray() (password hidden)
+        $this->app->forgetInstance(UserServiceInterface::class);
+        $this->actingAs($this->backendAdminUser, 'backpack');
+
+        $responses = [
+            $this->getJson("/api/admin/user/{$this->testUser1->id}")->assertOk(),
+            $this->getJson('/api/admin/user/search?q=Test+User')->assertOk()->assertJsonPath('total', 2),
+            $this->getJson('/api/admin/user')->assertOk(),
+        ];
+
+        foreach ($responses as $response) {
+            $this->assertStringNotContainsString('"password"', $response->getContent());
+            $this->assertStringNotContainsString($this->testUser1->password, $response->getContent());
+        }
+    }
 
     #[Test]
     public function api_endpoints_require_json_accept_header(): void
@@ -527,7 +555,6 @@ class InMemoryUserServiceStub implements UserServiceInterface
             id: 1,
             name: $data['name'] ?? 'Testing User',
             email: $data['email'] ?? 'user@example.com',
-            password: $data['password'] ?? null,
             email_verified_at: $data['email_verified_at'] ?? null,
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,

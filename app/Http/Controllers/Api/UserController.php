@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
 // Use Application-layer facade instead of Domain in controllers
 use App\Application\User\Contracts\UserApplicationServiceInterface;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserController extends Controller
 {
@@ -83,12 +83,21 @@ class UserController extends Controller
      * It returns paginated results.
      *
      * @param Request $request
-     * @return LengthAwarePaginator
+     * @return JsonResponse
      */
-    public function searchUsersAdmin(Request $request): LengthAwarePaginator
+    public function searchUsersAdmin(Request $request): JsonResponse
     {
+        $user = function_exists('backpack_auth') ? backpack_auth()->user() : null;
+        if (!$user) {
+            return response()->json(['error' => __('users.auth.unauthenticated'), 'code' => 401], 401);
+        }
+
+        if (!$this->auth->hasBackpackPermission((int)$user->id, 'can_view_client')) {
+            return response()->json(['error' => __('users.auth.unauthorized')], 403);
+        }
+
         $search_term = $request->input('q');
-        return $this->userService->searchUsers($search_term, 10);
+        return response()->json($this->userService->searchUsers($search_term, 10));
     }
 
     /**
