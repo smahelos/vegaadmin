@@ -82,7 +82,7 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** ARES is called with `Http::get()` directly from a controller without a timeout; exchange rates and countries go through `HttpClientService` without timeouts. A circuit breaker exists only in the unused Analytics base class.
 - **Fix:** timeouts and a circuit breaker in `Shared` around `HttpClientService`; move the ARES call into a service.
 
-### Rewrite the Backpack PRO templates still in use
-- **Where:** `resources/views/vendor/backpack/crud/*`, `public/packages/*`
-- **Problem:** templates copied from Backpack PRO (not licensed, not in `composer.json`) in commit `a007295e` are still used: field `datetime_picker` (the filters, the select2 fields and the relationship field and column are already rewritten). As overrides of package views they would also shadow the Backpack 7 views. The unused copies were moved out of the repository (local `backup/`, gitignored).
-- **Fix:** rewrite them as Billex's own templates on the free Backpack API before upgrading to Backpack 7; then review the remaining overrides (`columns/closure`, identical `inc/filters_navbar`, own `multilingual_*`, `image_with_preview`, `files_list`, theme/UI overrides).
+### Review the remaining Backpack overrides before the v7 upgrade
+- **Where:** `resources/views/vendor/backpack/*`
+- **Problem:** the templates copied from Backpack PRO (not licensed) in commit `a007295e` are no longer used: the select2 fields, the relationship field and column and the filters are rewritten as overrides, the date pickers are Billex's own `datepicker` field and `datepicker_range` filter (air-datepicker, `resources/views/admin/{fields,filters}`); the unused copies were moved out of the repository (local `backup/`, gitignored). Templates under `resources/views/vendor/backpack/` still override the package views and would shadow the Backpack 7 views.
+- **Fix:** before upgrading to Backpack 7, review the remaining overrides (`columns/closure`, identical `inc/filters_navbar`, own `multilingual_*`, `image_with_preview`, `files_list`, theme/UI overrides); move Billex's own types out of `vendor/backpack` into `resources/views/admin/*` under their own names.

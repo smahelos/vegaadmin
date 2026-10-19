@@ -231,12 +231,14 @@ class PageCrudController extends CrudController
         
         CRUD::field('publishing_start')
             ->label(trans('admin.pages.publishing_start'))
-            ->type('datetime_picker')
+            ->type('datepicker')
+            ->datepicker_options(['timepicker' => true])
             ->wrapper(['class' => 'form-group col-md-4']);
         
         CRUD::field('publishing_end')
             ->label(trans('admin.pages.publishing_end'))
-            ->type('datetime_picker')
+            ->type('datepicker')
+            ->datepicker_options(['timepicker' => true])
             ->wrapper(['class' => 'form-group col-md-4']);
     }
 

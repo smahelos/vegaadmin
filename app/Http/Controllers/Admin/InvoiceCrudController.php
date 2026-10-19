@@ -78,7 +78,7 @@ class InvoiceCrudController extends CrudController
             });
 
         CRUD::addFilter([
-            'type' => 'date_range',
+            'type' => 'datepicker_range',
             'name' => 'tax_point_date',
             'label' => 'Tax Point Date',
         ], false, function($value) {
@@ -631,6 +631,7 @@ class InvoiceCrudController extends CrudController
         match ($field['type']) {
             'select' => $config->type('select2')->entity($field['entity'])->model($field['model'])->attribute($field['attribute']),
             'select_from_array' => $config->type('select2_from_array')->options($field['options']),
+            'date' => $config->type('datepicker'),
             default => $config->type($field['type']),
         };
 

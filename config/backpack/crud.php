@@ -460,9 +460,11 @@ return [
             'crud::columns', // falls back to 'resources/views/vendor/backpack/crud/columns'
         ],
         'fields' => [
+            'admin.fields', // Billex's own field types (resources/views/admin/fields)
             'crud::fields', // falls back to 'resources/views/vendor/backpack/crud/fields'
         ],
         'filters' => [
+            'admin.filters', // Billex's own filter types (resources/views/admin/filters)
             'crud::filters', // falls back to 'resources/views/vendor/backpack/crud/filters'
         ],
     ],
