@@ -136,14 +136,14 @@ class PageCrudController extends CrudController
         CRUD::addField([
             'name' => 'name',
             'label' => trans('admin.pages.name'),
-            'type' => 'multilingual_text',
+            'type' => 'multilingual',
             'hint' => trans('admin.validation.pages.at_least_one_locale_required'),
         ]);
         
         CRUD::addField([
             'name' => 'slug',
             'label' => trans('admin.pages.slug'),
-            'type' => 'multilingual_text',
+            'type' => 'multilingual',
             'hint' => trans('admin.pages.leave_empty_for_autogeneration'),
         ]);
         
@@ -184,35 +184,40 @@ class PageCrudController extends CrudController
         CRUD::addField([
             'name' => 'description',
             'label' => trans('admin.pages.description'),
-            'type' => 'multilingual_textarea',
-            'rows' => 4,
+            'type' => 'multilingual',
+            'field_type' => 'textarea',
+            'attributes' => ['rows' => 4],
         ]);
         
         CRUD::addField([
             'name' => 'content',
             'label' => trans('admin.pages.content'),
-            'type' => 'multilingual_ckeditor',
+            'type' => 'multilingual',
+            'field_type' => 'summernote',
+            'options' => ['height' => 300],
         ]);
         
         // Multilingual meta fields
         CRUD::addField([
             'name' => 'meta_title',
             'label' => trans('admin.pages.meta_title'),
-            'type' => 'multilingual_text',
+            'type' => 'multilingual',
         ]);
         
         CRUD::addField([
             'name' => 'meta_description',
             'label' => trans('admin.pages.meta_description'),
-            'type' => 'multilingual_textarea',
-            'rows' => 3,
+            'type' => 'multilingual',
+            'field_type' => 'textarea',
+            'attributes' => ['rows' => 3],
         ]);
         
         CRUD::addField([
             'name' => 'meta_keywords',
             'label' => trans('admin.pages.meta_keywords'),
-            'type' => 'multilingual_textarea',
-            'rows' => 2,
+            'type' => 'multilingual',
+            'field_type' => 'textarea',
+            'attributes' => ['rows' => 2],
         ]);
         
         // Images
