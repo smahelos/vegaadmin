@@ -91,7 +91,7 @@ class UELSDashboardController extends CrudController
                 foreach ($metricTypes as $metricType) {
                     foreach ($periodTypes as $periodType) {
                         try {
-                            $check = $limitService->checkLimit($user, $entityType, $metricType, $periodType);
+                            $check = $limitService->checkLimit($user->id, $entityType, $metricType, $periodType);
                             if (isset($check['current_usage']) && isset($check['limit']) && $check['current_usage'] > 0) {
                                 $check['usage_percentage'] = (int)$check['current_usage'] / (int)$check['limit'] * 100;
                             } else {
