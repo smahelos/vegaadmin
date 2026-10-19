@@ -19,7 +19,7 @@ interface UserApplicationServiceInterface
      */
     public function getAllUsers();
 
-    public function searchUsers(?string $term, int $perPage = 10): LengthAwarePaginator;
+    public function searchUsers(?string $term, int $perPage = 10, int $page = 1): LengthAwarePaginator;
 
     /**
      * Update user profile

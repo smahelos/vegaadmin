@@ -32,7 +32,7 @@ class ProfileControllerTest extends TestCase
                 $u = new User(); $u->id = $id; return UserDTO::fromArray($u->toArray());
             }
             public function getAllUsers() { return collect(); }
-            public function searchUsers(?string $term, int $perPage = 10): LengthAwarePaginator { return new LengthAwarePaginator([],0,$perPage); }
+            public function searchUsers(?string $term, int $perPage = 10, int $page = 1): LengthAwarePaginator { return new LengthAwarePaginator([],0,$perPage); }
             public function updateProfile(int $userId, array $data): bool { $this->calls[] = ['updateProfile',$data]; return true; }
             public function updatePassword(int $userId, UserPassword $password): bool { $this->calls[] = ['updatePassword',$password instanceof UserPassword]; return true; }
         };

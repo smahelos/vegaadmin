@@ -154,7 +154,7 @@ class SubscriptionCrudController extends CrudController
                 'type' => 'select2_from_ajax',
                 'model' => 'App\Models\User',
                 'attribute' => 'name',
-                'data_source' => url('api/admin/user'),
+                'data_source' => url('api/admin/user/search'),
                 'placeholder' => trans('admin.subscriptions.select_user'),
                 'minimum_input_length' => 2,
             ],
