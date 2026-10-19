@@ -9,4 +9,4 @@
 @endphp
 
 @include('crud::fields.select')
-@include('admin.fields.select2_assets')
+@include('admin.inc.select2_assets')

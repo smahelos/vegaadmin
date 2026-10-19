@@ -39,4 +39,4 @@
     @endif
 @include('crud::fields.inc.wrapper_end')
 
-@include('admin.fields.select2_assets')
+@include('admin.inc.select2_assets')

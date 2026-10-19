@@ -41,7 +41,7 @@
     @endif
 @include('crud::fields.inc.wrapper_end')
 
-@include('admin.fields.datepicker_assets', ['stack' => 'crud_fields'])
+@include('admin.inc.datepicker_assets', ['stack' => 'crud_fields'])
 
 @push('crud_fields_scripts')
     @once
