@@ -205,38 +205,26 @@ class SubscriptionCrudController extends CrudController
             [
                 'name' => 'starts_at',
                 'label' => trans('admin.subscriptions.starts_at'),
-                'type' => 'datetime_picker',
-                'datetime_picker_options' => [
-                    'format' => 'DD/MM/YYYY HH:mm',
-                    'language' => 'cs',
-                ],
+                'type' => 'datepicker',
+                'datepicker_options' => ['timepicker' => true],
             ],
             [
                 'name' => 'ends_at',
                 'label' => trans('admin.subscriptions.ends_at'),
-                'type' => 'datetime_picker',
-                'datetime_picker_options' => [
-                    'format' => 'DD/MM/YYYY HH:mm',
-                    'language' => 'cs',
-                ],
+                'type' => 'datepicker',
+                'datepicker_options' => ['timepicker' => true],
             ],
             [
                 'name' => 'trial_ends_at',
                 'label' => trans('admin.subscriptions.trial_ends_at'),
-                'type' => 'datetime_picker',
-                'datetime_picker_options' => [
-                    'format' => 'DD/MM/YYYY HH:mm',
-                    'language' => 'cs',
-                ],
+                'type' => 'datepicker',
+                'datepicker_options' => ['timepicker' => true],
             ],
             [
                 'name' => 'next_billing_at',
                 'label' => trans('admin.subscriptions.next_billing_at'),
-                'type' => 'datetime_picker',
-                'datetime_picker_options' => [
-                    'format' => 'DD/MM/YYYY HH:mm',
-                    'language' => 'cs',
-                ],
+                'type' => 'datepicker',
+                'datepicker_options' => ['timepicker' => true],
             ],
             [
                 'name' => 'metadata',

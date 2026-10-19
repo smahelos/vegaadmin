@@ -46,7 +46,7 @@ class AdminDateRangeFilterTest extends TestCase
         $response = $this->get('/admin/' . $route);
 
         $response->assertOk();
-        $response->assertSee('data-date-range-filter="' . $filter . '"', false);
+        $response->assertSee('data-datepicker-range-filter="' . $filter . '"', false);
     }
 
     #[Test]

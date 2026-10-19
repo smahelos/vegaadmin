@@ -118,7 +118,8 @@ class CronTaskCrudController extends CrudController
 
         CRUD::field('run_at')
             ->label(__('admin.cron_tasks.fields.run_at'))
-            ->type('time')
+            ->type('datepicker')
+            ->datepicker_options(['onlyTimepicker' => true])
             ->tab(__('admin.cron_tasks.tabs.schedule'))
             ->depends('frequency', ['daily', 'weekly', 'monthly']);
 
@@ -162,7 +163,8 @@ class CronTaskCrudController extends CrudController
 
         CRUD::field('last_run')
             ->label(__('admin.cron_tasks.fields.last_run'))
-            ->type('datetime')
+            ->type('datepicker')
+            ->datepicker_options(['timepicker' => true])
             ->attributes(['readonly' => 'readonly'])
             ->tab(__('admin.cron_tasks.tabs.history'))
             ->wrapper(['class' => 'form-group col-md-6']);

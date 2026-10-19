@@ -97,7 +97,7 @@ class EntityUsageCrudController extends CrudController
         });
 
         CRUD::addFilter([
-            'type' => 'date_range',
+            'type' => 'datepicker_range',
             'name' => 'period_start',
             'label' => 'Period Range',
         ], false, function($value) {

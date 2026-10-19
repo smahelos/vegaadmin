@@ -101,7 +101,7 @@ class ExpenseCrudController extends CrudController
 
         // Filters
         CRUD::filter('expense_date')
-            ->type('date_range')
+            ->type('datepicker_range')
             ->label(trans('admin.expenses.date_range'))
             ->whenActive(function ($value) {
                 $dates = json_decode($value);
@@ -146,7 +146,7 @@ class ExpenseCrudController extends CrudController
         // Basic information
         CRUD::field('expense_date')
             ->label(trans('admin.expenses.date'))
-            ->type('date')
+            ->type('datepicker')
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('reference_number')

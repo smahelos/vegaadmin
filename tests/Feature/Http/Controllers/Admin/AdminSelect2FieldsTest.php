@@ -87,8 +87,8 @@ class AdminSelect2FieldsTest extends TestCase
 
         $content = $this->get('/admin/invoice/create')->assertOk()->getContent();
 
-        $this->assertMatchesRegularExpression('/<input[^>]*type="date"[^>]*name="issue_date"/s', $content);
-        $this->assertMatchesRegularExpression('/<input[^>]*type="date"[^>]*name="tax_point_date"/s', $content);
+        $this->assertStringContainsString('name="issue_date" value="' . date('Y-m-d') . '" data-datepicker-value', $content);
+        $this->assertStringContainsString('name="tax_point_date" value="' . date('Y-m-d') . '" data-datepicker-value', $content);
         $this->assertSelect2Field($content, 'payment_method_id', 'bpFieldInitBillexSelect2');
         $this->assertSelect2Field($content, 'due_in', 'bpFieldInitBillexSelect2');
         $this->assertSelect2Field($content, 'payment_currency', 'bpFieldInitBillexSelect2');
@@ -102,7 +102,7 @@ class AdminSelect2FieldsTest extends TestCase
 
         $content = $this->get("/admin/invoice/{$invoice->id}/edit")->assertOk()->getContent();
 
-        $this->assertMatchesRegularExpression('/<input[^>]*type="date"[^>]*name="tax_point_date"[^>]*value=""/s', $content);
+        $this->assertStringContainsString('name="tax_point_date" value="" data-datepicker-value', $content);
         $this->assertMatchesRegularExpression('/<option value="21"\s+selected/', $content);
     }
 
