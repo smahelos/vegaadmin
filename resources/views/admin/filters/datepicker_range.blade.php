@@ -22,7 +22,7 @@
     </div>
 </li>
 
-@include('admin.fields.datepicker_assets', ['stack' => 'crud_list'])
+@include('admin.inc.datepicker_assets', ['stack' => 'crud_list'])
 
 @push('crud_list_scripts')
     @once

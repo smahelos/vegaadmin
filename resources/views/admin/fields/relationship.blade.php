@@ -26,4 +26,4 @@
 @endphp
 
 @include($multiple ? 'crud::fields.select_multiple' : 'crud::fields.select')
-@include('admin.fields.select2_assets')
+@include('admin.inc.select2_assets')

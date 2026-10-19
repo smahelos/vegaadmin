@@ -34,7 +34,7 @@
     @endif
 @endif
 
-@include('vendor.backpack.theme-tabler.inc.language-switcher')
+@include('admin.inc.language-switcher')
 <li class="nav-separator"></li>
 
 {{--

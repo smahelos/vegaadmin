@@ -457,6 +457,7 @@ return [
             'crud::buttons', // falls back to 'resources/views/vendor/backpack/crud/buttons'
         ],
         'columns' => [
+            'admin.columns', // Billex's own column types (resources/views/admin/columns)
             'crud::columns', // falls back to 'resources/views/vendor/backpack/crud/columns'
         ],
         'fields' => [
