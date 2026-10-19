@@ -97,7 +97,7 @@ class UserController extends Controller
         }
 
         $search_term = $request->input('q');
-        return response()->json($this->userService->searchUsers($search_term, 10));
+        return response()->json($this->userService->searchUsers($search_term, 10, $request->integer('page', 1)));
     }
 
     /**

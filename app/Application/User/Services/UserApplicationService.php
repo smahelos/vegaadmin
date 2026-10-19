@@ -30,11 +30,9 @@ class UserApplicationService implements UserApplicationServiceInterface
         return collect($this->userService->getAllUsers());
     }
 
-    public function searchUsers(?string $term, int $perPage = 10): LengthAwarePaginator
+    public function searchUsers(?string $term, int $perPage = 10, int $page = 1): LengthAwarePaginator
     {
-        // Build domain pagination request (page is fixed to 1 for admin search endpoint; controller can extend later)
-        $page = new PageRequest(1, $perPage);
-        $result = $this->userService->searchUsers($term, $page);
+        $result = $this->userService->searchUsers($term, new PageRequest($page, $perPage));
         // Convert domain pagination result to Laravel paginator for controllers/UI
         return PaginatorAdapter::toLengthAwarePaginator($result);
     }

@@ -259,6 +259,21 @@ class UserControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function search_users_admin_returns_the_requested_page(): void
+    {
+        $this->actingAs($this->backendAdminUser, 'backpack');
+        $first = $this->getJson('/api/admin/user/search?q=Paginated')->assertOk()->json();
+        $second = $this->getJson('/api/admin/user/search?q=Paginated&page=2')->assertOk()->json();
+
+        $this->assertSame(2, $second['current_page']);
+        $this->assertNotEmpty($second['data']);
+        $this->assertEmpty(array_intersect(
+            array_column($first['data'], 'id'),
+            array_column($second['data'], 'id'),
+        ));
+    }
+
+    #[Test]
     public function search_users_admin_returns_403_for_admin_without_permission(): void
     {
         $this->actingAs($this->unauthorizedAdmin, 'backpack')

@@ -63,7 +63,7 @@ class AdminSelect2FieldsTest extends TestCase
 
         $this->assertSelect2Field($content, 'subscription_plan_id', 'bpFieldInitBillexSelect2');
         $this->assertSelect2Field($content, 'user_id', 'bpFieldInitBillexSelect2Ajax');
-        $this->assertStringContainsString('data-source="' . url('api/admin/user') . '"', $content);
+        $this->assertStringContainsString('data-source="' . url('api/admin/user/search') . '"', $content);
         $this->assertStringContainsString('data-minimum-input-length="2"', $content);
     }
 

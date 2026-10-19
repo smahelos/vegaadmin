@@ -480,7 +480,7 @@ fetch('{{ url('api/admin/user') }}')
     .then(response => response.json())
     .then(users => {
         const select = document.getElementById('user_select');
-        users.data.forEach(user => {
+        users.forEach(user => {
             const option = document.createElement('option');
             option.value = user.id;
             option.textContent = user.name + ' (' + user.email + ')';
