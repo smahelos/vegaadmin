@@ -91,22 +91,23 @@ class PageCategoryCrudController extends CrudController
         CRUD::addField([
             'name' => 'name',
             'label' => trans('admin.page_categories.name'),
-            'type' => 'multilingual_text',
+            'type' => 'multilingual',
             'hint' => trans('admin.validation.page_categories.at_least_one_locale_required'),
         ]);
 
         CRUD::addField([
             'name' => 'slug',
             'label' => trans('admin.page_categories.slug'),
-            'type' => 'multilingual_text',
+            'type' => 'multilingual',
             'hint' => trans('admin.page_categories.leave_empty_for_autogeneration'),
         ]);
 
         CRUD::addField([
             'name' => 'description',
             'label' => trans('admin.page_categories.description'),
-            'type' => 'multilingual_textarea',
-            'rows' => 4,
+            'type' => 'multilingual',
+            'field_type' => 'textarea',
+            'attributes' => ['rows' => 4],
         ]);
     }
 

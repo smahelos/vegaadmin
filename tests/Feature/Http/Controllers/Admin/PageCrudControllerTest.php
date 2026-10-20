@@ -167,8 +167,28 @@ class PageCrudControllerTest extends TestCase
         $page = Page::factory()->create(['category_id' => $this->category->id]);
         
         $response = $this->get("/admin/page/{$page->id}/edit");
-        
+
         $this->assertEquals(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function edit_form_shows_every_locale_of_the_multilingual_fields(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $page = Page::factory()->create([
+            'category_id' => $this->category->id,
+            'name' => ['cs' => 'Nazev', 'en' => 'Title'],
+            'description' => ['de' => 'Beschreibung'],
+            'content' => ['cs' => '<p>Obsah</p>', 'sk' => '<p>Obsah SK</p>'],
+        ]);
+
+        $content = $this->get("/admin/page/{$page->id}/edit")->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<input[^>]*name="name_cs"[^>]*value="Nazev"/s', $content);
+        $this->assertMatchesRegularExpression('/<input[^>]*name="name_en"[^>]*value="Title"/s', $content);
+        $this->assertMatchesRegularExpression('/<input[^>]*name="name_de"[^>]*value=""/s', $content);
+        $this->assertMatchesRegularExpression('/<textarea[^>]*name="description_de"[^>]*>Beschreibung<\/textarea>/s', $content);
+        $this->assertMatchesRegularExpression('/<textarea[^>]*name="content_sk"[^>]*data-init-function="bpFieldInitSummernoteElement"[^>]*>&lt;p&gt;Obsah SK&lt;\/p&gt;<\/textarea>/s', $content);
     }
 
     #[Test]
