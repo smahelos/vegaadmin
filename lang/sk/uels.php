@@ -57,5 +57,9 @@ return [
         'warning' => 'Blízko limitu',
         'danger' => 'Limit prekročený',
         'no_limit' => 'Bez limitu'
-    ]
+    ],
+    'usage' => [
+        'anonymous' => 'Anonymný',
+        'unknown_user' => 'Neznámy používateľ (ID: :id)',
+    ],
 ];

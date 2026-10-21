@@ -72,7 +72,8 @@ class PageCategoryCrudController extends CrudController
             ->type('closure')
             ->function(function ($entry) {
                 return $entry->pages_count;
-            });
+            })
+            ->default('0');
         
         CRUD::column('created_at')
             ->label(trans('admin.general.created_at'));

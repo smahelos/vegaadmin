@@ -84,7 +84,7 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 ### Review the remaining Backpack overrides before the v7 upgrade
 - **Where:** `resources/views/vendor/backpack/*`
-- **Problem:** no template copied from Backpack PRO (commit `a007295e`) is used any more; Billex's own field, column and filter types live in `resources/views/admin/{fields,columns,filters}`. What stays in `resources/views/vendor/backpack/` overrides views of the installed packages and would shadow their Backpack 7 versions: `crud/columns/closure` (older free version: no escaping, no prefix/suffix/default; Billex closures return HTML), `theme-tabler/layouts/_vertical/sidebar_content_top` (adds the language switcher), `ui/dashboard`, `ui/inc/menu_items`.
+- **Problem:** no template copied from Backpack PRO (commit `a007295e`) is used any more; Billex's own field, column and filter types live in `resources/views/admin/{fields,columns,filters}`. What stays in `resources/views/vendor/backpack/` overrides views of the installed packages and would shadow their Backpack 7 versions: `theme-tabler/layouts/_vertical/sidebar_content_top` (adds the language switcher), `ui/dashboard`, `ui/inc/menu_items`.
 - **Fix:** before upgrading to Backpack 7, compare each override with the v7 package view and port the Billex changes onto it (or drop the override); check Billex's own types in `resources/views/admin/*` against the v7 field/column/filter API.
 
 ### Laravel pinned below 12.69.3 until Backpack 7
