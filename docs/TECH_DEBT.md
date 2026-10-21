@@ -63,6 +63,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** no route uses these requests (the admin uses the `Admin\` variants); they check `frontend.can_create_edit_{tax,status,subscription_plan_feature,user}`, which are not in `PermissionCatalog`. `PermissionCatalogCoverageTest` allowlists them as unreachable.
 - **Fix:** delete the unused requests and the unreachable branch, then drop the allowlist.
 
+### Admin list columns build display text by hand
+- **Where:** `app/Http/Controllers/Admin/{EntityUsage,EntityLimit,PerformanceMetric,DatabaseMaintenanceLog}CrudController.php`; badge accessors in `app/Models/{ArchivePolicy,DatabaseHealthAlert,DatabaseHealthMetric,DatabaseMaintenanceLog,MysqlOptimizationLog}.php`; hardcoded labels also in the `Client`, `Supplier`, `Product`, `Invoice`, `Status`, `Subscription` and `ExpenseCategory` CRUD controllers
+- **Problem:** amounts and sizes are formatted with `'€' . number_format(...)` and private `formatBytes()` helpers, ignoring the locale and the entity's currency. Labels and cell texts are hardcoded English (`->label('User')`, `'Anonymous'`, `'Pending'`). The maintenance results and performance metadata closures put MySQL output (`Msg_text`, storage engine, metadata values) into HTML unescaped. Models return badge HTML with English text (`getStatusBadgeAttribute()` and similar).
+- **Fix:** amounts through `MoneyFormatterInterface`, labels and texts as translation keys, every interpolated value through `e()` or a Blade column view, badge HTML out of the models into column views with the status as an enum (`rules/admin.md`, `rules/persistence.md`, `rules/translations.md`).
+
 ## Product
 
 ### Product SKU
@@ -84,7 +89,7 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 ### Review the remaining Backpack overrides before the v7 upgrade
 - **Where:** `resources/views/vendor/backpack/*`
-- **Problem:** no template copied from Backpack PRO (commit `a007295e`) is used any more; Billex's own field, column and filter types live in `resources/views/admin/{fields,columns,filters}`. What stays in `resources/views/vendor/backpack/` overrides views of the installed packages and would shadow their Backpack 7 versions: `crud/columns/closure` (older free version: no escaping, no prefix/suffix/default; Billex closures return HTML), `theme-tabler/layouts/_vertical/sidebar_content_top` (adds the language switcher), `ui/dashboard`, `ui/inc/menu_items`.
+- **Problem:** no template copied from Backpack PRO (commit `a007295e`) is used any more; Billex's own field, column and filter types live in `resources/views/admin/{fields,columns,filters}`. What stays in `resources/views/vendor/backpack/` overrides views of the installed packages and would shadow their Backpack 7 versions: `theme-tabler/layouts/_vertical/sidebar_content_top` (adds the language switcher), `ui/dashboard`, `ui/inc/menu_items`.
 - **Fix:** before upgrading to Backpack 7, compare each override with the v7 package view and port the Billex changes onto it (or drop the override); check Billex's own types in `resources/views/admin/*` against the v7 field/column/filter API.
 
 ### Laravel pinned below 12.69.3 until Backpack 7

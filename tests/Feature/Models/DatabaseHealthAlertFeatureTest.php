@@ -126,13 +126,13 @@ class DatabaseHealthAlertFeatureTest extends TestCase
         $warningAlert = DatabaseHealthAlert::factory()->warning()->create();
         $criticalAlert = DatabaseHealthAlert::factory()->critical()->create();
 
-        $this->assertStringContainsString('badge-info', $infoAlert->severity_badge);
+        $this->assertStringContainsString('text-bg-info', $infoAlert->severity_badge);
         $this->assertStringContainsString('Info', $infoAlert->severity_badge);
 
-        $this->assertStringContainsString('badge-warning', $warningAlert->severity_badge);
+        $this->assertStringContainsString('text-bg-warning', $warningAlert->severity_badge);
         $this->assertStringContainsString('Warning', $warningAlert->severity_badge);
 
-        $this->assertStringContainsString('badge-danger', $criticalAlert->severity_badge);
+        $this->assertStringContainsString('text-bg-danger', $criticalAlert->severity_badge);
         $this->assertStringContainsString('Critical', $criticalAlert->severity_badge);
     }
 
@@ -144,10 +144,10 @@ class DatabaseHealthAlertFeatureTest extends TestCase
         $resolvedAlert = DatabaseHealthAlert::factory()->resolved()->create();
         $unresolvedAlert = DatabaseHealthAlert::factory()->unresolved()->create();
 
-        $this->assertStringContainsString('badge-success', $resolvedAlert->resolved_badge);
+        $this->assertStringContainsString('text-bg-success', $resolvedAlert->resolved_badge);
         $this->assertStringContainsString('Resolved', $resolvedAlert->resolved_badge);
 
-        $this->assertStringContainsString('badge-secondary', $unresolvedAlert->resolved_badge);
+        $this->assertStringContainsString('text-bg-secondary', $unresolvedAlert->resolved_badge);
         $this->assertStringContainsString('Active', $unresolvedAlert->resolved_badge);
     }
 

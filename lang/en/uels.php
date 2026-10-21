@@ -57,5 +57,9 @@ return [
         'warning' => 'Near limit',
         'danger' => 'Limit exceeded',
         'no_limit' => 'No limit'
-    ]
+    ],
+    'usage' => [
+        'anonymous' => 'Anonymous',
+        'unknown_user' => 'Unknown user (ID: :id)',
+    ],
 ];

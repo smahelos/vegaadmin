@@ -48,12 +48,12 @@ class DatabaseHealthMetric extends Model
     public function getStatusBadgeAttribute()
     {
         $badges = [
-            'good' => '<span class="badge badge-success">Good</span>',
-            'warning' => '<span class="badge badge-warning">Warning</span>',
-            'critical' => '<span class="badge badge-danger">Critical</span>'
+            'good' => '<span class="badge text-bg-success">Good</span>',
+            'warning' => '<span class="badge text-bg-warning">Warning</span>',
+            'critical' => '<span class="badge text-bg-danger">Critical</span>'
         ];
 
-        return $badges[$this->status] ?? '<span class="badge badge-light">Unknown</span>';
+        return $badges[$this->status] ?? '<span class="badge text-bg-light">Unknown</span>';
     }
 
     /**

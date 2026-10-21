@@ -232,7 +232,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
             foreach ($results['optimize'] as $operation) {
                 $html .= '<tr>';
                 $html .= '<td>' . ($operation['Op'] ?? '') . '</td>';
-                $html .= '<td><span class="badge badge-' . ($operation['Msg_type'] === 'status' ? 'success' : 'info') . '">' . ($operation['Msg_type'] ?? '') . '</span></td>';
+                $html .= '<td><span class="badge text-bg-' . ($operation['Msg_type'] === 'status' ? 'success' : 'info') . '">' . ($operation['Msg_type'] ?? '') . '</span></td>';
                 $html .= '<td>' . ($operation['Msg_text'] ?? '') . '</td>';
                 $html .= '</tr>';
             }

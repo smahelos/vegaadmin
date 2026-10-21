@@ -55,13 +55,13 @@ class DatabaseMaintenanceLog extends Model
     public function getStatusBadgeAttribute()
     {
         $badges = [
-            'pending' => '<span class="badge badge-secondary">Pending</span>',
-            'running' => '<span class="badge badge-warning">Running</span>',
-            'completed' => '<span class="badge badge-success">Completed</span>',
-            'failed' => '<span class="badge badge-danger">Failed</span>'
+            'pending' => '<span class="badge text-bg-secondary">Pending</span>',
+            'running' => '<span class="badge text-bg-warning">Running</span>',
+            'completed' => '<span class="badge text-bg-success">Completed</span>',
+            'failed' => '<span class="badge text-bg-danger">Failed</span>'
         ];
 
-        return $badges[$this->status] ?? '<span class="badge badge-light">Unknown</span>';
+        return $badges[$this->status] ?? '<span class="badge text-bg-light">Unknown</span>';
     }
 
     /**

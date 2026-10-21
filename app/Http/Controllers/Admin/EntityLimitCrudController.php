@@ -79,7 +79,8 @@ class EntityLimitCrudController extends CrudController
                     return $this->formatBytes($entry->limit_value ?? 0);
                 }
                 return 'N/A';
-            });
+            })
+            ->default('0');
             
         CRUD::column('is_active')
             ->label('Status')

@@ -49,12 +49,12 @@ class DatabaseHealthAlert extends Model
     public function getSeverityBadgeAttribute()
     {
         $badges = [
-            'info' => '<span class="badge badge-info">Info</span>',
-            'warning' => '<span class="badge badge-warning">Warning</span>',
-            'critical' => '<span class="badge badge-danger">Critical</span>'
+            'info' => '<span class="badge text-bg-info">Info</span>',
+            'warning' => '<span class="badge text-bg-warning">Warning</span>',
+            'critical' => '<span class="badge text-bg-danger">Critical</span>'
         ];
 
-        return $badges[$this->severity] ?? '<span class="badge badge-light">Unknown</span>';
+        return $badges[$this->severity] ?? '<span class="badge text-bg-light">Unknown</span>';
     }
 
     /**
@@ -63,8 +63,8 @@ class DatabaseHealthAlert extends Model
     public function getResolvedBadgeAttribute()
     {
         return $this->resolved 
-            ? '<span class="badge badge-success">Resolved</span>'
-            : '<span class="badge badge-secondary">Active</span>';
+            ? '<span class="badge text-bg-success">Resolved</span>'
+            : '<span class="badge text-bg-secondary">Active</span>';
     }
 
     /**

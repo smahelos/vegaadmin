@@ -112,11 +112,12 @@ class EntityUsageCrudController extends CrudController
             ->type('closure')
             ->function(function($entry) {
                 if ($entry->user_id) {
-                    return $entry->user ? $entry->user->name . ' (' . $entry->user->email . ')' : 'Unknown User (ID: ' . $entry->user_id . ')';
+                    return e($entry->user ? $entry->user->name . ' (' . $entry->user->email . ')' : __('uels.usage.unknown_user', ['id' => $entry->user_id]));
                 } else {
-                    return '<span class="text-muted">Anonymous</span>';
+                    return '<span class="text-muted">' . e(__('uels.usage.anonymous')) . '</span>';
                 }
             })
+            ->escaped(false)
             ->searchLogic(function ($query, $column, $searchTerm) {
                 $query->orWhereHas('user', function ($q) use ($searchTerm) {
                     $q->where('name', 'like', '%'.$searchTerm.'%')
@@ -128,22 +129,25 @@ class EntityUsageCrudController extends CrudController
             ->label('Entity Type')
             ->type('closure')
             ->function(function($entry) {
-                return '<span class="badge badge-secondary">' . ucfirst($entry->entity_type) . '</span>';
-            });
+                return '<span class="badge text-bg-secondary">' . e(ucfirst($entry->entity_type)) . '</span>';
+            })
+            ->escaped(false);
 
         CRUD::column('metric_type')
             ->label('Metric Type')
             ->type('closure')
             ->function(function($entry) {
-                return '<span class="badge badge-light">' . ucfirst($entry->metric_type) . '</span>';
-            });
+                return '<span class="badge text-bg-light">' . e(ucfirst($entry->metric_type)) . '</span>';
+            })
+            ->escaped(false);
 
         CRUD::column('period_type')
             ->label('Period Type')
             ->type('closure')
             ->function(function($entry) {
-                return '<span class="badge badge-info">' . ucfirst($entry->period_type) . '</span>';
-            });
+                return '<span class="badge text-bg-info">' . e(ucfirst($entry->period_type)) . '</span>';
+            })
+            ->escaped(false);
             
         CRUD::column('period_start')
             ->label('Period Start')
@@ -164,7 +168,8 @@ class EntityUsageCrudController extends CrudController
                 } else {
                     return number_format($entry->current_value);
                 }
-            });
+            })
+            ->default('0');
 
         CRUD::column('last_reset_at')
             ->label('Last Reset')

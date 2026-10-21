@@ -195,7 +195,7 @@
                                                     <h4>{{ $userActivityStats['active_users'] ?? 0 }}</h4>
                                                     <small>{{ __('admin.user_activity.active_users') }}</small>
                                                     <div class="mt-2">
-                                                        <span class="badge badge-light">
+                                                        <span class="badge text-bg-light">
                                                             {{ $userActivityStats['activity_rate'] ?? 0 }}% {{ __('admin.user_activity.activity_rate') }}
                                                         </span>
                                                     </div>

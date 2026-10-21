@@ -31,7 +31,8 @@ class ArtisanCommandCategoryCrudController extends CrudController
             ->type('closure')
             ->function(function($entry) {
                 return $entry->commands->count();
-            });
+            })
+            ->default('0');
         CRUD::column('is_active')->label(__('admin.artisan_commands.fields.is_active'))
             ->type('boolean');
     }
