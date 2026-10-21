@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: weekly
+    # Updates within the composer.json constraints only (laravel/framework is pinned until
+    # Backpack 7, see docs/TECH_DEBT.md); raising a constraint is a deliberate change.
+    versioning-strategy: lockfile-only
+    groups:
+      composer:
+        patterns: [ '*' ]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    versioning-strategy: lockfile-only
+    groups:
+      npm:
+        patterns: [ '*' ]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: [ '*' ]
