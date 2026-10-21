@@ -90,7 +90,7 @@ class ExpenseCrudController extends CrudController
             ->type('closure')
             ->function(function($entry) {
                 if (!is_array($entry->attachments)) {
-                    return 'shit';
+                    return '';
                 }
                 $fileNames = array_map(function($path) {
                     return basename($path);
