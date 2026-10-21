@@ -140,7 +140,7 @@ class InvoiceCrudController extends CrudController
                     )
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -173,7 +173,7 @@ class InvoiceCrudController extends CrudController
                     ->label($field['label'])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -188,7 +188,7 @@ class InvoiceCrudController extends CrudController
                     ->label($field['label'])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -208,7 +208,7 @@ class InvoiceCrudController extends CrudController
                     ->label($field['label'])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -242,7 +242,7 @@ class InvoiceCrudController extends CrudController
                     ->label($field['label'])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -256,7 +256,7 @@ class InvoiceCrudController extends CrudController
                     ->label($field['label'])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->options($field['options'] ?? []);
@@ -294,7 +294,7 @@ class InvoiceCrudController extends CrudController
                     ])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->label($field['label']);
@@ -331,7 +331,7 @@ class InvoiceCrudController extends CrudController
                     ->type($field['type'])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->label($field['label']);
@@ -402,7 +402,7 @@ class InvoiceCrudController extends CrudController
                     ->attributes(
                         [
                             'disabled' => 'disabled',
-                            'class' => 'form-control bg-gray-800 text-gray-300',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -435,7 +435,7 @@ class InvoiceCrudController extends CrudController
                     ->label($field['label'])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -450,7 +450,7 @@ class InvoiceCrudController extends CrudController
                     ->label($field['label'])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -471,7 +471,7 @@ class InvoiceCrudController extends CrudController
                     ->attributes(
                         [
                             'disabled' => 'disabled',
-                            'class' => 'form-control bg-gray-800 text-gray-300',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -486,7 +486,7 @@ class InvoiceCrudController extends CrudController
                     ->label($field['label'])
                     ->attributes(
                         [
-                            'class' => 'form-control bg-white text-gray-900',
+                            'class' => 'form-control',
                         ]
                     )
                     ->wrapper([
@@ -521,7 +521,7 @@ class InvoiceCrudController extends CrudController
                         ->attributes(
                             [
                                 'disabled' => 'disabled',
-                                'class' => 'form-control bg-gray-800 text-gray-300',
+                                'class' => 'form-control',
                             ]
                         )
                         ->wrapper([
