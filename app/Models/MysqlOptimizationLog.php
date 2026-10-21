@@ -47,12 +47,12 @@ class MysqlOptimizationLog extends Model
     public function getPriorityBadgeAttribute()
     {
         $badges = [
-            'high' => '<span class="badge badge-danger">High</span>',
-            'medium' => '<span class="badge badge-warning">Medium</span>',
-            'low' => '<span class="badge badge-info">Low</span>'
+            'high' => '<span class="badge text-bg-danger">High</span>',
+            'medium' => '<span class="badge text-bg-warning">Medium</span>',
+            'low' => '<span class="badge text-bg-info">Low</span>'
         ];
 
-        return $badges[$this->priority] ?? '<span class="badge badge-light">Unknown</span>';
+        return $badges[$this->priority] ?? '<span class="badge text-bg-light">Unknown</span>';
     }
 
     /**
@@ -61,8 +61,8 @@ class MysqlOptimizationLog extends Model
     public function getAppliedBadgeAttribute()
     {
         return $this->applied 
-            ? '<span class="badge badge-success">Applied</span>'
-            : '<span class="badge badge-secondary">Pending</span>';
+            ? '<span class="badge text-bg-success">Applied</span>'
+            : '<span class="badge text-bg-secondary">Pending</span>';
     }
 
     /**

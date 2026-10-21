@@ -43,8 +43,8 @@ class ArchivePolicy extends Model
     public function getEnabledBadgeAttribute()
     {
         return $this->enabled 
-            ? '<span class="badge badge-success">Enabled</span>'
-            : '<span class="badge badge-secondary">Disabled</span>';
+            ? '<span class="badge text-bg-success">Enabled</span>'
+            : '<span class="badge text-bg-secondary">Disabled</span>';
     }
 
     /**

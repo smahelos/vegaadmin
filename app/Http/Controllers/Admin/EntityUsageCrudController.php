@@ -129,7 +129,7 @@ class EntityUsageCrudController extends CrudController
             ->label('Entity Type')
             ->type('closure')
             ->function(function($entry) {
-                return '<span class="badge badge-secondary">' . e(ucfirst($entry->entity_type)) . '</span>';
+                return '<span class="badge text-bg-secondary">' . e(ucfirst($entry->entity_type)) . '</span>';
             })
             ->escaped(false);
 
@@ -137,7 +137,7 @@ class EntityUsageCrudController extends CrudController
             ->label('Metric Type')
             ->type('closure')
             ->function(function($entry) {
-                return '<span class="badge badge-light">' . e(ucfirst($entry->metric_type)) . '</span>';
+                return '<span class="badge text-bg-light">' . e(ucfirst($entry->metric_type)) . '</span>';
             })
             ->escaped(false);
 
@@ -145,7 +145,7 @@ class EntityUsageCrudController extends CrudController
             ->label('Period Type')
             ->type('closure')
             ->function(function($entry) {
-                return '<span class="badge badge-info">' . e(ucfirst($entry->period_type)) . '</span>';
+                return '<span class="badge text-bg-info">' . e(ucfirst($entry->period_type)) . '</span>';
             })
             ->escaped(false);
             

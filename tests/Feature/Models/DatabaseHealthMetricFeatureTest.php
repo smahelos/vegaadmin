@@ -89,19 +89,19 @@ class DatabaseHealthMetricFeatureTest extends TestCase
         $warningMetric = DatabaseHealthMetric::factory()->warning()->create();
         $criticalMetric = DatabaseHealthMetric::factory()->critical()->create();
 
-        $this->assertStringContainsString('badge-success', $goodMetric->getStatusBadgeAttribute());
+        $this->assertStringContainsString('text-bg-success', $goodMetric->getStatusBadgeAttribute());
         $this->assertStringContainsString('Good', $goodMetric->getStatusBadgeAttribute());
 
-        $this->assertStringContainsString('badge-warning', $warningMetric->getStatusBadgeAttribute());
+        $this->assertStringContainsString('text-bg-warning', $warningMetric->getStatusBadgeAttribute());
         $this->assertStringContainsString('Warning', $warningMetric->getStatusBadgeAttribute());
 
-        $this->assertStringContainsString('badge-danger', $criticalMetric->getStatusBadgeAttribute());
+        $this->assertStringContainsString('text-bg-danger', $criticalMetric->getStatusBadgeAttribute());
         $this->assertStringContainsString('Critical', $criticalMetric->getStatusBadgeAttribute());
 
         // Test unknown status by creating a metric and manually setting invalid status
         $unknownMetric = new DatabaseHealthMetric();
         $unknownMetric->status = 'unknown'; // This won't be saved, just for testing accessor
-        $this->assertStringContainsString('badge-light', $unknownMetric->getStatusBadgeAttribute());
+        $this->assertStringContainsString('text-bg-light', $unknownMetric->getStatusBadgeAttribute());
         $this->assertStringContainsString('Unknown', $unknownMetric->getStatusBadgeAttribute());
     }
 

@@ -73,10 +73,10 @@ class ArchivePolicyFeatureTest extends TestCase
         $enabledPolicy = ArchivePolicy::factory()->enabled()->create();
         $disabledPolicy = ArchivePolicy::factory()->disabled()->create();
 
-        $this->assertStringContainsString('badge-success', $enabledPolicy->enabled_badge);
+        $this->assertStringContainsString('text-bg-success', $enabledPolicy->enabled_badge);
         $this->assertStringContainsString('Enabled', $enabledPolicy->enabled_badge);
 
-        $this->assertStringContainsString('badge-secondary', $disabledPolicy->enabled_badge);
+        $this->assertStringContainsString('text-bg-secondary', $disabledPolicy->enabled_badge);
         $this->assertStringContainsString('Disabled', $disabledPolicy->enabled_badge);
     }
 

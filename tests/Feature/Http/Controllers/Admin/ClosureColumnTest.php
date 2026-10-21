@@ -61,7 +61,7 @@ final class ClosureColumnTest extends TestCase
         $row = $this->listRow('/admin/entity-usage', e($user->name));
 
         $this->assertStringNotContainsString($user->name, $row);
-        $this->assertStringContainsString('<span class="badge badge-secondary">Client</span>', $row);
+        $this->assertStringContainsString('<span class="badge text-bg-secondary">Client</span>', $row);
         $this->assertMatchesRegularExpression('/<span>\s*0\s*<\/span>/', $row);
     }
 

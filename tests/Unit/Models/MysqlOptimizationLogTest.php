@@ -75,7 +75,7 @@ class MysqlOptimizationLogTest extends TestCase
     {
         $this->model->priority = 'high';
         
-        $expected = '<span class="badge badge-danger">High</span>';
+        $expected = '<span class="badge text-bg-danger">High</span>';
         $this->assertEquals($expected, $this->model->getPriorityBadgeAttribute());
     }
 
@@ -84,7 +84,7 @@ class MysqlOptimizationLogTest extends TestCase
     {
         $this->model->priority = 'medium';
         
-        $expected = '<span class="badge badge-warning">Medium</span>';
+        $expected = '<span class="badge text-bg-warning">Medium</span>';
         $this->assertEquals($expected, $this->model->getPriorityBadgeAttribute());
     }
 
@@ -93,7 +93,7 @@ class MysqlOptimizationLogTest extends TestCase
     {
         $this->model->priority = 'low';
         
-        $expected = '<span class="badge badge-info">Low</span>';
+        $expected = '<span class="badge text-bg-info">Low</span>';
         $this->assertEquals($expected, $this->model->getPriorityBadgeAttribute());
     }
 
@@ -102,7 +102,7 @@ class MysqlOptimizationLogTest extends TestCase
     {
         $this->model->priority = 'invalid_priority';
         
-        $expected = '<span class="badge badge-light">Unknown</span>';
+        $expected = '<span class="badge text-bg-light">Unknown</span>';
         $this->assertEquals($expected, $this->model->getPriorityBadgeAttribute());
     }
 
@@ -111,7 +111,7 @@ class MysqlOptimizationLogTest extends TestCase
     {
         $this->model->applied = true;
         
-        $expected = '<span class="badge badge-success">Applied</span>';
+        $expected = '<span class="badge text-bg-success">Applied</span>';
         $this->assertEquals($expected, $this->model->getAppliedBadgeAttribute());
     }
 
@@ -120,7 +120,7 @@ class MysqlOptimizationLogTest extends TestCase
     {
         $this->model->applied = false;
         
-        $expected = '<span class="badge badge-secondary">Pending</span>';
+        $expected = '<span class="badge text-bg-secondary">Pending</span>';
         $this->assertEquals($expected, $this->model->getAppliedBadgeAttribute());
     }
 

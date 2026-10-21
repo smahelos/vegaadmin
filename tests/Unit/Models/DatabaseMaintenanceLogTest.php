@@ -94,7 +94,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     {
         $this->model->status = 'pending';
         
-        $expected = '<span class="badge badge-secondary">Pending</span>';
+        $expected = '<span class="badge text-bg-secondary">Pending</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
 
@@ -103,7 +103,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     {
         $this->model->status = 'running';
         
-        $expected = '<span class="badge badge-warning">Running</span>';
+        $expected = '<span class="badge text-bg-warning">Running</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
 
@@ -112,7 +112,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     {
         $this->model->status = 'completed';
         
-        $expected = '<span class="badge badge-success">Completed</span>';
+        $expected = '<span class="badge text-bg-success">Completed</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
 
@@ -121,7 +121,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     {
         $this->model->status = 'failed';
         
-        $expected = '<span class="badge badge-danger">Failed</span>';
+        $expected = '<span class="badge text-bg-danger">Failed</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
 
@@ -130,7 +130,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     {
         $this->model->status = 'invalid_status';
         
-        $expected = '<span class="badge badge-light">Unknown</span>';
+        $expected = '<span class="badge text-bg-light">Unknown</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
 

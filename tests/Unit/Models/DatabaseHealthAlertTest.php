@@ -119,22 +119,22 @@ class DatabaseHealthAlertTest extends TestCase
     {
         // Test info severity
         $this->model->severity = 'info';
-        $this->assertStringContainsString('badge-info', $this->model->severity_badge);
+        $this->assertStringContainsString('text-bg-info', $this->model->severity_badge);
         $this->assertStringContainsString('Info', $this->model->severity_badge);
 
         // Test warning severity
         $this->model->severity = 'warning';
-        $this->assertStringContainsString('badge-warning', $this->model->severity_badge);
+        $this->assertStringContainsString('text-bg-warning', $this->model->severity_badge);
         $this->assertStringContainsString('Warning', $this->model->severity_badge);
 
         // Test critical severity
         $this->model->severity = 'critical';
-        $this->assertStringContainsString('badge-danger', $this->model->severity_badge);
+        $this->assertStringContainsString('text-bg-danger', $this->model->severity_badge);
         $this->assertStringContainsString('Critical', $this->model->severity_badge);
 
         // Test unknown severity
         $this->model->severity = 'unknown';
-        $this->assertStringContainsString('badge-light', $this->model->severity_badge);
+        $this->assertStringContainsString('text-bg-light', $this->model->severity_badge);
         $this->assertStringContainsString('Unknown', $this->model->severity_badge);
     }
 
@@ -143,12 +143,12 @@ class DatabaseHealthAlertTest extends TestCase
     {
         // Test resolved status
         $this->model->resolved = true;
-        $this->assertStringContainsString('badge-success', $this->model->resolved_badge);
+        $this->assertStringContainsString('text-bg-success', $this->model->resolved_badge);
         $this->assertStringContainsString('Resolved', $this->model->resolved_badge);
 
         // Test unresolved status
         $this->model->resolved = false;
-        $this->assertStringContainsString('badge-secondary', $this->model->resolved_badge);
+        $this->assertStringContainsString('text-bg-secondary', $this->model->resolved_badge);
         $this->assertStringContainsString('Active', $this->model->resolved_badge);
     }
 }
