@@ -32,3 +32,7 @@ robots.txt
 
 # Local archive of unused Backpack templates/assets (see backup/README.md), not distributed
 /backup
+
+# Claude Code: personal settings and generated reports (the standard in .claude/ is shared)
+/.claude/settings.local.json*
+/.claude/reports/

@@ -2,6 +2,33 @@
 
 Known gaps between the code and the intended architecture (see `CLAUDE.md`, `docs/adr/`). Most items are unfinished steps of the DDD migration (commits `a65aaffb` 2025-09-09 and `7e999b2a` 2025-10-12 in the original Bitbucket history): the target class exists, but the code was never switched over to it. Remove an item once it is resolved.
 
+## Security
+
+### Public statistics endpoints expose all users' revenue
+- **Where:** `routes/api.php` (statistics routes in the public `web, throttle` group), `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentApiStatisticsRepository.php`
+- **Problem:** `/api/monthly-revenue` and the other statistics routes need no login; `getMonthlyRevenueQuery()` and `getExpenseQuery()` have no user filter, so a guest gets revenue summed over every user.
+- **Fix:** move the routes behind `api.require.frontend`, scope every query by the user passed in from Application (no `Auth::id()` in the repository).
+
+### State changes over GET
+- **Where:** `routes/web.php` (`client/{id}/set-default`, `supplier/{id}/set-default`, `invoices/delete/{token}`), `routes/backpack/custom.php` (`cron-task/{id}/run`)
+- **Problem:** GET requests change state without CSRF protection; a link or prefetch triggers them.
+- **Fix:** `POST`/`PUT`/`DELETE` routes with forms (`rules/http.md`, Routes).
+
+### Sorting from the URL without an allowlist
+- **Where:** all components in `app/Livewire/` (`#[Url] $orderBy` / `$sortField` passed to `orderBy()`)
+- **Problem:** any column name from the query string reaches the query.
+- **Fix:** allowlist per component; resolved together with moving the queries into repositories.
+
+### Middleware registered twice
+- **Where:** `bootstrap/app.php`
+- **Problem:** the `web` group re-appends cookie, session, error and CSRF middleware it already contains; `RefreshFrontendSession` and `SetLocale` are prepended to the group and applied again by alias in `routes/web.php`, the first time before the session starts.
+- **Fix:** keep Laravel's group defaults, register each middleware once.
+
+### Payment notification route
+- **Where:** `routes/web.php` (`POST /payment/notify` in the `web` group), `app/Http/Controllers/Frontend/PaymentController.php::notify()`
+- **Problem:** the route is not excluded from CSRF, so an external notification most likely ends with 419 (to verify); the whole request payload is logged.
+- **Fix:** CSRF exception, gateway-verified handling as in `rules/payments.md`, log only the payment id.
+
 ## Invoice
 
 ### Compose `PrintableInvoiceData` from `PartyPrintData`
@@ -79,8 +106,13 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 ### Move cache invalidation from observers to domain event handlers
 - **Where:** `app/Infrastructure/Persistence/Eloquent/*/Observers`, `app/Domain/Analytics/Events/AnalyticsDataChanged.php`, `app/Domain/Analytics/Events/Handlers/InvalidateAnalyticsCache.php`
-- **Problem:** the long-term step of `docs/DOMAIN_EVENTS_MIGRATION.md` is unfinished. Cache invalidation runs through observers → `UserDataChanged`; `AnalyticsDataChanged` is never published, so its registered handler never runs. Events `ClientDeleted`, `ClientSetAsDefault`, `SupplierDeleted`, `SupplierSetAsDefault`, `SupplierUpdated`, `ProductDeleted`, `ProductSetAsDefault`, `ProductUpdated` exist but are never published.
+- **Problem:** events are not yet used as `.claude/rules/architecture.md` (Events) requires. Cache invalidation runs through observers → `UserDataChanged`; `AnalyticsDataChanged` is never published, so its registered handler never runs. Events `ClientDeleted`, `ClientSetAsDefault`, `SupplierDeleted`, `SupplierSetAsDefault`, `SupplierUpdated`, `ProductDeleted`, `ProductSetAsDefault`, `ProductUpdated` exist but are never published.
 - **Fix:** publish the entity events from the domain services, let `InvalidateAnalyticsCache` handle them, then remove the observers and `AnalyticsDataChanged`.
+
+### Run tests on MySQL instead of in-memory SQLite
+- **Where:** `phpunit.xml`, `config/database.php` (`testing` connection), `tests/TestCase.php`, `tests/Traits/RefreshDatabaseWithData.php`, `.github/workflows/*`, SQLite branches in `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentAnalyticsReadRepository.php`, `app/Console/Commands/Database{Optimize,Monitor}Command.php` and 10 migrations (including `2025_07_23_054624_add_basic_foreign_keys_for_testing.php`)
+- **Problem:** the application runs on MySQL, tests on in-memory SQLite. MySQL-specific queries (`DATE_FORMAT`, `STR_TO_DATE`, …) are never tested, SQLite does not enforce strict `sql_mode` or column types, and production code and migrations carry `driver === 'sqlite'` branches that exist only for the tests. `TestCase` resets `RefreshDatabaseState` so that every test migrates all migrations again, and `RefreshDatabaseWithData` runs `migrate:fresh` + seed before every test.
+- **Fix (decided 2026-10-20):** tests run only on MySQL — a separate test database in the existing MySQL container, next to the local development database, and a MySQL service in CI. Squash the migrations into a clean MySQL schema first (no production yet). Migrate and seed once, one transaction per test (`RefreshDatabase`); remove the `TestCase` reset, `RefreshDatabaseWithData` and every SQLite branch; fix tests that rely on fixed IDs or row order. The test user needs `CREATE DATABASE` for `--parallel` (`<database>_test_N`).
 
 ### Resilience of external calls
 - **Where:** `app/Http/Controllers/Api/AresLookupController.php`, `app/Infrastructure/Shared/Http/Services/HttpClientService.php`, `app/Domain/Analytics/Services/BaseAnalyticsExternalService.php`, `config/analytics.php`
@@ -96,3 +128,104 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Where:** `composer.json` (`laravel/framework`), `tests/Feature/Http/Middleware/AuthenticateSessionFeatureTest.php`
 - **Problem:** Laravel 12.69.3+ stores an HMAC of the password hash in the session on login; Backpack 6's `AuthenticateSession` compares it with the raw hash and logs every admin out right after login. The fix (Laravel-Backpack/CRUD#6086) exists only in Backpack 7. While pinned, Billex gets no newer Laravel releases, security fixes included.
 - **Fix:** upgrade to Backpack 7, then restore the `^12.0` constraint; `AuthenticateSessionFeatureTest` must keep passing. If a Laravel security advisory needs ≥12.69.3 before that, extend Backpack's `AuthenticateSession` with the HMAC check from #6086 instead.
+
+## Conversion to the standard
+
+The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time.
+
+### Tooling
+- **Where:** project root, `.github/workflows/`
+- **Problem:** Pint has no `pint.json` and the codebase is not formatted by it (without explicit paths it even aborts on the unreadable `data/redis` directory); there is no static analysis.
+- **Fix:** add `pint.json` (excluding `data/`, `storage/`, `vendor/`, `node_modules/`) and format the whole codebase in one commit; install Larastan without a baseline file, start at the highest level that can be made clean, raise it as contexts are converted (target: max); run both in CI.
+
+### `strict_types` and `final`
+- **Where:** all of `app/`, `tests/`, `database/` (0 files declare `strict_types`, 9 classes are `final`)
+- **Fix:** add `declare(strict_types=1)` and `final` (except abstract bases and Eloquent models, `rules/php.md`); the test suite catches the coercions this exposes.
+
+### Two sets of repositories
+- **Where:** 19 repository contracts in `app/Application/*/Contracts` returning Eloquent models (e.g. `InvoiceReadRepositoryInterface`), next to the Domain `*Dto*RepositoryInterface` ports
+- **Problem:** Application, controllers and Livewire work with models; the same entity has two persistence paths.
+- **Fix:** move every use to the Domain ports, delete the Application repositories and their implementations. Then, per `rules/persistence.md` (decided 2026-10-20): ports without `Dto` and always with `Interface` (`ClientReadRepositoryInterface`; today 24 ports incl. `BankDtoRepository`, `AnalyticsDtoReadRepository`); a read port for every read entity, a write port only where the Domain writes (unsplit today: `StatusDtoRepositoryInterface`, `StatusCategoryDtoRepositoryInterface`, `BankDtoRepository`, `ArtisanCommandsDtoRepositoryInterface`, `AnalyticsDtoReadRepository`); one `Eloquent<Entity>Repository` per entity implementing both (merge `EloquentPaymentDto{Read,Write}Repository`, `EloquentSubscriptionDto{Read,Write}Repository`).
+
+### Framework and model dependencies outside Infrastructure
+- **Where:** `App\Models` in 37 Application files, 39 of 55 controllers and all 10 Livewire components; `Illuminate\Http` in 7 Application files; facades/helpers in 13 Application files; `app/Domain/Payment/Services/SubscriptionPaymentService.php` imports `GoPayGateway`
+- **Fix:** per `rules/architecture.md` (dependency table); Livewire components call application services.
+
+### Interfaces without a port
+- **Where:** 44 of 45 `*ServiceInterface` contracts in Domain and Application have a single implementation; 17 test files mock them
+- **Fix:** delete the interfaces and their bindings, make the services `final`, rewrite the mocking tests to run the real service with fakes at the ports; refresh the provider snapshot.
+
+### Data class names and properties
+- **Where:** `app/*/*/DTO/`, `app/Domain/Shared/Money/Enum`, `app/Domain/Invoice/Notifications/Enums`, `app/Application/Shared/Form/Enum`
+- **Problem:** suffixes `DTO`/`Data`/`Payload`/`ResultDTO` mixed; 167 snake_case vs 75 camelCase properties, mixed within one class.
+- **Fix:** `PrintableInvoiceData` → `PrintableInvoiceDTO`, `PrintableInvoiceItemData` → `PrintableInvoiceItemDTO`, `PartyPrintData` → `PartyPrintDTO`, `QrPaymentPayload` → `QrPaymentDTO`, `InvoiceReminderPayload` → `InvoiceReminderDTO`, `RefundResultDTO` → `RefundResult`, `SubscriptionPaymentResultDTO` → `SubscriptionPaymentResult`; replace `InvoiceMutationPayload` with `InvoiceWriteData`; move `InvoiceActionStatus` to `Enums/`, rename every `Enum/` directory to `Enums/`; camelCase properties with `final readonly class`.
+
+### Value object accessors
+- **Where:** all 21 classes in `app/Domain/*/ValueObjects` and `app/Domain/Shared/*/ValueObjects`
+- **Problem:** private state read through four naming styles: `getValue()` (46 calls), `toInt()` (`UserId`, `PartyId`; 83 calls), `value()` (`ProductSku`), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, `BankAccount::getIban()`, …).
+- **Fix (decided 2026-10-20):** `final readonly class` with public readonly properties for held state (`->value`, `->amount`, `->iban`), computed values as methods without `get` (`formattedIban()`, `year()`), per `rules/php.md`.
+
+### Business logic and broken relations in models
+- **Where:** `app/Models/Invoice.php` (totals, `syncProductsFromJson()`, due date, logging, `HasRoles`, `belongsToMany(...)` to `clients`/`suppliers`/`statuses` tables), `invoices.invoice_text` holding a JSON copy of `invoice_products`, `$guarded` in 6 models
+- **Fix:** logic into Domain, one storage for line items, `$fillable` and typed relations (`rules/persistence.md`).
+
+### Validation in several places
+- **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Application/*/Services/*InputValidationService.php`, `app/Domain/*/Validation/`; entity limits checked in requests, controllers and observers
+- **Fix:** one rule set per entity in form requests, business validation in value objects, limit check once in the application service (`rules/http.md`, `rules/permissions.md`).
+
+### Client and supplier duplicates
+- **Where:** frontend `ClientController`/`SupplierController`, their requests, Livewire lists, views, `resources/js/{client,supplier}-form-data.js` (~85 % identical)
+- **Fix:** one Party implementation parameterised by party type.
+
+### Directory layout
+- **Where:** `app/Infrastructure/Interfaces/`, `app/Infrastructure/Services/`, `app/Infrastructure/Providers/Payment/` (→ `Gateways/Payment/`), `app/Infrastructure/Forms/Products/` (→ `Product/`), `app/Application/Invoice/Services/Specialized/`, `app/Domain/Payment/Providers/QrPayment/`; contracts without the `Interface` suffix: `AnalyticsDtoReadRepository`, `Locale`, `BankDtoRepository`, `AnalyticsReadRepository`, `ApiStatisticsRepository`, `BankRepository`, `DomainEvent`, `Str`, `Config`
+- **Fix:** per `rules/architecture.md` (Directory layout, Ports and interfaces); framework wrappers in `Domain/Shared` that are not ports (`Str`, `Config`, `Console`) are removed.
+
+### Error handling
+- **Where:** 121 `catch (\Exception …)` in 53 files, mostly `Log::error($e->getMessage())` plus a generic message; failures returned as `false` or `['success' => false]`; only 4 domain exceptions
+- **Fix:** context exceptions, mapping in `app/Exceptions/ExceptionHandling.php` (`rules/php.md`, Errors).
+
+### Tests that pin structure instead of behaviour
+- **Where:** 235 `class_exists`/`method_exists` assertions, 189 files using reflection, 44 `$fillable`/`$casts` assertions (e.g. `tests/Unit/Models/*`); 107 tests in `tests/Unit` extending `Tests\TestCase`; `CreatesFrontendTestEnvironment` creating permission tables and hand-written permission lists; 43 tests named `test_*` or `@test`
+- **Fix:** delete structural tests, move framework tests to `tests/Feature`, use `PermissionCatalog` and migrations (`rules/testing.md`).
+
+### Frontend
+- **Where:** `resources/views` (25 files with inline `<script>`, 100 `style=""` attributes, 103 `@php` blocks, `number_format` for money), `resources/js` (6.5k lines of page scripts and `window.*` globals beside Livewire/Alpine)
+- **Fix:** per `rules/frontend.md`.
+
+### Translations
+- **Where:** 623 `trans()` calls; `translations:check … --compare=cs` reports 15 missing keys/files in de, 13 in en, 14 in sk (e.g. `admin.database.*`, `clients.messages.limit_exceeded`); `lang/en/{auth,pagination,passwords}.php` missing in cs/de/sk; `lang/{cs,de,sk}/ddd_guard.php` translates developer-tool output
+- **Fix:** `__()` only, all keys in all locales, developer output in plain English (`rules/translations.md`).
+
+### Route names and URLs
+- **Where:** `routes/web.php`, `routes/api.php`, every `route('…')` call in `app/`, `resources/views/`, `resources/js/` and `tests/`
+- **Problem:** index routes are plural without an action, the others singular (`frontend.clients` vs `frontend.client.create`); API names follow no pattern (`api.client`, `api.invoice.query`, `api.client.default`); URLs are singular (`/client`, `/invoice/{id}/edit`); custom actions vary (`mark-as-paid`, `set-template`, `batch-actions`).
+- **Fix (decided 2026-10-20):** plural URLs and `<area>.<resource plural>.<action>` names through `Route::resource()` / `apiResource()`, custom actions as kebab-case verbs (`rules/http.md`, Routes); update all references.
+
+### API responses
+- **Where:** `app/Http/Controllers/Api/*` (114 `response()->json` calls in controllers), `resources/js/*` consumers
+- **Problem:** whole objects are serialised (`response()->json($client)`), error bodies differ (`{"error"}`, `{"error", "code"}`), status codes are wrong (another user's client → 403 with a "not found" message, any exception → 404), every action repeats `try/catch` and an auth check the middleware already does.
+- **Fix (decided 2026-10-20):** `JsonResource` per DTO with snake_case keys and `{"data"}` wrapping, standard error format through `ExceptionHandling` (`rules/http.md`, API responses). Endpoints that only feed vanilla-JS form prefill (`/api/client/{id}`, `/api/client/default`, `/api/supplier/…`, `/api/session-refresh`) are removed when those forms move to Livewire instead of being converted.
+
+### Permission naming
+- **Where:** `app/Infrastructure/Authorization/PermissionCatalog.php`
+- **Problem:** three schemes for the same entities: `can_create_edit_<entity>` (113 checks, deleting included), `can_{view,create,update,delete}_<entity>` (only `can_view_*` is checked) and `<guard>.api.<entity>`.
+- **Fix (decided 2026-10-20):** granular `can_{view,create,update,delete}_<entity>` (`frontend.` prefix for the web guard), other actions `can_<verb>_<entity>`, Backpack operations gated one by one; drop `can_create_edit_*` and `<guard>.api.<entity>` (keep `<guard>.api.access`). A migration removes the old permissions and grants the new ones to the existing roles (`rules/permissions.md`).
+
+### Architecture guards are migration scaffolding
+- **Where:** `config/ddd_guard.php` (allowlist for the deleted `app/Services`, scan path `app/Policies`, Bitbucket detection), `ddd:legacy-report`, `architecture/baselines/*` (README still describes a throwaway container)
+- **Fix:** after the conversion, replace with Larastan and architecture tests of the dependency table in `rules/architecture.md`; delete the baselines and their commands.
+
+### Comments
+- **Where:** history and migration notes ("Wave 2", "Phase 1", "legacy compatibility", "Removed …"), Czech comments (`bootstrap/app.php` and 11 other files), `TODO`s without an item here
+- **Fix:** per `rules/php.md` (Comments).
+
+### Rename IČO and DIČ to `company_number` and `vat_number`
+- **Where:** 105 files in `app/`, `resources/`, `lang/`, `tests/` — properties, variables and parameters `$ico` / `$dic`, `->ico` / `->dic`, prefixed variants (`client_ico`, `client_dic`, `supplier_ico`, `supplier_dic`); DB columns `ico` / `dic` in `clients` and `suppliers` (indexes `idx_clients_user_ico`, `idx_suppliers_user_ico`); translation keys (`clients.fields.ico`, …)
+- **Problem:** the Czech abbreviations IČO (company registration number) and DIČ (VAT number) are used as identifiers in English code.
+- **Fix (decided 2026-10-20):** rename everything, the same name in every layer: PHP `companyNumber` / `vatNumber`, DB columns and indexes `company_number` / `vat_number`, request and form keys `client_company_number`, `supplier_vat_number`, …, translation keys `….company_number` / `….vat_number`. Not `company_id` / `vat_id`: the `_id` / `Id` suffix is reserved for entity identifiers and foreign keys, and `vat_id` or `client_company_id` would read as one.
+
+### Client mapper maps invoices as clients
+- **Where:** `app/Infrastructure/Persistence/Eloquent/Party/Mappers/EloquentClientMapper.php::toClientDTO()`
+- **Problem:** loaded `invoices` are passed to `toClientDTO()` itself.
+- **Fix:** map invoices with the invoice mapper (or drop them from `ClientDTO`).
