@@ -1,0 +1,24 @@
+---
+name: pre-pr-check
+description: >-
+  Run every local check CI runs before a commit or a pull request in Billex: Pint, the full test
+  suite, the architecture guards, baseline drift and the dependency audit. Use before proposing or making a commit,
+  before opening or updating a PR, and when the user asks whether the branch is ready.
+---
+
+# Pre-PR check
+
+Runs what CI checks, so a PR does not fail on something a local run would have caught. Report results; fixing is a separate decision.
+
+1. **Container.** `docker ps --filter name=BILLEX-app --format '{{.Status}}'` shows `Up`. If not, tell the user and stop — never start or rebuild containers yourself.
+2. **Formatting.** `docker exec BILLEX-app vendor/bin/pint --dirty --test`. Until `pint.json` exists (`docs/TECH_DEBT.md`, Tooling), Pint without paths aborts on the unreadable `data/redis` directory, and most files fail anyway: pass the branch's changed PHP files explicitly (`git diff --name-only --diff-filter=d main...HEAD -- '*.php'` plus uncommitted ones, then `pint --test <files>`), list the result, and do not reformat whole files (`rules/php.md`, Formatting).
+3. **Static analysis.** Once Larastan is installed, run it at the configured level; skip this step until then.
+4. **Full suite.** `docker exec BILLEX-app php artisan test --parallel`. Done when it finishes; note the counts and every failing test.
+5. **Architecture guards.** `bash .claude/skills/pre-pr-check/guards.sh` — `ddd:guard`, provider snapshot diff, and drift of the controller-thinness, frontend-Eloquent and API-Eloquent baselines, each compared the way CI compares them.
+6. **Interpret drift.** A baseline drift is either an intended change — the branch adds or removes controller code or bindings on purpose; regenerate per `architecture/baselines/README.md` (provider snapshot: `ddd:providers:snapshot --write`) and include the file in the commit — or an unintended one that needs a code fix. Ask the user which when the diff does not make it obvious.
+7. **Dependency audit.** `docker exec BILLEX-app composer audit --locked` and `npm audit --audit-level=high --package-lock-only` (host) — what `.github/workflows/dependency_audit.yml` runs. A new advisory can fail a branch that changed no dependency; report it with the package and the fixed version.
+8. **Payment subset.** When the branch changes `app/Domain/Payment/**`, CI also runs the payment tests (`.github/workflows/payment_adapter_guard.yml`); they are already part of the full suite, so only mention it.
+
+## Report
+
+One block per step: passed / failed / skipped, with the failing tests, guard names, files or diff excerpts. End with a single line: ready for commit, or what blocks it. Committing and pushing still follow the user's commit rules — this skill never commits.
