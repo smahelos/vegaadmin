@@ -57,7 +57,8 @@
                         if (value) {
                             item.addClass('active');
                         } else {
-                            item.removeClass('active').trigger('filter:clear');
+                            item.removeClass('active');
+                            item[0].dispatchEvent(new CustomEvent('backpack:filter:clear'));
                         }
                     }
 
@@ -83,7 +84,7 @@
                     });
 
                     // "Remove filters" button of the filters navbar (it updates the URL itself)
-                    item.on('filter:clear', function () {
+                    item.on('backpack:filter:clear', function () {
                         if (datepicker.selectedDates.length) {
                             datepicker.clear({ silent: true });
                         }

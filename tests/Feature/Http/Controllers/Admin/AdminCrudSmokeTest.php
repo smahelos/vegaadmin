@@ -124,14 +124,16 @@ class AdminCrudSmokeTest extends TestCase
 
     /**
      * Start the next request with a new CrudPanel and CRUD controller, as a real request does.
-     * Consecutive test requests share the scoped 'crud' instance (also cached by the CRUD
-     * facade) and the controller cached on the route, so the second request would set up
-     * the panel twice (duplicate filters).
+     * Consecutive test requests share the scoped 'CrudManager' holding the panel, the scoped
+     * lifecycle hooks (both also cached by their facades) and the controller cached on the
+     * route, so the second request would set up the panel twice (duplicate filters).
      */
     private function freshCrud(): static
     {
-        $this->app->forgetInstance('crud');
-        Facade::clearResolvedInstance('crud');
+        foreach (['CrudManager', 'BackpackLifecycleHooks', 'crud'] as $abstract) {
+            $this->app->forgetInstance($abstract);
+            Facade::clearResolvedInstance($abstract);
+        }
         foreach (Route::getRoutes()->getRoutes() as $route) {
             $route->flushController();
         }

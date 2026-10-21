@@ -5,6 +5,7 @@
 /public/hot
 /storage/*.key
 /storage/pail
+/storage/basset
 /vendor
 /docker/mysql
 /data/redis

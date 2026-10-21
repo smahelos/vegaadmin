@@ -4,33 +4,33 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "28d06295a5dfe17ded1fd5b3231d6e6a",
+    "content-hash": "26439f7e4fb3d7bf298f37b45cc88fd6",
     "packages": [
         {
             "name": "backpack/basset",
-            "version": "1.3.10",
+            "version": "2.0.16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Laravel-Backpack/basset.git",
-                "reference": "fe0c3ef47ec651663c610e6d8e8aef9bf783dc7d"
+                "reference": "6a3c81fcaa9de03f98f36b1c8806ae8e89129de4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Laravel-Backpack/basset/zipball/fe0c3ef47ec651663c610e6d8e8aef9bf783dc7d",
-                "reference": "fe0c3ef47ec651663c610e6d8e8aef9bf783dc7d",
+                "url": "https://api.github.com/repos/Laravel-Backpack/basset/zipball/6a3c81fcaa9de03f98f36b1c8806ae8e89129de4",
+                "reference": "6a3c81fcaa9de03f98f36b1c8806ae8e89129de4",
                 "shasum": ""
             },
             "require": {
-                "guzzlehttp/guzzle": "^7.5",
-                "laravel/framework": "^10.15|^11|^12.0"
+                "guzzlehttp/guzzle": "^7.5|^8.0",
+                "laravel/framework": "^10.15|^11|^12.0|^13.0"
             },
             "require-dev": {
                 "nunomaduro/collision": "^6.0|^7.2|^8.0",
-                "orchestra/testbench": "^7.22|^8.5|^9.0|^10.0",
-                "pestphp/pest": "^1.22|^2.5|^3.7",
-                "pestphp/pest-plugin-laravel": "^1.4|^2.0|^3.1",
+                "orchestra/testbench": "^7.22|^8.5|^9.0|^10.0|^11.0",
+                "pestphp/pest": "^1.22|^2.5|^3.7|^4.0",
+                "pestphp/pest-plugin-laravel": "^1.4|^2.0|^3.1|^4.0",
                 "phpstan/phpstan": "^1.10|^2.1",
-                "phpunit/phpunit": "~9.0|~10.0|^11.5.3"
+                "phpunit/phpunit": "~9.0|~10.0|^11.5.3|^12.0"
             },
             "suggest": {
                 "ext-zip": "Required to use @bassetArchive with .zip archives."
@@ -76,35 +76,35 @@
             ],
             "support": {
                 "issues": "https://github.com/Laravel-Backpack/basset/issues",
-                "source": "https://github.com/Laravel-Backpack/basset/tree/1.3.10"
+                "source": "https://github.com/Laravel-Backpack/basset/tree/2.0.16"
             },
-            "time": "2026-03-17T15:22:50+00:00"
+            "time": "2026-10-18T08:39:49+00:00"
         },
         {
             "name": "backpack/crud",
-            "version": "6.8.17",
+            "version": "7.1.22",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Laravel-Backpack/CRUD.git",
-                "reference": "468cb5eded98507e878ae544058486b3583b13a8"
+                "reference": "8ec117c5bebf8dd2645ba48998b2773dce61adc0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Laravel-Backpack/CRUD/zipball/468cb5eded98507e878ae544058486b3583b13a8",
-                "reference": "468cb5eded98507e878ae544058486b3583b13a8",
+                "url": "https://api.github.com/repos/Laravel-Backpack/CRUD/zipball/8ec117c5bebf8dd2645ba48998b2773dce61adc0",
+                "reference": "8ec117c5bebf8dd2645ba48998b2773dce61adc0",
                 "shasum": ""
             },
             "require": {
-                "backpack/basset": "^1.1.1|^1.3.2",
+                "backpack/basset": "^2.0.9",
                 "creativeorange/gravatar": "^1.0",
-                "doctrine/dbal": "^3.0|^4.0",
-                "guzzlehttp/guzzle": "^7.0",
-                "laravel/framework": "^10.0|^11.0|^12",
+                "doctrine/dbal": "^4.0",
+                "guzzlehttp/guzzle": "^7.0|^8.0",
+                "laravel/framework": "^12|^13",
                 "prologue/alerts": "^1.0"
             },
             "require-dev": {
-                "orchestra/testbench": "^8.0|^9.0|^10.0",
-                "phpunit/phpunit": "^10.0|^9.0|^11.0",
+                "orchestra/testbench": "^10.0|^11.0",
+                "phpunit/phpunit": "^12.0 || ^13.0",
                 "spatie/laravel-translatable": "^6.0"
             },
             "suggest": {
@@ -167,9 +167,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Laravel-Backpack/CRUD/issues",
-                "source": "https://github.com/Laravel-Backpack/CRUD/tree/6.8.17"
+                "source": "https://github.com/Laravel-Backpack/CRUD/tree/7.1.22"
             },
-            "time": "2026-09-15T21:05:20+00:00"
+            "time": "2026-10-08T20:33:04+00:00"
         },
         {
             "name": "backpack/language-switcher",
@@ -309,24 +309,24 @@
         },
         {
             "name": "backpack/theme-tabler",
-            "version": "1.2.19",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Laravel-Backpack/theme-tabler.git",
-                "reference": "194e16138d446e224fb8fc9b231c5bbdd03d52cf"
+                "reference": "15441b13cb3cf2be4279dcf275bdf1dcb5c96572"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Laravel-Backpack/theme-tabler/zipball/194e16138d446e224fb8fc9b231c5bbdd03d52cf",
-                "reference": "194e16138d446e224fb8fc9b231c5bbdd03d52cf",
+                "url": "https://api.github.com/repos/Laravel-Backpack/theme-tabler/zipball/15441b13cb3cf2be4279dcf275bdf1dcb5c96572",
+                "reference": "15441b13cb3cf2be4279dcf275bdf1dcb5c96572",
                 "shasum": ""
             },
             "require": {
-                "backpack/crud": "^6.2.1"
+                "backpack/crud": "^7.0"
             },
             "require-dev": {
-                "orchestra/testbench": "~5|~6",
-                "phpunit/phpunit": "~9.0"
+                "orchestra/testbench": "^8||^9||^10||^11",
+                "phpunit/phpunit": "^10.0|^11.0"
             },
             "type": "library",
             "extra": {
@@ -376,9 +376,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Laravel-Backpack/theme-tabler/issues",
-                "source": "https://github.com/Laravel-Backpack/theme-tabler/tree/1.2.19"
+                "source": "https://github.com/Laravel-Backpack/theme-tabler/tree/2.1.0"
             },
-            "time": "2026-05-18T13:52:37+00:00"
+            "time": "2026-09-07T07:47:38+00:00"
         },
         {
             "name": "bacon/bacon-qr-code",
@@ -2423,16 +2423,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v12.69.2",
+            "version": "v12.70.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "17d034ef1e209b63a1d3a89c90ce5e89a4eb3fc5"
+                "reference": "e09fc54263d1a56cfe1709958fcbb22a4159b1e3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/17d034ef1e209b63a1d3a89c90ce5e89a4eb3fc5",
-                "reference": "17d034ef1e209b63a1d3a89c90ce5e89a4eb3fc5",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/e09fc54263d1a56cfe1709958fcbb22a4159b1e3",
+                "reference": "e09fc54263d1a56cfe1709958fcbb22a4159b1e3",
                 "shasum": ""
             },
             "require": {
@@ -2545,10 +2545,10 @@
                 "league/flysystem-sftp-v3": "^3.25.1",
                 "mockery/mockery": "^1.6.10",
                 "opis/json-schema": "^2.4.1",
-                "orchestra/testbench-core": "^10.9.0",
+                "orchestra/testbench-core": "^10.15.0",
                 "pda/pheanstalk": "^5.0.6|^7.0.0",
                 "php-http/discovery": "^1.15",
-                "phpstan/phpstan": "^2.1.41",
+                "phpstan/phpstan": "2.2.13",
                 "phpunit/phpunit": "^10.5.35|^11.5.3|^12.0.1",
                 "predis/predis": "^2.3|^3.0",
                 "resend/resend-php": "^0.10.0|^1.0",
@@ -2641,7 +2641,7 @@
                 "issues": "https://github.com/laravel/framework/issues",
                 "source": "https://github.com/laravel/framework"
             },
-            "time": "2026-09-08T14:29:09+00:00"
+            "time": "2026-10-21T12:55:36+00:00"
         },
         {
             "name": "laravel/prompts",
@@ -8160,20 +8160,20 @@
     "packages-dev": [
         {
             "name": "backpack/generators",
-            "version": "v4.0.7",
+            "version": "v4.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Laravel-Backpack/Generators.git",
-                "reference": "cd193adfe75573ff59033e473bbb2e2574a05f61"
+                "reference": "44bc1ab0236680eb9f6e39173b14e7c80cfacb08"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Laravel-Backpack/Generators/zipball/cd193adfe75573ff59033e473bbb2e2574a05f61",
-                "reference": "cd193adfe75573ff59033e473bbb2e2574a05f61",
+                "url": "https://api.github.com/repos/Laravel-Backpack/Generators/zipball/44bc1ab0236680eb9f6e39173b14e7c80cfacb08",
+                "reference": "44bc1ab0236680eb9f6e39173b14e7c80cfacb08",
                 "shasum": ""
             },
             "require": {
-                "backpack/crud": "^6.0"
+                "backpack/crud": "^7.0"
             },
             "type": "library",
             "extra": {
@@ -8220,9 +8220,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Laravel-Backpack/Generators/issues",
-                "source": "https://github.com/Laravel-Backpack/Generators/tree/v4.0.7"
+                "source": "https://github.com/Laravel-Backpack/Generators/tree/v4.1.1"
             },
-            "time": "2024-10-15T10:41:40+00:00"
+            "time": "2025-12-22T11:02:21+00:00"
         },
         {
             "name": "brianium/paratest",

@@ -5,7 +5,6 @@ namespace App\Infrastructure\Authorization\Services;
 use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
  * Infrastructure service that configures Backpack CRUD access using Spatie permissions.
@@ -21,7 +20,7 @@ class CrudAccessService implements CrudAccessServiceInterface
         // Default deny
         $crud->denyAccess(['list', 'show', 'create', 'update', 'delete']);
 
-        $table = CRUD::getModel()->getTable();
+        $table = $crud->getModel()->getTable();
         // Derive entity name from table (e.g. users -> user, subscriptions -> subscription)
         $entity = \Illuminate\Support\Str::singular($table);
 
