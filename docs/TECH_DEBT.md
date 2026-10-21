@@ -86,3 +86,8 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Where:** `resources/views/vendor/backpack/*`
 - **Problem:** no template copied from Backpack PRO (commit `a007295e`) is used any more; Billex's own field, column and filter types live in `resources/views/admin/{fields,columns,filters}`. What stays in `resources/views/vendor/backpack/` overrides views of the installed packages and would shadow their Backpack 7 versions: `crud/columns/closure` (older free version: no escaping, no prefix/suffix/default; Billex closures return HTML), `theme-tabler/layouts/_vertical/sidebar_content_top` (adds the language switcher), `ui/dashboard`, `ui/inc/menu_items`.
 - **Fix:** before upgrading to Backpack 7, compare each override with the v7 package view and port the Billex changes onto it (or drop the override); check Billex's own types in `resources/views/admin/*` against the v7 field/column/filter API.
+
+### Laravel pinned below 12.69.3 until Backpack 7
+- **Where:** `composer.json` (`laravel/framework`), `tests/Feature/Http/Middleware/AuthenticateSessionFeatureTest.php`
+- **Problem:** Laravel 12.69.3+ stores an HMAC of the password hash in the session on login; Backpack 6's `AuthenticateSession` compares it with the raw hash and logs every admin out right after login. The fix (Laravel-Backpack/CRUD#6086) exists only in Backpack 7. While pinned, Billex gets no newer Laravel releases, security fixes included.
+- **Fix:** upgrade to Backpack 7, then restore the `^12.0` constraint; `AuthenticateSessionFeatureTest` must keep passing. If a Laravel security advisory needs ≥12.69.3 before that, extend Backpack's `AuthenticateSession` with the HMAC check from #6086 instead.

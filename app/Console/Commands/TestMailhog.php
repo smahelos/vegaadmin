@@ -15,7 +15,7 @@ class TestMailhog extends Command
      *
      * @var string
      */
-    protected $signature = 'mail:test-mailhog {--to=test@example.com : Email address to send test message to} {--subject=Test Email from VegaAdmin : Subject of the test email}';
+    protected $signature = 'mail:test-mailhog {--to=test@example.com : Comma-separated email addresses to send test message to} {--subject=Test Email from VegaAdmin : Subject of the test email}';
 
     /**
      * The console command description.
@@ -30,8 +30,9 @@ class TestMailhog extends Command
     public function handle(): int
     {
         $email = $this->option('to');
+        $recipients = array_values(array_filter(array_map('trim', explode(',', $email))));
         $subject = $this->option('subject');
-        
+
         $this->info('Sending test email to: ' . $email);
         $this->info('Subject: ' . $subject);
         $this->info('Current configuration:');
@@ -40,8 +41,8 @@ class TestMailhog extends Command
         $this->info('MAIL_PORT: ' . config('mail.mailers.smtp.port'));
         
         try {
-            Mail::raw('Test email from VegaAdmin application at: ' . now(), function ($message) use ($email, $subject) {
-                $message->to($email)
+            Mail::raw('Test email from VegaAdmin application at: ' . now(), function ($message) use ($recipients, $subject) {
+                $message->to($recipients)
                     ->subject($subject);
             });
             $this->info('Email sent successfully! Check Mailhog at: http://localhost:8025');
