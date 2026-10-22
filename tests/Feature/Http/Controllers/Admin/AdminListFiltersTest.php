@@ -39,6 +39,8 @@ class AdminListFiltersTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-select2-filter="user_id"', false);
+        // the filters navbar only wires a filter that names its init function
+        $response->assertSee('filter-init-function="billexInitSelect2Filter"', false);
         $response->assertSee('data-placeholder="' . __('admin.general.select') . '"', false);
         $response->assertSee('<option value="' . $owner->id . '" selected>' . $owner->name . '</option>', false);
     }
@@ -65,6 +67,7 @@ class AdminListFiltersTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-simple-filter="is_active"', false);
+        $response->assertSee('filter-init-function="billexInitSimpleFilter"', false);
         $this->assertMatchesRegularExpression('/filter-name="is_active"\s+filter-type="simple"\s+class="nav-item active"/', $response->getContent());
     }
 

@@ -9,7 +9,8 @@
 
 <li filter-name="{{ $filter->name }}"
     filter-type="{{ $filter->type }}"
-    class="nav-item dropdown {{ $isActive ? 'active' : '' }}">
+    class="nav-item dropdown {{ $isActive ? 'active' : '' }}"
+    filter-init-function="billexInitSelect2Filter">
     <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ $filter->label }} <span class="caret"></span></a>
     <div class="dropdown-menu p-0">
         <div class="form-group backpack-filter mb-0">
@@ -42,47 +43,66 @@
             <script src="{{ asset('packages/select2/dist/js/i18n/' . $locale . '.js') }}"></script>
         @endif
         <script>
-            jQuery(function ($) {
-                $('[data-select2-filter]').each(function () {
-                    var select = $(this);
-                    var name = select.data('select2-filter');
-                    var item = $('li[filter-name="' + name + '"]');
+            // Called by the filters navbar on load and again after "Remove filters"
+            function billexInitSelect2Filter(filter, navbar) {
+                if (filter.dataset.billexInitialized) {
+                    return;
+                }
+                filter.dataset.billexInitialized = '1';
 
-                    select.select2({
-                        theme: 'bootstrap',
-                        width: '100%',
-                        allowClear: true,
-                        placeholder: select.data('placeholder'),
-                        language: @json($locale),
-                        // inside the filter dropdown, so picking an option does not close it
-                        dropdownParent: select.parent(),
-                    });
+                var item = $(filter);
+                var name = item.attr('filter-name');
+                var select = item.find('[data-select2-filter]');
 
-                    select.on('change', function () {
-                        var value = select.val() || '';
-
-                        updateDatatablesOnFilterChange(name, value, true, 0);
-
-                        if (value) {
-                            item.addClass('active');
-                        } else {
-                            item.removeClass('active');
-                            item[0].dispatchEvent(new CustomEvent('backpack:filter:clear'));
-                        }
-                    });
-
-                    item.on('shown.bs.dropdown', function () {
-                        select.select2('open');
-                    });
-
-                    // "Remove filters" button of the filters navbar (it updates the URL itself):
-                    // reset the select without firing the change handler above
-                    item.on('backpack:filter:clear', function () {
-                        item.removeClass('active');
-                        select.val(null).trigger('change.select2');
-                    });
+                select.select2({
+                    theme: 'bootstrap',
+                    width: '100%',
+                    allowClear: true,
+                    placeholder: select.data('placeholder'),
+                    language: @json($locale),
+                    // inside the filter dropdown, so picking an option does not close it
+                    dropdownParent: select.parent(),
                 });
-            });
+
+                select.on('change', function () {
+                    var value = select.val() || '';
+
+                    bootstrap.Dropdown.getOrCreateInstance(item.find('.dropdown-toggle')[0]).hide();
+                    item.toggleClass('active', value !== '');
+                    document.dispatchEvent(new CustomEvent('backpack:filter:changed', {
+                        detail: {
+                            filterName: name,
+                            filterValue: value,
+                            shouldUpdateUrl: true,
+                            debounce: 0,
+                            componentId: navbar.getAttribute('data-component-id') || '',
+                        },
+                    }));
+                });
+
+                item.on('shown.bs.dropdown', function () {
+                    select.select2('open');
+                });
+
+                // the select2 list lives inside the filter menu: it must not open (select2 reopens it
+                // after the × clears the value) or stay open while the menu is hidden
+                select.on('select2:opening', function (e) {
+                    if (!item.find('.dropdown-menu').hasClass('show')) {
+                        e.preventDefault();
+                    }
+                });
+
+                item.on('hidden.bs.dropdown', function () {
+                    select.select2('close');
+                });
+
+                // "Remove filters" button of the filters navbar (it updates the URL itself):
+                // reset the select without firing the change handler above
+                filter.addEventListener('backpack:filter:clear', function () {
+                    item.removeClass('active');
+                    select.val(null).trigger('change.select2');
+                });
+            }
         </script>
     @endonce
 @endpush

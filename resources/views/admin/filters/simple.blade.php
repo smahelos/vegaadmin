@@ -4,36 +4,45 @@
 --}}
 <li filter-name="{{ $filter->name }}"
     filter-type="{{ $filter->type }}"
-    class="nav-item {{ $filter->isActive() ? 'active' : '' }}">
+    class="nav-item {{ $filter->isActive() ? 'active' : '' }}"
+    filter-init-function="billexInitSimpleFilter">
     <a class="nav-link" href="#" data-simple-filter="{{ $filter->name }}">{{ $filter->label }}</a>
 </li>
 
 @push('crud_list_scripts')
     @once
         <script>
-            jQuery(function ($) {
-                $('[data-simple-filter]').on('click', function (e) {
+            // Called by the filters navbar on load and again after "Remove filters"
+            function billexInitSimpleFilter(filter, navbar) {
+                if (filter.dataset.billexInitialized) {
+                    return;
+                }
+                filter.dataset.billexInitialized = '1';
+
+                var item = $(filter);
+
+                item.find('[data-simple-filter]').on('click', function (e) {
                     e.preventDefault();
 
-                    var name = $(this).data('simple-filter');
-                    var item = $('li[filter-name="' + name + '"]');
                     var activate = !item.hasClass('active');
 
-                    updateDatatablesOnFilterChange(name, activate ? 1 : '', true, 0);
-
-                    if (activate) {
-                        item.addClass('active');
-                    } else {
-                        item.removeClass('active');
-                        item[0].dispatchEvent(new CustomEvent('backpack:filter:clear'));
-                    }
+                    item.toggleClass('active', activate);
+                    document.dispatchEvent(new CustomEvent('backpack:filter:changed', {
+                        detail: {
+                            filterName: item.attr('filter-name'),
+                            filterValue: activate ? 1 : '',
+                            shouldUpdateUrl: true,
+                            debounce: 0,
+                            componentId: navbar.getAttribute('data-component-id') || '',
+                        },
+                    }));
                 });
 
                 // "Remove filters" button of the filters navbar (it updates the URL itself)
-                $('li[filter-type="simple"]').on('backpack:filter:clear', function () {
-                    $(this).removeClass('active');
+                filter.addEventListener('backpack:filter:clear', function () {
+                    item.removeClass('active');
                 });
-            });
+            }
         </script>
     @endonce
 @endpush

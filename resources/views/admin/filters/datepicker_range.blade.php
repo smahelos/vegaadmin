@@ -9,7 +9,8 @@
 
 <li filter-name="{{ $filter->name }}"
     filter-type="{{ $filter->type }}"
-    class="nav-item dropdown {{ $currentRange ? 'active' : '' }}">
+    class="nav-item dropdown {{ $currentRange ? 'active' : '' }}"
+    filter-init-function="billexInitDatepickerRangeFilter">
     <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-haspopup="true" aria-expanded="false">{{ $filter->label }} <span class="caret"></span></a>
     <div class="dropdown-menu p-2">
         <div class="input-group mb-2">
@@ -27,72 +28,78 @@
 @push('crud_list_scripts')
     @once
         <script>
-            jQuery(function ($) {
-                $('[data-datepicker-range-filter]').each(function () {
-                    var calendar = $(this);
-                    var name = calendar.data('datepicker-range-filter');
-                    var item = $('li[filter-name="' + name + '"]');
-                    var text = item.find('[data-datepicker-range-text]');
-                    var locale = window.billexDatepicker.locale;
-                    var from = window.billexDatepicker.parse(calendar.data('from'));
-                    var to = window.billexDatepicker.parse(calendar.data('to'));
+            // Called by the filters navbar on load and again after "Remove filters"
+            function billexInitDatepickerRangeFilter(filter, navbar) {
+                if (filter.dataset.billexInitialized) {
+                    return;
+                }
+                filter.dataset.billexInitialized = '1';
 
-                    function showRange(dates) {
-                        text.val(dates.length === 2 ? dates.map(function (date) {
-                            return datepicker.formatDate(date, locale.dateFormat);
-                        }).join(' – ') : '');
-                    }
+                var item = $(filter);
+                var name = item.attr('filter-name');
+                var calendar = item.find('[data-datepicker-range-filter]');
+                var text = item.find('[data-datepicker-range-text]');
+                var locale = window.billexDatepicker.locale;
+                var from = window.billexDatepicker.parse(calendar.data('from'));
+                var to = window.billexDatepicker.parse(calendar.data('to'));
 
-                    function applyRange(dates) {
-                        var value = dates.length === 2
-                            ? JSON.stringify({
-                                from: datepicker.formatDate(dates[0], 'yyyy-MM-dd') + ' 00:00:00',
-                                to: datepicker.formatDate(dates[1], 'yyyy-MM-dd') + ' 23:59:59',
-                            })
-                            : '';
+                function showRange(dates) {
+                    text.val(dates.length === 2 ? dates.map(function (date) {
+                        return datepicker.formatDate(date, locale.dateFormat);
+                    }).join(' – ') : '');
+                }
 
-                        showRange(dates);
-                        updateDatatablesOnFilterChange(name, value, true, 0);
+                function applyRange(dates) {
+                    var value = dates.length === 2
+                        ? JSON.stringify({
+                            from: datepicker.formatDate(dates[0], 'yyyy-MM-dd') + ' 00:00:00',
+                            to: datepicker.formatDate(dates[1], 'yyyy-MM-dd') + ' 23:59:59',
+                        })
+                        : '';
 
-                        if (value) {
-                            item.addClass('active');
-                        } else {
-                            item.removeClass('active');
-                            item[0].dispatchEvent(new CustomEvent('backpack:filter:clear'));
-                        }
-                    }
-
-                    var datepicker = new AirDatepicker(this, {
-                        inline: true,
-                        range: true,
-                        locale: locale,
-                        selectedDates: from && to ? [from, to] : [],
-                        startDate: from || new Date(),
-                        onSelect: function (event) {
-                            // the first click only starts the range
-                            if (event.date.length !== 1) {
-                                applyRange(event.date);
-                            }
+                    showRange(dates);
+                    item.toggleClass('active', value !== '');
+                    document.dispatchEvent(new CustomEvent('backpack:filter:changed', {
+                        detail: {
+                            filterName: name,
+                            filterValue: value,
+                            shouldUpdateUrl: true,
+                            debounce: 0,
+                            componentId: navbar.getAttribute('data-component-id') || '',
                         },
-                    });
+                    }));
+                }
 
-                    showRange(datepicker.selectedDates);
-
-                    item.find('[data-datepicker-range-clear]').on('click', function (e) {
-                        e.preventDefault();
-                        datepicker.clear();
-                    });
-
-                    // "Remove filters" button of the filters navbar (it updates the URL itself)
-                    item.on('backpack:filter:clear', function () {
-                        if (datepicker.selectedDates.length) {
-                            datepicker.clear({ silent: true });
+                var datepicker = new AirDatepicker(calendar[0], {
+                    inline: true,
+                    range: true,
+                    locale: locale,
+                    selectedDates: from && to ? [from, to] : [],
+                    startDate: from || new Date(),
+                    onSelect: function (event) {
+                        // the first click only starts the range
+                        if (event.date.length !== 1) {
+                            applyRange(event.date);
                         }
-                        item.removeClass('active');
-                        showRange([]);
-                    });
+                    },
                 });
-            });
+
+                showRange(datepicker.selectedDates);
+
+                item.find('[data-datepicker-range-clear]').on('click', function (e) {
+                    e.preventDefault();
+                    datepicker.clear();
+                });
+
+                // "Remove filters" button of the filters navbar (it updates the URL itself)
+                filter.addEventListener('backpack:filter:clear', function () {
+                    if (datepicker.selectedDates.length) {
+                        datepicker.clear({ silent: true });
+                    }
+                    item.removeClass('active');
+                    showRange([]);
+                });
+            }
         </script>
     @endonce
 @endpush
