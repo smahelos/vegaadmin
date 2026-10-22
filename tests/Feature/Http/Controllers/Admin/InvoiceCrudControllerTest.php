@@ -143,4 +143,34 @@ class InvoiceCrudControllerTest extends TestCase
             'user_id' => $this->adminUser->id,
         ]);
     }
+
+    #[Test]
+    public function store_assigns_the_admin_as_owner_when_none_is_sent(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
+        $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
+        $paymentMethod = PaymentMethod::factory()->create();
+        $vs = (string) random_int(100000, 999999);
+
+        $this->post('/admin/invoice', [
+            'supplier_id' => $supplier->id,
+            'client_id' => $client->id,
+            'invoice_vs' => $vs,
+            'due_in' => 14,
+            'payment_method_id' => $paymentMethod->id,
+            'payment_amount' => 1000,
+            'payment_status' => 'unpaid',
+            'payment_currency' => 'CZK',
+            'issue_date' => '2026-10-01',
+            'street' => 'Main 1',
+            'city' => 'Praha',
+            'zip' => '11000',
+            'country' => 'CZ',
+        ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('invoices', ['invoice_vs' => $vs, 'user_id' => $this->adminUser->id]);
+    }
 }

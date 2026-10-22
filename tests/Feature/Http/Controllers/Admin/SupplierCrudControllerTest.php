@@ -94,4 +94,25 @@ class SupplierCrudControllerTest extends TestCase
             'user_id' => $this->adminUser->id,
         ]);
     }
+
+    #[Test]
+    public function store_assigns_the_admin_as_owner_when_none_is_sent(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $name = 'Supplier ' . uniqid();
+
+        $this->post('/admin/supplier', [
+            'name' => $name,
+            'email' => uniqid() . '@example.com',
+            'phone' => '+420123456789',
+            'street' => 'Main 1',
+            'city' => 'Praha',
+            'zip' => '11000',
+            'country' => 'CZ',
+        ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('suppliers', ['name' => $name, 'user_id' => $this->adminUser->id]);
+    }
 }

@@ -126,4 +126,17 @@ class ProductCrudControllerTest extends TestCase
         $response->assertSee('<option value="' . $category->id . '"', false);
         $response->assertSee($category->name);
     }
+
+    #[Test]
+    public function store_assigns_the_admin_as_owner_when_none_is_sent(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $name = 'Product ' . uniqid();
+
+        $this->post('/admin/product', ['name' => $name, 'price' => 100])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('products', ['name' => $name, 'user_id' => $this->adminUser->id]);
+    }
 }

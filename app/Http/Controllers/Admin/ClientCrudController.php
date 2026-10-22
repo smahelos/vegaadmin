@@ -16,7 +16,9 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
 class ClientCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+        store as traitStore;
+    }
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
@@ -125,7 +127,7 @@ class ClientCrudController extends CrudController
     public function store()
     {
         $this->beforeEntityStore();
-        return parent::store();
+        return $this->traitStore();
     }
 
     /**

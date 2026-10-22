@@ -101,4 +101,22 @@ class ClientCrudControllerTest extends TestCase
             'user_id' => $this->user->id,
         ]);
     }
+
+    #[Test]
+    public function store_assigns_the_admin_as_owner_when_none_is_sent(): void
+    {
+        $name = 'Client ' . uniqid();
+
+        $this->post('/admin/client', [
+            'name' => $name,
+            'street' => 'Main 1',
+            'city' => 'Praha',
+            'zip' => '11000',
+            'country' => 'CZ',
+        ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('clients', ['name' => $name, 'user_id' => $this->user->id]);
+    }
 }
