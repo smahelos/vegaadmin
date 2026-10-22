@@ -60,7 +60,7 @@
                     allowClear: true,
                     placeholder: select.data('placeholder'),
                     language: @json($locale),
-                    // inside the filter dropdown, so picking an option does not close it
+                    // keeps the select2 list inside the filter menu instead of the page body
                     dropdownParent: select.parent(),
                 });
 

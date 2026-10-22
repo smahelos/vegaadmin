@@ -47,6 +47,8 @@ class AdminDateRangeFilterTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-datepicker-range-filter="' . $filter . '"', false);
+        // the filters navbar only wires a filter that names its init function
+        $response->assertSee('filter-init-function="billexInitDatepickerRangeFilter"', false);
     }
 
     #[Test]
