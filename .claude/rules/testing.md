@@ -33,6 +33,6 @@ paths:
 
 - `#[Test]` attribute, method names in snake_case describing the behaviour (`marks_invoice_as_paid_when_payment_confirmed`), `: void` return type.
 - Admin HTTP tests: `actingAs($user, 'backpack')`; an unauthenticated admin request returns 403.
-- `tests/TestCase.php` loads `tests/test_routes.php` and disables the `SetLocale` middleware.
+- `tests/TestCase.php` disables the `SetLocale` middleware. Tests call the application's real routes; a test never registers a route that shadows one.
 - PDF output is pinned by `InvoicePdfSnapshotTest`; regenerate snapshots only for an intended change with `UPDATE_PDF_SNAPSHOTS=1` and review the diff.
 - Run targeted tests while working; the full suite and the architecture guards run before a commit through the `pre-pr-check` skill.
