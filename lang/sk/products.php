@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Produkt',
+        'plural' => 'Produkty',
+    ],
     'fields' => [
         'name' => 'Názov',
         'description' => 'Popis',
@@ -13,42 +17,11 @@ return [
         'is_active' => 'Aktívny produkt',
         'image' => 'Obrázok',
         'upload_image' => 'Nahrajte obrázok',
-        'slug' => 'Slug',
+        'slug' => 'URL kľúč',
         'currency' => 'Mena',
         'created_at' => 'Dátum vytvorenia',
+        'user_id' => 'Vlastník',
     ],
-
-    'titles' => [
-        'invoices' => 'Faktúry',
-        'index' => 'Produkty',
-        'create' => 'Vytvoriť produkt',
-        'edit' => 'Upraviť produkt',
-        'show' => 'Produkt #',
-        'select_product' => 'Vyberte produkt',
-    ],
-
-    'no_input_labels' => [
-        'current_image' => 'Aktuálny obrázok',
-    ],
-
-    'sections' => [
-        'basic_info' => 'Základné informácie',
-        'detail_info' => 'Podrobnosti',
-    ],
-
-    'actions' => [
-        'actions' => 'Akcie',
-        'create' => 'Vytvoriť produkt',
-        'edit' => 'Upraviť produkt',
-        'delete' => 'Zmazať produkt',
-        'view' => 'Zobraziť produkt',
-        'cancel' => 'Zrušiť',
-        'save' => 'Uložiť',
-        'confirm_delete' => 'Opraviť smazání produktu?',
-        'back_to_list' => 'Späť na zoznam',
-        'search' => 'Vyhledat produkt...',
-    ],
-
     'hints' => [
         'delete' => 'Smazanie produktu odstráni všetky súvisiace faktúry a položky.',
         'create' => 'Vytvorenie nového produktu vyplnením všetkých potrebných polí.',
@@ -63,11 +36,30 @@ return [
         'tax_id' => '',
         'is_default' => '',
         'is_active' => '',
-        'image' => 'Nahrajte obrázok pre produkt (JPEG, PNG, GIF, SVG, max. 2MB)',
+        'image' => 'JPG, PNG, GIF alebo WebP, najviac 2 MB.',
         'currency' => '',
-        'slug' => 'Slug je unikátny identifikátor produktu, ktorý sa používa v URL.',
+        'slug' => 'Jedinečný identifikátor produktu v URL. Ak ho nevyplníte, vytvorí sa z názvu.',
     ],
-
+    'placeholders' => [
+        'select_category' => 'Vyberte kategóriu',
+        'select_supplier' => 'Vyberte dodávateľa',
+        'select_tax' => 'Vyberte daň',
+        'select_image' => 'Vyberte obrázok',
+        'select_product' => 'Vyberte produkt',
+        'select_currency' => 'Vyberte menu',
+    ],
+    'actions' => [
+        'actions' => 'Akcie',
+        'create' => 'Vytvoriť produkt',
+        'edit' => 'Upraviť produkt',
+        'delete' => 'Zmazať produkt',
+        'view' => 'Zobraziť produkt',
+        'cancel' => 'Zrušiť',
+        'save' => 'Uložiť',
+        'back_to_list' => 'Späť na zoznam',
+        'search' => 'Vyhledat produkt...',
+        'new' => 'Nový produkt',
+    ],
     'messages' => [
         'created' => 'Produkt bol úspešne vytvorený.',
         'updated' => 'Produkt bol úspešne aktualizovaný.',
@@ -83,32 +75,27 @@ return [
         'image_deleted' => 'Obrázok bol úspešne zmazaný.',
         'image_error' => 'Chyba pri nahrávaní obrázku.',
         'no_products_found' => 'Neboli nájdené žiadne produkty.',
-        'limit_exceeded' => 'Dosiahli ste limit vytvárania produktov. Dôvod: :reason, Limit: :limit',
+        'limit_exceeded' => 'Dosiahli ste limit počtu produktov.',
+        'confirm_delete' => 'Naozaj chcete produkt zmazať?',
+        'tax_not_loaded' => 'Neznáma daň',
     ],
-
-    'validation' => [
-        'not_found' => 'Produkt nebol nájdený.',
-        'invalid_data' => 'Neplatné dáta.',
-        'api_error' => 'Chyba pri komunikácii s API.',
-        'name_required' => 'Názov je povinný',
-        'name_min' => 'Názov musí mať aspoň :min znakov',
-        'name_max' => 'Názov môže mať maximálne :max znakov',
-        'price_required' => 'Cena je povinná',
-        'price_numeric' => 'Cena musí byť číslo',
-        'price_min' => 'Cena musí byť aspoň :min',
-        'user_required' => 'Používateľ je povinný',
-        'user_exists' => 'Vybraný používateľ neexistuje',
-        'tax_exists' => 'Vybraná daň neexistuje',
-        'supplier_exists' => 'Vybraný dodávateľ neexistuje',
-        'category_exists' => 'Vybraná kategória neexistuje',
-        'image_format' => 'Obrázok musí byť JPEG, PNG, GIF alebo SVG',
-        'image_size' => 'Veľkosť obrázka nesmie presiahnuť :max kB',
-        'currency_required' => 'Mena je povinná',
-        'currency_in' => 'Vybraná mena je neplatná',
-        'image_image' => 'Obrázok musí byť súbor obrázka',
-        'slug_unique' => 'Slug musí byť jedinečný',
+    'titles' => [
+        'invoices' => 'Faktúry',
+        'index' => 'Produkty',
+        'create' => 'Vytvoriť produkt',
+        'edit' => 'Upraviť produkt',
+        'show' => 'Produkt #',
+        'select_product' => 'Vyberte produkt',
+        'empty' => 'Zatiaľ nemáte žiadne produkty',
+        'empty_message' => 'Začnite vytvorením vášho prvého produktu.',
     ],
-
+    'no_input_labels' => [
+        'current_image' => 'Aktuálny obrázok',
+    ],
+    'sections' => [
+        'basic_info' => 'Základné informácie',
+        'detail_info' => 'Podrobnosti',
+    ],
     'tags' => [
         'product' => 'Produkt',
         'invoice' => 'Faktúra',
@@ -117,13 +104,23 @@ return [
         'tax' => 'Daň',
         'details' => 'Podrobnosti',
     ],
-
-    'placeholders' => [
-        'select_category' => 'Vyberte kategóriu',
-        'select_supplier' => 'Vyberte dodávateľa',
-        'select_tax' => 'Vyberte daň',
-        'select_image' => 'Vyberte obrázok',
-        'select_product' => 'Vyberte produkt',
-        'select_currency' => 'Vyberte menu',
+    'filters' => [
+        'active_only' => 'Iba aktívne',
+    ],
+    'categories' => [
+        'entity' => [
+            'singular' => 'Kategória produktu',
+            'plural' => 'Kategórie produktov',
+        ],
+        'fields' => [
+            'name' => 'Názov',
+            'slug' => 'URL kľúč',
+            'description' => 'Popis',
+            'created_at' => 'Vytvorené',
+            'updated_at' => 'Aktualizované',
+        ],
+        'hints' => [
+            'slug' => 'Jedinečný identifikátor kategórie v URL. Ak ho nevyplníte, vytvorí sa z názvu.',
+        ],
     ],
 ];

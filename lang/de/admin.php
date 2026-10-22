@@ -321,27 +321,6 @@ return [
         'sort_order' => 'Reihenfolge',
     ],
 
-    'products' => [
-        'product' => 'Produkt',
-        'products' => 'Produkte',
-        'supplier' => 'Lieferant',
-        'product_category' => 'Produktkategorie',
-        'product_categories' => 'Produktkategorien',
-        'name' => 'Name',
-        'slug' => 'Slug',
-        'description' => 'Beschreibung',
-        'price' => 'Preis',
-        'tax' => 'MwSt.',
-        'category' => 'Kategorie',
-        'is_default' => 'Standard',
-        'user' => 'Benutzer',
-        'image' => 'Bild',
-        'leave_empty_for_autogeneration' => 'Leer lassen für automatische Generierung',
-        'remove_image' => 'Bild entfernen',
-        'image_help' => 'Unterstützte Formate: JPG, PNG, GIF (max. 2MB)',
-        'active_only' => 'Nur aktive',
-    ],
-
     'database' => [
         'database_management' => 'Datenbankverwaltung',
         'dashboard' => 'Datenbank-Dashboard',

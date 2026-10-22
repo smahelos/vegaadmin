@@ -321,27 +321,6 @@ return [
         'sort_order' => 'Poradie',
     ],
 
-    'products' => [
-        'product' => 'Produkt',
-        'products' => 'Produkty',
-        'supplier' => 'Dodávateľ',
-        'product_category' => 'Kategória produktu',
-        'product_categories' => 'Kategórie produktov',
-        'name' => 'Názov',
-        'slug' => 'Slug',
-        'description' => 'Popis',
-        'price' => 'Cena',
-        'tax' => 'DPH',
-        'category' => 'Kategória',
-        'is_default' => 'Predvolený',
-        'user' => 'Používateľ',
-        'image' => 'Obrázok',
-        'leave_empty_for_autogeneration' => 'Nechajte prázdne pre automatické generovanie',
-        'remove_image' => 'Odstrániť obrázok',
-        'image_help' => 'Podporované formáty: JPG, PNG, GIF (max. 2MB)',
-        'active_only' => 'Iba aktívne',
-    ],
-
     'database' => [
         'database_management' => 'Správa databázy',
         'dashboard' => 'Prehľad databázy',

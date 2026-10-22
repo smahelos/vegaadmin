@@ -124,6 +124,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** the application runs on MySQL, tests on in-memory SQLite. MySQL-specific queries (`DATE_FORMAT`, `STR_TO_DATE`, …) are never tested, SQLite does not enforce strict `sql_mode` or column types, and production code and migrations carry `driver === 'sqlite'` branches that exist only for the tests. `TestCase` resets `RefreshDatabaseState` so that every test migrates all migrations again, and `RefreshDatabaseWithData` runs `migrate:fresh` + seed before every test.
 - **Fix (decided 2026-10-20):** tests run only on MySQL — a separate test database in the existing MySQL container, next to the local development database, and a MySQL service in CI. Squash the migrations into a clean MySQL schema first (no production yet). Migrate and seed once, one transaction per test (`RefreshDatabase`); remove the `TestCase` reset, `RefreshDatabaseWithData` and every SQLite branch; fix tests that rely on fixed IDs or row order. The test user needs `CREATE DATABASE` for `--parallel` (`<database>_test_N`).
 
+### `ddd:guard` snapshot test fails now and then in parallel runs
+- **Where:** `tests/Feature/Console/DddGuardDiJsonSnapshotTest.php`
+- **Problem:** in `php artisan test --parallel` the `Artisan::call('ddd:guard', …)` call occasionally throws (seen 2026-10-22); the test passes alone and in the next full runs.
+- **Fix:** find what the command shares with other parallel processes (scanned files, cache, output buffer) and isolate it, or drop the test together with the guards (Architecture guards are migration scaffolding).
+
 ### Resilience of external calls
 - **Where:** `app/Http/Controllers/Api/AresLookupController.php`, `app/Infrastructure/Shared/Http/Services/HttpClientService.php`, `app/Domain/Analytics/Services/BaseAnalyticsExternalService.php`, `config/analytics.php`
 - **Problem:** ARES is called with `Http::get()` directly from a controller without a timeout; exchange rates and countries go through `HttpClientService` without timeouts. A circuit breaker exists only in the unused Analytics base class.

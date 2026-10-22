@@ -55,38 +55,16 @@ class ProductRequest extends BaseEntityRequest
     public function attributes(): array
     {
         return [
-            'name' => trans('admin.products.name'),
-            'slug' => trans('admin.products.slug'),
-            'description' => trans('admin.products.description'),
-            'price' => trans('admin.products.price'),
-            'tax_id' => trans('admin.products.tax'),
-            'supplier_id' => trans('admin.products.supplier'),
-            'category_id' => trans('admin.products.category'),
-            'image' => trans('admin.products.image'),
-            'is_default' => trans('admin.products.is_default'),
-            'is_active' => trans('admin.products.is_active'),
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules.
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => trans('admin.products.validation.name_required'),
-            'name.min' => trans('admin.products.validation.name_min'),
-            'name.max' => trans('admin.products.validation.name_max'),
-            'price.required' => trans('admin.products.validation.price_required'),
-            'price.numeric' => trans('admin.products.validation.price_numeric'),
-            'price.min' => trans('admin.products.validation.price_min'),
-            'user_id.required' => trans('admin.products.validation.user_required'),
-            'user_id.exists' => trans('admin.products.validation.user_exists'),
-            'tax_id.exists' => trans('admin.products.validation.tax_exists'),
-            'supplier_id.exists' => trans('admin.products.validation.supplier_exists'),
-            'category_id.exists' => trans('admin.products.validation.category_exists'),
-            'image.image' => trans('admin.products.validation.image_format'),
-            'image.max' => trans('admin.products.validation.image_size'),
+            'name' => __('products.fields.name'),
+            'slug' => __('products.fields.slug'),
+            'user_id' => __('products.fields.user_id'),
+            'price' => __('products.fields.price'),
+            'tax_id' => __('products.fields.tax_id'),
+            'supplier_id' => __('products.fields.supplier_id'),
+            'category_id' => __('products.fields.category_id'),
+            'description' => __('products.fields.description'),
+            'is_default' => __('products.fields.is_default'),
+            'image' => __('products.fields.image'),
         ];
     }
 

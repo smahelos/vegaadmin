@@ -330,9 +330,9 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
 
         // Check that translations are being called
-        $this->assertEquals(trans('admin.product_categories.name'), $attributes['name']);
-        $this->assertEquals(trans('admin.product_categories.slug'), $attributes['slug']);
-        $this->assertEquals(trans('admin.product_categories.description'), $attributes['description']);
+        $this->assertEquals(__('products.categories.fields.name'), $attributes['name']);
+        $this->assertEquals(__('products.categories.fields.slug'), $attributes['slug']);
+        $this->assertEquals(__('products.categories.fields.description'), $attributes['description']);
     }
 
     #[Test]

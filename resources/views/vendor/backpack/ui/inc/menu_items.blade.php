@@ -88,9 +88,9 @@ backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
 {{-- 4. Inventory Management --}}
 @if(backpack_user()->hasPermissionTo('can_create_edit_product', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.inventory.title') }}" icon="la la-boxes text-info">
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.products.products') }}" icon="la la-box"
+    <x-backpack::menu-dropdown-item title="{{ __('products.entity.plural') }}" icon="la la-box"
         :link="backpack_url('product')" />
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.products.product_categories') }}" icon="la la-tags"
+    <x-backpack::menu-dropdown-item title="{{ __('products.categories.entity.plural') }}" icon="la la-tags"
         :link="backpack_url('product-category')" />
 </x-backpack::menu-dropdown>
 @endif

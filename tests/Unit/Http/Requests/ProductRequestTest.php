@@ -68,17 +68,6 @@ class ProductRequestTest extends TestCase
     }
 
     #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
-
-    #[Test]
     public function rules_method_exists_and_is_callable(): void
     {
         $reflection = new \ReflectionClass($this->request);
@@ -93,16 +82,6 @@ class ProductRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
-        $this->assertTrue($method->isPublic());
-        $this->assertCount(0, $method->getParameters());
-    }
-
-    #[Test]
-    public function messages_method_exists_and_is_callable(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
         
         $this->assertTrue($method->isPublic());
         $this->assertCount(0, $method->getParameters());
@@ -125,21 +104,6 @@ class ProductRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
-        // Test method exists and is public
-        $this->assertTrue($method->isPublic());
-        
-        // Test return type
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
-
-    #[Test]
-    public function messages_method_has_correct_signature(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
         
         // Test method exists and is public
         $this->assertTrue($method->isPublic());

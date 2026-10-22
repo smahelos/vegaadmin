@@ -22,8 +22,8 @@ class ProductCategoryCrudController extends CrudController
         CRUD::setModel(\App\Models\ProductCategory::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/product-category');
         CRUD::setEntityNameStrings(
-            __('admin.products.product_category'),
-            __('admin.products.product_categories')
+            __('products.categories.entity.singular'),
+            __('products.categories.entity.plural')
         );
     }
 
@@ -32,11 +32,11 @@ class ProductCategoryCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name');
-        CRUD::column('slug');
-        CRUD::column('description');
-        CRUD::column('created_at');
-        CRUD::column('updated_at');
+        CRUD::column('name')->label(__('products.categories.fields.name'));
+        CRUD::column('slug')->label(__('products.categories.fields.slug'));
+        CRUD::column('description')->label(__('products.categories.fields.description'));
+        CRUD::column('created_at')->label(__('products.categories.fields.created_at'));
+        CRUD::column('updated_at')->label(__('products.categories.fields.updated_at'));
     }
 
     /**
@@ -46,9 +46,13 @@ class ProductCategoryCrudController extends CrudController
     {
         CRUD::setValidation(ProductCategoryRequest::class);
 
-        CRUD::field('name');
-        CRUD::field('slug')->hint(trans('admin.leave_empty_for_autogeneration'));
-        CRUD::field('description')->type('textarea');
+        CRUD::field('name')->label(__('products.categories.fields.name'));
+        CRUD::field('slug')
+            ->label(__('products.categories.fields.slug'))
+            ->hint(__('products.categories.hints.slug'));
+        CRUD::field('description')
+            ->type('textarea')
+            ->label(__('products.categories.fields.description'));
     }
 
     /**

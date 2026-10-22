@@ -339,27 +339,6 @@ return [
         'sort_order' => 'Pořadí',
     ],
 
-    'products' => [
-        'product' => 'Produkt',
-        'products' => 'Produkty',
-        'supplier' => 'Dodavatel/Prodejce',
-        'product_category' => 'Kategorie produktů',
-        'product_categories' => 'Kategorie produktů',
-        'name' => 'Název',
-        'slug' => 'URL klíč',
-        'description' => 'Popis',
-        'price' => 'Cena',
-        'tax' => 'DPH',
-        'category' => 'Kategorie',
-        'is_default' => 'Výchozí',
-        'user' => 'Uživatel',
-        'image' => 'Obrázek',
-        'leave_empty_for_autogeneration' => 'Ponechte prázdné pro automatické generování',
-        'remove_image' => 'Odstranit obrázek',
-        'image_help' => 'Podporované formáty: JPG, PNG, GIF (max. 2MB)',
-        'active_only' => 'Pouze aktivní',
-    ],
-
     'database' => [
         'database_management' => 'Správa databáze',
         'dashboard' => 'Přehled databáze',

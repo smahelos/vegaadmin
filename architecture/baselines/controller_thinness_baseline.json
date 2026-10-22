@@ -1,10 +1,10 @@
 {
     "summary": {
         "total_controllers": 55,
-        "avg_loc": 175.75,
+        "avg_loc": 175.96,
         "avg_eloquent_static_calls": 0.15,
         "controllers_with_direct_db_calls": 2,
-        "timestamp": "2026-10-22T09:07:04+00:00"
+        "timestamp": "2026-10-22T12:49:07+00:00"
     },
     "controllers": {
         "Http/Controllers/Frontend/PageController.php": {
@@ -200,7 +200,7 @@
             "public_method_count": 2
         },
         "Http/Controllers/Admin/ProductCrudController.php": {
-            "loc": 213,
+            "loc": 221,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -216,7 +216,7 @@
             "public_method_count": 2
         },
         "Http/Controllers/Admin/ProductCategoryCrudController.php": {
-            "loc": 53,
+            "loc": 57,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,

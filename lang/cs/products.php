@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Produkt',
+        'plural' => 'Produkty',
+    ],
     'fields' => [
         'name' => 'Název',
         'description' => 'Popis',
@@ -13,42 +17,11 @@ return [
         'is_active' => 'Aktivní produkt',
         'image' => 'Obrázek',
         'upload_image' => 'Nahrajte obrázek',
-        'slug' => 'Slug',
+        'slug' => 'URL klíč',
         'currency' => 'Měna',
         'created_at' => 'Datum vytvoření',
+        'user_id' => 'Vlastník',
     ],
-
-    'titles' => [
-        'invoices' => 'Faktury',
-        'index' => 'Produkty',
-        'create' => 'Vytvořit produkt',
-        'edit' => 'Upravit produkt',
-        'show' => 'Produkt #',
-        'select_product' => 'Vyberte produkt',
-    ],
-
-    'no_input_labels' => [
-        'current_image' => 'Aktuální obrázek',
-    ],
-
-    'sections' => [
-        'basic_info' => 'Základní informace',
-        'detail_info' => 'Podrobnosti',
-    ],
-
-    'actions' => [
-        'actions' => 'Akce',
-        'create' => 'Vytvořit produkt',
-        'edit' => 'Upravit produkt',
-        'delete' => 'Smazat produkt',
-        'view' => 'Zobrazit produkt',
-        'cancel' => 'Zrušit',
-        'save' => 'Uložit',
-        'confirm_delete' => 'Opravit smazání produktu?',
-        'back_to_list' => 'Zpět na seznam',
-        'search' => 'Vyhledat produkt...',
-    ],
-
     'hints' => [
         'delete' => 'Smazání produktu odstraní všechny související faktury a položky.',
         'create' => 'Vytvořte nový produkt vyplněním všech potřebných polí.',
@@ -63,20 +36,30 @@ return [
         'tax_id' => '',
         'is_default' => '',
         'is_active' => '',
-        'image' => 'Nahrajte obrázek pro produkt (JPEG, PNG, GIF, SVG, max. 2MB)',
+        'image' => 'JPG, PNG, GIF nebo WebP, nejvýše 2 MB.',
         'currency' => '',
-        'slug' => 'Slug je unikátní identifikátor produktu, který se používá v URL.',
+        'slug' => 'Unikátní identifikátor produktu v URL. Když ho nevyplníte, vytvoří se z názvu.',
     ],
-
-    'tags' => [
-        'product' => 'Produkt',
-        'invoice' => 'Faktura',
-        'supplier' => 'Dodavatel',
-        'category' => 'Kategorie',
-        'tax' => 'Daň',
-        'details' => 'Podrobnosti',
+    'placeholders' => [
+        'select_category' => 'Vyberte kategorii',
+        'select_supplier' => 'Vyberte dodavatele',
+        'select_tax' => 'Vyberte daň',
+        'select_image' => 'Vyberte obrázek',
+        'select_product' => 'Vyberte produkt',
+        'select_currency' => 'Vyberte měnu',
     ],
-
+    'actions' => [
+        'actions' => 'Akce',
+        'create' => 'Vytvořit produkt',
+        'edit' => 'Upravit produkt',
+        'delete' => 'Smazat produkt',
+        'view' => 'Zobrazit produkt',
+        'cancel' => 'Zrušit',
+        'save' => 'Uložit',
+        'back_to_list' => 'Zpět na seznam',
+        'search' => 'Vyhledat produkt...',
+        'new' => 'Nový produkt',
+    ],
     'messages' => [
         'created' => 'Produkt byl úspěšně vytvořen.',
         'updated' => 'Produkt byl úspěšně aktualizován.',
@@ -92,38 +75,52 @@ return [
         'image_deleted' => 'Obrázek byl úspěšně smazán.',
         'image_error' => 'Chyba při nahrávání obrázku.',
         'no_products_found' => 'Nebyl nalezen žádný produkt.',
-        'limit_exceeded' => 'Dosáhli jste limitu počtu produktů pro tento měsíc. Důvod: :reason, Limit: :limit',
+        'limit_exceeded' => 'Dosáhli jste limitu počtu produktů.',
+        'confirm_delete' => 'Opravdu chcete produkt smazat?',
+        'tax_not_loaded' => 'Neznámá daň',
     ],
-
-    'validation' => [
-        'not_found' => 'Produkt nebyl nalezen.',
-        'invalid_data' => 'Neplatná data.',
-        'api_error' => 'Chyba při komunikaci s API.',
-        'name_required' => 'Název je povinný',
-        'name_min' => 'Název musí mít alespoň :min znaků',
-        'name_max' => 'Název může mít maximálně :max znaků',
-        'price_required' => 'Cena je povinná',
-        'price_numeric' => 'Cena musí být číslo',
-        'price_min' => 'Cena musí být alespoň :min',
-        'user_required' => 'Uživatel je povinný',
-        'user_exists' => 'Vybraný uživatel neexistuje',
-        'tax_exists' => 'Vybraná daň neexistuje',
-        'supplier_exists' => 'Vybraný dodavatel neexistuje',
-        'category_exists' => 'Vybraná kategorie neexistuje',
-        'image_format' => 'Obrázek musí být JPEG, PNG, GIF nebo SVG',
-        'image_max' => 'Obrázek nesmí být větší než :max kB',
-        'currency_required' => 'Měna je povinná',
-        'currency_in' => 'Vybraná měna je neplatná',
-        'image_image' => 'Obrázek musí být soubor obrázku',
-        'slug_unique' => 'Slug musí být jedinečný',
-    ],
-
-    'placeholders' => [
-        'select_category' => 'Vyberte kategorii',
-        'select_supplier' => 'Vyberte dodavatele',
-        'select_tax' => 'Vyberte daň',
-        'select_image' => 'Vyberte obrázek',
+    'titles' => [
+        'invoices' => 'Faktury',
+        'index' => 'Produkty',
+        'create' => 'Vytvořit produkt',
+        'edit' => 'Upravit produkt',
+        'show' => 'Produkt #',
         'select_product' => 'Vyberte produkt',
-        'select_currency' => 'Vyberte měnu',
+        'empty' => 'Zatím nemáte žádné produkty',
+        'empty_message' => 'Začněte vytvořením vašeho prvního produktu.',
+    ],
+    'no_input_labels' => [
+        'current_image' => 'Aktuální obrázek',
+    ],
+    'sections' => [
+        'basic_info' => 'Základní informace',
+        'detail_info' => 'Podrobnosti',
+    ],
+    'tags' => [
+        'product' => 'Produkt',
+        'invoice' => 'Faktura',
+        'supplier' => 'Dodavatel',
+        'category' => 'Kategorie',
+        'tax' => 'Daň',
+        'details' => 'Podrobnosti',
+    ],
+    'filters' => [
+        'active_only' => 'Pouze aktivní',
+    ],
+    'categories' => [
+        'entity' => [
+            'singular' => 'Kategorie produktu',
+            'plural' => 'Kategorie produktů',
+        ],
+        'fields' => [
+            'name' => 'Název',
+            'slug' => 'URL klíč',
+            'description' => 'Popis',
+            'created_at' => 'Vytvořeno',
+            'updated_at' => 'Aktualizováno',
+        ],
+        'hints' => [
+            'slug' => 'Unikátní identifikátor kategorie v URL. Když ho nevyplníte, vytvoří se z názvu.',
+        ],
     ],
 ];

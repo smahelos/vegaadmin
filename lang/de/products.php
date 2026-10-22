@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Produkt',
+        'plural' => 'Produkte',
+    ],
     'fields' => [
         'name' => 'Name',
         'description' => 'Beschreibung',
@@ -13,42 +17,11 @@ return [
         'is_active' => 'Aktives Produkt',
         'image' => 'Bild',
         'upload_image' => 'Bild hochladen',
-        'slug' => 'Slug',
+        'slug' => 'URL-Schlüssel',
         'currency' => 'Währung',
         'created_at' => 'Erstellt am',
+        'user_id' => 'Eigentümer',
     ],
-
-    'titles' => [
-        'invoices' => 'Rechnungen',
-        'index' => 'Produkte',
-        'create' => 'Produkt erstellen',
-        'edit' => 'Produkt bearbeiten',
-        'show' => 'Produkt #',
-        'select_product' => 'Produkt auswählen',
-    ],
-
-    'no_input_labels' => [
-        'current_image' => 'Aktuelles Bild',
-    ],
-
-    'sections' => [
-        'basic_info' => 'Basisinformationen',
-        'detail_info' => 'Details',
-    ],
-
-    'actions' => [
-        'actions' => 'Aktionen',
-        'create' => 'Produkt erstellen',
-        'edit' => 'Produkt bearbeiten',
-        'delete' => 'Produkt löschen',
-        'view' => 'Produkt anzeigen',
-        'cancel' => 'Abbrechen',
-        'save' => 'Speichern',
-        'confirm_delete' => 'Produktlöschung bestätigen?',
-        'back_to_list' => 'Zurück zur Liste',
-        'search' => 'Produkt suchen...',
-    ],
-
     'hints' => [
         'delete' => 'Das Löschen eines Produkts entfernt alle zugehörigen Rechnungen und Artikel.',
         'create' => 'Erstellen Sie ein neues Produkt, indem Sie alle erforderlichen Felder ausfüllen.',
@@ -63,20 +36,30 @@ return [
         'tax_id' => '',
         'is_default' => '',
         'is_active' => '',
-        'image' => 'Laden Sie ein Produktbild hoch (JPEG, PNG, GIF, SVG, max. 2MB)',
+        'image' => 'JPG, PNG, GIF oder WebP, höchstens 2 MB.',
         'currency' => '',
-        'slug' => 'Slug ist ein eindeutiger Produktbezeichner, der in der URL verwendet wird.',
+        'slug' => 'Eindeutige Kennung des Produkts in der URL. Leer lassen, um sie aus dem Namen zu erstellen.',
     ],
-
-    'tags' => [
-        'product' => 'Produkt',
-        'invoice' => 'Rechnung',
-        'supplier' => 'Lieferant',
-        'category' => 'Kategorie',
-        'tax' => 'Steuer',
-        'details' => 'Details',
+    'placeholders' => [
+        'select_category' => 'Kategorie auswählen',
+        'select_supplier' => 'Lieferant auswählen',
+        'select_tax' => 'Steuer auswählen',
+        'select_image' => 'Bild auswählen',
+        'select_product' => 'Produkt auswählen',
+        'select_currency' => 'Währung auswählen',
     ],
-
+    'actions' => [
+        'actions' => 'Aktionen',
+        'create' => 'Produkt erstellen',
+        'edit' => 'Produkt bearbeiten',
+        'delete' => 'Produkt löschen',
+        'view' => 'Produkt anzeigen',
+        'cancel' => 'Abbrechen',
+        'save' => 'Speichern',
+        'back_to_list' => 'Zurück zur Liste',
+        'search' => 'Produkt suchen...',
+        'new' => 'Neues Produkt',
+    ],
     'messages' => [
         'created' => 'Produkt wurde erfolgreich erstellt.',
         'updated' => 'Produkt wurde erfolgreich aktualisiert.',
@@ -92,38 +75,52 @@ return [
         'image_deleted' => 'Bild wurde erfolgreich gelöscht.',
         'image_error' => 'Fehler beim Hochladen des Bildes.',
         'no_products_found' => 'Es wurden keine Produkte gefunden.',
-        'limit_exceeded' => 'Sie haben das Produktlimit erreicht. Grund: :reason, Limit: :limit',
+        'limit_exceeded' => 'Sie haben Ihr Produktlimit erreicht.',
+        'confirm_delete' => 'Möchten Sie dieses Produkt wirklich löschen?',
+        'tax_not_loaded' => 'Unbekannte Steuer',
     ],
-
-    'validation' => [
-        'not_found' => 'Produkt wurde nicht gefunden.',
-        'invalid_data' => 'Ungültige Daten.',
-        'api_error' => 'Fehler bei der Kommunikation mit der API.',
-        'name_required' => 'Name ist erforderlich',
-        'name_min' => 'Name muss mindestens :min Zeichen haben',
-        'name_max' => 'Name darf maximal :max Zeichen haben',
-        'price_required' => 'Preis ist erforderlich',
-        'price_numeric' => 'Preis muss eine Zahl sein',
-        'price_min' => 'Preis muss mindestens :min sein',
-        'user_required' => 'Benutzer ist erforderlich',
-        'user_exists' => 'Ausgewählter Benutzer existiert nicht',
-        'tax_exists' => 'Ausgewählte Steuer existiert nicht',
-        'supplier_exists' => 'Ausgewählter Lieferant existiert nicht',
-        'category_exists' => 'Ausgewählte Kategorie existiert nicht',
-        'image_format' => 'Bild muss JPEG, PNG, GIF oder SVG sein',
-        'image_size' => 'Bildgröße darf :max kB nicht überschreiten',
-        'currency_required' => 'Währung ist erforderlich',
-        'currency_in' => 'Ausgewählte Währung ist ungültig',
-        'image_image' => 'Bild muss eine Bilddatei sein',
-        'slug_unique' => 'Slug muss einzigartig sein',
-    ],
-
-    'placeholders' => [
-        'select_category' => 'Kategorie auswählen',
-        'select_supplier' => 'Lieferant auswählen',
-        'select_tax' => 'Steuer auswählen',
-        'select_image' => 'Bild auswählen',
+    'titles' => [
+        'invoices' => 'Rechnungen',
+        'index' => 'Produkte',
+        'create' => 'Produkt erstellen',
+        'edit' => 'Produkt bearbeiten',
+        'show' => 'Produkt #',
         'select_product' => 'Produkt auswählen',
-        'select_currency' => 'Währung auswählen',
+        'empty' => 'Sie haben noch keine Produkte',
+        'empty_message' => 'Beginnen Sie mit dem Anlegen Ihres ersten Produkts.',
+    ],
+    'no_input_labels' => [
+        'current_image' => 'Aktuelles Bild',
+    ],
+    'sections' => [
+        'basic_info' => 'Basisinformationen',
+        'detail_info' => 'Details',
+    ],
+    'tags' => [
+        'product' => 'Produkt',
+        'invoice' => 'Rechnung',
+        'supplier' => 'Lieferant',
+        'category' => 'Kategorie',
+        'tax' => 'Steuer',
+        'details' => 'Details',
+    ],
+    'filters' => [
+        'active_only' => 'Nur aktive',
+    ],
+    'categories' => [
+        'entity' => [
+            'singular' => 'Produktkategorie',
+            'plural' => 'Produktkategorien',
+        ],
+        'fields' => [
+            'name' => 'Name',
+            'slug' => 'URL-Schlüssel',
+            'description' => 'Beschreibung',
+            'created_at' => 'Erstellt',
+            'updated_at' => 'Aktualisiert',
+        ],
+        'hints' => [
+            'slug' => 'Eindeutige Kennung der Kategorie in der URL. Leer lassen, um sie aus dem Namen zu erstellen.',
+        ],
     ],
 ];

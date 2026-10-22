@@ -339,27 +339,6 @@ return [
         'sort_order' => 'Sort order',
     ],
 
-    'products' => [
-        'product' => 'Product',
-        'products' => 'Products',
-        'supplier' => 'Supplier',
-        'product_category' => 'Product Category',
-        'product_categories' => 'Product Categories',
-        'name' => 'Name',
-        'slug' => 'Slug',
-        'description' => 'Description',
-        'price' => 'Price',
-        'tax' => 'Tax',
-        'category' => 'Category',
-        'is_default' => 'Default',
-        'user' => 'User',
-        'image' => 'Image',
-        'leave_empty_for_autogeneration' => 'Leave empty for automatic generation',
-        'remove_image' => 'Remove Image',
-        'image_help' => 'Supported formats: JPG, PNG, GIF (max. 2MB)',
-        'active_only' => 'Active Only',
-    ],
-
     'database' => [
         'database_management' => 'Database Management',
         'dashboard' => 'Database Dashboard',
