@@ -120,59 +120,6 @@ return [
         'total' => 'Gesamtbetrag',
     ],
 
-    'clients' => [
-        'client' => 'Kunde',
-        'clients' => 'Kunden',
-        'ico' => 'Handelsregisternummer',
-        'dic' => 'Steuernummer',
-        'company_name' => 'Firmenname',
-        'street' => 'Straße',
-        'city' => 'Stadt',
-        'zip' => 'PLZ',
-        'country' => 'Land',
-        'email' => 'E-Mail',
-        'phone' => 'Telefon',
-        'description' => 'Beschreibung',
-        'status' => [
-            'active' => 'Aktiv',
-            'inactive' => 'Inaktiv',
-            'archived' => 'Archiviert',
-            'deleted' => 'Gelöscht',
-        ],
-        'is_default' => 'Standard',
-        'user' => 'Benutzer',
-    ],
-
-    'suppliers' => [
-        'supplier' => 'Lieferant',
-        'suppliers' => 'Lieferanten',
-        'ico' => 'Handelsregisternummer',
-        'dic' => 'Steuernummer',
-        'company_name' => 'Firmenname',
-        'street' => 'Straße',
-        'city' => 'Stadt',
-        'zip' => 'PLZ',
-        'country' => 'Land',
-        'email' => 'E-Mail',
-        'phone' => 'Telefon',
-        'description' => 'Beschreibung',
-
-        'status' => [
-            'active' => 'Aktiv',
-            'inactive' => 'Inaktiv',
-            'archived' => 'Archiviert',
-            'deleted' => 'Gelöscht',
-        ],
-
-        'is_default' => 'Standard',
-        'user' => 'Benutzer',
-        'account_number' => 'Kontonummer',
-        'bank_code' => 'Bankleitzahl',
-        'iban' => 'IBAN',
-        'swift' => 'SWIFT',
-        'bank_name' => 'Bankname',
-    ],
-
     'cron_tasks' => [
         'cron_task' => 'Geplante Aufgabe',
         'cron_tasks' => 'Geplante Aufgaben',
@@ -359,18 +306,6 @@ return [
         'rate' => 'Satz',
         'description' => 'Beschreibung',
         'slug' => 'Slug',
-    ],
-
-    'banks' => [
-        'bank' => 'Bank',
-        'banks' => 'Banken',
-        'name' => 'Name',
-        'code' => 'Bankleitzahl',
-        'swift' => 'SWIFT',
-        'country' => 'Land',
-        'description' => 'Beschreibung',
-        'is_active' => 'Aktiv',
-        'sort_order' => 'Reihenfolge',
     ],
 
     'payment_methods' => [

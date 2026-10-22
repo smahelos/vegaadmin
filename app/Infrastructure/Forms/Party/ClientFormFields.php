@@ -63,14 +63,14 @@ trait ClientFormFields
                 'label' => __('clients.fields.country'),
                 'type' => 'text',
                 'hint' => __('clients.hints.country'),
-                'placeholder' => __('clients.placeholders.select_country'),
+                'placeholder' => __('general.placeholders.select_country'),
                 'required' => true,
             ],
             [
                 'name' => 'ico',
                 'label' => __('clients.fields.ico'),
                 'type' => 'text',
-                'hint' => __('clients.validation.ico_format'),
+                'hint' => __('clients.hints.ico'),
             ],
             [
                 'name' => 'dic',

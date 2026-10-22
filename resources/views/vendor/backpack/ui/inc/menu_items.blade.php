@@ -37,12 +37,12 @@ backpack_user()->hasPermissionTo('can_create_edit_supplier', 'backpack'))
     @endif
 
     @if(backpack_user()->hasPermissionTo('can_create_edit_client', 'backpack'))
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.clients.clients') }}" icon="la la-handshake"
+    <x-backpack::menu-dropdown-item title="{{ __('clients.entity.plural') }}" icon="la la-handshake"
         :link="backpack_url('client')" />
     @endif
 
     @if(backpack_user()->hasPermissionTo('can_create_edit_supplier', 'backpack'))
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.suppliers.suppliers') }}" icon="la la-truck"
+    <x-backpack::menu-dropdown-item title="{{ __('suppliers.entity.plural') }}" icon="la la-truck"
         :link="backpack_url('supplier')" />
     @endif
 </x-backpack::menu-dropdown>
@@ -74,7 +74,7 @@ backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
     @endif
 
     @if(backpack_user()->hasPermissionTo('can_create_edit_bank', 'backpack'))
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.banks.banks') }}" icon="la la-bank"
+    <x-backpack::menu-dropdown-item title="{{ __('banks.entity.plural') }}" icon="la la-bank"
         :link="backpack_url('bank')" />
     @endif
 

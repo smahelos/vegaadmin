@@ -138,59 +138,6 @@ return [
         'total' => 'Celková částka',
     ],
 
-    'clients' => [
-        'client' => 'Klient',
-        'clients' => 'Klienti',
-        'ico' => 'IČO',
-        'dic' => 'DIČ',
-        'company_name' => 'Název firmy',
-        'street' => 'Ulice',
-        'city' => 'Město',
-        'zip' => 'PSČ',
-        'country' => 'Země',
-        'email' => 'E-mail',
-        'phone' => 'Telefon',
-        'description' => 'Popis',
-        'status' => [
-            'active' => 'Aktivní',
-            'inactive' => 'Neaktivní',
-            'archived' => 'Archivovaný',
-            'deleted' => 'Smazaný',
-        ],
-        'is_default' => 'Výchozí',
-        'user' => 'Uživatel',
-    ],
-
-    'suppliers' => [
-        'supplier' => 'Dodavatel',
-        'suppliers' => 'Dodavatelé',
-        'ico' => 'IČO',
-        'dic' => 'DIČ',
-        'company_name' => 'Název firmy',
-        'street' => 'Ulice',
-        'city' => 'Město',
-        'zip' => 'PSČ',
-        'country' => 'Země',
-        'email' => 'E-mail',
-        'phone' => 'Telefon',
-        'description' => 'Popis',
-
-        'status' => [
-            'active' => 'Aktivní',
-            'inactive' => 'Neaktivní',
-            'archived' => 'Archivovaný',
-            'deleted' => 'Smazaný',
-        ],
-
-        'is_default' => 'Výchozí',
-        'user' => 'Uživatel',
-        'account_number' => 'Číslo účtu',
-        'bank_code' => 'Kód banky',
-        'iban' => 'IBAN',
-        'swift' => 'SWIFT',
-        'bank_name' => 'Název banky',
-    ],
-
     'cron_tasks' => [
         'cron_task' => 'Plánovač úloh',
         'cron_tasks' => 'Plánovače úloh',
@@ -377,18 +324,6 @@ return [
         'rate' => 'Sazba',
         'description' => 'Popis',
         'slug' => 'Slug',
-    ],
-
-    'banks' => [
-        'bank' => 'Banka',
-        'banks' => 'Banky',
-        'name' => 'Název',
-        'code' => 'Kód banky',
-        'swift' => 'SWIFT',
-        'country' => 'Země',
-        'description' => 'Popis',
-        'is_active' => 'Aktivní',
-        'sort_order' => 'Pořadí',
     ],
 
     'payment_methods' => [

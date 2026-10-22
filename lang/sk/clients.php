@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Klient',
+        'plural' => 'Klienti',
+    ],
     'fields' => [
         'name' => 'Názov',
         'email' => 'Email',
@@ -22,11 +26,22 @@ return [
         'is_default' => 'Predvolený klient',
         'user_id' => 'Vlastník',
     ],
-    'sections' => [
-        'basic_info' => 'Základné informácie',
-        'billing_info' => 'Fakturačné údaje',
-        'client_invoices' => 'Faktúry klienta',
-        'delivery_address' => 'Doručovacia adresa',
+    'hints' => [
+        'client' => '',
+        'name' => '',
+        'email' => '',
+        'phone' => '',
+        'shortcut' => '',
+        'street' => '',
+        'city' => '',
+        'zip' => '',
+        'country' => '',
+        'ico' => 'IČO musí obsahovať presne 8 číslic.',
+        'dic' => '',
+        'description' => '',
+    ],
+    'placeholders' => [
+        'not_specified' => 'Neuvedené',
     ],
     'actions' => [
         'create' => 'Vytvoriť klienta',
@@ -41,15 +56,6 @@ return [
         'show' => 'Zobraziť klienta',
         'invoice' => 'Fakturovať',
     ],
-    'titles' => [
-        'index' => 'Klienti',
-        'create' => 'Vytvoriť klienta',
-        'edit' => 'Upraviť klienta',
-        'show' => 'Detail klienta',
-        'client' => 'klient',
-        'empty' => 'Zatiaľ nemáte žiadnych klientov',
-        'empty_message' => 'Začnite vytvorením vášho prvého klienta.',
-    ],
     'messages' => [
         'created' => 'Klient bol úspešne vytvorený.',
         'updated' => 'Klient bol úspešne aktualizovaný.',
@@ -63,36 +69,22 @@ return [
         'is_default_explanation' => 'Ak je tento klient nastavený ako predvolený, bude automaticky vybraný pri vytváraní nových faktúr.',
         'not_found' => 'Klient nebol nájdený.',
         'no_clients' => 'Zatiaľ nemáte žiadnych klientov.',
+        'limit_exceeded' => 'Dosiahli ste limit počtu klientov.',
     ],
-    'validation' => [
-        'name_required' => 'Názov klienta je povinný.',
-        'email_required' => 'E-mailová adresa je povinná.',
-        'email_valid' => 'Zadajte platnú e-mailovú adresu.',
-        'street_required' => 'Adresa ulice je povinná.',
-        'city_required' => 'Mesto je povinné.',
-        'zip_required' => 'PSČ je povinné.',
-        'country_required' => 'Krajina je povinná.',
-        'ico_format' => 'IČO musí obsahovať presne 8 číslic.',
-        'zip_format' => 'PSČ musí byť vo formáte XXX XX alebo XXXXX.',
-        'user_required' => 'Vlastník klienta je povinný.',
-        'user_exists' => 'Vybraný vlastník neexistuje.',
+    'sections' => [
+        'basic_info' => 'Základné informácie',
+        'billing_info' => 'Fakturačné údaje',
+        'client_invoices' => 'Faktúry klienta',
+        'delivery_address' => 'Doručovacia adresa',
     ],
-    'placeholders' => [
-        'not_specified' => 'Neuvedené',
-    ],
-    'hints' => [
-        'client' => '',
-        'name' => '',
-        'email' => '',
-        'phone' => '',
-        'shortcut' => '',
-        'street' => '',
-        'city' => '',
-        'zip' => '',
-        'country' => '',
-        'ico' => '',
-        'dic' => '',
-        'description' => '',
+    'titles' => [
+        'index' => 'Klienti',
+        'create' => 'Vytvoriť klienta',
+        'edit' => 'Upraviť klienta',
+        'show' => 'Detail klienta',
+        'client' => 'klient',
+        'empty' => 'Zatiaľ nemáte žiadnych klientov',
+        'empty_message' => 'Začnite vytvorením vášho prvého klienta.',
     ],
     'invoices' => [
         'no_invoices' => 'Klient nemá žiadne faktúry',

@@ -80,6 +80,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 ## Party / Admin
 
+### Inactive banks are still offered
+- **Where:** `banks.active`, `app/Infrastructure/Persistence/Eloquent/Payment/Repositories/EloquentBankRepository.php` (`getAllBanks()`)
+- **Problem:** the admin can mark a bank inactive, but the bank list for supplier forms filters only by country, so the flag changes nothing.
+- **Fix:** list only active banks for the supplier forms (the admin list keeps all), or drop the column.
+
 ### Unreachable branch of the frontend user request
 - **Where:** non-profile branch of `app/Http/Requests/UserRequest.php`
 - **Problem:** no route reaches it; it checks `frontend.can_create_edit_user`, which is not in `PermissionCatalog`. `PermissionCatalogCoverageTest` allowlists it as unreachable.

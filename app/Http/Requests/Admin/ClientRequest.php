@@ -52,26 +52,17 @@ class ClientRequest extends BaseEntityRequest
     {
         return [
             'name' => __('clients.fields.name'),
-            'email' => __('clients.fields.email'),
+            'shortcut' => __('clients.fields.shortcut'),
             'street' => __('clients.fields.street'),
             'city' => __('clients.fields.city'),
             'zip' => __('clients.fields.zip'),
             'country' => __('clients.fields.country'),
+            'ico' => __('clients.fields.ico'),
+            'dic' => __('clients.fields.dic'),
+            'email' => __('clients.fields.email'),
+            'phone' => __('clients.fields.phone'),
+            'description' => __('clients.fields.description'),
             'user_id' => __('clients.fields.user_id'),
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => __('clients.validation.name_required'),
-            'user_id.required' => __('clients.validation.user_required'),
-            'user_id.exists' => __('clients.validation.user_exists'),
         ];
     }
 }

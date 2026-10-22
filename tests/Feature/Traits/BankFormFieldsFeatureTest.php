@@ -44,7 +44,6 @@ class BankFormFieldsFeatureTest extends TestCase
         $this->assertEquals('text', $nameField['type']);
         $this->assertTrue($nameField['required']);
         $this->assertArrayHasKey('label', $nameField);
-        $this->assertArrayHasKey('hint', $nameField);
 
         // Check code field
         $codeField = collect($fields)->firstWhere('name', 'code');
@@ -98,31 +97,11 @@ class BankFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getBankFields_uses_translation_keys(): void
+    public function labels_and_hints_are_translated(): void
     {
-        $fields = $this->traitInstance->callGetBankFields();
-
-        foreach ($fields as $field) {
-            // Check that labels are properly translated
-            if (isset($field['label'])) {
-                $this->assertIsString($field['label']);
-
-                // Check that fields with existing translations are translated
-                if (in_array($field['name'], ['name', 'code', 'swift', 'country', 'active'])) {
-                    $this->assertStringNotContainsString('bank.fields.', $field['label']);
-                }
-            }
-
-            // For hints, some might remain as translation keys if translations don't exist
-            if (isset($field['hint'])) {
-                $this->assertIsString($field['hint']);
-
-                // Country field uses suppliers.hints.country which should be translated
-                if ($field['name'] === 'country') {
-                    $this->assertStringNotContainsString('suppliers.hints.', $field['hint']);
-                }
-                // Other hints might remain as keys if translations don't exist
-            }
+        foreach ($this->traitInstance->callGetBankFields() as $field) {
+            $this->assertStringNotContainsString('banks.', $field['label']);
+            $this->assertStringNotContainsString('banks.', $field['hint'] ?? '');
         }
     }
 

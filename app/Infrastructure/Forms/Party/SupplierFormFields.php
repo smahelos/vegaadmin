@@ -65,13 +65,13 @@ trait SupplierFormFields
                 'required' => true,
                 'hint' => __('suppliers.hints.country'),
                 'type' => 'text',
-                'placeholder' => __('suppliers.placeholders.select_country'),
+                'placeholder' => __('general.placeholders.select_country'),
             ],
             [
                 'name' => 'ico',
                 'label' => __('suppliers.fields.ico'),
                 'type' => 'text',
-                'hint' => __('suppliers.validation.ico_format'),
+                'hint' => __('suppliers.hints.ico'),
             ],
             [
                 'name' => 'dic',

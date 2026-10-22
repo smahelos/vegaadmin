@@ -272,57 +272,21 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function custom_error_messages_are_displayed()
+    public function required_errors_name_the_field_label(): void
     {
-        // Test data that will trigger specific required validation errors
-        $data = [
-            'name' => '',              // required
-            'email' => '',             // required
-            'phone' => '',             // required
-            'street' => '',            // required
-            'city' => '',              // required
-            'zip' => '',               // required
-            'country' => '',           // required
-        ];
-
         $request = new SupplierRequest();
-        $validator = Validator::make($data, $request->rules(), $request->messages());
 
-        $this->assertTrue($validator->fails());
+        foreach (['name', 'email', 'phone', 'street', 'city', 'zip', 'country'] as $field) {
+            $data = $this->validSupplierData;
+            $data[$field] = '';
 
-        $errors = $validator->errors();
+            $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
 
-        // Check specific required messages
-        $expectedRequiredMessages = [
-            'name' => __('suppliers.validation.name_required'),
-            'email' => __('suppliers.validation.email_required'),
-            'phone' => __('suppliers.validation.phone_required'),
-            'street' => __('suppliers.validation.street_required'),
-            'city' => __('suppliers.validation.city_required'),
-            'zip' => __('suppliers.validation.zip_required'),
-            'country' => __('suppliers.validation.country_required'),
-        ];
-
-        foreach ($expectedRequiredMessages as $field => $expectedMessage) {
-            if ($errors->has($field)) {
-                $actualMessages = $errors->get($field);
-                $this->assertContains($expectedMessage, $actualMessages,
-                    "Custom required message for {$field} should be displayed");
-            }
+            $this->assertSame(
+                __('validation.required', ['attribute' => __("suppliers.fields.{$field}")]),
+                $validator->errors()->first($field)
+            );
         }
-
-        // Test email format validation separately
-        $emailData = $this->validSupplierData;
-        $emailData['email'] = 'invalid-email';
-
-        $validator = Validator::make($emailData, $request->rules(), $request->messages());
-        $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('email'));
-
-        $emailErrors = $validator->errors()->get('email');
-        $expectedEmailMessage = __('suppliers.validation.email_valid');
-        $this->assertContains($expectedEmailMessage, $emailErrors,
-            'Custom email format message should be displayed');
     }
 
     #[Test]
