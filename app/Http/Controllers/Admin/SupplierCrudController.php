@@ -16,7 +16,9 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
 class SupplierCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+        store as traitStore;
+    }
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation; // Usage recording via generic observer
@@ -125,7 +127,7 @@ class SupplierCrudController extends CrudController
     public function store()
     {
         $this->beforeEntityStore();
-        return parent::store();
+        return $this->traitStore();
     }
 
 }

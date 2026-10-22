@@ -26,7 +26,9 @@ use Illuminate\Support\Facades\App;
 class InvoiceCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+        store as traitStore;
+    }
     use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
@@ -110,6 +112,9 @@ class InvoiceCrudController extends CrudController
     protected function setupCreateOperation()
     {
         CRUD::setValidation(\App\Http\Requests\Admin\InvoiceRequest::class);
+
+        // Backpack saves only declared fields; store() fills the owner in
+        CRUD::field('user_id')->type('hidden');
 
         Widget::add()->type('script')->content(asset('assets/js/admin/forms/invoice.js'));
 
@@ -362,7 +367,7 @@ class InvoiceCrudController extends CrudController
     public function store()
     {
         $this->beforeEntityStore();
-        return parent::store();
+        return $this->traitStore();
     }
 
     /**

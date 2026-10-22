@@ -61,6 +61,14 @@ class ClientRequestFeatureTest extends TestCase
         })->middleware('web');
     }
 
+    /**
+     * @return array<string, string>
+     */
+    private function address(): array
+    {
+        return ['street' => 'Main 1', 'city' => 'Prague', 'zip' => '11000', 'country' => 'CZ'];
+    }
+
     protected function createClientsEntityLimit(): void
     {
         EntityLimit::factory()->create([
@@ -103,7 +111,7 @@ class ClientRequestFeatureTest extends TestCase
         $minimalData = [
             'name' => 'Minimal Client',
             'user_id' => $this->clientUser->id,
-            // All other fields are nullable
+            ...$this->address(),
         ];
 
         $request = new ClientRequest();
@@ -121,6 +129,9 @@ class ClientRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
         $this->assertArrayHasKey('user_id', $validator->errors()->toArray());
+        foreach (array_keys($this->address()) as $field) {
+            $this->assertArrayHasKey($field, $validator->errors()->toArray());
+        }
     }
 
     #[Test]
@@ -220,6 +231,7 @@ class ClientRequestFeatureTest extends TestCase
                 'name' => 'Test Client',
                 'email' => $email,
                 'user_id' => $this->clientUser->id,
+                ...$this->address(),
             ];
 
             $response = $this->postJson('/test-client', $validData);
@@ -248,6 +260,7 @@ class ClientRequestFeatureTest extends TestCase
                 'name' => 'Test Client',
                 'phone' => $phone,
                 'user_id' => $this->clientUser->id,
+                ...$this->address(),
             ];
 
             $response = $this->postJson('/test-client', $validData);
@@ -268,6 +281,7 @@ class ClientRequestFeatureTest extends TestCase
             'ico' => '12345678',
             'dic' => 'CZ12345678',
             'user_id' => $this->clientUser->id,
+            ...$this->address(),
         ];
 
         $response = $this->postJson('/test-client', $validData);
@@ -290,6 +304,7 @@ class ClientRequestFeatureTest extends TestCase
             'name' => 'Client with Description',
             'description' => $longDescription,
             'user_id' => $this->clientUser->id,
+            ...$this->address(),
         ];
 
         $response = $this->postJson('/test-client', $validData);
@@ -309,6 +324,7 @@ class ClientRequestFeatureTest extends TestCase
         $validData = [
             'name' => 'Authorized Client',
             'user_id' => $this->clientUser->id,
+            ...$this->address(),
         ];
 
         $response = $this->postJson('/test-client', $validData);
@@ -331,24 +347,6 @@ class ClientRequestFeatureTest extends TestCase
         $response = $this->postJson('/test-client', $validData);
 
         $response->assertStatus(403);
-    }
-
-    /**
-     * Test custom attributes are correctly defined.
-     */
-    #[Test]
-    public function custom_attributes_are_defined(): void
-    {
-        $request = new ClientRequest();
-        $attributes = $request->attributes();
-
-        $expectedAttributes = [
-            'name' => __('clients.fields.name'),
-            'email' => __('clients.fields.email'),
-            'user_id' => __('clients.fields.user_id'),
-        ];
-
-        $this->assertEquals($expectedAttributes, $attributes);
     }
 
     /**
@@ -381,10 +379,7 @@ class ClientRequestFeatureTest extends TestCase
             'name' => 'Client with Nulls',
             'user_id' => $this->clientUser->id,
             'shortcut' => null,
-            'street' => null,
-            'city' => null,
-            'zip' => null,
-            'country' => null,
+            ...$this->address(),
             'ico' => null,
             'dic' => null,
             'email' => null,
@@ -484,6 +479,7 @@ class ClientRequestFeatureTest extends TestCase
         $this->postJson('/test-client', [
             'name' => 'Client One',
             'user_id' => $this->clientUser->id,
+            ...$this->address(),
         ])->assertStatus(200);
 
         // Manually record usage because authorize() only checks

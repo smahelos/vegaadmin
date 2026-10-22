@@ -50,11 +50,6 @@ abstract class TestCase extends BaseTestCase
         // Disable middleware that might cause issues during tests
         $this->withoutMiddleware(\App\Http\Middleware\SetLocale::class);
 
-        // Load test routes
-        if (app()->environment('testing')) {
-            require_once __DIR__ . '/test_routes.php';
-        }
-
         // Reset Spatie\Permission cached permissions to avoid memory bloat across long test runs
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
