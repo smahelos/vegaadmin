@@ -30,10 +30,10 @@ class ClientRequest extends BaseEntityRequest
         return [
             'name' => 'required|string|max:255',
             'shortcut' => 'nullable|string|max:50',
-            'street' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'zip' => 'nullable|string|max:20',
-            'country' => 'nullable|string|max:100',
+            'street' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'zip' => 'required|string|max:20',
+            'country' => 'required|string|max:100',
             'ico' => 'nullable|string|max:20',
             'dic' => 'nullable|string|max:30',
             'email' => 'nullable|email|max:255',
@@ -53,6 +53,10 @@ class ClientRequest extends BaseEntityRequest
         return [
             'name' => __('clients.fields.name'),
             'email' => __('clients.fields.email'),
+            'street' => __('clients.fields.street'),
+            'city' => __('clients.fields.city'),
+            'zip' => __('clients.fields.zip'),
+            'country' => __('clients.fields.country'),
             'user_id' => __('clients.fields.user_id'),
         ];
     }

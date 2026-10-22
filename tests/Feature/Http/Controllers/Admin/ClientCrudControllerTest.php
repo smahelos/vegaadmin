@@ -119,4 +119,12 @@ class ClientCrudControllerTest extends TestCase
 
         $this->assertDatabaseHas('clients', ['name' => $name, 'user_id' => $this->user->id]);
     }
+
+    #[Test]
+    public function store_requires_the_client_address(): void
+    {
+        $this->post('/admin/client', ['name' => 'Client ' . uniqid()])
+            ->assertRedirect()
+            ->assertSessionHasErrors(['street', 'city', 'zip', 'country']);
+    }
 }
