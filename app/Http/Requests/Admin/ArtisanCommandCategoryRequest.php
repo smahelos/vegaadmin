@@ -30,7 +30,7 @@ class ArtisanCommandCategoryRequest extends FormRequest
         // For updates, ignore current record in slug uniqueness check
         if ($this->getMethod() === 'PUT' || $this->getMethod() === 'PATCH') {
             $id = $this->route('id') ?: $this->id;
-            $rules['slug'] = 'required|string|max:255|unique:page_categories,slug,' . $id;
+            $rules['slug'] = 'required|string|max:255|unique:artisan_command_categories,slug,' . $id;
         }
 
         return $rules;

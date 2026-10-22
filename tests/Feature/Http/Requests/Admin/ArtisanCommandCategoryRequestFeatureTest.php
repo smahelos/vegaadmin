@@ -121,6 +121,19 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
+    public function update_fails_with_slug_of_another_category(): void
+    {
+        ArtisanCommandCategory::factory()->create(['slug' => 'taken-slug']);
+        $category = ArtisanCommandCategory::factory()->create(['slug' => 'own-slug']);
+
+        $request = ArtisanCommandCategoryRequest::create('/', 'PUT', ['id' => $category->id]);
+        $validator = Validator::make(['name' => 'Updated Category', 'slug' => 'taken-slug'], $request->rules());
+
+        $this->assertFalse($validator->passes());
+        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+    }
+
+    #[Test]
     public function validation_passes_with_minimal_required_data()
     {
         $validData = [
