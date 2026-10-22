@@ -20,6 +20,7 @@ return [
         'actions' => 'Aktionen',
         'description' => 'Kundenbeschreibung',
         'is_default' => 'Standardkunde',
+        'user_id' => 'Eigentümer',
     ],
     'sections' => [
         'basic_info' => 'Grundinformationen',
@@ -73,6 +74,8 @@ return [
         'country_required' => 'Land ist erforderlich.',
         'ico_format' => 'Die Unternehmens-ID muss genau 8 Ziffern enthalten.',
         'zip_format' => 'Die Postleitzahl muss im Format XXX XX oder XXXXX sein.',
+        'user_required' => 'Der Eigentümer des Kunden ist erforderlich.',
+        'user_exists' => 'Der ausgewählte Eigentümer existiert nicht.',
     ],
     'placeholders' => [
         'not_specified' => 'Nicht angegeben',
