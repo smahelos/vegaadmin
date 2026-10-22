@@ -49,7 +49,6 @@
         <env name="BASSET_CACHE_MAP" value="false"/>
         <!-- Memory management for tests -->
         <ini name="memory_limit" value="2G"/>
-        <ini name="max_execution_time" value="600"/>
         <!-- Disable xdebug for faster tests -->
         <ini name="xdebug.mode" value="off"/>
         <!-- Garbage collection optimization -->
