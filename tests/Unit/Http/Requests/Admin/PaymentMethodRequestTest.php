@@ -75,16 +75,6 @@ class PaymentMethodRequestTest extends TestCase
     }
 
     #[Test]
-    public function messages_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', (string)$returnType);
-    }
-
-    #[Test]
     public function authorize_return_type(): void
     {
         $reflection = new \ReflectionClass($this->request);

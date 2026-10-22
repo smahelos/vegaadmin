@@ -278,19 +278,6 @@ return [
         'remove_file' => 'Remove File',
     ],
 
-    'payment_methods' => [
-        'payment_method' => 'Payment method',
-        'payment_methods' => 'Payment methods',
-        'name' => 'Name',
-        'description' => 'Description',
-        'slug' => 'Slug',
-        'country' => 'Country',
-        'currency' => 'Currency',
-        'icon' => 'Icon',
-        'is_active' => 'Active',
-        'sort_order' => 'Sort order',
-    ],
-
     'database' => [
         'database_management' => 'Database Management',
         'dashboard' => 'Database Dashboard',

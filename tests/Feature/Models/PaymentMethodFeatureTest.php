@@ -93,11 +93,7 @@ class PaymentMethodFeatureTest extends TestCase
             'slug' => 'cash',
         ]);
         
-        // The accessor should return a translation key or original name
-        $translatedName = $paymentMethod->getTranslatedNameAttribute();
-        
-        $this->assertIsString($translatedName);
-        $this->assertNotEmpty($translatedName);
+        $this->assertSame(__('payment_methods.methods.cash'), $paymentMethod->translated_name);
     }
 
     #[Test]

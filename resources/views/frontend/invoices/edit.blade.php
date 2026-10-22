@@ -238,7 +238,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                             @php
                             if(isset($paymentMethods)) {
                             foreach($paymentMethods as $key => $method) {
-                            $paymentMethods[$key] = __('payment_methods.' . $method);
+                            $paymentMethods[$key] = __('payment_methods.methods.' . $method);
                             }
                             }
                             $marginBottomClass = !isset($field['hint']) || $field['hint'] === '' ? 'mb-6' : '';

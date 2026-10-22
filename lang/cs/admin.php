@@ -278,19 +278,6 @@ return [
         'remove_file' => 'Odstranit soubor',
     ],
 
-    'payment_methods' => [
-        'payment_method' => 'Způsob platby',
-        'payment_methods' => 'Způsoby platby',
-        'name' => 'Název',
-        'description' => 'Popis',
-        'slug' => 'Slug',
-        'country' => 'Země',
-        'currency' => 'Měna',
-        'icon' => 'Ikona',
-        'is_active' => 'Aktivní',
-        'sort_order' => 'Pořadí',
-    ],
-
     'database' => [
         'database_management' => 'Správa databáze',
         'dashboard' => 'Přehled databáze',

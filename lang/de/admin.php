@@ -260,19 +260,6 @@ return [
         'remove_file' => 'Datei entfernen',
     ],
 
-    'payment_methods' => [
-        'payment_method' => 'Zahlungsmethode',
-        'payment_methods' => 'Zahlungsmethoden',
-        'name' => 'Name',
-        'description' => 'Beschreibung',
-        'slug' => 'Slug',
-        'country' => 'Land',
-        'currency' => 'Währung',
-        'icon' => 'Symbol',
-        'is_active' => 'Aktiv',
-        'sort_order' => 'Reihenfolge',
-    ],
-
     'database' => [
         'database_management' => 'Datenbankverwaltung',
         'dashboard' => 'Datenbank-Dashboard',

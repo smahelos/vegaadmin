@@ -313,7 +313,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                         <div class="md:col-span-1">
                             @php
                             foreach($paymentMethods as $key => $method) {
-                            $paymentMethods[$key] = __('payment_methods.' . $method);
+                            $paymentMethods[$key] = __('payment_methods.methods.' . $method);
                             }
                             $marginBottomClass = !isset($field['hint']) || $field['hint'] === '' ? 'mb-6' : '';
                             @endphp

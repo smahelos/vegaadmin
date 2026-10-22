@@ -79,7 +79,7 @@ backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
     @endif
 
     @if(backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.payment_methods.payment_methods') }}"
+    <x-backpack::menu-dropdown-item title="{{ __('payment_methods.entity.plural') }}"
         icon="la la-money-check-alt" :link="backpack_url('payment-method')" />
     @endif
 </x-backpack::menu-dropdown>
