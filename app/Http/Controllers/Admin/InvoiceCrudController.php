@@ -98,7 +98,7 @@ class InvoiceCrudController extends CrudController
             ->type('text')
             ->label(__('invoices.fields.status'))
             ->value(function($entry) {
-                return $entry->paymentStatus ? $entry->paymentStatus->name : 'N/A';
+                return $entry->paymentStatus?->name ?? __('general.placeholders.not_available');
             });
 
         CRUD::column('due_in')->label(__('invoices.fields.due_in'));

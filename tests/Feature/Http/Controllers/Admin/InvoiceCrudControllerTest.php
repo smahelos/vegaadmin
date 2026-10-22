@@ -10,6 +10,8 @@ use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\User;
+use DOMDocument;
+use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -230,12 +232,33 @@ class InvoiceCrudControllerTest extends TestCase
             'payment_status_id' => $status->id,
         ]);
 
-        $this->get('/admin/invoice/' . $invoice->id . '/show')
-            ->assertOk()
-            ->assertSee($this->adminUser->name)
-            ->assertSee($client->name)
-            ->assertSee($supplier->name)
-            ->assertSee($paymentMethod->name)
-            ->assertSee($status->name);
+        $response = $this->get('/admin/invoice/' . $invoice->id . '/show')->assertOk();
+
+        $cells = $this->datagridCells($response->getContent());
+        $this->assertSame($this->adminUser->name, $cells[__('invoices.fields.user_id')]);
+        $this->assertSame($supplier->name, $cells[__('invoices.fields.supplier')]);
+        $this->assertSame($client->name, $cells[__('invoices.fields.client')]);
+        $this->assertSame($paymentMethod->name, $cells[__('invoices.fields.payment_method')]);
+        $this->assertSame($status->name, $cells[__('invoices.fields.status')]);
+    }
+
+    /**
+     * @return array<string, string> cell text keyed by the column label
+     */
+    private function datagridCells(string $html): array
+    {
+        $document = new DOMDocument();
+        @$document->loadHTML('<?xml encoding="utf-8">' . $html);
+        $xpath = new DOMXPath($document);
+        $cells = [];
+        foreach ($xpath->query('//div[contains(@class, "bp-datagrid-item")]') as $item) {
+            $title = $xpath->query('.//div[contains(@class, "bp-datagrid-title")]', $item)->item(0);
+            $content = $xpath->query('.//div[contains(@class, "bp-datagrid-content")]', $item)->item(0);
+            if ($title && $content) {
+                $cells[trim($title->textContent)] = trim(preg_replace('/\s+/u', ' ', $content->textContent));
+            }
+        }
+
+        return $cells;
     }
 }

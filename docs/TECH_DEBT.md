@@ -95,6 +95,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** amounts and sizes are formatted with `'€' . number_format(...)` and private `formatBytes()` helpers, ignoring the locale and the entity's currency. Labels and cell texts are hardcoded English (`->label('User')`, `'Anonymous'`, `'Pending'`). The maintenance results and performance metadata closures put MySQL output (`Msg_text`, storage engine, metadata values) into HTML unescaped. Models return badge HTML with English text (`getStatusBadgeAttribute()` and similar).
 - **Fix:** amounts through `MoneyFormatterInterface`, labels and texts as translation keys, every interpolated value through `e()` or a Blade column view, badge HTML out of the models into column views with the status as an enum (`rules/admin.md`, `rules/persistence.md`, `rules/translations.md`).
 
+### Admin dashboard formats revenue by hand
+- **Where:** `resources/views/vendor/backpack/ui/dashboard.blade.php` (monthly revenue card, revenue overview), `$dashboardStats` built for it
+- **Problem:** revenue is a float printed as `€ ` + `number_format(..., 2)` with a `la-euro-sign` icon, whatever the invoices' currencies and the locale; the view also formats and computes values in Blade.
+- **Fix:** the dashboard stats come from an application service as a DTO with `Money` totals per currency, rendered through `MoneyFormatterInterface` by a presenter (`rules/domain.md`, `rules/frontend.md`).
+
 ### `backpack_pro()` override claims a PRO licence
 - **Where:** `app/Helpers/BackpackHelpers.php` (`backpack_pro()` always returns `true`), Backpack's `src/Stats.php`
 - **Problem:** the override lifts Backpack's PRO gates, which Billex's own filters need (`CrudFilter` refuses to work without PRO). Outside the `local` environment, Backpack sends usage stats to backpackforlaravel.com on about 1 in 100 admin requests, including `BACKPACK_PRO_VERSION => backpack_pro()`, so production would report a PRO licence it does not have. PRO-only operations (`FetchOperation`, `InlineCreateOperation`, `CloneOperation`, `BulkDeleteOperation`) would fail with a missing class instead of a clear error.
