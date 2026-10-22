@@ -63,7 +63,9 @@ return [
     'home_link' => '',
 
     // Menu logo. You can replace this with an <img> tag if you have a logo.
-    'project_logo' => '<img src="/assets/images/billex_logo.svg" alt="Invoice Manager" height="32">',
+    // Tabler hides one of the two logos by the colour mode
+    'project_logo' => '<img src="/assets/images/billex_logo.svg" alt="Billex" height="32" class="hide-theme-dark">'
+        . '<img src="/assets/images/billex_logo_light.svg" alt="Billex" height="32" class="hide-theme-light">',
 
     // Show / hide breadcrumbs on admin panel pages.
     'breadcrumbs' => true,
