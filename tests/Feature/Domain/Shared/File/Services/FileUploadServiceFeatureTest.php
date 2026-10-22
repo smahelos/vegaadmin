@@ -332,7 +332,7 @@ class FileUploadServiceFeatureTest extends TestCase
     $file = UploadedFile::fake()->create('malware.exe', 10, 'application/octet-stream');
 
         $this->expectException(\Illuminate\Validation\ValidationException::class);
-        $this->expectExceptionMessage('Tento typ souboru není pro :attribute povolen.');
+        $this->expectExceptionMessage(__('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']));
 
         $this->service->handleFileUpload(
             $this->normalize($file),
@@ -356,7 +356,7 @@ class FileUploadServiceFeatureTest extends TestCase
     $file = UploadedFile::fake()->create('large.png', 500, 'image/png'); // 500 KB
 
         $this->expectException(\Illuminate\Validation\ValidationException::class);
-        $this->expectExceptionMessage('Soubor překračuje maximální velikost pro :attribute.');
+        $this->expectExceptionMessage(__('validation.file_upload.size_exceeded', ['attribute' => ':attribute']));
 
         $this->service->handleFileUpload(
             $this->normalize($file),
