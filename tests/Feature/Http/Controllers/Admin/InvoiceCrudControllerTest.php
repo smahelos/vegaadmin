@@ -173,4 +173,44 @@ class InvoiceCrudControllerTest extends TestCase
 
         $this->assertDatabaseHas('invoices', ['invoice_vs' => $vs, 'user_id' => $this->adminUser->id]);
     }
+
+    #[Test]
+    public function update_keeps_the_owner_when_another_one_is_sent(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
+        $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
+        $paymentMethod = PaymentMethod::factory()->create();
+        $invoice = Invoice::factory()->create([
+            'user_id' => $this->adminUser->id,
+            'client_id' => $client->id,
+            'supplier_id' => $supplier->id,
+            'payment_method_id' => $paymentMethod->id,
+            'payment_status_id' => Status::factory()->create()->id,
+        ]);
+        $otherUser = User::factory()->create();
+
+        $this->put('/admin/invoice/' . $invoice->id, [
+            'id' => $invoice->id,
+            'user_id' => $otherUser->id,
+            'supplier_id' => $supplier->id,
+            'client_id' => $client->id,
+            'invoice_vs' => $invoice->invoice_vs,
+            'due_in' => 14,
+            'payment_method_id' => $paymentMethod->id,
+            'payment_amount' => 1000,
+            'payment_status' => 'unpaid',
+            'payment_currency' => 'CZK',
+            'issue_date' => '2026-10-01',
+            'street' => 'Main 1',
+            'city' => 'Praha',
+            'zip' => '11000',
+            'country' => 'CZ',
+            'invoice_text' => $text = 'Updated ' . uniqid(),
+        ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'invoice_text' => $text, 'user_id' => $this->adminUser->id]);
+    }
 }
