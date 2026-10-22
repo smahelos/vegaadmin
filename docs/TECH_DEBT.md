@@ -95,6 +95,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** amounts and sizes are formatted with `'€' . number_format(...)` and private `formatBytes()` helpers, ignoring the locale and the entity's currency. Labels and cell texts are hardcoded English (`->label('User')`, `'Anonymous'`, `'Pending'`). The maintenance results and performance metadata closures put MySQL output (`Msg_text`, storage engine, metadata values) into HTML unescaped. Models return badge HTML with English text (`getStatusBadgeAttribute()` and similar).
 - **Fix:** amounts through `MoneyFormatterInterface`, labels and texts as translation keys, every interpolated value through `e()` or a Blade column view, badge HTML out of the models into column views with the status as an enum (`rules/admin.md`, `rules/persistence.md`, `rules/translations.md`).
 
+### `backpack_pro()` override claims a PRO licence
+- **Where:** `app/Helpers/BackpackHelpers.php` (`backpack_pro()` always returns `true`), Backpack's `src/Stats.php`
+- **Problem:** the override lifts Backpack's PRO gates, which Billex's own filters need (`CrudFilter` refuses to work without PRO). Outside the `local` environment, Backpack sends usage stats to backpackforlaravel.com on about 1 in 100 admin requests, including `BACKPACK_PRO_VERSION => backpack_pro()`, so production would report a PRO licence it does not have. PRO-only operations (`FetchOperation`, `InlineCreateOperation`, `CloneOperation`, `BulkDeleteOperation`) would fail with a missing class instead of a clear error.
+- **Fix:** decide before production: buy a PRO licence, or keep the gates closed and make the filters work without the override (e.g. own filter classes that do not extend `CrudFilter`'s PRO check).
+
 ## Product
 
 ### Product SKU
@@ -118,16 +123,6 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Where:** `app/Http/Controllers/Api/AresLookupController.php`, `app/Infrastructure/Shared/Http/Services/HttpClientService.php`, `app/Domain/Analytics/Services/BaseAnalyticsExternalService.php`, `config/analytics.php`
 - **Problem:** ARES is called with `Http::get()` directly from a controller without a timeout; exchange rates and countries go through `HttpClientService` without timeouts. A circuit breaker exists only in the unused Analytics base class.
 - **Fix:** timeouts and a circuit breaker in `Shared` around `HttpClientService`; move the ARES call into a service.
-
-### Review the remaining Backpack overrides before the v7 upgrade
-- **Where:** `resources/views/vendor/backpack/*`
-- **Problem:** no template copied from Backpack PRO (commit `a007295e`) is used any more; Billex's own field, column and filter types live in `resources/views/admin/{fields,columns,filters}`. What stays in `resources/views/vendor/backpack/` overrides views of the installed packages and would shadow their Backpack 7 versions: `theme-tabler/layouts/_vertical/sidebar_content_top` (adds the language switcher), `ui/dashboard`, `ui/inc/menu_items`.
-- **Fix:** before upgrading to Backpack 7, compare each override with the v7 package view and port the Billex changes onto it (or drop the override); check Billex's own types in `resources/views/admin/*` against the v7 field/column/filter API.
-
-### Laravel pinned below 12.69.3 until Backpack 7
-- **Where:** `composer.json` (`laravel/framework`), `tests/Feature/Http/Middleware/AuthenticateSessionFeatureTest.php`
-- **Problem:** Laravel 12.69.3+ stores an HMAC of the password hash in the session on login; Backpack 6's `AuthenticateSession` compares it with the raw hash and logs every admin out right after login. The fix (Laravel-Backpack/CRUD#6086) exists only in Backpack 7. While pinned, Billex gets no newer Laravel releases, security fixes included.
-- **Fix:** upgrade to Backpack 7, then restore the `^12.0` constraint; `AuthenticateSessionFeatureTest` must keep passing. If a Laravel security advisory needs ≥12.69.3 before that, extend Backpack's `AuthenticateSession` with the HMAC check from #6086 instead.
 
 ## Conversion to the standard
 

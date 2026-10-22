@@ -175,7 +175,8 @@ class CronTaskCrudController extends CrudController
             ->attributes(
                 [
                     'readonly' => 'readonly',
-                    'class' => 'form-control min-h-200px',
+                    'class' => 'form-control',
+                    'rows' => 10,
                 ]
             )
             ->tab(__('admin.cron_tasks.tabs.history'));

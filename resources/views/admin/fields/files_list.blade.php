@@ -55,7 +55,7 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
             <i class="la {{ $fileIcon }} nav-icon la-2x mr-4"></i>
             <div class="file-details flex-grow-1">
                 <a href="{{ $fileUrl }}" target="_blank"
-                    class="file-name font-weight-bold text-gray-500 hover:text-gray-800">{{ $fileName }}</a>
+                    class="file-name fw-bold text-secondary">{{ $fileName }}</a>
                 <span class="text-muted ml-4">({{ $fileSizeKB }} KB)</span>
             </div>
             <input type="hidden" name="{{ $field['name'] }}_hidden[]" value="{{ $file }}">

@@ -6,7 +6,6 @@ use App\Infrastructure\Authorization\Services\CrudAccessService;
 use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
 use App\Models\User;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -38,8 +37,6 @@ class CrudAccessServiceFeatureTest extends TestCase
     private function setCrudModel(string $modelClass): void
     {
         $this->crud->setModel($modelClass);
-        // Also set the global CrudPanel facade model so CRUD::getModel() returns an instance
-        CRUD::setModel($modelClass);
     }
 
     private function hasAccess(string $operation): bool

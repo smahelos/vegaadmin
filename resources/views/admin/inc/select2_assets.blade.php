@@ -11,6 +11,15 @@
     @once
         <link rel="stylesheet" type="text/css" href="{{ asset('packages/select2/dist/css/select2.min.css') }}" />
         <link rel="stylesheet" type="text/css" href="{{ asset('packages/select2-bootstrap-theme/dist/select2-bootstrap.min.css') }}" />
+        <style>
+            /* the bootstrap theme paints a disabled select2 light grey; match Backpack's disabled inputs */
+            [data-bs-theme=dark] .select2-container--bootstrap.select2-container--disabled .select2-selection {
+                background-color: var(--bp-form-disabled-bg);
+            }
+            [data-bs-theme=dark] .select2-container--bootstrap.select2-container--disabled .select2-selection__rendered {
+                color: var(--bp-form-disabled-color);
+            }
+        </style>
     @endonce
 @endpush
 

@@ -13,8 +13,8 @@ use Tests\TestCase;
 
 /**
  * Backpack's AuthenticateSession compares the session password hash with the user's password
- * hash. Laravel 12.69.3+ stores an HMAC of it on login, which Backpack 6 does not accept, so
- * the admin is logged out right after logging in (laravel/framework is pinned below 12.69.3).
+ * hash. Laravel 12.69.3+ stores an HMAC of it on login; Backpack 6 did not accept it and logged
+ * the admin out right after logging in (fixed in Backpack 7, Laravel-Backpack/CRUD#6086).
  */
 final class AuthenticateSessionFeatureTest extends TestCase
 {

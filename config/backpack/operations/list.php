@@ -25,11 +25,13 @@ return [
     // how much time should the system wait before triggering the search function after the user stops typing?
     'searchDelay' => 400,
 
+    // should we use a fixed header for the datatables?
+    'useFixedHeader' => true,
+
     // the time the table will be persisted in minutes
     // after this the table info is cleared from localStorage.
     // use false to never force localStorage clear. (default)
     // keep in mind: User can clear their localStorage whenever they want.
-
     'persistentTableDuration' => false,
 
     // How many items should be shown by default by the Datatable?
@@ -78,7 +80,34 @@ return [
     // Setting this to false will improve performance on big datasets.
     'showEntryCount' => true,
 
-    // when list operation load the information from database, should Backpack eager load the relations ?
+    // when list operation load the information from database, should Backpack eager load the relations?
     // this setting is enabled by default as it reduces the amount of queries required to load the page
     'eagerLoadRelationships' => true,
+
+    // Show active filter values as badges/chips below the filter navbar?
+    // Can be overridden per datatable, per filters_navbar include, or per filter.
+    'showFilterValues' => false,
+
+    // Allow developers to add custom HTML attributes (class, style, data-*, etc.)
+    // to each <tr> element in the datatable, conditionally based on the entry data.
+    //
+    // In this config file, you MUST use an invokable class name (so it can be
+    // serialized for config:cache). The class should implement __invoke($entry)
+    // and return an associative array of attributes:
+    //
+    //   'rowAttributes' => \App\Invokables\RowAttributes::class,
+    //
+    // In a controller, you can use a closure OR an invokable class:
+    //
+    //   $this->crud->setOperationSetting('rowAttributes', function ($entry) {
+    //       return ['class' => $entry->type === 'premium' ? 'table-warning' : ''];
+    //   });
+    //
+    'rowAttributes' => null,
+
+    // Show the dropdown for each available language near edit button
+    'showLanguagesDirectlyInEditButton' => true,
+
+    // Show the dropdown for each available language near show button
+    'showLanguagesDirectlyInShowButton' => false,
 ];
