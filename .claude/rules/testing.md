@@ -35,4 +35,4 @@ paths:
 - Admin HTTP tests: `actingAs($user, 'backpack')`; an unauthenticated admin request returns 403.
 - `tests/TestCase.php` disables the `SetLocale` middleware. Tests call the application's real routes; a test never registers a route that shadows one.
 - PDF output is pinned by `InvoicePdfSnapshotTest`; regenerate snapshots only for an intended change with `UPDATE_PDF_SNAPSHOTS=1` and review the diff.
-- Run targeted tests while working; the full suite and the architecture guards run before a commit through the `pre-pr-check` skill.
+- Run targeted tests while working. Before a commit the `pre-pr-check` skill decides between targeted tests and the full suite (only for changes that can reach anything) and runs the architecture guards; CI runs the full suite on every push to a PR.
