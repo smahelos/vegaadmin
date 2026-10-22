@@ -53,6 +53,7 @@ return [
         'invoice_note' => 'Poznámka k faktuře',
         'invoice_logo' => 'Logo faktury',
         'template' => 'Šablona PDF',
+        'user_id' => 'Vlastník',
     ],
 
     'sections' => [

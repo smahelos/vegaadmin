@@ -54,6 +54,7 @@ return [
         'invoice_note' => 'Invoice note',
         'invoice_logo' => 'Invoice Logo',
         'template' => 'PDF Template',
+        'user_id' => 'Owner',
     ],
 
     'sections' => [

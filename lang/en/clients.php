@@ -20,6 +20,7 @@ return [
         'actions' => 'Actions',
         'description' => 'Client description',
         'is_default' => 'Default client',
+        'user_id' => 'Owner',
     ],
     'sections' => [
         'basic_info' => 'Basic Information',
@@ -73,6 +74,8 @@ return [
         'country_required' => 'Country is required.',
         'ico_format' => 'Company ID must contain exactly 8 digits.',
         'zip_format' => 'ZIP code must be in XXX XX or XXXXX format.',
+        'user_required' => 'The client owner is required.',
+        'user_exists' => 'The selected owner does not exist.',
     ],
     'placeholders' => [
         'not_specified' => 'Not specified',

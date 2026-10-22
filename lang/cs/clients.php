@@ -20,6 +20,7 @@ return [
         'actions' => 'Akce',
         'description' => 'Popis klienta',
         'is_default' => 'Výchozí klient',
+        'user_id' => 'Vlastník',
     ],
     'sections' => [
         'basic_info' => 'Základní informace',
@@ -74,6 +75,8 @@ return [
         'country_required' => 'Země je povinná.',
         'ico_format' => 'IČO musí obsahovat přesně 8 číslic.',
         'zip_format' => 'PSČ musí být ve formátu XXX XX nebo XXXXX.',
+        'user_required' => 'Vlastník klienta je povinný.',
+        'user_exists' => 'Vybraný vlastník neexistuje.',
     ],
     'placeholders' => [
         'not_specified' => 'Neuvedeno',

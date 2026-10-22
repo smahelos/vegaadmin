@@ -10,57 +10,39 @@
                 <div class="card-body">
 
                     {{-- Dashboard Statistics Cards --}}
-                    <div class="row mb-4">
-                        <div class="col-md-2">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <h4>{{ $dashboardStats['total_invoices'] ?? 0 }}</h4>
-                                        </div>
-                                        <div>
-                                            <small>{{ __('admin.dashboard.total_invoices') }}</small>
-                                        </div>
-                                        <div class="align-self-center">
-                                            <i class="la la-file-invoice la-2x"></i>
-                                        </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-6 col-lg-4 col-xxl-2 mb-3">
+                            <div class="card bg-primary text-white h-100">
+                                <div class="card-body d-flex align-items-center gap-3">
+                                    <div class="flex-grow-1">
+                                        <h4 class="mb-1">{{ $dashboardStats['total_invoices'] ?? 0 }}</h4>
+                                        <small>{{ __('admin.dashboard.total_invoices') }}</small>
                                     </div>
+                                    <i class="la la-file-invoice la-2x flex-shrink-0"></i>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-2">
-                            <div class="card bg-success text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <h4>{{ $dashboardStats['total_clients'] ?? 0 }}</h4>
-                                        </div>
-                                        <div>
-                                            <small>{{ __('admin.dashboard.total_clients') }}</small>
-                                        </div>
-                                        <div class="align-self-center">
-                                            <i class="la la-users la-2x"></i>
-                                        </div>
+                        <div class="col-sm-6 col-lg-4 col-xxl-2 mb-3">
+                            <div class="card bg-success text-white h-100">
+                                <div class="card-body d-flex align-items-center gap-3">
+                                    <div class="flex-grow-1">
+                                        <h4 class="mb-1">{{ $dashboardStats['total_clients'] ?? 0 }}</h4>
+                                        <small>{{ __('admin.dashboard.total_clients') }}</small>
                                     </div>
+                                    <i class="la la-users la-2x flex-shrink-0"></i>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-2">
-                            <div class="card bg-orange text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <h4>{{ $dashboardStats['total_suppliers'] ?? 0 }}</h4>
-                                        </div>
-                                        <div>
-                                            <small>{{ __('admin.dashboard.total_suppliers') }}</small>
-                                        </div>
-                                        <div class="align-self-center">
-                                            <i class="la la-truck la-2x"></i>
-                                        </div>
+                        <div class="col-sm-6 col-lg-4 col-xxl-2 mb-3">
+                            <div class="card bg-orange text-white h-100">
+                                <div class="card-body d-flex align-items-center gap-3">
+                                    <div class="flex-grow-1">
+                                        <h4 class="mb-1">{{ $dashboardStats['total_suppliers'] ?? 0 }}</h4>
+                                        <small>{{ __('admin.dashboard.total_suppliers') }}</small>
                                     </div>
+                                    <i class="la la-truck la-2x flex-shrink-0"></i>
                                 </div>
                             </div>
                         </div>
@@ -81,56 +63,38 @@
                             </div>
                         </div> --}}
 
-                        <div class="col-md-2">
-                            <div class="card bg-secondary text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <h4>{{ $dashboardStats['total_users'] ?? 0 }}</h4>
-                                        </div>
-                                        <div>
-                                            <small>{{ __('admin.dashboard.total_users') }}&nbsp;&nbsp;&nbsp;</small>
-                                        </div>
-                                        <div class="align-self-center">
-                                            <i class="la la-user la-2x"></i>
-                                        </div>
+                        <div class="col-sm-6 col-lg-4 col-xxl-2 mb-3">
+                            <div class="card bg-secondary text-white h-100">
+                                <div class="card-body d-flex align-items-center gap-3">
+                                    <div class="flex-grow-1">
+                                        <h4 class="mb-1">{{ $dashboardStats['total_users'] ?? 0 }}</h4>
+                                        <small>{{ __('admin.dashboard.total_users') }}</small>
                                     </div>
+                                    <i class="la la-user la-2x flex-shrink-0"></i>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-2">
-                            <div class="card bg-dark text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <h4>€&nbsp;{{ number_format($dashboardStats['monthly_revenue'] ?? 0, 2) }}</h4>
-                                        </div>
-                                        <div>
-                                            <small>{{ __('admin.dashboard.monthly_revenue') }}</small>
-                                        </div>
-                                        <div class="align-self-center">
-                                            <i class="la la-euro-sign la-2x"></i>
-                                        </div>
+                        <div class="col-sm-6 col-lg-4 col-xxl-2 mb-3">
+                            <div class="card bg-dark text-white h-100">
+                                <div class="card-body d-flex align-items-center gap-3">
+                                    <div class="flex-grow-1">
+                                        <h4 class="mb-1">€&nbsp;{{ number_format($dashboardStats['monthly_revenue'] ?? 0, 2) }}</h4>
+                                        <small>{{ __('admin.dashboard.monthly_revenue') }}</small>
                                     </div>
+                                    <i class="la la-euro-sign la-2x flex-shrink-0"></i>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-2">
-                            <div class="card bg-red text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <h4>{{ $dashboardStats['total_subscriptions'] ?? 0 }}</h4>
-                                        </div>
-                                        <div>
-                                            <small>{{ __('admin.dashboard.active_subscriptions') }}</small>
-                                        </div>
-                                        <div class="align-self-center">
-                                            <i class="la la-money-bill-wave-alt la-2x"></i>
-                                        </div>
+                        <div class="col-sm-6 col-lg-4 col-xxl-2 mb-3">
+                            <div class="card bg-red text-white h-100">
+                                <div class="card-body d-flex align-items-center gap-3">
+                                    <div class="flex-grow-1">
+                                        <h4 class="mb-1">{{ $dashboardStats['total_subscriptions'] ?? 0 }}</h4>
+                                        <small>{{ __('admin.dashboard.active_subscriptions') }}</small>
                                     </div>
+                                    <i class="la la-money-bill-wave-alt la-2x flex-shrink-0"></i>
                                 </div>
                             </div>
                         </div>

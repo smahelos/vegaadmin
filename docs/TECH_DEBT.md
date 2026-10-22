@@ -95,6 +95,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** amounts and sizes are formatted with `'€' . number_format(...)` and private `formatBytes()` helpers, ignoring the locale and the entity's currency. Labels and cell texts are hardcoded English (`->label('User')`, `'Anonymous'`, `'Pending'`). The maintenance results and performance metadata closures put MySQL output (`Msg_text`, storage engine, metadata values) into HTML unescaped. Models return badge HTML with English text (`getStatusBadgeAttribute()` and similar).
 - **Fix:** amounts through `MoneyFormatterInterface`, labels and texts as translation keys, every interpolated value through `e()` or a Blade column view, badge HTML out of the models into column views with the status as an enum (`rules/admin.md`, `rules/persistence.md`, `rules/translations.md`).
 
+### Admin dashboard formats revenue by hand
+- **Where:** `resources/views/vendor/backpack/ui/dashboard.blade.php` (monthly revenue card, revenue overview), `$dashboardStats` built for it
+- **Problem:** revenue is a float printed as `€ ` + `number_format(..., 2)` with a `la-euro-sign` icon, whatever the invoices' currencies and the locale; the view also formats and computes values in Blade.
+- **Fix:** the dashboard stats come from an application service as a DTO with `Money` totals per currency, rendered through `MoneyFormatterInterface` by a presenter (`rules/domain.md`, `rules/frontend.md`).
+
 ### `backpack_pro()` override claims a PRO licence
 - **Where:** `app/Helpers/BackpackHelpers.php` (`backpack_pro()` always returns `true`), Backpack's `src/Stats.php`
 - **Problem:** the override lifts Backpack's PRO gates, which Billex's own filters need (`CrudFilter` refuses to work without PRO). Outside the `local` environment, Backpack sends usage stats to backpackforlaravel.com on about 1 in 100 admin requests, including `BACKPACK_PRO_VERSION => backpack_pro()`, so production would report a PRO licence it does not have. PRO-only operations (`FetchOperation`, `InlineCreateOperation`, `CloneOperation`, `BulkDeleteOperation`) would fail with a missing class instead of a clear error.
@@ -189,8 +194,20 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** per `rules/frontend.md`.
 
 ### Translations
-- **Where:** 623 `trans()` calls; `translations:check … --compare=cs` reports 15 missing keys/files in de, 13 in en, 14 in sk (e.g. `admin.database.*`, `clients.messages.limit_exceeded`); `lang/en/{auth,pagination,passwords}.php` missing in cs/de/sk; `lang/{cs,de,sk}/ddd_guard.php` translates developer-tool output
-- **Fix:** `__()` only, all keys in all locales, developer output in plain English (`rules/translations.md`).
+- **Where:** `lang/*` (23 files, 2076 keys in cs), 623 `trans()` calls; `translations:check … --compare=cs` reports 15 missing keys/files in de, 13 in en, 14 in sk (e.g. `admin.database.*`, `clients.messages.limit_exceeded`); `lang/en/{auth,pagination,passwords}.php` missing in cs/de/sk; `lang/{cs,de,sk}/ddd_guard.php` translates developer-tool output; `lang/*/emails.php` calls `config()`
+- **Problem:**
+  - Texts are split by entity and by screen area at once: `admin.php` holds 878 keys in 35 sections, 14 of them mirror a context file (`admin.clients` ↔ `clients.php`, `admin.products`, `admin.invoices`, `admin.suppliers`, `admin.pages`, `admin.subscriptions`, …). The same field gets two texts (`admin.clients.street` "Ulice" vs `clients.fields.street` "Ulice a číslo").
+  - 137 keys used in code do not exist, so users see the key (e.g. `admin.products.*` 14, `general.entity_limits.*` 11, `admin.validation.*` 10, `admin.status_categories.*` 10, `admin.product_categories.*` 8 used by `ProductCategoryRequest`). About 665 keys are never referenced literally (an estimate: some keys are built dynamically).
+  - 48 form requests define `messages()`, mostly repeating Laravel's standard messages already translated in `lang/*/validation.php` ("Název je povinný" 7×).
+  - File names mix singular and plural (`subscription.php`, `tax.php` vs `suppliers.php`, `payment_methods.php`); `payment_statuses.php` beside `statuses.php`.
+- **Fix (decided 2026-10-22):**
+  - One file per bounded context or entity, read by frontend and admin alike, plural names; the same sections in each: `entity` (singular/plural), `fields` (labels, columns and validation attributes), `hints`, `placeholders`, `actions`, `messages`, `validation` (only rules the standard messages cannot express), `statuses` (enum labels). A sub-entity is a section of its parent (`products.categories.*`) or its own file when large.
+  - `admin.php` only for admin screens that are not entities (menu, dashboard, database maintenance, cache, UELS dashboard); large parts in `lang/*/admin/<area>.php` (`__('admin/database.title')`).
+  - `general.php` only for interface words (save, cancel, yes/no, created/updated, pagination, empty states). Field labels stay in the entity file even when the word repeats across entities.
+  - Requests name fields through `attributes()` from `<entity>.fields.*` and drop `messages()` that repeat the standard ones.
+  - `__()` only, all keys in all locales, developer output in plain English, no `config()` in language files (pass values as parameters).
+  - A test that every key used in code exists in cs; refine `rules/translations.md` ("a file per bounded context or screen area" lets screen-area files take over entity texts).
+  - Convert context by context with `/convert-to-standard`; fix the missing keys first, users see them.
 
 ### Route names and URLs
 - **Where:** `routes/web.php`, `routes/api.php`, every `route('…')` call in `app/`, `resources/views/`, `resources/js/` and `tests/`
