@@ -30,8 +30,8 @@ class ExpenseCrudController extends CrudController
         CRUD::setModel(\App\Models\Expense::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/expense');
         CRUD::setEntityNameStrings(
-            trans('admin.expenses.expense'), 
-            trans('admin.expenses.expenses')
+            __('expenses.entity.singular'), 
+            __('expenses.entity.plural')
         );
         
         // Only allow access if user has permission (using backpack guard)
@@ -50,43 +50,43 @@ class ExpenseCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::column('expense_date')
-            ->label(trans('admin.expenses.date'))
+            ->label(__('expenses.fields.expense_date'))
             ->type('date');
             
         CRUD::column('reference_number')
-            ->label(trans('admin.expenses.reference_number'));
+            ->label(__('expenses.fields.reference_number'));
             
         CRUD::column('supplier')
-            ->label(trans('admin.expenses.supplier'))
+            ->label(__('expenses.fields.supplier_id'))
             ->type('relationship')
             ->attribute('name');
             
         CRUD::column('category')
-            ->label(trans('admin.expenses.category'))
+            ->label(__('expenses.fields.category_id'))
             ->type('relationship')
             ->attribute('name');
             
         CRUD::column('amount')
-            ->label(trans('admin.expenses.amount'))
+            ->label(__('expenses.fields.amount'))
             ->type('number')
             ->prefix('');
             
         CRUD::column('currency')
-            ->label(trans('admin.expenses.currency'));
+            ->label(__('expenses.fields.currency'));
             
         CRUD::column('status')
-            ->label(trans('admin.expenses.status'))
+            ->label(__('expenses.fields.status_id'))
             ->type('relationship')
             ->attribute('name');
             
         CRUD::column('description')
-            ->label(trans('admin.expenses.description'))
+            ->label(__('expenses.fields.description'))
             ->type('text')
             ->limit(80)
             ->escaped(true);
 
         CRUD::column('attachments')
-            ->label(trans('admin.expenses.attachments'))
+            ->label(__('expenses.fields.attachments'))
             ->type('closure')
             ->function(function($entry) {
                 if (!is_array($entry->attachments)) {
@@ -102,7 +102,7 @@ class ExpenseCrudController extends CrudController
         // Filters
         CRUD::filter('expense_date')
             ->type('datepicker_range')
-            ->label(trans('admin.expenses.date_range'))
+            ->label(__('expenses.filters.date_range'))
             ->whenActive(function ($value) {
                 $dates = json_decode($value);
                 CRUD::addClause('where', 'expense_date', '>=', $dates->from);
@@ -111,13 +111,13 @@ class ExpenseCrudController extends CrudController
 
         CRUD::filter('supplier_id')
             ->type('select2')
-            ->label(trans('admin.expenses.supplier'))
+            ->label(__('expenses.fields.supplier_id'))
             ->values(\App\Models\Supplier::all()
                 ->pluck('name', 'id')->toArray());
             
         CRUD::filter('category_id')
             ->type('select2')
-            ->label(trans('admin.expenses.category'))
+            ->label(__('expenses.fields.category_id'))
             ->values(\App\Models\ExpenseCategory::where('is_active', 1)
                     ->pluck('name', 'id')->toArray());
 
@@ -126,7 +126,7 @@ class ExpenseCrudController extends CrudController
 
         CRUD::filter('status_id')
             ->type('select2')
-            ->label(trans('admin.expenses.status'))
+            ->label(__('expenses.fields.status_id'))
             ->values(\App\Models\Status::where('category_id', $categoryId)->where('is_active', 1)
                 ->pluck('name', 'id')->toArray());
     }
@@ -145,45 +145,45 @@ class ExpenseCrudController extends CrudController
 
         // Basic information
         CRUD::field('expense_date')
-            ->label(trans('admin.expenses.date'))
+            ->label(__('expenses.fields.expense_date'))
             ->type('datepicker')
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('reference_number')
-            ->label(trans('admin.expenses.reference_number'))
-            ->hint(trans('admin.expenses.reference_number_hint'))
+            ->label(__('expenses.fields.reference_number'))
+            ->hint(__('expenses.hints.reference_number'))
             ->wrapper(['class' => 'form-group col-md-6']);
         
         // Amount and currency
         CRUD::field('amount')
-            ->label(trans('admin.expenses.amount'))
+            ->label(__('expenses.fields.amount'))
             ->type('number')
             ->attributes(['step' => '0.01'])
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('currency')
-            ->label(trans('admin.expenses.currency'))
+            ->label(__('expenses.fields.currency'))
             ->type('select2_from_array')
             ->options(['CZK' => 'CZK', 'EUR' => 'EUR', 'USD' => 'USD'])
             ->wrapper(['class' => 'form-group col-md-6']);
             
         // Related entities
         CRUD::field('supplier_id')
-            ->label(trans('admin.expenses.supplier'))
+            ->label(__('expenses.fields.supplier_id'))
             ->type('relationship')
             ->model(\App\Models\Supplier::class)
             ->attribute('name')
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('category_id')
-            ->label(trans('admin.expenses.category'))
+            ->label(__('expenses.fields.category_id'))
             ->type('relationship')
             ->model(\App\Models\ExpenseCategory::class)
             ->attribute('name')
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('payment_method_id')
-            ->label(trans('admin.expenses.payment_method'))
+            ->label(__('expenses.fields.payment_method_id'))
             ->type('relationship')
             ->entity('paymentMethod')
             ->model(\App\Models\PaymentMethod::class)
@@ -191,7 +191,7 @@ class ExpenseCrudController extends CrudController
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('status_id')
-            ->label(trans('admin.expenses.status'))
+            ->label(__('expenses.fields.status_id'))
             ->type('relationship')
             ->model(\App\Models\Status::class)
             ->attribute('name')
@@ -206,13 +206,13 @@ class ExpenseCrudController extends CrudController
         
         // Additional info
         CRUD::field('description')
-            ->label(trans('admin.expenses.description'))
+            ->label(__('expenses.fields.description'))
             ->type('textarea');
             
 
         $this->crud->addField([
             'name' => 'attachments',
-            'label' => trans('admin.expenses.attachments'),
+            'label' => __('expenses.fields.attachments'),
             'type' => 'files_list',
             'upload' => true,
             'disk' => 'public',
@@ -220,7 +220,7 @@ class ExpenseCrudController extends CrudController
             'wrapper' => [
                 'class' => 'form-group col-md-12'
             ],
-            'hint' => trans('admin.expenses.attachments_hint'),
+            'hint' => __('expenses.hints.attachments'),
         ]);
 
         $taxes = \App\Models\Tax::all();
@@ -230,14 +230,14 @@ class ExpenseCrudController extends CrudController
             $options[$tax->rate] = "{$tax->name}";
         }
         CRUD::field('tax_rate')
-            ->label(trans('admin.expenses.tax_rate'))
+            ->label(__('expenses.fields.tax_rate'))
             ->type('select_from_array')
             ->options($options)
             ->wrapper(['class' => 'form-group col-md-3']);
         
         $this->crud->addField([
             'name' => 'tax_included',
-            'label' => trans('admin.expenses.tax_included'),
+            'label' => __('expenses.fields.tax_included'),
             'type' => 'checkbox',
             'default' => true,
             'wrapper' => [
@@ -246,7 +246,7 @@ class ExpenseCrudController extends CrudController
         ]);
             
         CRUD::field('tax_amount')
-            ->label(trans('admin.expenses.tax_amount'))
+            ->label(__('expenses.fields.tax_amount'))
             ->type('number')
             ->attributes(['step' => '0.01'])
             ->wrapper(['class' => 'form-group col-md-6']);
@@ -278,45 +278,7 @@ class ExpenseCrudController extends CrudController
     {
         // Re-use most of the same columns from list operation
         $this->setupListOperation();
-        
-        // Override the attachments column with a custom renderer for the Show operation
-        // $this->crud->modifyColumn('attachments', [
-        //     'label' => trans('admin.expenses.attachments'),
-        //     'type' => 'closure',
-        //     'function' => function($entry) {
-        //         if (empty($entry->attachments)) {
-        //             return '';
-        //         }
-                
-        //         $html = '<div class="attachments-list">';
-        //         foreach ($entry->attachments as $filePath) {
-        //             $url = asset('storage/' . $filePath);
-        //             $fileName = basename($filePath);
-        //             $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-                    
-        //             // Icon based on file type
-        //             $icon = 'fa-file';
-        //             if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-        //                 $icon = 'fa-file-image';
-        //             } elseif ($extension === 'pdf') {
-        //                 $icon = 'fa-file-pdf';
-        //             } elseif (in_array($extension, ['doc', 'docx'])) {
-        //                 $icon = 'fa-file-word';
-        //             } elseif (in_array($extension, ['xls', 'xlsx'])) {
-        //                 $icon = 'fa-file-excel';
-        //             }
-                    
-        //             $html .= '<div class="attachment-item mb-2">';
-        //             $html .= '<i class="fa ' . $icon . ' mr-2"></i>';
-        //             $html .= '<a href="' . $url . '" target="_blank">' . $fileName . '</a>';
-        //             $html .= '</div>';
-        //         }
-        //         $html .= '</div>';
-                
-        //         return $html;
-        //     }
-        // ]);
-        
+
         // Also ensure description is properly displayed if null
         if (collect($this->crud->columns())->firstWhere('name', 'description')) {
             $this->crud->modifyColumn('description', [

@@ -55,34 +55,6 @@ class ExpenseRequestTest extends TestCase
     }
 
     #[Test]
-    public function attributes_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('attributes');
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        if ($returnType instanceof \ReflectionNamedType) {
-            $this->assertEquals('array', $returnType->getName());
-        } else {
-            $this->fail('attributes return type is not a named type');
-        }
-    }
-
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        if ($returnType instanceof \ReflectionNamedType) {
-            $this->assertEquals('array', $returnType->getName());
-        } else {
-            $this->fail('messages return type is not a named type');
-        }
-    }
-
-    #[Test]
     public function prepare_for_validation_exists_and_is_protected(): void
     {
         $reflection = new \ReflectionClass($this->request);

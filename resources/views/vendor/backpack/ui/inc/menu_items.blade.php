@@ -56,9 +56,9 @@ backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.finance.title') }}" icon="la la-coins text-warning">
     @if(backpack_user()->hasPermissionTo('can_create_edit_expense', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.finance.expenses') }}" />
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.expenses.expenses') }}" icon="la la-receipt"
+    <x-backpack::menu-dropdown-item title="{{ __('expenses.entity.plural') }}" icon="la la-receipt"
         :link="backpack_url('expense')" />
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.expenses.expense_categories') }}" icon="la la-tags"
+    <x-backpack::menu-dropdown-item title="{{ __('expenses.categories.entity.plural') }}" icon="la la-tags"
         :link="backpack_url('expense-category')" />
     @endif
 

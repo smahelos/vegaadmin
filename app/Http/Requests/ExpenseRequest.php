@@ -69,54 +69,21 @@ class ExpenseRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'expense_date' => trans('admin.expenses.date'),
-            'amount' => trans('admin.expenses.amount'),
-            'currency' => trans('admin.expenses.currency'),
-            'supplier_id' => trans('admin.expenses.supplier'),
-            'category_id' => trans('admin.expenses.category'),
-            'payment_method_id' => trans('admin.expenses.payment_method'),
-            'reference_number' => trans('admin.expenses.reference_number'),
-            'description' => trans('admin.expenses.description'),
-            'receipt_file' => trans('admin.expenses.receipt'),
-            'attachments' => trans('admin.expenses.attachments'),
-            'attachments.*' => trans('admin.expenses.attachments'),
-            'tax_amount' => trans('admin.expenses.tax_amount'),
-            'status_id' => trans('admin.expenses.status'),
-            'tax_included' => trans('admin.expenses.tax_included'),
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules.
-     * Uses generic Laravel lines with translated attributes for consistency.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'expense_date.required' => __('validation.required', ['attribute' => trans('admin.expenses.date')]),
-            'expense_date.date' => __('validation.date', ['attribute' => trans('admin.expenses.date')]),
-            'amount.required' => __('validation.required', ['attribute' => trans('admin.expenses.amount')]),
-            'amount.numeric' => __('validation.numeric', ['attribute' => trans('admin.expenses.amount')]),
-            'amount.min' => __('validation.min.numeric', ['attribute' => trans('admin.expenses.amount'), 'min' => 0]),
-            'currency.required' => __('validation.required', ['attribute' => trans('admin.expenses.currency')]),
-            'currency.size' => __('validation.size.string', ['attribute' => trans('admin.expenses.currency'), 'size' => 3]),
-            'supplier_id.exists' => __('validation.exists', ['attribute' => trans('admin.expenses.supplier')]),
-            'category_id.required' => __('validation.required', ['attribute' => trans('admin.expenses.category')]),
-            'category_id.exists' => __('validation.exists', ['attribute' => trans('admin.expenses.category')]),
-            'payment_method_id.exists' => __('validation.exists', ['attribute' => trans('admin.expenses.payment_method')]),
-            'reference_number.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.reference_number'), 'max' => 255]),
-            'receipt_file.file' => __('validation.file', ['attribute' => trans('admin.expenses.receipt')]),
-            'receipt_file.max' => __('validation.max.file', ['attribute' => trans('admin.expenses.receipt'), 'max' => 10240]),
-            'tax_amount.numeric' => __('validation.numeric', ['attribute' => trans('admin.expenses.tax_amount')]),
-            'tax_amount.min' => __('validation.min.numeric', ['attribute' => trans('admin.expenses.tax_amount'), 'min' => 0]),
-            'status_id.exists' => __('validation.exists', ['attribute' => trans('admin.expenses.status')]),
-            'user_id.required' => __('validation.required', ['attribute' => trans('admin.expenses.user')]),
-            'user_id.exists' => __('validation.exists', ['attribute' => trans('admin.expenses.user')]),
-            'attachments.array' => __('validation.array', ['attribute' => trans('admin.expenses.attachments')]),
-            'attachments.*.string' => __('validation.string', ['attribute' => trans('admin.expenses.attachments')]),
-            'tax_included.boolean' => __('validation.boolean', ['attribute' => trans('admin.expenses.tax_included')]),
+            'expense_date' => __('expenses.fields.expense_date'),
+            'amount' => __('expenses.fields.amount'),
+            'currency' => __('expenses.fields.currency'),
+            'supplier_id' => __('expenses.fields.supplier_id'),
+            'category_id' => __('expenses.fields.category_id'),
+            'payment_method_id' => __('expenses.fields.payment_method_id'),
+            'reference_number' => __('expenses.fields.reference_number'),
+            'description' => __('expenses.fields.description'),
+            'receipt_file' => __('expenses.fields.receipt_file'),
+            'attachments' => __('expenses.fields.attachments'),
+            'attachments.*' => __('expenses.fields.attachments'),
+            'tax_amount' => __('expenses.fields.tax_amount'),
+            'status_id' => __('expenses.fields.status_id'),
+            'user_id' => __('expenses.fields.user_id'),
+            'tax_included' => __('expenses.fields.tax_included'),
         ];
     }
 

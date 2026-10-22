@@ -1,13 +1,10 @@
 <?php
 
 return [
-    // Allgemeine Übersetzungen für die Anwendung
     'logo_alt' => 'Vega Rechnungen',
     'currency' => '€',
     'yes' => 'Ja',
     'no' => 'Nein',
-
-    // Monate für Datumsformatierung
     'months' => [
         1 => 'Januar',
         2 => 'Februar',
@@ -22,7 +19,6 @@ return [
         11 => 'November',
         12 => 'Dezember',
     ],
-
     'navigation' => [
         'dashboard' => 'Übersicht',
         'invoices' => 'Rechnungen',
@@ -33,7 +29,6 @@ return [
         'create_invoice' => 'Rechnung erstellen',
         'pages' => 'Seiten',
     ],
-
     'placeholders' => [
         'select_client' => 'Wählen Sie einen Kunden oder erstellen Sie einen neuen...',
         'select_status' => 'Status auswählen...',
@@ -47,17 +42,14 @@ return [
         'yes' => 'Ja',
         'no' => 'Nein',
     ],
-
     'joins' => [
         'and' => 'und',
     ],
-
     'empty' => [
         'not_specified' => 'Nicht angegeben.',
         'no_items' => 'Keine Einträge',
         'no_results' => 'Keine Ergebnisse',
     ],
-
     'pagination' => [
         'navigation' => 'Navigation',
         'shown' => 'Angezeigt',
@@ -67,7 +59,6 @@ return [
         'previous' => 'Zurück',
         'next' => 'Weiter',
     ],
-
     'actions' => [
         'create' => 'Erstellen',
         'edit' => 'Regeln',
@@ -81,10 +72,20 @@ return [
         'print' => 'Drucken',
         'send' => 'Senden',
         'actions' => 'Aktionen',
+        'remove_file' => 'Datei entfernen',
     ],
-
     'common' => [
         'created_at' => 'Erstellt am',
         'updated_at' => 'Aktualisiert am',
+    ],
+    'colors' => [
+        'green' => 'Grün',
+        'yellow' => 'Gelb',
+        'red' => 'Rot',
+        'blue' => 'Blau',
+        'gray' => 'Grau',
+        'purple' => 'Lila',
+        'indigo' => 'Indigo',
+        'pink' => 'Rosa',
     ],
 ];

@@ -49,14 +49,4 @@ return [
             'slug' => 'Will be automatically generated from the name if not provided',
         ],
     ],
-    'colors' => [
-        'green' => 'Green',
-        'yellow' => 'Yellow',
-        'red' => 'Red',
-        'blue' => 'Blue',
-        'gray' => 'Gray',
-        'purple' => 'Purple',
-        'indigo' => 'Indigo',
-        'pink' => 'Pink',
-    ],
 ];

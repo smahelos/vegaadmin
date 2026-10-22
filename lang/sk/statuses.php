@@ -49,14 +49,4 @@ return [
             'slug' => 'Bude automaticky vygenerovaný z názvu, ak nebude vyplnený',
         ],
     ],
-    'colors' => [
-        'green' => 'Zelená',
-        'yellow' => 'Žltá',
-        'red' => 'Červená',
-        'blue' => 'Modrá',
-        'gray' => 'Sivá',
-        'purple' => 'Fialová',
-        'indigo' => 'Indigová',
-        'pink' => 'Ružová',
-    ],
 ];

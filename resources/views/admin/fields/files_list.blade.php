@@ -60,7 +60,7 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
             </div>
             <input type="hidden" name="{{ $field['name'] }}_hidden[]" value="{{ $file }}">
             <button type="button" class="btn btn-sm btn-link remove-file text-danger"
-                title="{{ trans('admin.expenses.remove_file') }}">
+                title="{{ __('general.actions.remove_file') }}">
                 <i class="la la-trash"></i>
             </button>
         </div>
@@ -230,7 +230,7 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
                                     <span class="file-name font-weight-bold">${file.name}</span>
                                     <span class="text-muted ml-2">(${(file.size / 1024).toFixed(2)} KB)</span>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-link remove-file text-danger" title="{{ trans('admin.expenses.remove_file') }}">
+                                <button type="button" class="btn btn-sm btn-link remove-file text-danger" title="{{ __('general.actions.remove_file') }}">
                                     <i class="la la-trash"></i>
                                 </button>
                             `;

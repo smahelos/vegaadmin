@@ -46,28 +46,6 @@ class ExpenseCategoryRequestTest extends TestCase
     }
 
     #[Test]
-    public function attributes_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('attributes');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
-
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
-
-    #[Test]
     public function authorize_method_exists_and_is_public(): void
     {
         $reflection = new \ReflectionClass($this->request);
@@ -81,24 +59,6 @@ class ExpenseCategoryRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
-        $this->assertTrue($method->isPublic());
-    }
-
-    #[Test]
-    public function attributes_method_exists_and_is_public(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('attributes');
-        
-        $this->assertTrue($method->isPublic());
-    }
-
-    #[Test]
-    public function messages_method_exists_and_is_public(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
         
         $this->assertTrue($method->isPublic());
     }

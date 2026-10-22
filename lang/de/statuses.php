@@ -49,14 +49,4 @@ return [
             'slug' => 'Wird automatisch aus dem Namen generiert, wenn nicht angegeben',
         ],
     ],
-    'colors' => [
-        'green' => 'Grün',
-        'yellow' => 'Gelb',
-        'red' => 'Rot',
-        'blue' => 'Blau',
-        'gray' => 'Grau',
-        'purple' => 'Lila',
-        'indigo' => 'Indigo',
-        'pink' => 'Rosa',
-    ],
 ];

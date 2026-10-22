@@ -54,33 +54,11 @@ class ExpenseCategoryRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => trans('admin.expenses.name'),
-            'slug' => trans('admin.expenses.slug'),
-            'color' => trans('admin.expenses.color'),
-            'description' => trans('admin.expenses.description'),
-            'is_active' => trans('admin.expenses.is_active'),
-        ];
-    }
-
-    /**
-     * Get the error messages for the defined validation rules.
-     * Only custom messages that differ from default Laravel messages are defined here.
-     * Other validation rules will fall back to the default Laravel translation lines using attributes().
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => __('validation.required', ['attribute' => trans('admin.expenses.name')]),
-            'name.min' => __('validation.min.string', ['attribute' => trans('admin.expenses.name'), 'min' => 2]),
-            'name.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.name'), 'max' => 255]),
-            'slug.required' => __('validation.required', ['attribute' => trans('admin.expenses.slug')]),
-            'slug.min' => __('validation.min.string', ['attribute' => trans('admin.expenses.slug'), 'min' => 2]),
-            'slug.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.slug'), 'max' => 255]),
-            'slug.unique' => __('validation.unique', ['attribute' => trans('admin.expenses.slug')]),
-            'color.max' => __('validation.max.string', ['attribute' => trans('admin.expenses.color'), 'max' => 50]),
-            'is_active.boolean' => __('validation.boolean', ['attribute' => trans('admin.expenses.is_active')]),
+            'name' => __('expenses.categories.fields.name'),
+            'slug' => __('expenses.categories.fields.slug'),
+            'color' => __('expenses.categories.fields.color'),
+            'description' => __('expenses.categories.fields.description'),
+            'is_active' => __('expenses.categories.fields.is_active'),
         ];
     }
 

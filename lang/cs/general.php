@@ -1,13 +1,10 @@
 <?php
 
 return [
-    // Obecné překlady pro aplikaci
     'logo_alt' => 'Vega Faktury',
     'currency' => 'Kč',
     'yes' => 'Ano',
     'no' => 'Ne',
-
-    // Měsíce pro formátování dat
     'months' => [
         1 => 'leden',
         2 => 'únor',
@@ -22,7 +19,6 @@ return [
         11 => 'listopad',
         12 => 'prosinec',
     ],
-
     'navigation' => [
         'dashboard' => 'Přehled',
         'invoices' => 'Faktury',
@@ -33,7 +29,6 @@ return [
         'create_invoice' => 'Vytvořit fakturu',
         'pages' => 'Stránky',
     ],
-
     'placeholders' => [
         'select_client' => 'Vyberte klienta nebo vytvořte nového...',
         'select_status' => 'Vyberte stav...',
@@ -47,17 +42,14 @@ return [
         'yes' => 'Ano',
         'no' => 'Ne',
     ],
-
     'joins' => [
         'and' => 'a',
     ],
-
     'empty' => [
         'not_specified' => 'Nespecifikováno.',
         'no_items' => 'Žádné položky',
         'no_results' => 'Žádné výsledky',
     ],
-
     'pagination' => [
         'navigation' => 'Navigace',
         'shown' => 'Zobrazeno',
@@ -67,7 +59,6 @@ return [
         'previous' => 'Předchozí',
         'next' => 'Další',
     ],
-
     'actions' => [
         'create' => 'Vytvořit',
         'edit' => 'Upravit',
@@ -81,14 +72,12 @@ return [
         'print' => 'Tisknout',
         'send' => 'Odeslat',
         'actions' => 'Akce',
+        'remove_file' => 'Odstranit soubor',
     ],
-
     'common' => [
         'created_at' => 'Vytvořeno',
         'updated_at' => 'Aktualizováno',
     ],
-
-    // Systém limitů entit
     'entity_limits' => [
         'exceeded' => [
             'title' => 'Limit překročen',
@@ -116,5 +105,15 @@ return [
             'value' => 'hodnota',
             'size' => 'velikost',
         ],
+    ],
+    'colors' => [
+        'green' => 'Zelená',
+        'yellow' => 'Žlutá',
+        'red' => 'Červená',
+        'blue' => 'Modrá',
+        'gray' => 'Šedá',
+        'purple' => 'Fialová',
+        'indigo' => 'Indigová',
+        'pink' => 'Růžová',
     ],
 ];

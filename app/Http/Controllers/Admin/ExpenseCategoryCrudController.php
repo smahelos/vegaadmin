@@ -28,7 +28,7 @@ class ExpenseCategoryCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\ExpenseCategory::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/expense-category');
-        CRUD::setEntityNameStrings('expense category', 'expense categories');
+        CRUD::setEntityNameStrings(__('expenses.categories.entity.singular'), __('expenses.categories.entity.plural'));
     }
 
     /**
@@ -41,12 +41,13 @@ class ExpenseCategoryCrudController extends CrudController
     {
         //CRUD::setFromDb(); // set columns from db columns.
 
-        CRUD::column('name')->label('Name');
-        CRUD::column('slug')->label('Slug');
-        CRUD::column('description')->label('Description');
+        CRUD::column('name')->label(__('expenses.categories.fields.name'));
+        CRUD::column('slug')->label(__('expenses.categories.fields.slug'));
+        CRUD::column('description')->label(__('expenses.categories.fields.description'));
 
         CRUD::column('color_preview')
             ->type('custom_html')
+            ->label(__('expenses.categories.fields.color'))
             ->value(function ($entry) {
                 // Tabler has no plain bg-gray badge color
                 $color = ['gray' => 'secondary'][$entry->color ?? 'gray'] ?? $entry->color;
@@ -71,26 +72,28 @@ class ExpenseCategoryCrudController extends CrudController
         //CRUD::setFromDb(); // set fields from db columns.
 
            
-        CRUD::field('name')->label('Name');
-        CRUD::field('slug')->label('Slug');
+        CRUD::field('name')->label(__('expenses.categories.fields.name'));
+        CRUD::field('slug')
+            ->label(__('expenses.categories.fields.slug'))
+            ->hint(__('expenses.categories.hints.slug'));
             
         CRUD::field('description')
-            ->label(trans('admin.expenses.description'))
+            ->label(__('expenses.categories.fields.description'))
             ->type('textarea');
 
         CRUD::addField([
             'name' => 'color',
-            'label' => 'Color',
+            'label' => __('expenses.categories.fields.color'),
             'type' => 'select_from_array',
             'options' => [
-                'green' => 'Green',
-                'yellow' => 'Yellow',
-                'red' => 'Red',
-                'blue' => 'Blue',
-                'gray' => 'Gray',
-                'purple' => 'Purple',
-                'indigo' => 'Indigo',
-                'pink' => 'Pink',
+                'green' => __('general.colors.green'),
+                'yellow' => __('general.colors.yellow'),
+                'red' => __('general.colors.red'),
+                'blue' => __('general.colors.blue'),
+                'gray' => __('general.colors.gray'),
+                'purple' => __('general.colors.purple'),
+                'indigo' => __('general.colors.indigo'),
+                'pink' => __('general.colors.pink'),
             ],
             'allows_null' => false,
             'default' => 'gray',
