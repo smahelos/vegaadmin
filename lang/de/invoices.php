@@ -53,6 +53,7 @@ return [
         'invoice_note' => 'Anmerkung zur Rechnung',
         'invoice_logo' => 'Logo der Rechnung',
         'template' => 'PDF-Vorlage',
+        'user_id' => 'Eigentümer',
     ],
 
     'sections' => [

@@ -213,4 +213,29 @@ class InvoiceCrudControllerTest extends TestCase
 
         $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'invoice_text' => $text, 'user_id' => $this->adminUser->id]);
     }
+
+    #[Test]
+    public function show_displays_the_related_records_by_name(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $client = Client::factory()->create(['user_id' => $this->adminUser->id, 'name' => 'Client ' . uniqid()]);
+        $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id, 'name' => 'Supplier ' . uniqid()]);
+        $paymentMethod = PaymentMethod::factory()->create(['name' => 'Method ' . uniqid()]);
+        $status = Status::factory()->create(['name' => 'Status ' . uniqid()]);
+        $invoice = Invoice::factory()->create([
+            'user_id' => $this->adminUser->id,
+            'client_id' => $client->id,
+            'supplier_id' => $supplier->id,
+            'payment_method_id' => $paymentMethod->id,
+            'payment_status_id' => $status->id,
+        ]);
+
+        $this->get('/admin/invoice/' . $invoice->id . '/show')
+            ->assertOk()
+            ->assertSee($this->adminUser->name)
+            ->assertSee($client->name)
+            ->assertSee($supplier->name)
+            ->assertSee($paymentMethod->name)
+            ->assertSee($status->name);
+    }
 }
