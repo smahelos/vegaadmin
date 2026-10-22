@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\BankRequest;
+use App\Http\Requests\Admin\BankRequest;
 use App\Infrastructure\Forms\Party\BankFormFields;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;

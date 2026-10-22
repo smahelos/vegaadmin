@@ -80,11 +80,6 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 ## Party / Admin
 
-### Admin bank CRUD validates with the frontend request
-- **Where:** `app/Http/Controllers/Admin/BankCrudController.php`
-- **Problem:** uses `App\Http\Requests\BankRequest` (only `auth()->check()`) instead of `App\Http\Requests\Admin\BankRequest`.
-- **Fix:** switch to the admin request; resolve together with the entity limit rules for admins.
-
 ### Unreachable branch of the frontend user request
 - **Where:** non-profile branch of `app/Http/Requests/UserRequest.php`
 - **Problem:** no route reaches it; it checks `frontend.can_create_edit_user`, which is not in `PermissionCatalog`. `PermissionCatalogCoverageTest` allowlists it as unreachable.
