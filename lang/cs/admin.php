@@ -317,15 +317,6 @@ return [
         'statuses_tab' => 'Seznam stavů',
     ],
 
-    'taxes' => [
-        'tax' => 'DPH',
-        'taxes' => 'DPH',
-        'name' => 'Název',
-        'rate' => 'Sazba',
-        'description' => 'Popis',
-        'slug' => 'Slug',
-    ],
-
     'payment_methods' => [
         'payment_method' => 'Způsob platby',
         'payment_methods' => 'Způsoby platby',

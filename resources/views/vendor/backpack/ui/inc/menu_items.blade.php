@@ -69,7 +69,7 @@ backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
     @endif
 
     @if(backpack_user()->hasPermissionTo('can_create_edit_tax', 'backpack'))
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.taxes.taxes') }}" icon="la la-percentage"
+    <x-backpack::menu-dropdown-item title="{{ __('taxes.entity.plural') }}" icon="la la-percentage"
         :link="backpack_url('tax')" />
     @endif
 

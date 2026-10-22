@@ -37,21 +37,8 @@ class TaxRequest extends BaseEntityRequest
     public function attributes(): array
     {
         return [
-            'name' => __('tax.name'),
-            'rate' => __('tax.rate'),
-        ];
-    }
-
-    /**
-     * Custom validation messages
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => __('tax.name_required'),
-            'rate.required' => __('tax.rate_required'),
-            'rate.numeric' => __('tax.rate_numeric'),
-            'rate.min' => __('tax.rate_min'),
+            'name' => __('taxes.fields.name'),
+            'rate' => __('taxes.fields.rate'),
         ];
     }
 }

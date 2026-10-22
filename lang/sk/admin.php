@@ -299,15 +299,6 @@ return [
         'statuses_tab' => 'Zoznam stavov',
     ],
 
-    'taxes' => [
-        'tax' => 'DPH',
-        'taxes' => 'DPH',
-        'name' => 'Názov',
-        'rate' => 'Sadzba',
-        'description' => 'Popis',
-        'slug' => 'Slug',
-    ],
-
     'payment_methods' => [
         'payment_method' => 'Spôsob platby',
         'payment_methods' => 'Spôsoby platby',

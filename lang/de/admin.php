@@ -299,15 +299,6 @@ return [
         'statuses_tab' => 'Liste der Status',
     ],
 
-    'taxes' => [
-        'tax' => 'MwSt.',
-        'taxes' => 'MwSt.',
-        'name' => 'Name',
-        'rate' => 'Satz',
-        'description' => 'Beschreibung',
-        'slug' => 'Slug',
-    ],
-
     'payment_methods' => [
         'payment_method' => 'Zahlungsmethode',
         'payment_methods' => 'Zahlungsmethoden',

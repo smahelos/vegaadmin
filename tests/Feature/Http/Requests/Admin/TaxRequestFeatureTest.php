@@ -299,30 +299,11 @@ class TaxRequestFeatureTest extends TestCase
         $attributes = $request->attributes();
 
         $expectedAttributes = [
-            'name' => __('tax.name'),
-            'rate' => __('tax.rate'),
+            'name' => __('taxes.fields.name'),
+            'rate' => __('taxes.fields.rate'),
         ];
 
         $this->assertEquals($expectedAttributes, $attributes);
-    }
-
-    /**
-     * Test custom messages are correctly defined.
-     */
-    #[Test]
-    public function custom_messages_are_defined(): void
-    {
-        $request = new TaxRequest();
-        $messages = $request->messages();
-
-        $expectedMessages = [
-            'name.required' => __('tax.name_required'),
-            'rate.required' => __('tax.rate_required'),
-            'rate.numeric' => __('tax.rate_numeric'),
-            'rate.min' => __('tax.rate_min'),
-        ];
-
-        $this->assertEquals($expectedMessages, $messages);
     }
 
     /**
@@ -381,25 +362,14 @@ class TaxRequestFeatureTest extends TestCase
         }
     }
 
-    /**
-     * Test validation with custom messages.
-     */
     #[Test]
-    public function validation_with_custom_messages(): void
+    public function required_errors_name_the_field_label(): void
     {
         $request = new TaxRequest();
 
-        $invalidData = [
-            'name' => '',
-            'rate' => '',
-        ];
+        $validator = Validator::make(['name' => '', 'rate' => ''], $request->rules(), $request->messages(), $request->attributes());
 
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
-
-        $this->assertFalse($validator->passes());
-
-        $errors = $validator->errors();
-        $this->assertStringContainsString('tax.', $errors->first('name'));
-        $this->assertStringContainsString('tax.', $errors->first('rate'));
+        $this->assertSame(__('validation.required', ['attribute' => __('taxes.fields.name')]), $validator->errors()->first('name'));
+        $this->assertSame(__('validation.required', ['attribute' => __('taxes.fields.rate')]), $validator->errors()->first('rate'));
     }
 }

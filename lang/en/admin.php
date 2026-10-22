@@ -317,15 +317,6 @@ return [
         'statuses_tab' => 'List of Statuses',
     ],
 
-    'taxes' => [
-        'tax' => 'VAT',
-        'taxes' => 'VAT',
-        'name' => 'Name',
-        'rate' => 'Rate',
-        'description' => 'Description',
-        'slug' => 'Slug',
-    ],
-
     'payment_methods' => [
         'payment_method' => 'Payment method',
         'payment_methods' => 'Payment methods',
