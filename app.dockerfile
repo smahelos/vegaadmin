@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.3.36-fpm-alpine
 
 # Instalace základních balíčků pro Alpine
 RUN apk add --no-cache \
