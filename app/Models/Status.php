@@ -77,7 +77,7 @@ class Status extends Model
         
         try {
             // Create translation key based on slug
-            $translationKey = 'payment_statuses.' . $this->slug;
+            $translationKey = 'statuses.statuses.' . $this->slug;
             
             // Check if translation exists
             if (\Illuminate\Support\Facades\Lang::has($translationKey)) {

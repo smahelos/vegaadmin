@@ -198,6 +198,16 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
+    public function payment_status_name_is_translated_by_status_slug(): void
+    {
+        $status = Status::where('slug', 'partially-paid')->first()
+            ?? Status::factory()->create(['slug' => 'partially-paid', 'name' => 'Částečně uhrazená']);
+        $invoice = Invoice::factory()->create(['payment_status_id' => $status->id]);
+
+        $this->assertSame(__('statuses.statuses.partially-paid'), $invoice->payment_status_name);
+    }
+
+    #[Test]
     public function get_payment_status_name_attribute_returns_fallback_when_no_status(): void
     {
         $invoice = Invoice::factory()->create(['payment_status_id' => null]);

@@ -116,9 +116,9 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
 
     @if(backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.system_admin.statuses') }}" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.system_admin.status_categories') }}" icon="la la-tags"
+    <x-backpack::menu-dropdown-item title="{{ __('statuses.categories.entity.plural') }}" icon="la la-tags"
         :link="backpack_url('status-category')" />
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.statuses.statuses') }}" icon="la la-flag"
+    <x-backpack::menu-dropdown-item title="{{ __('statuses.entity.plural') }}" icon="la la-flag"
         :link="backpack_url('status')" />
     @endif
 </x-backpack::menu-dropdown>

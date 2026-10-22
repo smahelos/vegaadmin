@@ -27,8 +27,8 @@ class StatusCategoryCrudController extends CrudController
         CRUD::setModel(\App\Models\StatusCategory::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/status-category');
         CRUD::setEntityNameStrings(
-            trans('admin.status_categories.status_category'), 
-            trans('admin.status_categories.status_categories')
+            __('statuses.categories.entity.singular'), 
+            __('statuses.categories.entity.plural')
         );
         
         // Only allow access if user has permission to manage statuses
@@ -42,15 +42,15 @@ class StatusCategoryCrudController extends CrudController
      */
     protected function setupListOperation()
     {
-        CRUD::column('name')->label(trans('admin.status_categories.name'));
-        CRUD::column('slug')->label(trans('admin.status_categories.slug'));
-        CRUD::column('description')->label(trans('admin.status_categories.description'));
+        CRUD::column('name')->label(__('statuses.categories.fields.name'));
+        CRUD::column('slug')->label(__('statuses.categories.fields.slug'));
+        CRUD::column('description')->label(__('statuses.categories.fields.description'));
         
         // Add a column showing the number of statuses in each category (counted in the list query)
         CRUD::addClause('withCount', 'statuses');
         CRUD::addColumn([
             'name'      => 'statuses_count',
-            'label'     => trans('admin.status_categories.statuses_count'),
+            'label'     => __('statuses.categories.fields.statuses_count'),
             'type'      => 'text',
             'wrapper'   => [
                 'href' => function ($crud, $column, $entry, $related_key) {
@@ -76,16 +76,16 @@ class StatusCategoryCrudController extends CrudController
         CRUD::setValidation(StatusCategoryRequest::class);
 
         CRUD::field('name')
-            ->label(trans('admin.status_categories.name'))
+            ->label(__('statuses.categories.fields.name'))
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('slug')
-            ->label(trans('admin.status_categories.slug'))
-            ->hint(trans('admin.status_categories.slug_hint'))
+            ->label(__('statuses.categories.fields.slug'))
+            ->hint(__('statuses.categories.hints.slug'))
             ->wrapper(['class' => 'form-group col-md-6']);
             
         CRUD::field('description')
-            ->label(trans('admin.status_categories.description'))
+            ->label(__('statuses.categories.fields.description'))
             ->type('textarea');
     }
 
@@ -106,12 +106,12 @@ class StatusCategoryCrudController extends CrudController
         
         CRUD::column('statuses')
             ->type('relationship_table')
-            ->label(trans('admin.status_categories.statuses_tab'))
+            ->label(__('statuses.categories.fields.statuses'))
             ->columns([
-                'name' => trans('admin.statuses.name'),
-                'slug' => trans('admin.statuses.slug'),
-                'color_preview' => trans('admin.statuses.color'),
-                'is_active' => trans('admin.statuses.is_active'),
+                'name' => __('statuses.fields.name'),
+                'slug' => __('statuses.fields.slug'),
+                'color_preview' => __('statuses.fields.color'),
+                'is_active' => __('statuses.fields.is_active'),
             ])
             ->raw(['color_preview']);
     }

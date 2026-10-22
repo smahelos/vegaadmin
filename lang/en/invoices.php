@@ -3,16 +3,13 @@
 return [
     'qr_code_info' => 'Use the QR code for payment',
     'generated_at' => 'Generated at',
-
     'defaults' => [
         'invoice_text' => 'Billing for services',
         'payment_method' => 'Bank transfer',
     ],
-
     'fields' => [
         'invoice_vs' => 'Invoice Number',
         'invoice_vs_long' => 'Invoice Number (VS):',
-        // Added aliases for tests expecting generic keys
         'invoice_number' => 'Invoice Number',
         'invoice_ks' => 'Constant Symbol',
         'invoice_ss' => 'Specific Symbol',
@@ -56,7 +53,6 @@ return [
         'template' => 'PDF Template',
         'user_id' => 'Owner',
     ],
-
     'sections' => [
         'invoice_details' => 'Invoice Details',
         'invoice_info' => 'Invoice Information',
@@ -73,7 +69,6 @@ return [
         'qr_payment' => 'QR Payment Code',
         'invoice_text' => 'Invoice items and notes',
     ],
-
     'actions' => [
         'create' => 'Create Invoice',
         'edit' => 'Edit',
@@ -96,7 +91,6 @@ return [
         'processing' => 'Processing...',
         'add_item' => 'Add item',
     ],
-
     'titles' => [
         'index' => 'Invoices',
         'create' => 'Create New Invoice',
@@ -109,7 +103,6 @@ return [
         'empty_message' => 'Create your first invoice by clicking the button below.',
         'create_free_invoice' => 'Create Free Invoice',
     ],
-
     'labels' => [
         'created_at' => 'Issue Date',
         'total_without_tax' => 'Total without VAT',
@@ -121,13 +114,11 @@ return [
         'template_settings' => 'Template Settings',
         'select_template' => 'Select Template',
     ],
-
     'templates' => [
         'default' => 'Standard',
         'modern' => 'Modern',
         'minimal' => 'Minimal',
     ],
-
     'messages' => [
         'id_required' => 'Invoice ID is required.',
         'not_found' => 'Invoice not found.',
@@ -169,7 +160,6 @@ return [
         'status_changed' => 'Invoice status was successfully changed.',
         'expired' => 'Invoice link has expired, please contact the issuer for a new link.',
     ],
-
     'placeholders' => [
         'select_client' => 'Create a new client or select...',
         'select_status' => 'Select status...',
@@ -192,24 +182,14 @@ return [
         'item_price_complete' => 'Total',
         'actions' => 'Actions',
     ],
-
     'status' => [
-        'invoice_statuses' => 'Invoice Statuses',
         'invoice_status' => 'Invoice Status',
-        'sent' => 'Sent',
-        'paid' => 'Paid',
-        'overdue' => 'Overdue',
-        'partially_paid' => 'Partially Paid',
-        'canceled' => 'Canceled',
-        'draft' => 'Draft',
         'unknown' => 'Unknown',
     ],
-
     'modal' => [
         'preview_title' => 'Preview Invoice No. :number',
         'loading_pdf' => 'Loading PDF...',
     ],
-
     'units' => [
         'hours' => 'hours',
         'days' => 'days',
@@ -223,19 +203,15 @@ return [
         'cubic_centimeters' => 'cm³',
         'milliliters' => 'ml',
     ],
-
     'tags' => [
         'issuer' => 'Supplier',
         'recipient' => 'Recipient',
     ],
-
     'tables' => [
         'field' => 'Field',
         'value' => 'Value',
     ],
-
     'validation' => [
-        // Basic invoice information
         'invoice_vs_required' => 'Invoice number (VS) is required',
         'due_in_required' => 'Please select payment terms',
         'payment_method_required' => 'Payment method is required',
@@ -248,19 +224,13 @@ return [
         'invoice_logo_file' => 'Invoice logo must be a valid file',
         'invoice_logo_format' => 'Invoice logo must be an image (jpeg, jpg, png, gif, svg)',
         'invoice_logo_size' => 'Invoice logo size must not exceed :max kB',
-
-        // Supplier validation
         'supplier_required_without' => 'You must either select an existing supplier or enter details for a new supplier',
         'supplier_name_required' => 'Supplier name is required if you don\'t select an existing supplier',
         'supplier_name_min' => 'Supplier name must contain at least 3 characters',
         'supplier_required' => 'You must first select a supplier or fill in details for a new supplier.',
-
-        // Client validation
         'client_required_without' => 'You must either select an existing client or enter details for a new client',
         'client_name_required' => 'Client name is required if you don\'t select an existing client',
         'client_name_min' => 'Client name must contain at least 3 characters',
-
-        // General address validation
         'name_required' => 'Invoice name is required.',
         'street_required' => 'Street is required',
         'city_required' => 'City is required',
@@ -272,15 +242,12 @@ return [
         'client_country_required' => 'Client country is required',
         'client_required' => 'Client is required',
         'user_required' => 'User is required',
-
-        // Validation of invoice items
         'amount_positive' => 'You must add at least one invoice item',
         'invalid_swift' => 'SWIFT code is invalid',
         'item_name_min' => 'Item name must contain at least 3 characters',
         'invalid_iban' => 'IBAN is invalid',
         'invalid_vat_id' => 'VAT ID is invalid',
     ],
-
     'hints' => [
         'invoice_vs' => 'You can customize the suggested invoice number to match your numbering system.',
         'invoice_ks' => '',
@@ -296,22 +263,17 @@ return [
         'invoice_logo' => 'Upload your invoice logo (max 2MB, formats: jpeg, jpg, png, gif, svg)',
         'template' => 'Select a template for PDF invoice generation',
     ],
-
     'reminders' => [
         'greeting' => 'Hello, :name,',
         'upcoming_due_subject' => 'Reminder: Upcoming due date for Invoice No. :number',
         'due_today_subject' => 'Invoice No. :number is due today',
         'overdue_subject' => 'Overdue Invoice No. :number',
-
         'upcoming_due_intro_supplier' => 'This is a reminder that Invoice No. :number issued to client :client will be due in :days days.',
         'upcoming_due_intro_client' => 'This is a reminder that Invoice No. :number will be due in :days days.',
-
         'due_today_intro_supplier' => 'Invoice No. :number issued to client :client is due today.',
         'due_today_intro_client' => 'Invoice No. :number is due today.',
-
         'overdue_intro_supplier' => 'Invoice No. :number issued to client :client is overdue by :days days.',
         'overdue_intro_client' => 'Invoice No. :number is overdue by :days days.',
-
         'due_date_info' => 'Due date: :date',
         'due_date_today' => 'Due date: today',
         'due_date_passed' => 'Due date: :date (exceeded)',
@@ -320,10 +282,8 @@ return [
         'payment_request' => 'Please settle this invoice as soon as possible to avoid further delays.',
         'thank_you' => 'Thank you for your cooperation.',
     ],
-
     'no_input_labels' => [
         'current_invoice_logo' => 'Current logo',
     ],
-
     'overdue_days' => ':days days overdue',
 ];

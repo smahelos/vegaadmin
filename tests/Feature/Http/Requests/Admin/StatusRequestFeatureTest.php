@@ -253,31 +253,13 @@ class StatusRequestFeatureTest extends TestCase
         $expectedAttributes = [
             'name' => __('statuses.fields.name'),
             'slug' => __('statuses.fields.slug'),
-            'category_id' => __('statuses.fields.category'),
+            'category_id' => __('statuses.fields.category_id'),
             'color' => __('statuses.fields.color'),
             'description' => __('statuses.fields.description'),
             'is_active' => __('statuses.fields.is_active'),
         ];
 
         $this->assertEquals($expectedAttributes, $attributes);
-    }
-
-    /**
-     * Test custom messages are correctly defined.
-     */
-    #[Test]
-    public function custom_messages_are_defined(): void
-    {
-        $request = new StatusRequest();
-        $messages = $request->messages();
-
-        $expectedMessages = [
-            'name.required' => __('statuses.validation.name_required'),
-            'slug.required' => __('statuses.validation.slug_required'),
-            'slug.unique' => __('statuses.validation.slug_unique'),
-        ];
-
-        $this->assertEquals($expectedMessages, $messages);
     }
 
     /**

@@ -3,12 +3,10 @@
 return [
     'qr_code_info' => 'Pro platbu použijte QR kód',
     'generated_at' => 'Vygenerováno',
-
     'defaults' => [
         'invoice_text' => 'Fakturace služeb',
         'payment_method' => 'Bankovní převod',
     ],
-
     'fields' => [
         'invoice_vs' => 'Číslo faktury',
         'invoice_vs_long' => 'Číslo faktury (VS):',
@@ -55,7 +53,6 @@ return [
         'template' => 'Šablona PDF',
         'user_id' => 'Vlastník',
     ],
-
     'sections' => [
         'invoice_details' => 'Údaje o faktuře',
         'invoice_info' => 'Informace o faktuře',
@@ -72,7 +69,6 @@ return [
         'qr_payment' => 'QR kód pro platbu',
         'invoice_text' => 'Položky a poznámky k faktuře',
     ],
-
     'actions' => [
         'create' => 'Vytvořit fakturu',
         'edit' => 'Upravit',
@@ -95,7 +91,6 @@ return [
         'processing' => 'Zpracovávám...',
         'add_item' => 'Přidat položku',
     ],
-
     'titles' => [
         'index' => 'Faktury',
         'create' => 'Vytvořit novou fakturu',
@@ -108,7 +103,6 @@ return [
         'empty_message' => 'Vytvořte svou první fakturu kliknutím na tlačítko níže.',
         'create_free_invoice' => 'Vytvořit bezplatnou fakturu',
     ],
-
     'labels' => [
         'created_at' => 'Datum vystavení',
         'total_without_tax' => 'Celkem bez DPH',
@@ -120,13 +114,11 @@ return [
         'template_settings' => 'Nastavení šablony',
         'select_template' => 'Vyberte šablonu',
     ],
-
     'templates' => [
         'default' => 'Standardní',
         'modern' => 'Moderní',
         'minimal' => 'Minimální',
     ],
-
     'messages' => [
         'id_required' => 'ID faktury je povinné.',
         'not_found' => 'Faktura nebyla nalezena.',
@@ -168,7 +160,6 @@ return [
         'update_failed' => 'Nepodařilo se aktualizovat fakturu.',
         'expired' => 'Platnost faktury vypršela, kontaktujte prosím vystavitele pro nový odkaz.',
     ],
-
     'placeholders' => [
         'select_client' => 'Vytvořte nového klienta nebo vyberte...',
         'select_status' => 'Vyberte stav...',
@@ -192,24 +183,14 @@ return [
         'actions' => 'Akce',
         'select_item_unit' => 'Vyberte jednotku',
     ],
-
     'status' => [
-        'invoice_statuses' => 'Stavy faktur',
         'invoice_status' => 'Stav faktury',
-        'sent' => 'Odesláno',
-        'paid' => 'Zaplaceno',
-        'overdue' => 'Po splatnosti',
-        'partially_paid' => 'Částečně uhrazená',
-        'canceled' => 'Stornovaná',
-        'draft' => 'Koncept',
         'unknown' => 'Neznámý',
     ],
-
     'modal' => [
         'preview_title' => 'Náhled faktury č. :number',
         'loading_pdf' => 'Načítám PDF...',
     ],
-
     'units' => [
         'hours' => 'hodin',
         'days' => 'dní',
@@ -223,19 +204,15 @@ return [
         'cubic_centimeters' => 'cm³',
         'milliliters' => 'ml',
     ],
-
     'tags' => [
         'issuer' => 'Dodavatel',
         'recipient' => 'Odběratel',
     ],
-
     'tables' => [
         'field' => 'Pole',
         'value' => 'Hodnota',
     ],
-
     'validation' => [
-        // Základní údaje o faktuře
         'invoice_vs_required' => 'Číslo faktury (VS) je povinné',
         'due_in_required' => 'Vyberte splatnost',
         'payment_method_required' => 'Platební metoda je povinná',
@@ -248,19 +225,13 @@ return [
         'invoice_logo_file' => 'Logo faktury musí být soubor',
         'invoice_logo_format' => 'Logo faktury musí být ve formátu JPEG, JPG, PNG, GIF nebo SVG',
         'invoice_logo_size' => 'Logo faktury nesmí být větší než :max kB',
-
-        // Validace vystavitele/dodavatele
         'supplier_required_without' => 'Musíte buď vybrat existujícího dodavatele nebo zadat údaje nového dodavatele',
         'supplier_name_required' => 'Název dodavatele je povinný, pokud nevyberete existujícího dodavatele',
         'supplier_name_min' => 'Název dodavatele musí obsahovat alespoň 3 znaky',
         'supplier_required' => 'Nejprve musíte vybrat dodavatele, nebo vyplnit nového.',
-
-        // Validace klienta/odběratele
         'client_required_without' => 'Musíte buď vybrat existujícího klienta nebo zadat údaje nového klienta',
         'client_name_required' => 'Název klienta je povinný, pokud nevyberete existujícího klienta',
         'client_name_min' => 'Název klienta musí obsahovat alespoň 3 znaky',
-
-        // Obecná validace adresních údajů
         'name_required' => 'Název faktury je povinný.',
         'street_required' => 'Ulice je povinná',
         'city_required' => 'Město je povinné',
@@ -272,15 +243,12 @@ return [
         'client_country_required' => 'Země klienta je povinná',
         'client_required' => 'Klient je povinný',
         'user_required' => 'Uživatel je povinný',
-
-        // Validace položek faktury
         'amount_positive' => 'Musíte přidat alespoň jednu položku faktury',
         'invalid_swift' => 'SWIFT kód je neplatný',
         'item_name_min' => 'Název položky musí obsahovat alespoň 3 znaky',
         'invalid_iban' => 'IBAN je neplatný',
         'invalid_vat_id' => 'Daňové identifikační číslo je neplatné',
     ],
-
     'hints' => [
         'invoice_vs' => 'Navrhované číslo faktury můžete přizpůsobit vašemu číslování.',
         'invoice_ks' => '',
@@ -296,22 +264,17 @@ return [
         'invoice_logo' => 'Nahrajte logo pro fakturu (JPEG, PNG, GIF, SVG, max. 2MB)',
         'template' => 'Vyberte šablonu pro generování PDF faktury',
     ],
-
     'reminders' => [
         'greeting' => 'Dobrý den, :name,',
         'upcoming_due_subject' => 'Upozornění na blížící se splatnost faktury č. :number',
         'due_today_subject' => 'Faktura č. :number je dnes splatná',
         'overdue_subject' => 'Upozornění na fakturu po splatnosti č. :number',
-
         'upcoming_due_intro_supplier' => 'Připomínáme, že faktura č. :number vystavená klientovi :client bude splatná za :days dnů.',
         'upcoming_due_intro_client' => 'Připomínáme, že faktura č. :number bude splatná za :days dnů.',
-
         'due_today_intro_supplier' => 'Faktura č. :number vystavená klientovi :client je dnes splatná.',
         'due_today_intro_client' => 'Faktura č. :number je dnes splatná.',
-
         'overdue_intro_supplier' => 'Faktura č. :number vystavená klientovi :client je po splatnosti :days dnů.',
         'overdue_intro_client' => 'Faktura č. :number je po splatnosti :days dnů.',
-
         'due_date_info' => 'Datum splatnosti: :date',
         'due_date_today' => 'Datum splatnosti: dnes',
         'due_date_passed' => 'Datum splatnosti: :date (překročeno)',
@@ -320,10 +283,8 @@ return [
         'payment_request' => 'Prosím, uhraďte tuto fakturu co nejdříve, aby nedošlo k dalšímu zpoždění.',
         'thank_you' => 'Děkujeme za spolupráci.',
     ],
-
     'no_input_labels' => [
         'current_invoice_logo' => 'Aktuální logo',
     ],
-
     'overdue_days' => ':days dnů po splatnosti',
 ];

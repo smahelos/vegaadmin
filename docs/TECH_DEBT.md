@@ -31,6 +31,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 ## Invoice
 
+### Status enum lists factory slugs and English labels
+- **Where:** `app/Domain/Shared/Status/ValueObjects/StatusCode.php`, `StatusService::translateSlug()`, `App\Models\Status::getTranslatedNameAttribute()`
+- **Problem:** the enum holds slugs that only test factories create (`paid-status`, `pending-payment`, `cancelled-status`) and `unpaid`, which no status row has; `StatusService` refuses to start when a database lacks any enum slug. `label()` returns hardcoded English. The model accessor translates the slug itself instead of going through `translateSlug()`.
+- **Fix:** keep only the system statuses in the enum (seeded by a migration), labels from `statuses.statuses.<slug>`, one resolver used by the model, the invoice mapper and the dashboard.
+
 ### Compose `PrintableInvoiceData` from `PartyPrintData`
 - **Where:** `app/Domain/Invoice/DTO/PrintableInvoiceData.php`, `app/Domain/Party/DTO/PartyPrintData.php`
 - **Problem:** `PrintableInvoiceData` has ~40 flat `supplier_*` / `client_*` fields. `PartyPrintData` was created in the same commit to hold one party, but was never used.
