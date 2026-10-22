@@ -27,7 +27,7 @@ backpack_user()->hasPermissionTo('can_create_edit_supplier', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.business.title') }}" icon="la la-briefcase text-success">
     @if(backpack_user()->hasPermissionTo('can_create_edit_invoice', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.business.invoicing') }}" />
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.invoices.invoices') }}" icon="la la-file-invoice"
+    <x-backpack::menu-dropdown-item title="{{ __('invoices.entity.plural') }}" icon="la la-file-invoice"
         :link="backpack_url('invoice')" />
     @endif
 

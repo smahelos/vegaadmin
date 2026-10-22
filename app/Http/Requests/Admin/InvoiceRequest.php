@@ -53,39 +53,44 @@ class InvoiceRequest extends BaseEntityRequest
         ];
     }
 
-    /**
-     * Get custom attributes for validator errors
-     *
-     * @return array
-     */
     public function attributes(): array
     {
         return [
-            // Use generic keys for consistency with tests and other request
-            'client_id' => __('invoices.fields.client'),
-            'supplier_id' => __('invoices.fields.supplier'),
-            'invoice_vs' => __('invoices.fields.invoice_number'),
-            'payment_amount' => __('invoices.fields.amount'),
+            'supplier_id' => __('invoices.fields.supplier_id'),
+            'client_id' => __('invoices.fields.client_id'),
+            'invoice_vs' => __('invoices.fields.invoice_vs'),
+            'invoice_ks' => __('invoices.fields.invoice_ks'),
+            'invoice_ss' => __('invoices.fields.invoice_ss'),
+            'due_in' => __('invoices.fields.due_in'),
+            'payment_method_id' => __('invoices.fields.payment_method_id'),
+            'payment_amount' => __('invoices.fields.payment_amount'),
+            'payment_status' => __('invoices.fields.status'),
+            'payment_currency' => __('invoices.fields.payment_currency'),
             'issue_date' => __('invoices.fields.issue_date'),
+            'tax_point_date' => __('invoices.fields.tax_point_date'),
+            'ico' => __('invoices.fields.supplier_ico'),
+            'dic' => __('invoices.fields.supplier_dic'),
+            'street' => __('invoices.fields.supplier_street'),
+            'city' => __('invoices.fields.supplier_city'),
+            'zip' => __('invoices.fields.supplier_zip'),
+            'country' => __('invoices.fields.supplier_country'),
+            'invoice_text' => __('invoices.fields.invoice_text'),
+            'user_id' => __('invoices.fields.user_id'),
             'invoice_logo' => __('invoices.fields.invoice_logo'),
+            'template' => __('invoices.fields.template'),
         ];
     }
 
     /**
-     * Get custom error messages for validation rules
+     * Choosing an existing supplier or filling in a new one is one decision; the standard
+     * required_without message cannot say that.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'supplier_id.required_without' => __('invoices.validation.supplier_required'),
-            'name.required_without' => __('invoices.validation.supplier_required'),
-            'client_id.required' => __('invoices.validation.client_required'),
-            'user_id.required' => __('invoices.validation.user_required'),
-            'invoice_logo.file' => __('invoices.validation.invoice_logo_file'),
-            'invoice_logo.mimes' => __('invoices.validation.invoice_logo_format'),
-            'invoice_logo.max' => __('invoices.validation.invoice_logo_size'),
+            'supplier_id.required_without' => __('invoices.validation.supplier_required_without'),
         ];
     }
 }

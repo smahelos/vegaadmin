@@ -350,7 +350,7 @@ $formattedTotal = $paymentAmountFormatted ?? (isset($invoice->payment_amount) ? 
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.payment_method') }}:</span>
                     <span class="info-value">
-                        {{ $paymentMethod->name ?? __('invoices.labels.bank_transfer') }}
+                        {{ $paymentMethod->name ?? __('payment_methods.methods.bankaccount') }}
                     </span>
                 </div>
 
