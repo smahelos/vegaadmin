@@ -36,6 +36,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 ## Invoice
 
+### Issued invoices can be changed and deleted
+- **Where:** `InvoiceCrudApplicationService` (update, delete, duplicate), frontend `InvoiceController` (edit, update, set-template, delete), `Admin\InvoiceCrudController`, `InvoicePrintDataBuilder` (reads the current client and supplier), `InvoicePdfRenderer`, `app/Console/Commands/DatabaseArchiveCommand.php` and `archive_policies` (36 months), `Money` (no negative amounts)
+- **Problem:** an issued invoice is a tax document kept unchanged for 10 years (§ 34 and § 35 ZDPH; corrections through a corrective tax document, § 42 and § 45 ZDPH; § 35 ZÚ; to confirm with an accountant after the 2025 amendment). Today an invoice has no draft/issued state (`draft` is a payment status), can be edited in the frontend and the admin and is deleted for good (no `deleted_at`). It stores only `client_id` and `supplier_id`, so a later change of the party changes every old invoice; the PDF is rendered again from the current template and logo on every download. `db:archive` moves invoices and items older than 36 months out of the main tables and deletes clients and suppliers by the same policy.
+- **Fix (decided 2026-10-23, own branch after `ls-invoice-item-validation`, before the ČNB rates):** a document life cycle separate from the payment status (draft → issued → cancelled by a corrective document); issuing assigns the number, stores a snapshot of the parties, bank account, lines, totals, currency, payment method, template and logo, and stores the rendered PDF with its hash, which later downloads return. The Domain refuses changes to an issued invoice; only its payment status changes. Corrections and cancellations are corrective tax documents (credit or debit note) linked to the invoice, with their own PDF. Invoices, corrective documents and their PDFs are kept for 10 years, also when the user account is deleted; who issued or cancelled a document and when is recorded. Open decisions: numbering at issue, a number series for corrective documents, negative `Money` or a sign by document type, existing invoices, VAT payers vs non-payers.
+
 ### Modern and minimal PDFs always print "bank transfer"
 - **Where:** `app/Application/Invoice/Services/InvoicePdfRenderer.php` (`'paymentMethod' => null`), `resources/views/pdfs/templates/{modern,minimal}.blade.php`
 - **Problem:** the renderer never passes the invoice's payment method, so these two templates print the fallback "Bankovní převod" on every invoice, cash and card included. The default template looks the method up itself. An invoice is a legal document.
@@ -59,7 +64,7 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 ### Currency conversion of invoice items happens in the browser
 - **Where:** `resources/js/currency-manager.js` (`getExchangeRate()`, `convertAmount()`), `resources/js/invoice-item-manager.js`, `app/Domain/Shared/Money/Services/CurrencyExchangeService.php`, `InvoiceRequestAssembler`, `/api/currencies/{exchange-rate,convert}`
 - **Problem:** the invoice form converts item prices in JavaScript with floats; the server checks only that every item is in the invoice currency (`InvoiceRequest`), stores the converted price as it arrives and keeps no rate or date with the invoice. The form also previews line and invoice totals in JavaScript floats; the stored amounts are computed on the server (`InvoiceTotals`). Rates come from the free ExchangeRate-API (`open.er-api.com`); when it fails, the service silently returns rates hardcoded in the class (EUR→CZK 25.29 against 24.27 on 2026-10-23), and when a rate is missing the browser uses 1:1. VAT in CZK on a foreign-currency invoice needs the ČNB rate (§ 4 odst. 5 ZDPH; to confirm with an accountant). `Money::convertTo()` exists but nothing calls it.
-- **Fix (decided 2026-10-23, own branch after the translations):** ČNB daily rates behind an exchange rate port; conversion on the server through `Money::convertTo()` when the invoice is stored; the rate, its date and source stored with the invoice and printed on it; an unavailable rate is an error shown to the user, never a fallback table or 1:1; `/api/currencies/convert` becomes the form's conversion or is deleted.
+- **Fix (decided 2026-10-23, own branch after the issued-invoice immutability):** ČNB daily rates behind an exchange rate port; conversion on the server through `Money::convertTo()` when the invoice is stored; the rate, its date and source stored with the invoice and printed on it; an unavailable rate is an error shown to the user, never a fallback table or 1:1; `/api/currencies/convert` becomes the form's conversion or is deleted.
 
 ### VAT rates are typed into the database by hand
 - **Where:** `taxes` table (read by `TaxDtoReadRepositoryInterface::getDphRatesForDropdown()`), `InvoiceRequest` (allowed item rates), invoice and product forms
@@ -203,6 +208,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ### Tooling
 - **Where:** project root, `.github/workflows/`
 - **Problem:** the codebase is not formatted by Pint (`pint.json` exists since 2026-10-23); there is no static analysis.
+- **Decided 2026-10-23:** syntax and formatting are checked by linters (Pint, Larastan), not by AI reviewing or rewriting code style.
 - **Fix:** format the whole codebase in one commit; install Larastan without a baseline file, start at the highest level that can be made clean, raise it as contexts are converted (target: max); run both in CI.
 
 ### `strict_types` and `final`
