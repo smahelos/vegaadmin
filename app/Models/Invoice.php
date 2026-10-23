@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -127,7 +128,7 @@ class Invoice extends Model
     /**
      * Get all invoice products including custom products
      */
-    public function invoiceProducts()
+    public function invoiceProducts(): HasMany
     {
         return $this->hasMany(InvoiceProduct::class);
     }
@@ -143,7 +144,7 @@ class Invoice extends Model
     /**
      * Get the payment status of the invoice
      */
-    public function paymentStatus()
+    public function paymentStatus(): BelongsTo
     {
         return $this->belongsTo(Status::class, 'payment_status_id');
     }
@@ -246,10 +247,6 @@ class Invoice extends Model
     {
         if ($this->issue_date && $this->due_in) {
             return Carbon::parse($this->issue_date)->addDays($this->due_in);
-        }
-
-        if ($this->payment_draft_date) {
-            return Carbon::parse($this->payment_draft_date);
         }
 
         return null;

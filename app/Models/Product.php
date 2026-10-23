@@ -8,6 +8,7 @@ use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
@@ -79,7 +80,7 @@ class Product extends Model
     /**
      * Get invoices associated with this product through the pivot table
      */
-    public function invoices()
+    public function invoices(): BelongsToMany
     {
         return $this->belongsToMany(Invoice::class, 'invoice_products')
             ->withPivot([
@@ -117,7 +118,7 @@ class Product extends Model
     /**
      * Get the tax applied to the product.
      */
-    public function tax()
+    public function tax(): BelongsTo
     {
         return $this->belongsTo(Tax::class, 'tax_id');
     }

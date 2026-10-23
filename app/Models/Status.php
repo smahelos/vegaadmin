@@ -5,6 +5,7 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -43,7 +44,7 @@ class Status extends Model
     /**
      * Get the category of this status
      */
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(StatusCategory::class, 'category_id');
     }
