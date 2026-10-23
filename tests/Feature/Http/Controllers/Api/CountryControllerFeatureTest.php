@@ -47,6 +47,6 @@ class CountryControllerFeatureTest extends TestCase
         Http::fake([ 'restcountries.com/*' => Http::response([], 404) ]);
         Cache::forget('country_XX');
         $resp = $this->getJson(route('api.country', ['code' => 'XX']));
-        $resp->assertStatus(404)->assertJson(['error' => 'Country not found']);
+        $resp->assertStatus(404)->assertJson(['message' => 'Country not found']);
     }
 }

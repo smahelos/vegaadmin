@@ -58,7 +58,7 @@ class CurrencyController extends Controller
         $rate = $this->currencyAppService->getExchangeRate($from, $to);
 
         if ($rate === null) {
-            return response()->json(['error' => __('Currency exchange rate not available')], 404);
+            abort(404, 'Currency exchange rate not available');
         }
 
         return response()->json([
@@ -89,7 +89,7 @@ class CurrencyController extends Controller
         $convertedAmount = $this->currencyAppService->convert($amount, $from, $to);
 
         if ($convertedAmount === null) {
-            return response()->json(['error' => __('Currency conversion not available')], 404);
+            abort(404, 'Currency conversion not available');
         }
 
         return response()->json([

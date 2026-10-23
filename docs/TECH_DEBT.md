@@ -56,6 +56,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** invoice totals assume 0 % when `tax_rate` is missing, stored product rows assume 21 %. Totals and rows can disagree.
 - **Fix:** one rule in the Domain; totals computed from `InvoiceProductWriteData`.
 
+### Currency conversion of invoice items happens in the browser
+- **Where:** `resources/js/currency-manager.js` (`getExchangeRate()`, `convertAmount()`), `resources/js/invoice-item-manager.js`, `app/Domain/Shared/Money/Services/CurrencyExchangeService.php`, `InvoiceRequestAssembler`, `InvoiceCrudApplicationService::processProductsAndCalculateTotals()`, `/api/currencies/{exchange-rate,convert}`
+- **Problem:** the invoice form converts item prices in JavaScript with floats; the server stores whatever price arrives, keeps no rate or date with the invoice and computes totals in floats. Rates come from the free ExchangeRate-API (`open.er-api.com`); when it fails, the service silently returns rates hardcoded in the class (EUR→CZK 25.29 against 24.27 on 2026-10-23), and when a rate is missing the browser uses 1:1. VAT in CZK on a foreign-currency invoice needs the ČNB rate (§ 4 odst. 5 ZDPH; to confirm with an accountant). `Money::convertTo()` exists but nothing calls it.
+- **Fix (decided 2026-10-23, own branch after the translations):** ČNB daily rates behind an exchange rate port; conversion on the server through `Money::convertTo()` when the invoice is stored; the rate, its date and source stored with the invoice and printed on it; an unavailable rate is an error shown to the user, never a fallback table or 1:1; `/api/currencies/convert` becomes the form's conversion or is deleted.
+
 ### Format invoice amounts through a presenter
 - **Where:** `resources/views/frontend/invoices/show.blade.php`
 - **Problem:** amounts are formatted in Blade with `number_format(..., 2, ',', ' ')` and fallback logic; the Czech format is used for every locale.

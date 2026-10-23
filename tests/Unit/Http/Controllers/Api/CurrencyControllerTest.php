@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CurrencyController;
 use App\Application\Shared\Money\Contracts\CurrencyApplicationServiceInterface;
 use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -64,9 +65,8 @@ class CurrencyControllerTest extends TestCase
     {
         $this->currencyService->rate = null;
         $request = Request::create('/api/currencies/exchange-rate','GET',['from'=>'usd','to'=>'eur']);
-        $resp = $this->controller->getExchangeRate($request);
-        $this->assertEquals(404, $resp->status());
-        $this->assertArrayHasKey('error', $resp->getData(true));
+        $this->expectException(NotFoundHttpException::class);
+        $this->controller->getExchangeRate($request);
     }
 
     #[Test]
@@ -85,8 +85,8 @@ class CurrencyControllerTest extends TestCase
     {
         $this->exchangeService->converted = null;
         $request = Request::create('/api/currencies/convert','GET',['amount'=>50,'from'=>'usd','to'=>'abc']);
-        $resp = $this->controller->convertCurrency($request);
-        $this->assertEquals(404, $resp->status());
+        $this->expectException(NotFoundHttpException::class);
+        $this->controller->convertCurrency($request);
     }
 }
 
