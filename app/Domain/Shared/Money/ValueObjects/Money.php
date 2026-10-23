@@ -463,15 +463,41 @@ class Money
         }
         $rateStr = rtrim(rtrim(number_format($rate, 8, '.', ''), '0'), '.');
         if ($rateStr === '') { $rateStr = '0'; }
+        if ($rateStr === '0' && !$this->equals(new self('0', $this->currency))) { throw new InvalidArgumentException('Invalid exchange rate format'); }
+
+        return new self($this->multiplyAndRound($rateStr, $scale, $strategy), $targetCurrency);
+    }
+
+    /**
+     * Multiply by a non-negative decimal factor (quantity, tax rate share) and round to scale digits.
+     *
+     * @param string $factor Non-negative decimal string, e.g. "1.5" or "0.21"
+     * @throws InvalidArgumentException if the factor, scale or strategy is invalid
+     */
+    public function multiplyBy(string $factor, int $scale = 2, string $strategy = self::ROUND_HALF_UP): self
+    {
+        if (!preg_match('/^\d+(\.\d+)?$/', $factor)) {
+            throw new InvalidArgumentException('Invalid multiplication factor: ' . $factor);
+        }
+        if ($scale < 0 || $scale > 8) { throw new InvalidArgumentException('Scale must be between 0 and 8'); }
+        if (!in_array($strategy, [self::ROUND_HALF_UP, self::ROUND_BANKERS], true)) {
+            throw new InvalidArgumentException('Invalid rounding strategy: ' . $strategy);
+        }
+
+        return new self($this->multiplyAndRound(self::normalizeStringAmount($factor), $scale, $strategy), $this->currency);
+    }
+
+    /** Exact product of the amount and a normalized decimal factor, rounded to scale digits. */
+    private function multiplyAndRound(string $factor, int $scale, string $strategy): string
+    {
         [$aInt, $aFrac] = $this->splitDecimal($this->amount);
-        [$rInt, $rFrac] = $this->splitDecimal($rateStr);
+        [$fInt, $fFrac] = $this->splitDecimal($factor);
         $aDigits = ltrim($aInt . $aFrac, '0');
-        // BUGFIX: původně použit + (aritmetika) místo . (konkatenace) => způsobovalo chybný výpočet kurzových násobků
-        $rDigits = ltrim($rInt . $rFrac, '0');
+        $rDigits = ltrim($fInt . $fFrac, '0');
         $aScale = strlen($aFrac);
-        $rScale = strlen($rFrac);
-        if ($aDigits === '') { return new self('0', $targetCurrency); }
-        if ($rDigits === '') { throw new InvalidArgumentException('Invalid exchange rate format'); }
+        $rScale = strlen($fFrac);
+        if ($aDigits === '') { return '0'; }
+        if ($rDigits === '') { return '0'; }
         $productDigits = $this->multiplyIntegerStringsGeneric($aDigits, $rDigits);
         $totalScale = $aScale + $rScale;
         if ($totalScale > 0) {
@@ -510,7 +536,7 @@ class Money
             }
             $result = $intPart . ($kept !== '' ? '.' . $kept : '');
         }
-        return new self(self::normalizeStringAmount($result), $targetCurrency);
+        return self::normalizeStringAmount($result);
     }
 
     /** Generic integer string multiplication. */

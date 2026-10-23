@@ -118,7 +118,6 @@ class InvoiceController extends Controller
             $payload = $this->invoiceRequestAssembler->assemble(null, $request, true);
             $response = $this->guestInvoiceApplicationService->storeGuestInvoice(
                 $payload->validated,
-                $payload->products,
                 $request->get('lang')
             );
             return response()->json($response);

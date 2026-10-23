@@ -1,0 +1,14 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "concat_space": {
+            "spacing": "one"
+        }
+    },
+    "exclude": [
+        "data",
+        "storage",
+        "vendor",
+        "node_modules"
+    ]
+}

@@ -1,44 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Eloquent\Invoice\Observers;
 
-use App\Models\Invoice;
-use App\Domain\Invoice\Contracts\InvoiceProductSyncServiceInterface;
-use App\Domain\User\Events\UserDataChanged;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
+use App\Domain\User\Events\UserDataChanged;
+use App\Models\Invoice;
 
-class InvoiceObserver
+final class InvoiceObserver
 {
-    public function __construct(private readonly InvoiceProductSyncServiceInterface $syncService) {}
+    public function __construct(private readonly EventPublisherInterface $events) {}
 
-    /** Handle the Invoice "created" event. */
     public function created(Invoice $invoice): void
     {
-        $this->syncService->syncProductsFromJson(InvoiceId::fromInt($invoice->id));
-        if ($invoice->user_id) {
-            app(EventPublisherInterface::class)->publish(new UserDataChanged((int)$invoice->user_id, 'invoice'));
-        }
+        $this->publishUserDataChanged($invoice);
     }
 
-    /** Handle the Invoice "updated" event. */
     public function updated(Invoice $invoice): void
     {
-        if ($invoice->isDirty('invoice_text')) {
-            $this->syncService->syncProductsFromJson(InvoiceId::fromInt($invoice->id));
-        }
         if ($invoice->isDirty(['payment_amount', 'payment_status_id', 'issue_date', 'due_in'])) {
-            if ($invoice->user_id) {
-                app(EventPublisherInterface::class)->publish(new UserDataChanged((int)$invoice->user_id, 'invoice'));
-            }
+            $this->publishUserDataChanged($invoice);
         }
     }
 
-    /** Handle the Invoice "deleted" event. */
     public function deleted(Invoice $invoice): void
     {
+        $this->publishUserDataChanged($invoice);
+    }
+
+    private function publishUserDataChanged(Invoice $invoice): void
+    {
         if ($invoice->user_id) {
-            app(EventPublisherInterface::class)->publish(new UserDataChanged((int)$invoice->user_id, 'invoice'));
+            $this->events->publish(new UserDataChanged((int) $invoice->user_id, 'invoice'));
         }
     }
 }

@@ -71,4 +71,21 @@ class MoneyConversionTest extends TestCase
         $converted = $m->convertTo('USD', $this->exchange, 0, Money::ROUND_HALF_UP);
         $this->assertSame('4', $converted->getAmount());
     }
+
+    #[Test]
+    public function convert_zero_amount_with_rate_below_eight_decimals_returns_zero(): void
+    {
+        $m = Money::fromString('0', 'EUR');
+        $this->exchange->shouldReceive('getExchangeRate')->once()->with('EUR', 'USD')->andReturn(0.000000001);
+        $this->assertSame('0', $m->convertTo('USD', $this->exchange)->getAmount());
+    }
+
+    #[Test]
+    public function convert_amount_with_rate_below_eight_decimals_throws(): void
+    {
+        $m = Money::fromString('5', 'EUR');
+        $this->exchange->shouldReceive('getExchangeRate')->once()->with('EUR', 'USD')->andReturn(0.000000001);
+        $this->expectException(InvalidArgumentException::class);
+        $m->convertTo('USD', $this->exchange);
+    }
 }

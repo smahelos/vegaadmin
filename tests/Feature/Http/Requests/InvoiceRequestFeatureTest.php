@@ -9,6 +9,8 @@ use App\Models\Supplier;
 use App\Models\Client;
 use App\Models\User;
 use App\Models\EntityLimit;
+use App\Models\Product;
+use App\Models\Tax;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -65,6 +67,9 @@ class InvoiceRequestFeatureTest extends TestCase
         $this->paymentStatus = Status::factory()->create();
         $this->supplier = Supplier::factory()->create();
         $this->client = Client::factory()->create();
+        foreach (['12.00', '21.00'] as $rate) {
+            Tax::factory()->create(['name' => 'DPH ' . $rate . ' ' . uniqid(), 'slug' => 'dph', 'rate' => $rate]);
+        }
     }
 
     /**
@@ -102,7 +107,40 @@ class InvoiceRequestFeatureTest extends TestCase
             'client_phone' => $this->faker->phoneNumber,
 
             'invoice_text' => $this->faker->paragraph,
+
+            'invoice-products' => [$this->item()],
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $overrides
+     * @return array<string, mixed>
+     */
+    private function item(array $overrides = []): array
+    {
+        return $overrides + [
+            'name' => 'Consulting',
+            'quantity' => '1.5',
+            'unit' => 'hours',
+            'price' => '1200.50',
+            'currency' => 'CZK',
+            'tax_rate' => '21.00',
+        ];
+    }
+
+    /**
+     * Errors of the given item lines, validated as InvoiceRequest validates them.
+     *
+     * @param list<array<string, mixed>> $items
+     * @return array<string, list<string>>
+     */
+    private function itemErrors(array $items, ?User $user = null, string $currency = 'CZK'): array
+    {
+        $request = new InvoiceRequest();
+        $request->setUserResolver(fn () => $user);
+        $data = ['invoice-products' => $items, 'payment_currency' => $currency] + $this->validInvoiceData;
+
+        return Validator::make($data, $request->rules(), $request->messages(), $request->attributes())->errors()->toArray();
     }
 
     #[Test]
@@ -144,6 +182,8 @@ class InvoiceRequestFeatureTest extends TestCase
             'client_country' => $this->faker->country,
             'client_ico' => $this->faker->numerify('########'),
             'client_dic' => $this->faker->numerify('CZ########'),
+
+            'invoice-products' => [$this->item(['currency' => 'EUR'])],
         ];
 
         $request = new InvoiceRequest();
@@ -157,7 +197,7 @@ class InvoiceRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = [
-            'invoice_vs', 'payment_method_id', 'payment_amount',
+            'invoice_vs', 'payment_method_id',
             'payment_currency', 'issue_date', 'due_in', 'payment_status_id'
         ];
 
@@ -211,19 +251,6 @@ class InvoiceRequestFeatureTest extends TestCase
             $this->assertArrayHasKey($field, $validator->errors()->toArray(),
                 "Should have error for {$field} when client_id is missing");
         }
-    }
-
-    #[Test]
-    public function validation_fails_with_negative_payment_amount()
-    {
-        $invalidData = $this->validInvoiceData;
-        $invalidData['payment_amount'] = -100;
-
-        $request = new InvoiceRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('payment_amount', $validator->errors()->toArray());
     }
 
     #[Test]
@@ -387,11 +414,12 @@ class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_currencies()
     {
-        $validCurrencies = ['CZK', 'EUR', 'USD', 'GBP'];
+        $validCurrencies = ['CZK', 'EUR', 'USD', 'GBP', 'PLN', 'HUF', 'CHF'];
 
         foreach ($validCurrencies as $currency) {
             $validData = $this->validInvoiceData;
             $validData['payment_currency'] = $currency;
+            $validData['invoice-products'] = [$this->item(['currency' => $currency])];
             $validData['invoice_vs'] = 'INV-' . $currency; // Make unique
 
             $request = new InvoiceRequest();
@@ -418,6 +446,8 @@ class InvoiceRequestFeatureTest extends TestCase
             'supplier_id' => $this->supplier->id,
             // Provide client_id so client fields are not required
             'client_id' => $this->client->id,
+
+            'invoice-products' => [$this->item()],
         ];
 
         $request = new InvoiceRequest();
@@ -520,31 +550,121 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function guest_invoice_with_an_unknown_unit_is_rejected(): void
+    public function an_invoice_needs_at_least_one_item(): void
     {
-        $items = [['name' => 'Item', 'quantity' => 1, 'price' => 100, 'unit' => 'ks']];
-
-        $response = $this->postJson(
-            route('frontend.invoice.store.guest', ['locale' => 'cs']),
-            $this->validInvoiceData + ['invoice-products' => json_encode($items)]
-        );
-
-        $response->assertStatus(422)
-            ->assertJsonPath('errors.invoice-products.0', __('invoices.validation.unit'));
+        foreach ([[], null] as $items) {
+            $errors = $this->itemErrors($items ?? []);
+            $this->assertSame([__('invoices.validation.amount_positive')], $errors['invoice-products'] ?? null);
+        }
     }
 
     #[Test]
-    public function known_and_empty_units_pass_the_unit_rule(): void
+    public function a_valid_item_passes(): void
     {
-        $items = [
-            ['name' => 'Work', 'quantity' => 2, 'price' => 500, 'unit' => 'hours'],
-            ['name' => 'Item', 'quantity' => 1, 'price' => 100, 'unit' => ''],
-            ['name' => 'Other', 'quantity' => 1, 'price' => 100],
-        ];
-        $data = $this->validInvoiceData + ['invoice-products' => json_encode($items)];
+        $this->assertSame([], $this->itemErrors([$this->item(), $this->item(['unit' => '', 'tax_rate' => '0'])]));
+    }
 
-        $validator = Validator::make($data, (new InvoiceRequest())->rules());
+    #[Test]
+    public function an_item_quantity_must_be_positive_with_at_most_three_decimals(): void
+    {
+        foreach (['0', '-1', '1.2345', 'abc', '100000'] as $quantity) {
+            $errors = $this->itemErrors([$this->item(['quantity' => $quantity])]);
+            $this->assertArrayHasKey('invoice-products.0.quantity', $errors, 'Accepted quantity ' . $quantity);
+        }
+        $this->assertSame([], $this->itemErrors([$this->item(['quantity' => '0.125'])]));
+    }
 
-        $this->assertArrayNotHasKey('invoice-products', $validator->errors()->toArray());
+    #[Test]
+    public function an_item_price_must_be_non_negative_with_at_most_two_decimals(): void
+    {
+        foreach (['-1', '10.555', '100000000'] as $price) {
+            $errors = $this->itemErrors([$this->item(['price' => $price])]);
+            $this->assertArrayHasKey('invoice-products.0.price', $errors, 'Accepted price ' . $price);
+        }
+        $this->assertSame([], $this->itemErrors([$this->item(['price' => '0'])]));
+    }
+
+    #[Test]
+    public function an_item_tax_rate_must_be_one_the_form_offers(): void
+    {
+        app()->setLocale('en');
+        $errors = $this->itemErrors([$this->item(['tax_rate' => '17'])]);
+        $this->assertSame(['An invoice item has an invalid VAT rate. Allowed rates: 0%, 12%, 21%.'], $errors['invoice-products.0.tax_rate'] ?? null);
+
+        $this->assertSame([], $this->itemErrors([$this->item(['tax_rate' => '12']), $this->item(['tax_rate' => '0.00'])]));
+    }
+
+    #[Test]
+    public function an_item_unit_must_be_a_known_unit(): void
+    {
+        $errors = $this->itemErrors([$this->item(['unit' => 'ks'])]);
+
+        $this->assertArrayHasKey('invoice-products.0.unit', $errors);
+    }
+
+    #[Test]
+    public function an_item_must_be_in_the_invoice_currency(): void
+    {
+        $errors = $this->itemErrors([$this->item(['currency' => 'EUR'])]);
+        $this->assertSame([__('invoices.validation.item_currency')], $errors['invoice-products.0.currency'] ?? null);
+
+        $errors = $this->itemErrors([$this->item(['currency' => 'XYZ'])], currency: 'XYZ');
+        $this->assertArrayHasKey('invoice-products.0.currency', $errors);
+        $this->assertArrayHasKey('payment_currency', $errors);
+    }
+
+    #[Test]
+    public function an_item_may_reference_only_a_product_of_the_user(): void
+    {
+        $user = User::factory()->create();
+        $own = Product::factory()->create(['user_id' => $user->id]);
+        $foreign = Product::factory()->create();
+
+        $this->assertSame([], $this->itemErrors([$this->item(['product_id' => $own->id])], $user));
+        $this->assertArrayHasKey(
+            'invoice-products.0.product_id',
+            $this->itemErrors([$this->item(['product_id' => $foreign->id])], $user)
+        );
+    }
+
+    #[Test]
+    public function a_guest_invoice_rejects_items_sent_as_json_with_errors_per_item(): void
+    {
+        $items = [$this->item(), $this->item(['unit' => 'ks', 'product_id' => 1])];
+
+        $response = $this->postJson(
+            route('frontend.invoice.store.guest', ['locale' => 'cs']),
+            ['invoice-products' => json_encode($items)] + $this->validInvoiceData
+        );
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['invoice-products.1.unit', 'invoice-products.1.product_id'])
+            ->assertJsonMissingValidationErrors(['invoice-products', 'invoice-products.0.unit']);
+    }
+
+    #[Test]
+    public function items_that_are_not_json_are_rejected(): void
+    {
+        $response = $this->postJson(
+            route('frontend.invoice.store.guest', ['locale' => 'cs']),
+            ['invoice-products' => '{broken'] + $this->validInvoiceData
+        );
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['invoice-products']);
+    }
+
+    #[Test]
+    public function the_typed_payment_amount_is_neither_required_nor_kept(): void
+    {
+        $request = new InvoiceRequest();
+        foreach ([null, -100] as $amount) {
+            $data = $this->validInvoiceData;
+            $data['payment_amount'] = $amount;
+
+            $validator = Validator::make($data, $request->rules(), $request->messages());
+
+            $this->assertTrue($validator->passes());
+            $this->assertArrayNotHasKey('payment_amount', $validator->validated());
+        }
     }
 }

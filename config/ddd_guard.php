@@ -10,7 +10,6 @@ return [
                 'CacheService.php',
                 'CountryService.php',
                 'CurrencyService.php',
-                'InvoiceProductSyncService.php',
                 'LocaleService.php',
             ],
             'allowed_directories' => [
@@ -65,15 +64,15 @@ return [
     // Regex patterns forbidding usage of legacy services outside defined allowlist
     'forbidden_patterns' => [
         [
-            'pattern' => '/new\\s+App\\\\Services\\\\(?!CurrencyService|CountryService|CacheService|ArtisanCommandsService|InvoiceProductSyncService|LocaleService)[A-Z][A-Za-z0-9_]+/',
+            'pattern' => '/new\\s+App\\\\Services\\\\(?!CurrencyService|CountryService|CacheService|ArtisanCommandsService|LocaleService)[A-Z][A-Za-z0-9_]+/',
             'description' => 'Direct instantiation of legacy service outside allowlist',
         ],
         [
-            'pattern' => '/app\(\)\s*->\s*make\(\s*[\'\"]App\\\\Services\\\\(?!CurrencyService|CountryService|CacheService|ArtisanCommandsService|InvoiceProductSyncService|LocaleService)[A-Z][A-Za-z0-9_]+/',
+            'pattern' => '/app\(\)\s*->\s*make\(\s*[\'\"]App\\\\Services\\\\(?!CurrencyService|CountryService|CacheService|ArtisanCommandsService|LocaleService)[A-Z][A-Za-z0-9_]+/',
             'description' => 'Service locator resolving legacy service outside allowlist',
         ],
         [
-            'pattern' => '/App\\\\Services\\\\(?!CurrencyService|CountryService|CacheService|ArtisanCommandsService|InvoiceProductSyncService|LocaleService)[A-Z][A-Za-z0-9_]+::/',
+            'pattern' => '/App\\\\Services\\\\(?!CurrencyService|CountryService|CacheService|ArtisanCommandsService|LocaleService)[A-Z][A-Za-z0-9_]+::/',
             'description' => 'Static call on legacy service outside allowlist',
         ],
         // Direct instantiation of Domain services inside Controllers (should inject interface instead)

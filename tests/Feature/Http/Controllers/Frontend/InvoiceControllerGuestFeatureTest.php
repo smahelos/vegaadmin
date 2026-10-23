@@ -42,7 +42,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $response->assertJsonStructure(['message','errors']);
         // Check a representative subset of required fields
         $response->assertJsonValidationErrors([
-            'invoice_vs','payment_method_id','payment_amount','payment_currency','issue_date','due_in','payment_status_id'
+            'invoice_vs','payment_method_id','payment_currency','issue_date','due_in','payment_status_id','invoice-products'
         ]);
     }
 
@@ -57,6 +57,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'payment_method_id' => $paymentMethodId,
             'payment_amount' => 100,
             'payment_currency' => 'CZK',
+            'invoice-products' => json_encode([['name' => 'Service', 'quantity' => '1', 'unit' => 'pieces', 'price' => '100', 'currency' => 'CZK', 'tax_rate' => '0']]),
             'issue_date' => now()->format('Y-m-d'),
             'due_in' => 14,
             'payment_status_id' => $statusId,
@@ -103,6 +104,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'payment_method_id' => $paymentMethodId,
             'payment_amount' => 50,
             'payment_currency' => 'CZK',
+            'invoice-products' => json_encode([['name' => 'Service', 'quantity' => '1', 'unit' => 'pieces', 'price' => '100', 'currency' => 'CZK', 'tax_rate' => '0']]),
             'issue_date' => now()->format('Y-m-d'),
             'due_in' => 7,
             'payment_status_id' => $statusId,

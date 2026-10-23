@@ -283,6 +283,7 @@ class InvoiceControllerFeatureTest extends TestCase
             'due_in' => 30,
             'payment_amount' => 100.00,
             'payment_currency' => 'CZK',
+            'invoice-products' => json_encode([['name' => 'Service', 'quantity' => '1', 'unit' => 'pieces', 'price' => '100', 'currency' => 'CZK', 'tax_rate' => '0']]),
             'street' => 'Test Street 123',
             'city' => 'Test City',
             'zip' => '12345',

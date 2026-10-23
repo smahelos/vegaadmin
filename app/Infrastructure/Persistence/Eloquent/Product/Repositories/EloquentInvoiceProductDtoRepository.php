@@ -40,17 +40,17 @@ class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoReadReposi
 
     public function create(InvoiceId $invoiceId, InvoiceProductWriteData $data): InvoiceProductDTO
     {
-        $product = $this->productRepository->create(['invoice_id' => $invoiceId->getValue()] + $data->toArray())->toArray();
+        $product = $this->productRepository->create($this->mapper->toAttributes($invoiceId, $data))->toArray();
         return InvoiceProductDTO::fromArray($product);
     }
 
     /**
-     * @param array<int, InvoiceProductWriteData> $products
+     * @param list<InvoiceProductWriteData> $products
      */
     public function bulkCreate(InvoiceId $invoiceId, array $products): void
     {
         foreach ($products as $product) {
-            $this->productRepository->create(['invoice_id' => $invoiceId->getValue()] + $product->toArray());
+            $this->productRepository->create($this->mapper->toAttributes($invoiceId, $product));
         }
     }
 

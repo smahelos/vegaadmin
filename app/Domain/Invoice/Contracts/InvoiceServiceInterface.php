@@ -3,6 +3,7 @@
 namespace App\Domain\Invoice\Contracts;
 
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\ValueObjects\UserId;
@@ -57,7 +58,7 @@ interface InvoiceServiceInterface
      *
      * @param UserId $userId Owner user id
      * @param array<string,mixed> $data Validated invoice attributes
-     * @param array<int,mixed> $invoiceProducts Normalized invoice products payload
+     * @param list<InvoiceProductWriteData> $invoiceProducts
      */
     public function createInvoice(UserId $userId, array $data, array $invoiceProducts): InvoiceDTO;
 
@@ -67,7 +68,7 @@ interface InvoiceServiceInterface
      * @param UserId $userId Owner user id
      * @param InvoiceId $invoiceId Invoice id
      * @param array<string,mixed> $data Validated invoice attributes
-     * @param array<int,mixed> $invoiceProducts Normalized invoice products payload
+     * @param list<InvoiceProductWriteData> $invoiceProducts
      */
     public function updateInvoice(UserId $userId, InvoiceId $invoiceId, array $data, array $invoiceProducts): InvoiceDTO;
 
@@ -78,8 +79,6 @@ interface InvoiceServiceInterface
      * @param InvoiceId $invoiceId Invoice id
      */
     public function deleteInvoice(UserId $userId, InvoiceId $invoiceId): void;
-
-    public function calculateTotalAmount(InvoiceId $id): float;
 
     public function generateInvoiceNumber(UserId $userId, int $year): string;
 }

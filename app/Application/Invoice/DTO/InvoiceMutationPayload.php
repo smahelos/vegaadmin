@@ -2,15 +2,17 @@
 
 namespace App\Application\Invoice\DTO;
 
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+
 /**
  * Data carrier for invoice create/update mutations prepared from HTTP request.
- * Contains validated scalar data, decoded products array and optional stored logo path.
+ * Contains validated scalar data, the invoice lines and optional stored logo path.
  */
 class InvoiceMutationPayload
 {
     /**
      * @param array<string,mixed> $validated
-     * @param array<int,mixed> $products
+     * @param list<InvoiceProductWriteData> $products
      */
     public function __construct(
         public array $validated,

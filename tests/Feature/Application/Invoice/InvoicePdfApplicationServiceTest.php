@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Application\Invoice;
 
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Unit\Enums\Unit;
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
@@ -63,6 +66,9 @@ class InvoicePdfApplicationServiceTest extends TestCase
             'client_zip' => '54321',
             'client_country' => 'CZ',
             'invoice_text' => 'Test invoice',
+            'invoice-products' => [
+                ['name' => 'Service A', 'quantity' => '2', 'unit' => 'pieces', 'price' => '50', 'currency' => 'EUR', 'tax_rate' => '21'],
+            ],
         ];
     }
 
@@ -70,9 +76,13 @@ class InvoicePdfApplicationServiceTest extends TestCase
     public function user_can_generate_pdf(): void
     {
         // Create one product line so items flow into DTO/renderer
-        $products = [
-            [ 'name' => 'Service A', 'quantity' => 2, 'price' => 50.0, 'currency' => 'EUR', 'tax_rate' => 21 ]
-        ];
+        $products = [new InvoiceProductWriteData(
+            name: 'Service A',
+            quantity: '2',
+            unit: Unit::PIECES,
+            price: Money::fromString('50', 'EUR'),
+            taxRate: '21',
+        )];
         $create = $this->mutationService->create($this->user->id, $this->baseData(), $products);
         $this->assertInvoiceSuccess($create, 'Invoice creation failed');
         $pdf = $this->pdfService->generateForUser($this->user->id, $create->invoice->id);

@@ -12,6 +12,8 @@ use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
+use App\Domain\Invoice\ValueObjects\InvoiceTotals;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Tax;
@@ -30,9 +32,13 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         private readonly TemporaryInvoicePrintDataFactoryInterface $tempPrintDataFactory,
         private readonly TemporaryInvoiceStoreInterface $temporaryInvoiceStore,
         private readonly QrPaymentPayloadMapper $qrPaymentMapper,
+        private readonly InvoiceProductWriteDataAssembler $products,
     ) {}
 
-    public function storeGuestInvoice(array $validatedData, array|string|null $invoiceProducts, ?string $requestedLocale): array
+    /**
+     * @param array<string, mixed> $validatedData validated request input, items under 'invoice-products'
+     */
+    public function storeGuestInvoice(array $validatedData, ?string $requestedLocale): array
     {
         $locale = $this->locale->determineLocale($requestedLocale);
         $validatedData['lang'] = $locale;
@@ -41,13 +47,10 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
             $validatedData['due_in'] = (int)$validatedData['due_in'];
         }
 
-        if (is_string($invoiceProducts)) {
-            $validatedData['invoice-products'] = $invoiceProducts;
-        } elseif (is_array($invoiceProducts)) {
-            $validatedData['invoice-products'] = json_encode($invoiceProducts);
-        } else {
-            $validatedData['invoice-products'] = json_encode([]);
-        }
+        $validatedData['payment_amount'] = InvoiceTotals::fromProducts(
+            Currency::from((string) $validatedData['payment_currency']),
+            $this->products->fromValidated($validatedData['invoice-products'])
+        )->total()->getAmount();
 
         $token = $this->temporaryInvoiceStore->store($validatedData);
 

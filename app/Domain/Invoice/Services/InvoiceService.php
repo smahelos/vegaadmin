@@ -1,21 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Invoice\Services;
 
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
-use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\Events\InvoiceCreated;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\InvoiceNumber;
+use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
-use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
+use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
 use App\Domain\User\ValueObjects\UserId;
 
-class InvoiceService implements InvoiceServiceInterface
+final class InvoiceService implements InvoiceServiceInterface
 {
     public function __construct(
     private readonly EventPublisherInterface $events,
@@ -28,18 +33,11 @@ class InvoiceService implements InvoiceServiceInterface
     ) {}
 
     /**
-     * Save products to an invoice
-     *
-     * @param InvoiceId $invoiceId The invoice ID
-     * @param array $products Array of products data
-     * @return void
+     * @param list<InvoiceProductWriteData> $products
      */
     public function saveInvoiceProducts(InvoiceId $invoiceId, array $products): void
     {
-        $this->invoiceProductRepository->bulkCreate(
-            $invoiceId,
-            array_map(fn (array $product) => InvoiceProductWriteData::fromArray($product), $products)
-        );
+        $this->invoiceProductRepository->bulkCreate($invoiceId, $products);
     }
 
     /**
@@ -141,15 +139,11 @@ class InvoiceService implements InvoiceServiceInterface
             $data['supplier_id'] = $supplier->id;
         }
 
-        // Persist invoice
-        $data['user_id'] = $userId instanceof UserId ? $userId->toInt() : $userId;
-        $validatedWriteData = InvoiceWriteData::fromArray($data);
-        $invoice = $this->invoiceWriteRepository->create($validatedWriteData);
+        $data['user_id'] = $userId->toInt();
+        $data['total_amount'] = $this->totalOf($data, $invoiceProducts);
+        $invoice = $this->invoiceWriteRepository->create(InvoiceWriteData::fromArray($data));
 
-        // Persist products and recalc totals
-        if (!empty($invoiceProducts)) {
-            $this->saveInvoiceProducts($invoice->id, $invoiceProducts);
-        }
+        $this->saveInvoiceProducts($invoice->id, $invoiceProducts);
 
         // Publish Domain Event for new invoice creation via unified publisher
         $this->events->publish(new InvoiceCreated($invoice, $userId->toInt()));
@@ -204,16 +198,12 @@ class InvoiceService implements InvoiceServiceInterface
             ]);
             $data['supplier_id'] = $supplier->id;
         }
-        $data['user_id'] = $userId instanceof UserId ? $userId->toInt() : $userId;
+        $data['user_id'] = $userId->toInt();
+        $data['total_amount'] = $this->totalOf($data, $invoiceProducts);
+        $invoice = $this->invoiceWriteRepository->update($invoice->id, InvoiceWriteData::fromArray($data));
 
-        $validatedWriteData = InvoiceWriteData::fromArray($data);
-        $invoice = $this->invoiceWriteRepository->update($invoice->id, $validatedWriteData);
-        // Replace products
         $this->invoiceProductRepository->deleteByInvoiceId($invoiceId);
-        if (!empty($invoiceProducts)) {
-            $this->saveInvoiceProducts($invoiceId, $invoiceProducts);
-        }
-        //$invoice->calculateTotalAmount();
+        $this->saveInvoiceProducts($invoiceId, $invoiceProducts);
 
         return $invoice;
     }
@@ -231,19 +221,6 @@ class InvoiceService implements InvoiceServiceInterface
             throw new InvoiceNotFoundException('Invoice not accessible for user');
         }
         $this->invoiceWriteRepository->delete($invoiceId);
-    }
-
-    /**
-     * Calculate total amount of Invoice
-     */
-    public function calculateTotalAmount(InvoiceId $id): float
-    {
-        $invoice = $this->invoiceReadRepository->findByIdAny($id);
-        if ($invoice) {
-            return array_sum(collect($invoice->items)->pluck('total_price')->toArray());
-        }
-
-        return 0.0;
     }
 
     /**
@@ -272,5 +249,16 @@ class InvoiceService implements InvoiceServiceInterface
             throw new InvoiceNotFoundException('Invoice not accessible for user');
         }
         return $this->invoiceWriteRepository->changeStatus($invoiceId, $statusId);
+    }
+
+    /**
+     * The invoice amount is always the sum of its lines; an amount typed into the form is ignored.
+     *
+     * @param array<string, mixed> $data
+     * @param list<InvoiceProductWriteData> $products
+     */
+    private function totalOf(array $data, array $products): Money
+    {
+        return InvoiceTotals::fromProducts(Currency::from((string) $data['payment_currency']), $products)->total();
     }
 }

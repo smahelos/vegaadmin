@@ -240,4 +240,42 @@ class MoneyTest extends TestCase
         $this->assertSame('0.01', $halfUp->getAmount());
         $this->assertSame('0', $bankers->getAmount());
     }
+
+    #[Test]
+    public function multiply_by_decimal_quantity_keeps_the_cents(): void
+    {
+        $line = Money::fromString('249.30', 'CZK')->multiplyBy('1.5');
+
+        $this->assertSame('373.95', $line->getAmount());
+        $this->assertSame('CZK', $line->getCurrency());
+    }
+
+    #[Test]
+    public function multiply_by_tax_share_rounds_half_up_to_cents(): void
+    {
+        // 0.25 * 0.21 = 0.0525 -> 0.05; 0.10 * 0.21 = 0.021 -> 0.02; 0.50 * 0.21 = 0.105 -> 0.11
+        $this->assertSame('0.05', Money::fromString('0.25', 'CZK')->multiplyBy('0.21')->getAmount());
+        $this->assertSame('0.02', Money::fromString('0.10', 'CZK')->multiplyBy('0.21')->getAmount());
+        $this->assertSame('0.11', Money::fromString('0.50', 'CZK')->multiplyBy('0.21')->getAmount());
+    }
+
+    #[Test]
+    public function multiply_by_zero_is_zero(): void
+    {
+        $this->assertSame('0', Money::fromString('100', 'EUR')->multiplyBy('0')->getAmount());
+        $this->assertSame('0', Money::fromString('0', 'EUR')->multiplyBy('1.5')->getAmount());
+    }
+
+    #[Test]
+    public function multiply_by_rejects_a_negative_or_malformed_factor(): void
+    {
+        foreach (['-1', '1,5', '', '1e3'] as $factor) {
+            try {
+                Money::fromString('10', 'CZK')->multiplyBy($factor);
+                $this->fail('Accepted factor ' . $factor);
+            } catch (InvalidArgumentException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
 }

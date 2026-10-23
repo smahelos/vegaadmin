@@ -3,6 +3,8 @@
 namespace App\Infrastructure\Persistence\Eloquent\Product\Mappers;
 
 use App\Domain\Invoice\DTO\InvoiceProductDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\InvoiceProduct;
 
@@ -40,6 +42,28 @@ class EloquentInvoiceProductMapper
             'created_at' => $model->getAttribute('created_at'),
             'updated_at' => $model->getAttribute('updated_at'),
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toAttributes(InvoiceId $invoiceId, InvoiceProductWriteData $data): array
+    {
+        return [
+            'invoice_id' => $invoiceId->getValue(),
+            'product_id' => $data->productId?->getValue(),
+            'name' => $data->name,
+            'quantity' => $data->quantity,
+            'unit' => $data->unit->value,
+            'category' => $data->category,
+            'description' => $data->description,
+            'price' => $data->price->getAmount(),
+            'currency' => $data->price->getCurrency(),
+            'tax_rate' => $data->taxRate,
+            'tax_amount' => $data->taxAmount()->getAmount(),
+            'total_price' => $data->total()->getAmount(),
+            'is_custom_product' => $data->isCustomProduct(),
+        ];
     }
 
     /**

@@ -32,11 +32,6 @@ class InvoiceServiceProvider extends ServiceProvider
             \App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface::class,
             \App\Domain\Invoice\Services\InvoicePrintDataBuilder::class
         );
-
-        $this->app->bind(
-            \App\Domain\Invoice\Contracts\InvoiceProductSyncServiceInterface::class,
-            \App\Domain\Invoice\Services\InvoiceProductSyncService::class
-        );
     }
 
     /**
@@ -69,11 +64,6 @@ class InvoiceServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface::class,
             \App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceDtoRepository::class
-        );
-
-        $this->app->bind(
-            \App\Domain\Invoice\Contracts\InvoiceProductsSyncRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceProductsSyncRepository::class
         );
     }
 

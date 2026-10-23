@@ -95,7 +95,6 @@ class DddLegacyReportCommand extends Command
                 'CacheService.php',
                 'CountryService.php',
                 'CurrencyService.php',
-                'InvoiceProductSyncService.php',
                 'LocaleService.php',
                 // Historical allowlist; remove items here once migrated fully
             ];

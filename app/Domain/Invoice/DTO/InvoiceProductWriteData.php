@@ -1,71 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 
 /**
- * Immutable write data for Invoice product rows.
+ * One invoice line. A line without a product is a custom item typed into the invoice.
  */
-class InvoiceProductWriteData
+final readonly class InvoiceProductWriteData
 {
+    /**
+     * @param  string  $quantity  Non-negative decimal string, e.g. "1.5"
+     * @param  string  $taxRate  VAT rate in percent as a decimal string, e.g. "21"
+     */
     public function __construct(
-        public readonly ?int $product_id = null,
-        public readonly string $name = '',
-        public readonly float $quantity = 1.0,
-        public readonly float $price = 0.0,
-        public readonly string $currency = 'CZK',
-        public readonly Unit $unit = Unit::PIECES,
-        public readonly ?string $category = null,
-        public readonly ?string $description = null,
-        public readonly float $tax_rate = 0.0,
-        public readonly float $tax_amount = 0.0,
-        public readonly float $total_price = 0.0,
-        public readonly bool $is_custom_product = false,
+        public string $name,
+        public string $quantity,
+        public Unit $unit,
+        public Money $price,
+        public string $taxRate,
+        public ?ProductId $productId = null,
+        public ?string $category = null,
+        public ?string $description = null,
     ) {}
 
-    /**
-     * Build a product row from raw form data. A row without product_id (or flagged custom) is a
-     * custom product; tax_amount and total_price are always derived from quantity, price and tax rate.
-     */
-    public static function fromArray(array $data): self
+    public function isCustomProduct(): bool
     {
-        $isCustom = empty($data['product_id']) || !empty($data['is_custom_product']);
-        $quantity = (float)($data['quantity'] ?? 1);
-        $price = (float)($data['price'] ?? 0);
-        $taxRate = (float)($data['tax_rate'] ?? 21);
-
-        return new self(
-            product_id: $isCustom ? null : (int)$data['product_id'],
-            name: (string)($data['name'] ?? ''),
-            quantity: $quantity,
-            price: $price,
-            currency: (string)($data['currency'] ?? 'CZK'),
-            unit: Unit::fromInput($data['unit'] ?? null),
-            category: $data['category'] ?? null,
-            description: $data['description'] ?? null,
-            tax_rate: $taxRate,
-            tax_amount: ($quantity * $price * $taxRate) / 100,
-            total_price: $quantity * $price * (1 + $taxRate / 100),
-            is_custom_product: $isCustom,
-        );
+        return $this->productId === null;
     }
 
-    public function toArray(): array
+    /** Price times quantity, rounded half up to cents. */
+    public function base(): Money
     {
-        return [
-            'product_id' => $this->product_id,
-            'name' => $this->name,
-            'quantity' => $this->quantity,
-            'price' => $this->price,
-            'currency' => $this->currency,
-            'unit' => $this->unit->value,
-            'category' => $this->category,
-            'description' => $this->description,
-            'tax_rate' => $this->tax_rate,
-            'tax_amount' => $this->tax_amount,
-            'total_price' => $this->total_price,
-            'is_custom_product' => $this->is_custom_product,
-        ];
+        return $this->price->multiplyBy($this->quantity);
+    }
+
+    /** VAT of the line, computed from the rounded base and rounded half up to cents. */
+    public function taxAmount(): Money
+    {
+        return $this->base()->multiplyBy($this->taxRate, 8)->divideRounding(100, 2, Money::ROUND_HALF_UP);
+    }
+
+    public function total(): Money
+    {
+        return $this->base()->add($this->taxAmount());
     }
 }
