@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Invoice\Services;
 
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
@@ -18,7 +20,7 @@ use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\User\ValueObjects\UserId;
 
-class InvoiceService implements InvoiceServiceInterface
+final class InvoiceService implements InvoiceServiceInterface
 {
     public function __construct(
     private readonly EventPublisherInterface $events,
