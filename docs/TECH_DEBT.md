@@ -10,7 +10,7 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Fix:** move the routes behind `api.require.frontend`, scope every query by the user passed in from Application (no `Auth::id()` in the repository).
 
 ### State changes over GET
-- **Where:** `routes/web.php` (`client/{id}/set-default`, `supplier/{id}/set-default`, `invoices/delete/{token}`), `routes/backpack/custom.php` (`cron-task/{id}/run`)
+- **Where:** `routes/web.php` (`client/{id}/set-default`, `supplier/{id}/set-default`, `invoices/delete/{token}`), `routes/backpack/custom.php` (`cron-task/{id}/run`, `cache/clear*` linked from the admin menu)
 - **Problem:** GET requests change state without CSRF protection; a link or prefetch triggers them.
 - **Fix:** `POST`/`PUT`/`DELETE` routes with forms (`rules/http.md`, Routes).
 

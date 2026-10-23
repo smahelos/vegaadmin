@@ -40,7 +40,7 @@ return [
         'general_settings' => 'Obecná nastavení',
     ],
     'cache' => [
-        'title' => 'Cache správa',
+        'title' => 'Správa cache',
         'clear_cache' => 'Vymazat cache',
         'clear_config' => 'Vymazat config cache',
         'clear_views' => 'Vymazat view cache',
