@@ -30,11 +30,6 @@ interface InvoiceCrudApplicationServiceInterface
     public function delete(InvoiceId $invoiceId, UserId $userId): bool;
 
     /**
-     * Duplicate existing invoice
-     */
-    public function duplicate(InvoiceId $invoiceId, UserId $userId): InvoiceDTO;
-
-    /**
      * Get invoice by ID for editing
      */
     public function getForEdit(InvoiceId $invoiceId, UserId $userId): InvoiceDTO;

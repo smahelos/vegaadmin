@@ -1,15 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\Shared\Unit\Enums\Unit;
 use Closure;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
-class InvoiceRequest extends BaseEntityRequest
+final class InvoiceRequest extends BaseEntityRequest
 {
     /**
      * Override authorization to allow guest invoice creation on specific route.
@@ -20,30 +24,30 @@ class InvoiceRequest extends BaseEntityRequest
         if ($this->isGuestStore()) {
             return true; // Skip parent authorization & limit checks for guest temporary invoices
         }
+
         return parent::authorize();
     }
 
     /**
      * Customize failed validation for guest JSON endpoint to avoid redirect (302) and return 422 JSON.
      */
-    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
+    protected function failedValidation(Validator $validator): never
     {
-
         if ($this->isGuestStore()) {
             // For guest JSON endpoint, return 422 JSON response
             $response = response()->json([
                 'message' => __('invoices.messages.validation_failed'),
                 'errors' => $validator->errors()->toArray(),
             ], 422);
-            throw new \Illuminate\Validation\ValidationException($validator, $response);
+            throw new ValidationException($validator, $response);
         }
 
         // For regular routes, show both field errors and general error message
-        throw new \Illuminate\Validation\ValidationException($validator,
+        throw new ValidationException($validator,
             redirect()->back()
                 ->withErrors($validator->errors())
                 ->withInput()
-                ->with('error', trans('invoices.messages.validation_failed'))
+                ->with('error', __('invoices.messages.validation_failed'))
         );
     }
 
@@ -55,6 +59,7 @@ class InvoiceRequest extends BaseEntityRequest
         if ($this->isGuestStore()) {
             return true;
         }
+
         return parent::expectsJson();
     }
 
@@ -63,6 +68,7 @@ class InvoiceRequest extends BaseEntityRequest
         if ($this->isGuestStore()) {
             return true;
         }
+
         return parent::wantsJson();
     }
 
@@ -84,14 +90,12 @@ class InvoiceRequest extends BaseEntityRequest
     }
 
     /**
-     * Get the validation rules that apply to the request
-     *
-     * @return array
+     * @return array<string, mixed>
      */
     public function rules(): array
     {
         // Get max file size from config
-        $maxFileSize = \Illuminate\Support\Facades\Config::get('file_upload.contexts.invoice_logo.max_kb', 2048);
+        $maxFileSize = Config::get('file_upload.contexts.invoice_logo.max_kb', 2048);
 
         $rules = [
             'invoice_vs' => 'required|string|max:50',
@@ -206,9 +210,7 @@ class InvoiceRequest extends BaseEntityRequest
     }
 
     /**
-     * Get the validation attributes for error messages
-     *
-     * @return array
+     * @return array<string, string>
      */
     public function attributes(): array
     {
@@ -283,10 +285,7 @@ class InvoiceRequest extends BaseEntityRequest
     }
 
     /**
-     * Prepare the data for validation.
-     * This method merges fallback values for form fields when original ones are missing.
-     *
-     * @return void
+     * Fills empty fields from their *_fallback inputs and decodes the items.
      */
     protected function prepareForValidation(): void
     {
@@ -300,22 +299,22 @@ class InvoiceRequest extends BaseEntityRequest
         $merge = [];
 
         // Handle country fields
-        if (!$this->filled('country') && $this->has('country_fallback')) {
+        if (! $this->filled('country') && $this->has('country_fallback')) {
             $merge['country'] = $this->input('country_fallback');
         }
 
-        if (!$this->filled('client_country') && $this->has('client_country_fallback')) {
+        if (! $this->filled('client_country') && $this->has('client_country_fallback')) {
             $merge['client_country'] = $this->input('client_country_fallback');
         }
 
         // Handle bank_code field
-        if (!$this->filled('bank_code') && $this->has('bank_code_fallback')) {
+        if (! $this->filled('bank_code') && $this->has('bank_code_fallback')) {
             $merge['bank_code'] = $this->input('bank_code_fallback');
         }
 
         // Handle any other fallback fields
         foreach (['payment_method_id', 'supplier_id', 'client_id', 'due_in', 'payment_status_id'] as $field) {
-            if (!$this->filled($field) && $this->has($field . '_fallback')) {
+            if (! $this->filled($field) && $this->has($field . '_fallback')) {
                 $merge[$field] = $this->input($field . '_fallback');
             }
         }
@@ -329,7 +328,7 @@ class InvoiceRequest extends BaseEntityRequest
             }
         }
 
-        if (!empty($merge)) {
+        if (! empty($merge)) {
             $this->merge($merge);
         }
     }
