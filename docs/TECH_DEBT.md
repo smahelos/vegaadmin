@@ -8,7 +8,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 **A. Foundations**
 
-1. Tooling — Pint over the whole codebase in one commit, Larastan in CI, before the large rewrites so that their diffs stay clean.
+1. ~~Tooling — Pint over the whole codebase in one commit, Larastan in CI, before the large rewrites so that their diffs stay clean.~~ Done 2026-10-23 (branch `ls-tooling`): Pint and PHP_CodeSniffer over the whole codebase, Larastan at level 1, all three in CI; raising the level is "Larastan level" below.
 2. Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".
 3. "Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.
 4. "Domain events are published inside the transaction" — the issued-invoice work publishes its events on top of it.
@@ -255,11 +255,10 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time.
 
-### Tooling
-- **Where:** project root, `.github/workflows/`
-- **Problem:** the codebase is not formatted by Pint (`pint.json` exists since 2026-10-23); there is no static analysis.
-- **Decided 2026-10-23:** syntax and formatting are checked by linters (Pint, Larastan), not by AI reviewing or rewriting code style.
-- **Fix:** format the whole codebase in one commit; install Larastan without a baseline file, start at the highest level that can be made clean, raise it as contexts are converted (target: max); run both in CI.
+### Larastan level
+- **Where:** `phpstan.neon`
+- **Problem:** Larastan runs at level 1 (2026-10-23); level 2 reports about 1000 more errors, level 6 over 4000. One level applies to the whole codebase.
+- **Fix:** raise the level once the whole codebase passes the next one: levels 2–6 while the contexts are converted (Order of work 12), 7–10 (`max`) after that, one level per branch. No baseline file and no ignore comments.
 
 ### `strict_types` and `final`
 - **Where:** all of `app/`, `tests/`, `database/` (11 of 1227 files declare `strict_types`, 11 classes are `final`); files touched by a branch keep their old shape, e.g. `app/Http/Controllers/Frontend/ProfileController.php` (no constructor promotion, untyped properties)
