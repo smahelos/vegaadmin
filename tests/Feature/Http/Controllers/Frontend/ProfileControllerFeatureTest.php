@@ -115,4 +115,20 @@ class ProfileControllerFeatureTest extends TestCase
         $response = $this->put(route('frontend.profile.update.password', ['locale' => 'cs']), $payload);
         $response->assertSessionHasErrors(['current_password']);
     }
+
+    #[Test]
+    public function profile_update_does_not_change_the_password(): void
+    {
+        $this->actingAs($this->user, 'web');
+        $originalHash = $this->user->fresh()->password;
+
+        $this->put(route('frontend.profile.update', ['locale' => 'cs']), [
+            'name' => 'Updated Name',
+            'email' => $this->user->email,
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ]);
+
+        $this->assertSame($originalHash, $this->user->fresh()->password);
+    }
 }

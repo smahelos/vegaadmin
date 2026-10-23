@@ -7,7 +7,6 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Infrastructure\Forms\User\UserFormFields;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\Admin\UserRequest;
 use Backpack\PermissionManager\app\Http\Requests\UserStoreCrudRequest as StoreRequest;
 use Backpack\PermissionManager\app\Http\Requests\UserUpdateCrudRequest as UpdateRequest;
 
