@@ -5,6 +5,7 @@ namespace Tests\Unit\Http\Controllers\Api;
 use App\Http\Controllers\Api\CountryController;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
 class CountryControllerTest extends TestCase
@@ -57,9 +58,9 @@ class CountryControllerTest extends TestCase
     public function get_country_not_found_returns_404(): void
     {
         $this->service->countryByCode = null;
-        $resp = $this->controller->getCountry('XX');
-        $this->assertEquals(404, $resp->status());
-        $this->assertEquals('Country not found', $resp->getData(true)['error']);
+        $this->expectException(NotFoundHttpException::class);
+        $this->expectExceptionMessage('Country not found');
+        $this->controller->getCountry('XX');
     }
 }
 
