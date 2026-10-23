@@ -124,16 +124,17 @@ class ControllerThinnessEnforcementTest extends TestCase
             'min',
             'max',
         ];
+        $model = $this->modelReferencePattern($content);
         foreach ($methods as $m) {
             if (preg_match_all(
-                '/App\\\\Models\\\\[A-Za-z0-9_]+::' . $m . '\s*\(/',
+                '/' . $model . '::' . $m . '\s*\(/',
                 $content,
                 $mm,
             )) {
                 $eloquentStatic += count($mm[0]);
             }
         }
-        $newModel = preg_match_all('/new\s+App\\\\Models\\\\[A-Za-z0-9_]+\s*\(/', $content, $mm) ? count($mm[0]) : 0;
+        $newModel = preg_match_all('/new\s+' . $model . '\s*\(/', $content, $mm) ? count($mm[0]) : 0;
         $dbFacade = preg_match_all('/DB::[A-Za-z_]+\s*\(/', $content, $mm) ? count($mm[0]) : 0;
         $publicMethods = preg_match_all('/public\s+function\s+(?!__construct)([A-Za-z0-9_]+)\s*\(/', $content, $mm) ? count($mm[0]) : 0;
 
@@ -144,5 +145,28 @@ class ControllerThinnessEnforcementTest extends TestCase
             'db_facade_calls' => $dbFacade,
             'public_method_count' => $publicMethods,
         ];
+    }
+
+    /**
+     * Same model matching as ddd:controller-thinness:baseline: full names and names imported from App\\Models.
+     */
+    private function modelReferencePattern(string $content): string
+    {
+        $pattern = '\\\\?App\\\\Models\\\\[A-Za-z0-9_]+';
+
+        if (preg_match_all(
+            '/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?;/m',
+            $content,
+            $imports,
+            PREG_SET_ORDER,
+        )) {
+            $names = array_map(
+                fn (array $import): string => $import[2] ?? $import[1],
+                $imports,
+            );
+            $pattern .= '|(?<![A-Za-z0-9_\\\\])(?:' . implode('|', array_unique($names)) . ')';
+        }
+
+        return '(?:' . $pattern . ')';
     }
 }

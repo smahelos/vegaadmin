@@ -125,10 +125,12 @@ class ControllerThinnessBaselineCommand extends Command
         $lines = array_values(array_filter(array_map('rtrim', explode("\n", $content)), fn ($l) => $l !== ''));
         $loc = count($lines);
 
-        // Count Eloquent static usage: App\Models\Whatever::method(
+        $model = $this->modelReferencePattern($content);
+
+        // Count Eloquent static usage: App\Models\Whatever::method( or an imported Whatever::method(
         $eloquentStaticCalls = 0;
         foreach ($this->eloquentStaticMethods as $m) {
-            $pattern = '/App\\\\Models\\\\[A-Za-z0-9_]+::' . $m . '\s*\(/';
+            $pattern = '/' . $model . '::' . $m . '\s*\(/';
             if (preg_match_all(
                 $pattern,
                 $content,
@@ -141,7 +143,7 @@ class ControllerThinnessBaselineCommand extends Command
         // new Model instantiations
         $newModelInsts = 0;
         if (preg_match_all(
-            '/new\s+App\\\\Models\\\\[A-Za-z0-9_]+\s*\(/',
+            '/new\s+' . $model . '\s*\(/',
             $content,
             $mm,
         )) {
@@ -193,6 +195,30 @@ class ControllerThinnessBaselineCommand extends Command
             'constructor_domain_injections' => $constructorDomainInjections,
             'public_method_count' => $publicMethodCount,
         ];
+    }
+
+    /**
+     * Matches a model referenced by its full name or by a name imported with `use App\Models\…`;
+     * Pint imports full names, so counting only those would miss every call.
+     */
+    private function modelReferencePattern(string $content): string
+    {
+        $pattern = '\\\\?App\\\\Models\\\\[A-Za-z0-9_]+';
+
+        if (preg_match_all(
+            '/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?;/m',
+            $content,
+            $imports,
+            PREG_SET_ORDER,
+        )) {
+            $names = array_map(
+                fn (array $import): string => $import[2] ?? $import[1],
+                $imports,
+            );
+            $pattern .= '|(?<![A-Za-z0-9_\\\\])(?:' . implode('|', array_unique($names)) . ')';
+        }
+
+        return '(?:' . $pattern . ')';
     }
 
     private function average(array $values): float
