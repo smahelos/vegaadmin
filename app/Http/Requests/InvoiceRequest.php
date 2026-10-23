@@ -10,6 +10,7 @@ use App\Domain\Shared\Unit\Enums\Unit;
 use Closure;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Number;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -169,20 +170,47 @@ final class InvoiceRequest extends BaseEntityRequest
 
     /**
      * A line may carry only a rate the invoice form offers: 0 % or one of the VAT rates in the taxes table.
+     * The rates are loaded once, when the first numeric rate reaches the rule.
      */
     private function taxRateRule(): Closure
     {
-        $taxes = app(TaxDtoReadRepositoryInterface::class);
-        $allowed = array_map(
-            fn (int|float|string $rate): string => $this->normalizedRate((string) $rate),
-            ['0', ...array_values($taxes->getDphRatesForDropdown())]
-        );
+        $allowed = null;
 
-        return function (string $attribute, mixed $value, Closure $fail) use ($allowed): void {
-            if (is_numeric($value) && ! in_array($this->normalizedRate((string) $value), $allowed, true)) {
-                $fail(__('invoices.validation.tax_rate'));
+        return function (string $attribute, mixed $value, Closure $fail) use (&$allowed): void {
+            if (! is_numeric($value)) {
+                return;
+            }
+            $allowed ??= $this->allowedTaxRates();
+            if (! in_array($this->normalizedRate((string) $value), $allowed, true)) {
+                $fail(__('invoices.validation.tax_rate', ['rates' => $this->formattedRates($allowed)]));
             }
         };
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function allowedTaxRates(): array
+    {
+        $rates = array_map(
+            fn (int|float|string $rate): string => $this->normalizedRate((string) $rate),
+            ['0', ...array_values(app(TaxDtoReadRepositoryInterface::class)->getDphRatesForDropdown())]
+        );
+        $rates = array_values(array_unique($rates));
+        sort($rates, SORT_NUMERIC);
+
+        return $rates;
+    }
+
+    /**
+     * @param  list<string>  $rates
+     */
+    private function formattedRates(array $rates): string
+    {
+        return implode(', ', array_map(
+            fn (string $rate): string => (string) Number::percentage((float) $rate, maxPrecision: 2, locale: app()->getLocale()),
+            $rates
+        ));
     }
 
     /** "21", "21.0" and "21.00" are the same rate. */

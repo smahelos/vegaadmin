@@ -587,8 +587,9 @@ class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function an_item_tax_rate_must_be_one_the_form_offers(): void
     {
+        app()->setLocale('en');
         $errors = $this->itemErrors([$this->item(['tax_rate' => '17'])]);
-        $this->assertSame([__('invoices.validation.tax_rate')], $errors['invoice-products.0.tax_rate'] ?? null);
+        $this->assertSame(['An invoice item has an invalid VAT rate. Allowed rates: 0%, 12%, 21%.'], $errors['invoice-products.0.tax_rate'] ?? null);
 
         $this->assertSame([], $this->itemErrors([$this->item(['tax_rate' => '12']), $this->item(['tax_rate' => '0.00'])]));
     }

@@ -181,7 +181,7 @@ return [
     ],
     'validation' => [
         'item_currency' => 'Die Währung der Position muss der Währung der Rechnung entsprechen.',
-        'tax_rate' => 'Eine Rechnungsposition hat einen ungültigen MwSt.-Satz.',
+        'tax_rate' => 'Eine Rechnungsposition hat einen ungültigen MwSt.-Satz. Zulässige Sätze: :rates.',
         'amount_required' => 'Betrag ist erforderlich',
         'amount_numeric' => 'Betrag muss eine Zahl sein',
         'supplier_required_without' => 'Sie müssen entweder einen vorhandenen Lieferanten auswählen oder Daten für einen neuen Lieferanten eingeben',

@@ -181,7 +181,7 @@ return [
     ],
     'validation' => [
         'item_currency' => 'The item currency must match the invoice currency.',
-        'tax_rate' => 'An invoice item has an invalid VAT rate.',
+        'tax_rate' => 'An invoice item has an invalid VAT rate. Allowed rates: :rates.',
         'amount_required' => 'Amount is required',
         'amount_numeric' => 'Amount must be a number',
         'supplier_required_without' => 'You must either select an existing supplier or enter details for a new supplier',
