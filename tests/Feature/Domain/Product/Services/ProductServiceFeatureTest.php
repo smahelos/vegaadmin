@@ -77,7 +77,7 @@ class ProductServiceFeatureTest extends TestCase
                     }
                 }
 
-return true;
+                return true;
             }
 
             public function userKey(int $userId, string $suffix): string
