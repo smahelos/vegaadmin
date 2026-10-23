@@ -168,7 +168,7 @@ class DddGuardCommand extends Command
                 $this->persistJsonIfConfigured($config, $payload);
                 $this->line(json_encode($payload, JSON_PRETTY_PRINT));
             } else {
-                $this->info(__('ddd_guard.no_violations'));
+                $this->info('No DDD guard violations detected.');
                 if (!empty($advisories)) {
                     $this->warn('Advisories (non-blocking): '.count($advisories));
                 }
@@ -192,7 +192,7 @@ class DddGuardCommand extends Command
             $this->persistJsonIfConfigured($config, $payload);
             $this->line(json_encode($payload, JSON_PRETTY_PRINT));
         } else {
-            $this->error(__('ddd_guard.violations_found'));
+            $this->error('DDD guard violations:');
             foreach ($violations as $v) {
                 $lineInfo = isset($v['line']) ? (':'.$v['line']) : '';
                 $this->line(" - [{$v['type']}] {$v['path']}{$lineInfo} :: {$v['message']}");
@@ -204,7 +204,7 @@ class DddGuardCommand extends Command
                     $this->line(" - [advisory] {$a['path']}{$lineInfo} :: {$a['message']}");
                 }
             }
-            $this->error(str_replace(':count', (string)count($violations), __('ddd_guard.summary')));
+            $this->error(count($violations) . ' violation(s) detected.');
         }
     if ($this->option('suppress-exit')) { return 0; }
     if (!empty($violations)) { return 1; }

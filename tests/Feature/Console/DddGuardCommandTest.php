@@ -28,7 +28,7 @@ class DddGuardCommandTest extends TestCase
         }
 
         $this->artisan('ddd:guard')
-            ->expectsOutput(trans('ddd_guard.no_violations'))
+            ->expectsOutput('No DDD guard violations detected.')
             ->assertExitCode(0);
     }
 
@@ -62,7 +62,7 @@ class DddGuardCommandTest extends TestCase
         
         try {
             $this->artisan('ddd:guard')
-                ->expectsOutput(trans('ddd_guard.violations_found'))
+                ->expectsOutput('DDD guard violations:')
                 ->assertExitCode(1);
         } finally {
             // Restore original config
