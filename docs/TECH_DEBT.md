@@ -29,6 +29,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** the route is not excluded from CSRF, so an external notification most likely ends with 419 (to verify); the whole request payload is logged.
 - **Fix:** CSRF exception, gateway-verified handling as in `rules/payments.md`, log only the payment id.
 
+### Exception messages shown to users
+- **Where:** `app/Http/Controllers/Frontend/{ProductController,SupplierController,InvoiceController}.php` (flash messages and JSON `error`), `app/Http/Controllers/Api/{UserController,InvoiceController}.php` (JSON `error`), `app/Http/Controllers/Admin/CacheManagementController.php` (admin alert)
+- **Problem:** the raw `$e->getMessage()` is appended to the error a user sees or returned in JSON, so SQL errors, column names, file paths and other internals reach the browser. The profile screen had the same flaw and was fixed in `ls-missing-translations`.
+- **Fix:** a complete translated message for the user, the exception only in the log with structured context (`rules/php.md`, Errors); done together with "Error handling" below by mapping context exceptions in `app/Exceptions/ExceptionHandling.php`.
+
 ### Invoice items are not validated
 - **Where:** `app/Http/Requests/InvoiceRequest.php`, `app/Http/Requests/Admin/InvoiceRequest.php` (no rule for `invoice-products`), `app/Application/Invoice/Services/InvoiceRequestAssembler.php` (decodes the JSON as it comes)
 - **Problem:** the items of an invoice reach the database without validation: any price, quantity, tax rate, currency or `product_id`, possibly a product of another user (not verified). An unknown unit ends in a 500 from `Unit::from()`.
