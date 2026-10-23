@@ -78,6 +78,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 ## Payment
 
+### GoPay is called inside the database transaction
+- **Where:** `app/Domain/Payment/Services/SubscriptionPaymentService.php::processSubscriptionPayment()`
+- **Problem:** the transaction wraps `createPayment()` of the gateway. When a later step fails, the rollback deletes the local payment record, but the payment created at GoPay stays and its notification finds no record; the transaction also holds its locks for the whole HTTP call.
+- **Fix:** store the pending payment in one transaction, call the gateway outside it, then store the gateway id and status in a second transaction; a failed gateway call marks the payment failed. Move the use case to Application (`rules/application.md`).
+
 ### Move refund logic into `RefundState`
 - **Where:** `app/Models/Payment.php::applyRefund()`, `app/Domain/Payment/ValueObjects/RefundState.php`
 - **Problem:** refund business logic (accumulation, partial/full status) lives in the Eloquent model; the value object is unused.
@@ -152,6 +157,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 ## Product
 
+### Product image is deleted before the product
+- **Where:** `app/Application/Product/Services/ProductApplicationService.php::deleteProduct()`
+- **Problem:** the image file is deleted before the transaction that deletes the product; when the delete fails, the product stays without its image.
+- **Fix:** delete the file after the transaction commits.
+
 ### Products have no unit field
 - **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php`, frontend and admin product forms and requests
 - **Problem:** `products.unit` exists and is copied into the invoice item when a product is picked, but no form sets it, so every product counts in pieces.
@@ -182,9 +192,9 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Fix:** publish the entity events from the domain services, let `InvalidateAnalyticsCache` handle them, then remove the observers and `AnalyticsDataChanged`.
 
 ### Domain events are published inside the transaction
-- **Where:** `InvoiceService::createInvoice()` (publishes `InvoiceCreated`), `InvoiceCrudApplicationService` (`TransactionBoundaryInterface`), `app/Infrastructure/Shared/Events/LaravelEventPublisher.php`
-- **Problem:** `rules/application.md` publishes events after the commit; `LaravelEventPublisher` dispatches at once, so handlers of `InvoiceCreated` run inside the transaction of the use case and their effects outside the database (cache, mail) stay when it rolls back.
-- **Fix:** the publisher defers dispatching until the surrounding transaction commits (`DB::afterCommit()` in the Infrastructure adapter), or the use case collects the events and publishes them after `transaction()` returns.
+- **Where:** `app/Infrastructure/Shared/Events/LaravelEventPublisher.php`; `InvoiceService::createInvoice()` (`InvoiceCreated`, inside the transaction of `InvoiceCrudApplicationService`), `ProductService` and `InvoicePartyService` (`ProductCreated`, `ClientCreated`, `SupplierCreated`, inside the `DB::transaction()` of `ProductApplicationService` and `PartyApplicationService`), the Eloquent observers (`UserDataChanged`, `FormDataChanged` on every save)
+- **Problem:** `rules/application.md` publishes events after the commit; `LaravelEventPublisher` dispatches at once, so handlers run inside the transaction. Effects outside the database (cache, mail, queued jobs; `config/queue.php` has `after_commit` off) stay when it rolls back, and a cache cleared before the commit can be filled again with the old data by a concurrent request. Handlers that write to the same database (UELS usage counters) roll back with it.
+- **Fix (decided 2026-10-23, own branch):** the publisher defers dispatching until the surrounding transaction commits (`afterCommit()` of the connection in the Infrastructure adapter; outside a transaction it dispatches at once), which covers the observers too; reword `rules/application.md` to "domain events are delivered after the commit". Test that a rolled-back use case dispatches nothing.
 
 ### Run tests on MySQL instead of in-memory SQLite
 - **Where:** `phpunit.xml`, `config/database.php` (`testing` connection), `tests/TestCase.php`, `tests/Traits/RefreshDatabaseWithData.php`, `.github/workflows/*`, SQLite branches in `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentAnalyticsReadRepository.php`, `app/Console/Commands/Database{Optimize,Monitor}Command.php` and 10 migrations (including `2025_07_23_054624_add_basic_foreign_keys_for_testing.php`)
@@ -214,6 +224,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ### `strict_types` and `final`
 - **Where:** all of `app/`, `tests/`, `database/` (11 of 1227 files declare `strict_types`, 11 classes are `final`); files touched by a branch keep their old shape, e.g. `app/Http/Controllers/Frontend/ProfileController.php` (no constructor promotion, untyped properties)
 - **Fix:** add `declare(strict_types=1)` and `final` (except abstract bases and Eloquent models, `rules/php.md`); the test suite catches the coercions this exposes.
+
+### Transaction boundaries
+- **Where:** `ProductApplicationService`, `PartyApplicationService` (`DB::transaction()`), `app/Domain/User/Services/UserService.php` (`create()`, `updateById()`), `SubscriptionPaymentService`, `app/Infrastructure/Persistence/Eloquent/Shared/Database/EloquentTransactionBoundary.php` (not `final`)
+- **Problem:** use cases open transactions through the facade instead of `TransactionBoundaryInterface`; Domain services open transactions themselves, `UserService` around a single write.
+- **Fix:** per `rules/application.md`: the application service opens the transaction through the port when the use case writes more than one record; single writes need none.
 
 ### Two sets of repositories
 - **Where:** 19 repository contracts in `app/Application/*/Contracts` returning Eloquent models (e.g. `InvoiceReadRepositoryInterface`), next to the Domain `*Dto*RepositoryInterface` ports
