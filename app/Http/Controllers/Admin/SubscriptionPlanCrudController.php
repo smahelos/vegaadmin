@@ -30,8 +30,8 @@ class SubscriptionPlanCrudController extends CrudController
         CRUD::setModel(\App\Models\SubscriptionPlan::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/subscription-plan');
         CRUD::setEntityNameStrings(
-            trans('admin.subscription_plans.entity_singular'),
-            trans('admin.subscription_plans.entity_plural')
+            __('subscriptions.plans.entity.singular'),
+            __('subscriptions.plans.entity.plural')
         );
 
         // Configure access using centralized service
@@ -50,47 +50,47 @@ class SubscriptionPlanCrudController extends CrudController
         CRUD::addColumns([
             [
                 'name' => 'name',
-                'label' => trans('admin.subscription_plans.name'),
+                'label' => __('subscriptions.plans.fields.name'),
                 'type' => 'text',
             ],
             [
                 'name' => 'price',
-                'label' => trans('admin.subscription_plans.price'),
+                'label' => __('subscriptions.plans.fields.price'),
                 'type' => 'number',
                 'decimals' => 2,
                 'suffix' => ' CZK',
             ],
             [
                 'name' => 'currency',
-                'label' => trans('admin.subscription_plans.currency'),
+                'label' => __('subscriptions.plans.fields.currency'),
                 'type' => 'text',
             ],
             [
                 'name' => 'billing_period',
-                'label' => trans('admin.subscription_plans.billing_period'),
+                'label' => __('subscriptions.plans.fields.billing_period'),
                 'type' => 'select_from_array',
                 'options' => [
-                    'monthly' => trans('admin.subscription_plans.monthly'),
-                    'yearly' => trans('admin.subscription_plans.yearly'),
+                    'monthly' => __('subscriptions.plans.billing_periods.monthly'),
+                    'yearly' => __('subscriptions.plans.billing_periods.yearly'),
                 ],
             ],
             [
                 'name' => 'billing_interval',
-                'label' => trans('admin.subscription_plans.billing_interval'),
+                'label' => __('subscriptions.plans.fields.billing_interval'),
                 'type' => 'number',
             ],
             [
                 'name' => 'trial_days',
-                'label' => trans('admin.subscription_plans.trial_days'),
+                'label' => __('subscriptions.plans.fields.trial_days'),
                 'type' => 'number',
             ],
             [
                 'name' => 'is_active',
-                'label' => trans('admin.subscription_plans.is_active'),
+                'label' => __('subscriptions.plans.fields.is_active'),
                 'type' => 'boolean',
                 'options' => [
-                    0 => trans('admin.general.no'),
-                    1 => trans('admin.general.yes'),
+                    0 => __('general.no'),
+                    1 => __('general.yes'),
                 ],
             ],
         ]);
@@ -100,7 +100,7 @@ class SubscriptionPlanCrudController extends CrudController
             CRUD::addFilter([
                 'type' => 'simple',
                 'name' => 'is_active',
-                'label' => trans('admin.subscription_plans.active_only'),
+                'label' => __('subscriptions.plans.filters.active_only'),
             ],
             false,
             function () {
@@ -110,11 +110,11 @@ class SubscriptionPlanCrudController extends CrudController
             CRUD::addFilter([
                 'name' => 'billing_period',
                 'type' => 'select2',
-                'label' => trans('admin.subscription_plans.billing_period'),
+                'label' => __('subscriptions.plans.fields.billing_period'),
             ],
             [
-                'monthly' => trans('admin.subscription_plans.monthly'),
-                'yearly' => trans('admin.subscription_plans.yearly'),
+                'monthly' => __('subscriptions.plans.billing_periods.monthly'),
+                'yearly' => __('subscriptions.plans.billing_periods.yearly'),
             ],
             function ($value) {
                 CRUD::addClause('where', 'billing_period', $value);
@@ -134,33 +134,33 @@ class SubscriptionPlanCrudController extends CrudController
         CRUD::addFields([
             [
                 'name' => 'name',
-                'label' => trans('admin.subscription_plans.name'),
+                'label' => __('subscriptions.plans.fields.name'),
                 'type' => 'text',
                 'attributes' => [
-                    'placeholder' => trans('admin.subscription_plans.name_placeholder'),
+                    'placeholder' => __('subscriptions.plans.placeholders.name'),
                 ],
             ],
             [
                 'name' => 'description',
-                'label' => trans('admin.subscription_plans.description'),
+                'label' => __('subscriptions.plans.fields.description'),
                 'type' => 'textarea',
                 'attributes' => [
-                    'placeholder' => trans('admin.subscription_plans.description_placeholder'),
+                    'placeholder' => __('subscriptions.plans.placeholders.description'),
                 ],
             ],
             [
                 'name' => 'price',
-                'label' => trans('admin.subscription_plans.price'),
+                'label' => __('subscriptions.plans.fields.price'),
                 'type' => 'number',
                 'attributes' => [
                     'step' => '0.01',
                     'min' => '0',
-                    'placeholder' => trans('admin.subscription_plans.price_placeholder'),
+                    'placeholder' => __('subscriptions.plans.placeholders.price'),
                 ],
             ],
             [
                 'name' => 'currency',
-                'label' => trans('admin.subscription_plans.currency'),
+                'label' => __('subscriptions.plans.fields.currency'),
                 'type' => 'select_from_array',
                 'options' => [
                     'CZK' => 'CZK',
@@ -171,40 +171,40 @@ class SubscriptionPlanCrudController extends CrudController
             ],
             [
                 'name' => 'billing_period',
-                'label' => trans('admin.subscription_plans.billing_period'),
+                'label' => __('subscriptions.plans.fields.billing_period'),
                 'type' => 'select_from_array',
                 'options' => [
-                    'monthly' => trans('admin.subscription_plans.monthly'),
-                    'yearly' => trans('admin.subscription_plans.yearly'),
+                    'monthly' => __('subscriptions.plans.billing_periods.monthly'),
+                    'yearly' => __('subscriptions.plans.billing_periods.yearly'),
                 ],
                 'default' => 'monthly',
             ],
             [
                 'name' => 'billing_interval',
-                'label' => trans('admin.subscription_plans.billing_interval'),
+                'label' => __('subscriptions.plans.fields.billing_interval'),
                 'type' => 'number',
                 'attributes' => [
                     'min' => '1',
-                    'placeholder' => trans('admin.subscription_plans.billing_interval_placeholder'),
+                    'placeholder' => __('subscriptions.plans.placeholders.billing_interval'),
                 ],
                 'default' => 1,
             ],
             [
                 'name' => 'trial_days',
-                'label' => trans('admin.subscription_plans.trial_days'),
+                'label' => __('subscriptions.plans.fields.trial_days'),
                 'type' => 'number',
                 'attributes' => [
                     'min' => '0',
-                    'placeholder' => trans('admin.subscription_plans.trial_days_placeholder'),
+                    'placeholder' => __('subscriptions.plans.placeholders.trial_days'),
                 ],
                 'default' => 0,
             ],
             [
                 'name' => 'features',
                 'entity' => 'features',
-                'label' => trans('admin.subscription_plans.features'),
+                'label' => __('subscriptions.plans.fields.features'),
                 'type' => 'checklist',
-                'hint' => trans('admin.subscription_plans.features_hint'),
+                'hint' => __('subscriptions.plans.hints.features'),
                 'model' => \App\Models\SubscriptionPlanFeature::class,
                 'attribute' => 'name',
                 'pivot' => true,
@@ -213,7 +213,7 @@ class SubscriptionPlanCrudController extends CrudController
             ],
             [
                 'name' => 'is_active',
-                'label' => trans('admin.subscription_plans.is_active'),
+                'label' => __('subscriptions.plans.fields.is_active'),
                 'type' => 'checkbox',
                 'default' => true,
             ],
@@ -241,13 +241,13 @@ class SubscriptionPlanCrudController extends CrudController
         
         CRUD::addColumn([
             'name' => 'description',
-            'label' => trans('admin.subscription_plans.description'),
+            'label' => __('subscriptions.plans.fields.description'),
             'type' => 'textarea',
         ]);
         
         CRUD::addColumn([
             'name' => 'features',
-            'label' => trans('admin.subscription_plans.features'),
+            'label' => __('subscriptions.plans.fields.features'),
             'type' => 'relationship',
             'entity' => 'features',
             'attribute' => 'name',
@@ -256,13 +256,13 @@ class SubscriptionPlanCrudController extends CrudController
         
         CRUD::addColumn([
             'name' => 'created_at',
-            'label' => trans('admin.general.created_at'),
+            'label' => __('subscriptions.plans.fields.created_at'),
             'type' => 'datetime',
         ]);
         
         CRUD::addColumn([
             'name' => 'updated_at',
-            'label' => trans('admin.general.updated_at'),
+            'label' => __('subscriptions.plans.fields.updated_at'),
             'type' => 'datetime',
         ]);
     }

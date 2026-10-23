@@ -41,46 +41,16 @@ class SubscriptionRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'user_id' => trans('admin.subscriptions.user'),
-            'subscription_plan_id' => trans('admin.subscriptions.subscription_plan'),
-            'status' => trans('admin.subscriptions.status'),
-            'starts_at' => trans('admin.subscriptions.starts_at'),
-            'ends_at' => trans('admin.subscriptions.ends_at'),
-            'trial_ends_at' => trans('admin.subscriptions.trial_ends_at'),
-            'next_billing_at' => trans('admin.subscriptions.next_billing_at'),
-            'amount' => trans('admin.subscriptions.amount'),
-            'currency' => trans('admin.subscriptions.currency'),
-            'metadata' => trans('admin.subscriptions.metadata'),
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules.
-     */
-    public function messages(): array
-    {
-        return [
-            'user_id.required' => trans('admin.subscriptions.validation.user_required'),
-            'user_id.integer' => trans('admin.subscriptions.validation.user_integer'),
-            'user_id.exists' => trans('admin.subscriptions.validation.user_exists'),
-            'subscription_plan_id.required' => trans('admin.subscriptions.validation.subscription_plan_required'),
-            'subscription_plan_id.integer' => trans('admin.subscriptions.validation.subscription_plan_integer'),
-            'subscription_plan_id.exists' => trans('admin.subscriptions.validation.subscription_plan_exists'),
-            'status.required' => trans('admin.subscriptions.validation.status_required'),
-            'status.in' => trans('admin.subscriptions.validation.status_in'),
-            'starts_at.date' => trans('admin.subscriptions.validation.starts_at_date'),
-            'ends_at.date' => trans('admin.subscriptions.validation.ends_at_date'),
-            'ends_at.after' => trans('admin.subscriptions.validation.ends_at_after'),
-            'trial_ends_at.date' => trans('admin.subscriptions.validation.trial_ends_at_date'),
-            'next_billing_at.date' => trans('admin.subscriptions.validation.next_billing_at_date'),
-            'amount.required' => trans('admin.subscriptions.validation.amount_required'),
-            'amount.numeric' => trans('admin.subscriptions.validation.amount_numeric'),
-            'amount.min' => trans('admin.subscriptions.validation.amount_min'),
-            'amount.max' => trans('admin.subscriptions.validation.amount_max'),
-            'currency.required' => trans('admin.subscriptions.validation.currency_required'),
-            'currency.in' => trans('admin.subscriptions.validation.currency_in'),
-            'metadata.string' => trans('admin.subscriptions.validation.metadata_string'),
-            'metadata.max' => trans('admin.subscriptions.validation.metadata_max'),
+            'user_id' => __('subscriptions.fields.user_id'),
+            'subscription_plan_id' => __('subscriptions.fields.subscription_plan_id'),
+            'status' => __('subscriptions.fields.status'),
+            'starts_at' => __('subscriptions.fields.starts_at'),
+            'ends_at' => __('subscriptions.fields.ends_at'),
+            'trial_ends_at' => __('subscriptions.fields.trial_ends_at'),
+            'next_billing_at' => __('subscriptions.fields.next_billing_at'),
+            'amount' => __('subscriptions.fields.amount'),
+            'currency' => __('subscriptions.fields.currency'),
+            'metadata' => __('subscriptions.fields.metadata'),
         ];
     }
 }

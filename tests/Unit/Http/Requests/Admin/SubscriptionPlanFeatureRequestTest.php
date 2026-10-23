@@ -56,16 +56,6 @@ class SubscriptionPlanFeatureRequestTest extends TestCase
         $this->assertEquals('array', $returnType->getName());
     }
 
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
 
     #[Test]
     public function rules_returns_array_with_required_fields(): void
@@ -111,35 +101,5 @@ class SubscriptionPlanFeatureRequestTest extends TestCase
         $this->assertArrayHasKey('sort_order', $attributes);
     }
 
-    #[Test]
-    public function messages_returns_array_with_validation_messages(): void
-    {
-        $messages = $this->request->messages();
-        
-        $this->assertIsArray($messages);
-        $this->assertArrayHasKey('name.required', $messages);
-        $this->assertArrayHasKey('slug.required', $messages);
-        $this->assertArrayHasKey('slug.unique', $messages);
-    }
 
-    #[Test]
-    public function all_required_validation_messages_are_present(): void
-    {
-        $messages = $this->request->messages();
-        
-        $requiredMessages = [
-            'name.required',
-            'name.string',
-            'name.max',
-            'slug.required',
-            'slug.string',
-            'slug.unique',
-            'sort_order.integer',
-            'sort_order.min',
-        ];
-
-        foreach ($requiredMessages as $messageKey) {
-            $this->assertArrayHasKey($messageKey, $messages, "Missing validation message: {$messageKey}");
-        }
-    }
 }

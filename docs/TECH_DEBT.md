@@ -93,6 +93,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** `php artisan payment:adapter-guard` reports "No gateways registered" in the console, so the CI step passes without validating any gateway.
 - **Fix:** register the gateways (GoPay) where the guard can see them, or let the guard resolve the registry the same way the application does.
 
+### Subscription screens with placeholder content
+- **Where:** `resources/views/frontend/subscriptions/{index,show}.blade.php`, `app/Http/Controllers/Admin/SubscriptionCrudController.php`
+- **Problem:** the checkout asks to agree to the terms of service and the privacy policy, but both links point to `#`. Every yearly plan carries a fixed "2 months free" badge, whatever its price. The admin list prints every amount with a "CZK" suffix, also for EUR and USD subscriptions.
+- **Fix:** link real terms and privacy pages (Content), compute the saving from the monthly and yearly prices or drop the badge, format amounts with the subscription's currency through `MoneyFormatterInterface`. Do this with the subscription plans work.
+
 ## Party / Admin
 
 ### Inactive banks are still offered

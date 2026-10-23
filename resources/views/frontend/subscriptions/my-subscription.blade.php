@@ -1,12 +1,12 @@
 @extends('layouts.frontend')
 
-@section('title', __('subscription.my_subscription'))
+@section('title', __('subscriptions.titles.mine'))
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
         <div class="flex items-center justify-between mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ __('subscription.my_subscription') }}</h1>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ __('subscriptions.titles.mine') }}</h1>
 
             @if($subscription->isActive())
             <span
@@ -16,11 +16,11 @@
                         d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                         clip-rule="evenodd" />
                 </svg>
-                {{ __('subscription.status.active') }}
+                {{ __('subscriptions.statuses.active') }}
             </span>
             @else
             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                {{ __('subscription.status.' . $subscription->status) }}
+                {{ __('subscriptions.statuses.' . $subscription->status) }}
             </span>
             @endif
         </div>
@@ -30,7 +30,7 @@
             <div class="lg:col-span-2 space-y-6">
                 <!-- Current Plan -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-sm p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">{{ __('subscription.current_plan') }}</h2>
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">{{ __('subscriptions.titles.current_plan') }}</h2>
 
                     <div class="flex items-start justify-between">
                         <div>
@@ -40,14 +40,13 @@
 
                             <div class="grid grid-cols-2 gap-4 text-sm">
                                 <div>
-                                    <span class="text-gray-500 dark:text-gray-300">{{ __('Price') }}:</span>
+                                    <span class="text-gray-500 dark:text-gray-300">{{ __('subscriptions.plans.fields.price') }}:</span>
                                     <span class="font-semibold ml-1 dark:text-white">{{ $subscription->subscriptionPlan->formatted_price
                                         }}</span>
                                 </div>
                                 <div>
-                                    <span class="text-gray-500 dark:text-gray-300">{{ __('Billing') }}:</span>
-                                    <span class="font-semibold ml-1 dark:text-white">{{ __('subscription.billing_' .
-                                        $subscription->subscriptionPlan->billing_period) }}</span>
+                                    <span class="text-gray-500 dark:text-gray-300">{{ __('subscriptions.plans.fields.billing_period') }}:</span>
+                                    <span class="font-semibold ml-1 dark:text-white">{{ __('subscriptions.plans.billing_periods.' . $subscription->subscriptionPlan->billing_period) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -62,24 +61,24 @@
 
                 <!-- Subscription Timeline -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-sm p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">{{ __('Subscription Details') }}</h2>
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">{{ __('subscriptions.titles.details') }}</h2>
 
                     <div class="space-y-4">
                         @if($subscription->starts_at)
                         <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-                            <span class="text-gray-600 dark:text-gray-400">{{ __('Started') }}:</span>
+                            <span class="text-gray-600 dark:text-gray-400">{{ __('subscriptions.fields.starts_at') }}:</span>
                             <span class="font-medium dark:text-white">{{ $subscription->starts_at->format('d.m.Y H:i') }}</span>
                         </div>
                         @endif
 
                         @if($subscription->trial_ends_at)
                         <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-                            <span class="text-gray-600 dark:text-gray-400">{{ __('Trial ends') }}:</span>
+                            <span class="text-gray-600 dark:text-gray-400">{{ __('subscriptions.fields.trial_ends_at') }}:</span>
                             <span
                                 class="font-medium {{ $subscription->isInTrial() ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white' }}">
                                 {{ $subscription->trial_ends_at->format('d.m.Y H:i') }}
                                 @if($subscription->isInTrial())
-                                <span class="text-xs text-green-600 dark:text-green-400 ml-1">({{ __('Active') }})</span>
+                                <span class="text-xs text-green-600 dark:text-green-400 ml-1">({{ __('subscriptions.statuses.active') }})</span>
                                 @endif
                             </span>
                         </div>
@@ -87,20 +86,20 @@
 
                         @if($subscription->next_billing_at)
                         <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
-                            <span class="text-gray-600 dark:text-gray-400">{{ __('Next billing') }}:</span>
+                            <span class="text-gray-600 dark:text-gray-400">{{ __('subscriptions.fields.next_billing_at') }}:</span>
                             <span class="font-medium dark:text-white">{{ $subscription->next_billing_at->format('d.m.Y') }}</span>
                         </div>
                         @endif
 
                         @if($subscription->ends_at)
                         <div class="flex justify-between items-center py-2">
-                            <span class="text-gray-600 dark:text-gray-400">{{ __('Expires') }}:</span>
+                            <span class="text-gray-600 dark:text-gray-400">{{ __('subscriptions.fields.ends_at') }}:</span>
                             <span
                                 class="font-medium {{ $subscription->daysUntilExpiration() < 7 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white' }}">
                                 {{ $subscription->ends_at->format('d.m.Y') }}
                                 @if($subscription->daysUntilExpiration() !== null)
                                 <span class="text-xs ml-1">
-                                    ({{ __('subscription.days_until_expiration', ['days' =>
+                                    ({{ __('subscriptions.labels.days_until_expiration', ['days' =>
                                     $subscription->daysUntilExpiration()]) }})
                                 </span>
                                 @endif
@@ -112,7 +111,7 @@
 
                 <!-- Features -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-sm p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">{{ __('subscription.features') }}</h2>
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">{{ __('subscriptions.plans.fields.features') }}</h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         @foreach($subscription->subscriptionPlan->features as $feature)
@@ -134,7 +133,7 @@
             <div class="space-y-6">
                 <!-- Quick Actions -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ __('Actions') }}</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ __('subscriptions.titles.actions') }}</h3>
 
                     <div class="space-y-3">
                         <a href="{{ route('subscriptions.index', ['locale' => app()->getLocale()]) }}"
@@ -143,12 +142,12 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                             </svg>
-                            {{ __('subscription.upgrade_plan') }}
+                            {{ __('subscriptions.actions.upgrade') }}
                         </a>
 
                         @if($subscription->isActive())
                         <form action="{{ route('subscriptions.cancel', ['locale' => app()->getLocale(), 'subscription' => $subscription]) }}" method="POST"
-                            onsubmit="return confirm('{{ __('Are you sure you want to cancel your subscription?') }}')">
+                            onsubmit="return confirm(@js(__('subscriptions.messages.confirm_cancel')))">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
@@ -157,7 +156,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                {{ __('subscription.cancel_subscription') }}
+                                {{ __('subscriptions.actions.cancel') }}
                             </button>
                         </form>
                         @endif
@@ -166,12 +165,12 @@
 
                 <!-- Support -->
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ __('Need Help?') }}</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">{{ __('subscriptions.titles.need_help') }}</h3>
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        {{ __('Contact our support team for any questions about your subscription.') }}
+                        {{ __('subscriptions.labels.support_text') }}
                     </p>
                     <a href="mailto:support@example.com" class="text-sm text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-400 font-medium">
-                        {{ __('Contact Support') }}
+                        {{ __('subscriptions.actions.contact_support') }}
                     </a>
                 </div>
             </div>
@@ -181,7 +180,7 @@
         @if($subscription->payments->count() > 0)
         <div class="mt-8">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-sm p-6">
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">{{ __('Payment History') }}</h2>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">{{ __('subscriptions.titles.payment_history') }}</h2>
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -189,19 +188,19 @@
                             <tr>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    {{ __('Date') }}
+                                    {{ __('payments.fields.created_at') }}
                                 </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    {{ __('Amount') }}
+                                    {{ __('payments.fields.amount') }}
                                 </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    {{ __('Status') }}
+                                    {{ __('payments.fields.status') }}
                                 </th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    {{ __('Gateway') }}
+                                    {{ __('payments.fields.gateway') }}
                                 </th>
                             </tr>
                         </thead>
@@ -219,7 +218,7 @@
                                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                                 {{ $payment->status === 'completed' ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200' : 
                                                    ($payment->status === 'failed' ? 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200' : 'bg-yellow-100 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200') }}">
-                                        {{ __('payment.status.' . $payment->status) }}
+                                        {{ __('payments.statuses.' . $payment->status) }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white capitalize">

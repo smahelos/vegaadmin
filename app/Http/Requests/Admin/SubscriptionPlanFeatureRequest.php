@@ -40,31 +40,11 @@ class SubscriptionPlanFeatureRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => trans('admin.subscription_plan_features.name'),
-            'slug' => trans('admin.subscription_plan_features.slug'),
-            'description' => trans('admin.subscription_plan_features.description'),
-            'is_active' => trans('admin.subscription_plan_features.is_active'),
-            'sort_order' => trans('admin.subscription_plan_features.sort_order'),
-        ];
-    }
-
-    /**
-     * Get custom messages for validator errors.
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => trans('admin.subscription_plan_features.validation.name_required'),
-            'name.string' => trans('admin.subscription_plan_features.validation.name_string'),
-            'name.min' => trans('admin.subscription_plan_features.validation.name_min'),
-            'name.max' => trans('admin.subscription_plan_features.validation.name_max'),
-            'slug.required' => trans('admin.subscription_plan_features.validation.slug_required'),
-            'slug.string' => trans('admin.subscription_plan_features.validation.slug_string'),
-            'slug.unique' => trans('admin.subscription_plan_features.validation.slug_unique'),
-            'description.string' => trans('admin.subscription_plan_features.validation.description_string'),
-            'description.max' => trans('admin.subscription_plan_features.validation.description_max'),
-            'sort_order.integer' => trans('admin.subscription_plan_features.validation.sort_order_integer'),
-            'sort_order.min' => trans('admin.subscription_plan_features.validation.sort_order_min'),
+            'name' => __('subscriptions.features.fields.name'),
+            'slug' => __('subscriptions.features.fields.slug'),
+            'description' => __('subscriptions.features.fields.description'),
+            'is_active' => __('subscriptions.features.fields.is_active'),
+            'sort_order' => __('subscriptions.features.fields.sort_order'),
         ];
     }
 

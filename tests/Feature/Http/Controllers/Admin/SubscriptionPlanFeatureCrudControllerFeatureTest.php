@@ -249,7 +249,7 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
         // If the page loads successfully, the model is correctly set
         // We can verify by checking the response contains subscription-related content
         $response->assertStatus(200);
-        $response->assertSee(trans('admin.subscription_plan_features.entity_plural'));
+        $response->assertSee(__('subscriptions.features.entity.plural'));
     }
 
     #[Test]

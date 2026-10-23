@@ -30,8 +30,8 @@ class SubscriptionCrudController extends CrudController
         CRUD::setModel(\App\Models\Subscription::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/subscription');
         CRUD::setEntityNameStrings(
-            trans('admin.subscriptions.entity_singular'),
-            trans('admin.subscriptions.entity_plural')
+            __('subscriptions.entity.singular'),
+            __('subscriptions.entity.plural')
         );
 
         // Configure access using centralized service
@@ -55,55 +55,55 @@ class SubscriptionCrudController extends CrudController
             ],
             [
                 'name' => 'user',
-                'label' => trans('admin.subscriptions.user'),
+                'label' => __('subscriptions.fields.user_id'),
                 'type' => 'relationship',
                 'attribute' => 'name',
                 'model' => 'App\Models\User',
             ],
             [
                 'name' => 'subscriptionPlan',
-                'label' => trans('admin.subscriptions.subscription_plan'),
+                'label' => __('subscriptions.fields.subscription_plan_id'),
                 'type' => 'relationship',
                 'attribute' => 'name',
                 'model' => 'App\Models\SubscriptionPlan',
             ],
             [
                 'name' => 'status',
-                'label' => trans('admin.subscriptions.status'),
+                'label' => __('subscriptions.fields.status'),
                 'type' => 'select_from_array',
                 'options' => [
-                    'pending' => trans('admin.subscriptions.status_pending'),
-                    'active' => trans('admin.subscriptions.status_active'),
-                    'cancelled' => trans('admin.subscriptions.status_cancelled'),
-                    'expired' => trans('admin.subscriptions.status_expired'),
-                    'past_due' => trans('admin.subscriptions.status_past_due'),
+                    'pending' => __('subscriptions.statuses.pending'),
+                    'active' => __('subscriptions.statuses.active'),
+                    'cancelled' => __('subscriptions.statuses.cancelled'),
+                    'expired' => __('subscriptions.statuses.expired'),
+                    'past_due' => __('subscriptions.statuses.past_due'),
                 ],
             ],
             [
                 'name' => 'amount',
-                'label' => trans('admin.subscriptions.amount'),
+                'label' => __('subscriptions.fields.amount'),
                 'type' => 'number',
                 'decimals' => 2,
                 'suffix' => ' CZK',
             ],
             [
                 'name' => 'currency',
-                'label' => trans('admin.subscriptions.currency'),
+                'label' => __('subscriptions.fields.currency'),
                 'type' => 'text',
             ],
             [
                 'name' => 'starts_at',
-                'label' => trans('admin.subscriptions.starts_at'),
+                'label' => __('subscriptions.fields.starts_at'),
                 'type' => 'datetime',
             ],
             [
                 'name' => 'ends_at',
-                'label' => trans('admin.subscriptions.ends_at'),
+                'label' => __('subscriptions.fields.ends_at'),
                 'type' => 'datetime',
             ],
             [
                 'name' => 'next_billing_at',
-                'label' => trans('admin.subscriptions.next_billing_at'),
+                'label' => __('subscriptions.fields.next_billing_at'),
                 'type' => 'datetime',
             ],
         ]);
@@ -113,14 +113,14 @@ class SubscriptionCrudController extends CrudController
             CRUD::addFilter([
                 'name' => 'status',
                 'type' => 'select2',
-                'label' => trans('admin.subscriptions.status'),
+                'label' => __('subscriptions.fields.status'),
             ],
             [
-                'pending' => trans('admin.subscriptions.status_pending'),
-                'active' => trans('admin.subscriptions.status_active'),
-                'cancelled' => trans('admin.subscriptions.status_cancelled'),
-                'expired' => trans('admin.subscriptions.status_expired'),
-                'past_due' => trans('admin.subscriptions.status_past_due'),
+                'pending' => __('subscriptions.statuses.pending'),
+                'active' => __('subscriptions.statuses.active'),
+                'cancelled' => __('subscriptions.statuses.cancelled'),
+                'expired' => __('subscriptions.statuses.expired'),
+                'past_due' => __('subscriptions.statuses.past_due'),
             ],
             function ($value) {
                 CRUD::addClause('where', 'status', $value);
@@ -128,7 +128,7 @@ class SubscriptionCrudController extends CrudController
 
         CRUD::filter('user_id')
             ->type('select2')
-            ->label('User')
+            ->label(__('subscriptions.filters.user_id'))
             ->values(
                 User::all()->pluck('name', 'id')->toArray(),
             )
@@ -150,17 +150,17 @@ class SubscriptionCrudController extends CrudController
         CRUD::addFields([
             [
                 'name' => 'user_id',
-                'label' => trans('admin.subscriptions.user'),
+                'label' => __('subscriptions.fields.user_id'),
                 'type' => 'select2_from_ajax',
                 'model' => 'App\Models\User',
                 'attribute' => 'name',
                 'data_source' => url('api/admin/user/search'),
-                'placeholder' => trans('admin.subscriptions.select_user'),
+                'placeholder' => __('subscriptions.placeholders.user_id'),
                 'minimum_input_length' => 2,
             ],
             [
                 'name' => 'subscription_plan_id',
-                'label' => trans('admin.subscriptions.subscription_plan'),
+                'label' => __('subscriptions.fields.subscription_plan_id'),
                 'type' => 'select2',
                 'model' => 'App\Models\SubscriptionPlan',
                 'attribute' => 'name',
@@ -170,30 +170,30 @@ class SubscriptionCrudController extends CrudController
             ],
             [
                 'name' => 'status',
-                'label' => trans('admin.subscriptions.status'),
+                'label' => __('subscriptions.fields.status'),
                 'type' => 'select_from_array',
                 'options' => [
-                    'pending' => trans('admin.subscriptions.status_pending'),
-                    'active' => trans('admin.subscriptions.status_active'),
-                    'cancelled' => trans('admin.subscriptions.status_cancelled'),
-                    'expired' => trans('admin.subscriptions.status_expired'),
-                    'past_due' => trans('admin.subscriptions.status_past_due'),
+                    'pending' => __('subscriptions.statuses.pending'),
+                    'active' => __('subscriptions.statuses.active'),
+                    'cancelled' => __('subscriptions.statuses.cancelled'),
+                    'expired' => __('subscriptions.statuses.expired'),
+                    'past_due' => __('subscriptions.statuses.past_due'),
                 ],
                 'default' => 'pending',
             ],
             [
                 'name' => 'amount',
-                'label' => trans('admin.subscriptions.amount'),
+                'label' => __('subscriptions.fields.amount'),
                 'type' => 'number',
                 'attributes' => [
                     'step' => '0.01',
                     'min' => '0',
-                    'placeholder' => trans('admin.subscriptions.amount_placeholder'),
+                    'placeholder' => __('subscriptions.placeholders.amount'),
                 ],
             ],
             [
                 'name' => 'currency',
-                'label' => trans('admin.subscriptions.currency'),
+                'label' => __('subscriptions.fields.currency'),
                 'type' => 'select_from_array',
                 'options' => [
                     'CZK' => 'CZK',
@@ -204,35 +204,35 @@ class SubscriptionCrudController extends CrudController
             ],
             [
                 'name' => 'starts_at',
-                'label' => trans('admin.subscriptions.starts_at'),
+                'label' => __('subscriptions.fields.starts_at'),
                 'type' => 'datepicker',
                 'datepicker_options' => ['timepicker' => true],
             ],
             [
                 'name' => 'ends_at',
-                'label' => trans('admin.subscriptions.ends_at'),
+                'label' => __('subscriptions.fields.ends_at'),
                 'type' => 'datepicker',
                 'datepicker_options' => ['timepicker' => true],
             ],
             [
                 'name' => 'trial_ends_at',
-                'label' => trans('admin.subscriptions.trial_ends_at'),
+                'label' => __('subscriptions.fields.trial_ends_at'),
                 'type' => 'datepicker',
                 'datepicker_options' => ['timepicker' => true],
             ],
             [
                 'name' => 'next_billing_at',
-                'label' => trans('admin.subscriptions.next_billing_at'),
+                'label' => __('subscriptions.fields.next_billing_at'),
                 'type' => 'datepicker',
                 'datepicker_options' => ['timepicker' => true],
             ],
             [
                 'name' => 'metadata',
-                'label' => trans('admin.subscriptions.metadata'),
+                'label' => __('subscriptions.fields.metadata'),
                 'type' => 'textarea',
-                'hint' => trans('admin.subscriptions.metadata_hint'),
+                'hint' => __('subscriptions.hints.metadata'),
                 'attributes' => [
-                    'placeholder' => trans('admin.subscriptions.metadata_placeholder'),
+                    'placeholder' => __('subscriptions.placeholders.metadata'),
                 ],
             ],
         ]);
@@ -259,25 +259,25 @@ class SubscriptionCrudController extends CrudController
         
         CRUD::addColumn([
             'name' => 'trial_ends_at',
-            'label' => trans('admin.subscriptions.trial_ends_at'),
+            'label' => __('subscriptions.fields.trial_ends_at'),
             'type' => 'datetime',
         ]);
         
         CRUD::addColumn([
             'name' => 'metadata',
-            'label' => trans('admin.subscriptions.metadata'),
+            'label' => __('subscriptions.fields.metadata'),
             'type' => 'textarea',
         ]);
         
         CRUD::addColumn([
             'name' => 'created_at',
-            'label' => trans('admin.general.created_at'),
+            'label' => __('subscriptions.fields.created_at'),
             'type' => 'datetime',
         ]);
         
         CRUD::addColumn([
             'name' => 'updated_at',
-            'label' => trans('admin.general.updated_at'),
+            'label' => __('subscriptions.fields.updated_at'),
             'type' => 'datetime',
         ]);
     }

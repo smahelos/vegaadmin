@@ -243,16 +243,11 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function messages_returns_custom_error_messages(): void
+    public function validation_error_names_the_field_by_its_label(): void
     {
-        $messages = $this->request->messages();
-        
-        $this->assertIsArray($messages);
-        $this->assertArrayHasKey('name.required', $messages);
-        $this->assertArrayHasKey('price.required', $messages);
-        $this->assertArrayHasKey('price.numeric', $messages);
-        // Test returns actual translated values, not translation keys
-        $this->assertIsString($messages['name.required']);
-        $this->assertNotEmpty($messages['name.required']);
+        $validator = Validator::make(['price' => 'abc'], $this->request->rules(), [], $this->request->attributes());
+
+        $this->assertTrue($validator->fails());
+        $this->assertStringContainsString(__('subscriptions.plans.fields.price'), $validator->errors()->first('price'));
     }
 }

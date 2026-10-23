@@ -116,13 +116,13 @@
                         <!-- My Subscription Link -->
                         <a href="{{ route('subscriptions.my-subscription', ['locale' => app()->getLocale()]) }}"
                             class="block w-full px-4 py-2 text-left text-sm leading-5 rounded-t-sm border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
-                            {{ __('subscription.my_subscription') }}
+                            {{ __('subscriptions.titles.mine') }}
                         </a>
 
                         <!-- Subscriptions Link -->
                         <a href="{{ route('subscriptions.index', ['locale' => app()->getLocale()]) }}"
                             class="block w-full px-4 py-2 text-left text-sm leading-5 rounded-t-sm border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
-                            {{ __('subscription.subscriptions') }}
+                            {{ __('subscriptions.entity.plural') }}
                         </a>
 
                         <!-- Authentication -->
@@ -208,7 +208,7 @@
             <!-- Subscriptions navigation (mobile) -->
             <x-responsive-nav-link :href="route('subscriptions.index', ['locale' => app()->getLocale()])"
                 :active="request()->routeIs('subscriptions*')">
-                {{ __('subscription.subscriptions') }}
+                {{ __('subscriptions.entity.plural') }}
             </x-responsive-nav-link>
 
             <x-responsive-nav-link :href="route('frontend.invoice.create.guest', ['locale' => app()->getLocale()])"

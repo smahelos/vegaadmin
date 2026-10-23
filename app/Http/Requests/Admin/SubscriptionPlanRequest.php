@@ -56,49 +56,15 @@ class SubscriptionPlanRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => trans('admin.subscription_plans.name'),
-            'description' => trans('admin.subscription_plans.description'),
-            'price' => trans('admin.subscription_plans.price'),
-            'currency' => trans('admin.subscription_plans.currency'),
-            'billing_period' => trans('admin.subscription_plans.billing_period'),
-            'billing_interval' => trans('admin.subscription_plans.billing_interval'),
-            'features' => trans('admin.subscription_plans.features'),
-            'is_active' => trans('admin.subscription_plans.is_active'),
-            'trial_days' => trans('admin.subscription_plans.trial_days'),
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules.
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => trans('admin.subscription_plans.validation.name_required'),
-            'name.string' => trans('admin.subscription_plans.validation.name_string'),
-            'name.min' => trans('admin.subscription_plans.validation.name_min'),
-            'name.max' => trans('admin.subscription_plans.validation.name_max'),
-            'description.string' => trans('admin.subscription_plans.validation.description_string'),
-            'description.max' => trans('admin.subscription_plans.validation.description_max'),
-            'price.required' => trans('admin.subscription_plans.validation.price_required'),
-            'price.numeric' => trans('admin.subscription_plans.validation.price_numeric'),
-            'price.min' => trans('admin.subscription_plans.validation.price_min'),
-            'price.max' => trans('admin.subscription_plans.validation.price_max'),
-            'currency.required' => trans('admin.subscription_plans.validation.currency_required'),
-            'currency.in' => trans('admin.subscription_plans.validation.currency_in'),
-            'billing_period.required' => trans('admin.subscription_plans.validation.billing_period_required'),
-            'billing_period.in' => trans('admin.subscription_plans.validation.billing_period_in'),
-            'billing_interval.required' => trans('admin.subscription_plans.validation.billing_interval_required'),
-            'billing_interval.integer' => trans('admin.subscription_plans.validation.billing_interval_integer'),
-            'billing_interval.min' => trans('admin.subscription_plans.validation.billing_interval_min'),
-            'billing_interval.max' => trans('admin.subscription_plans.validation.billing_interval_max'),
-            'features.array' => trans('admin.subscription_plans.validation.features_array'),
-            'features.*.exists' => trans('admin.subscription_plans.validation.features_exists'),
-            'is_active.boolean' => trans('admin.subscription_plans.validation.is_active_boolean'),
-            'trial_days.required' => trans('admin.subscription_plans.validation.trial_days_required'),
-            'trial_days.integer' => trans('admin.subscription_plans.validation.trial_days_integer'),
-            'trial_days.min' => trans('admin.subscription_plans.validation.trial_days_min'),
-            'trial_days.max' => trans('admin.subscription_plans.validation.trial_days_max'),
+            'name' => __('subscriptions.plans.fields.name'),
+            'description' => __('subscriptions.plans.fields.description'),
+            'price' => __('subscriptions.plans.fields.price'),
+            'currency' => __('subscriptions.plans.fields.currency'),
+            'billing_period' => __('subscriptions.plans.fields.billing_period'),
+            'billing_interval' => __('subscriptions.plans.fields.billing_interval'),
+            'features' => __('subscriptions.plans.fields.features'),
+            'is_active' => __('subscriptions.plans.fields.is_active'),
+            'trial_days' => __('subscriptions.plans.fields.trial_days'),
         ];
     }
 }

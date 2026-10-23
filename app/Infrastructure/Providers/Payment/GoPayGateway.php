@@ -48,7 +48,7 @@ class GoPayGateway implements PaymentGatewayInterface
                 'amount' => (int) round($amount * 100),
                 'currency' => $currency,
                 'order_number' => $orderNumber,
-                'order_description' => __('subscription.payment_description', [
+                'order_description' => __('subscriptions.labels.payment_description', [
                     'plan' => $planName,
                 ]),
                 'items' => [
@@ -288,7 +288,7 @@ class GoPayGateway implements PaymentGatewayInterface
      */
     public function getDisplayName(): string
     {
-        return __('payment.gateways.gopay');
+        return __('payments.gateways.gopay');
     }
 
     /**

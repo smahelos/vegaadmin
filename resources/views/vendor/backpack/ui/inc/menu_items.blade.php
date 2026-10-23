@@ -11,11 +11,11 @@
         :link="backpack_url('role')" />
     <x-backpack::menu-dropdown-item title="{{ __('admin.user_management.permissions') }}" icon="la la-key"
         :link="backpack_url('permission')" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.subscriptions.entity_plural') }}" icon="la la-handshake"
+    <x-backpack::menu-dropdown-item title="{{ __('subscriptions.entity.plural') }}" icon="la la-handshake"
         :link="backpack_url('subscription')" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.subscription_plans.entity_plural') }}" icon="la la-id-card"
+    <x-backpack::menu-dropdown-item title="{{ __('subscriptions.plans.entity.plural') }}" icon="la la-id-card"
         :link="backpack_url('subscription-plan')" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.subscription_plan_features.entity_plural') }}"
+    <x-backpack::menu-dropdown-item title="{{ __('subscriptions.features.entity.plural') }}"
         icon="la la-check-square" :link="backpack_url('subscription-plan-feature')" />
 </x-backpack::menu-dropdown>
 @endif
