@@ -103,14 +103,14 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
 <x-backpack::menu-dropdown title="{{ __('admin.system_config.title') }}" icon="la la-cogs text-secondary">
     @if(backpack_user()->hasPermissionTo('can_create_edit_command', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.system_admin.automation') }}" />
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.artisan_commands.commands') }}" icon="la la-hammer"
+    <x-backpack::menu-dropdown-item title="{{ __('artisan_commands.entity.plural') }}" icon="la la-hammer"
         :link="backpack_url('artisan-command')" />
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.artisan_commands.categories') }}" icon="la la-tags"
+    <x-backpack::menu-dropdown-item title="{{ __('artisan_commands.categories.entity.plural') }}" icon="la la-tags"
         :link="backpack_url('artisan-command-category')" />
     @endif
 
     @if(backpack_user()->hasPermissionTo('can_create_edit_cron_task', 'backpack'))
-    <x-backpack::menu-dropdown-item title="{{ trans('admin.cron_tasks.cron_tasks') }}" icon="la la-calendar"
+    <x-backpack::menu-dropdown-item title="{{ __('cron_tasks.entity.plural') }}" icon="la la-calendar"
         :link="backpack_url('cron-task')" />
     @endif
 

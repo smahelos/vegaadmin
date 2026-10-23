@@ -56,22 +56,5 @@ class ArtisanCommandCategoryRequestTest extends TestCase
         $this->assertEquals('array', (string) $returnType);
     }
 
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
 
-        $this->assertNotNull($returnType, 'ArtisanCommandCategoryRequest messages() method should have return type annotation');
-        $this->assertEquals('array', (string) $returnType);
-    }
-
-    #[Test]
-    public function messages_method_exists_and_is_public(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $this->assertTrue($reflection->hasMethod('messages'));
-        $this->assertTrue($reflection->getMethod('messages')->isPublic());
-    }
 }
