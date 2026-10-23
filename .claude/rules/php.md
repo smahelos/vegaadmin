@@ -46,5 +46,5 @@ paths:
 
 ## Formatting
 
-- Laravel Pint is the formatter: `docker exec BILLEX-app vendor/bin/pint --dirty` before every commit. Until `pint.json` exists and the codebase has been formatted once (`docs/TECH_DEBT.md`, Tooling), Pint runs only on explicit file paths (without them it aborts on `data/redis`), and you format only the lines you touch.
+- Laravel Pint is the formatter, configured in `pint.json`: `docker exec BILLEX-app vendor/bin/pint --dirty` before every commit. Until the codebase has been formatted once (`docs/TECH_DEBT.md`, Tooling), Pint runs on new or fully rewritten files only; in other files you format only the lines you touch.
 - Larastan is the static analyser, raised level by level with no baseline file. Code you write passes the configured level; until Larastan is installed (`docs/TECH_DEBT.md`), write code that would pass its maximum level.

@@ -202,8 +202,8 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Tooling
 - **Where:** project root, `.github/workflows/`
-- **Problem:** Pint has no `pint.json` and the codebase is not formatted by it (without explicit paths it even aborts on the unreadable `data/redis` directory); there is no static analysis.
-- **Fix:** add `pint.json` (excluding `data/`, `storage/`, `vendor/`, `node_modules/`) and format the whole codebase in one commit; install Larastan without a baseline file, start at the highest level that can be made clean, raise it as contexts are converted (target: max); run both in CI.
+- **Problem:** the codebase is not formatted by Pint (`pint.json` exists since 2026-10-23); there is no static analysis.
+- **Fix:** format the whole codebase in one commit; install Larastan without a baseline file, start at the highest level that can be made clean, raise it as contexts are converted (target: max); run both in CI.
 
 ### `strict_types` and `final`
 - **Where:** all of `app/`, `tests/`, `database/` (11 of 1227 files declare `strict_types`, 11 classes are `final`); files touched by a branch keep their old shape, e.g. `app/Http/Controllers/Frontend/ProfileController.php` (no constructor promotion, untyped properties)
