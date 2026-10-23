@@ -3,23 +3,21 @@
 namespace App\Application\Product\Services;
 
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
-use App\Application\Product\Mappers\ProductArrayMapper;
-use App\Application\Product\Services\ProductAuthorizationService;
-use App\Application\Product\Services\ProductInputValidationService;
 use App\Application\Product\Contracts\ProductRepositoryInterface;
+use App\Application\Product\Mappers\ProductArrayMapper;
 use App\Domain\Product\Contracts\ProductServiceInterface as ProductDomainService;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\ValueObjects\ProductId;
-use App\Domain\User\ValueObjects\UserId;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
+use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
+use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
-use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
 use Illuminate\Support\Collection;
-use App\Domain\Shared\File\DTO\IncomingFile;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -39,8 +37,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         private readonly CacheServiceInterface $cacheService,
         private readonly FileUploadServiceInterface $fileService,
         private readonly ProductFormDataServiceInterface $formDataService,
-    ) {
-    }
+    ) {}
 
     public function getFormData(): array
     {
@@ -50,31 +47,36 @@ class ProductApplicationService implements ProductApplicationServiceInterface
     public function createProduct(array $data, int $userId): ProductDTO
     {
         $data['user_id'] = $userId;
-        
+
         $this->validationService->validateProductBusinessRules($data, $userId);
-        
+
         $writeData = ProductWriteData::fromArray($data);
-        
-        return DB::transaction(fn() => 
-            $this->productDomainService->createProduct($writeData, UserId::fromInt($userId))
+
+        return DB::transaction(fn () => $this->productDomainService->createProduct($writeData, UserId::fromInt($userId)),
         );
     }
 
-    public function updateProduct(int $productId, array $data, int $userId): ProductDTO
-    {
+    public function updateProduct(
+        int $productId,
+        array $data,
+        int $userId,
+    ): ProductDTO {
         // Add user_id to data for validation
         $data['user_id'] = $userId;
-        
+
         // Verify product exists and user has access (do not rely on global auth())
         $product = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
-        
-        $this->validationService->validateProductBusinessRules($data, $userId, $productId);
-        
+
+        $this->validationService->validateProductBusinessRules(
+            $data,
+            $userId,
+            $productId,
+        );
+
         $writeData = ProductWriteData::fromArray($data);
         $id = ProductId::fromInt($productId);
-        
-        return DB::transaction(fn() => 
-            $this->productDomainService->updateProduct($id, $writeData)
+
+        return DB::transaction(fn () => $this->productDomainService->updateProduct($id, $writeData),
         );
     }
 
@@ -82,16 +84,15 @@ class ProductApplicationService implements ProductApplicationServiceInterface
     {
         // Verify product exists and user has access
         $product = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
-        
+
         // Handle image cleanup before deletion
         if ($product->image) {
             $this->fileService->deleteFile($product->image, 'public');
         }
-        
+
         $id = ProductId::fromInt($productId);
-        
-        DB::transaction(fn() => 
-            $this->productDomainService->deleteProduct($id)
+
+        DB::transaction(fn () => $this->productDomainService->deleteProduct($id),
         );
     }
 
@@ -104,10 +105,10 @@ class ProductApplicationService implements ProductApplicationServiceInterface
             ? $this->productDomainService->findProductAny($productId)
             : $this->productDomainService->findProductForUser($productId, $userVO);
 
-        if (!$product) {
+        if (! $product) {
             throw new ModelNotFoundException('Product not found');
         }
-        
+
         return $product;
     }
 
@@ -141,12 +142,12 @@ class ProductApplicationService implements ProductApplicationServiceInterface
     public function authorizeViewProduct(int $userId, int $productId): void
     {
         $productDto = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
-        
+
         if ($productDto === null) {
             abort(404, 'Product not found');
         }
-        
-        if (!$this->authService->canViewProduct($userId, $productDto->user_id)) {
+
+        if (! $this->authService->canViewProduct($userId, $productDto->user_id)) {
             abort(403, 'Unauthorized to view this product');
         }
     }
@@ -158,7 +159,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
     {
         $productDto = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
 
-        if (!$this->authService->canUpdateProduct($userId, $productDto->user_id)) {
+        if (! $this->authService->canUpdateProduct($userId, $productDto->user_id)) {
             abort(403, 'Unauthorized to update this product');
         }
     }
@@ -174,31 +175,37 @@ class ProductApplicationService implements ProductApplicationServiceInterface
             abort(404, 'Product not found');
         }
 
-        if (!$this->authService->canDeleteProduct($userId, $productDto->user_id)) {
-            throw new \Illuminate\Auth\Access\AuthorizationException('User cannot delete this product');
+        if (! $this->authService->canDeleteProduct($userId, $productDto->user_id)) {
+            throw new AuthorizationException('User cannot delete this product');
         }
     }
 
     public function handleProductImage(UploadedFile|string|null $image, ?string $oldImage = null): ?string
     {
-        if (!$image) {
+        if (! $image) {
             return $oldImage;
         }
         // Convert UploadedFile to VO to decouple Domain contract from framework
         $value = $image instanceof UploadedFile ? IncomingFileFactory::fromUploadedFile($image) : $image;
 
         return $this->fileService->handleFileUpload(
-            $value, 
-            'image', 
+            $value,
+            'image',
             'products',
             [
                 'createThumbnails' => true,
                 'thumbnailWidth' => 200,
                 'thumbnailHeight' => 200,
                 'randomizeFilename' => true,
-                'allowedFileTypes' => ['jpg', 'jpeg', 'png', 'gif', 'webp']
+                'allowedFileTypes' => [
+                    'jpg',
+                    'jpeg',
+                    'png',
+                    'gif',
+                    'webp',
+                ],
             ],
-            $oldImage
+            $oldImage,
         );
     }
 

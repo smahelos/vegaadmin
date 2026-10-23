@@ -2,15 +2,15 @@
 
 namespace App\Application\Invoice\Services\Specialized;
 
-use App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
-use App\Domain\User\ValueObjects\UserId;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
 use App\Domain\Shared\Status\ValueObjects\StatusId;
-use Illuminate\Support\Collection;
+use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Collection;
 
 /**
  * Service for invoice status management operations
@@ -19,7 +19,7 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
 {
     public function __construct(
         private InvoiceReadRepositoryInterface $invoiceReadRepository,
-        private StatusDtoRepositoryInterface $statusRepository
+        private StatusDtoRepositoryInterface $statusRepository,
     ) {}
 
     /**
@@ -30,7 +30,7 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
         // This would require extending InvoiceReadRepositoryInterface with a method to filter by status
         // For now, we'll get all user invoices and filter by status
         $allInvoices = $this->invoiceReadRepository->allForUser($userId->toInt());
-        
+
         return $allInvoices->filter(function ($invoice) use ($statusId) {
             return $invoice->payment_status_id === $statusId->getValue();
         });
@@ -39,19 +39,22 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
     /**
      * Change invoice status
      */
-    public function changeStatus(InvoiceId $invoiceId, StatusId $statusId, UserId $userId): InvoiceDTO
-    {
+    public function changeStatus(
+        InvoiceId $invoiceId,
+        StatusId $statusId,
+        UserId $userId,
+    ): InvoiceDTO {
         $invoice = $this->invoiceReadRepository->findForUser($userId->toInt(), $invoiceId->getValue());
-        
-        if (!$invoice) {
-            throw new ModelNotFoundException("Invoice not found or access denied");
+
+        if (! $invoice) {
+            throw new ModelNotFoundException('Invoice not found or access denied');
         }
 
         // Update the status through the service layer
         // This would typically go through a domain service or write repository
         $invoice->payment_status_id = $statusId->getValue();
         $invoice->save();
-        
+
         return InvoiceDTO::fromArray($invoice->toArray());
     }
 
@@ -63,7 +66,7 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
         // For now, return all available statuses
         // In more complex scenarios, this could be context-dependent
         $statuses = $this->statusRepository->getAllForDropdown();
-        
+
         return collect($statuses);
     }
 
@@ -81,11 +84,14 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
     /**
      * Check if status change is allowed
      */
-    public function canChangeStatus(InvoiceId $invoiceId, StatusId $statusId, UserId $userId): bool
-    {
+    public function canChangeStatus(
+        InvoiceId $invoiceId,
+        StatusId $statusId,
+        UserId $userId,
+    ): bool {
         $invoice = $this->invoiceReadRepository->findForUser($userId->toInt(), $invoiceId->getValue());
-        
-        if (!$invoice) {
+
+        if (! $invoice) {
             return false;
         }
 
@@ -106,20 +112,20 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
     {
         $allInvoices = $this->invoiceReadRepository->allForUser($userId->toInt());
         $statusMap = $this->statusRepository->getStatusIdSlugMap();
-        
+
         $grouped = [];
-        
+
         foreach ($allInvoices as $invoice) {
             $statusId = $invoice->payment_status_id ?? 'unknown';
             $statusSlug = $statusMap[$statusId] ?? 'unknown';
-            
-            if (!isset($grouped[$statusSlug])) {
+
+            if (! isset($grouped[$statusSlug])) {
                 $grouped[$statusSlug] = [];
             }
-            
+
             $grouped[$statusSlug][] = $invoice;
         }
-        
+
         return $grouped;
     }
 
@@ -130,14 +136,14 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
     {
         $grouped = $this->getGroupedByStatus($userId);
         $statistics = [];
-        
+
         foreach ($grouped as $status => $invoices) {
             $statistics[$status] = [
                 'count' => count($invoices),
                 'total_amount' => collect($invoices)->sum('payment_amount'),
             ];
         }
-        
+
         return $statistics;
     }
 
@@ -147,6 +153,7 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
     public function getAllStatuses(): Collection
     {
         $statuses = $this->statusRepository->getAllForDropdown();
+
         return collect($statuses);
     }
 
@@ -156,11 +163,11 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
     public function findStatusBySlug(string $slug): ?array
     {
         $statusDto = $this->statusRepository->findBySlug($slug);
-        
-        if (!$statusDto) {
+
+        if (! $statusDto) {
             return null;
         }
-        
+
         return [
             'id' => $statusDto->id,
             'slug' => $statusDto->slug,
@@ -174,12 +181,16 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
     public function markAsPaid(InvoiceId $invoiceId, UserId $userId): InvoiceDTO
     {
         $paidStatusId = $this->statusRepository->findIdBySlug('paid');
-        
-        if (!$paidStatusId) {
-            throw new \Exception("Paid status not found in system");
+
+        if (! $paidStatusId) {
+            throw new \Exception('Paid status not found in system');
         }
-        
-        return $this->changeStatus($invoiceId, StatusId::fromInt($paidStatusId), $userId);
+
+        return $this->changeStatus(
+            $invoiceId,
+            StatusId::fromInt($paidStatusId),
+            $userId,
+        );
     }
 
     /**
@@ -188,11 +199,15 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
     public function markAsUnpaid(InvoiceId $invoiceId, UserId $userId): InvoiceDTO
     {
         $unpaidStatusId = $this->statusRepository->findIdBySlug('unpaid');
-        
-        if (!$unpaidStatusId) {
-            throw new \Exception("Unpaid status not found in system");
+
+        if (! $unpaidStatusId) {
+            throw new \Exception('Unpaid status not found in system');
         }
-        
-        return $this->changeStatus($invoiceId, StatusId::fromInt($unpaidStatusId), $userId);
+
+        return $this->changeStatus(
+            $invoiceId,
+            StatusId::fromInt($unpaidStatusId),
+            $userId,
+        );
     }
 }

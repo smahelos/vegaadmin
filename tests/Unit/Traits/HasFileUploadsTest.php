@@ -18,14 +18,14 @@ class HasFileUploadsTest extends TestCase
     {
         $reflection = new \ReflectionClass('App\\Infrastructure\\Shared\\File\\Traits\\HasFileUploads');
         $methods = $reflection->getMethods();
-        $methodNames = array_map(fn($method) => $method->getName(), $methods);
+        $methodNames = array_map(fn ($method) => $method->getName(), $methods);
 
         $expectedMethods = [
             'handleFileUpload',
             'getFileUrl',
             'getThumbnailUrl',
             'isFileImage',
-            'getAttributeFileUrl'
+            'getAttributeFileUrl',
         ];
 
         foreach ($expectedMethods as $expectedMethod) {
@@ -42,7 +42,7 @@ class HasFileUploadsTest extends TestCase
 
         $this->assertGreaterThanOrEqual(2, count($parameters)); // At least attribute and value parameters
         $this->assertEquals('attribute', $parameters[0]->getName());
-        $this->assertEquals('string', (string)$parameters[0]->getType());
+        $this->assertEquals('string', (string) $parameters[0]->getType());
     }
 
     #[Test]
@@ -54,7 +54,7 @@ class HasFileUploadsTest extends TestCase
 
         $this->assertGreaterThanOrEqual(1, count($parameters));
         $this->assertEquals('attribute', $parameters[0]->getName());
-        $this->assertEquals('string', (string)$parameters[0]->getType());
+        $this->assertEquals('string', (string) $parameters[0]->getType());
     }
 
     #[Test]
@@ -66,7 +66,7 @@ class HasFileUploadsTest extends TestCase
 
         $this->assertGreaterThanOrEqual(1, count($parameters));
         $this->assertEquals('attribute', $parameters[0]->getName());
-        $this->assertEquals('string', (string)$parameters[0]->getType());
+        $this->assertEquals('string', (string) $parameters[0]->getType());
     }
 
     #[Test]
@@ -79,9 +79,9 @@ class HasFileUploadsTest extends TestCase
 
         $this->assertCount(1, $parameters);
         $this->assertEquals('attribute', $parameters[0]->getName());
-        $this->assertEquals('string', (string)$parameters[0]->getType());
+        $this->assertEquals('string', (string) $parameters[0]->getType());
         $this->assertNotNull($returnType);
-        $this->assertEquals('bool', (string)$returnType);
+        $this->assertEquals('bool', (string) $returnType);
     }
 
     #[Test]
@@ -93,7 +93,7 @@ class HasFileUploadsTest extends TestCase
 
         $this->assertGreaterThanOrEqual(1, count($parameters));
         $this->assertEquals('attribute', $parameters[0]->getName());
-        $this->assertEquals('string', (string)$parameters[0]->getType());
+        $this->assertEquals('string', (string) $parameters[0]->getType());
     }
 
     #[Test]

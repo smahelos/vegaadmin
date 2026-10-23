@@ -7,9 +7,7 @@ use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
 
 class CountryApplicationService implements CountryApplicationServiceInterface
 {
-    public function __construct(private readonly CountryServiceInterface $countryService)
-    {
-    }
+    public function __construct(private readonly CountryServiceInterface $countryService) {}
 
     public function getCountries(): array
     {

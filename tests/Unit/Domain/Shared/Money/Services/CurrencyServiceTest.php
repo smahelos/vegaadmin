@@ -5,8 +5,8 @@ namespace Tests\Unit\Domain\Shared\Money\Services;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Shared\Http\Contracts\HttpClientInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
-use App\Domain\Shared\Money\Services\CurrencyService;
 use App\Domain\Shared\Money\Contracts\CurrencyServiceInterface;
+use App\Domain\Shared\Money\Services\CurrencyService;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -15,22 +15,25 @@ use ReflectionClass;
 class CurrencyServiceTest extends TestCase
 {
     private CurrencyService $service;
+
     private HttpClientInterface $mockHttpClient;
+
     private CacheServiceInterface $mockCacheService;
+
     private LogInterface $mockLogger;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->mockHttpClient = Mockery::mock('App\Domain\Shared\Http\Contracts\HttpClientInterface');
         $this->mockCacheService = Mockery::mock('App\Domain\Shared\Cache\Contracts\CacheServiceInterface');
         $this->mockLogger = Mockery::mock('App\Domain\Shared\Log\Contracts\LogInterface');
-        
+
         $this->service = new CurrencyService(
             $this->mockHttpClient,
             $this->mockCacheService,
-            $this->mockLogger
+            $this->mockLogger,
         );
     }
 
@@ -47,7 +50,7 @@ class CurrencyServiceTest extends TestCase
         $reflection = new ReflectionClass($this->service);
         $this->assertTrue($reflection->hasProperty('apiUrl'));
         $property = $reflection->getProperty('apiUrl');
-        $this->assertEquals('string', (string)$property->getType());
+        $this->assertEquals('string', (string) $property->getType());
     }
 
     #[Test]
@@ -56,7 +59,7 @@ class CurrencyServiceTest extends TestCase
         $this->assertTrue(method_exists($this->service, 'getAllCurrencies'));
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getAllCurrencies');
-        $this->assertEquals('array', (string)$method->getReturnType());
+        $this->assertEquals('array', (string) $method->getReturnType());
         $this->assertCount(0, $method->getParameters());
     }
 
@@ -66,7 +69,7 @@ class CurrencyServiceTest extends TestCase
         $this->assertTrue(method_exists($this->service, 'getCommonCurrencies'));
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getCommonCurrencies');
-        $this->assertEquals('array', (string)$method->getReturnType());
+        $this->assertEquals('array', (string) $method->getReturnType());
     }
 
     #[Test]
@@ -75,7 +78,7 @@ class CurrencyServiceTest extends TestCase
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getFallbackCurrencies');
         $this->assertTrue($method->isPrivate());
-        $this->assertEquals('array', (string)$method->getReturnType());
+        $this->assertEquals('array', (string) $method->getReturnType());
     }
 
     #[Test]
@@ -92,7 +95,7 @@ class CurrencyServiceTest extends TestCase
         $reflection = new ReflectionClass($this->service);
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
             if ($method->getDeclaringClass()->getName() === CurrencyService::class && $method->getName() !== '__construct') {
-                $this->assertNotNull($method->getReturnType(), $method->getName().' missing return type');
+                $this->assertNotNull($method->getReturnType(), $method->getName() . ' missing return type');
             }
         }
     }
@@ -101,7 +104,7 @@ class CurrencyServiceTest extends TestCase
     public function public_methods_count(): void
     {
         $reflection = new ReflectionClass($this->service);
-        $customPublic = array_filter($reflection->getMethods(\ReflectionMethod::IS_PUBLIC), fn($m) => $m->getDeclaringClass()->getName() === CurrencyService::class && $m->getName() !== '__construct');
+        $customPublic = array_filter($reflection->getMethods(\ReflectionMethod::IS_PUBLIC), fn ($m) => $m->getDeclaringClass()->getName() === CurrencyService::class && $m->getName() !== '__construct');
         $this->assertCount(2, $customPublic);
     }
 
@@ -109,7 +112,7 @@ class CurrencyServiceTest extends TestCase
     public function private_methods_count(): void
     {
         $reflection = new ReflectionClass($this->service);
-        $customPrivate = array_filter($reflection->getMethods(\ReflectionMethod::IS_PRIVATE), fn($m) => $m->getDeclaringClass()->getName() === CurrencyService::class);
+        $customPrivate = array_filter($reflection->getMethods(\ReflectionMethod::IS_PRIVATE), fn ($m) => $m->getDeclaringClass()->getName() === CurrencyService::class);
         $this->assertCount(1, $customPrivate);
     }
 }

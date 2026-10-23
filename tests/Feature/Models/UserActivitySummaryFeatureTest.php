@@ -2,12 +2,11 @@
 
 namespace Tests\Feature\Models;
 
-use App\Models\User;
-use App\Models\UserActivitySummary;
 use App\Models\Client;
 use App\Models\Invoice;
-use App\Models\Supplier;
-use App\Models\Product;
+use App\Models\User;
+use App\Models\UserActivitySummary;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -81,7 +80,7 @@ class UserActivitySummaryFeatureTest extends TestCase
         $this->skipIfTableNotExists('user_activity_summary');
 
         // Test with mock data since we can't insert directly into a view
-        $summary = new UserActivitySummary();
+        $summary = new UserActivitySummary;
 
         // Test high activity
         $summary->invoices_last_30_days = 25;
@@ -105,7 +104,7 @@ class UserActivitySummaryFeatureTest extends TestCase
     {
         $this->skipIfTableNotExists('user_activity_summary');
 
-        $summary = new UserActivitySummary();
+        $summary = new UserActivitySummary;
 
         // Test different activity levels
         $summary->invoices_last_30_days = 25; // high
@@ -126,7 +125,7 @@ class UserActivitySummaryFeatureTest extends TestCase
     {
         $this->skipIfTableNotExists('user_activity_summary');
 
-        $summary = new UserActivitySummary();
+        $summary = new UserActivitySummary;
         $summary->invoices_last_30_days = 25; // high activity
 
         // Test that it returns a translation string (could be key or translated value)
@@ -147,10 +146,10 @@ class UserActivitySummaryFeatureTest extends TestCase
             'total_suppliers' => '3',
             'total_products' => '20',
             'invoices_last_30_days' => '8',
-            'invoices_last_7_days' => '2'
+            'invoices_last_7_days' => '2',
         ]);
 
-        $this->assertInstanceOf(\Carbon\Carbon::class, $summary->last_invoice_date);
+        $this->assertInstanceOf(Carbon::class, $summary->last_invoice_date);
         $this->assertIsInt($summary->total_invoices);
         $this->assertIsInt($summary->total_clients);
         $this->assertIsInt($summary->total_suppliers);
@@ -175,7 +174,7 @@ class UserActivitySummaryFeatureTest extends TestCase
     {
         $this->skipIfTableNotExists('user_activity_summary');
 
-        $summary = new UserActivitySummary();
+        $summary = new UserActivitySummary;
 
         $this->assertNull($summary->created_at);
         $this->assertNull($summary->updated_at);

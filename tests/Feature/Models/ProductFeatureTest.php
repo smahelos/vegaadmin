@@ -4,9 +4,9 @@ namespace Tests\Feature\Models;
 
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
-use App\Models\Supplier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,7 +14,7 @@ use Tests\TestCase;
 
 /**
  * Feature tests for Product Model
- * 
+ *
  * Tests database relationships, business logic, and model behavior requiring database interactions
  * Tests product interactions with users, categories, taxes, suppliers and sluggable behavior
  */
@@ -41,7 +41,7 @@ class ProductFeatureTest extends TestCase
         $user = User::factory()->create();
         $tax = Tax::factory()->create();
         $category = ProductCategory::factory()->create();
-        
+
         $data = [
             'name' => 'Test Product',
             'slug' => 'test-product',
@@ -123,9 +123,9 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function sluggable_configuration_works(): void
     {
-        $product = new Product();
+        $product = new Product;
         $sluggableConfig = $product->sluggable();
-        
+
         $this->assertIsArray($sluggableConfig);
         $this->assertArrayHasKey('slug', $sluggableConfig);
         $this->assertArrayHasKey('source', $sluggableConfig['slug']);
@@ -142,7 +142,7 @@ class ProductFeatureTest extends TestCase
 
         // Refresh to get generated slug
         $product->refresh();
-        
+
         $this->assertNotNull($product->slug);
         $this->assertStringContainsString('test-product-name', $product->slug);
     }
@@ -151,22 +151,22 @@ class ProductFeatureTest extends TestCase
     public function setting_product_as_default_unsets_other_defaults(): void
     {
         $user = User::factory()->create();
-        
+
         // Create first default product
         $product1 = Product::factory()->create([
             'user_id' => $user->id,
             'is_default' => true,
         ]);
-        
+
         // Create second product and set as default
         $product2 = Product::factory()->create([
             'user_id' => $user->id,
             'is_default' => true,
         ]);
-        
+
         // Refresh first product to see if it's no longer default
         $product1->refresh();
-        
+
         $this->assertFalse($product1->is_default);
         $this->assertTrue($product2->is_default);
     }
@@ -176,21 +176,21 @@ class ProductFeatureTest extends TestCase
     {
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
-        
+
         $product1 = Product::factory()->create([
             'user_id' => $user1->id,
             'is_default' => true,
         ]);
-        
+
         $product2 = Product::factory()->create([
             'user_id' => $user2->id,
             'is_default' => true,
         ]);
-        
+
         // Both should remain default since they belong to different users
         $product1->refresh();
         $product2->refresh();
-        
+
         $this->assertTrue($product1->is_default);
         $this->assertTrue($product2->is_default);
     }
@@ -219,18 +219,18 @@ class ProductFeatureTest extends TestCase
     public function can_update_product(): void
     {
         $product = Product::factory()->create();
-        
+
         $newData = [
             'name' => 'Updated Product Name',
             'price' => 199.99,
             'is_active' => false,
         ];
-        
+
         $product->update($newData);
-        
+
         $this->assertDatabaseHas('products', array_merge(
             ['id' => $product->id],
-            $newData
+            $newData,
         ));
     }
 
@@ -239,9 +239,9 @@ class ProductFeatureTest extends TestCase
     {
         $product = Product::factory()->create();
         $productId = $product->id;
-        
+
         $product->delete();
-        
+
         $this->assertDatabaseMissing('products', ['id' => $productId]);
     }
 
@@ -249,10 +249,10 @@ class ProductFeatureTest extends TestCase
     public function get_invoice_count_attribute_works(): void
     {
         $product = Product::factory()->create();
-        
+
         // Test that the accessor exists and returns a value
         $invoiceCount = $product->getInvoiceCountAttribute();
-        
+
         $this->assertIsInt($invoiceCount);
         $this->assertGreaterThanOrEqual(0, $invoiceCount);
     }
@@ -261,11 +261,11 @@ class ProductFeatureTest extends TestCase
     public function file_upload_methods_exist(): void
     {
         $product = Product::factory()->create();
-        
+
         // Test file URL methods exist and return strings or null
         $fileUrl = $product->getFileUrl('image');
         $thumbUrl = $product->getImageThumbUrl();
-        
+
         $this->assertTrue(is_string($fileUrl) || is_null($fileUrl));
         $this->assertTrue(is_string($thumbUrl) || is_null($thumbUrl));
     }
@@ -274,7 +274,7 @@ class ProductFeatureTest extends TestCase
     public function can_create_product_without_optional_relationships(): void
     {
         $user = User::factory()->create();
-        
+
         $data = [
             'name' => 'Simple Product',
             'user_id' => $user->id,
@@ -303,19 +303,19 @@ class ProductFeatureTest extends TestCase
     public function image_mutator_works(): void
     {
         $product = Product::factory()->make();
-        
+
         // Test that setImageAttribute method exists and can be called
         $this->assertTrue(method_exists($product, 'setImageAttribute'));
-        
+
         // Test setting image value
         $product->setImageAttribute('test-image.jpg');
-        
+
         // The actual implementation depends on HasFileUploads trait
         // Image might be null, string, or array depending on implementation
         $this->assertTrue(
-            is_null($product->image) || 
-            is_string($product->image) || 
-            is_array($product->image)
+            is_null($product->image) ||
+            is_string($product->image) ||
+            is_array($product->image),
         );
     }
 }

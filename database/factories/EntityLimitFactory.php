@@ -6,7 +6,7 @@ use App\Models\EntityLimit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EntityLimit>
+ * @extends Factory<EntityLimit>
  */
 class EntityLimitFactory extends Factory
 {
@@ -19,9 +19,25 @@ class EntityLimitFactory extends Factory
      */
     public function definition(): array
     {
-        $entityTypes = ['invoice', 'client', 'supplier', 'product', 'expense'];
-        $periodTypes = ['daily', 'weekly', 'monthly', 'yearly', 'lifetime'];
-        $metricTypes = ['count', 'value', 'size'];
+        $entityTypes = [
+            'invoice',
+            'client',
+            'supplier',
+            'product',
+            'expense',
+        ];
+        $periodTypes = [
+            'daily',
+            'weekly',
+            'monthly',
+            'yearly',
+            'lifetime',
+        ];
+        $metricTypes = [
+            'count',
+            'value',
+            'size',
+        ];
 
         return [
             'permission_name' => $this->faker->unique()->words(3, true),

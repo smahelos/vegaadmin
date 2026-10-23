@@ -3,13 +3,14 @@
 namespace Tests\Feature\Domain\Shared\File\Services;
 
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
+use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
 use Tests\TestCase;
-use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
 
 class FileUploadServiceFeatureTest extends TestCase
 {
@@ -21,7 +22,7 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         parent::setUp();
         $this->service = app(FileUploadServiceInterface::class);
-        
+
         // Use fake storage for testing
         Storage::fake('public');
     }
@@ -44,7 +45,7 @@ class FileUploadServiceFeatureTest extends TestCase
     public function get_file_url_returns_null_for_null_path(): void
     {
         $result = $this->service->getFileUrl(null);
-        
+
         $this->assertNull($result);
     }
 
@@ -54,9 +55,9 @@ class FileUploadServiceFeatureTest extends TestCase
         // Create a fake file
         $filePath = 'test/test.txt';
         Storage::disk('public')->put($filePath, 'test content');
-        
+
         $result = $this->service->getFileUrl($filePath);
-        
+
         $this->assertIsString($result);
         $this->assertStringContainsString($filePath, $result);
     }
@@ -66,7 +67,7 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         // getFileUrl doesn't check if file exists, it just returns the URL
         $result = $this->service->getFileUrl('nonexistent/file.txt');
-        
+
         $this->assertIsString($result);
         $this->assertStringContainsString('nonexistent/file.txt', $result);
     }
@@ -77,9 +78,9 @@ class FileUploadServiceFeatureTest extends TestCase
         // Create a fake file
         $filePath = 'test/test.txt';
         Storage::disk('public')->put($filePath, 'test content');
-        
+
         $result = $this->service->deleteFile($filePath, 'public');
-        
+
         $this->assertTrue($result);
         $this->assertFalse(Storage::disk('public')->exists($filePath));
     }
@@ -88,7 +89,7 @@ class FileUploadServiceFeatureTest extends TestCase
     public function delete_file_returns_false_for_nonexistent_file(): void
     {
         $result = $this->service->deleteFile('nonexistent/file.txt', 'public');
-        
+
         $this->assertFalse($result);
     }
 
@@ -96,7 +97,7 @@ class FileUploadServiceFeatureTest extends TestCase
     public function delete_file_handles_null_path(): void
     {
         $result = $this->service->deleteFile(null, 'public');
-        
+
         $this->assertFalse($result);
     }
 
@@ -106,19 +107,19 @@ class FileUploadServiceFeatureTest extends TestCase
         // Test PDF
         $pdfIcon = $this->service->getFileTypeIcon('document.pdf');
         $this->assertEquals('la-file-pdf', $pdfIcon);
-        
+
         // Test Word document
         $docIcon = $this->service->getFileTypeIcon('document.docx');
         $this->assertEquals('la-file-word', $docIcon);
-        
+
         // Test Excel
         $excelIcon = $this->service->getFileTypeIcon('spreadsheet.xlsx');
         $this->assertEquals('la-file-excel', $excelIcon);
-        
+
         // Test image
         $imageIcon = $this->service->getFileTypeIcon('image.jpg');
         $this->assertEquals('la-file-image', $imageIcon);
-        
+
         // Test unknown file type
         $unknownIcon = $this->service->getFileTypeIcon('file.unknown');
         $this->assertEquals('la-file', $unknownIcon);
@@ -129,7 +130,7 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $input = 'file name with spaces & special chars!@#.txt';
         $result = $this->service->sanitizeFilename($input);
-        
+
         $this->assertIsString($result);
         $this->assertDoesNotMatchRegularExpression('/[^a-zA-Z0-9._-]/', $result);
     }
@@ -139,7 +140,7 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $input = 'document.pdf';
         $result = $this->service->sanitizeFilename($input);
-        
+
         $this->assertStringEndsWith('.pdf', $result);
     }
 
@@ -148,7 +149,7 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $input = 'soubor_s_česky_názvem.txt';
         $result = $this->service->sanitizeFilename($input);
-        
+
         $this->assertIsString($result);
         $this->assertStringEndsWith('.txt', $result);
     }
@@ -159,9 +160,13 @@ class FileUploadServiceFeatureTest extends TestCase
         $originalName = 'test';
         $extension = 'txt';
         $destinationPath = 'uploads';
-        
-        $result = $this->service->generateUniqueFilename($originalName, $extension, $destinationPath);
-        
+
+        $result = $this->service->generateUniqueFilename(
+            $originalName,
+            $extension,
+            $destinationPath,
+        );
+
         $this->assertIsString($result);
         $this->assertStringEndsWith('.txt', $result);
         $this->assertStringContainsString('test', $result);
@@ -173,12 +178,16 @@ class FileUploadServiceFeatureTest extends TestCase
         $originalName = 'test';
         $extension = 'txt';
         $destinationPath = 'uploads';
-        
+
         // Create a file that would conflict
         Storage::disk('public')->put($destinationPath . '/test.txt', 'content');
-        
-        $result = $this->service->generateUniqueFilename($originalName, $extension, $destinationPath);
-        
+
+        $result = $this->service->generateUniqueFilename(
+            $originalName,
+            $extension,
+            $destinationPath,
+        );
+
         $this->assertIsString($result);
         $this->assertStringEndsWith('.txt', $result);
         $this->assertNotEquals('test.txt', $result);
@@ -189,7 +198,7 @@ class FileUploadServiceFeatureTest extends TestCase
     public function get_thumbnail_url_returns_null_for_null_path(): void
     {
         $result = $this->service->getThumbnailUrl(null);
-        
+
         $this->assertNull($result);
     }
 
@@ -199,9 +208,9 @@ class FileUploadServiceFeatureTest extends TestCase
         // Create a text file
         $filePath = 'documents/test.txt';
         Storage::disk('public')->put($filePath, 'test content');
-        
+
         $result = $this->service->getThumbnailUrl($filePath);
-        
+
         $this->assertIsString($result);
         $this->assertStringContainsString($filePath, $result);
     }
@@ -211,9 +220,9 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $filePath = 'test/file.txt';
         Storage::disk('public')->put($filePath, 'content');
-        
+
         $result = $this->service->getFileUrlFromAttribute($filePath);
-        
+
         $this->assertIsString($result);
         $this->assertStringContainsString($filePath, $result);
     }
@@ -221,11 +230,15 @@ class FileUploadServiceFeatureTest extends TestCase
     #[Test]
     public function get_file_url_from_attribute_handles_array_value(): void
     {
-        $files = ['file1.txt', 'file2.txt', 'file3.txt'];
+        $files = [
+            'file1.txt',
+            'file2.txt',
+            'file3.txt',
+        ];
         Storage::disk('public')->put('file2.txt', 'content');
-        
+
         $result = $this->service->getFileUrlFromAttribute($files, 1);
-        
+
         $this->assertIsString($result);
         $this->assertStringContainsString('file2.txt', $result);
     }
@@ -234,9 +247,9 @@ class FileUploadServiceFeatureTest extends TestCase
     public function get_file_url_from_attribute_returns_null_for_invalid_index(): void
     {
         $files = ['file1.txt', 'file2.txt'];
-        
+
         $result = $this->service->getFileUrlFromAttribute($files, 5);
-        
+
         $this->assertNull($result);
     }
 
@@ -245,9 +258,9 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $jsonFiles = json_encode(['file1.txt', 'file2.txt']);
         Storage::disk('public')->put('file1.txt', 'content');
-        
+
         $result = $this->service->getFileUrlFromAttribute($jsonFiles, 0);
-        
+
         $this->assertIsString($result);
         $this->assertStringContainsString('file1.txt', $result);
     }
@@ -256,9 +269,15 @@ class FileUploadServiceFeatureTest extends TestCase
     public function handle_file_upload_returns_old_value_when_no_changes(): void
     {
         $oldValue = 'existing/file.txt';
-        
-        $result = $this->service->handleFileUpload('', 'document', 'uploads', [], $oldValue);
-        
+
+        $result = $this->service->handleFileUpload(
+            '',
+            'document',
+            'uploads',
+            [],
+            $oldValue,
+        );
+
         $this->assertEquals($oldValue, $result);
     }
 
@@ -267,43 +286,62 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         // Simulate removal request
         request()->merge(['document_remove' => true]);
-        
-        $result = $this->service->handleFileUpload(null, 'document', 'uploads');
-        
+
+        $result = $this->service->handleFileUpload(
+            null,
+            'document',
+            'uploads',
+        );
+
         $this->assertNull($result);
     }
 
     #[Test]
     public function handle_file_upload_validates_file_size(): void
     {
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(trans('validation.file_upload.size_exceeded', ['attribute' => ':attribute']));
-        
+
         // Create a mock uploaded file with size that exceeds limit
         // Note: The original code divides by 20480 instead of 1024, so we need to account for that
         $file = UploadedFile::fake()->create('large.txt', 50000); // 50MB file
-        
-        $this->service->handleFileUpload($this->normalize($file), 'document', 'uploads', ['maxFileSize' => 1024]); // 1MB limit
+
+        $this->service->handleFileUpload(
+            $this->normalize($file),
+            'document',
+            'uploads',
+            ['maxFileSize' => 1024],
+        ); // 1MB limit
     }
 
     #[Test]
     public function handle_file_upload_validates_file_type(): void
     {
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(trans('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']));
-        
+
         $file = UploadedFile::fake()->create('document.exe', 100);
-        
-        $this->service->handleFileUpload($this->normalize($file), 'document', 'uploads', ['allowedFileTypes' => ['pdf', 'txt']]);
+
+        $this->service->handleFileUpload(
+            $this->normalize($file),
+            'document',
+            'uploads',
+            ['allowedFileTypes' => ['pdf', 'txt']],
+        );
     }
 
     #[Test]
     public function handle_file_upload_accepts_allowed_file_type(): void
     {
-    $file = UploadedFile::fake()->create('document.pdf', 100);
-        
-    $result = $this->service->handleFileUpload($this->normalize($file), 'document', 'uploads', ['allowedFileTypes' => ['pdf', 'txt']]);
-        
+        $file = UploadedFile::fake()->create('document.pdf', 100);
+
+        $result = $this->service->handleFileUpload(
+            $this->normalize($file),
+            'document',
+            'uploads',
+            ['allowedFileTypes' => ['pdf', 'txt']],
+        );
+
         $this->assertIsString($result);
         $this->assertStringContainsString('uploads/', $result);
         $this->assertStringEndsWith('.pdf', $result);
@@ -320,8 +358,17 @@ class FileUploadServiceFeatureTest extends TestCase
         Storage::disk('public')->put($destination . '/report.pdf', '');
         Storage::disk('public')->put($destination . '/report_1.pdf', '');
 
-        $filename = $this->service->generateUniqueFilename('report', 'pdf', $destination, 'public');
-        $this->assertEquals('report_2.pdf', $filename, 'Filename should increment to next available suffix.');
+        $filename = $this->service->generateUniqueFilename(
+            'report',
+            'pdf',
+            $destination,
+            'public',
+        );
+        $this->assertEquals(
+            'report_2.pdf',
+            $filename,
+            'Filename should increment to next available suffix.',
+        );
     }
 
     #[Test]
@@ -329,9 +376,13 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         Storage::fake('public');
 
-    $file = UploadedFile::fake()->create('malware.exe', 10, 'application/octet-stream');
+        $file = UploadedFile::fake()->create(
+            'malware.exe',
+            10,
+            'application/octet-stream',
+        );
 
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(__('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']));
 
         $this->service->handleFileUpload(
@@ -345,7 +396,7 @@ class FileUploadServiceFeatureTest extends TestCase
                 'sanitizeFilename' => true,
             ],
             null,
-            null
+            null,
         );
     }
 
@@ -353,9 +404,13 @@ class FileUploadServiceFeatureTest extends TestCase
     public function handle_file_upload_throws_exception_when_file_exceeds_size_limit(): void
     {
         Storage::fake('public');
-    $file = UploadedFile::fake()->create('large.png', 500, 'image/png'); // 500 KB
+        $file = UploadedFile::fake()->create(
+            'large.png',
+            500,
+            'image/png',
+        ); // 500 KB
 
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(__('validation.file_upload.size_exceeded', ['attribute' => ':attribute']));
 
         $this->service->handleFileUpload(
@@ -370,7 +425,7 @@ class FileUploadServiceFeatureTest extends TestCase
                 'sanitizeFilename' => true,
             ],
             null,
-            null
+            null,
         );
     }
 
@@ -378,7 +433,11 @@ class FileUploadServiceFeatureTest extends TestCase
     public function thumbnail_is_created_for_image_when_enabled(): void
     {
         Storage::fake('public');
-    $file = UploadedFile::fake()->image('photo.jpg', 400, 400);
+        $file = UploadedFile::fake()->image(
+            'photo.jpg',
+            400,
+            400,
+        );
 
         $path = $this->service->handleFileUpload(
             $this->normalize($file),
@@ -392,10 +451,14 @@ class FileUploadServiceFeatureTest extends TestCase
                 'thumbnailPath' => 'thumbnails',
                 'randomizeFilename' => false,
                 'sanitizeFilename' => true,
-                'allowedFileTypes' => ['jpg','jpeg','png']
+                'allowedFileTypes' => [
+                    'jpg',
+                    'jpeg',
+                    'png',
+                ],
             ],
             null,
-            null
+            null,
         );
 
         $this->assertNotNull($path);
@@ -403,7 +466,9 @@ class FileUploadServiceFeatureTest extends TestCase
 
         // Expected thumbnail path structure
         $this->assertTrue(Storage::disk('public')->exists('thumbnails/images/photo.jpg'), 'Thumbnail should be created at expected path.');
-    }#[Test]
+    }
+
+    #[Test]
     public function service_has_image_processor_property(): void
     {
         $reflection = new ReflectionClass($this->service);
@@ -419,7 +484,7 @@ class FileUploadServiceFeatureTest extends TestCase
         $method = $reflection->getMethod('handleFileUpload');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('?string', (string)$returnType);
+        $this->assertEquals('?string', (string) $returnType);
         $parameters = $method->getParameters();
         $this->assertCount(6, $parameters);
         $this->assertEquals('value', $parameters[0]->getName());
@@ -435,11 +500,11 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('deleteFile');
-        $this->assertEquals('bool', (string)$method->getReturnType());
+        $this->assertEquals('bool', (string) $method->getReturnType());
         $params = $method->getParameters();
         $this->assertCount(2, $params);
-        $this->assertEquals('?string', (string)$params[0]->getType());
-        $this->assertEquals('string', (string)$params[1]->getType());
+        $this->assertEquals('?string', (string) $params[0]->getType());
+        $this->assertEquals('string', (string) $params[1]->getType());
     }
 
     #[Test]
@@ -447,11 +512,11 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getFileUrl');
-        $this->assertEquals('?string', (string)$method->getReturnType());
+        $this->assertEquals('?string', (string) $method->getReturnType());
         $params = $method->getParameters();
         $this->assertCount(2, $params);
-        $this->assertEquals('?string', (string)$params[0]->getType());
-        $this->assertEquals('string', (string)$params[1]->getType());
+        $this->assertEquals('?string', (string) $params[0]->getType());
+        $this->assertEquals('string', (string) $params[1]->getType());
         $this->assertTrue($params[1]->isDefaultValueAvailable());
         $this->assertEquals('public', $params[1]->getDefaultValue());
     }
@@ -461,12 +526,12 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getThumbnailUrl');
-        $this->assertEquals('?string', (string)$method->getReturnType());
+        $this->assertEquals('?string', (string) $method->getReturnType());
         $params = $method->getParameters();
         $this->assertCount(3, $params);
-        $this->assertEquals('?string', (string)$params[0]->getType());
-        $this->assertEquals('string', (string)$params[1]->getType());
-        $this->assertEquals('string', (string)$params[2]->getType());
+        $this->assertEquals('?string', (string) $params[0]->getType());
+        $this->assertEquals('string', (string) $params[1]->getType());
+        $this->assertEquals('string', (string) $params[2]->getType());
     }
 
     #[Test]
@@ -474,10 +539,10 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getFileTypeIcon');
-        $this->assertEquals('string', (string)$method->getReturnType());
+        $this->assertEquals('string', (string) $method->getReturnType());
         $params = $method->getParameters();
         $this->assertCount(1, $params);
-        $this->assertEquals('string', (string)$params[0]->getType());
+        $this->assertEquals('string', (string) $params[0]->getType());
     }
 
     #[Test]
@@ -485,10 +550,10 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('sanitizeFilename');
-        $this->assertEquals('string', (string)$method->getReturnType());
+        $this->assertEquals('string', (string) $method->getReturnType());
         $params = $method->getParameters();
         $this->assertCount(1, $params);
-        $this->assertEquals('string', (string)$params[0]->getType());
+        $this->assertEquals('string', (string) $params[0]->getType());
     }
 
     #[Test]
@@ -496,13 +561,13 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('generateUniqueFilename');
-        $this->assertEquals('string', (string)$method->getReturnType());
+        $this->assertEquals('string', (string) $method->getReturnType());
         $params = $method->getParameters();
         $this->assertCount(4, $params);
-        $this->assertEquals('string', (string)$params[0]->getType());
-        $this->assertEquals('string', (string)$params[1]->getType());
-        $this->assertEquals('string', (string)$params[2]->getType());
-        $this->assertEquals('string', (string)$params[3]->getType());
+        $this->assertEquals('string', (string) $params[0]->getType());
+        $this->assertEquals('string', (string) $params[1]->getType());
+        $this->assertEquals('string', (string) $params[2]->getType());
+        $this->assertEquals('string', (string) $params[3]->getType());
         $this->assertTrue($params[3]->isDefaultValueAvailable());
         $this->assertEquals('public', $params[3]->getDefaultValue());
     }
@@ -512,19 +577,19 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getFileUrlFromAttribute');
-        $this->assertEquals('?string', (string)$method->getReturnType());
+        $this->assertEquals('?string', (string) $method->getReturnType());
         $params = $method->getParameters();
         $this->assertCount(3, $params);
-        $this->assertEquals('mixed', (string)$params[0]->getType()); // mixed
-        $this->assertEquals('?int', (string)$params[1]->getType());
-        $this->assertEquals('string', (string)$params[2]->getType());
+        $this->assertEquals('mixed', (string) $params[0]->getType()); // mixed
+        $this->assertEquals('?int', (string) $params[1]->getType());
+        $this->assertEquals('string', (string) $params[2]->getType());
     }
 
     #[Test]
     public function protected_methods_exist_and_are_protected(): void
     {
         $reflection = new ReflectionClass($this->service);
-        foreach (['createThumbnail','deleteAssociatedFiles'] as $methodName) {
+        foreach (['createThumbnail', 'deleteAssociatedFiles'] as $methodName) {
             $this->assertTrue($reflection->hasMethod($methodName));
             $m = $reflection->getMethod($methodName);
             $this->assertTrue($m->isProtected(), $methodName . ' should be protected');
@@ -536,7 +601,7 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         // Validate contract and general structure rather than concrete class name/namespace
-        $this->assertTrue($reflection->implementsInterface(\App\Domain\Shared\File\Contracts\FileUploadServiceInterface::class));
+        $this->assertTrue($reflection->implementsInterface(FileUploadServiceInterface::class));
         $this->assertTrue($reflection->isInstantiable());
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isInterface());
@@ -547,7 +612,9 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->getName() === '__construct') { continue; }
+            if ($method->getName() === '__construct') {
+                continue;
+            }
             $this->assertNotNull($method->getReturnType(), $method->getName() . ' should declare return type');
         }
     }
@@ -557,7 +624,13 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('generateUniqueFilename');
-        $result = $method->invoke($this->service, 'report', 'pdf', 'nonexistent-path', 'public');
+        $result = $method->invoke(
+            $this->service,
+            'report',
+            'pdf',
+            'nonexistent-path',
+            'public',
+        );
         $this->assertEquals('report.pdf', $result);
     }
 }

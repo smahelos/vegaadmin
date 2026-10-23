@@ -2,11 +2,15 @@
 
 namespace Tests\Feature\Providers;
 
+use App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy;
+use App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Providers\AuthServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -170,16 +174,16 @@ class AuthServiceProviderFeatureTest extends TestCase
         $policies = $property->getValue($provider);
 
         // Test that expected policies are defined
-        $this->assertArrayHasKey(\App\Models\Subscription::class, $policies);
-        $this->assertEquals(\App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy::class, $policies[\App\Models\Subscription::class]);
+        $this->assertArrayHasKey(Subscription::class, $policies);
+        $this->assertEquals(SubscriptionPolicy::class, $policies[Subscription::class]);
 
-        $this->assertArrayHasKey(\App\Models\SubscriptionPlan::class, $policies);
-        $this->assertEquals(\App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy::class, $policies[\App\Models\SubscriptionPlan::class]);
+        $this->assertArrayHasKey(SubscriptionPlan::class, $policies);
+        $this->assertEquals(SubscriptionPlanPolicy::class, $policies[SubscriptionPlan::class]);
 
         // Verify policies array contains exactly these mappings
         $expectedPolicies = [
-            \App\Models\Subscription::class => \App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy::class,
-            \App\Models\SubscriptionPlan::class => \App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy::class,
+            Subscription::class => SubscriptionPolicy::class,
+            SubscriptionPlan::class => SubscriptionPlanPolicy::class,
         ];
 
         $this->assertEquals($expectedPolicies, $policies);
@@ -192,10 +196,10 @@ class AuthServiceProviderFeatureTest extends TestCase
         $provider->registerPolicies();
 
         // Test that policies are actually registered with the Gate
-        $subscriptionPolicy = \Illuminate\Support\Facades\Gate::getPolicyFor(\App\Models\Subscription::class);
-        $this->assertInstanceOf(\App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy::class, $subscriptionPolicy);
+        $subscriptionPolicy = Gate::getPolicyFor(Subscription::class);
+        $this->assertInstanceOf(SubscriptionPolicy::class, $subscriptionPolicy);
 
-        $subscriptionPlanPolicy = \Illuminate\Support\Facades\Gate::getPolicyFor(\App\Models\SubscriptionPlan::class);
-        $this->assertInstanceOf(\App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy::class, $subscriptionPlanPolicy);
+        $subscriptionPlanPolicy = Gate::getPolicyFor(SubscriptionPlan::class);
+        $this->assertInstanceOf(SubscriptionPlanPolicy::class, $subscriptionPlanPolicy);
     }
 }

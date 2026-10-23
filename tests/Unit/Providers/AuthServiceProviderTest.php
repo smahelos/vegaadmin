@@ -21,7 +21,7 @@ class AuthServiceProviderTest extends TestCase
     {
         $reflection = new \ReflectionClass(AuthServiceProvider::class);
         $this->assertTrue($reflection->hasProperty('policies'));
-        
+
         $property = $reflection->getProperty('policies');
         $this->assertTrue($property->isProtected());
     }
@@ -31,10 +31,10 @@ class AuthServiceProviderTest extends TestCase
     {
         $reflection = new \ReflectionClass(AuthServiceProvider::class);
         $this->assertTrue($reflection->hasMethod('boot'));
-        
+
         $method = $reflection->getMethod('boot');
         $this->assertTrue($method->isPublic());
-        
+
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
@@ -45,7 +45,7 @@ class AuthServiceProviderTest extends TestCase
     {
         $reflection = new \ReflectionClass(AuthServiceProvider::class);
         $method = $reflection->getMethod('boot');
-        
+
         $this->assertCount(0, $method->getParameters());
     }
 
@@ -56,7 +56,7 @@ class AuthServiceProviderTest extends TestCase
         $reflection = new \ReflectionClass($provider);
         $property = $reflection->getProperty('policies');
         $property->setAccessible(true);
-        
+
         $policies = $property->getValue($provider);
         $this->assertIsArray($policies);
     }
@@ -65,7 +65,7 @@ class AuthServiceProviderTest extends TestCase
     public function class_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(AuthServiceProvider::class);
-        
+
         $this->assertTrue($reflection->isInstantiable());
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isInterface());

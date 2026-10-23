@@ -22,8 +22,6 @@ class ClientRequest extends BaseEntityRequest
 
     /**
      * Get the validation rules that apply to the request
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -39,14 +37,12 @@ class ClientRequest extends BaseEntityRequest
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'description' => 'nullable|string',
-            'user_id' => 'required|exists:users,id'
+            'user_id' => 'required|exists:users,id',
         ];
     }
 
     /**
      * Get custom attributes for validator errors
-     *
-     * @return array
      */
     public function attributes(): array
     {

@@ -2,15 +2,15 @@
 
 namespace App\Domain\Party\Events;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Party\DTO\SupplierDTO;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
  * Domain event fired when a supplier is set as default.
- * 
+ *
  * Triggered by:
  * - InvoicePartyService::setSupplierDefault() when making supplier default
- * 
+ *
  * Used for:
  * - UI state updates
  * - User preference tracking
@@ -20,8 +20,6 @@ class SupplierSetAsDefault implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -33,13 +31,13 @@ class SupplierSetAsDefault implements DomainEvent
 
     /** Event ID for tracking purposes */
     private readonly string $eventId;
-    
+
     public function __construct(
         private readonly SupplierDTO $supplier,
         private readonly ?SupplierDTO $previousDefault = null,
         ?int $userId = null,
         private readonly array $metadata = [],
-        string $changeType = 'general'
+        string $changeType = 'general',
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
@@ -80,19 +78,19 @@ class SupplierSetAsDefault implements DomainEvent
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
         return static::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

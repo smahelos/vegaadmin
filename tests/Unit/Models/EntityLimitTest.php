@@ -3,7 +3,9 @@
 namespace Tests\Unit\Models;
 
 use App\Models\EntityLimit;
-use App\Models\EntityLimitUsage;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -18,7 +20,7 @@ class EntityLimitTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->entityLimit = new EntityLimit([
             'permission_name' => 'can_create_edit_invoice',
             'entity_type' => 'invoice',
@@ -26,7 +28,7 @@ class EntityLimitTest extends TestCase
             'limit_value' => 10,
             'period_type' => 'monthly',
             'description' => 'Monthly invoice creation limit',
-            'is_active' => true
+            'is_active' => true,
         ]);
     }
 
@@ -40,7 +42,7 @@ class EntityLimitTest extends TestCase
             'period_type',
             'metric_type',
             'description',
-            'is_active'
+            'is_active',
         ];
 
         $this->assertEquals($expectedFillable, $this->entityLimit->getFillable());
@@ -50,11 +52,11 @@ class EntityLimitTest extends TestCase
     public function model_has_correct_casts(): void
     {
         $expectedCasts = [
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ];
 
         $casts = $this->entityLimit->getCasts();
-        
+
         foreach ($expectedCasts as $attribute => $cast) {
             $this->assertArrayHasKey($attribute, $casts);
             $this->assertEquals($cast, $casts[$attribute]);
@@ -71,7 +73,7 @@ class EntityLimitTest extends TestCase
             'product',
             'expense',
             'user',
-            'page'
+            'page',
         ];
 
         $this->assertEquals($expectedTypes, EntityLimit::ENTITY_TYPES);
@@ -82,8 +84,8 @@ class EntityLimitTest extends TestCase
     {
         $expectedTypes = [
             'count' => 'Count-based limit',
-            'value' => 'Value-based limit (monetary)', 
-            'size' => 'Size-based limit (file size)'
+            'value' => 'Value-based limit (monetary)',
+            'size' => 'Size-based limit (file size)',
         ];
 
         $this->assertEquals($expectedTypes, EntityLimit::METRIC_TYPES);
@@ -97,7 +99,7 @@ class EntityLimitTest extends TestCase
             'weekly' => 'Weekly',
             'monthly' => 'Monthly',
             'yearly' => 'Yearly',
-            'lifetime' => 'Lifetime'
+            'lifetime' => 'Lifetime',
         ];
 
         $this->assertEquals($expectedTypes, EntityLimit::PERIOD_TYPES);
@@ -122,7 +124,7 @@ class EntityLimitTest extends TestCase
         $this->entityLimit->period_type = 'daily';
         $this->entityLimit->limit_value = 5;
         $this->entityLimit->entity_type = 'client';
-        
+
         $expected = "Users with 'can_create_edit_invoice' permission can create 5 client entities per daily";
         $this->assertEquals($expected, $this->entityLimit->full_description);
     }
@@ -133,17 +135,17 @@ class EntityLimitTest extends TestCase
         // In new permission-based system, usage() returns a query builder
         // not a direct Eloquent relationship
         $usage = $this->entityLimit->usage();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Builder::class, $usage);
+
+        $this->assertInstanceOf(Builder::class, $usage);
     }
 
     #[Test]
     public function model_uses_correct_traits(): void
     {
         $traits = class_uses(EntityLimit::class);
-        
-        $this->assertContains(\Illuminate\Database\Eloquent\Factories\HasFactory::class, $traits);
-        $this->assertContains(\Backpack\CRUD\app\Models\Traits\CrudTrait::class, $traits);
+
+        $this->assertContains(HasFactory::class, $traits);
+        $this->assertContains(CrudTrait::class, $traits);
     }
 
     #[Test]
@@ -151,13 +153,13 @@ class EntityLimitTest extends TestCase
     {
         $this->entityLimit->is_active = 1;
         $this->assertTrue($this->entityLimit->is_active);
-        
+
         $this->entityLimit->is_active = 0;
         $this->assertFalse($this->entityLimit->is_active);
-        
+
         $this->entityLimit->is_active = true;
         $this->assertTrue($this->entityLimit->is_active);
-        
+
         $this->entityLimit->is_active = false;
         $this->assertFalse($this->entityLimit->is_active);
     }

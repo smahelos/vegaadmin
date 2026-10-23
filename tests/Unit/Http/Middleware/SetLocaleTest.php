@@ -14,8 +14,13 @@ class SetLocaleTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new SetLocale();
-        config(['app.available_locales' => ['cs','en','de','sk']]);
+        $this->middleware = new SetLocale;
+        config(['app.available_locales' => [
+            'cs',
+            'en',
+            'de',
+            'sk',
+        ]]);
         config(['app.locale' => 'cs']);
         config(['app.fallback_locale' => 'cs']);
     }
@@ -44,7 +49,7 @@ class SetLocaleTest extends TestCase
     public function unsupported_segment_results_in_fallback_locale(): void
     {
         $request = Request::create('/xx/dashboard');
-        $this->middleware->handle($request, fn() => response('OK'));
+        $this->middleware->handle($request, fn () => response('OK'));
         $this->assertEquals('cs', app()->getLocale());
     }
 
@@ -52,7 +57,7 @@ class SetLocaleTest extends TestCase
     public function supported_segment_sets_locale(): void
     {
         $request = Request::create('/en/dashboard');
-        $this->middleware->handle($request, fn() => response('OK'));
+        $this->middleware->handle($request, fn () => response('OK'));
         $this->assertEquals('en', app()->getLocale());
     }
 }

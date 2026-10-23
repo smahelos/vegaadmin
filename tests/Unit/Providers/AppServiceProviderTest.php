@@ -21,10 +21,10 @@ class AppServiceProviderTest extends TestCase
     {
         $reflection = new \ReflectionClass(AppServiceProvider::class);
         $this->assertTrue($reflection->hasMethod('register'));
-        
+
         $method = $reflection->getMethod('register');
         $this->assertTrue($method->isPublic());
-        
+
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
@@ -35,10 +35,10 @@ class AppServiceProviderTest extends TestCase
     {
         $reflection = new \ReflectionClass(AppServiceProvider::class);
         $this->assertTrue($reflection->hasMethod('boot'));
-        
+
         $method = $reflection->getMethod('boot');
         $this->assertTrue($method->isPublic());
-        
+
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
@@ -49,7 +49,7 @@ class AppServiceProviderTest extends TestCase
     {
         $reflection = new \ReflectionClass(AppServiceProvider::class);
         $method = $reflection->getMethod('register');
-        
+
         $this->assertCount(0, $method->getParameters());
     }
 
@@ -58,7 +58,7 @@ class AppServiceProviderTest extends TestCase
     {
         $reflection = new \ReflectionClass(AppServiceProvider::class);
         $method = $reflection->getMethod('boot');
-        
+
         $this->assertCount(0, $method->getParameters());
     }
 
@@ -66,7 +66,7 @@ class AppServiceProviderTest extends TestCase
     public function class_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(AppServiceProvider::class);
-        
+
         $this->assertTrue($reflection->isInstantiable());
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isInterface());

@@ -14,7 +14,7 @@ class SubscriptionPlanRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new SubscriptionPlanRequest();
+        $this->request = new SubscriptionPlanRequest;
     }
 
     #[Test]
@@ -29,7 +29,7 @@ class SubscriptionPlanRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -40,7 +40,7 @@ class SubscriptionPlanRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -51,17 +51,16 @@ class SubscriptionPlanRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
-
 
     #[Test]
     public function rules_returns_array_with_required_fields(): void
     {
         $rules = $this->request->rules();
-        
+
         $this->assertIsArray($rules);
         $this->assertArrayHasKey('name', $rules);
         $this->assertArrayHasKey('price', $rules);
@@ -77,7 +76,7 @@ class SubscriptionPlanRequestTest extends TestCase
     public function rules_contains_correct_validation_patterns(): void
     {
         $rules = $this->request->rules();
-        
+
         $this->assertStringContainsString('required', $rules['name']);
         $this->assertStringContainsString('required', $rules['price']);
         $this->assertStringContainsString('required', $rules['currency']);

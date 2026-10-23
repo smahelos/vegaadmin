@@ -14,7 +14,7 @@ class MysqlOptimizationLogRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new MysqlOptimizationLogRequest();
+        $this->request = new MysqlOptimizationLogRequest;
     }
 
     #[Test]
@@ -29,7 +29,7 @@ class MysqlOptimizationLogRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -40,7 +40,7 @@ class MysqlOptimizationLogRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -51,7 +51,7 @@ class MysqlOptimizationLogRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -62,7 +62,7 @@ class MysqlOptimizationLogRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('messages');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -72,7 +72,7 @@ class MysqlOptimizationLogRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -81,7 +81,7 @@ class MysqlOptimizationLogRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -90,7 +90,7 @@ class MysqlOptimizationLogRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -99,7 +99,7 @@ class MysqlOptimizationLogRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('messages');
-        
+
         $this->assertTrue($method->isPublic());
     }
 }

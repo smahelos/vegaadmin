@@ -2,6 +2,45 @@
 
 namespace App\Providers;
 
+use App\Application\Payment\Contracts\BankApplicationServiceInterface;
+use App\Application\Payment\Contracts\BankRepository;
+use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
+use App\Application\Payment\Contracts\PaymentReadRepositoryInterface;
+use App\Application\Payment\Contracts\PaymentWriteRepositoryInterface;
+use App\Application\Payment\Contracts\SubscriptionReadRepositoryInterface;
+use App\Application\Payment\Contracts\SubscriptionWriteRepositoryInterface;
+use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
+use App\Application\Payment\Services\BankApplicationService;
+use App\Application\Payment\Services\PaymentApplicationService;
+use App\Domain\Payment\Contracts\BankDtoRepository;
+use App\Domain\Payment\Contracts\BankServiceInterface;
+use App\Domain\Payment\Contracts\GatewayRegistryInterface;
+use App\Domain\Payment\Contracts\PaymentDtoReadRepositoryInterface;
+use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
+use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
+use App\Domain\Payment\Contracts\PaymentMethodDtoWriteRepositoryInterface;
+use App\Domain\Payment\Contracts\QrCodeRendererInterface;
+use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
+use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
+use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
+use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
+use App\Domain\Payment\Services\BankService;
+use App\Domain\Payment\Services\GatewayRegistry;
+use App\Domain\Payment\Services\QrPaymentService;
+use App\Domain\Payment\Services\SubscriptionPaymentService;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentBankDtoRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentBankRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentDtoReadRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentDtoWriteRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentMethodDtoRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentReadRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentWriteRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionDtoReadRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionDtoWriteRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionReadRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionWriteRepository;
+use App\Infrastructure\Providers\Payment\GoPayGateway;
+use App\Infrastructure\Renderers\Qr\SimpleQrCodeRenderer;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -24,23 +63,23 @@ class PaymentServiceProvider extends ServiceProvider
     private function registerDomainServices(): void
     {
         $this->app->bind(
-            \App\Domain\Payment\Contracts\QrPaymentServiceInterface::class,
-            \App\Domain\Payment\Services\QrPaymentService::class
+            QrPaymentServiceInterface::class,
+            QrPaymentService::class,
         );
 
         $this->app->bind(
-            \App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface::class,
-            \App\Domain\Payment\Services\SubscriptionPaymentService::class
+            SubscriptionPaymentServiceInterface::class,
+            SubscriptionPaymentService::class,
         );
 
         $this->app->bind(
-            \App\Domain\Payment\Contracts\BankServiceInterface::class,
-            \App\Domain\Payment\Services\BankService::class
+            BankServiceInterface::class,
+            BankService::class,
         );
 
         $this->app->singleton(
-            \App\Domain\Payment\Contracts\GatewayRegistryInterface::class,
-            \App\Domain\Payment\Services\GatewayRegistry::class
+            GatewayRegistryInterface::class,
+            GatewayRegistry::class,
         );
     }
 
@@ -51,81 +90,81 @@ class PaymentServiceProvider extends ServiceProvider
     {
         // Payment repositories
         $this->app->bind(
-            \App\Application\Payment\Contracts\PaymentWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentWriteRepository::class
+            PaymentWriteRepositoryInterface::class,
+            EloquentPaymentWriteRepository::class,
         );
 
         $this->app->bind(
-            \App\Application\Payment\Contracts\PaymentReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentReadRepository::class
+            PaymentReadRepositoryInterface::class,
+            EloquentPaymentReadRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentDtoWriteRepository::class
+            PaymentDtoWriteRepositoryInterface::class,
+            EloquentPaymentDtoWriteRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Payment\Contracts\PaymentDtoReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentDtoReadRepository::class
+            PaymentDtoReadRepositoryInterface::class,
+            EloquentPaymentDtoReadRepository::class,
         );
 
         // Subscription repositories
         $this->app->bind(
-            \App\Application\Payment\Contracts\SubscriptionWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionWriteRepository::class
+            SubscriptionWriteRepositoryInterface::class,
+            EloquentSubscriptionWriteRepository::class,
         );
 
         $this->app->bind(
-            \App\Application\Payment\Contracts\SubscriptionReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionReadRepository::class
+            SubscriptionReadRepositoryInterface::class,
+            EloquentSubscriptionReadRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionDtoWriteRepository::class
+            SubscriptionDtoWriteRepositoryInterface::class,
+            EloquentSubscriptionDtoWriteRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionDtoReadRepository::class
+            SubscriptionDtoReadRepositoryInterface::class,
+            EloquentSubscriptionDtoReadRepository::class,
         );
 
         // Payment Method repositories
         $this->app->bind(
-            \App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentMethodDtoRepository::class
+            PaymentMethodDtoReadRepositoryInterface::class,
+            EloquentPaymentMethodDtoRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Payment\Contracts\PaymentMethodDtoWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentMethodDtoRepository::class
+            PaymentMethodDtoWriteRepositoryInterface::class,
+            EloquentPaymentMethodDtoRepository::class,
         );
 
         $this->app->bind(
-            \App\Application\Payment\Contracts\BankRepository::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentBankRepository::class
+            BankRepository::class,
+            EloquentBankRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Payment\Contracts\BankDtoRepository::class,
-            \App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentBankDtoRepository::class
+            BankDtoRepository::class,
+            EloquentBankDtoRepository::class,
         );
 
         // Payment gateways
         $this->app->singleton(
-            \App\Infrastructure\Providers\Payment\GoPayGateway::class
+            GoPayGateway::class,
         );
 
         // Named binding for GoPay gateway as expected by tests
         $this->app->singleton('payment.gateway.gopay', function ($app) {
-            return $app->make(\App\Infrastructure\Providers\Payment\GoPayGateway::class);
+            return $app->make(GoPayGateway::class);
         });
 
         // QR code rendering
         $this->app->bind(
-            \App\Domain\Payment\Contracts\QrCodeRendererInterface::class,
-            \App\Infrastructure\Renderers\Qr\SimpleQrCodeRenderer::class
+            QrCodeRendererInterface::class,
+            SimpleQrCodeRenderer::class,
         );
     }
 
@@ -135,16 +174,16 @@ class PaymentServiceProvider extends ServiceProvider
     private function registerApplicationServices(): void
     {
         $this->app->bind(
-            \App\Application\Payment\Contracts\PaymentApplicationServiceInterface::class,
-            \App\Application\Payment\Services\PaymentApplicationService::class
+            PaymentApplicationServiceInterface::class,
+            PaymentApplicationService::class,
         );
 
         $this->app->bind(
-            \App\Application\Payment\Contracts\BankApplicationServiceInterface::class,
-            \App\Application\Payment\Services\BankApplicationService::class
+            BankApplicationServiceInterface::class,
+            BankApplicationService::class,
         );
 
         // Application Payment mappers
-        $this->app->singleton(\App\Application\Payment\Mappers\QrPaymentPayloadMapper::class);
+        $this->app->singleton(QrPaymentPayloadMapper::class);
     }
 }

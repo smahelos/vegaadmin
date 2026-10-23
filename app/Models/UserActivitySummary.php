@@ -4,7 +4,22 @@ namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
+/**
+ * Columns of the user_activity_summary database view, which Larastan cannot read from the migrations.
+ *
+ * @property-read int $user_id
+ * @property-read string $user_name
+ * @property-read string $user_email
+ * @property-read int $total_invoices
+ * @property-read int $total_clients
+ * @property-read int $total_suppliers
+ * @property-read int $total_products
+ * @property-read Carbon|null $last_invoice_date
+ * @property-read int $invoices_last_30_days
+ * @property-read int $invoices_last_7_days
+ */
 class UserActivitySummary extends Model
 {
     use CrudTrait;
@@ -45,7 +60,7 @@ class UserActivitySummary extends Model
         'total_products',
         'last_invoice_date',
         'invoices_last_30_days',
-        'invoices_last_7_days'
+        'invoices_last_7_days',
     ];
 
     /**
@@ -60,7 +75,7 @@ class UserActivitySummary extends Model
         'total_suppliers' => 'integer',
         'total_products' => 'integer',
         'invoices_last_30_days' => 'integer',
-        'invoices_last_7_days' => 'integer'
+        'invoices_last_7_days' => 'integer',
     ];
 
     /**
@@ -79,7 +94,11 @@ class UserActivitySummary extends Model
      */
     public function scopeWithRecentActivity($query)
     {
-        return $query->where('invoices_last_30_days', '>', 0);
+        return $query->where(
+            'invoices_last_30_days',
+            '>',
+            0,
+        );
     }
 
     /**
@@ -87,7 +106,11 @@ class UserActivitySummary extends Model
      */
     public function scopeHighActivity($query)
     {
-        return $query->where('invoices_last_30_days', '>', 20);
+        return $query->where(
+            'invoices_last_30_days',
+            '>',
+            20,
+        );
     }
 
     /**
@@ -95,7 +118,11 @@ class UserActivitySummary extends Model
      */
     public function scopeInactive($query)
     {
-        return $query->where('invoices_last_30_days', '=', 0);
+        return $query->where(
+            'invoices_last_30_days',
+            '=',
+            0,
+        );
     }
 
     /**
@@ -119,12 +146,12 @@ class UserActivitySummary extends Model
      */
     public function getActivityBadgeClassAttribute()
     {
-        return match($this->activity_level) {
+        return match ($this->activity_level) {
             'high' => 'success',
             'medium' => 'primary',
             'low' => 'warning',
             'inactive' => 'secondary',
-            default => 'secondary'
+            default => 'secondary',
         };
     }
 
@@ -133,12 +160,12 @@ class UserActivitySummary extends Model
      */
     public function getFormattedActivityLevelAttribute()
     {
-        return match($this->activity_level) {
+        return match ($this->activity_level) {
             'high' => __('admin.user_activity.high_activity'),
             'medium' => __('admin.user_activity.medium_activity'),
             'low' => __('admin.user_activity.low_activity'),
             'inactive' => __('admin.user_activity.inactive'),
-            default => __('admin.user_activity.unknown')
+            default => __('admin.user_activity.unknown'),
         };
     }
 
@@ -147,6 +174,6 @@ class UserActivitySummary extends Model
      */
     public function user()
     {
-        return $this->belongsTo(\App\Models\User::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

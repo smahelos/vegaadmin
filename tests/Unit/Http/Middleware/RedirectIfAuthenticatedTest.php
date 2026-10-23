@@ -13,7 +13,7 @@ class RedirectIfAuthenticatedTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RedirectIfAuthenticated();
+        $this->middleware = new RedirectIfAuthenticated;
     }
 
     #[Test]

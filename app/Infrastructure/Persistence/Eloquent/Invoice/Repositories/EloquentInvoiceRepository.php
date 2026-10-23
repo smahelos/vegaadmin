@@ -4,10 +4,8 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Repositories;
 
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\Contracts\InvoiceWriteRepositoryInterface;
-use App\Domain\User\ValueObjects\UserId;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
-use Illuminate\Support\Collection;
 use App\Models\Invoice;
+use Illuminate\Support\Collection;
 
 class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, InvoiceWriteRepositoryInterface
 {
@@ -47,9 +45,9 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
         return Invoice::where('user_id', $userId)
             ->orderBy('invoice_vs', 'desc')
             ->get(['id', 'invoice_vs'])
-            ->map(fn(Invoice $model) => [
+            ->map(fn (Invoice $model) => [
                 'id' => $model->id,
-                'text' => (string)($model->invoice_vs ?? ('#' . $model->id)),
+                'text' => (string) ($model->invoice_vs ?? ('#' . $model->id)),
             ])
             ->values()
             ->all();
@@ -60,10 +58,14 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
         return Invoice::create($data);
     }
 
-    public function updateForUser(int $userId, int $invoiceId, array $data): Invoice
-    {
+    public function updateForUser(
+        int $userId,
+        int $invoiceId,
+        array $data,
+    ): Invoice {
         $invoice = Invoice::where('user_id', $userId)->findOrFail($invoiceId);
         $invoice->update($data);
+
         return $invoice;
     }
 
@@ -75,7 +77,11 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
     public function findInvoiceNumbersForYear(int $userId, int $year): array
     {
         return Invoice::where('user_id', $userId)
-            ->where('invoice_vs', 'like', $year . '%')
+            ->where(
+                'invoice_vs',
+                'like',
+                $year . '%',
+            )
             ->pluck('invoice_vs')
             ->all();
     }
@@ -83,26 +89,35 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
     public function markAsPaid(int $id, int $paidStatusId): bool
     {
         $invoice = Invoice::find($id);
-        if (!$invoice) { return false; }
+        if (! $invoice) {
+            return false;
+        }
         $invoice->payment_status_id = $paidStatusId;
-        return (bool)$invoice->save();
+
+        return (bool) $invoice->save();
     }
 
     public function setTemplate(int $id, string $template): bool
     {
         $invoice = Invoice::find($id);
-        if (!$invoice) { return false; }
+        if (! $invoice) {
+            return false;
+        }
         // Persist using existing 'template' column (legacy naming)
         $invoice->template = $template;
-        return (bool)$invoice->save();
+
+        return (bool) $invoice->save();
     }
 
     public function changeStatus(int $id, int $statusId): bool
     {
         $invoice = Invoice::find($id);
-        if (!$invoice) { return false; }
+        if (! $invoice) {
+            return false;
+        }
         $invoice->payment_status_id = $statusId;
-        return (bool)$invoice->save();
+
+        return (bool) $invoice->save();
     }
 
     public function listWithInvoiceText(): Collection
@@ -115,13 +130,14 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
     {
         $invoice = Invoice::findOrFail($id);
         $invoice->update($data);
+
         return $invoice->fresh();
     }
 
     /** Delete by ID without user scope. */
     public function deleteById(int $id): bool
     {
-        if (!Invoice::where('id', $id)->exists()) {
+        if (! Invoice::where('id', $id)->exists()) {
             return false;
         }
         Invoice::where('id', $id)->delete();
@@ -151,8 +167,13 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
     public function findOverdueForUser(int $userId): array
     {
         $now = date('Y-m-d');
+
         return Invoice::where('user_id', $userId)
-            ->where('due_date', '<', $now)
+            ->where(
+                'due_date',
+                '<',
+                $now,
+            )
             ->whereHas('paymentStatus', function ($query) {
                 $query->where('slug', 'unpaid');
             })
@@ -173,7 +194,7 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
             ->get()
             ->all();
     }
-    
+
     public function getUserInvoiceCount(int $userId): int
     {
         return Invoice::where('user_id', $userId)->count();

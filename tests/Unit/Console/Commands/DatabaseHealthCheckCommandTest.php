@@ -14,7 +14,7 @@ class DatabaseHealthCheckCommandTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->command = new DatabaseHealthCheckCommand();
+        $this->command = new DatabaseHealthCheckCommand;
     }
 
     #[Test]
@@ -29,9 +29,9 @@ class DatabaseHealthCheckCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $signatureProperty = $reflection->getProperty('signature');
         $signatureProperty->setAccessible(true);
-        
+
         $signature = $signatureProperty->getValue($this->command);
-        
+
         $this->assertIsString($signature);
         $this->assertStringContainsString('db:health-check', $signature);
     }
@@ -42,9 +42,9 @@ class DatabaseHealthCheckCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $descriptionProperty = $reflection->getProperty('description');
         $descriptionProperty->setAccessible(true);
-        
+
         $description = $descriptionProperty->getValue($this->command);
-        
+
         $this->assertIsString($description);
         $this->assertStringContainsString('database health', $description);
     }
@@ -53,10 +53,10 @@ class DatabaseHealthCheckCommandTest extends TestCase
     public function command_has_handle_method(): void
     {
         $this->assertTrue(method_exists($this->command, 'handle'));
-        
+
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('handle');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -64,7 +64,7 @@ class DatabaseHealthCheckCommandTest extends TestCase
     public function command_structure_validation(): void
     {
         $reflection = new \ReflectionClass($this->command);
-        
+
         $this->assertTrue($reflection->hasProperty('signature'));
         $this->assertTrue($reflection->hasProperty('description'));
         $this->assertTrue($reflection->hasMethod('handle'));

@@ -20,5 +20,9 @@ interface CurrencyApplicationServiceInterface
 
     public function getExchangeRate(string $from, string $to): ?float;
 
-    public function convert(float $amount, string $from, string $to): ?float;
+    public function convert(
+        float $amount,
+        string $from,
+        string $to,
+    ): ?float;
 }

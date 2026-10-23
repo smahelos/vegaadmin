@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Infrastructure\Persistence\Eloquent\Payment\Mappers;
-    
+
 use App\Domain\Payment\DTO\BankDTO;
 use App\Models\Bank;
 

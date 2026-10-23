@@ -5,12 +5,13 @@ namespace Tests\Unit\Http\Controllers\Api;
 use App\Http\Controllers\Api\ApiBackpackController;
 use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
 use ReflectionClass;
+use Tests\TestCase;
 
 class ApiBackpackControllerTest extends TestCase
 {
     private ApiBackpackController $controller;
+
     private object $user;
 
     protected function setUp(): void
@@ -18,17 +19,23 @@ class ApiBackpackControllerTest extends TestCase
         parent::setUp();
         $this->controller = app(ApiBackpackController::class);
         // Use simple value object instead of real Eloquent model to keep unit test isolated from framework boot logic
-        $this->user = new class {
+        $this->user = new class
+        {
             public int $id = 99;
+
             public string $name = 'Admin';
-            public function hasRole(string $role): bool { return false; }
+
+            public function hasRole(string $role): bool
+            {
+                return false;
+            }
         };
     }
 
     #[Test]
     public function get_authenticated_user_prefers_backpack_guard(): void
     {
-    $backpackGuard = \Mockery::mock();
+        $backpackGuard = \Mockery::mock();
         $backpackGuard->shouldReceive('check')->andReturn(true);
         $backpackGuard->shouldReceive('user')->andReturn($this->user);
         $webGuard = \Mockery::mock();
@@ -83,6 +90,7 @@ class ApiBackpackControllerTest extends TestCase
         $ref = new ReflectionClass($this->controller);
         $m = $ref->getMethod($method);
         $m->setAccessible(true);
+
         return $m->invokeArgs($this->controller, $args);
     }
 }

@@ -6,11 +6,9 @@ interface Locale
 {
     /**
      * Get locale
-     *
-     * @return string
      */
     public function getLocale(): string;
-    
+
     /**
      * Get available locales from config.
      *
@@ -20,26 +18,22 @@ interface Locale
 
     /**
      * Get fallback locale from config.
-     *
-     * @return string
      */
     public function getFallbackLocale(): string;
 
     /**
-     * Get country locale map from config. 
+     * Get country locale map from config.
      *
      * @return array<string>
      */
     public function getCountryLocaleMap(): array;
-    
+
     /**
      * Set application locale and update session.
      *
-     * @param string $locale Locale to set
-     * @return void
+     * @param  string  $locale  Locale to set
      */
     public function setLocale(string $locale): void;
-
 
     /**
      * Map country code to preferred locale using configuration.
@@ -49,8 +43,9 @@ interface Locale
 
     /**
      * Summary of determineLocale
-     * @param mixed $requestLocale
-     * @param mixed $dataLocale
+     *
+     * @param  mixed  $requestLocale
+     * @param  mixed  $dataLocale
      * @return void
      */
     public function determineLocale(?string $requestLocale = null, ?string $dataLocale = null): string;

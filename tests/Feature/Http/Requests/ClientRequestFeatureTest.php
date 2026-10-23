@@ -3,16 +3,16 @@
 namespace Tests\Feature\Http\Requests;
 
 use App\Http\Requests\ClientRequest;
-use App\Models\User;
 use App\Models\Client;
 use App\Models\EntityLimit;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
@@ -23,17 +23,13 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class ClientRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $user;
-    protected User $adminUser;
     protected array $validClientData;
 
     /**
      * Set up the test environment.
      * Creates test user and valid client data for request testing.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -47,7 +43,7 @@ class ClientRequestFeatureTest extends TestCase
             ->first();
 
         // Create regular user with limited role
-        if (!$this->user) {
+        if (! $this->user) {
             $this->user = User::factory()->create([
                 'name' => $this->faker->name,
                 'email' => $this->faker->unique()->safeEmail,
@@ -98,22 +94,24 @@ class ClientRequestFeatureTest extends TestCase
 
     /**
      * Helper method to generate locale-based routes.
-     *
-     * @param string $name
-     * @param array $parameters
-     * @param string $locale
-     * @return string
      */
-    private function localizedRoute(string $name, array $parameters = [], string $locale = 'en'): string
-    {
+    private function localizedRoute(
+        string $name,
+        array $parameters = [],
+        string $locale = 'en',
+    ): string {
         return route($name, array_merge(['locale' => $locale], $parameters));
     }
 
     #[Test]
     public function validation_passes_with_valid_data()
     {
-        $request = new ClientRequest();
-        $validator = Validator::make($this->validClientData, $request->rules(), $request->messages());
+        $request = new ClientRequest;
+        $validator = Validator::make(
+            $this->validClientData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
@@ -122,32 +120,56 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_required_fields_missing()
     {
-        $requiredFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country'];
+        $requiredFields = [
+            'name',
+            'email',
+            'phone',
+            'street',
+            'city',
+            'zip',
+            'country',
+        ];
 
         foreach ($requiredFields as $field) {
             $invalidData = $this->validClientData;
             unset($invalidData[$field]);
 
-            $request = new ClientRequest();
-            $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+            $request = new ClientRequest;
+            $validator = Validator::make(
+                $invalidData,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
-            $this->assertArrayHasKey($field, $validator->errors()->toArray(),
-                "Should have error for missing {$field}");
+            $this->assertArrayHasKey(
+                $field,
+                $validator->errors()->toArray(),
+                "Should have error for missing {$field}",
+            );
         }
     }
 
     #[Test]
     public function validation_fails_with_invalid_email()
     {
-        $invalidEmails = ['invalid-email', 'test@', '@example.com', 'test.example.com'];
+        $invalidEmails = [
+            'invalid-email',
+            'test@',
+            '@example.com',
+            'test.example.com',
+        ];
 
         foreach ($invalidEmails as $invalidEmail) {
             $invalidData = $this->validClientData;
             $invalidData['email'] = $invalidEmail;
 
-            $request = new ClientRequest();
-            $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+            $request = new ClientRequest;
+            $validator = Validator::make(
+                $invalidData,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(), "Validation should fail for email: {$invalidEmail}");
             $this->assertArrayHasKey('email', $validator->errors()->toArray());
@@ -173,8 +195,12 @@ class ClientRequestFeatureTest extends TestCase
             $invalidData = $this->validClientData;
             $invalidData[$field] = str_repeat('a', $maxLength + 1);
 
-            $request = new ClientRequest();
-            $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+            $request = new ClientRequest;
+            $validator = Validator::make(
+                $invalidData,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(),
                 "Validation should fail when {$field} exceeds {$maxLength} characters");
@@ -185,14 +211,24 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_nullable_fields_empty()
     {
-        $nullableFields = ['shortcut', 'ico', 'dic', 'description', 'is_default'];
+        $nullableFields = [
+            'shortcut',
+            'ico',
+            'dic',
+            'description',
+            'is_default',
+        ];
 
         foreach ($nullableFields as $field) {
             $dataWithNullField = $this->validClientData;
             $dataWithNullField[$field] = null;
 
-            $request = new ClientRequest();
-            $validator = Validator::make($dataWithNullField, $request->rules(), $request->messages());
+            $request = new ClientRequest;
+            $validator = Validator::make(
+                $dataWithNullField,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertFalse($validator->fails(),
                 "Validation should pass when nullable field {$field} is null");
@@ -202,17 +238,28 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_invalid_boolean_values()
     {
-        $invalidBooleanValues = ['invalid', 'yes', 'no', 2, -1, 'true_string'];
+        $invalidBooleanValues = [
+            'invalid',
+            'yes',
+            'no',
+            2,
+            -1,
+            'true_string',
+        ];
 
         foreach ($invalidBooleanValues as $invalidValue) {
             $invalidData = $this->validClientData;
             $invalidData['is_default'] = $invalidValue;
 
-            $request = new ClientRequest();
-            $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+            $request = new ClientRequest;
+            $validator = Validator::make(
+                $invalidData,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(),
-                "Validation should fail for is_default value: " . json_encode($invalidValue));
+                'Validation should fail for is_default value: ' . json_encode($invalidValue));
             $this->assertArrayHasKey('is_default', $validator->errors()->toArray());
         }
     }
@@ -220,17 +267,28 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_boolean_values()
     {
-        $validBooleanValues = [true, false, 1, 0, '1', '0'];
+        $validBooleanValues = [
+            true,
+            false,
+            1,
+            0,
+            '1',
+            '0',
+        ];
 
         foreach ($validBooleanValues as $validValue) {
             $validData = $this->validClientData;
             $validData['is_default'] = $validValue;
 
-            $request = new ClientRequest();
-            $validator = Validator::make($validData, $request->rules(), $request->messages());
+            $request = new ClientRequest;
+            $validator = Validator::make(
+                $validData,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertFalse($validator->fails(),
-                "Validation should pass for is_default value: " . json_encode($validValue));
+                'Validation should pass for is_default value: ' . json_encode($validValue));
         }
     }
 
@@ -244,7 +302,11 @@ class ClientRequestFeatureTest extends TestCase
         $this->assertNotEquals(403, $response->getStatusCode());
 
         // Should either succeed or have validation errors, but not authorization errors
-        $this->assertTrue(in_array($response->getStatusCode(), [200, 201, 302]));
+        $this->assertTrue(in_array($response->getStatusCode(), [
+            200,
+            201,
+            302,
+        ]));
     }
 
     #[Test]
@@ -259,17 +321,29 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function required_errors_name_the_field_label(): void
     {
-        $request = new ClientRequest();
+        $request = new ClientRequest;
 
-        foreach (['name', 'email', 'street', 'city', 'zip', 'country'] as $field) {
+        foreach ([
+            'name',
+            'email',
+            'street',
+            'city',
+            'zip',
+            'country',
+        ] as $field) {
             $invalidData = $this->validClientData;
             unset($invalidData[$field]);
 
-            $validator = Validator::make($invalidData, $request->rules(), $request->messages(), $request->attributes());
+            $validator = Validator::make(
+                $invalidData,
+                $request->rules(),
+                $request->messages(),
+                $request->attributes(),
+            );
 
             $this->assertSame(
                 __('validation.required', ['attribute' => __("clients.fields.{$field}")]),
-                $validator->errors()->first($field)
+                $validator->errors()->first($field),
             );
         }
     }
@@ -302,8 +376,12 @@ class ClientRequestFeatureTest extends TestCase
         $dataWithWhitespace = $this->validClientData;
         $dataWithWhitespace['name'] = '  ' . $this->validClientData['name'] . '  ';
 
-        $request = new ClientRequest();
-        $validator = Validator::make($dataWithWhitespace, $request->rules(), $request->messages());
+        $request = new ClientRequest;
+        $validator = Validator::make(
+            $dataWithWhitespace,
+            $request->rules(),
+            $request->messages(),
+        );
 
         // Name with whitespace should be valid
         $this->assertFalse($validator->fails());
@@ -312,7 +390,11 @@ class ClientRequestFeatureTest extends TestCase
         $dataWithEmailWhitespace = $this->validClientData;
         $dataWithEmailWhitespace['email'] = '  ' . $this->validClientData['email'] . '  ';
 
-        $validator = Validator::make($dataWithEmailWhitespace, $request->rules(), $request->messages());
+        $validator = Validator::make(
+            $dataWithEmailWhitespace,
+            $request->rules(),
+            $request->messages(),
+        );
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('email'));
 
@@ -321,7 +403,11 @@ class ClientRequestFeatureTest extends TestCase
         $dataWithSpecialChars['name'] = 'Company & Partners Ltd.';
         $dataWithSpecialChars['street'] = 'Wenceslas Square 123/45';
 
-        $validator = Validator::make($dataWithSpecialChars, $request->rules(), $request->messages());
+        $validator = Validator::make(
+            $dataWithSpecialChars,
+            $request->rules(),
+            $request->messages(),
+        );
         $this->assertFalse($validator->fails());
     }
 
@@ -345,8 +431,12 @@ class ClientRequestFeatureTest extends TestCase
             $validData[$field] = $value;
         }
 
-        $request = new ClientRequest();
-        $validator = Validator::make($validData, $request->rules(), $request->messages());
+        $request = new ClientRequest;
+        $validator = Validator::make(
+            $validData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertFalse($validator->fails(),
             'Validation should pass with exact maximum length values');

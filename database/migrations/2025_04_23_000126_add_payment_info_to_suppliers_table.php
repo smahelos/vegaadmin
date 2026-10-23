@@ -33,7 +33,7 @@ return new class extends Migration
                 'iban',
                 'swift',
                 'bank_name',
-                'has_payment_info'
+                'has_payment_info',
             ]);
         });
     }

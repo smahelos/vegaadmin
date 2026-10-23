@@ -21,6 +21,7 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
     use RefreshDatabaseWithData;
 
     private UniversalLimitService $service;
+
     private User $user;
 
     protected bool $seedDatabase = false; // We'll create only what we need
@@ -32,8 +33,8 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
         $this->service = app(UniversalLimitService::class);
 
         $this->user = User::create([
-            'name' => 'Limit User '.uniqid(),
-            'email' => 'limit_'.uniqid().'@example.com',
+            'name' => 'Limit User ' . uniqid(),
+            'email' => 'limit_' . uniqid() . '@example.com',
             'password' => bcrypt('password'),
         ]);
 
@@ -88,11 +89,24 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
     #[Test]
     public function best_period_type_selects_highest_limit_and_convenience_method_uses_it(): void
     {
-        $best = $this->service->getBestPeriodType($this->user->id, 'invoice', 'count');
-        $this->assertEquals('lifetime', $best, 'Expected lifetime period chosen due to highest limit');
+        $best = $this->service->getBestPeriodType(
+            $this->user->id,
+            'invoice',
+            'count',
+        );
+        $this->assertEquals(
+            'lifetime',
+            $best,
+            'Expected lifetime period chosen due to highest limit',
+        );
 
         // Use generic checkLimit with best period instead of convenience method (removed in refactor)
-        $result = $this->service->checkLimit($this->user->id, 'invoice', 'count', $best);
+        $result = $this->service->checkLimit(
+            $this->user->id,
+            'invoice',
+            'count',
+            $best,
+        );
         $this->assertEquals(1000, $result['limit']);
         $this->assertEquals('lifetime', $result['period_type']);
         $this->assertTrue($result['allowed']);
@@ -112,20 +126,34 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
             ->first();
 
         $this->assertNotNull($usage, 'Usage record for lifetime period should exist');
-        $this->assertEquals(3, (int)$usage->current_value);
+        $this->assertEquals(3, (int) $usage->current_value);
     }
 
     #[Test]
     public function get_entity_limit_info_aggregates_limits_and_usage(): void
     {
         // Record some usage across two periods explicitly
-        $this->service->recordUsage($this->user->id, 'invoice', 'count', 'daily', 'web', 2);
-        $this->service->recordUsage($this->user->id, 'invoice', 'count', 'monthly', 'web', 4);
+        $this->service->recordUsage(
+            $this->user->id,
+            'invoice',
+            'count',
+            'daily',
+            'web',
+            2,
+        );
+        $this->service->recordUsage(
+            $this->user->id,
+            'invoice',
+            'count',
+            'monthly',
+            'web',
+            4,
+        );
 
-    $info = $this->service->getEntityLimitInfo($this->user->id, 'invoice');
+        $info = $this->service->getEntityLimitInfo($this->user->id, 'invoice');
 
-    $this->assertEquals('invoice', $info['entity_type']);
-    $this->assertTrue($info['can_create']);
+        $this->assertEquals('invoice', $info['entity_type']);
+        $this->assertTrue($info['can_create']);
         $this->assertArrayHasKey('count', $info['limits']);
         $this->assertArrayHasKey('daily', $info['limits']['count']);
         $this->assertArrayHasKey('monthly', $info['limits']['count']);

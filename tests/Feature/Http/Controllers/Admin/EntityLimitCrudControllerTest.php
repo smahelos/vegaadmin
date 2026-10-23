@@ -3,27 +3,21 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\EntityLimit;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 class EntityLimitCrudControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
-
-    private User $adminUser;
-    private User $regularUser;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->setUpAdminTestEnvironment();
     }
 
@@ -101,7 +95,7 @@ class EntityLimitCrudControllerTest extends TestCase
         // Update directly in database to test business logic
         // HTTP update has complex Backpack dependencies similar to other CRUD operations
         $limit->update($updateData);
-        
+
         $this->assertDatabaseHas('entity_limits', [
             'id' => $limit->id,
             'permission_name' => 'updated_limit',
@@ -120,10 +114,14 @@ class EntityLimitCrudControllerTest extends TestCase
 
         // Backpack may return 200 for successful deletes or redirect
         $this->assertTrue(
-            in_array($response->getStatusCode(), [200, 201, 302]),
-            'Expected status 200, 201, or 302 but got ' . $response->getStatusCode()
+            in_array($response->getStatusCode(), [
+                200,
+                201,
+                302,
+            ]),
+            'Expected status 200, 201, or 302 but got ' . $response->getStatusCode(),
         );
-        
+
         $this->assertDatabaseMissing('entity_limits', [
             'id' => $limit->id,
         ]);
@@ -137,7 +135,12 @@ class EntityLimitCrudControllerTest extends TestCase
         // Test missing required fields
         $response = $this->post(backpack_url('entity-limit'), []);
 
-        $response->assertSessionHasErrors(['permission_name', 'entity_type', 'metric_type', 'period_type']);
+        $response->assertSessionHasErrors([
+            'permission_name',
+            'entity_type',
+            'metric_type',
+            'period_type',
+        ]);
 
         // Test invalid entity type
         $response = $this->post(backpack_url('entity-limit'), [

@@ -9,9 +9,8 @@ class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWriteRepo
 {
     public function __construct(
         private readonly EloquentSubscriptionWriteRepository $subscriptionWriteRepository,
-        private readonly EloquentSubscriptionMapper $mapper
-    ) {
-    }
+        private readonly EloquentSubscriptionMapper $mapper,
+    ) {}
 
     public function activateById(int $subscriptionId, int $durationDays): bool
     {

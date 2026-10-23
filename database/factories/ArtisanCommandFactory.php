@@ -5,16 +5,17 @@ namespace Database\Factories;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ArtisanCommand>
+ * @extends Factory<ArtisanCommand>
  */
 class ArtisanCommandFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     * @var class-string<Model>
      */
     protected $model = ArtisanCommand::class;
 
@@ -29,7 +30,7 @@ class ArtisanCommandFactory extends Factory
         $uniqueId = $this->faker->unique()->randomNumber(6);
         $commandName = "test:command-{$uniqueId}";
         $description = "Test command {$uniqueId} description";
-        
+
         return [
             'name' => "Test Command {$uniqueId}",
             'description' => $description,
@@ -102,8 +103,11 @@ class ArtisanCommandFactory extends Factory
     /**
      * Create a command with specific details.
      */
-    public function withCommand(string $name, string $command, string $description = null): static
-    {
+    public function withCommand(
+        string $name,
+        string $command,
+        ?string $description = null,
+    ): static {
         return $this->state(fn (array $attributes) => [
             'name' => $name,
             'command' => $command,

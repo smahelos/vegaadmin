@@ -17,7 +17,7 @@ class UserFormFieldsFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->controller = new TestUserController();
+        $this->controller = new TestUserController;
     }
 
     #[Test]
@@ -39,7 +39,7 @@ class UserFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->controller->getUserFields();
 
-        $nameField = array_filter($fields, fn($field) => $field['name'] === 'name');
+        $nameField = array_filter($fields, fn ($field) => $field['name'] === 'name');
         $this->assertNotEmpty($nameField);
 
         $nameField = array_values($nameField)[0];
@@ -55,7 +55,7 @@ class UserFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->controller->getUserFields();
 
-        $emailField = array_filter($fields, fn($field) => $field['name'] === 'email');
+        $emailField = array_filter($fields, fn ($field) => $field['name'] === 'email');
         $this->assertNotEmpty($emailField);
 
         $emailField = array_values($emailField)[0];
@@ -110,7 +110,11 @@ class UserFormFieldsFeatureTest extends TestCase
         $this->assertCount(3, $fields);
 
         $fieldNames = array_column($fields, 'name');
-        $this->assertEquals(['password', 'password_confirmation', 'current_password'], $fieldNames);
+        $this->assertEquals([
+            'password',
+            'password_confirmation',
+            'current_password',
+        ], $fieldNames);
     }
 
     #[Test]
@@ -122,7 +126,11 @@ class UserFormFieldsFeatureTest extends TestCase
         $this->assertCount(3, $fields);
 
         $fieldNames = array_column($fields, 'name');
-        $this->assertEquals(['password', 'password_confirmation', 'current_password'], $fieldNames);
+        $this->assertEquals([
+            'password',
+            'password_confirmation',
+            'current_password',
+        ], $fieldNames);
     }
 
     #[Test]

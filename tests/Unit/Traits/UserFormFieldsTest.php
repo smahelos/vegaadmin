@@ -78,27 +78,6 @@ class UserFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function trait_has_proper_docblocks(): void
-    {
-        $reflection = new \ReflectionClass(UserFormFields::class);
-
-        // Check getUserFields method docblock
-        $getUserFieldsMethod = $reflection->getMethod('getUserFields');
-        $getUserFieldsDocComment = $getUserFieldsMethod->getDocComment();
-        $this->assertNotFalse($getUserFieldsDocComment);
-        $this->assertStringContainsString('Get user form fields definitions', $getUserFieldsDocComment);
-        $this->assertStringContainsString('@return array', $getUserFieldsDocComment);
-
-        // Check getPasswordFields method docblock
-        $getPasswordFieldsMethod = $reflection->getMethod('getPasswordFields');
-        $getPasswordFieldsDocComment = $getPasswordFieldsMethod->getDocComment();
-        $this->assertNotFalse($getPasswordFieldsDocComment);
-        $this->assertStringContainsString('Get password field definitions', $getPasswordFieldsDocComment);
-        $this->assertStringContainsString('@param bool $isEdit', $getPasswordFieldsDocComment);
-        $this->assertStringContainsString('@return array', $getPasswordFieldsDocComment);
-    }
-
-    #[Test]
     public function trait_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(UserFormFields::class);
@@ -121,7 +100,7 @@ class UserFormFieldsTest extends TestCase
         // Should have exactly 2 methods
         $this->assertCount(2, $methods);
 
-        $methodNames = array_map(fn($method) => $method->getName(), $methods);
+        $methodNames = array_map(fn ($method) => $method->getName(), $methods);
         $this->assertContains('getUserFields', $methodNames);
         $this->assertContains('getPasswordFields', $methodNames);
     }

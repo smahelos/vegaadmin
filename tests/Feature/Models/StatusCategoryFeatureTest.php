@@ -2,11 +2,12 @@
 
 namespace Tests\Feature\Models;
 
-use App\Models\StatusCategory;
 use App\Models\Status;
+use App\Models\StatusCategory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -73,7 +74,7 @@ class StatusCategoryFeatureTest extends TestCase
     {
         StatusCategory::factory()->create(['slug' => 'unique-slug']);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         StatusCategory::factory()->create(['slug' => 'unique-slug']);
     }
 
@@ -92,7 +93,7 @@ class StatusCategoryFeatureTest extends TestCase
     public function status_category_can_have_multiple_statuses()
     {
         $statusCategory = StatusCategory::factory()->create();
-        
+
         // Create statuses with this category
         $status1 = Status::factory()->create(['category_id' => $statusCategory->id]);
         $status2 = Status::factory()->create(['category_id' => $statusCategory->id]);
@@ -115,7 +116,7 @@ class StatusCategoryFeatureTest extends TestCase
     #[Test]
     public function status_category_slug_mutator_converts_name_to_slug()
     {
-        $statusCategory = new StatusCategory();
+        $statusCategory = new StatusCategory;
         $statusCategory->name = 'Test Category Name';
         $statusCategory->setSlugAttribute('');
 
@@ -126,7 +127,7 @@ class StatusCategoryFeatureTest extends TestCase
     #[Test]
     public function status_category_slug_mutator_uses_provided_slug()
     {
-        $statusCategory = new StatusCategory();
+        $statusCategory = new StatusCategory;
         $statusCategory->name = 'Test Category Name';
         $statusCategory->setSlugAttribute('custom-slug');
 
@@ -137,7 +138,7 @@ class StatusCategoryFeatureTest extends TestCase
     #[Test]
     public function status_category_slug_mutator_handles_special_characters()
     {
-        $statusCategory = new StatusCategory();
+        $statusCategory = new StatusCategory;
         $statusCategory->name = 'Speciální Kategorie';
         $statusCategory->setSlugAttribute('Speciální Název!!');
 
@@ -243,10 +244,10 @@ class StatusCategoryFeatureTest extends TestCase
         // If Status model uses soft deletes, test that behavior
         if (method_exists($status, 'delete')) {
             $status->delete();
-            
+
             // Refresh the relationship
             $statusCategory->refresh();
-            
+
             // Should not include soft deleted statuses by default
             $this->assertCount(0, $statusCategory->statuses);
         }

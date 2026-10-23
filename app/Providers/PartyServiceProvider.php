@@ -2,6 +2,32 @@
 
 namespace App\Providers;
 
+use App\Application\Party\Contracts\ClientReadRepositoryInterface;
+use App\Application\Party\Contracts\ClientWriteRepositoryInterface;
+use App\Application\Party\Contracts\PartyApplicationServiceInterface;
+use App\Application\Party\Contracts\SupplierReadRepositoryInterface;
+use App\Application\Party\Contracts\SupplierWriteRepositoryInterface;
+use App\Application\Party\Mappers\ClientArrayMapper;
+use App\Application\Party\Mappers\SupplierArrayMapper;
+use App\Application\Party\Services\PartyApplicationService;
+use App\Application\Party\Services\PartyAuthorizationService;
+use App\Application\Party\Services\PartyInputValidationService;
+use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
+use App\Domain\Party\Contracts\ClientDtoWriteRepositoryInterface;
+use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
+use App\Domain\Party\Contracts\PartyCreationValidatorInterface;
+use App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface;
+use App\Domain\Party\Contracts\SupplierDtoWriteRepositoryInterface;
+use App\Domain\Party\Services\InvoicePartyService;
+use App\Domain\Party\Validation\PartyCreationValidator;
+use App\Infrastructure\Persistence\Eloquent\Party\Observers\ClientObserver;
+use App\Infrastructure\Persistence\Eloquent\Party\Observers\SupplierObserver;
+use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentClientDtoRepository;
+use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentClientRepository;
+use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentSupplierDtoRepository;
+use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentSupplierRepository;
+use App\Models\Client;
+use App\Models\Supplier;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -24,13 +50,13 @@ class PartyServiceProvider extends ServiceProvider
     private function registerDomainServices(): void
     {
         $this->app->bind(
-            \App\Domain\Party\Contracts\InvoicePartyServiceInterface::class,
-            \App\Domain\Party\Services\InvoicePartyService::class
+            InvoicePartyServiceInterface::class,
+            InvoicePartyService::class,
         );
 
         $this->app->bind(
-            \App\Domain\Party\Contracts\PartyCreationValidatorInterface::class,
-            \App\Domain\Party\Validation\PartyCreationValidator::class
+            PartyCreationValidatorInterface::class,
+            PartyCreationValidator::class,
         );
     }
 
@@ -41,43 +67,43 @@ class PartyServiceProvider extends ServiceProvider
     {
         // Party repositories (Client & Supplier)
         $this->app->bind(
-            \App\Application\Party\Contracts\ClientReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentClientRepository::class
+            ClientReadRepositoryInterface::class,
+            EloquentClientRepository::class,
         );
 
         $this->app->bind(
-            \App\Application\Party\Contracts\ClientWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentClientRepository::class
+            ClientWriteRepositoryInterface::class,
+            EloquentClientRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentClientDtoRepository::class
+            ClientDtoReadRepositoryInterface::class,
+            EloquentClientDtoRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Party\Contracts\ClientDtoWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentClientDtoRepository::class
+            ClientDtoWriteRepositoryInterface::class,
+            EloquentClientDtoRepository::class,
         );
 
         $this->app->bind(
-            \App\Application\Party\Contracts\SupplierReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentSupplierRepository::class
+            SupplierReadRepositoryInterface::class,
+            EloquentSupplierRepository::class,
         );
 
         $this->app->bind(
-            \App\Application\Party\Contracts\SupplierWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentSupplierRepository::class
+            SupplierWriteRepositoryInterface::class,
+            EloquentSupplierRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentSupplierDtoRepository::class
+            SupplierDtoReadRepositoryInterface::class,
+            EloquentSupplierDtoRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Party\Contracts\SupplierDtoWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentSupplierDtoRepository::class
+            SupplierDtoWriteRepositoryInterface::class,
+            EloquentSupplierDtoRepository::class,
         );
     }
 
@@ -87,31 +113,31 @@ class PartyServiceProvider extends ServiceProvider
     private function registerApplicationServices(): void
     {
         $this->app->bind(
-            \App\Application\Party\Contracts\PartyApplicationServiceInterface::class,
-            \App\Application\Party\Services\PartyApplicationService::class
+            PartyApplicationServiceInterface::class,
+            PartyApplicationService::class,
         );
 
         // Application layer support services
         $this->app->singleton(
-            \App\Application\Party\Services\PartyAuthorizationService::class
+            PartyAuthorizationService::class,
         );
 
         $this->app->singleton(
-            \App\Application\Party\Mappers\ClientArrayMapper::class
+            ClientArrayMapper::class,
         );
 
         $this->app->singleton(
-            \App\Application\Party\Mappers\SupplierArrayMapper::class
+            SupplierArrayMapper::class,
         );
 
         $this->app->singleton(
-            \App\Application\Party\Services\PartyInputValidationService::class
+            PartyInputValidationService::class,
         );
     }
 
     public function boot(): void
     {
-        \App\Models\Client::observe(\App\Infrastructure\Persistence\Eloquent\Party\Observers\ClientObserver::class);
-        \App\Models\Supplier::observe(\App\Infrastructure\Persistence\Eloquent\Party\Observers\SupplierObserver::class);
+        Client::observe(ClientObserver::class);
+        Supplier::observe(SupplierObserver::class);
     }
 }

@@ -17,7 +17,11 @@ return new class extends Migration
             $table->string('current_value')->nullable();
             $table->string('recommended_value');
             $table->text('description')->nullable();
-            $table->enum('priority', ['high', 'medium', 'low'])->default('medium');
+            $table->enum('priority', [
+                'high',
+                'medium',
+                'low',
+            ])->default('medium');
             $table->boolean('applied')->default(false);
             $table->timestamps();
 

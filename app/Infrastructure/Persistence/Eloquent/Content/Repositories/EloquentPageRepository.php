@@ -17,8 +17,11 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     {
         foreach ($preferredSlugs as $slug) {
             $homepage = Page::published()->whereJsonContains("slug->{$locale}", $slug)->first();
-            if ($homepage) { return $homepage; }
+            if ($homepage) {
+                return $homepage;
+            }
         }
+
         return null;
     }
 
@@ -31,22 +34,42 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     {
         return Page::published()
             ->whereJsonContains("slug->{$locale}", $slug)
-            ->with(['category','parent','children'])
+            ->with([
+                'category',
+                'parent',
+                'children',
+            ])
             ->first();
     }
 
     public function findPublishedById(int $id): ?Page
     {
-        return Page::published()->where('id', $id)->with(['category','parent','children'])->first();
+        return Page::published()->where('id', $id)->with([
+            'category',
+            'parent',
+            'children',
+        ])->first();
     }
 
-    public function findPublishedBySlugInLocales(string $slug, array $locales, ?string $skipLocale = null): ?Page
-    {
+    public function findPublishedBySlugInLocales(
+        string $slug,
+        array $locales,
+        ?string $skipLocale = null,
+    ): ?Page {
         foreach ($locales as $searchLocale) {
-            if ($skipLocale !== null && $searchLocale === $skipLocale) { continue; }
-            $page = Page::published()->whereJsonContains("slug->{$searchLocale}", $slug)->with(['category','parent','children'])->first();
-            if ($page) { return $page; }
+            if ($skipLocale !== null && $searchLocale === $skipLocale) {
+                continue;
+            }
+            $page = Page::published()->whereJsonContains("slug->{$searchLocale}", $slug)->with([
+                'category',
+                'parent',
+                'children',
+            ])->first();
+            if ($page) {
+                return $page;
+            }
         }
+
         return null;
     }
 
@@ -54,7 +77,9 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     {
         return Page::published()
             ->rootPages()
-            ->with(['children' => function ($q) { $q->published()->orderBy('sort_order'); }])
+            ->with(['children' => function ($q) {
+                $q->published()->orderBy('sort_order');
+            }])
             ->orderBy('sort_order')
             ->get();
     }
@@ -71,8 +96,8 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
 
     public function getCategoriesWithPublishedPages(): Collection
     {
-        return PageCategory::whereHas('pages', fn($q) => $q->published())
-            ->with(['pages' => fn($q) => $q->published()->orderBy('sort_order')])
+        return PageCategory::whereHas('pages', fn ($q) => $q->published())
+            ->with(['pages' => fn ($q) => $q->published()->orderBy('sort_order')])
             ->get();
     }
 
@@ -80,16 +105,23 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     {
         return Page::published()->where(function ($q) use ($keyword, $locale) {
             $q->whereRaw("JSON_EXTRACT(name, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
-              ->orWhereRaw("JSON_EXTRACT(description, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
-              ->orWhereRaw("JSON_EXTRACT(content, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"]);
+                ->orWhereRaw("JSON_EXTRACT(description, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
+                ->orWhereRaw("JSON_EXTRACT(content, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"]);
         })->orderBy('sort_order')->get();
     }
 
-    public function getRelatedByCategory(int $categoryId, int $excludePageId, int $limit): Collection
-    {
+    public function getRelatedByCategory(
+        int $categoryId,
+        int $excludePageId,
+        int $limit,
+    ): Collection {
         return Page::published()
             ->byCategory($categoryId)
-            ->where('id', '!=', $excludePageId)
+            ->where(
+                'id',
+                '!=',
+                $excludePageId,
+            )
             ->orderBy('sort_order')
             ->limit($limit)
             ->get();
@@ -119,6 +151,7 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     {
         $model = new Page($data);
         $model->save();
+
         // Load relations to keep consistency with read DTOs (e.g., category)
         return $model->load(['category', 'children']);
     }
@@ -126,11 +159,14 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     public function updateById(int $id, array $data): ?Page
     {
         $model = Page::query()->find($id);
-        if (!$model) { return null; }
-        if (!empty($data)) {
+        if (! $model) {
+            return null;
+        }
+        if (! empty($data)) {
             $model->fill($data);
             $model->save();
         }
+
         // Load relations to keep consistency with read DTOs (e.g., category)
         return $model->load(['category', 'children']);
     }
@@ -138,7 +174,10 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     public function deleteById(int $id): bool
     {
         $model = Page::query()->find($id);
-        if (!$model) { return false; }
+        if (! $model) {
+            return false;
+        }
+
         return (bool) $model->delete();
     }
 }

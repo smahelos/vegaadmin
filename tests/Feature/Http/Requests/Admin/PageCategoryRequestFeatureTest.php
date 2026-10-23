@@ -3,21 +3,19 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\PageCategoryRequest;
-use App\Models\User;
 use App\Models\PageCategory;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for Admin PageCategoryRequest class.
  * Tests validation rules, authorization logic, and custom attributes/messages.
- * 
+ *
  * Real DB schema for page_categories:
  * - id: bigint(20) unsigned, autoincrement
  * - name: varchar(255)
@@ -28,11 +26,9 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class PageCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     private User $user;
-    protected User $adminUser;
-    protected User $regularUser;
 
     /**
      * Set up test environment.
@@ -43,12 +39,12 @@ class PageCategoryRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-        
+
         // Define test routes
         Route::post('/test-page-category', function (PageCategoryRequest $request) {
             return response()->json(['success' => true]);
         })->middleware('web');
-        
+
         Route::put('/test-page-category/{id}', function (PageCategoryRequest $request, $id) {
             return response()->json(['success' => true]);
         })->middleware('web');
@@ -58,7 +54,7 @@ class PageCategoryRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_multilingual_data(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $validData = [
             'name_cs' => 'Testovací kategorie',
             'name_en' => 'Test Category',
@@ -75,7 +71,7 @@ class PageCategoryRequestFeatureTest extends TestCase
         ];
 
         $response = $this->postJson('/test-page-category', $validData);
-        
+
         $response->assertStatus(200);
     }
 
@@ -83,7 +79,7 @@ class PageCategoryRequestFeatureTest extends TestCase
     public function validation_fails_when_multilingual_name_is_missing(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $invalidData = [
             'slug_cs' => 'test-category-' . uniqid(),
             'slug_en' => 'test-category-' . uniqid(),
@@ -92,7 +88,7 @@ class PageCategoryRequestFeatureTest extends TestCase
         ];
 
         $response = $this->postJson('/test-page-category', $invalidData);
-        
+
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name']);
     }
@@ -101,7 +97,7 @@ class PageCategoryRequestFeatureTest extends TestCase
     public function validation_fails_when_no_locale_has_complete_data(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $invalidData = [
             'name_cs' => '', // empty name
             'name_en' => '', // empty name
@@ -109,12 +105,12 @@ class PageCategoryRequestFeatureTest extends TestCase
             'name_sk' => '', // empty name
             'slug_cs' => 'some-slug', // has slug but no name
             'slug_en' => '', // empty slug
-            'slug_de' => '', // empty slug  
+            'slug_de' => '', // empty slug
             'slug_sk' => '', // empty slug
         ];
 
         $response = $this->postJson('/test-page-category', $invalidData);
-        
+
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name', 'slug']);
     }
@@ -123,7 +119,7 @@ class PageCategoryRequestFeatureTest extends TestCase
     public function validation_passes_when_at_least_one_locale_has_complete_data(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $validData = [
             'name_cs' => 'Testovací kategorie',
             'name_en' => '', // empty is OK
@@ -140,7 +136,7 @@ class PageCategoryRequestFeatureTest extends TestCase
         ];
 
         $response = $this->postJson('/test-page-category', $validData);
-        
+
         $response->assertStatus(200);
     }
 
@@ -148,7 +144,7 @@ class PageCategoryRequestFeatureTest extends TestCase
     public function validation_fails_when_slug_is_missing(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         // Since prepareForValidation auto-generates slug, test with an empty name instead
         // which would result in an empty slug
         $invalidData = [
@@ -157,7 +153,7 @@ class PageCategoryRequestFeatureTest extends TestCase
         ];
 
         $response = $this->postJson('/test-page-category', $invalidData);
-        
+
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name']); // Name is required, not slug
     }
@@ -166,10 +162,10 @@ class PageCategoryRequestFeatureTest extends TestCase
     public function validation_fails_when_slug_is_not_unique(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         // Create an existing category
         $existingCategory = PageCategory::factory()->create(['slug' => 'existing-slug']);
-        
+
         $invalidData = [
             'name' => 'Test Category',
             'slug' => 'existing-slug', // Duplicate slug
@@ -177,7 +173,7 @@ class PageCategoryRequestFeatureTest extends TestCase
         ];
 
         $response = $this->postJson('/test-page-category', $invalidData);
-        
+
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['slug']);
     }
@@ -186,7 +182,7 @@ class PageCategoryRequestFeatureTest extends TestCase
     public function validation_passes_with_optional_multilingual_description(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $validData = [
             'name_cs' => 'Test Category',
             'name_en' => 'Test Category',
@@ -200,7 +196,7 @@ class PageCategoryRequestFeatureTest extends TestCase
         ];
 
         $response = $this->postJson('/test-page-category', $validData);
-        
+
         $response->assertStatus(200);
     }
 
@@ -214,18 +210,16 @@ class PageCategoryRequestFeatureTest extends TestCase
         ];
 
         $response = $this->postJson('/test-page-category', $validData);
-        
+
         $response->assertStatus(403);
     }
-
-
 
     #[Test]
     public function validation_rules_can_be_tested_directly(): void
     {
-        $request = new PageCategoryRequest();
+        $request = new PageCategoryRequest;
         $rules = $request->rules();
-        
+
         // Test with valid multilingual data (all locales required)
         $validData = [
             'name_cs' => 'Test Category',
@@ -241,7 +235,7 @@ class PageCategoryRequestFeatureTest extends TestCase
             'description_de' => 'Test Kategorie Beschreibung',
             'description_sk' => 'Test kategórie popis',
         ];
-        
+
         $validator = Validator::make($validData, $rules);
         $this->assertFalse($validator->fails());
         $this->assertTrue($validator->passes());
@@ -251,12 +245,12 @@ class PageCategoryRequestFeatureTest extends TestCase
     public function validation_rules_fail_with_invalid_data(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         // Test with empty data - should fail because no locale has complete data
         $invalidData = [];
-        
+
         $response = $this->postJson('/test-page-category', $invalidData);
-        
+
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name', 'slug']);
     }
@@ -267,10 +261,10 @@ class PageCategoryRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $response = $this->postJson('/test-page-category', [
             'name_cs' => str_repeat('a', 256),
-            'slug_cs' => 'category-'.uniqid(),
+            'slug_cs' => 'category-' . uniqid(),
         ]);
         $response->assertStatus(422);
-        $this->assertStringContainsString(__('pages.categories.fields.name').' (CS)', $response->json('errors')['name_cs'][0]);
+        $this->assertStringContainsString(__('pages.categories.fields.name') . ' (CS)', $response->json('errors')['name_cs'][0]);
     }
 
     #[Test]

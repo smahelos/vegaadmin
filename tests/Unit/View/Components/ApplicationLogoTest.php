@@ -4,7 +4,6 @@ namespace Tests\Unit\View\Components;
 
 use App\View\Components\ApplicationLogo;
 use Illuminate\View\Component;
-use Illuminate\View\View;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -15,8 +14,8 @@ class ApplicationLogoTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->component = new ApplicationLogo();
+
+        $this->component = new ApplicationLogo;
     }
 
     #[Test]
@@ -35,7 +34,7 @@ class ApplicationLogoTest extends TestCase
     public function render_method_exists_and_is_public(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));
-        
+
         $reflection = new \ReflectionClass(ApplicationLogo::class);
         $method = $reflection->getMethod('render');
         $this->assertTrue($method->isPublic());
@@ -47,7 +46,7 @@ class ApplicationLogoTest extends TestCase
         $reflection = new \ReflectionClass(ApplicationLogo::class);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\View\View', $returnType->getName());
     }
@@ -58,7 +57,7 @@ class ApplicationLogoTest extends TestCase
         $reflection = new \ReflectionClass(ApplicationLogo::class);
         $method = $reflection->getMethod('render');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(0, $parameters);
     }
 
@@ -66,7 +65,7 @@ class ApplicationLogoTest extends TestCase
     public function component_has_expected_namespace(): void
     {
         $reflection = new \ReflectionClass(ApplicationLogo::class);
-        
+
         $this->assertEquals('App\View\Components', $reflection->getNamespaceName());
     }
 
@@ -74,12 +73,12 @@ class ApplicationLogoTest extends TestCase
     public function component_has_correct_class_structure(): void
     {
         $reflection = new \ReflectionClass(ApplicationLogo::class);
-        
+
         // Should not be abstract or interface
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isInterface());
         $this->assertTrue($reflection->isInstantiable());
-        
+
         // Should extend Component
         $this->assertTrue($reflection->isSubclassOf(Component::class));
     }
@@ -90,7 +89,7 @@ class ApplicationLogoTest extends TestCase
         $reflection = new \ReflectionClass(ApplicationLogo::class);
         $method = $reflection->getMethod('render');
         $docComment = $method->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('Render the application logo component', $docComment);
     }
@@ -100,7 +99,7 @@ class ApplicationLogoTest extends TestCase
     {
         $reflection = new \ReflectionClass(ApplicationLogo::class);
         $fileContent = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('use Illuminate\View\Component;', $fileContent);
         $this->assertStringContainsString('use Illuminate\View\View;', $fileContent);
     }
@@ -110,12 +109,12 @@ class ApplicationLogoTest extends TestCase
     {
         $reflection = new \ReflectionClass(ApplicationLogo::class);
         $publicMethods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
-        
+
         // Should have only the render method (plus inherited methods)
-        $componentMethods = array_filter($publicMethods, function($method) {
+        $componentMethods = array_filter($publicMethods, function ($method) {
             return $method->getDeclaringClass()->getName() === ApplicationLogo::class;
         });
-        
+
         $this->assertCount(1, $componentMethods);
         $this->assertEquals('render', reset($componentMethods)->getName());
     }

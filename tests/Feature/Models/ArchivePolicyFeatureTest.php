@@ -3,9 +3,8 @@
 namespace Tests\Feature\Models;
 
 use App\Models\ArchivePolicy;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\RequiresOptimizationTables;
@@ -62,7 +61,7 @@ class ArchivePolicyFeatureTest extends TestCase
         $this->assertIsBool($archivePolicy->enabled);
         $this->assertIsInt($archivePolicy->retention_months);
         $this->assertIsInt($archivePolicy->records_archived);
-        $this->assertInstanceOf(\Carbon\Carbon::class, $archivePolicy->created_at);
+        $this->assertInstanceOf(Carbon::class, $archivePolicy->created_at);
     }
 
     #[Test]
@@ -201,7 +200,7 @@ class ArchivePolicyFeatureTest extends TestCase
 
         $this->assertDatabaseHas('archive_policies', array_merge(
             ['id' => $policy->id],
-            $newData
+            $newData,
         ));
     }
 
@@ -225,7 +224,7 @@ class ArchivePolicyFeatureTest extends TestCase
 
         $policy = ArchivePolicy::factory()->create(['last_archived_at' => '2024-01-15 10:30:00']);
 
-        $this->assertInstanceOf(\Carbon\Carbon::class, $policy->last_archived_at);
+        $this->assertInstanceOf(Carbon::class, $policy->last_archived_at);
         $this->assertEquals('2024-01-15 10:30:00', $policy->last_archived_at->format('Y-m-d H:i:s'));
     }
 

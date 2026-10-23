@@ -2,42 +2,40 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Models\User;
+use App\Models\Client;
+use App\Models\EntityLimit;
+use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
-use App\Models\Client;
-use App\Models\Invoice;
-use App\Models\EntityLimit;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for invoice logo upload functionality
- * 
+ *
  * Tests complete HTTP flow of invoice logo upload, validation, and storage
  */
 class InvoiceLogoUploadTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $user;
     protected PaymentMethod $paymentMethod;
+
     protected Status $paymentStatus;
+
     protected Supplier $supplier;
+
     protected Client $client;
 
     /**
      * Set up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -47,8 +45,8 @@ class InvoiceLogoUploadTest extends TestCase
 
         // Create required permissions for 'web' guard
         $permission = Permission::where('name', 'frontend.can_create_edit_invoice')
-                               ->where('guard_name', 'web')
-                               ->first();
+            ->where('guard_name', 'web')
+            ->first();
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
@@ -98,7 +96,14 @@ class InvoiceLogoUploadTest extends TestCase
             'payment_status_id' => $this->paymentStatus->id,
             'payment_amount' => 1000.00,
             'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([['name' => 'Service', 'quantity' => '1', 'unit' => 'pieces', 'price' => '100', 'currency' => 'CZK', 'tax_rate' => '0']]),
+            'invoice-products' => json_encode([[
+                'name' => 'Service',
+                'quantity' => '1',
+                'unit' => 'pieces',
+                'price' => '100',
+                'currency' => 'CZK',
+                'tax_rate' => '0',
+            ]]),
             'issue_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Test invoice description',
@@ -110,7 +115,7 @@ class InvoiceLogoUploadTest extends TestCase
         $response->assertRedirect();
         // Check that redirect indicates success (contains 'invoice' route)
         $this->assertTrue(str_contains($response->headers->get('Location'), 'invoice'));
-        
+
         // Verify invoice was created
         $this->assertDatabaseHas('invoices', [
             'invoice_vs' => 'TEST001',
@@ -122,7 +127,7 @@ class InvoiceLogoUploadTest extends TestCase
         $invoice = Invoice::where('invoice_vs', 'TEST001')->first();
         $this->assertNotNull($invoice->invoice_logo);
         $this->assertStringContainsString('invoices/logos', $invoice->invoice_logo);
-        
+
         // Verify file was actually uploaded
         $this->assertTrue(Storage::disk('public')->exists($invoice->invoice_logo));
     }
@@ -143,7 +148,14 @@ class InvoiceLogoUploadTest extends TestCase
             'payment_status_id' => $this->paymentStatus->id,
             'payment_amount' => 1000.00,
             'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([['name' => 'Service', 'quantity' => '1', 'unit' => 'pieces', 'price' => '100', 'currency' => 'CZK', 'tax_rate' => '0']]),
+            'invoice-products' => json_encode([[
+                'name' => 'Service',
+                'quantity' => '1',
+                'unit' => 'pieces',
+                'price' => '100',
+                'currency' => 'CZK',
+                'tax_rate' => '0',
+            ]]),
             'issue_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Test invoice description',
@@ -153,7 +165,7 @@ class InvoiceLogoUploadTest extends TestCase
         $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $invoiceData);
 
         $response->assertSessionHasErrors('invoice_logo');
-        
+
         // Verify invoice was not created
         $this->assertDatabaseMissing('invoices', [
             'invoice_vs' => 'TEST002',
@@ -176,7 +188,14 @@ class InvoiceLogoUploadTest extends TestCase
             'payment_status_id' => $this->paymentStatus->id,
             'payment_amount' => 1000.00,
             'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([['name' => 'Service', 'quantity' => '1', 'unit' => 'pieces', 'price' => '100', 'currency' => 'CZK', 'tax_rate' => '0']]),
+            'invoice-products' => json_encode([[
+                'name' => 'Service',
+                'quantity' => '1',
+                'unit' => 'pieces',
+                'price' => '100',
+                'currency' => 'CZK',
+                'tax_rate' => '0',
+            ]]),
             'issue_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Test invoice description',
@@ -186,7 +205,7 @@ class InvoiceLogoUploadTest extends TestCase
         $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $invoiceData);
 
         $response->assertSessionHasErrors('invoice_logo');
-        
+
         // Verify invoice was not created
         $this->assertDatabaseMissing('invoices', [
             'invoice_vs' => 'TEST003',
@@ -218,7 +237,14 @@ class InvoiceLogoUploadTest extends TestCase
             'payment_status_id' => $this->paymentStatus->id,
             'payment_amount' => 1500.00,
             'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([['name' => 'Service', 'quantity' => '1', 'unit' => 'pieces', 'price' => '100', 'currency' => 'CZK', 'tax_rate' => '0']]),
+            'invoice-products' => json_encode([[
+                'name' => 'Service',
+                'quantity' => '1',
+                'unit' => 'pieces',
+                'price' => '100',
+                'currency' => 'CZK',
+                'tax_rate' => '0',
+            ]]),
             'issue_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Updated invoice description',
@@ -229,12 +255,12 @@ class InvoiceLogoUploadTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHasNoErrors();
-        
+
         // Verify invoice was updated
         $invoice->refresh();
         $this->assertNotNull($invoice->invoice_logo);
         $this->assertStringContainsString('invoices/logos', $invoice->invoice_logo);
-        
+
         // Verify file was actually uploaded
         $this->assertTrue(Storage::disk('public')->exists($invoice->invoice_logo));
     }
@@ -252,7 +278,14 @@ class InvoiceLogoUploadTest extends TestCase
             'payment_status_id' => $this->paymentStatus->id,
             'payment_amount' => 1000.00,
             'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([['name' => 'Service', 'quantity' => '1', 'unit' => 'pieces', 'price' => '100', 'currency' => 'CZK', 'tax_rate' => '0']]),
+            'invoice-products' => json_encode([[
+                'name' => 'Service',
+                'quantity' => '1',
+                'unit' => 'pieces',
+                'price' => '100',
+                'currency' => 'CZK',
+                'tax_rate' => '0',
+            ]]),
             'issue_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Test invoice without logo',
@@ -262,11 +295,11 @@ class InvoiceLogoUploadTest extends TestCase
         $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $invoiceData);
 
         $response->assertRedirect();
-        
-        // Check that the redirect location indicates success (contains 'invoice' route) 
+
+        // Check that the redirect location indicates success (contains 'invoice' route)
         // If there were validation errors, we would get redirected back to create form
         $this->assertTrue(str_contains($response->headers->get('Location'), 'invoice'));
-        
+
         // Verify invoice was created
         $this->assertDatabaseHas('invoices', [
             'invoice_vs' => 'TEST004',

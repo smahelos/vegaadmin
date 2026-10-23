@@ -6,7 +6,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Centralized validation service for Product business rules.
- * 
+ *
  * Validates business logic constraints before delegating
  * operations to the Domain layer.
  */
@@ -15,12 +15,19 @@ class ProductInputValidationService
     /**
      * Validate product business rules.
      */
-    public function validateProductBusinessRules(array $data, int $userId, ?int $excludeProductId = null): void
-    {
+    public function validateProductBusinessRules(
+        array $data,
+        int $userId,
+        ?int $excludeProductId = null,
+    ): void {
         $isUpdate = $excludeProductId !== null;
         $this->validateRequiredFields($data, $isUpdate);
         $this->validateDataTypes($data);
-        $this->validateBusinessConstraints($data, $userId, $excludeProductId);
+        $this->validateBusinessConstraints(
+            $data,
+            $userId,
+            $excludeProductId,
+        );
     }
 
     /**
@@ -29,33 +36,33 @@ class ProductInputValidationService
     private function validateRequiredFields(array $data, bool $isUpdate): void
     {
         // Name is required only on creation. On update, validate only if provided.
-        if (!$isUpdate) {
+        if (! $isUpdate) {
             if (empty($data['name'])) {
                 throw ValidationException::withMessages([
-                    'name' => ['Product name is required.']
+                    'name' => ['Product name is required.'],
                 ]);
             }
         } else {
             if (array_key_exists('name', $data) && empty($data['name'])) {
                 throw ValidationException::withMessages([
-                    'name' => ['Product name is required when provided.']
+                    'name' => ['Product name is required when provided.'],
                 ]);
             }
         }
 
         // Price is required only on creation. On update it can be omitted if not changing.
-        if (!$isUpdate) {
+        if (! $isUpdate) {
             $hasPrice = array_key_exists('price', $data) || array_key_exists('price_money', $data) || array_key_exists('amount', $data);
-            if (!$hasPrice) {
+            if (! $hasPrice) {
                 throw ValidationException::withMessages([
-                    'price' => ['Product price is required and must be non-negative.']
+                    'price' => ['Product price is required and must be non-negative.'],
                 ]);
             }
         }
 
-        if (!isset($data['user_id']) || !is_numeric($data['user_id'])) {
+        if (! isset($data['user_id']) || ! is_numeric($data['user_id'])) {
             throw ValidationException::withMessages([
-                'user_id' => ['User ID is required for product.']
+                'user_id' => ['User ID is required for product.'],
             ]);
         }
     }
@@ -66,25 +73,25 @@ class ProductInputValidationService
     private function validateDataTypes(array $data): void
     {
         // Accept price in multiple shapes; validate numerically after normalization
-        if (isset($data['price']) && !is_numeric($data['price'])) {
+        if (isset($data['price']) && ! is_numeric($data['price'])) {
             // allow non-numeric here (string like "10.50") and defer numeric check below
         }
 
-        if (isset($data['category_id']) && !empty($data['category_id']) && !is_numeric($data['category_id'])) {
+        if (isset($data['category_id']) && ! empty($data['category_id']) && ! is_numeric($data['category_id'])) {
             throw ValidationException::withMessages([
-                'category_id' => ['Category ID must be a valid number.']
+                'category_id' => ['Category ID must be a valid number.'],
             ]);
         }
 
-        if (isset($data['supplier_id']) && !empty($data['supplier_id']) && !is_numeric($data['supplier_id'])) {
+        if (isset($data['supplier_id']) && ! empty($data['supplier_id']) && ! is_numeric($data['supplier_id'])) {
             throw ValidationException::withMessages([
-                'supplier_id' => ['Supplier ID must be a valid number.']
+                'supplier_id' => ['Supplier ID must be a valid number.'],
             ]);
         }
 
-        if (isset($data['tax_id']) && !empty($data['tax_id']) && !is_numeric($data['tax_id'])) {
+        if (isset($data['tax_id']) && ! empty($data['tax_id']) && ! is_numeric($data['tax_id'])) {
             throw ValidationException::withMessages([
-                'tax_id' => ['Tax ID must be a valid number.']
+                'tax_id' => ['Tax ID must be a valid number.'],
             ]);
         }
     }
@@ -92,19 +99,22 @@ class ProductInputValidationService
     /**
      * Validate business constraints.
      */
-    private function validateBusinessConstraints(array $data, int $userId, ?int $excludeProductId = null): void
-    {
+    private function validateBusinessConstraints(
+        array $data,
+        int $userId,
+        ?int $excludeProductId = null,
+    ): void {
         // Validate name length
         if (isset($data['name']) && strlen($data['name']) > 255) {
             throw ValidationException::withMessages([
-                'name' => ['Product name must not exceed 255 characters.']
+                'name' => ['Product name must not exceed 255 characters.'],
             ]);
         }
 
         // Validate description length
         if (isset($data['description']) && strlen($data['description']) > 1000) {
             throw ValidationException::withMessages([
-                'description' => ['Product description must not exceed 1000 characters.']
+                'description' => ['Product description must not exceed 1000 characters.'],
             ]);
         }
 
@@ -113,18 +123,22 @@ class ProductInputValidationService
             if (isset($data['price_money']['amount'])) {
                 $price = (float) $data['price_money']['amount'];
             } elseif (isset($data['amount'])) {
-                $price = (float) str_replace([',',' '], ['.',''], (string)$data['amount']);
+                $price = (float) str_replace(
+                    [',', ' '],
+                    ['.', ''],
+                    (string) $data['amount'],
+                );
             } else {
                 $price = (float) $data['price'];
             }
             if ($price < 0) {
                 throw ValidationException::withMessages([
-                    'price' => ['Product price cannot be negative.']
+                    'price' => ['Product price cannot be negative.'],
                 ]);
             }
             if ($price > 999999.99) {
                 throw ValidationException::withMessages([
-                    'price' => ['Product price cannot exceed 999,999.99.']
+                    'price' => ['Product price cannot exceed 999,999.99.'],
                 ]);
             }
         }
@@ -132,7 +146,7 @@ class ProductInputValidationService
         // Validate user ownership
         if (isset($data['user_id']) && (int) $data['user_id'] !== $userId) {
             throw ValidationException::withMessages([
-                'user_id' => ['Product cannot be assigned to a different user.']
+                'user_id' => ['Product cannot be assigned to a different user.'],
             ]);
         }
     }

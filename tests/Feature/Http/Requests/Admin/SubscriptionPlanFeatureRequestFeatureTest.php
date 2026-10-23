@@ -3,23 +3,18 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\SubscriptionPlanFeatureRequest;
-use App\Models\User;
 use App\Models\SubscriptionPlanFeature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-    protected User $regularUser;
     private SubscriptionPlanFeatureRequest $request;
 
     protected function setUp(): void
@@ -28,9 +23,9 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-        
-        $this->request = new SubscriptionPlanFeatureRequest();
-        
+
+        $this->request = new SubscriptionPlanFeatureRequest;
+
         // Set up test route
         Route::post('/test-subscription-plan-feature', function (SubscriptionPlanFeatureRequest $request) {
             return response()->json(['success' => true]);
@@ -47,7 +42,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
     public function authorize_returns_false_without_permission(): void
     {
         $this->actingAs($this->regularUser, 'backpack');
-        
+
         $this->assertFalse($this->request->authorize());
     }
 
@@ -57,7 +52,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         $response = $this->actingAs($this->adminUser, 'backpack')
             ->postJson('/test-subscription-plan-feature', [
                 'name' => 'Test Feature',
-                'slug' => 'test-feature'
+                'slug' => 'test-feature',
             ]);
 
         $response->assertStatus(200);
@@ -73,7 +68,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
     }
@@ -89,7 +84,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
     }
@@ -104,7 +99,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('slug', $validator->errors()->toArray());
     }
@@ -113,7 +108,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
     public function validation_fails_when_slug_is_not_unique(): void
     {
         SubscriptionPlanFeature::factory()->create(['slug' => 'existing-feature']);
-        
+
         $data = [
             'name' => 'Test Feature',
             'slug' => 'existing-feature',
@@ -122,7 +117,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('slug', $validator->errors()->toArray());
     }
@@ -138,7 +133,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('sort_order', $validator->errors()->toArray());
     }
@@ -154,7 +149,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('is_active', $validator->errors()->toArray());
     }
@@ -171,7 +166,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertFalse($validator->fails());
     }
 
@@ -184,7 +179,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertFalse($validator->fails());
     }
 
@@ -198,15 +193,22 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertFalse($validator->fails());
     }
 
     #[Test]
     public function validation_allows_boolean_values_for_is_active(): void
     {
-        $validValues = [true, false, 1, 0, '1', '0'];
-        
+        $validValues = [
+            true,
+            false,
+            1,
+            0,
+            '1',
+            '0',
+        ];
+
         foreach ($validValues as $value) {
             $data = [
                 'name' => 'Test Feature ' . uniqid(),
@@ -215,7 +217,7 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
             ];
 
             $validator = Validator::make($data, $this->request->rules());
-            
+
             $this->assertFalse($validator->fails(), "Value '{$value}' should be valid for is_active");
         }
     }

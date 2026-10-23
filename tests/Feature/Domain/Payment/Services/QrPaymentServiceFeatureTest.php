@@ -2,29 +2,27 @@
 
 namespace Tests\Feature\Domain\Payment\Services;
 
+use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
+use App\Domain\Payment\Contracts\QrCodeRendererInterface;
+use App\Domain\Payment\Services\QrPaymentService;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
-use App\Domain\Payment\Services\QrPaymentService;
-use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
-use App\Domain\Payment\DTO\QrPaymentPayload;
-use Tests\Traits\RefreshDatabaseWithData;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use App\Domain\Payment\Contracts\QrCodeRendererInterface;
+use Tests\Traits\RefreshDatabaseWithData;
 
 class QrPaymentServiceFeatureTest extends TestCase
 {
     // Use custom trait that runs fresh migrations and seeds required data (permissions, roles, etc.)
-    use RefreshDatabaseWithData, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabaseWithData;
 
     private QrPaymentService $service;
 
     private QrCodeRendererInterface $qrRenderer;
-    private QrPaymentPayloadMapper $mapper;
 
-    private User $user;
+    private QrPaymentPayloadMapper $mapper;
 
     protected function setUp(): void
     {
@@ -36,7 +34,12 @@ class QrPaymentServiceFeatureTest extends TestCase
         // Ensure renderer returns a valid data URL instead of an empty string in tests
         $this->qrRenderer
             ->method('renderDataUrl')
-            ->willReturnCallback(function (string $qrString, int $size = 300, int $margin = 2, string $errorCorrection = 'H'): string {
+            ->willReturnCallback(function (
+                string $qrString,
+                int $size = 300,
+                int $margin = 2,
+                string $errorCorrection = 'H',
+            ): string {
                 return 'data:image/png;base64,' . base64_encode($qrString);
             });
         $this->service = new QrPaymentService($this->qrRenderer);
@@ -55,7 +58,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->generateQrCodeBase64($payload);
-        
+
         // Variable symbol is optional for CZ provider, valid account + amount should generate QR
         $this->assertNotNull($result);
         $this->assertIsString($result);
@@ -73,7 +76,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->generateQrCodeBase64($payload);
-        
+
         $this->assertNull($result);
     }
 
@@ -87,7 +90,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->generateQrCodeBase64($payload);
-        
+
         $this->assertNull($result);
     }
 
@@ -103,7 +106,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->generateQrCodeBase64($payload);
-        
+
         // Result should be either null or a valid base64 string
         $this->assertTrue($result === null || (is_string($result) && str_starts_with($result, 'data:image/png;base64,')));
     }
@@ -121,7 +124,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->generateQrCodeBase64($payload);
-        
+
         // Result should be either null or a valid base64 string
         $this->assertTrue($result === null || (is_string($result) && str_starts_with($result, 'data:image/png;base64,')));
     }
@@ -139,7 +142,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->generateQrCodeBase64($payload);
-        
+
         $this->assertNotNull($result);
         $this->assertStringStartsWith('data:image/png;base64,', $result);
     }
@@ -156,7 +159,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ]);
         $payload = $this->mapper->fromArray($invoice->toArray());
         $result = $this->service->hasRequiredPaymentInfo($payload);
-        
+
         $this->assertFalse($result);
     }
 
@@ -168,11 +171,11 @@ class QrPaymentServiceFeatureTest extends TestCase
             'supplier_id' => null,
             'payment_amount' => '1000.00',
             'payment_currency' => 'CZK',
-            'invoice_vs' => '20240001'
+            'invoice_vs' => '20240001',
         ]);
         $payload = $this->mapper->fromArray($invoice->toArray());
         $result = $this->service->hasRequiredPaymentInfo($payload);
-        
+
         $this->assertFalse($result);
     }
 
@@ -188,7 +191,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->hasRequiredPaymentInfo($payload);
-        
+
         $this->assertTrue($result);
     }
 
@@ -204,7 +207,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->hasRequiredPaymentInfo($payload);
-        
+
         $this->assertTrue($result);
     }
 
@@ -214,15 +217,15 @@ class QrPaymentServiceFeatureTest extends TestCase
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
             'account_number' => '987654321',
-            'bank_code' => '0200'
+            'bank_code' => '0200',
         ]);
-        
+
         $invoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
             'supplier_id' => $supplier->id,
             'payment_amount' => '1000.00',
             'payment_currency' => 'CZK',
-            'invoice_vs' => '20240001'
+            'invoice_vs' => '20240001',
         ]);
         // Mapper fromInvoice does not fallback to supplier account data; use array with supplier_* keys
         $data = array_merge($invoice->toArray(), [
@@ -231,7 +234,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ]);
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->hasRequiredPaymentInfo($payload);
-        
+
         $this->assertTrue($result);
     }
 
@@ -241,15 +244,15 @@ class QrPaymentServiceFeatureTest extends TestCase
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
             // Use EU IBAN to match EUR currency and EU provider
-            'iban' => 'DE89370400440532013000'
+            'iban' => 'DE89370400440532013000',
         ]);
-        
+
         $invoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
             'supplier_id' => $supplier->id,
             'payment_amount' => '1000.00',
             'payment_currency' => 'EUR',
-            'invoice_vs' => '20240001'
+            'invoice_vs' => '20240001',
         ]);
         // Mapper fromInvoice does not fallback to supplier IBAN; use array with supplier_* keys
         $data = array_merge($invoice->toArray(), [
@@ -257,7 +260,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ]);
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->hasRequiredPaymentInfo($payload);
-        
+
         $this->assertTrue($result);
     }
 
@@ -275,7 +278,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->generateQrCodeBase64($payload);
-        
+
         // Should handle any issues and return a result or null
         $this->assertTrue($result === null || (is_string($result) && str_starts_with($result, 'data:image/png;base64,')));
     }
@@ -297,7 +300,7 @@ class QrPaymentServiceFeatureTest extends TestCase
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->generateQrCodeBase64($payload);
-        
+
         $this->assertNotNull($result);
         $this->assertStringStartsWith('data:image/png;base64,', $result);
     }
@@ -310,11 +313,11 @@ class QrPaymentServiceFeatureTest extends TestCase
             'payment_amount' => 1000,
             'payment_currency' => 'CZK',
             'account_number' => '123456789',
-            'bank_code' => '0100'
+            'bank_code' => '0100',
         ];
         $payload = $this->mapper->fromArray($data);
         $result = $this->service->generateQrCodeBase64($payload);
-        
+
         // Result should be either null or a valid base64 string
         $this->assertTrue($result === null || (is_string($result) && str_starts_with($result, 'data:image/png;base64,')));
     }

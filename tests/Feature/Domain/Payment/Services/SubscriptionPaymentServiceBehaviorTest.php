@@ -2,21 +2,22 @@
 
 namespace Tests\Feature\Domain\Payment\Services;
 
+use App\Domain\Payment\Contracts\GatewayRegistryInterface;
+use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
+use App\Domain\Payment\Contracts\PaymentGatewayInterface;
+use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
-use App\Domain\Payment\Services\SubscriptionPaymentService;
+use App\Domain\Payment\DTO\PaymentDTO;
+use App\Domain\Payment\DTO\PaymentWriteData;
+use App\Domain\Payment\DTO\SubscriptionDTO;
+use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentPaymentMapper;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentWriteRepository;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
-use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\Fakes\Payment\FakePaymentGateway;
-use App\Domain\Payment\Contracts\GatewayRegistryInterface;
-use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
-use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentWriteRepository;
-use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentPaymentMapper;
-use App\Domain\Payment\DTO\PaymentDTO;
-use App\Domain\Payment\DTO\PaymentWriteData;
 use Tests\TestCase;
 use Tests\Traits\RefreshDatabaseWithData;
 
@@ -28,6 +29,7 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     use RefreshDatabaseWithData;
 
     private SubscriptionPaymentServiceInterface $service;
+
     private FakePaymentGateway $fakeGateway;
 
     protected function setUp(): void
@@ -35,7 +37,8 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
         parent::setUp();
 
         // Use a numeric-ID fake gateway to match PaymentWriteData (gateway_payment_id expects int)
-        $this->fakeGateway = new class extends FakePaymentGateway {
+        $this->fakeGateway = new class extends FakePaymentGateway
+        {
             public function createPayment(array $paymentData): array
             {
                 if ($this->shouldFailCreate) {
@@ -63,65 +66,105 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
             }
         };
         // Override registry with a deterministic in-memory stub using instance() to replace any resolved singleton
-        $registryStub = new class($this->fakeGateway) implements GatewayRegistryInterface {
+        $registryStub = new class($this->fakeGateway) implements GatewayRegistryInterface
+        {
             private array $store = [];
+
             private array $meta = [];
-            public function __construct(private $fake) {
+
+            public function __construct(private $fake)
+            {
                 // Pre-register fake for deterministic availability
                 $this->store['fake'] = $this->fake;
                 $this->meta['fake'] = [
                     'display_name' => 'Fake Gateway',
-                    'currencies' => ['EUR','USD'],
+                    'currencies' => ['EUR', 'USD'],
                     'recurring' => null,
                 ];
             }
-            public function register(string $name, \App\Domain\Payment\Contracts\PaymentGatewayInterface $gateway): void { $this->store[$name] = $gateway; }
-            public function get(string $name): ?\App\Domain\Payment\Contracts\PaymentGatewayInterface { return $this->store[$name] ?? ($name === 'fake' ? $this->fake : null); }
-            public function names(): array { return array_keys($this->store); }
-            public function remove(string $name): void { unset($this->store[$name], $this->meta[$name]); }
-            public function metadata(string $name): ?array { return $this->meta[$name] ?? null; }
-            public function allMetadata(): array { return $this->meta; }
+
+            public function register(string $name, PaymentGatewayInterface $gateway): void
+            {
+                $this->store[$name] = $gateway;
+            }
+
+            public function get(string $name): ?PaymentGatewayInterface
+            {
+                return $this->store[$name] ?? ($name === 'fake' ? $this->fake : null);
+            }
+
+            public function names(): array
+            {
+                return array_keys($this->store);
+            }
+
+            public function remove(string $name): void
+            {
+                unset($this->store[$name], $this->meta[$name]);
+            }
+
+            public function metadata(string $name): ?array
+            {
+                return $this->meta[$name] ?? null;
+            }
+
+            public function allMetadata(): array
+            {
+                return $this->meta;
+            }
         };
         app()->instance(GatewayRegistryInterface::class, $registryStub);
         // Rebind PaymentDtoWriteRepositoryInterface to a safe test implementation (avoid loading undefined relations)
         app()->bind(PaymentDtoWriteRepositoryInterface::class, function ($app) {
             $eloquent = $app->make(EloquentPaymentWriteRepository::class);
             $mapper = $app->make(EloquentPaymentMapper::class);
-            return new class($eloquent, $mapper) implements PaymentDtoWriteRepositoryInterface {
+
+            return new class($eloquent, $mapper) implements PaymentDtoWriteRepositoryInterface
+            {
                 public function __construct(
                     private EloquentPaymentWriteRepository $eloquent,
-                    private EloquentPaymentMapper $mapper
+                    private EloquentPaymentMapper $mapper,
                 ) {}
+
                 public function create(PaymentWriteData $attributes): PaymentDTO
                 {
                     $m = $this->eloquent->create($attributes->toModelAttributes());
+
                     return $this->mapper->toDto($m);
                 }
+
                 public function updateById(int $paymentId, PaymentWriteData $attributes): PaymentDTO
                 {
-                    $m = \App\Models\Payment::query()->find($paymentId);
+                    $m = Payment::query()->find($paymentId);
                     if ($m && ($arr = $attributes->toModelAttributes())) {
                         $m->fill($arr);
                         $m->save();
                     }
-                    $m = \App\Models\Payment::query()->findOrFail($paymentId);
+                    $m = Payment::query()->findOrFail($paymentId);
+
                     return $this->mapper->toDto($m);
                 }
+
                 public function applyRefund(int $paymentId, float $amount): bool
                 {
-                    $m = \App\Models\Payment::query()->find($paymentId);
+                    $m = Payment::query()->find($paymentId);
+
                     return $m ? $m->applyRefund($amount) : false;
                 }
             };
         });
         // Bind a safe SubscriptionDtoReadRepositoryInterface stub to bypass faulty mapper subscriptionPlan handling
-        app()->bind(\App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface::class, function () {
-            return new class implements \App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface {
-                public function findById(int $id): ?\App\Domain\Payment\DTO\SubscriptionDTO
+        app()->bind(SubscriptionDtoReadRepositoryInterface::class, function () {
+            return new class implements SubscriptionDtoReadRepositoryInterface
+            {
+                public function findById(int $id): ?SubscriptionDTO
                 {
-                    $m = \App\Models\Subscription::find($id);
-                    if (!$m) { return null; }
-                    return \App\Domain\Payment\DTO\SubscriptionDTO::fromArray([
+                    $m = Subscription::find($id);
+                    if (! $m) {
+                        return null;
+                    }
+
+                    return SubscriptionDTO::fromArray([
                         'id' => (int) $m->id,
                         'user_id' => (int) $m->user_id,
                         'subscription_plan_id' => $m->subscription_plan_id ? (int) $m->subscription_plan_id : null,
@@ -131,7 +174,12 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                         'ends_at' => $m->ends_at?->toDateTimeString(),
                         'trial_ends_at' => $m->trial_ends_at?->toDateTimeString(),
                         'next_billing_at' => $m->next_billing_at?->toDateTimeString(),
-                        'amount' => $m->amount !== null ? number_format((float)$m->amount, 2, '.', '') : null,
+                        'amount' => $m->amount !== null ? number_format(
+                            (float) $m->amount,
+                            2,
+                            '.',
+                            '',
+                        ) : null,
                         'currency' => $m->currency,
                         'metadata' => null,
                         'created_at' => $m->created_at?->toDateTimeString(),
@@ -175,10 +223,19 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
         $subscription = $this->makeSubscription();
         $subscriptionId = $subscription->id;
         // Pass amount/currency as strings to match PaymentWriteData types
-        $result = $this->service->processSubscriptionPayment($subscriptionId, 'fake', [
-            'amount' => number_format((float)$subscription->amount, 2, '.', ''),
-            'currency' => (string)$subscription->currency,
-        ]);
+        $result = $this->service->processSubscriptionPayment(
+            $subscriptionId,
+            'fake',
+            [
+                'amount' => number_format(
+                    (float) $subscription->amount,
+                    2,
+                    '.',
+                    '',
+                ),
+                'currency' => (string) $subscription->currency,
+            ],
+        );
 
         $this->assertTrue($result['success']);
         $this->assertNotNull($result['payment_id']);
@@ -197,10 +254,19 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     {
         $subscription = $this->makeSubscription();
         $this->fakeGateway->shouldFailCreate = true;
-        $result = $this->service->processSubscriptionPayment($subscription->id, 'fake', [
-            'amount' => number_format((float)$subscription->amount, 2, '.', ''),
-            'currency' => (string)$subscription->currency,
-        ]);
+        $result = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            [
+                'amount' => number_format(
+                    (float) $subscription->amount,
+                    2,
+                    '.',
+                    '',
+                ),
+                'currency' => (string) $subscription->currency,
+            ],
+        );
 
         $this->assertFalse($result['success']);
         $this->assertArrayHasKey('error', $result);
@@ -215,10 +281,19 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     public function callback_completed_updates_payment_and_activates_subscription(): void
     {
         $subscription = $this->makeSubscription();
-        $process = $this->service->processSubscriptionPayment($subscription->id, 'fake', [
-            'amount' => number_format((float)$subscription->amount, 2, '.', ''),
-            'currency' => (string)$subscription->currency,
-        ]);
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            [
+                'amount' => number_format(
+                    (float) $subscription->amount,
+                    2,
+                    '.',
+                    '',
+                ),
+                'currency' => (string) $subscription->currency,
+            ],
+        );
         $payment = Payment::find($process['payment_id']);
         $this->assertEquals('pending', $payment->status);
         // Simulate gateway callback with completed status
@@ -239,10 +314,19 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     public function callback_failed_updates_payment_and_does_not_activate_subscription(): void
     {
         $subscription = $this->makeSubscription();
-        $process = $this->service->processSubscriptionPayment($subscription->id, 'fake', [
-            'amount' => number_format((float)$subscription->amount, 2, '.', ''),
-            'currency' => (string)$subscription->currency,
-        ]);
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            [
+                'amount' => number_format(
+                    (float) $subscription->amount,
+                    2,
+                    '.',
+                    '',
+                ),
+                'currency' => (string) $subscription->currency,
+            ],
+        );
         $payment = Payment::find($process['payment_id']);
         // Simulate failed callback
         $cb = $this->service->handlePaymentCallback('fake', [
@@ -261,10 +345,19 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     public function verify_subscription_updates_status_and_activates_when_completed(): void
     {
         $subscription = $this->makeSubscription();
-        $process = $this->service->processSubscriptionPayment($subscription->id, 'fake', [
-            'amount' => number_format((float)$subscription->amount, 2, '.', ''),
-            'currency' => (string)$subscription->currency,
-        ]);
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            [
+                'amount' => number_format(
+                    (float) $subscription->amount,
+                    2,
+                    '.',
+                    '',
+                ),
+                'currency' => (string) $subscription->currency,
+            ],
+        );
         $payment = Payment::find($process['payment_id']);
         // Set gateway status to completed manually
         $this->fakeGateway->statuses[$process['gateway_payment_id']] = 'completed';
@@ -281,10 +374,19 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     public function cancellation_marks_pending_payment_cancelled(): void
     {
         $subscription = $this->makeSubscription();
-        $process = $this->service->processSubscriptionPayment($subscription->id, 'fake', [
-            'amount' => number_format((float)$subscription->amount, 2, '.', ''),
-            'currency' => (string)$subscription->currency,
-        ]);
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            [
+                'amount' => number_format(
+                    (float) $subscription->amount,
+                    2,
+                    '.',
+                    '',
+                ),
+                'currency' => (string) $subscription->currency,
+            ],
+        );
         $payment = Payment::find($process['payment_id']);
         $this->assertEquals('pending', $payment->status);
         $cancel = $this->service->cancelSubscriptionPayment($subscription->id);
@@ -297,10 +399,19 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     public function refund_completed_payment_returns_success_and_amount(): void
     {
         $subscription = $this->makeSubscription();
-        $process = $this->service->processSubscriptionPayment($subscription->id, 'fake', [
-            'amount' => number_format((float)$subscription->amount, 2, '.', ''),
-            'currency' => (string)$subscription->currency,
-        ]);
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            [
+                'amount' => number_format(
+                    (float) $subscription->amount,
+                    2,
+                    '.',
+                    '',
+                ),
+                'currency' => (string) $subscription->currency,
+            ],
+        );
         $payment = Payment::find($process['payment_id']);
         // Complete payment via callback
         $this->service->handlePaymentCallback('fake', [
@@ -320,7 +431,11 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     public function refund_pending_payment_fails(): void
     {
         $subscription = $this->makeSubscription();
-        $process = $this->service->processSubscriptionPayment($subscription->id, 'fake', []);
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            [],
+        );
         $payment = Payment::find($process['payment_id']);
         $this->assertEquals('pending', $payment->status);
         $refund = $this->service->refundSubscriptionPayment($payment->id, 5.00);
@@ -332,7 +447,11 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     public function unsupported_gateway_process_returns_error(): void
     {
         $subscription = $this->makeSubscription();
-        $result = $this->service->processSubscriptionPayment($subscription->id, 'nonexistent', []);
+        $result = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'nonexistent',
+            [],
+        );
         $this->assertFalse($result['success']);
         $this->assertStringContainsString('Unsupported gateway', $result['error']);
     }
@@ -347,7 +466,7 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
         $this->assertArrayHasKey('fake', $gateways);
         $fake = $gateways['fake'];
         $this->assertEquals('Fake Gateway', $fake['name']);
-        $this->assertEquals(['EUR','USD'], $fake['supported_currencies']);
+        $this->assertEquals(['EUR', 'USD'], $fake['supported_currencies']);
         $this->assertArrayHasKey('supports_recurring', $fake); // presence check (may be null/false)
     }
 }

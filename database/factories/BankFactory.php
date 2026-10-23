@@ -6,7 +6,7 @@ use App\Models\Bank;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Bank>
+ * @extends Factory<Bank>
  */
 class BankFactory extends Factory
 {
@@ -23,7 +23,12 @@ class BankFactory extends Factory
             'name' => $this->faker->company() . ' Bank',
             'code' => $this->faker->unique()->regexify('[0-9]{4}'),
             'swift' => $this->faker->optional()->regexify('[A-Z]{4}CZ[0-9A-Z]{4}'),
-            'country' => $this->faker->randomElement(['CZ', 'SK', 'DE', 'AT']),
+            'country' => $this->faker->randomElement([
+                'CZ',
+                'SK',
+                'DE',
+                'AT',
+            ]),
             'active' => $this->faker->boolean(85), // 85% chance of being active
             'description' => $this->faker->optional()->sentence(),
         ];

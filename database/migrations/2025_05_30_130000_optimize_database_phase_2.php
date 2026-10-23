@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class OptimizeDatabasePhase2 extends Migration
 {
@@ -21,7 +21,7 @@ class OptimizeDatabasePhase2 extends Migration
         }
 
         // Only show progress in production environment, not during tests
-        if (!app()->environment('testing')) {
+        if (! app()->environment('testing')) {
             echo "Phase 2: Adding composite indexes and performance optimizations...\n";
         }
 
@@ -35,7 +35,11 @@ class OptimizeDatabasePhase2 extends Migration
             $table->index(['user_id', 'client_id'], 'idx_invoices_user_client');
 
             // Payment status checking (user + payment calculations)
-            $table->index(['user_id', 'issue_date', 'due_in'], 'idx_invoices_payment_calc');
+            $table->index([
+                'user_id',
+                'issue_date',
+                'due_in',
+            ], 'idx_invoices_payment_calc');
 
             // Payment status filtering with user context
             $table->index(['user_id', 'payment_status_id'], 'idx_invoices_user_payment_status');
@@ -101,8 +105,16 @@ class OptimizeDatabasePhase2 extends Migration
         // 7. AUDIT/LOGGING PERFORMANCE (if audit tables exist)
         if (Schema::hasTable('activity_log')) {
             Schema::table('activity_log', function (Blueprint $table) {
-                $table->index(['subject_type', 'subject_id', 'created_at'], 'idx_activity_subject_created');
-                $table->index(['causer_type', 'causer_id', 'created_at'], 'idx_activity_causer_created');
+                $table->index([
+                    'subject_type',
+                    'subject_id',
+                    'created_at',
+                ], 'idx_activity_subject_created');
+                $table->index([
+                    'causer_type',
+                    'causer_id',
+                    'created_at',
+                ], 'idx_activity_causer_created');
             });
         }
 
@@ -121,9 +133,9 @@ class OptimizeDatabasePhase2 extends Migration
 
         // Note: users table indexes not needed - it already has proper primary key and unique email index
 
-        if (!app()->environment('testing')) {
+        if (! app()->environment('testing')) {
             echo "Phase 2 optimization completed successfully!\n";
-            echo "Added " . $this->getIndexCount() . " composite indexes for optimal query performance.\n";
+            echo 'Added ' . $this->getIndexCount() . " composite indexes for optimal query performance.\n";
         }
     }
 
@@ -134,7 +146,7 @@ class OptimizeDatabasePhase2 extends Migration
      */
     public function down()
     {
-        if (!app()->environment('testing')) {
+        if (! app()->environment('testing')) {
             echo "Rolling back Phase 2 optimizations...\n";
         }
 
@@ -193,15 +205,13 @@ class OptimizeDatabasePhase2 extends Migration
             $table->dropIndex('idx_invoices_user_invoice_vs');
         });
 
-        if (!app()->environment('testing')) {
+        if (! app()->environment('testing')) {
             echo "Phase 2 rollback completed.\n";
         }
     }
 
     /**
      * Get total count of indexes being added
-     *
-     * @return int
      */
     private function getIndexCount(): int
     {

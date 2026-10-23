@@ -14,8 +14,8 @@ class TestCronExpressionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->command = new TestCronExpression();
+
+        $this->command = new TestCronExpression;
     }
 
     #[Test]
@@ -28,11 +28,11 @@ class TestCronExpressionTest extends TestCase
     public function command_has_correct_signature(): void
     {
         $expectedSignature = 'cron:test {id? : tasd ID to test} {--expression= : CRON expression to test}';
-        
+
         $reflection = new \ReflectionClass($this->command);
         $property = $reflection->getProperty('signature');
         $property->setAccessible(true);
-        
+
         $this->assertEquals($expectedSignature, $property->getValue($this->command));
     }
 
@@ -40,11 +40,11 @@ class TestCronExpressionTest extends TestCase
     public function command_has_correct_description(): void
     {
         $expectedDescription = 'Tests cron expression and shows time of next run.';
-        
+
         $reflection = new \ReflectionClass($this->command);
         $property = $reflection->getProperty('description');
         $property->setAccessible(true);
-        
+
         $this->assertEquals($expectedDescription, $property->getValue($this->command));
     }
 
@@ -60,7 +60,7 @@ class TestCronExpressionTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('handle');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('int', $returnType->getName());
     }
@@ -69,15 +69,15 @@ class TestCronExpressionTest extends TestCase
     public function command_structure_validation(): void
     {
         $reflection = new \ReflectionClass($this->command);
-        
+
         // Check that class uses proper namespace
         $this->assertEquals('App\Console\Commands', $reflection->getNamespaceName());
-        
+
         // Check that signature property exists and is protected
         $signatureProperty = $reflection->getProperty('signature');
         $this->assertTrue($signatureProperty->isProtected());
-        
-        // Check that description property exists and is protected  
+
+        // Check that description property exists and is protected
         $descriptionProperty = $reflection->getProperty('description');
         $this->assertTrue($descriptionProperty->isProtected());
     }
@@ -94,7 +94,7 @@ class TestCronExpressionTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $fileName = $reflection->getFileName();
         $content = file_get_contents($fileName);
-        
+
         $this->assertStringContainsString('use Illuminate\Console\Command;', $content);
         $this->assertStringContainsString('use App\Models\CronTask;', $content);
         $this->assertStringContainsString('use Carbon\Carbon;', $content);
@@ -106,7 +106,7 @@ class TestCronExpressionTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->command);
         $docComment = $reflection->getDocComment();
-        
+
         $this->assertNotEmpty($docComment);
     }
 
@@ -114,7 +114,7 @@ class TestCronExpressionTest extends TestCase
     public function command_has_private_helper_methods(): void
     {
         $reflection = new \ReflectionClass($this->command);
-        
+
         $convertMethod = $reflection->getMethod('convertFrequencyToExpression');
         $this->assertTrue($convertMethod->isPrivate());
     }

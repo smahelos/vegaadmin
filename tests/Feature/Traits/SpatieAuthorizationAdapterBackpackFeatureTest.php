@@ -19,7 +19,7 @@ class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->adapter = new SpatieAuthorizationAdapter();
+        $this->adapter = new SpatieAuthorizationAdapter;
 
         // Create required permissions/roles for backpack guard
         Permission::firstOrCreate(['name' => 'can_view_client', 'guard_name' => 'backpack']);
@@ -77,7 +77,7 @@ class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
 
         $viewer = User::factory()->create();
         $viewer->givePermissionTo(
-            Permission::where('name', 'can_view_client')->where('guard_name', 'backpack')->first()
+            Permission::where('name', 'can_view_client')->where('guard_name', 'backpack')->first(),
         );
         $this->assertTrue($this->adapter->canAccessAnyClients($viewer->id));
 

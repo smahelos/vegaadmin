@@ -9,6 +9,6 @@ return [
         'not_found' => 'IČO wurde nicht in ARES gefunden.',
         'api_error' => 'Fehler bei der Kommunikation mit ARES.',
         'parsing_error' => 'Antwort von ARES konnte nicht verarbeitet werden.',
-        'general_error' => 'Bei der Kommunikation mit ARES ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.'
-    ]
+        'general_error' => 'Bei der Kommunikation mit ARES ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.',
+    ],
 ];

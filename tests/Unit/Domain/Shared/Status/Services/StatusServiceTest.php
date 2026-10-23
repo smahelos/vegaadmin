@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Domain\Shared\Status\Services;
 
-use Tests\TestCase;
-use ReflectionClass;
-use App\Domain\Shared\Status\Services\StatusService;
 use App\Domain\Shared\Status\Contracts\StatusServiceInterface;
+use App\Domain\Shared\Status\Services\StatusService;
+use ReflectionClass;
+use Tests\TestCase;
 
 class StatusServiceTest extends TestCase
 {
@@ -15,8 +15,15 @@ class StatusServiceTest extends TestCase
         $this->assertInstanceOf(StatusService::class, $service);
 
         $ref = new ReflectionClass($service);
-        $methods = collect($ref->getMethods())->filter(fn($m)=>$m->isPublic() && $m->class === StatusService::class)->map->getName()->values()->all();
+        $methods = collect($ref->getMethods())->filter(fn ($m) => $m->isPublic() && $m->class === StatusService::class)->map->getName()->values()->all();
         sort($methods);
-        $this->assertSame(['__construct','clearStatusCaches','getAllCategories','getIdToSlugMap','getSlugToIdMap','translateSlug'], $methods);
+        $this->assertSame([
+            '__construct',
+            'clearStatusCaches',
+            'getAllCategories',
+            'getIdToSlugMap',
+            'getSlugToIdMap',
+            'translateSlug',
+        ], $methods);
     }
 }

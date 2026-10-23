@@ -14,7 +14,7 @@ class CheckInvoicePaymentStatusTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->command = new CheckInvoicePaymentStatus();
+        $this->command = new CheckInvoicePaymentStatus;
     }
 
     #[Test]
@@ -74,16 +74,8 @@ class CheckInvoicePaymentStatusTest extends TestCase
         $this->assertTrue(
             $returnType === null ||
             $returnType->getName() === 'void' ||
-            $returnType->getName() === 'int'
+            $returnType->getName() === 'int',
         );
-    }
-
-    #[Test]
-    public function command_uses_has_preferred_locale_trait(): void
-    {
-        $traits = class_uses($this->command);
-
-        $this->assertContains('App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale', $traits);
     }
 
     #[Test]

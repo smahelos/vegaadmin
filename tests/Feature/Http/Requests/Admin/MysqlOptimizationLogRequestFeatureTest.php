@@ -8,8 +8,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -19,11 +17,9 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class MysqlOptimizationLogRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     private User $user;
-    protected User $adminUser;
-    protected User $regularUser;
 
     /**
      * Set up test environment.
@@ -45,7 +41,7 @@ class MysqlOptimizationLogRequestFeatureTest extends TestCase
     public function validation_passes_with_empty_data(): void
     {
         // Since this is a read-only model, validation should always pass
-        $request = new MysqlOptimizationLogRequest();
+        $request = new MysqlOptimizationLogRequest;
         $validator = Validator::make([], $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -60,7 +56,7 @@ class MysqlOptimizationLogRequestFeatureTest extends TestCase
             'another_field' => 123,
         ];
 
-        $request = new MysqlOptimizationLogRequest();
+        $request = new MysqlOptimizationLogRequest;
         $validator = Validator::make($anyData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -70,21 +66,21 @@ class MysqlOptimizationLogRequestFeatureTest extends TestCase
     public function authorization_passes_for_authenticated_user(): void
     {
         $this->actingAs($this->adminUser, 'backpack')
-             ->getJson('/test-mysql-optimization-log')
-             ->assertStatus(200);
+            ->getJson('/test-mysql-optimization-log')
+            ->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
         $this->getJson('/test-mysql-optimization-log')
-             ->assertStatus(403);
+            ->assertStatus(403);
     }
 
     #[Test]
     public function attributes_method_returns_empty_array(): void
     {
-        $request = new MysqlOptimizationLogRequest();
+        $request = new MysqlOptimizationLogRequest;
         $attributes = $request->attributes();
 
         $this->assertIsArray($attributes);
@@ -94,7 +90,7 @@ class MysqlOptimizationLogRequestFeatureTest extends TestCase
     #[Test]
     public function messages_method_returns_empty_array(): void
     {
-        $request = new MysqlOptimizationLogRequest();
+        $request = new MysqlOptimizationLogRequest;
         $messages = $request->messages();
 
         $this->assertIsArray($messages);
@@ -104,7 +100,7 @@ class MysqlOptimizationLogRequestFeatureTest extends TestCase
     #[Test]
     public function rules_method_returns_empty_array(): void
     {
-        $request = new MysqlOptimizationLogRequest();
+        $request = new MysqlOptimizationLogRequest;
         $rules = $request->rules();
 
         $this->assertIsArray($rules);

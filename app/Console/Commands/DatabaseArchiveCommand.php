@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class DatabaseArchiveCommand extends Command
 {
@@ -39,8 +39,9 @@ class DatabaseArchiveCommand extends Command
             ->where('enabled', true)
             ->first();
 
-        if (!$policy) {
+        if (! $policy) {
             $this->error("No archive policy found for table: {$tableName}");
+
             return Command::FAILURE;
         }
 
@@ -49,23 +50,30 @@ class DatabaseArchiveCommand extends Command
 
         // Check if we have records to archive
         $recordsToArchive = DB::table($tableName)
-            ->where($policy->date_column, '<', $cutoffDate)
+            ->where(
+                $policy->date_column,
+                '<',
+                $cutoffDate,
+            )
             ->count();
 
         if ($recordsToArchive === 0) {
-            $this->info("No records found for archiving.");
+            $this->info('No records found for archiving.');
+
             return Command::SUCCESS;
         }
 
         $this->info("Found {$recordsToArchive} records to archive.");
 
         if ($dryRun) {
-            $this->warn("DRY RUN: No actual archiving performed.");
+            $this->warn('DRY RUN: No actual archiving performed.');
+
             return Command::SUCCESS;
         }
 
-        if (!$force && $this->input->isInteractive() && !$this->confirm("Do you want to proceed with archiving {$recordsToArchive} records?")) {
-            $this->info("Archiving cancelled.");
+        if (! $force && $this->input->isInteractive() && ! $this->confirm("Do you want to proceed with archiving {$recordsToArchive} records?")) {
+            $this->info('Archiving cancelled.');
+
             return Command::SUCCESS;
         }
 
@@ -77,14 +85,18 @@ class DatabaseArchiveCommand extends Command
             'description' => "Archiving records older than {$cutoffDate->format('Y-m-d')}",
             'started_at' => now(),
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         try {
             if ($tableName === 'invoices') {
                 $this->archiveInvoices($cutoffDate, $policy);
             } else {
-                $this->genericArchive($tableName, $cutoffDate, $policy);
+                $this->genericArchive(
+                    $tableName,
+                    $cutoffDate,
+                    $policy,
+                );
             }
 
             // Update maintenance log
@@ -94,7 +106,7 @@ class DatabaseArchiveCommand extends Command
                     'status' => 'completed',
                     'completed_at' => now(),
                     'results' => json_encode(['records_archived' => $recordsToArchive]),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
             // Update archive policy
@@ -103,10 +115,11 @@ class DatabaseArchiveCommand extends Command
                 ->update([
                     'last_archived_at' => now(),
                     'records_archived' => DB::raw('records_archived + ' . $recordsToArchive),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
             $this->info("Successfully archived {$recordsToArchive} records.");
+
             return Command::SUCCESS;
 
         } catch (\Exception $e) {
@@ -117,10 +130,11 @@ class DatabaseArchiveCommand extends Command
                     'status' => 'failed',
                     'completed_at' => now(),
                     'results' => json_encode(['error' => $e->getMessage()]),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
-            $this->error("Archiving failed: " . $e->getMessage());
+            $this->error('Archiving failed: ' . $e->getMessage());
+
             return Command::FAILURE;
         }
     }
@@ -130,11 +144,15 @@ class DatabaseArchiveCommand extends Command
      */
     private function archiveInvoices($cutoffDate, $policy)
     {
-        $this->info("Archiving invoices with related products...");
+        $this->info('Archiving invoices with related products...');
 
         // Get invoices to archive
         $invoicesToArchive = DB::table('invoices')
-            ->where($policy->date_column, '<', $cutoffDate)
+            ->where(
+                $policy->date_column,
+                '<',
+                $cutoffDate,
+            )
             ->get();
 
         DB::beginTransaction();
@@ -162,7 +180,7 @@ class DatabaseArchiveCommand extends Command
                 'invoice_data' => json_encode($invoice),
                 'archived_at' => now(),
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
             // Archive products if any
@@ -173,7 +191,7 @@ class DatabaseArchiveCommand extends Command
                     'products_data' => json_encode($products->toArray()),
                     'archived_at' => now(),
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
                 // Delete original products
@@ -190,13 +208,20 @@ class DatabaseArchiveCommand extends Command
     /**
      * Generic archive for other tables
      */
-    private function genericArchive($tableName, $cutoffDate, $policy)
-    {
+    private function genericArchive(
+        $tableName,
+        $cutoffDate,
+        $policy,
+    ) {
         $this->info("Performing generic archiving for table: {$tableName}");
-        
+
         // Simple deletion for non-critical tables
         DB::table($tableName)
-            ->where($policy->date_column, '<', $cutoffDate)
+            ->where(
+                $policy->date_column,
+                '<',
+                $cutoffDate,
+            )
             ->delete();
     }
 }

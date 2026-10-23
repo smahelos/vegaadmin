@@ -13,17 +13,22 @@ return new class extends Migration
     {
         Schema::table('pages', function (Blueprint $table) {
             // Check which old columns exist before dropping them
-            $columnsToCheck = ['name_old', 'slug_old', 'description_old', 'content_old'];
+            $columnsToCheck = [
+                'name_old',
+                'slug_old',
+                'description_old',
+                'content_old',
+            ];
             $existingColumns = [];
-            
+
             foreach ($columnsToCheck as $column) {
                 if (Schema::hasColumn('pages', $column)) {
                     $existingColumns[] = $column;
                 }
             }
-            
+
             // Drop only existing old columns
-            if (!empty($existingColumns)) {
+            if (! empty($existingColumns)) {
                 $table->dropColumn($existingColumns);
             }
         });

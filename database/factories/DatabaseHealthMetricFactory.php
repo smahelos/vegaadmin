@@ -4,16 +4,17 @@ namespace Database\Factories;
 
 use App\Models\DatabaseHealthMetric;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\DatabaseHealthMetric>
+ * @extends Factory<DatabaseHealthMetric>
  */
 class DatabaseHealthMetricFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     * @var class-string<Model>
      */
     protected $model = DatabaseHealthMetric::class;
 
@@ -34,7 +35,7 @@ class DatabaseHealthMetricFactory extends Factory
             'memory_usage',
             'disk_usage',
             'backup_status',
-            'replication_lag'
+            'replication_lag',
         ];
 
         $units = [
@@ -44,14 +45,22 @@ class DatabaseHealthMetricFactory extends Factory
             '%',
             'count',
             'seconds',
-            null
+            null,
         ];
 
-        $statuses = ['good', 'warning', 'critical'];
+        $statuses = [
+            'good',
+            'warning',
+            'critical',
+        ];
 
         return [
             'metric_name' => $this->faker->randomElement($metricNames),
-            'metric_value' => $this->faker->randomFloat(4, 0, 1000),
+            'metric_value' => $this->faker->randomFloat(
+                4,
+                0,
+                1000,
+            ),
             'metric_unit' => $this->faker->randomElement($units),
             'status' => $this->faker->randomElement($statuses),
             'recommendation' => $this->faker->optional()->sentence(),
@@ -100,7 +109,11 @@ class DatabaseHealthMetricFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'metric_name' => 'database_size',
             'metric_unit' => 'GB',
-            'metric_value' => $this->faker->randomFloat(2, 0.1, 50),
+            'metric_value' => $this->faker->randomFloat(
+                2,
+                0.1,
+                50,
+            ),
         ]);
     }
 
@@ -112,7 +125,11 @@ class DatabaseHealthMetricFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'metric_name' => 'query_performance',
             'metric_unit' => 'ms',
-            'metric_value' => $this->faker->randomFloat(2, 1, 5000),
+            'metric_value' => $this->faker->randomFloat(
+                2,
+                1,
+                5000,
+            ),
         ]);
     }
 

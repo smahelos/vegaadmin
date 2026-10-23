@@ -2,19 +2,17 @@
 
 namespace Tests\Unit\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Frontend\ClientController;
 use App\Application\Party\Contracts\PartyApplicationServiceInterface;
-use App\Application\User\Contracts\UELSApplicationServiceInterface;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
-use App\Models\User;
-use App\Models\Client;
-use App\Models\Supplier;
+use App\Application\User\Contracts\UELSApplicationServiceInterface;
 use App\Domain\Party\DTO\ClientDTO;
 use App\Domain\Party\DTO\SupplierDTO;
+use App\Http\Controllers\Frontend\ClientController;
+use App\Models\Client;
+use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -28,24 +26,47 @@ class ClientControllerTest extends TestCase
         $this->actingAs($user, 'web');
 
         $controller = new ClientController(
-            new class implements PartyApplicationServiceInterface {
+            new class implements PartyApplicationServiceInterface
+            {
                 public bool $throwModelNotFound = false;
+
                 public bool $throwGenericException = false;
+
                 public int $returnClientUserId = 1;
+
                 public int $returnSupplierUserId = 1;
 
-                public function clientOptions(int $userId): array { return []; }
-                public function supplierOptions(int $userId): array { return []; }
-                public function defaultClient(int $userId): ?ClientDTO { return null; }
-                public function defaultSupplier(int $userId): ?SupplierDTO { return null; }
-                public function findClientById(int $id): Client {
+                public function clientOptions(int $userId): array
+                {
+                    return [];
+                }
+
+                public function supplierOptions(int $userId): array
+                {
+                    return [];
+                }
+
+                public function defaultClient(int $userId): ?ClientDTO
+                {
+                    return null;
+                }
+
+                public function defaultSupplier(int $userId): ?SupplierDTO
+                {
+                    return null;
+                }
+
+                public function findClientById(int $id): Client
+                {
                     return new Client([
                         'id' => $id,
                         'name' => 'Client To Find',
                         'email' => 'clienttofind@example.com',
                     ]);
                 }
-                public function resolveOrCreateClient(int $userId, array $data): Client {
+
+                public function resolveOrCreateClient(int $userId, array $data): Client
+                {
                     return new Client(
                         [
                             'id' => 1,
@@ -64,10 +85,12 @@ class ClientControllerTest extends TestCase
                             'user_id' => $userId,
                             'is_default' => false,
                             'invoices' => [],
-                        ]
+                        ],
                     );
                 }
-                public function resolveOrCreateSupplier(int $userId, array $data): Supplier { 
+
+                public function resolveOrCreateSupplier(int $userId, array $data): Supplier
+                {
                     return new Supplier(
                         [
                             'id' => 1,
@@ -89,15 +112,16 @@ class ClientControllerTest extends TestCase
                             'bank_name' => $data['bank_name'] ?? null,
                             'iban' => $data['iban'] ?? null,
                             'swift' => $data['swift'] ?? null,
-                            'has_payment_info' => (bool)($data['has_payment_info'] ?? false),
+                            'has_payment_info' => (bool) ($data['has_payment_info'] ?? false),
                             'user_id' => $userId,
                             'is_default' => false,
                             'invoices' => [],
-                        ]
+                        ],
                     );
                 }
 
-                public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array {
+                public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array
+                {
                     return [
                         'supplier' => new SupplierDTO(
                             id: 1,
@@ -123,12 +147,13 @@ class ClientControllerTest extends TestCase
                             user_id: $userId,
                             is_default: false,
                             invoices: [],
-                        ), 
-                        'created' => true
+                        ),
+                        'created' => true,
                     ];
                 }
-                
-                public function resolveOrCreateClientWithFlag(int $userId, array $data): array { 
+
+                public function resolveOrCreateClientWithFlag(int $userId, array $data): array
+                {
                     return [
                         'client' => new ClientDTO(
                             id: 1,
@@ -147,19 +172,20 @@ class ClientControllerTest extends TestCase
                             user_id: $userId,
                             is_default: false,
                             invoices: [],
-                        ), 
-                        'created' => true
+                        ),
+                        'created' => true,
                     ];
                 }
 
                 public function findClient(int $userId, int $id): Client
                 {
                     if ($this->throwModelNotFound) {
-                        throw new ModelNotFoundException();
+                        throw new ModelNotFoundException;
                     }
                     if ($this->throwGenericException) {
                         throw new \Exception('Failure');
                     }
+
                     return new Client([
                         'id' => $id,
                         'name' => 'Client To Find',
@@ -180,13 +206,15 @@ class ClientControllerTest extends TestCase
                     ]);
                 }
 
-                public function findSupplier(int $userId, int $id): Supplier {
+                public function findSupplier(int $userId, int $id): Supplier
+                {
                     if ($this->throwModelNotFound) {
-                        throw new ModelNotFoundException();
+                        throw new ModelNotFoundException;
                     }
                     if ($this->throwGenericException) {
                         throw new \Exception('Failure');
                     }
+
                     return new Supplier([
                         'id' => $id,
                         'name' => 'Default Supplier',
@@ -213,7 +241,9 @@ class ClientControllerTest extends TestCase
                         'invoices' => [],
                     ]);
                 }
-                public function updateClient(int $clientId, array $data): Client {
+
+                public function updateClient(int $clientId, array $data): Client
+                {
                     $data = [
                         'id' => $clientId,
                         'name' => $data['name'] ?? 'Default Client',
@@ -235,7 +265,9 @@ class ClientControllerTest extends TestCase
 
                     return new Client($data);
                 }
-                public function updateSupplier(int $supplierId, array $data): Supplier {
+
+                public function updateSupplier(int $supplierId, array $data): Supplier
+                {
                     $data = [
                         'id' => $supplierId,
                         'name' => $data['name'] ?? 'Default Supplier',
@@ -256,7 +288,7 @@ class ClientControllerTest extends TestCase
                         'bank_name' => $data['bank_name'] ?? null,
                         'iban' => $data['iban'] ?? null,
                         'swift' => $data['swift'] ?? null,
-                        'has_payment_info' => (bool)($data['has_payment_info'] ?? false),
+                        'has_payment_info' => (bool) ($data['has_payment_info'] ?? false),
                         'user_id' => $this->returnSupplierUserId,
                         'is_default' => false,
                         'invoices' => [],
@@ -264,27 +296,92 @@ class ClientControllerTest extends TestCase
 
                     return new Supplier($data);
                 }
+
                 public function setSupplierDefault(int $userId, int $supplierId): void {}
+
                 public function setClientDefault(int $userId, int $clientId): void {}
-                public function deleteSupplier(int $userId, int $supplierId): bool { return true; }
-                public function deleteClient(int $userId, int $clientId): bool { return true; }
-                public function listSuppliers(User $user): array { return []; }
-                public function listClients(User $user): array { return []; }
-                public function defaultSupplierOrFirst(int $userId): ?SupplierDTO { return null; }
-                public function defaultClientOrFirst(int $userId): ?ClientDTO { return null; }
+
+                public function deleteSupplier(int $userId, int $supplierId): bool
+                {
+                    return true;
+                }
+
+                public function deleteClient(int $userId, int $clientId): bool
+                {
+                    return true;
+                }
+
+                public function listSuppliers(User $user): array
+                {
+                    return [];
+                }
+
+                public function listClients(User $user): array
+                {
+                    return [];
+                }
+
+                public function defaultSupplierOrFirst(int $userId): ?SupplierDTO
+                {
+                    return null;
+                }
+
+                public function defaultClientOrFirst(int $userId): ?ClientDTO
+                {
+                    return null;
+                }
             },
-            new class implements CountryApplicationServiceInterface {
-                public function getCountryCodesForSelect(): array { return []; }
-                public function getCountry(string $code): ?array { return null; }
-                public function getCountries(): array { return []; }
+            new class implements CountryApplicationServiceInterface
+            {
+                public function getCountryCodesForSelect(): array
+                {
+                    return [];
+                }
+
+                public function getCountry(string $code): ?array
+                {
+                    return null;
+                }
+
+                public function getCountries(): array
+                {
+                    return [];
+                }
             },
-            new class implements UELSApplicationServiceInterface {
-                public function getEntityLimitInfo(?int $userId, string $entityType): array { return []; }
-                public function canUserCreateEntity(?int $userId, string $entityType): bool { return true; }
-                public function getUsageStatistics(?int $userId, string $entityType, string $metricType = 'count', string $periodType = 'daily'): array { return ['current_usage'=>0,'limit'=>10]; }
-                public function getBestPeriodType(?int $userId, string $entityType, string $metricType = 'count'): string { return 'daily'; }
-                public function getUserPermissionLimits(?int $userId, string $entityType): Collection { return collect(); }
-            }
+            new class implements UELSApplicationServiceInterface
+            {
+                public function getEntityLimitInfo(?int $userId, string $entityType): array
+                {
+                    return [];
+                }
+
+                public function canUserCreateEntity(?int $userId, string $entityType): bool
+                {
+                    return true;
+                }
+
+                public function getUsageStatistics(
+                    ?int $userId,
+                    string $entityType,
+                    string $metricType = 'count',
+                    string $periodType = 'daily',
+                ): array {
+                    return ['current_usage' => 0, 'limit' => 10];
+                }
+
+                public function getBestPeriodType(
+                    ?int $userId,
+                    string $entityType,
+                    string $metricType = 'count',
+                ): string {
+                    return 'daily';
+                }
+
+                public function getUserPermissionLimits(?int $userId, string $entityType): Collection
+                {
+                    return collect();
+                }
+            },
         );
 
         $view = $controller->index();

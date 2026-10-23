@@ -57,7 +57,7 @@ class ProductArrayMapper
      */
     public function mapCollectionToArray(Collection $products): array
     {
-        return $products->map(fn(ProductDTO $product) => $this->mapToArray($product))->all();
+        return $products->map(fn (ProductDTO $product) => $this->mapToArray($product))->all();
     }
 
     /**
@@ -77,6 +77,6 @@ class ProductArrayMapper
      */
     public function mapCollectionToDropdownArray(Collection $products): array
     {
-        return $products->map(fn(ProductDTO $product) => $this->mapToDropdownArray($product))->all();
+        return $products->map(fn (ProductDTO $product) => $this->mapToDropdownArray($product))->all();
     }
 }

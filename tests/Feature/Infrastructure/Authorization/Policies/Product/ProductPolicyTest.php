@@ -6,8 +6,8 @@ use App\Infrastructure\Authorization\Policies\Product\ProductPolicy;
 use App\Models\Product;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\RefreshDatabaseWithData;
 
@@ -20,7 +20,7 @@ class ProductPolicyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->policy = new ProductPolicy();
+        $this->policy = new ProductPolicy;
     }
 
     #[Test]

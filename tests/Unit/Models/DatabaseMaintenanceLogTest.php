@@ -16,7 +16,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = new DatabaseMaintenanceLog();
+        $this->model = new DatabaseMaintenanceLog;
     }
 
     #[Test]
@@ -47,7 +47,7 @@ class DatabaseMaintenanceLogTest extends TestCase
             'description',
             'results',
             'started_at',
-            'completed_at'
+            'completed_at',
         ];
 
         $this->assertEquals($expectedFillable, $this->model->getFillable());
@@ -59,7 +59,7 @@ class DatabaseMaintenanceLogTest extends TestCase
         $expectedCasts = [
             'results' => 'array',
             'started_at' => 'datetime',
-            'completed_at' => 'datetime'
+            'completed_at' => 'datetime',
         ];
 
         foreach ($expectedCasts as $attribute => $cast) {
@@ -77,7 +77,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     public function get_duration_attribute_returns_null_when_only_started_at(): void
     {
         $this->model->started_at = now();
-        
+
         $this->assertNull($this->model->getDurationAttribute());
     }
 
@@ -85,7 +85,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     public function get_duration_attribute_returns_null_when_only_completed_at(): void
     {
         $this->model->completed_at = now();
-        
+
         $this->assertNull($this->model->getDurationAttribute());
     }
 
@@ -93,7 +93,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     public function get_status_badge_attribute_returns_correct_badge_for_pending(): void
     {
         $this->model->status = 'pending';
-        
+
         $expected = '<span class="badge text-bg-secondary">Pending</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
@@ -102,7 +102,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     public function get_status_badge_attribute_returns_correct_badge_for_running(): void
     {
         $this->model->status = 'running';
-        
+
         $expected = '<span class="badge text-bg-warning">Running</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
@@ -111,7 +111,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     public function get_status_badge_attribute_returns_correct_badge_for_completed(): void
     {
         $this->model->status = 'completed';
-        
+
         $expected = '<span class="badge text-bg-success">Completed</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
@@ -120,7 +120,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     public function get_status_badge_attribute_returns_correct_badge_for_failed(): void
     {
         $this->model->status = 'failed';
-        
+
         $expected = '<span class="badge text-bg-danger">Failed</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
@@ -129,7 +129,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     public function get_status_badge_attribute_returns_unknown_badge_for_invalid_status(): void
     {
         $this->model->status = 'invalid_status';
-        
+
         $expected = '<span class="badge text-bg-light">Unknown</span>';
         $this->assertEquals($expected, $this->model->getStatusBadgeAttribute());
     }
@@ -138,7 +138,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     public function get_task_type_formatted_attribute_formats_underscored_task_type(): void
     {
         $this->model->task_type = 'table_optimization';
-        
+
         $expected = 'Table optimization';
         $this->assertEquals($expected, $this->model->getTaskTypeFormattedAttribute());
     }
@@ -147,7 +147,7 @@ class DatabaseMaintenanceLogTest extends TestCase
     public function get_task_type_formatted_attribute_capitalizes_simple_task_type(): void
     {
         $this->model->task_type = 'analyze';
-        
+
         $expected = 'Analyze';
         $this->assertEquals($expected, $this->model->getTaskTypeFormattedAttribute());
     }

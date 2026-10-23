@@ -4,16 +4,18 @@ namespace Database\Factories;
 
 use App\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PaymentMethod>
+ * @extends Factory<PaymentMethod>
  */
 class PaymentMethodFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     * @var class-string<Model>
      */
     protected $model = PaymentMethod::class;
 
@@ -24,9 +26,15 @@ class PaymentMethodFactory extends Factory
      */
     public function definition(): array
     {
-        $options = ['Cash','Card','Bank Transfer','PayPal'];
+        $options = [
+            'Cash',
+            'Card',
+            'Bank Transfer',
+            'PayPal',
+        ];
         $name = $options[array_rand($options)];
-        $slug = \Illuminate\Support\Str::slug($name.'-'.uniqid());
+        $slug = Str::slug($name . '-' . uniqid());
+
         return [
             'name' => $name,
             'slug' => $slug,
@@ -87,7 +95,7 @@ class PaymentMethodFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'name' => $name,
-            'slug' => \Illuminate\Support\Str::slug($name),
+            'slug' => Str::slug($name),
         ]);
     }
 }

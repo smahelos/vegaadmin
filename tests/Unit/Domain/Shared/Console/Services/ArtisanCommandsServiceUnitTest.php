@@ -4,8 +4,8 @@ namespace Tests\Unit\Domain\Shared\Services;
 
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsDtoRepositoryInterface;
-use App\Domain\Shared\Console\Services\ArtisanCommandsService;
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
+use App\Domain\Shared\Console\Services\ArtisanCommandsService;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -13,19 +13,21 @@ use Tests\TestCase;
 class ArtisanCommandsServiceUnitTest extends TestCase
 {
     private ArtisanCommandsService $service;
+
     private ArtisanCommandsDtoRepositoryInterface $mockDtoRepository;
+
     private CacheServiceInterface $mockCacheService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->mockDtoRepository = Mockery::mock('App\Domain\Shared\Console\Contracts\ArtisanCommandsDtoRepositoryInterface');
         $this->mockCacheService = Mockery::mock('App\Domain\Shared\Cache\Contracts\CacheServiceInterface');
-        
+
         $this->service = new ArtisanCommandsService(
             $this->mockDtoRepository,
-            $this->mockCacheService
+            $this->mockCacheService,
         );
     }
 
@@ -40,10 +42,10 @@ class ArtisanCommandsServiceUnitTest extends TestCase
     public function service_has_get_all_commands_method(): void
     {
         $this->assertTrue(method_exists($this->service, 'getAllCommands'));
-        
+
         $reflection = new \ReflectionClass($this->service);
         $method = $reflection->getMethod('getAllCommands');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -53,7 +55,7 @@ class ArtisanCommandsServiceUnitTest extends TestCase
         $reflection = new \ReflectionClass($this->service);
         $method = $reflection->getMethod('getAllCommands');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('onlyNames', $parameters[0]->getName());
         $this->assertTrue($parameters[0]->hasType());
@@ -68,21 +70,9 @@ class ArtisanCommandsServiceUnitTest extends TestCase
         $reflection = new \ReflectionClass($this->service);
         $method = $reflection->getMethod('getAllCommands');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
-    }
-
-    #[Test]
-    public function service_has_proper_docblock(): void
-    {
-        $reflection = new \ReflectionClass($this->service);
-        $getAllCommandsMethod = $reflection->getMethod('getAllCommands');
-        $docComment = $getAllCommandsMethod->getDocComment();
-        
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param bool $onlyNames', $docComment);
-        $this->assertStringContainsString('@return array', $docComment);
     }
 
     #[Test]
@@ -90,7 +80,7 @@ class ArtisanCommandsServiceUnitTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->service);
         $fileContent = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('ArtisanCommandsDtoRepositoryInterface', $fileContent);
         $this->assertStringContainsString('CacheServiceInterface', $fileContent);
     }
@@ -99,12 +89,12 @@ class ArtisanCommandsServiceUnitTest extends TestCase
     public function service_structure_validation(): void
     {
         $reflection = new \ReflectionClass($this->service);
-        
+
         // Check that class is properly structured
         $this->assertTrue($reflection->hasMethod('getAllCommands'));
-        
+
         // Check class is in correct namespace
-    $this->assertEquals('App\\Domain\\Shared\\Console\\Services', $reflection->getNamespaceName());
+        $this->assertEquals('App\\Domain\\Shared\\Console\\Services', $reflection->getNamespaceName());
     }
 
     #[Test]
@@ -112,7 +102,7 @@ class ArtisanCommandsServiceUnitTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->service);
         $fileContent = file_get_contents($reflection->getFileName());
-        
+
         // Check for cache usage
         $this->assertStringContainsString('cacheService->remember', $fileContent);
         $this->assertStringContainsString('artisan_commands_list', $fileContent);
@@ -124,9 +114,9 @@ class ArtisanCommandsServiceUnitTest extends TestCase
         $reflection = new \ReflectionClass($this->service);
         $method = $reflection->getMethod('getAllCommands');
         $parameters = $method->getParameters();
-        
+
         $onlyNamesParam = $parameters[0];
-        
+
         $this->assertTrue($onlyNamesParam->hasType());
         $this->assertEquals('bool', $onlyNamesParam->getType()->getName());
         $this->assertTrue($onlyNamesParam->isOptional());

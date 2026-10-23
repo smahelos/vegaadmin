@@ -3,6 +3,7 @@
 namespace Tests\Feature\Models;
 
 use App\Models\DatabaseHealthAlert;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -21,7 +22,7 @@ class DatabaseHealthAlertFeatureTest extends TestCase
             'alert_type' => 'memory',
             'severity' => 'warning',
             'message' => 'High memory usage detected',
-            'resolved' => false
+            'resolved' => false,
         ]);
 
         $this->assertDatabaseHas('database_health_alerts', [
@@ -29,7 +30,7 @@ class DatabaseHealthAlertFeatureTest extends TestCase
             'alert_type' => 'memory',
             'severity' => 'warning',
             'message' => 'High memory usage detected',
-            'resolved' => false
+            'resolved' => false,
         ]);
     }
 
@@ -85,12 +86,12 @@ class DatabaseHealthAlertFeatureTest extends TestCase
 
         // Create old alert
         DatabaseHealthAlert::factory()->create([
-            'created_at' => now()->subDays(10)
+            'created_at' => now()->subDays(10),
         ]);
 
         // Create recent alert
         $recentAlert = DatabaseHealthAlert::factory()->create([
-            'created_at' => now()->subDays(3)
+            'created_at' => now()->subDays(3),
         ]);
 
         $results = DatabaseHealthAlert::recent()->get();
@@ -114,7 +115,7 @@ class DatabaseHealthAlertFeatureTest extends TestCase
         $alert->refresh();
         $this->assertTrue($alert->resolved);
         $this->assertNotNull($alert->resolved_at);
-        $this->assertInstanceOf(\Carbon\Carbon::class, $alert->resolved_at);
+        $this->assertInstanceOf(Carbon::class, $alert->resolved_at);
     }
 
     #[Test]
@@ -157,16 +158,24 @@ class DatabaseHealthAlertFeatureTest extends TestCase
         $this->skipIfOptimizationTablesNotExist(['database_health_alerts']);
 
         $alert = DatabaseHealthAlert::factory()->create([
-            'metric_data' => ['value' => 85.5, 'threshold' => 80, 'unit' => '%'],
+            'metric_data' => [
+                'value' => 85.5,
+                'threshold' => 80,
+                'unit' => '%',
+            ],
             'resolved' => '1',
-            'resolved_at' => '2024-01-01 10:00:00'
+            'resolved_at' => '2024-01-01 10:00:00',
         ]);
 
         $this->assertIsArray($alert->metric_data);
-        $this->assertEquals(['value' => 85.5, 'threshold' => 80, 'unit' => '%'], $alert->metric_data);
+        $this->assertEquals([
+            'value' => 85.5,
+            'threshold' => 80,
+            'unit' => '%',
+        ], $alert->metric_data);
         $this->assertIsBool($alert->resolved);
         $this->assertTrue($alert->resolved);
-        $this->assertInstanceOf(\Carbon\Carbon::class, $alert->resolved_at);
+        $this->assertInstanceOf(Carbon::class, $alert->resolved_at);
     }
 
     #[Test]

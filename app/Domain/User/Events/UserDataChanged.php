@@ -12,8 +12,6 @@ final class UserDataChanged implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -28,35 +26,31 @@ final class UserDataChanged implements DomainEvent
 
     /**
      * Create a new event instance
-     *
-     * @param int $userId
-     * @param string $changeType
      */
     public function __construct(
         int $userId,
         string $changeType = 'general',
-        private readonly array $metadata = []
-    )
-    {
+        private readonly array $metadata = [],
+    ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
         $this->occurredOn = new \DateTimeImmutable('now');
         $this->eventId = uniqid('user_', true);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
-        return static::class;
+        return self::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getPayload(): array
     {
         return [
@@ -66,7 +60,7 @@ final class UserDataChanged implements DomainEvent
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

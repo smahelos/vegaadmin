@@ -12,8 +12,11 @@ class RedirectIfAuthenticated
     /**
      * Redirect if user is already authenticated
      */
-    public function handle(Request $request, Closure $next, string ...$guards): Response
-    {
+    public function handle(
+        Request $request,
+        Closure $next,
+        string ...$guards,
+    ): Response {
         $guards = empty($guards) ? [null] : $guards;
 
         foreach ($guards as $guard) {
@@ -23,7 +26,7 @@ class RedirectIfAuthenticated
                 if ($request->is('admin*') || $guard === 'backpack') {
                     return redirect(backpack_url('dashboard'));
                 }
-                
+
                 // For frontend guard or without specified guard
                 if ($guard === 'web' || $guard === null) {
                     // Prioritize redirection to dashboard if exists

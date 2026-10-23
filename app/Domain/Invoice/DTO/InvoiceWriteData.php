@@ -15,7 +15,7 @@ class InvoiceWriteData
         public readonly ?string $payment_reference,
         public readonly ?string $constant_code,
         public readonly ?string $tax_point_date,
-        
+
         // Optional parameters with default values
         public readonly ?int $client_id = null,
         public readonly ?int $supplier_id = null,
@@ -25,7 +25,7 @@ class InvoiceWriteData
         public readonly ?string $currency = null,
         public readonly ?string $template = null,
         public readonly ?string $note = null,
-        //public readonly ?array $meta = null,
+        // public readonly ?array $meta = null,
         public readonly ?int $user_id = null,
         // Totals are optional on write; when provided they should be Money VO
         public readonly ?Money $subtotal = null,
@@ -54,18 +54,47 @@ class InvoiceWriteData
         $normalizeAmount = function (string|float|int $amount): string {
             return is_string($amount)
                 ? (function (string $s) {
-                    $s = str_replace([' ', ','], ['', '.'], trim($s));
-                    if (!preg_match('/^\d+(?:\.\d+)?$/', $s)) {
-                        return number_format((float) $s, 2, '.', '');
+                    $s = str_replace(
+                        [' ', ','],
+                        ['', '.'],
+                        trim($s),
+                    );
+                    if (! preg_match('/^\d+(?:\.\d+)?$/', $s)) {
+                        return number_format(
+                            (float) $s,
+                            2,
+                            '.',
+                            '',
+                        );
                     }
                     if (str_contains($s, '.')) {
-                        [$i, $f] = explode('.', $s, 2);
-                        $f = substr($f, 0, 2);
-                        return $i . '.' . str_pad($f, 2, '0', STR_PAD_RIGHT);
+                        [$i, $f] = explode(
+                            '.',
+                            $s,
+                            2,
+                        );
+                        $f = substr(
+                            $f,
+                            0,
+                            2,
+                        );
+
+                        return $i . '.' . str_pad(
+                            $f,
+                            2,
+                            '0',
+                            STR_PAD_RIGHT,
+                        );
                     }
+
                     return $s;
                 })($amount)
-                : number_format((float) $amount, 2, '.', '');
+                : number_format(
+                    (float) $amount,
+                    2,
+                    '.',
+                    '',
+                );
         };
 
         // Normalize Money inputs for totals from various shapes
@@ -79,12 +108,15 @@ class InvoiceWriteData
                 if ($amount !== null && is_string($curr)) {
                     return Money::fromString($normalizeAmount($amount), strtoupper($curr));
                 }
+
                 return null;
             }
             if (is_string($value) || is_numeric($value)) {
                 $curr = $fallbackCurrency ?? 'CZK';
+
                 return Money::fromString($normalizeAmount($value), strtoupper($curr));
             }
+
             return null;
         };
 
@@ -113,16 +145,16 @@ class InvoiceWriteData
         }
 
         return new self(
-            client_id: isset($data['client_id']) ? (int)$data['client_id'] : null,
-            supplier_id: isset($data['supplier_id']) ? (int)$data['supplier_id'] : null,
+            client_id: isset($data['client_id']) ? (int) $data['client_id'] : null,
+            supplier_id: isset($data['supplier_id']) ? (int) $data['supplier_id'] : null,
             number: $data['number'] ?? ($data['invoice_vs'] ?? null),
             issue_date: $data['issue_date'] ?? null,
-            due_in: isset($data['due_in']) ? (int)$data['due_in'] : null,
+            due_in: isset($data['due_in']) ? (int) $data['due_in'] : null,
             currency: $currency,
             template: $data['template'] ?? null,
             note: $data['note'] ?? ($data['invoice_text'] ?? null),
-            //meta: $data['meta'] ?? null,
-            user_id: isset($data['user_id']) ? (int)$data['user_id'] : null,
+            // meta: $data['meta'] ?? null,
+            user_id: isset($data['user_id']) ? (int) $data['user_id'] : null,
 
             payment_reference: $data['payment_reference'] ?? ($data['invoice_ss'] ?? null),
             constant_code: $data['constant_code'] ?? ($data['invoice_ks'] ?? null),
@@ -130,19 +162,20 @@ class InvoiceWriteData
             subtotal: $subtotal,
             total_tax: $totalTax,
             total_amount: $totalAmount,
-            payment_method_id: isset($data['payment_method_id']) ? (int)$data['payment_method_id'] : null,
+            payment_method_id: isset($data['payment_method_id']) ? (int) $data['payment_method_id'] : null,
             invoice_text: $data['invoice_text'] ?? null,
             items: $data['items'] ?? [],
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,
             logo: $data['logo'] ?? $data['invoice_logo'] ?? null,
-            status: $data['status'] ?? (int)$data['payment_status_id'] ?? null,
+            status: $data['status'] ?? (int) $data['payment_status_id'] ?? null,
         );
     }
 
     public function toArray(): array
     {
         $properties = get_object_vars($this);
-        return array_filter($properties, fn($v) => $v !== null);
+
+        return array_filter($properties, fn ($v) => $v !== null);
     }
 }

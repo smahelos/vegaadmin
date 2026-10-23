@@ -3,8 +3,8 @@
 namespace Tests\Feature\Console;
 
 use Illuminate\Filesystem\Filesystem;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 /**
  * Guard test ensuring legacy root Traits directory remains absent.
@@ -12,13 +12,15 @@ use PHPUnit\Framework\Attributes\Test;
 class DddGuardRootTraitsRuleTest extends TestCase
 {
     private string $traitsPath;
+
     private Filesystem $fs;
+
     private string $processId;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fs = new Filesystem();
+        $this->fs = new Filesystem;
         // Use process-specific directory to avoid conflicts in parallel test execution
         $this->processId = (string) getmypid();
         $this->traitsPath = base_path("app/Traits_{$this->processId}");
@@ -36,19 +38,25 @@ class DddGuardRootTraitsRuleTest extends TestCase
     public function ddd_guard_flags_reintroduced_traits_directory(): void
     {
         // Create a temporary directory + file to simulate regression
-        $this->fs->makeDirectory($this->traitsPath, 0755, true, true);
+        $this->fs->makeDirectory(
+            $this->traitsPath,
+            0755,
+            true,
+            true,
+        );
         $dummyFile = $this->traitsPath . '/LegacyDummyTrait.php';
         $this->fs->put($dummyFile, "<?php\ntrait LegacyDummyTrait {}\n");
 
         // Temporarily override config to use our process-specific path
         $originalConfig = config('ddd_guard.forbidden_paths');
-        $modifiedConfig = collect($originalConfig)->map(function($path) {
+        $modifiedConfig = collect($originalConfig)->map(function ($path) {
             if (isset($path['path']) && $path['path'] === base_path('app/Traits')) {
                 $path['path'] = $this->traitsPath;
             }
+
             return $path;
         })->toArray();
-        
+
         config(['ddd_guard.forbidden_paths' => $modifiedConfig]);
 
         // Run guard
@@ -62,7 +70,15 @@ class DddGuardRootTraitsRuleTest extends TestCase
         $this->fs->delete($dummyFile);
         $this->fs->deleteDirectory($this->traitsPath);
 
-        $this->assertSame(1, $exitCode, 'ddd:guard should fail when app/Traits reappears.');
-        $this->assertStringContainsString('Traits', $output, 'Guard JSON should mention Traits path.');
+        $this->assertSame(
+            1,
+            $exitCode,
+            'ddd:guard should fail when app/Traits reappears.',
+        );
+        $this->assertStringContainsString(
+            'Traits',
+            $output,
+            'Guard JSON should mention Traits path.',
+        );
     }
 }

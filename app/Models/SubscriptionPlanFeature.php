@@ -11,10 +11,10 @@ use Illuminate\Support\Str;
 
 class SubscriptionPlanFeature extends Model
 {
-    use HasFactory;
     use CrudTrait;
+    use HasFactory;
     use SoftDeletes;
-    
+
     protected $fillable = [
         'name',
         'description',
@@ -34,7 +34,7 @@ class SubscriptionPlanFeature extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             if (empty($model->slug)) {
                 $model->slug = $model->generateSlug($model->name);
@@ -49,7 +49,7 @@ class SubscriptionPlanFeature extends Model
     {
         return $this->belongsToMany(
             SubscriptionPlan::class,
-            'subscription_plan_subscription_plan_feature'
+            'subscription_plan_subscription_plan_feature',
         );
     }
 
@@ -80,20 +80,24 @@ class SubscriptionPlanFeature extends Model
     /**
      * Generate slug from name
      */
-    public function generateSlug(string $name = null): string
+    public function generateSlug(?string $name = null): string
     {
         $nameToSlug = $name ?? $this->name;
         $baseSlug = Str::slug($nameToSlug);
-        
+
         // Check if slug exists and make it unique
         $counter = 1;
         $slug = $baseSlug;
-        
-        while (static::where('slug', $slug)->where('id', '!=', $this->id ?? 0)->exists()) {
+
+        while (static::where('slug', $slug)->where(
+            'id',
+            '!=',
+            $this->id ?? 0,
+        )->exists()) {
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
-        
+
         return $slug;
     }
 }

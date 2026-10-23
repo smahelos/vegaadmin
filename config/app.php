@@ -88,7 +88,12 @@ return [
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
-    'available_locales' => ['cs', 'en', 'de', 'sk'],
+    'available_locales' => [
+        'cs',
+        'en',
+        'de',
+        'sk',
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -107,7 +112,7 @@ return [
 
     'previous_keys' => [
         ...array_filter(
-            explode(',', env('APP_PREVIOUS_KEYS', ''))
+            explode(',', env('APP_PREVIOUS_KEYS', '')),
         ),
     ],
 

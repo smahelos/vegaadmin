@@ -8,21 +8,6 @@ namespace App\Domain\Party\DTO;
  */
 class ClientWriteData
 {
-    /**
-     * @param string|null $name
-     * @param string|null $email
-     * @param string|null $phone
-     * @param string|null $street
-     * @param string|null $city
-     * @param string|null $zip
-     * @param string|null $country
-     * @param string|null $ico
-     * @param string|null $dic
-     * @param string|null $shortcut
-     * @param string|null $description
-     * @param int|null $user_id
-     * @param bool $is_default
-     */
     public function __construct(
         public readonly ?string $name = null,
         public readonly ?string $email = null,
@@ -46,6 +31,7 @@ class ClientWriteData
     public function toArray(): array
     {
         $properties = get_object_vars($this);
-        return array_filter($properties, fn($value) => $value !== null);
+
+        return array_filter($properties, fn ($value) => $value !== null);
     }
 }

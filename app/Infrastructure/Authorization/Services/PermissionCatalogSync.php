@@ -13,9 +13,7 @@ use Spatie\Permission\PermissionRegistrar;
  */
 final class PermissionCatalogSync
 {
-    public function __construct(private readonly PermissionRegistrar $registrar)
-    {
-    }
+    public function __construct(private readonly PermissionRegistrar $registrar) {}
 
     public function sync(): void
     {

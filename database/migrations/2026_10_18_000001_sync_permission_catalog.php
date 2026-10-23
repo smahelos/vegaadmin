@@ -17,7 +17,5 @@ return new class extends Migration
     /**
      * Permissions may already be granted to users and roles, so they are kept.
      */
-    public function down(): void
-    {
-    }
+    public function down(): void {}
 };

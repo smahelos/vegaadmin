@@ -13,6 +13,7 @@ class DddGuardCommand extends Command
 {
     /** @var string */
     protected $signature = 'ddd:guard {--format=human : Output format human|json} {--di : Enable experimental DI concrete service sniff} {--fail-on-advisory : Fail also when only advisories are present} {--suppress-exit : Force exit code 0 (used in selected tests)}';
+
     /** @var string */
     protected $description = 'Run DDD migration guard checks (legacy services freeze & forbidden patterns)';
 
@@ -27,14 +28,15 @@ class DddGuardCommand extends Command
     public function handle(): int
     {
         $config = config('ddd_guard');
-        if (!$config) {
+        if (! $config) {
             $this->error('Missing config/ddd_guard.php');
+
             return 1;
         }
 
-    $violations = [];
-    $advisories = [];
-    $diReport = [ 'violations' => [], 'advisories' => [] ];
+        $violations = [];
+        $advisories = [];
+        $diReport = ['violations' => [], 'advisories' => []];
 
         // 1. Frozen legacy directories (no new files)
         foreach ($config['forbidden_paths'] as $rule) {
@@ -48,7 +50,9 @@ class DddGuardCommand extends Command
                     try {
                         foreach ($this->files->allFiles($path) as $f) {
                             $sample[] = $f->getFilename();
-                            if (count($sample) >= 5) { break; }
+                            if (count($sample) >= 5) {
+                                break;
+                            }
                         }
                     } catch (\Throwable $e) {
                         // ignore enumeration errors
@@ -56,13 +60,14 @@ class DddGuardCommand extends Command
                     $violations[] = [
                         'type' => 'forbidden_directory',
                         'path' => $path,
-                        'message' => 'Directory must not exist (legacy root): '.basename($path).(empty($sample) ? '' : ' (sample: '.implode(', ', $sample).')'),
+                        'message' => 'Directory must not exist (legacy root): ' . basename($path) . (empty($sample) ? '' : ' (sample: ' . implode(', ', $sample) . ')'),
                     ];
                 }
+
                 continue; // skip standard handling
             }
 
-            if (!is_dir($path)) {
+            if (! is_dir($path)) {
                 continue; // Already removed -> no issue
             }
             $allowedFiles = $rule['allowed_files'] ?? [];
@@ -71,7 +76,11 @@ class DddGuardCommand extends Command
             if ($mode === 'no_new_files') {
                 foreach ($this->files->files($path) as $file) {
                     $base = $file->getFilename();
-                    if (!in_array($base, $allowedFiles, true)) {
+                    if (! in_array(
+                        $base,
+                        $allowedFiles,
+                        true,
+                    )) {
                         $violations[] = [
                             'type' => 'new_file',
                             'path' => $file->getPathname(),
@@ -81,7 +90,11 @@ class DddGuardCommand extends Command
                 }
                 foreach ($this->files->directories($path) as $dir) {
                     $dirBase = basename($dir);
-                    if (!in_array($dirBase, $allowedDirs, true)) {
+                    if (! in_array(
+                        $dirBase,
+                        $allowedDirs,
+                        true,
+                    )) {
                         $violations[] = [
                             'type' => 'new_directory',
                             'path' => $dir,
@@ -97,12 +110,16 @@ class DddGuardCommand extends Command
         if ($patterns) {
             foreach ($patterns as $patternRule) {
                 $pattern = $patternRule['pattern'] ?? null;
-                if (!$pattern) { continue; }
+                if (! $pattern) {
+                    continue;
+                }
                 $description = $patternRule['description'] ?? 'Forbidden pattern';
                 $scopedPaths = $patternRule['paths'] ?? [base_path()];
                 foreach ($scopedPaths as $scanPath) {
-                    if (!is_dir($scanPath)) { continue; }
-                    $finder = (new Finder())
+                    if (! is_dir($scanPath)) {
+                        continue;
+                    }
+                    $finder = (new Finder)
                         ->files()
                         ->in($scanPath)
                         ->name('*.php');
@@ -115,32 +132,37 @@ class DddGuardCommand extends Command
                     }
                     try {
                         foreach ($finder as $file) {
-                        $contents = $file->getContents();
-                        if (!preg_match_all($pattern, $contents, $matches, PREG_OFFSET_CAPTURE)) {
-                            continue;
-                        }
-                        $lines = preg_split('/\r?\n/', $contents);
-                        $offsetsToLines = [];
-                        $currentOffset = 0;
-                        foreach ($lines as $index => $line) {
-                            $length = strlen($line) + 1;
-                            for ($i = $currentOffset; $i < $currentOffset + $length; $i++) {
-                                $offsetsToLines[$i] = $index + 1;
+                            $contents = $file->getContents();
+                            if (! preg_match_all(
+                                $pattern,
+                                $contents,
+                                $matches,
+                                PREG_OFFSET_CAPTURE,
+                            )) {
+                                continue;
                             }
-                            $currentOffset += $length;
+                            $lines = preg_split('/\r?\n/', $contents);
+                            $offsetsToLines = [];
+                            $currentOffset = 0;
+                            foreach ($lines as $index => $line) {
+                                $length = strlen($line) + 1;
+                                for ($i = $currentOffset; $i < $currentOffset + $length; $i++) {
+                                    $offsetsToLines[$i] = $index + 1;
+                                }
+                                $currentOffset += $length;
+                            }
+                            foreach ($matches[0] as $match) {
+                                [$text, $offset] = $match;
+                                $lineNumber = $offsetsToLines[$offset] ?? null;
+                                $violations[] = [
+                                    'type' => 'pattern',
+                                    'path' => $file->getRealPath(),
+                                    'line' => $lineNumber,
+                                    'match' => $text,
+                                    'message' => $description,
+                                ];
+                            }
                         }
-                        foreach ($matches[0] as $match) {
-                            [$text, $offset] = $match;
-                            $lineNumber = $offsetsToLines[$offset] ?? null;
-                            $violations[] = [
-                                'type' => 'pattern',
-                                'path' => $file->getRealPath(),
-                                'line' => $lineNumber,
-                                'match' => $text,
-                                'message' => $description,
-                            ];
-                        }
-                    }
                     } catch (\Exception $e) {
                         // Skip scanning paths that cause problems (e.g., trying to iterate over non-existent directories)
                     }
@@ -150,7 +172,12 @@ class DddGuardCommand extends Command
 
         // 3. Optional DI sniff (Phase 1 skeleton)
         if ($this->option('di') && ($config['di_enabled'] ?? false)) {
-            $this->scanDiConcreteInjections($config, $violations, $advisories, $diReport);
+            $this->scanDiConcreteInjections(
+                $config,
+                $violations,
+                $advisories,
+                $diReport,
+            );
         }
 
         $format = $this->option('format');
@@ -169,15 +196,20 @@ class DddGuardCommand extends Command
                 $this->line(json_encode($payload, JSON_PRETTY_PRINT));
             } else {
                 $this->info('No DDD guard violations detected.');
-                if (!empty($advisories)) {
-                    $this->warn('Advisories (non-blocking): '.count($advisories));
+                if (! empty($advisories)) {
+                    $this->warn('Advisories (non-blocking): ' . count($advisories));
                 }
-                if ($this->option('di') && (!empty($diReport['violations']) || !empty($diReport['advisories']))) {
-                    $this->line('DI Scan: '.count($diReport['violations']).' violations, '.count($diReport['advisories']).' advisories');
+                if ($this->option('di') && (! empty($diReport['violations']) || ! empty($diReport['advisories']))) {
+                    $this->line('DI Scan: ' . count($diReport['violations']) . ' violations, ' . count($diReport['advisories']) . ' advisories');
                 }
             }
-            if ($this->option('suppress-exit')) { return 0; }
-            if ($failOnAdvisory && !empty($advisories)) { return 1; }
+            if ($this->option('suppress-exit')) {
+                return 0;
+            }
+            if ($failOnAdvisory && ! empty($advisories)) {
+                return 1;
+            }
+
             return 0;
         }
 
@@ -194,30 +226,41 @@ class DddGuardCommand extends Command
         } else {
             $this->error('DDD guard violations:');
             foreach ($violations as $v) {
-                $lineInfo = isset($v['line']) ? (':'.$v['line']) : '';
+                $lineInfo = isset($v['line']) ? (':' . $v['line']) : '';
                 $this->line(" - [{$v['type']}] {$v['path']}{$lineInfo} :: {$v['message']}");
             }
-            if (!empty($advisories)) {
+            if (! empty($advisories)) {
                 $this->warn('Advisories (non-blocking):');
                 foreach ($advisories as $a) {
-                    $lineInfo = isset($a['line']) ? (':'.$a['line']) : '';
+                    $lineInfo = isset($a['line']) ? (':' . $a['line']) : '';
                     $this->line(" - [advisory] {$a['path']}{$lineInfo} :: {$a['message']}");
                 }
             }
             $this->error(count($violations) . ' violation(s) detected.');
         }
-    if ($this->option('suppress-exit')) { return 0; }
-    if (!empty($violations)) { return 1; }
-    if ($failOnAdvisory && !empty($advisories)) { return 1; }
-    return 0;
+        if ($this->option('suppress-exit')) {
+            return 0;
+        }
+        if ($violations !== []) {
+            return 1;
+        }
+        if ($failOnAdvisory && ! empty($advisories)) {
+            return 1;
+        }
+
+        return 0;
     }
 
     /**
      * Phase 1 skeleton DI scan: detect direct service injection/import.
      * Populates $violations (hard) and $advisories (non-blocking) arrays.
      */
-    protected function scanDiConcreteInjections(array $config, array &$violations, array &$advisories, array &$diReport): void
-    {
+    protected function scanDiConcreteInjections(
+        array $config,
+        array &$violations,
+        array &$advisories,
+        array &$diReport,
+    ): void {
         $paths = $config['di_scan_paths'] ?? [];
         if (empty($paths)) {
             return;
@@ -227,21 +270,30 @@ class DddGuardCommand extends Command
         $allowlist = $config['di_allowlist'] ?? [];
         $missingInterfaceAdvisory = $config['di_missing_interface_advisory'] ?? true;
 
-        $useRegex = '/use\s+(App\\\\Domain\\\\[A-Z][A-Za-z0-9]+\\\\Services\\\\([A-Z][A-Za-z0-9]+'.$serviceSuffix.'))\s*;/m';
-        $ctorRegex = '/__construct\([^)]*?App\\\\Domain\\\\[A-Z][A-Za-z0-9]+\\\\Services\\\\[A-Z][A-Za-z0-9]+'.$serviceSuffix.'\s+\$/s';
+        $useRegex = '/use\s+(App\\\\Domain\\\\[A-Z][A-Za-z0-9]+\\\\Services\\\\([A-Z][A-Za-z0-9]+' . $serviceSuffix . '))\s*;/m';
+        $ctorRegex = '/__construct\([^)]*?App\\\\Domain\\\\[A-Z][A-Za-z0-9]+\\\\Services\\\\[A-Z][A-Za-z0-9]+' . $serviceSuffix . '\s+\$/s';
 
         foreach ($paths as $scanPath) {
-            if (!is_dir($scanPath)) {
+            if (! is_dir($scanPath)) {
                 continue;
             }
-            $phpFiles = (new Finder())->files()->in($scanPath)->name('*.php');
+            $phpFiles = (new Finder)->files()->in($scanPath)->name('*.php');
             foreach ($phpFiles as $file) {
                 $contents = $file->getContents();
                 // Use import detection
-                if (preg_match_all($useRegex, $contents, $matches, PREG_OFFSET_CAPTURE)) {
+                if (preg_match_all(
+                    $useRegex,
+                    $contents,
+                    $matches,
+                    PREG_OFFSET_CAPTURE,
+                )) {
                     foreach ($matches[1] as $idx => $m) {
                         [$fqcn, $offset] = $m;
-                        if (in_array($fqcn, $allowlist, true)) {
+                        if (in_array(
+                            $fqcn,
+                            $allowlist,
+                            true,
+                        )) {
                             continue;
                         }
                         $line = $this->offsetToLine($contents, $offset);
@@ -259,7 +311,7 @@ class DddGuardCommand extends Command
                                 'type' => 'di_missing_interface',
                                 'path' => $file->getRealPath(),
                                 'line' => $line,
-                                    'message' => "Concrete service import {$fqcn} (interface missing – create matching *ServiceInterface in Contracts)",
+                                'message' => "Concrete service import {$fqcn} (interface missing – create matching *ServiceInterface in Contracts)",
                             ];
                             $advisories[] = $advisory;
                             $diReport['advisories'][] = $advisory;
@@ -267,14 +319,27 @@ class DddGuardCommand extends Command
                     }
                 }
                 // Constructor parameter detection
-                if (preg_match_all($ctorRegex, $contents, $ctorMatches, PREG_OFFSET_CAPTURE)) {
+                if (preg_match_all(
+                    $ctorRegex,
+                    $contents,
+                    $ctorMatches,
+                    PREG_OFFSET_CAPTURE,
+                )) {
                     foreach ($ctorMatches[0] as $m) {
                         [, $offset] = $m;
                         $line = $this->offsetToLine($contents, $offset);
                         // Simplistic extraction of service class within match
-                        if (preg_match('/App\\\\Domain\\\\[A-Z][A-Za-z0-9]+\\\\Services\\\\([A-Z][A-Za-z0-9]+'.$serviceSuffix.')/', $m[0], $svcMatch)) {
+                        if (preg_match(
+                            '/App\\\\Domain\\\\[A-Z][A-Za-z0-9]+\\\\Services\\\\([A-Z][A-Za-z0-9]+' . $serviceSuffix . ')/',
+                            $m[0],
+                            $svcMatch,
+                        )) {
                             $svcFqcn = $svcMatch[0];
-                            if (in_array($svcFqcn, $allowlist, true)) {
+                            if (in_array(
+                                $svcFqcn,
+                                $allowlist,
+                                true,
+                            )) {
                                 continue;
                             }
                             if ($this->classExistsByPathGuess($svcFqcn, $interfaceSuffix)) {
@@ -306,7 +371,12 @@ class DddGuardCommand extends Command
     /** Convert byte offset to 1-based line number */
     private function offsetToLine(string $contents, int $offset): int
     {
-        $before = substr($contents, 0, $offset);
+        $before = substr(
+            $contents,
+            0,
+            $offset,
+        );
+
         return substr_count($before, "\n") + 1;
     }
 
@@ -315,7 +385,7 @@ class DddGuardCommand extends Command
      */
     private function classExistsByPathGuess(string $serviceFqcn, string $interfaceSuffix): bool
     {
-        if (!str_starts_with($serviceFqcn, 'App\\Domain\\')) {
+        if (! str_starts_with($serviceFqcn, 'App\\Domain\\')) {
             return false;
         }
         // Pattern: App\Domain\<Domain>\Services\<ServiceClass>
@@ -330,10 +400,11 @@ class DddGuardCommand extends Command
         }
         $domain = $segments[0];
         $serviceClass = $segments[2];
-        if (!$serviceClass || !str_ends_with($serviceClass, 'Service')) {
+        if (! $serviceClass || ! str_ends_with($serviceClass, 'Service')) {
             return false; // Only enforce for *Service classes
         }
-        $interfaceFile = base_path('app/Domain/'.$domain.'/Contracts/'.$serviceClass.$interfaceSuffix.'.php');
+        $interfaceFile = base_path('app/Domain/' . $domain . '/Contracts/' . $serviceClass . $interfaceSuffix . '.php');
+
         return is_file($interfaceFile);
     }
 

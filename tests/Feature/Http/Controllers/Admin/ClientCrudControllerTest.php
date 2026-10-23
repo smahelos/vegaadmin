@@ -14,23 +14,23 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class ClientCrudControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
     private User $user;
-    private User $adminUser;
+
     private UniversalLimitService $limitService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->setUpAdminTestEnvironment();
-        
-        // Use the admin user created by the trait  
+
+        // Use the admin user created by the trait
         $this->user = $this->adminUser;
         $this->actingAs($this->user, 'backpack');
-        
+
         $this->limitService = app(UniversalLimitService::class);
     }
 
@@ -48,20 +48,40 @@ class ClientCrudControllerTest extends TestCase
         ]);
 
         // Check initial usage
-        $initialCheck = $this->limitService->checkLimit($this->user->id, 'client', 'count', 'monthly');
+        $initialCheck = $this->limitService->checkLimit(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
         $initialUsage = $initialCheck['current_usage'] ?? 0;
-        
+
         // Simulate client creation by directly calling recordUsage
         $client = Client::factory()->create(['user_id' => $this->user->id]);
-        $result = $this->limitService->recordUsage($this->user->id, 'client', 'count', 'monthly', 'backpack');
+        $result = $this->limitService->recordUsage(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+            'backpack',
+        );
         $this->assertTrue($result, 'recordUsage should return true when successful');
-        
+
         // Check new usage
-        $newCheck = $this->limitService->checkLimit($this->user->id, 'client', 'count', 'monthly');
+        $newCheck = $this->limitService->checkLimit(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
         $newUsage = $newCheck['current_usage'] ?? 0;
-        
-        $this->assertEquals($initialUsage + 1, $newUsage, 'Usage should increase by 1 after recording');
-        
+
+        $this->assertEquals(
+            $initialUsage + 1,
+            $newUsage,
+            'Usage should increase by 1 after recording',
+        );
+
         // Verify client was created
         $this->assertDatabaseHas('clients', [
             'id' => $client->id,
@@ -83,18 +103,34 @@ class ClientCrudControllerTest extends TestCase
         ]);
 
         // First client creation - should succeed
-        $checkBeforeFirst = $this->limitService->checkLimit($this->user->id, 'client', 'count', 'monthly');
+        $checkBeforeFirst = $this->limitService->checkLimit(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
         $this->assertTrue($checkBeforeFirst['allowed']);
-        
+
         $client1 = Client::factory()->create(['user_id' => $this->user->id]);
-        $result1 = $this->limitService->recordUsage($this->user->id, 'client', 'count', 'monthly', 'backpack');
+        $result1 = $this->limitService->recordUsage(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+            'backpack',
+        );
         $this->assertTrue($result1, 'First recordUsage should succeed');
-        
+
         // Second client creation - should fail due to limit
-        $checkBeforeSecond = $this->limitService->checkLimit($this->user->id, 'client', 'count', 'monthly');
+        $checkBeforeSecond = $this->limitService->checkLimit(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
         $this->assertFalse($checkBeforeSecond['allowed']);
         $this->assertEquals('limit_exceeded', $checkBeforeSecond['reason']);
-        
+
         // Verify first client was created
         $this->assertDatabaseHas('clients', [
             'id' => $client1->id,
@@ -125,6 +161,11 @@ class ClientCrudControllerTest extends TestCase
     {
         $this->post('/admin/client', ['name' => 'Client ' . uniqid()])
             ->assertRedirect()
-            ->assertSessionHasErrors(['street', 'city', 'zip', 'country']);
+            ->assertSessionHasErrors([
+                'street',
+                'city',
+                'zip',
+                'country',
+            ]);
     }
 }

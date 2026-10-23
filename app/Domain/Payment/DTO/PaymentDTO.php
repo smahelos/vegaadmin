@@ -29,7 +29,7 @@ class PaymentDTO
         return new self(
             id: (int) $data['id'],
             subscription_id: (int) $data['subscription_id'],
-            gateway_payment_id: isset($data['gateway_payment_id']) ? (int)$data['gateway_payment_id'] : null,
+            gateway_payment_id: isset($data['gateway_payment_id']) ? (int) $data['gateway_payment_id'] : null,
             gateway: $data['gateway'] ?? null,
             status: $data['status'] ?? null,
             amount: $data['amount'] ?? null,

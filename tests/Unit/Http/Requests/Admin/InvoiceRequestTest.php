@@ -14,7 +14,7 @@ class InvoiceRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new InvoiceRequest();
+        $this->request = new InvoiceRequest;
     }
 
     #[Test]

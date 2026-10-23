@@ -21,7 +21,11 @@ return new class extends Migration
         });
 
         Schema::table('invoices', function (Blueprint $table): void {
-            $table->decimal('payment_amount', 18, 2)->change();
+            $table->decimal(
+                'payment_amount',
+                18,
+                2,
+            )->change();
         });
     }
 

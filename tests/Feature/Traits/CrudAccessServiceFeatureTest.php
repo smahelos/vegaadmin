@@ -2,8 +2,9 @@
 
 namespace Tests\Feature\Traits;
 
-use App\Infrastructure\Authorization\Services\CrudAccessService;
 use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
+use App\Infrastructure\Authorization\Services\CrudAccessService;
+use App\Models\Client;
 use App\Models\User;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,15 +18,16 @@ class CrudAccessServiceFeatureTest extends TestCase
     use RefreshDatabase;
 
     private CrudAccessService $service;
+
     private CrudPanel $crud;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new CrudAccessService(new SpatieAuthorizationAdapter());
+        $this->service = new CrudAccessService(new SpatieAuthorizationAdapter);
 
         // Minimal CrudPanel instance; we'll stub access arrays via reflection
-        $this->crud = new CrudPanel();
+        $this->crud = new CrudPanel;
 
         // Ensure roles/permissions exist
         Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
@@ -48,12 +50,18 @@ class CrudAccessServiceFeatureTest extends TestCase
     #[Test]
     public function denies_all_access_by_default(): void
     {
-        $this->setCrudModel(\App\Models\User::class);
+        $this->setCrudModel(User::class);
         $user = User::factory()->create();
 
         $this->service->configureCrudAccess($this->crud, $user->id);
 
-        foreach (['list','show','create','update','delete'] as $op) {
+        foreach ([
+            'list',
+            'show',
+            'create',
+            'update',
+            'delete',
+        ] as $op) {
             $this->assertFalse($this->hasAccess($op));
         }
     }
@@ -61,7 +69,7 @@ class CrudAccessServiceFeatureTest extends TestCase
     #[Test]
     public function allows_view_access_with_view_permission(): void
     {
-        $this->setCrudModel(\App\Models\User::class);
+        $this->setCrudModel(User::class);
         $user = User::factory()->create();
         $perm = Permission::where('name', 'can_view_user')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($perm);
@@ -75,13 +83,19 @@ class CrudAccessServiceFeatureTest extends TestCase
     #[Test]
     public function allows_full_access_with_create_edit_permission(): void
     {
-        $this->setCrudModel(\App\Models\User::class);
+        $this->setCrudModel(User::class);
         $user = User::factory()->create();
         $perm = Permission::where('name', 'can_create_edit_user')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);
-        foreach (['list','show','create','update','delete'] as $op) {
+        foreach ([
+            'list',
+            'show',
+            'create',
+            'update',
+            'delete',
+        ] as $op) {
             $this->assertTrue($this->hasAccess($op));
         }
     }
@@ -89,13 +103,19 @@ class CrudAccessServiceFeatureTest extends TestCase
     #[Test]
     public function admin_role_allows_full_access(): void
     {
-        $this->setCrudModel(\App\Models\User::class);
+        $this->setCrudModel(User::class);
         $admin = User::factory()->create();
         $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $admin->assignRole($role);
 
         $this->service->configureCrudAccess($this->crud, $admin->id);
-        foreach (['list','show','create','update','delete'] as $op) {
+        foreach ([
+            'list',
+            'show',
+            'create',
+            'update',
+            'delete',
+        ] as $op) {
             $this->assertTrue($this->hasAccess($op));
         }
     }
@@ -104,7 +124,7 @@ class CrudAccessServiceFeatureTest extends TestCase
     public function respects_entity_table_for_permissions(): void
     {
         // Switch model to Client to ensure singular entity mapping handled by service
-        $this->setCrudModel(\App\Models\Client::class);
+        $this->setCrudModel(Client::class);
         $user = User::factory()->create();
         // For client view permission, adapter checks can_view_client; create_edit permission is can_create_edit_client
         Permission::firstOrCreate(['name' => 'can_view_client', 'guard_name' => 'backpack']);

@@ -15,7 +15,11 @@ interface InvoiceWriteRepositoryInterface
     public function create(array $data): Invoice;
 
     /** Update invoice for user (returns updated or throws if not found) */
-    public function updateForUser(int $userId, int $invoiceId, array $data): Invoice;
+    public function updateForUser(
+        int $userId,
+        int $invoiceId,
+        array $data,
+    ): Invoice;
 
     /** Create an unsaved invoice instance (for form stubs) */
     public function make(array $attributes = []): Invoice;

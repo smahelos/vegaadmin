@@ -21,10 +21,10 @@ interface SupplierReadRepositoryInterface
 
     /** Find by id scoped to a specific user */
     public function findByIdForUser(int $id, int $userId): ?Supplier;
-    
+
     public function allForAdmin(): array;
-    
+
     public function allForUser(int $userId): array;
-    
+
     public function firstForUser(int $userId): ?Supplier;
 }

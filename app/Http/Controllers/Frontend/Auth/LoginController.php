@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers\Frontend\Auth;
 
-use Illuminate\Routing\Controller;
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class LoginController extends Controller
 {
@@ -32,9 +38,8 @@ class LoginController extends Controller
     /**
      * Custom redirect after successful authentication
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  mixed  $user
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     protected function authenticated(Request $request, $user)
     {
@@ -44,7 +49,7 @@ class LoginController extends Controller
     /**
      * Show the application's login form
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function showLoginForm()
     {
@@ -54,10 +59,9 @@ class LoginController extends Controller
     /**
      * Handle a login request
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+     * @return RedirectResponse|Response|JsonResponse
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function login(Request $request)
     {
@@ -72,9 +76,9 @@ class LoginController extends Controller
         } catch (\Exception $e) {
             Log::error('Login error: ' . $e->getMessage(), [
                 'email' => $request->email,
-                'ip' => $request->ip()
+                'ip' => $request->ip(),
             ]);
-            
+
             return back()->withInput()->with('error', __('users.auth.failed'));
         }
     }
@@ -82,15 +86,14 @@ class LoginController extends Controller
     /**
      * Log the user out of the application
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function logout(Request $request)
     {
         $this->guard()->logout();
 
         $request->session()->invalidate();
-        
+
         $request->session()->regenerateToken();
 
         return redirect()->route('home', ['locale' => app()->getLocale()]);
@@ -98,21 +101,20 @@ class LoginController extends Controller
 
     /**
      * Attempt authentication with web guard
-     * 
-     * @param \Illuminate\Http\Request $request
+     *
      * @return bool
      */
     protected function attemptLogin(Request $request)
     {
         return Auth::guard('web')->attempt(
-            $this->credentials($request), $request->filled('remember')
+            $this->credentials($request), $request->filled('remember'),
         );
     }
 
     /**
      * Get the authentication guard
      *
-     * @return \Illuminate\Contracts\Auth\StatefulGuard
+     * @return StatefulGuard
      */
     protected function guard()
     {

@@ -12,6 +12,7 @@ class GatewayRegistry implements GatewayRegistryInterface
 {
     /** @var array<string, PaymentGatewayInterface> */
     private array $gateways = [];
+
     /** @var array<string,array<string,mixed>> */
     private array $meta = [];
 

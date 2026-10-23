@@ -4,9 +4,10 @@ namespace Database\Factories;
 
 use App\Models\Tax;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Tax>
+ * @extends Factory<Tax>
  */
 class TaxFactory extends Factory
 {
@@ -20,11 +21,15 @@ class TaxFactory extends Factory
     public function definition(): array
     {
         $name = fake()->words(2, true);
-        
+
         return [
             'name' => $name,
-            'rate' => fake()->randomFloat(2, 0, 30),
-            'slug' => \Illuminate\Support\Str::slug($name),
+            'rate' => fake()->randomFloat(
+                2,
+                0,
+                30,
+            ),
+            'slug' => Str::slug($name),
         ];
     }
 

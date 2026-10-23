@@ -2,10 +2,11 @@
 
 namespace Tests\Feature\Domain\Invoice\Notifications;
 
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Infrastructure\Notifications\Invoice\Messages\InvoiceOverdueReminder;
 use App\Models\Invoice;
 use App\Models\User;
-use App\Infrastructure\Notifications\Invoice\Messages\InvoiceOverdueReminder;
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
@@ -17,21 +18,22 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
     use RefreshDatabase;
 
     private Invoice $invoice;
+
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->invoice = Invoice::factory()->create([
             'issue_date' => now()->subDays(35)->format('Y-m-d'), // 35 days ago
             'due_in' => 14, // Due date = 35 - 14 = 21 days ago (overdue)
-            'invoice_vs' => '2024-001'
+            'invoice_vs' => '2024-001',
         ]);
-        
+
         $this->user = User::factory()->create([
             'name' => 'Test User',
-            'email' => 'test@example.com'
+            'email' => 'test@example.com',
         ]);
     }
 
@@ -56,7 +58,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
     {
         Notification::fake();
 
-        $anonymousNotifiable = (new AnonymousNotifiable())
+        $anonymousNotifiable = (new AnonymousNotifiable)
             ->route('mail', 'test@example.com');
 
         $payload = new InvoiceReminderPayload(
@@ -83,9 +85,13 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         );
         $this->user->notify(new InvoiceOverdueReminder($payload));
 
-        Notification::assertSentTo($this->user, InvoiceOverdueReminder::class, function ($notification) {
-            return $notification instanceof \Illuminate\Contracts\Queue\ShouldQueue;
-        });
+        Notification::assertSentTo(
+            $this->user,
+            InvoiceOverdueReminder::class,
+            function ($notification) {
+                return $notification instanceof ShouldQueue;
+            },
+        );
     }
 
     #[Test]
@@ -98,7 +104,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
             recipientType: 'supplier',
         );
         $notification = new InvoiceOverdueReminder($payload);
-        
+
         $reflection = new \ReflectionClass($notification);
         $payloadProperty = $reflection->getProperty('payload');
         $payloadProperty->setAccessible(true);
@@ -117,7 +123,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
             recipientType: 'client',
         );
         $notification = new InvoiceOverdueReminder($payload);
-        
+
         $reflection = new \ReflectionClass($notification);
         $payloadProperty = $reflection->getProperty('payload');
         $payloadProperty->setAccessible(true);
@@ -138,12 +144,12 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $notification = new InvoiceOverdueReminder($payload);
         $notification->locale('en');
         $mailMessage = $notification->toMail($this->user);
-        
+
         // Use reflection to check the subject
         $reflection = new \ReflectionClass($mailMessage);
         $subjectProperty = $reflection->getProperty('subject');
         $subjectProperty->setAccessible(true);
-        
+
         $this->assertStringContainsString('2024-001', $subjectProperty->getValue($mailMessage));
     }
 
@@ -159,11 +165,11 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $notification = new InvoiceOverdueReminder($payload);
         $notification->locale('en');
         $mailMessage = $notification->toMail($this->user);
-        
+
         $reflection = new \ReflectionClass($mailMessage);
         $viewProperty = $reflection->getProperty('view');
         $viewProperty->setAccessible(true);
-        
+
         $this->assertEquals('emails.invoices.reminders.overdue_client', $viewProperty->getValue($mailMessage));
     }
 
@@ -179,11 +185,11 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $notification = new InvoiceOverdueReminder($payload);
         $notification->locale('en');
         $mailMessage = $notification->toMail($this->user);
-        
+
         $reflection = new \ReflectionClass($mailMessage);
         $viewProperty = $reflection->getProperty('view');
         $viewProperty->setAccessible(true);
-        
+
         $this->assertEquals('emails.invoices.reminders.overdue_supplier', $viewProperty->getValue($mailMessage));
     }
 
@@ -199,12 +205,12 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $notification = new InvoiceOverdueReminder($payload);
         $notification->locale('en');
         $mailMessage = $notification->toMail($this->user);
-        
+
         $reflection = new \ReflectionClass($mailMessage);
         $viewDataProperty = $reflection->getProperty('viewData');
         $viewDataProperty->setAccessible(true);
         $viewData = $viewDataProperty->getValue($mailMessage);
-        
+
         $this->assertArrayHasKey('invoiceNumber', $viewData);
         $this->assertSame($this->invoice->invoice_vs, $viewData['invoiceNumber']);
     }
@@ -221,12 +227,12 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $notification = new InvoiceOverdueReminder($payload);
         $notification->locale('en');
         $mailMessage = $notification->toMail($this->user);
-        
+
         $reflection = new \ReflectionClass($mailMessage);
         $viewDataProperty = $reflection->getProperty('viewData');
         $viewDataProperty->setAccessible(true);
         $viewData = $viewDataProperty->getValue($mailMessage);
-        
+
         $this->assertArrayHasKey('dueDate', $viewData);
         $this->assertIsString($viewData['dueDate']);
         $this->assertMatchesRegularExpression('/^\d{2}\.\d{2}\.\d{4}$/', $viewData['dueDate']);
@@ -244,12 +250,12 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $notification = new InvoiceOverdueReminder($payload);
         $notification->locale('en');
         $mailMessage = $notification->toMail($this->user);
-        
+
         $reflection = new \ReflectionClass($mailMessage);
         $viewDataProperty = $reflection->getProperty('viewData');
         $viewDataProperty->setAccessible(true);
         $viewData = $viewDataProperty->getValue($mailMessage);
-        
+
         $this->assertArrayHasKey('daysOverdue', $viewData);
         $this->assertIsNumeric($viewData['daysOverdue']); // Can be float or int
         $this->assertGreaterThan(0, $viewData['daysOverdue']); // Should be positive for overdue invoice
@@ -267,12 +273,12 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $notification = new InvoiceOverdueReminder($payload);
         $notification->locale('en');
         $mailMessage = $notification->toMail($this->user);
-        
+
         $reflection = new \ReflectionClass($mailMessage);
         $viewDataProperty = $reflection->getProperty('viewData');
         $viewDataProperty->setAccessible(true);
         $viewData = $viewDataProperty->getValue($mailMessage);
-        
+
         $this->assertArrayHasKey('greeting', $viewData);
         $this->assertIsString($viewData['greeting']);
     }
@@ -289,12 +295,12 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $notification = new InvoiceOverdueReminder($payload);
         $notification->locale('cs');
         $mailMessage = $notification->toMail($this->user);
-        
+
         $reflection = new \ReflectionClass($mailMessage);
         $viewDataProperty = $reflection->getProperty('viewData');
         $viewDataProperty->setAccessible(true);
         $viewData = $viewDataProperty->getValue($mailMessage);
-        
+
         $this->assertArrayHasKey('locale', $viewData);
         $this->assertEquals('cs', $viewData['locale']);
     }
@@ -347,7 +353,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
     public function notification_can_be_sent_with_different_recipient_types(): void
     {
         Notification::fake();
-        
+
         // Test with client recipient type
         $clientPayload = new InvoiceReminderPayload(
             invoiceNumber: $this->invoice->invoice_vs,
@@ -356,7 +362,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
             recipientType: 'client',
         );
         $this->user->notify(new InvoiceOverdueReminder($clientPayload));
-        
+
         // Test with supplier recipient type
         $supplierPayload = new InvoiceReminderPayload(
             invoiceNumber: $this->invoice->invoice_vs,
@@ -365,14 +371,19 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
             recipientType: 'supplier',
         );
         $this->user->notify(new InvoiceOverdueReminder($supplierPayload));
-        
-        Notification::assertSentTo($this->user, InvoiceOverdueReminder::class, function ($notification) {
-            $reflection = new \ReflectionClass($notification);
-            $payloadProperty = $reflection->getProperty('payload');
-            $payloadProperty->setAccessible(true);
-            /** @var InvoiceReminderPayload $payload */
-            $payload = $payloadProperty->getValue($notification);
-            return in_array($payload->recipientType, ['client', 'supplier']);
-        });
+
+        Notification::assertSentTo(
+            $this->user,
+            InvoiceOverdueReminder::class,
+            function ($notification) {
+                $reflection = new \ReflectionClass($notification);
+                $payloadProperty = $reflection->getProperty('payload');
+                $payloadProperty->setAccessible(true);
+                /** @var InvoiceReminderPayload $payload */
+                $payload = $payloadProperty->getValue($notification);
+
+                return in_array($payload->recipientType, ['client', 'supplier']);
+            },
+        );
     }
 }

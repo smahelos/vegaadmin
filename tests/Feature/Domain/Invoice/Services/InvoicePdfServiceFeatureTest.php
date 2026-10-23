@@ -2,21 +2,23 @@
 
 namespace Tests\Feature\Domain\Invoice\Services;
 
-use App\Models\Invoice;
-use App\Models\Client;
-use App\Models\Supplier;
-use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Application\Invoice\Services\InvoicePdfRenderer;
+use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
-use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
+use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Models\Client;
+use App\Models\Invoice;
+use App\Models\PaymentMethod;
+use App\Models\Status;
+use App\Models\Supplier;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\View;
-use Barryvdh\DomPDF\Facade\Pdf;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -25,9 +27,13 @@ class InvoicePdfServiceFeatureTest extends TestCase
     use RefreshDatabase;
 
     private InvoicePdfRenderer $renderer;
+
     private InvoicePdfRenderer $rendererMissingTemplate;
+
     private InvoicePrintDataBuilder $printDataBuilder;
+
     private TemporaryInvoicePrintDataFactoryInterface $tempFactory;
+
     private InvoiceDtoReadRepositoryInterface $invoiceDtoRepo;
 
     protected function setUp(): void
@@ -38,11 +44,8 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $this->tempFactory = app(TemporaryInvoicePrintDataFactoryInterface::class);
         $this->invoiceDtoRepo = app(InvoiceDtoReadRepositoryInterface::class);
         // Deterministic fake for missing template scenario
-        $this->rendererMissingTemplate = new class(
-            app(MoneyFormatterInterface::class),
-            app(QrPaymentServiceInterface::class),
-            app(\App\Application\Payment\Mappers\QrPaymentPayloadMapper::class)
-        ) extends InvoicePdfRenderer {
+        $this->rendererMissingTemplate = new class(app(MoneyFormatterInterface::class), app(QrPaymentServiceInterface::class), app(QrPaymentPayloadMapper::class)) extends InvoicePdfRenderer
+        {
             protected function templateFileExists(string $template): bool
             {
                 // Simulate that only 'default' exists; others missing
@@ -69,12 +72,12 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'bank_code' => '0100',
             'iban' => 'CZ1234567890123456789',
         ]);
-        
+
         $client = Client::factory()->create();
-        
+
         $paymentMethod = PaymentMethod::factory()->create();
         $status = Status::factory()->create();
-        
+
         $invoice = Invoice::factory()->create([
             'supplier_id' => $supplier->id,
             'client_id' => $client->id,
@@ -90,11 +93,15 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $printData = $this->printDataBuilder->build($dto);
 
         Pdf::shouldReceive('loadView')->once()->with(
-            \Mockery::on(fn($tpl) => is_string($tpl) && str_starts_with($tpl, 'pdfs.templates.')),
-            \Mockery::on(fn($data) => is_array($data) && isset($data['invoice']))
+            \Mockery::on(fn ($tpl) => is_string($tpl) && str_starts_with($tpl, 'pdfs.templates.')),
+            \Mockery::on(fn ($data) => is_array($data) && isset($data['invoice'])),
         )->andReturnSelf();
 
-        $this->renderer->render($printData, $printData->template, 'cs');
+        $this->renderer->render(
+            $printData,
+            $printData->template,
+            'cs',
+        );
     }
 
     #[Test]
@@ -104,7 +111,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $client = Client::factory()->create();
         $paymentMethod = PaymentMethod::factory()->create();
         $status = Status::factory()->create();
-        
+
         $invoice = Invoice::factory()->create([
             'supplier_id' => $supplier->id,
             'client_id' => $client->id,
@@ -121,13 +128,22 @@ class InvoicePdfServiceFeatureTest extends TestCase
             \Mockery::type('string'),
             \Mockery::on(function ($data) use (&$captured) {
                 $captured[] = $data['locale'] ?? null;
+
                 return true;
-            })
+            }),
         )->andReturnSelf();
 
-        $this->renderer->render($printData, null, 'cs');
-        $this->renderer->render($printData, null, 'en');
-        $this->assertEquals(['cs','en'], $captured);
+        $this->renderer->render(
+            $printData,
+            null,
+            'cs',
+        );
+        $this->renderer->render(
+            $printData,
+            null,
+            'en',
+        );
+        $this->assertEquals(['cs', 'en'], $captured);
     }
 
     #[Test]
@@ -153,13 +169,17 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'payment_amount' => 1200.00,
             'invoice_text' => 'Test invoice description',
             'lang' => 'cs',
-            'invoice-products' => []
+            'invoice-products' => [],
         ];
 
         // Build from array and render
         $printData = $this->tempFactory->fromArray($invoiceData);
         Pdf::shouldReceive('loadView')->once()->andReturnSelf();
-        $this->renderer->render($printData, $printData->template, $invoiceData['lang']);
+        $this->renderer->render(
+            $printData,
+            $printData->template,
+            $invoiceData['lang'],
+        );
     }
 
     #[Test]
@@ -176,13 +196,17 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'due_in' => 30,
             'payment_amount' => 1000.00,
             'invoice_text' => 'Test invoice',
-            'invoice-products' => []
+            'invoice-products' => [],
         ];
 
         $printData = $this->tempFactory->fromArray($invoiceData);
         $this->assertNotNull($printData->due_date);
         Pdf::shouldReceive('loadView')->once()->andReturnSelf();
-        $this->renderer->render($printData, null, null);
+        $this->renderer->render(
+            $printData,
+            null,
+            null,
+        );
     }
 
     #[Test]
@@ -197,12 +221,16 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'due_in' => 14,
             'payment_amount' => 500.00,
             'invoice_text' => 'Minimal invoice',
-            'invoice-products' => []
+            'invoice-products' => [],
         ];
 
         $printData = $this->tempFactory->fromArray($invoiceData);
         Pdf::shouldReceive('loadView')->once()->andReturnSelf();
-        $this->renderer->render($printData, null, null);
+        $this->renderer->render(
+            $printData,
+            null,
+            null,
+        );
     }
 
     #[Test]
@@ -220,16 +248,24 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'payment_amount' => 1000.00,
             'invoice_text' => 'Test invoice with locale',
             'lang' => 'en',
-            'invoice-products' => []
+            'invoice-products' => [],
         ];
 
         $printData = $this->tempFactory->fromArray($invoiceData);
         $captured = null;
         Pdf::shouldReceive('loadView')->once()->with(
             \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) { $captured = $data['locale']; return true; })
+            \Mockery::on(function ($data) use (&$captured) {
+                $captured = $data['locale'];
+
+                return true;
+            }),
         )->andReturnSelf();
-        $this->renderer->render($printData, null, 'cs');
+        $this->renderer->render(
+            $printData,
+            null,
+            'cs',
+        );
         $this->assertEquals('cs', $captured);
     }
 
@@ -241,11 +277,11 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'bank_code' => '',
             'iban' => '',
         ]);
-        
+
         $client = Client::factory()->create();
         $paymentMethod = PaymentMethod::factory()->create();
         $status = Status::factory()->create();
-        
+
         $invoice = Invoice::factory()->create([
             'supplier_id' => $supplier->id,
             'client_id' => $client->id,
@@ -257,7 +293,11 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
         $printData = $this->printDataBuilder->build($dto);
         Pdf::shouldReceive('loadView')->once()->andReturnSelf();
-        $this->renderer->render($printData, null, null);
+        $this->renderer->render(
+            $printData,
+            null,
+            null,
+        );
     }
 
     #[Test]
@@ -265,7 +305,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
     {
         // Test that dependencies are properly injected and accessible in renderer
         $reflection = new \ReflectionClass($this->renderer);
-        
+
         $moneyFormatterProperty = $reflection->getProperty('moneyFormatter');
         $moneyFormatterProperty->setAccessible(true);
         $moneyFormatter = $moneyFormatterProperty->getValue($this->renderer);
@@ -283,12 +323,12 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $reflection = new \ReflectionClass($this->renderer);
         $method = $reflection->getMethod('getTemplateName');
         $method->setAccessible(true);
-        
+
         // Test valid templates (should return full Blade template path)
         $this->assertEquals('pdfs.templates.default', $method->invoke($this->renderer, 'default'));
         $this->assertEquals('pdfs.templates.modern', $method->invoke($this->renderer, 'modern'));
         $this->assertEquals('pdfs.templates.minimal', $method->invoke($this->renderer, 'minimal'));
-        
+
         // Test invalid templates should return default
         $this->assertEquals('pdfs.templates.default', $method->invoke($this->renderer, 'invalid'));
         $this->assertEquals('pdfs.templates.default', $method->invoke($this->renderer, 'nonexistent'));
@@ -303,7 +343,11 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $method = $reflection->getMethod('getTemplateName');
         $method->setAccessible(true);
         $resolved = $method->invoke($this->rendererMissingTemplate, 'modern');
-        $this->assertEquals('pdfs.templates.default', $resolved, 'Should fall back to default when overridden file check returns false.');
+        $this->assertEquals(
+            'pdfs.templates.default',
+            $resolved,
+            'Should fall back to default when overridden file check returns false.',
+        );
     }
 
     #[Test]
@@ -330,15 +374,28 @@ class InvoicePdfServiceFeatureTest extends TestCase
             \Mockery::type('string'),
             \Mockery::on(function ($data) use (&$formatted) {
                 $formatted[] = $data['paymentAmountFormatted'] ?? '';
+
                 return true;
-            })
+            }),
         )->andReturnSelf();
 
-        $this->renderer->render($printData, null, 'cs');
-        $this->renderer->render($printData, null, 'en');
+        $this->renderer->render(
+            $printData,
+            null,
+            'cs',
+        );
+        $this->renderer->render(
+            $printData,
+            null,
+            'en',
+        );
 
         $this->assertCount(2, $formatted);
-        $this->assertNotEquals($formatted[0], $formatted[1], 'Different locales should format differently');
+        $this->assertNotEquals(
+            $formatted[0],
+            $formatted[1],
+            'Different locales should format differently',
+        );
         $this->assertMatchesRegularExpression('/,\d{2}$/', $formatted[0]);
         $this->assertMatchesRegularExpression('/\.\d{2}$/', $formatted[1]);
     }
@@ -355,13 +412,17 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'supplier_id' => $supplier->id,
             'payment_method_id' => $paymentMethod->id,
             'payment_status_id' => $paymentStatus->id,
-            'template' => 'nonexistent_unlikely_template_name'
+            'template' => 'nonexistent_unlikely_template_name',
         ]);
         $reflection = new \ReflectionClass($this->renderer);
         $method = $reflection->getMethod('getTemplateName');
         $method->setAccessible(true);
         $resolved = $method->invoke($this->renderer, $invoice->template);
-        $this->assertEquals('pdfs.templates.default', $resolved, 'Invalid template should fall back to default.');
+        $this->assertEquals(
+            'pdfs.templates.default',
+            $resolved,
+            'Invalid template should fall back to default.',
+        );
     }
 
     #[Test]
@@ -378,23 +439,35 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'supplier_id' => $supplier->id,
             'payment_method_id' => $paymentMethod->id,
             'payment_status_id' => $paymentStatus->id,
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
 
         $r = new \ReflectionClass($this->renderer);
         $getTemplate = $r->getMethod('getTemplateName');
         $getTemplate->setAccessible(true);
         $template = $getTemplate->invoke($this->renderer, $invoice->template);
-        $this->assertEquals('pdfs.templates.modern', $template, 'Modern template should be selected');
+        $this->assertEquals(
+            'pdfs.templates.modern',
+            $template,
+            'Modern template should be selected',
+        );
 
         $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
         $printData = $this->printDataBuilder->build($dto);
         $captured = null;
         Pdf::shouldReceive('loadView')->once()->with(
             'pdfs.templates.modern',
-            \Mockery::on(function ($data) use (&$captured) { $captured = $data; return true; })
+            \Mockery::on(function ($data) use (&$captured) {
+                $captured = $data;
+
+                return true;
+            }),
         )->andReturnSelf();
-        $this->renderer->render($printData, $invoice->template, 'cs');
+        $this->renderer->render(
+            $printData,
+            $invoice->template,
+            'cs',
+        );
         $this->assertIsArray($captured);
         $this->assertArrayHasKey('invoice', $captured);
         $this->assertArrayHasKey('supplier', $captured);
@@ -427,20 +500,32 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $captured = null;
         Pdf::shouldReceive('loadView')->once()->with(
             \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) { $captured = $data; return true; })
+            \Mockery::on(function ($data) use (&$captured) {
+                $captured = $data;
+
+                return true;
+            }),
         )->andReturnSelf();
-        $this->renderer->render($printData, null, 'cs');
+        $this->renderer->render(
+            $printData,
+            null,
+            'cs',
+        );
 
         $this->assertArrayHasKey('paymentAmountFormatted', $captured);
         $this->assertArrayHasKey('subtotalFormatted', $captured);
         $this->assertArrayHasKey('taxFormatted', $captured);
 
-        $formatter = app(\App\Domain\Shared\Money\Contracts\MoneyFormatterInterface::class);
+        $formatter = app(MoneyFormatterInterface::class);
         $this->assertEquals($formatter->format($printData->total_amount, 'cs'), $captured['paymentAmountFormatted']);
         $this->assertEquals($formatter->format($printData->subtotal, 'cs'), $captured['subtotalFormatted']);
         $this->assertEquals($formatter->format($printData->total_tax, 'cs'), $captured['taxFormatted']);
 
-        foreach (['paymentAmountFormatted','subtotalFormatted','taxFormatted'] as $key) {
+        foreach ([
+            'paymentAmountFormatted',
+            'subtotalFormatted',
+            'taxFormatted',
+        ] as $key) {
             $this->assertMatchesRegularExpression('/^(?:Kč|[€$£¥₿]|[A-Z]{3} )/u', $captured[$key]);
         }
     }
@@ -468,8 +553,8 @@ class InvoicePdfServiceFeatureTest extends TestCase
                     'price' => 100,
                     'currency' => 'EUR',
                     'tax_rate' => 21,
-                    'tax_amount' => (100*2*21)/100,
-                    'total_price' => (100*2) + ((100*2*21)/100),
+                    'tax_amount' => (100 * 2 * 21) / 100,
+                    'total_price' => (100 * 2) + ((100 * 2 * 21) / 100),
                 ],
                 [
                     'name' => 'Item B',
@@ -478,8 +563,8 @@ class InvoicePdfServiceFeatureTest extends TestCase
                     'price' => 50.5,
                     'currency' => 'EUR',
                     'tax_rate' => 21,
-                    'tax_amount' => (50.5*1*21)/100,
-                    'total_price' => (50.5*1) + ((50.5*1*21)/100),
+                    'tax_amount' => (50.5 * 1 * 21) / 100,
+                    'total_price' => (50.5 * 1) + ((50.5 * 1 * 21) / 100),
                 ],
             ],
         ];
@@ -488,9 +573,17 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $captured = null;
         Pdf::shouldReceive('loadView')->once()->with(
             \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) { $captured = $data; return true; })
+            \Mockery::on(function ($data) use (&$captured) {
+                $captured = $data;
+
+                return true;
+            }),
         )->andReturnSelf();
-        $this->renderer->render($printData, $printData->template, 'cs');
+        $this->renderer->render(
+            $printData,
+            $printData->template,
+            'cs',
+        );
 
         $this->assertArrayHasKey('paymentAmountFormatted', $captured);
         $this->assertArrayHasKey('subtotalFormatted', $captured);
@@ -498,10 +591,10 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertArrayHasKey('invoiceProductsFormatted', $captured);
         $this->assertCount(2, $captured['invoiceProductsFormatted']);
 
-        $formatter = app(\App\Domain\Shared\Money\Contracts\MoneyFormatterInterface::class);
+        $formatter = app(MoneyFormatterInterface::class);
         $currency = 'EUR';
         // The amount comes from the lines (50.50 * 21 % = 10.605 rounds to 10.61), not from the typed 2500.75
-        $paymentMoney = \App\Domain\Shared\Money\ValueObjects\Money::fromString('303.11', $currency);
+        $paymentMoney = Money::fromString('303.11', $currency);
         $this->assertEquals($formatter->format($paymentMoney, 'cs'), $captured['paymentAmountFormatted']);
         $this->assertSame('250.5', $printData->subtotal->getAmount());
         $this->assertSame('52.61', $printData->total_tax->getAmount());
@@ -514,7 +607,11 @@ class InvoicePdfServiceFeatureTest extends TestCase
             $this->assertMatchesRegularExpression('/^(?:Kč|[€$£¥₿]|[A-Z]{3} )/u', $item['total_price_formatted']);
         }
 
-        foreach (['paymentAmountFormatted','subtotalFormatted','taxFormatted'] as $key) {
+        foreach ([
+            'paymentAmountFormatted',
+            'subtotalFormatted',
+            'taxFormatted',
+        ] as $key) {
             $this->assertMatchesRegularExpression('/^(?:Kč|[€$£¥₿]|[A-Z]{3} )/u', $captured[$key]);
         }
     }
@@ -532,7 +629,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'client_id' => $client->id,
             'payment_method_id' => $paymentMethod->id,
             'payment_status_id' => $status->id,
-            'template' => 'modern' // "modern" will be treated as missing by overridden templateFileExists
+            'template' => 'modern', // "modern" will be treated as missing by overridden templateFileExists
         ]);
 
         // Expect DomPDF facade to be invoked with the *default* template due to fallback.
@@ -548,29 +645,35 @@ class InvoicePdfServiceFeatureTest extends TestCase
         // Build print data and invoke renderer (will not render real view thanks to facade mock).
         $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
         $printData = $this->printDataBuilder->build($dto);
-        $this->rendererMissingTemplate->render($printData, $invoice->template, null);
+        $this->rendererMissingTemplate->render(
+            $printData,
+            $invoice->template,
+            null,
+        );
     }
 
     #[Test]
-    public function qr_code_exception_sets_hasQrCode_false_and_logs_error(): void
+    public function qr_code_exception_sets_has_qr_code_false_and_logs_error(): void
     {
 
         // Bind throwing QR payment service
-        app()->bind(\App\Domain\Payment\Contracts\QrPaymentServiceInterface::class, function () {
-            return new class implements \App\Domain\Payment\Contracts\QrPaymentServiceInterface {
+        app()->bind(QrPaymentServiceInterface::class, function () {
+            return new class implements QrPaymentServiceInterface
+            {
                 public function generateQrCodeBase64($payload): ?string
                 {
                     throw new \RuntimeException('QR fail test');
                 }
+
                 public function hasRequiredPaymentInfo($payload): bool
                 {
                     return true; // not relevant for exception path
                 }
-            };        
+            };
         });
 
-    // Resolve fresh renderer with throwing dependency
-    $failingRenderer = app(InvoicePdfRenderer::class);
+        // Resolve fresh renderer with throwing dependency
+        $failingRenderer = app(InvoicePdfRenderer::class);
 
         $supplier = Supplier::factory()->create([
             'account_number' => '123456789',
@@ -593,13 +696,20 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $captured = null;
         Pdf::shouldReceive('loadView')->once()->with(
             \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) { $captured = $data; return true; })
+            \Mockery::on(function ($data) use (&$captured) {
+                $captured = $data;
+
+                return true;
+            }),
         )->andReturnSelf();
-        $failingRenderer->render($printData, null, 'cs');
+        $failingRenderer->render(
+            $printData,
+            null,
+            'cs',
+        );
 
         $this->assertArrayHasKey('qrCode', $captured);
         $this->assertNull($captured['qrCode']);
         $this->assertFalse($captured['hasQrCode']);
     }
-
 }

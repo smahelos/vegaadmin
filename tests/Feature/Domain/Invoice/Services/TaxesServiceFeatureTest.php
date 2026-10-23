@@ -2,14 +2,13 @@
 
 namespace Tests\Feature\Domain\Invoice\Services;
 
-use App\Models\Tax;
 use App\Domain\Shared\Tax\Services\TaxService as TaxesService;
-use App\Domain\Shared\Tax\Contracts\TaxServiceInterface as TaxesServiceInterface;
-use Tests\Traits\RefreshDatabaseWithData;
+use App\Models\Tax;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\RefreshDatabaseWithData;
 
 class TaxesServiceFeatureTest extends TestCase
 {
@@ -21,7 +20,7 @@ class TaxesServiceFeatureTest extends TestCase
     {
         parent::setUp();
         $this->service = app(TaxesService::class);
-        
+
         // Clear cache before each test
         Cache::flush();
     }
@@ -40,14 +39,14 @@ class TaxesServiceFeatureTest extends TestCase
         // Assert
         $this->assertIsArray($result);
         $this->assertCount(3, $result);
-        
+
         // Should be ordered by name and use slug as key
         $expected = [
             'alpha-tax' => 'Alpha Tax',
             'beta-tax' => 'Beta Tax',
-            'zebra-tax' => 'Zebra Tax'
+            'zebra-tax' => 'Zebra Tax',
         ];
-        
+
         $this->assertEquals($expected, $result);
     }
 
@@ -65,12 +64,12 @@ class TaxesServiceFeatureTest extends TestCase
         // Assert
         $this->assertIsArray($result);
         $this->assertCount(3, $result);
-        
+
         // Should be ordered by name and use id as key
         $this->assertEquals('Alpha Tax', $result[$tax2->id]);
         $this->assertEquals('Beta Tax', $result[$tax3->id]);
         $this->assertEquals('Zebra Tax', $result[$tax1->id]);
-        
+
         // Verify keys are IDs not slugs
         $this->assertArrayHasKey($tax1->id, $result);
         $this->assertArrayHasKey($tax2->id, $result);
@@ -110,12 +109,12 @@ class TaxesServiceFeatureTest extends TestCase
 
         // Act - First call should cache the result
         $result1 = $this->service->getAllTaxes();
-        
+
         // Delete the tax from database without firing observers (to avoid cache invalidation)
         Model::withoutEvents(function () use ($tax) {
             $tax->delete();
         });
-        
+
         // Act - Second call should return cached result
         $result2 = $this->service->getAllTaxes();
 
@@ -136,12 +135,12 @@ class TaxesServiceFeatureTest extends TestCase
 
         // Act - First call should cache the result
         $result1 = $this->service->getAllTaxesForSelect();
-        
+
         // Delete the tax from database without firing observers (to avoid cache invalidation)
         Model::withoutEvents(function () use ($tax) {
             $tax->delete();
         });
-        
+
         // Act - Second call should return cached result
         $result2 = $this->service->getAllTaxesForSelect();
 
@@ -206,7 +205,7 @@ class TaxesServiceFeatureTest extends TestCase
     {
         // Arrange
         $tax = Tax::factory()->create(['name' => 'Test Tax']);
-        
+
         // Populate both caches
         $initialSlug = $this->service->getAllTaxes();
         $initialSelect = $this->service->getAllTaxesForSelect();

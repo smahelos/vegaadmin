@@ -3,6 +3,9 @@
 namespace Tests\Unit\Models;
 
 use App\Models\PageCategory;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -21,16 +24,16 @@ class PageCategoryTest extends TestCase
     #[Test]
     public function page_category_extends_eloquent_model(): void
     {
-        $this->assertTrue(is_subclass_of(PageCategory::class, \Illuminate\Database\Eloquent\Model::class));
+        $this->assertTrue(is_subclass_of(PageCategory::class, Model::class));
     }
 
     #[Test]
     public function page_category_uses_expected_traits(): void
     {
         $traits = class_uses_recursive(PageCategory::class);
-        
-        $this->assertArrayHasKey(\Illuminate\Database\Eloquent\Factories\HasFactory::class, $traits);
-        $this->assertArrayHasKey(\Backpack\CRUD\app\Models\Traits\CrudTrait::class, $traits);
+
+        $this->assertArrayHasKey(HasFactory::class, $traits);
+        $this->assertArrayHasKey(CrudTrait::class, $traits);
         // Note: No longer using Sluggable trait - slugs are generated in the request
     }
 
@@ -56,7 +59,7 @@ class PageCategoryTest extends TestCase
         $reflection = new \ReflectionClass(PageCategory::class);
         $fillableProperty = $reflection->getProperty('fillable');
         $fillableProperty->setAccessible(true);
-        
+
         // Use reflection to get fillable without instantiating the model
         $fillableValue = $fillableProperty->getDefaultValue();
 
@@ -69,10 +72,10 @@ class PageCategoryTest extends TestCase
         $reflection = new \ReflectionClass(PageCategory::class);
         $castsProperty = $reflection->getProperty('casts');
         $castsProperty->setAccessible(true);
-        
+
         // Use reflection to get casts without instantiating the model
         $castsValue = $castsProperty->getDefaultValue();
-        
+
         $this->assertArrayHasKey('name', $castsValue);
         $this->assertArrayHasKey('slug', $castsValue);
         $this->assertArrayHasKey('description', $castsValue);

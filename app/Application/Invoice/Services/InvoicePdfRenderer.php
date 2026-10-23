@@ -3,10 +3,10 @@
 namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
-use App\Domain\Invoice\DTO\PrintableInvoiceData;
-use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
-use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
+use App\Domain\Invoice\DTO\PrintableInvoiceData;
+use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
+use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,8 +18,11 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
         private readonly QrPaymentPayloadMapper $qrPaymentMapper,
     ) {}
 
-    public function render(PrintableInvoiceData $data, ?string $template = null, ?string $locale = null)
-    {
+    public function render(
+        PrintableInvoiceData $data,
+        ?string $template = null,
+        ?string $locale = null,
+    ) {
         $templateName = $this->getTemplateName($template ?? $data->template ?? 'default');
 
         // Prepare formatted monetary values
@@ -92,7 +95,8 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
         ];
 
         // Try to generate QR code if payment information present
-        $qrCode = null; $hasQr = false;
+        $qrCode = null;
+        $hasQr = false;
         $qrCandidate = (object) [
             'invoice_vs' => $data->number,
             'payment_amount' => $data->total_amount->toFloat(),
@@ -102,10 +106,10 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'iban' => $data->iban,
         ];
         try {
-            if ((!empty($data->account_number) && !empty($data->bank_code)) || !empty($data->iban)) {
+            if ((! empty($data->account_number) && ! empty($data->bank_code)) || ! empty($data->iban)) {
                 $qrPayload = $this->qrPaymentMapper->fromArray($qrCandidate);
                 $qrCode = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
-                $hasQr = !empty($qrCode);
+                $hasQr = ! empty($qrCode);
             }
         } catch (\Throwable) {
             // ignore QR generation errors in renderer
@@ -125,9 +129,9 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'taxFormatted' => $taxFormatted,
             'invoiceProductsFormatted' => $invoiceProductsFormatted,
             // Provide raw VO arrays for <x-money> compatibility if used
-                'paymentAmount' => ['amount' => $data->total_amount->getAmount(), 'currency' => $data->total_amount->getCurrency()],
-                'subtotal' => ['amount' => $data->subtotal->getAmount(), 'currency' => $data->subtotal->getCurrency()],
-                'totalTax' => ['amount' => $data->total_tax->getAmount(), 'currency' => $data->total_tax->getCurrency()],
+            'paymentAmount' => ['amount' => $data->total_amount->getAmount(), 'currency' => $data->total_amount->getCurrency()],
+            'subtotal' => ['amount' => $data->subtotal->getAmount(), 'currency' => $data->subtotal->getCurrency()],
+            'totalTax' => ['amount' => $data->total_tax->getAmount(), 'currency' => $data->total_tax->getCurrency()],
         ];
 
         return Pdf::loadView($templateName, $viewData);
@@ -135,16 +139,30 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
 
     private function getTemplateName(?string $template): string
     {
-        $available = ['default', 'modern', 'minimal'];
+        $available = [
+            'default',
+            'modern',
+            'minimal',
+        ];
         $tpl = $template ?? 'default';
-        if (!in_array($tpl, $available, true)) { $tpl = 'default'; }
-        if (!$this->templateFileExists($tpl)) { $tpl = 'default'; }
+        if (! in_array(
+            $tpl,
+            $available,
+            true,
+        )) {
+            $tpl = 'default';
+        }
+        if (! $this->templateFileExists($tpl)) {
+            $tpl = 'default';
+        }
+
         return "pdfs.templates.{$tpl}";
     }
 
     protected function templateFileExists(string $template): bool
     {
         $templatePath = resource_path("views/pdfs/templates/{$template}.blade.php");
+
         return file_exists($templatePath);
     }
 }

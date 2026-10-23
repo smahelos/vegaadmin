@@ -13,8 +13,16 @@ class FieldSetDTOTest extends TestCase
     public function it_converts_all_fields_to_arrays(): void
     {
         $set = new FieldSetDTO([
-            new FieldDTO(name: 'a', label: 'A', type: 'text'),
-            new FieldDTO(name: 'b', label: 'B', type: 'number'),
+            new FieldDTO(
+                name: 'a',
+                label: 'A',
+                type: 'text',
+            ),
+            new FieldDTO(
+                name: 'b',
+                label: 'B',
+                type: 'number',
+            ),
         ]);
 
         $arr = $set->toArray();
@@ -26,9 +34,17 @@ class FieldSetDTOTest extends TestCase
     #[Test]
     public function find_returns_field_by_name(): void
     {
-        $fieldB = new FieldDTO(name: 'b', label: 'B', type: 'number');
+        $fieldB = new FieldDTO(
+            name: 'b',
+            label: 'B',
+            type: 'number',
+        );
         $set = new FieldSetDTO([
-            new FieldDTO(name: 'a', label: 'A', type: 'text'),
+            new FieldDTO(
+                name: 'a',
+                label: 'A',
+                type: 'text',
+            ),
             $fieldB,
         ]);
 

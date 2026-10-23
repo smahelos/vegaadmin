@@ -22,12 +22,22 @@ return new class extends Migration
             $table->decimal('current_value', 15, 2)->default(0)->comment('Current usage value');
             $table->timestamp('last_reset_at')->nullable()->comment('When usage was last reset');
             $table->timestamps();
-            
+
             // Ensure one usage record per user per entity/metric/period combination
-            $table->unique(['user_id', 'entity_type', 'metric_type', 'period_type', 'period_start'], 'unique_usage_record');
-            
+            $table->unique([
+                'user_id',
+                'entity_type',
+                'metric_type',
+                'period_type',
+                'period_start',
+            ], 'unique_usage_record');
+
             // Indexes for performance
-            $table->index(['user_id', 'entity_type', 'metric_type']);
+            $table->index([
+                'user_id',
+                'entity_type',
+                'metric_type',
+            ]);
             $table->index(['period_start', 'period_end']);
             $table->index(['entity_type', 'period_type']);
         });

@@ -42,25 +42,12 @@ class TaxFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function trait_has_proper_docblocks(): void
-    {
-        $reflection = new \ReflectionClass(TaxFormFields::class);
-
-        // Check getTaxFields method docblock
-        $method = $reflection->getMethod('getTaxFields');
-        $docComment = $method->getDocComment();
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('Get tax form fields definitions', $docComment);
-        $this->assertStringContainsString('@return array', $docComment);
-    }
-
-    #[Test]
     public function trait_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(TaxFormFields::class);
 
         // Check namespace
-    $this->assertEquals('App\\Infrastructure\\Forms\\Tax', $reflection->getNamespaceName());
+        $this->assertEquals('App\\Infrastructure\\Forms\\Tax', $reflection->getNamespaceName());
 
         // Check that it's not abstract, final, etc.
         $this->assertFalse($reflection->isAbstract());
@@ -77,7 +64,7 @@ class TaxFormFieldsTest extends TestCase
         // Should have exactly 1 method
         $this->assertCount(1, $methods);
 
-        $methodNames = array_map(fn($method) => $method->getName(), $methods);
+        $methodNames = array_map(fn ($method) => $method->getName(), $methods);
         $this->assertContains('getTaxFields', $methodNames);
     }
 

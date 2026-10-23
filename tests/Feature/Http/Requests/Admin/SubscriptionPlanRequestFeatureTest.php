@@ -3,21 +3,16 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\SubscriptionPlanRequest;
-use App\Models\User;
+use App\Models\SubscriptionPlanFeature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 class SubscriptionPlanRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
-
-    protected User $adminUser;
-    protected User $regularUser;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     private SubscriptionPlanRequest $request;
 
@@ -27,8 +22,8 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-        
-        $this->request = new SubscriptionPlanRequest();
+
+        $this->request = new SubscriptionPlanRequest;
     }
 
     #[Test]
@@ -65,7 +60,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
     }
@@ -82,7 +77,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('price', $validator->errors()->toArray());
     }
@@ -100,7 +95,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('price', $validator->errors()->toArray());
     }
@@ -118,7 +113,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('currency', $validator->errors()->toArray());
     }
@@ -136,7 +131,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('billing_period', $validator->errors()->toArray());
     }
@@ -157,7 +152,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertFalse($validator->fails());
     }
 
@@ -165,9 +160,9 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_features(): void
     {
         // Create some test features first
-        $feature1 = \App\Models\SubscriptionPlanFeature::factory()->create();
-        $feature2 = \App\Models\SubscriptionPlanFeature::factory()->create();
-        
+        $feature1 = SubscriptionPlanFeature::factory()->create();
+        $feature2 = SubscriptionPlanFeature::factory()->create();
+
         $data = [
             'name' => 'Test Plan',
             'description' => 'Test description',
@@ -181,7 +176,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertFalse($validator->fails());
     }
 
@@ -201,7 +196,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('features.0', $validator->errors()->toArray());
         $this->assertArrayHasKey('features.1', $validator->errors()->toArray());
@@ -223,7 +218,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('features', $validator->errors()->toArray());
     }
@@ -232,7 +227,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
     public function attributes_returns_translation_keys(): void
     {
         $attributes = $this->request->attributes();
-        
+
         $this->assertIsArray($attributes);
         $this->assertArrayHasKey('name', $attributes);
         $this->assertArrayHasKey('price', $attributes);
@@ -245,7 +240,12 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
     #[Test]
     public function validation_error_names_the_field_by_its_label(): void
     {
-        $validator = Validator::make(['price' => 'abc'], $this->request->rules(), [], $this->request->attributes());
+        $validator = Validator::make(
+            ['price' => 'abc'],
+            $this->request->rules(),
+            [],
+            $this->request->attributes(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertStringContainsString(__('subscriptions.plans.fields.price'), $validator->errors()->first('price'));

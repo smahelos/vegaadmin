@@ -4,8 +4,8 @@ namespace Tests\Feature\Guard;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Artisan;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 /**
  * Regression test for must_not_exist guard rules defined in config/ddd_guard.php.
@@ -18,7 +18,7 @@ class DddGuardMustNotExistTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->files = new Filesystem();
+        $this->files = new Filesystem;
     }
 
     #[Test]
@@ -33,10 +33,22 @@ class DddGuardMustNotExistTest extends TestCase
         $exitCode = Artisan::call('ddd:guard');
         $output = Artisan::output();
 
-        $this->assertSame(0, $exitCode, 'Guard should exit with code 0 when forbidden directory is absent. Output: '.$output);
+        $this->assertSame(
+            0,
+            $exitCode,
+            'Guard should exit with code 0 when forbidden directory is absent. Output: ' . $output,
+        );
         // When translations missing, key is returned; accept either translated phrase or key fragment.
-        $this->assertStringNotContainsString('forbidden_directory', $output, 'No forbidden_directory violation expected.');
-        $this->assertStringNotContainsString('Directory must not exist', $output, 'No must_not_exist violation message expected.');
+        $this->assertStringNotContainsString(
+            'forbidden_directory',
+            $output,
+            'No forbidden_directory violation expected.',
+        );
+        $this->assertStringNotContainsString(
+            'Directory must not exist',
+            $output,
+            'No must_not_exist violation message expected.',
+        );
     }
 
     #[Test]
@@ -44,19 +56,35 @@ class DddGuardMustNotExistTest extends TestCase
     {
         $forbidden = base_path('app/Repositories');
         // Create directory + dummy file
-        if (!is_dir($forbidden)) {
-            $this->files->makeDirectory($forbidden, 0777, true);
+        if (! is_dir($forbidden)) {
+            $this->files->makeDirectory(
+                $forbidden,
+                0777,
+                true,
+            );
         }
-        $dummy = $forbidden.'/DummyRepository.php';
+        $dummy = $forbidden . '/DummyRepository.php';
         file_put_contents($dummy, "<?php\n// dummy legacy repo file for guard regression test\n");
 
         try {
             $exitCode = Artisan::call('ddd:guard');
             $output = Artisan::output();
 
-            $this->assertSame(1, $exitCode, 'Guard should fail (exit 1) when forbidden directory exists. Output: '.$output);
-            $this->assertStringContainsString('forbidden_directory', $output, 'Expected violation type not found in output.');
-            $this->assertStringContainsString('Directory must not exist (legacy root): Repositories', $output, 'Expected must_not_exist violation message not found.');
+            $this->assertSame(
+                1,
+                $exitCode,
+                'Guard should fail (exit 1) when forbidden directory exists. Output: ' . $output,
+            );
+            $this->assertStringContainsString(
+                'forbidden_directory',
+                $output,
+                'Expected violation type not found in output.',
+            );
+            $this->assertStringContainsString(
+                'Directory must not exist (legacy root): Repositories',
+                $output,
+                'Expected must_not_exist violation message not found.',
+            );
         } finally {
             // Cleanup to not affect other tests
             if (is_dir($forbidden)) {

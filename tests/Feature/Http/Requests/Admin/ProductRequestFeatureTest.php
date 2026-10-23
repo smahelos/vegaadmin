@@ -2,24 +2,24 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\ProductRequest;
-use App\Models\User;
-use App\Models\Product;
-use App\Models\Tax;
-use App\Models\Supplier;
-use App\Models\ProductCategory;
 use App\Models\EntityLimit;
+use App\Models\Product;
+use App\Models\ProductCategory;
+use App\Models\Supplier;
+use App\Models\Tax;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 
 /**
  * Feature test for Admin ProductRequest class.
@@ -27,14 +27,16 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
  */
 class ProductRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-    protected User $regularUser;
     private User $productUser;
+
     private UniversalLimitService $limitService;
+
     private Tax $tax;
+
     private Supplier $supplier;
+
     private ProductCategory $category;
 
     /**
@@ -56,10 +58,10 @@ class ProductRequestFeatureTest extends TestCase
         $this->supplier = Supplier::factory()->create();
         $this->category = ProductCategory::factory()->create();
 
-    // Initialize limit service
-    $this->limitService = app(UniversalLimitService::class);
+        // Initialize limit service
+        $this->limitService = app(UniversalLimitService::class);
 
-    // Define test routes
+        // Define test routes
         Route::post('/test-product', function (ProductRequest $request) {
             return response()->json(['success' => true]);
         })->middleware('web');
@@ -88,7 +90,7 @@ class ProductRequestFeatureTest extends TestCase
             'image' => $image,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -104,7 +106,7 @@ class ProductRequestFeatureTest extends TestCase
             // All other fields are nullable
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($minimalData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -113,7 +115,7 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_missing_required_fields(): void
     {
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -131,7 +133,7 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 10.00,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -147,7 +149,7 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 10.00,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -164,7 +166,7 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 10.00,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -183,7 +185,7 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 10.00,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -202,14 +204,19 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 15.00,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $request->merge(['id' => $existingProduct->id]);
         $request->setMethod('PUT');
-        $routeMock = new class($existingProduct) {
+        $routeMock = new class($existingProduct)
+        {
             public function __construct(private $product) {}
-            public function parameter($name) { return $this->product->id; }
+
+            public function parameter($name)
+            {
+                return $this->product->id;
+            }
         };
-        $request->setRouteResolver(fn() => $routeMock);
+        $request->setRouteResolver(fn () => $routeMock);
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -224,7 +231,7 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 10.00,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -240,7 +247,7 @@ class ProductRequestFeatureTest extends TestCase
             'price' => -10.00, // Negative price
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -256,7 +263,7 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 'not_a_number',
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -273,7 +280,7 @@ class ProductRequestFeatureTest extends TestCase
             'tax_id' => 99999, // Non-existent tax
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -290,7 +297,7 @@ class ProductRequestFeatureTest extends TestCase
             'supplier_id' => 99999, // Non-existent supplier
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -307,7 +314,7 @@ class ProductRequestFeatureTest extends TestCase
             'category_id' => 99999, // Non-existent category
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -318,7 +325,11 @@ class ProductRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_image_format(): void
     {
         Storage::fake('local');
-        $invalidImage = UploadedFile::fake()->create('document.txt', 100, 'text/plain');
+        $invalidImage = UploadedFile::fake()->create(
+            'document.txt',
+            100,
+            'text/plain',
+        );
 
         $invalidData = [
             'name' => 'Valid Product',
@@ -327,7 +338,7 @@ class ProductRequestFeatureTest extends TestCase
             'image' => $invalidImage, // Not an image
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -347,7 +358,7 @@ class ProductRequestFeatureTest extends TestCase
             'image' => $oversizedImage, // Too large (max 2048KB)
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -367,7 +378,7 @@ class ProductRequestFeatureTest extends TestCase
             'image' => $validImage,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -383,7 +394,7 @@ class ProductRequestFeatureTest extends TestCase
             'is_default' => false,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -404,7 +415,7 @@ class ProductRequestFeatureTest extends TestCase
             'image' => null,
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -419,7 +430,7 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 0, // Zero price should be valid
         ];
 
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -438,23 +449,23 @@ class ProductRequestFeatureTest extends TestCase
         ]);
 
         $this->actingAs($this->adminUser, 'backpack')
-             ->postJson('/test-product', [
-                 'name' => 'Test Product',
-                 'user_id' => $this->productUser->id,
-                 'price' => 25.99,
-             ])
-             ->assertStatus(200);
+            ->postJson('/test-product', [
+                'name' => 'Test Product',
+                'user_id' => $this->productUser->id,
+                'price' => 25.99,
+            ])
+            ->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
         $this->postJson('/test-product', [
-                 'name' => 'Test Product',
-                 'user_id' => $this->productUser->id,
-                 'price' => 25.99,
-             ])
-             ->assertStatus(403);
+            'name' => 'Test Product',
+            'user_id' => $this->productUser->id,
+            'price' => 25.99,
+        ])
+            ->assertStatus(403);
     }
 
     #[Test]
@@ -493,17 +504,29 @@ class ProductRequestFeatureTest extends TestCase
         ])->assertStatus(200);
 
         // Record usage manually (authorize only checks)
-        $this->limitService->recordUsage($this->adminUser->id, 'product', 'count', 'monthly', 'backpack');
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'product',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
         // Second creation exceeds limit via direct authorize()
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
-        $request = new class extends ProductRequest { public function rules(): array { return []; } };
+        $this->expectException(EntityLimitExceededException::class);
+        $request = new class extends ProductRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
         $request->replace([
             'name' => 'Product Two',
             'user_id' => $this->productUser->id,
             'price' => 20,
         ]);
-        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> null]);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
         $request->authorize();
     }
@@ -522,15 +545,27 @@ class ProductRequestFeatureTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->limitService->recordUsage($this->adminUser->id, 'product', 'count', 'monthly', 'backpack');
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'product',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
-        $request = new class extends ProductRequest { public function rules(): array { return []; } };
+        $request = new class extends ProductRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
         $request->replace([
             'name' => 'Updated Product',
             'user_id' => $this->productUser->id,
             'price' => 30,
         ]);
-        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> 'existing-product-id']);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-product-id']);
         $request->setMethod('PUT');
         $this->assertTrue($request->authorize());
     }
@@ -538,7 +573,7 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function auto_generates_slug_when_missing(): void
     {
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $request->replace([
             'name' => 'My Cool Product',
             'user_id' => $this->productUser->id,
@@ -551,7 +586,7 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function every_validated_field_has_a_translated_name(): void
     {
-        $request = new ProductRequest();
+        $request = new ProductRequest;
         $attributes = $request->attributes();
 
         foreach (array_keys($request->rules()) as $field) {

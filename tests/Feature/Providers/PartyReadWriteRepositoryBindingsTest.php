@@ -30,23 +30,28 @@ class PartyReadWriteRepositoryBindingsTest extends TestCase
         $resolutionErrors = [];
 
         foreach ($this->interfaces as $fqcn) {
-            if (!app()->bound($fqcn)) {
+            if (! app()->bound($fqcn)) {
                 $missing[] = $fqcn;
+
                 continue;
             }
             try {
                 $instance = app()->make($fqcn);
-                if (!$instance instanceof $fqcn) {
-                    $resolutionErrors[] = $fqcn.' resolved to '.get_debug_type($instance).' which does not implement interface';
+                if (! $instance instanceof $fqcn) {
+                    $resolutionErrors[] = $fqcn . ' resolved to ' . get_debug_type($instance) . ' which does not implement interface';
                 }
             } catch (\Throwable $e) {
-                $resolutionErrors[] = $fqcn.' threw: '.$e->getMessage();
+                $resolutionErrors[] = $fqcn . ' threw: ' . $e->getMessage();
             }
         }
 
         $messages = [];
-        if ($missing) { $messages[] = 'Missing bindings: '.implode(', ', $missing); }
-        if ($resolutionErrors) { $messages[] = 'Resolution errors: '.implode(', ', $resolutionErrors); }
-        $this->assertEmpty($messages, "All Party read/write interfaces should be bound & resolvable.\n".implode("\n", $messages));
+        if ($missing) {
+            $messages[] = 'Missing bindings: ' . implode(', ', $missing);
+        }
+        if ($resolutionErrors) {
+            $messages[] = 'Resolution errors: ' . implode(', ', $resolutionErrors);
+        }
+        $this->assertEmpty($messages, "All Party read/write interfaces should be bound & resolvable.\n" . implode("\n", $messages));
     }
 }

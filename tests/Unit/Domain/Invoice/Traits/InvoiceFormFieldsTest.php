@@ -57,7 +57,7 @@ class InvoiceFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(InvoiceFormFields::class);
         $methods = $reflection->getMethods();
-        
+
         // Should have exactly 1 method
         $this->assertCount(1, $methods);
     }
@@ -67,7 +67,7 @@ class InvoiceFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(InvoiceFormFields::class);
         $properties = $reflection->getProperties();
-        
+
         // Trait should not define any properties
         $this->assertEmpty($properties);
     }
@@ -77,13 +77,13 @@ class InvoiceFormFieldsTest extends TestCase
     {
         $reflection = new \ReflectionClass(InvoiceFormFields::class);
         $source = file_get_contents($reflection->getFileName());
-        
+
         // Check that trait imports required models
         $this->assertStringContainsString('use App\Models\Client;', $source);
         $this->assertStringContainsString('use App\Models\Supplier;', $source);
         $this->assertStringContainsString('use App\Models\PaymentMethod;', $source);
         $this->assertStringContainsString('use App\Models\Status;', $source);
-    $this->assertStringContainsString('use App\\Domain\\Shared\\Geography\\Contracts\\CountryServiceInterface;', $source);
+        $this->assertStringContainsString('use App\\Domain\\Shared\\Geography\\Contracts\\CountryServiceInterface;', $source);
     }
 
     #[Test]
@@ -92,7 +92,7 @@ class InvoiceFormFieldsTest extends TestCase
         $reflection = new \ReflectionClass(InvoiceFormFields::class);
         $method = $reflection->getMethod('getInvoiceFields');
         $docComment = $method->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('Get invoice form field definitions', $docComment);
     }

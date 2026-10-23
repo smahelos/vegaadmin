@@ -14,7 +14,7 @@ class ArtisanCommandCategoryRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new ArtisanCommandCategoryRequest();
+        $this->request = new ArtisanCommandCategoryRequest;
     }
 
     #[Test]
@@ -55,6 +55,4 @@ class ArtisanCommandCategoryRequestTest extends TestCase
         $this->assertNotNull($returnType, 'ArtisanCommandCategoryRequest attributes() method should have return type annotation');
         $this->assertEquals('array', (string) $returnType);
     }
-
-
 }

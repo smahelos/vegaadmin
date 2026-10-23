@@ -2,21 +2,19 @@
 
 namespace App\Application\Party\Services;
 
+use App\Application\Party\Contracts\ClientReadRepositoryInterface;
 use App\Application\Party\Contracts\PartyApplicationServiceInterface;
-use App\Application\Party\Services\PartyAuthorizationService;
+use App\Application\Party\Contracts\SupplierReadRepositoryInterface;
 use App\Application\Party\Mappers\ClientArrayMapper;
 use App\Application\Party\Mappers\SupplierArrayMapper;
-use App\Application\Party\Services\PartyInputValidationService;
-use App\Application\Party\Contracts\ClientReadRepositoryInterface;
-use App\Application\Party\Contracts\SupplierReadRepositoryInterface;
 use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
+use App\Domain\Party\DTO\ClientDTO;
+use App\Domain\Party\DTO\SupplierDTO;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
+use App\Domain\User\ValueObjects\UserId;
 use App\Models\Client;
 use App\Models\Supplier;
 use App\Models\User;
-use App\Domain\Party\DTO\ClientDTO;
-use App\Domain\Party\DTO\SupplierDTO;
-use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -37,21 +35,24 @@ class PartyApplicationService implements PartyApplicationServiceInterface
         private readonly ClientArrayMapper $clientMapper,
         private readonly SupplierArrayMapper $supplierMapper,
         private readonly PartyInputValidationService $validationService,
-        private readonly UserReadRepositoryInterface $userReadRepository
-    )
-    {
-    }
+        private readonly UserReadRepositoryInterface $userReadRepository,
+    ) {}
 
     public function findClient(int $userId, int $id): Client
     {
         try {
             $client = $this->clientsRead->findByIdForUser($id, $userId);
-            if (!$client) {
+            if (! $client) {
                 throw new ModelNotFoundException('Client not found for userId ' . $userId . ' and clientId ' . $id);
             }
+
             return $client;
         } catch (ModelNotFoundException $e) {
-            Log::error('Client not found', ['userId' => $userId, 'clientId' => $id, 'error' => $e->getMessage()]);
+            Log::error('Client not found', [
+                'userId' => $userId,
+                'clientId' => $id,
+                'error' => $e->getMessage(),
+            ]);
             throw new ModelNotFoundException('Client not found for userId ' . $userId . ' and clientId ' . $id);
         }
     }
@@ -60,9 +61,10 @@ class PartyApplicationService implements PartyApplicationServiceInterface
     {
         try {
             $client = $this->clientsRead->findByIdAny($id);
-            if (!$client) {
+            if (! $client) {
                 throw new ModelNotFoundException('Client not found for clientId ' . $id);
             }
+
             return $client;
         } catch (ModelNotFoundException $e) {
             Log::error('Client not found', ['clientId' => $id, 'error' => $e->getMessage()]);
@@ -93,9 +95,10 @@ class PartyApplicationService implements PartyApplicationServiceInterface
             ? $this->suppliersRead->findByIdAny($id)
             : $this->suppliersRead->findByIdForUser($id, $userId);
 
-        if (!$supplier) {
+        if (! $supplier) {
             throw new ModelNotFoundException('Supplier not found');
         }
+
         return $supplier;
     }
 
@@ -119,18 +122,16 @@ class PartyApplicationService implements PartyApplicationServiceInterface
     public function resolveOrCreateClient(int $userId, array $data): Client
     {
         $this->validationService->validateClientBusinessRules($data, $userId);
-        
-        return DB::transaction(fn() => 
-            $this->partyService->resolveOrCreateClient(UserId::fromInt($userId), $data)
+
+        return DB::transaction(fn () => $this->partyService->resolveOrCreateClient(UserId::fromInt($userId), $data),
         );
     }
 
     public function resolveOrCreateClientWithFlag(int $userId, array $data): array
     {
         $this->validationService->validateClientBusinessRules($data, $userId);
-        
-        return DB::transaction(fn() => 
-            $this->partyService->resolveOrCreateClientWithFlag(UserId::fromInt($userId), $data)
+
+        return DB::transaction(fn () => $this->partyService->resolveOrCreateClientWithFlag(UserId::fromInt($userId), $data),
         );
     }
 
@@ -138,10 +139,13 @@ class PartyApplicationService implements PartyApplicationServiceInterface
     {
         // For updates, we need to get user_id and exclude current client from uniqueness checks
         $client = $this->findClient(auth()->user()->id, $clientId);
-        $this->validationService->validateClientBusinessRules($data, $client->user_id, $clientId);
-        
-        DB::transaction(fn() => 
-            $this->partyService->updateClient($clientId, $data)
+        $this->validationService->validateClientBusinessRules(
+            $data,
+            $client->user_id,
+            $clientId,
+        );
+
+        DB::transaction(fn () => $this->partyService->updateClient($clientId, $data),
         );
 
         // Return the updated Client model
@@ -150,33 +154,29 @@ class PartyApplicationService implements PartyApplicationServiceInterface
 
     public function deleteClient(int $userId, int $clientId): bool
     {
-        return DB::transaction(fn() => 
-            $this->partyService->deleteClient($userId, $clientId)
+        return DB::transaction(fn () => $this->partyService->deleteClient($userId, $clientId),
         );
     }
 
     public function setClientDefault(int $userId, int $clientId): void
     {
-        DB::transaction(fn() => 
-            $this->partyService->setClientDefault($userId, $clientId)
+        DB::transaction(fn () => $this->partyService->setClientDefault($userId, $clientId),
         );
     }
 
     public function resolveOrCreateSupplier(int $userId, array $data): Supplier
     {
         $this->validationService->validateSupplierBusinessRules($data, $userId);
-        
-        return DB::transaction(fn() => 
-            $this->partyService->resolveOrCreateSupplier(UserId::fromInt($userId), $data)
+
+        return DB::transaction(fn () => $this->partyService->resolveOrCreateSupplier(UserId::fromInt($userId), $data),
         );
     }
 
     public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array
     {
         $this->validationService->validateSupplierBusinessRules($data, $userId);
-        
-        return DB::transaction(fn() => 
-            $this->partyService->resolveOrCreateSupplierWithFlag(UserId::fromInt($userId), $data)
+
+        return DB::transaction(fn () => $this->partyService->resolveOrCreateSupplierWithFlag(UserId::fromInt($userId), $data),
         );
     }
 
@@ -184,33 +184,34 @@ class PartyApplicationService implements PartyApplicationServiceInterface
     {
         // For updates, we need to get user_id and exclude current supplier from uniqueness checks
         $supplier = $this->findSupplier(auth()->user()->id, $supplierId);
-        $this->validationService->validateSupplierBusinessRules($data, $supplier->user_id, $supplierId);
-        
-        DB::transaction(fn() => 
-            $this->partyService->updateSupplier($supplierId, $data)
+        $this->validationService->validateSupplierBusinessRules(
+            $data,
+            $supplier->user_id,
+            $supplierId,
         );
-        
+
+        DB::transaction(fn () => $this->partyService->updateSupplier($supplierId, $data),
+        );
+
         // Return the updated Supplier model
         return $this->findSupplier(auth()->user()->id, $supplierId);
     }
 
     public function deleteSupplier(int $userId, int $supplierId): bool
     {
-        return DB::transaction(fn() => 
-            $this->partyService->deleteSupplier($userId, $supplierId)
+        return DB::transaction(fn () => $this->partyService->deleteSupplier($userId, $supplierId),
         );
     }
 
     public function setSupplierDefault(int $userId, int $supplierId): void
     {
-        DB::transaction(fn() => 
-            $this->partyService->setSupplierDefault($userId, $supplierId)
+        DB::transaction(fn () => $this->partyService->setSupplierDefault($userId, $supplierId),
         );
     }
 
     /**
      * Get list of clients for dropdown (id => name)
-     * @param int $userId
+     *
      * @return array<int,string>
      */
     public function clientOptions(int $userId): array
@@ -220,7 +221,7 @@ class PartyApplicationService implements PartyApplicationServiceInterface
 
     /**
      * Get list of suppliers for dropdown (id => name)
-     * @param int $userId
+     *
      * @return array<int,string>
      */
     public function supplierOptions(int $userId): array

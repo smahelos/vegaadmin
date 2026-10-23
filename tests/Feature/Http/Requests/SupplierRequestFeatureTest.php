@@ -6,21 +6,20 @@ use App\Http\Requests\SupplierRequest;
 use App\Models\EntityLimit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use PHPUnit\Framework\Attributes\Test;
 
 class SupplierRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
     private array $validSupplierData;
-    private User $user;
 
     protected function setUp(): void
     {
@@ -42,7 +41,7 @@ class SupplierRequestFeatureTest extends TestCase
         // $this->adminUser->givePermissionTo($permission);
 
         // Create regular user with limited role
-        if (!$this->user) {
+        if (! $this->user) {
             $this->user = User::factory()->create([
                 'email' => $this->faker->unique()->safeEmail,
                 'name' => $this->faker->name,
@@ -93,8 +92,12 @@ class SupplierRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_data()
     {
-        $request = new SupplierRequest();
-        $validator = Validator::make($this->validSupplierData, $request->rules(), $request->messages());
+        $request = new SupplierRequest;
+        $validator = Validator::make(
+            $this->validSupplierData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
@@ -103,14 +106,26 @@ class SupplierRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_required_fields_missing()
     {
-        $requiredFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country'];
+        $requiredFields = [
+            'name',
+            'email',
+            'phone',
+            'street',
+            'city',
+            'zip',
+            'country',
+        ];
 
         foreach ($requiredFields as $field) {
             $data = $this->validSupplierData;
             unset($data[$field]);
 
-            $request = new SupplierRequest();
-            $validator = Validator::make($data, $request->rules(), $request->messages());
+            $request = new SupplierRequest;
+            $validator = Validator::make(
+                $data,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
             $this->assertTrue($validator->errors()->has($field), "Should have error for missing {$field}");
@@ -120,14 +135,23 @@ class SupplierRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_invalid_email()
     {
-        $invalidEmails = ['not-an-email', 'invalid@', '@invalid.com', 'invalid..email@test.com'];
+        $invalidEmails = [
+            'not-an-email',
+            'invalid@',
+            '@invalid.com',
+            'invalid..email@test.com',
+        ];
 
         foreach ($invalidEmails as $invalidEmail) {
             $data = $this->validSupplierData;
             $data['email'] = $invalidEmail;
 
-            $request = new SupplierRequest();
-            $validator = Validator::make($data, $request->rules(), $request->messages());
+            $request = new SupplierRequest;
+            $validator = Validator::make(
+                $data,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(), "Validation should fail for invalid email: {$invalidEmail}");
             $this->assertTrue($validator->errors()->has('email'));
@@ -158,8 +182,12 @@ class SupplierRequestFeatureTest extends TestCase
             $data = $this->validSupplierData;
             $data[$field] = str_repeat('a', $length);
 
-            $request = new SupplierRequest();
-            $validator = Validator::make($data, $request->rules(), $request->messages());
+            $request = new SupplierRequest;
+            $validator = Validator::make(
+                $data,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} exceeds max length");
             $this->assertTrue($validator->errors()->has($field));
@@ -170,8 +198,16 @@ class SupplierRequestFeatureTest extends TestCase
     public function validation_passes_with_nullable_fields_empty()
     {
         // Note: bank_code and swift are conditional, not truly nullable
-        $nullableFields = ['shortcut', 'ico', 'dic', 'description', 'is_default',
-                          'account_number', 'iban', 'bank_name'];
+        $nullableFields = [
+            'shortcut',
+            'ico',
+            'dic',
+            'description',
+            'is_default',
+            'account_number',
+            'iban',
+            'bank_name',
+        ];
 
         foreach ($nullableFields as $field) {
             $data = $this->validSupplierData;
@@ -185,8 +221,12 @@ class SupplierRequestFeatureTest extends TestCase
                 $data['swift'] = null;
             }
 
-            $request = new SupplierRequest();
-            $validator = Validator::make($data, $request->rules(), $request->messages());
+            $request = new SupplierRequest;
+            $validator = Validator::make(
+                $data,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertFalse($validator->fails(), "Validation should pass when nullable field {$field} is null");
         }
@@ -195,16 +235,26 @@ class SupplierRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_invalid_boolean_values()
     {
-        $invalidBooleans = ['invalid', 'yes', 'no', 2, -1];
+        $invalidBooleans = [
+            'invalid',
+            'yes',
+            'no',
+            2,
+            -1,
+        ];
 
         foreach ($invalidBooleans as $invalidBoolean) {
             $data = $this->validSupplierData;
             $data['is_default'] = $invalidBoolean;
 
-            $request = new SupplierRequest();
-            $validator = Validator::make($data, $request->rules(), $request->messages());
+            $request = new SupplierRequest;
+            $validator = Validator::make(
+                $data,
+                $request->rules(),
+                $request->messages(),
+            );
 
-            $this->assertTrue($validator->fails(), "Validation should fail for invalid boolean: " . json_encode($invalidBoolean));
+            $this->assertTrue($validator->fails(), 'Validation should fail for invalid boolean: ' . json_encode($invalidBoolean));
             $this->assertTrue($validator->errors()->has('is_default'));
         }
     }
@@ -212,16 +262,27 @@ class SupplierRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_boolean_values()
     {
-        $validBooleans = [true, false, 1, 0, '1', '0'];
+        $validBooleans = [
+            true,
+            false,
+            1,
+            0,
+            '1',
+            '0',
+        ];
 
         foreach ($validBooleans as $validBoolean) {
             $data = $this->validSupplierData;
             $data['is_default'] = $validBoolean;
 
-            $request = new SupplierRequest();
-            $validator = Validator::make($data, $request->rules(), $request->messages());
+            $request = new SupplierRequest;
+            $validator = Validator::make(
+                $data,
+                $request->rules(),
+                $request->messages(),
+            );
 
-            $this->assertFalse($validator->fails(), "Validation should pass for valid boolean: " . json_encode($validBoolean));
+            $this->assertFalse($validator->fails(), 'Validation should pass for valid boolean: ' . json_encode($validBoolean));
         }
     }
 
@@ -233,8 +294,12 @@ class SupplierRequestFeatureTest extends TestCase
         $data['account_number'] = '123456789';
         $data['bank_code'] = null;
 
-        $request = new SupplierRequest();
-        $validator = Validator::make($data, $request->rules(), $request->messages());
+        $request = new SupplierRequest;
+        $validator = Validator::make(
+            $data,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('bank_code'));
@@ -244,7 +309,11 @@ class SupplierRequestFeatureTest extends TestCase
         $data['iban'] = 'CZ1234567890123456789';
         $data['swift'] = null;
 
-        $validator = Validator::make($data, $request->rules(), $request->messages());
+        $validator = Validator::make(
+            $data,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('swift'));
@@ -255,7 +324,11 @@ class SupplierRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $request = Request::create('/suppliers', 'POST', $this->validSupplierData);
+        $request = Request::create(
+            '/suppliers',
+            'POST',
+            $this->validSupplierData,
+        );
         $supplierRequest = SupplierRequest::createFrom($request);
 
         $this->assertTrue($supplierRequest->authorize());
@@ -265,7 +338,11 @@ class SupplierRequestFeatureTest extends TestCase
     public function authorization_fails_with_unauthenticated_user_via_http()
     {
         // Don't authenticate user
-        $request = Request::create('/suppliers', 'POST', $this->validSupplierData);
+        $request = Request::create(
+            '/suppliers',
+            'POST',
+            $this->validSupplierData,
+        );
         $supplierRequest = SupplierRequest::createFrom($request);
 
         $this->assertFalse($supplierRequest->authorize());
@@ -274,17 +351,30 @@ class SupplierRequestFeatureTest extends TestCase
     #[Test]
     public function required_errors_name_the_field_label(): void
     {
-        $request = new SupplierRequest();
+        $request = new SupplierRequest;
 
-        foreach (['name', 'email', 'phone', 'street', 'city', 'zip', 'country'] as $field) {
+        foreach ([
+            'name',
+            'email',
+            'phone',
+            'street',
+            'city',
+            'zip',
+            'country',
+        ] as $field) {
             $data = $this->validSupplierData;
             $data[$field] = '';
 
-            $validator = Validator::make($data, $request->rules(), $request->messages(), $request->attributes());
+            $validator = Validator::make(
+                $data,
+                $request->rules(),
+                $request->messages(),
+                $request->attributes(),
+            );
 
             $this->assertSame(
                 __('validation.required', ['attribute' => __("suppliers.fields.{$field}")]),
-                $validator->errors()->first($field)
+                $validator->errors()->first($field),
             );
         }
     }
@@ -298,8 +388,11 @@ class SupplierRequestFeatureTest extends TestCase
 
         // We expect either success or redirect (depending on controller implementation)
         // but not validation errors
-        $this->assertNotEquals(422, $response->getStatusCode(),
-            'Request should not fail with validation errors');
+        $this->assertNotEquals(
+            422,
+            $response->getStatusCode(),
+            'Request should not fail with validation errors',
+        );
     }
 
     #[Test]
@@ -309,8 +402,12 @@ class SupplierRequestFeatureTest extends TestCase
         $dataWithWhitespace = $this->validSupplierData;
         $dataWithWhitespace['name'] = '  ' . $this->validSupplierData['name'] . '  ';
 
-        $request = new SupplierRequest();
-        $validator = Validator::make($dataWithWhitespace, $request->rules(), $request->messages());
+        $request = new SupplierRequest;
+        $validator = Validator::make(
+            $dataWithWhitespace,
+            $request->rules(),
+            $request->messages(),
+        );
 
         // Name with whitespace should be valid
         $this->assertFalse($validator->fails());
@@ -319,7 +416,11 @@ class SupplierRequestFeatureTest extends TestCase
         $dataWithEmailWhitespace = $this->validSupplierData;
         $dataWithEmailWhitespace['email'] = '  ' . $this->validSupplierData['email'] . '  ';
 
-        $validator = Validator::make($dataWithEmailWhitespace, $request->rules(), $request->messages());
+        $validator = Validator::make(
+            $dataWithEmailWhitespace,
+            $request->rules(),
+            $request->messages(),
+        );
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('email'));
 
@@ -329,7 +430,11 @@ class SupplierRequestFeatureTest extends TestCase
         $dataWithSpecialChars['street'] = 'Wenceslas Square 123/45';
         $dataWithSpecialChars['bank_name'] = 'Česká spořitelna, a.s.';
 
-        $validator = Validator::make($dataWithSpecialChars, $request->rules(), $request->messages());
+        $validator = Validator::make(
+            $dataWithSpecialChars,
+            $request->rules(),
+            $request->messages(),
+        );
         $this->assertFalse($validator->fails());
     }
 
@@ -357,8 +462,12 @@ class SupplierRequestFeatureTest extends TestCase
             $data = $this->validSupplierData;
             $data[$field] = str_repeat('a', $maxLength);
 
-            $request = new SupplierRequest();
-            $validator = Validator::make($data, $request->rules(), $request->messages());
+            $request = new SupplierRequest;
+            $validator = Validator::make(
+                $data,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertFalse($validator->fails(),
                 "Validation should pass when {$field} is exactly at max length ({$maxLength})");
@@ -375,8 +484,12 @@ class SupplierRequestFeatureTest extends TestCase
         $data['iban'] = null;
         $data['swift'] = null;
 
-        $request = new SupplierRequest();
-        $validator = Validator::make($data, $request->rules(), $request->messages());
+        $request = new SupplierRequest;
+        $validator = Validator::make(
+            $data,
+            $request->rules(),
+            $request->messages(),
+        );
         $this->assertFalse($validator->fails(), 'Should pass with account_number and bank_code');
 
         // Test 2: Both iban and swift provided (should pass)
@@ -386,7 +499,11 @@ class SupplierRequestFeatureTest extends TestCase
         $data['iban'] = 'CZ1234567890123456789';
         $data['swift'] = 'GIBACZPX';
 
-        $validator = Validator::make($data, $request->rules(), $request->messages());
+        $validator = Validator::make(
+            $data,
+            $request->rules(),
+            $request->messages(),
+        );
         $this->assertFalse($validator->fails(), 'Should pass with iban and swift');
 
         // Test 3: All bank fields null (should pass)
@@ -397,7 +514,11 @@ class SupplierRequestFeatureTest extends TestCase
         $data['swift'] = null;
         $data['bank_name'] = null;
 
-        $validator = Validator::make($data, $request->rules(), $request->messages());
+        $validator = Validator::make(
+            $data,
+            $request->rules(),
+            $request->messages(),
+        );
         $this->assertFalse($validator->fails(), 'Should pass with all bank fields null');
     }
 }

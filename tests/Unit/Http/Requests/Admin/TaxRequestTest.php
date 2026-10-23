@@ -14,7 +14,7 @@ class TaxRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new TaxRequest();
+        $this->request = new TaxRequest;
     }
 
     #[Test]
@@ -29,7 +29,7 @@ class TaxRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -40,7 +40,7 @@ class TaxRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -51,7 +51,7 @@ class TaxRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -61,7 +61,7 @@ class TaxRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -70,7 +70,7 @@ class TaxRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -79,7 +79,7 @@ class TaxRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
+
         $this->assertTrue($method->isPublic());
     }
 }

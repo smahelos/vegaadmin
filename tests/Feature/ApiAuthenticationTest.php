@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 class ApiAuthenticationTest extends TestCase
 {
@@ -16,7 +16,7 @@ class ApiAuthenticationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Seed basic permissions and roles for tests
         $this->createPermissions();
         $this->createRolesWithPermissions();
@@ -28,7 +28,7 @@ class ApiAuthenticationTest extends TestCase
         Permission::firstOrCreate(['name' => 'frontend.api.access', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'frontend.api.clients', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'frontend.api.extended', 'guard_name' => 'web']);
-        
+
         // Backpack permissions
         Permission::firstOrCreate(['name' => 'backpack.api.access', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
@@ -41,14 +41,14 @@ class ApiAuthenticationTest extends TestCase
         $frontendRole = Role::firstOrCreate(['name' => 'frontend_user', 'guard_name' => 'web']);
         $frontendRole->syncPermissions([
             'frontend.api.access',
-            'frontend.api.clients'
+            'frontend.api.clients',
         ]);
 
         $frontendPlusRole = Role::firstOrCreate(['name' => 'frontend_user_plus', 'guard_name' => 'web']);
         $frontendPlusRole->syncPermissions([
             'frontend.api.access',
             'frontend.api.clients',
-            'frontend.api.extended'
+            'frontend.api.extended',
         ]);
 
         // Backpack roles
@@ -56,12 +56,12 @@ class ApiAuthenticationTest extends TestCase
         $adminRole->syncPermissions([
             'backpack.api.access',
             'backpack.access',
-            'can_view_client'
+            'can_view_client',
         ]);
 
         $backendUserRole = Role::firstOrCreate(['name' => 'backend_user', 'guard_name' => 'backpack']);
         $backendUserRole->syncPermissions([
-            'backpack.access'
+            'backpack.access',
         ]);
     }
 
@@ -72,9 +72,9 @@ class ApiAuthenticationTest extends TestCase
         $user = User::factory()->create();
         $frontendRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
         $user->assignRole($frontendRole);
-        
+
         $this->actingAs($user, 'web');
-        
+
         $this->assertTrue($user->hasPermissionTo('frontend.api.access', 'web'));
         $this->assertTrue($user->hasPermissionTo('frontend.api.clients', 'web'));
         $this->assertFalse($user->hasPermissionTo('frontend.api.extended', 'web'));
@@ -87,9 +87,9 @@ class ApiAuthenticationTest extends TestCase
         $user = User::factory()->create();
         $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $user->assignRole($adminRole);
-        
+
         $this->actingAs($user, 'backpack');
-        
+
         $this->assertTrue($user->hasPermissionTo('backpack.api.access', 'backpack'));
         $this->assertTrue($user->hasPermissionTo('backpack.access', 'backpack'));
         $this->assertTrue($user->hasPermissionTo('can_view_client', 'backpack'));
@@ -110,7 +110,7 @@ class ApiAuthenticationTest extends TestCase
         // Test cross-guard permissions are denied
         $this->assertFalse($backpackUser->hasPermissionTo('frontend.api.access', 'web'));
         $this->assertFalse($webUser->hasPermissionTo('backpack.api.access', 'backpack'));
-        
+
         // Test same-guard permissions are allowed
         $this->assertTrue($backpackUser->hasPermissionTo('backpack.api.access', 'backpack'));
         $this->assertTrue($webUser->hasPermissionTo('frontend.api.access', 'web'));

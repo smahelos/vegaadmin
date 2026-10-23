@@ -2,27 +2,25 @@
 
 namespace App\Domain\Payment\Services;
 
-use App\Domain\Payment\Contracts\BankServiceInterface;
 use App\Domain\Payment\Contracts\BankDtoRepository;
+use App\Domain\Payment\Contracts\BankServiceInterface;
 
 class BankService implements BankServiceInterface
 {
     public function __construct(
-        private readonly BankDtoRepository $bankDtoRepository
-    ) {
-    }
-    
+        private readonly BankDtoRepository $bankDtoRepository,
+    ) {}
+
     /**
      * Get list of banks with codes for dropdown
-     * 
-     * @param string $country Country code (default: CZ)
-     * @return array
+     *
+     * @param  string  $country  Country code (default: CZ)
      */
     public function getBanksForDropdown(string $country = 'CZ'): array
     {
         $banks = $this->bankDtoRepository->getAllBanks($country);
 
-        return array_map(fn($bank) => [
+        return array_map(fn ($bank) => [
             'text' => $bank->name . ' (' . $bank->code . ')',
             'value' => $bank->code,
             'swift' => $bank->swift,
@@ -31,9 +29,8 @@ class BankService implements BankServiceInterface
 
     /**
      * Get banks data in format suitable for JavaScript
-     * 
-     * @param string $country Country code (default: CZ)
-     * @return array
+     *
+     * @param  string  $country  Country code (default: CZ)
      */
     public function getBanksForJs(string $country = 'CZ'): array
     {

@@ -3,8 +3,8 @@
 namespace Tests\Unit\Domain\Shared\Geography\Services;
 
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
-use App\Domain\Shared\Geography\Services\CountryService;
 use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
+use App\Domain\Shared\Geography\Services\CountryService;
 use App\Domain\Shared\Http\Contracts\HttpClientInterface;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,19 +14,21 @@ use ReflectionClass;
 class CountryServiceTest extends TestCase
 {
     private CountryService $service;
+
     private HttpClientInterface $mockHttpClient;
+
     private CacheServiceInterface $mockCacheService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->mockHttpClient = Mockery::mock('App\Domain\Shared\Http\Contracts\HttpClientInterface');
         $this->mockCacheService = Mockery::mock('App\Domain\Shared\Cache\Contracts\CacheServiceInterface');
-        
+
         $this->service = new CountryService(
             $this->mockHttpClient,
-            $this->mockCacheService
+            $this->mockCacheService,
         );
     }
 
@@ -43,7 +45,7 @@ class CountryServiceTest extends TestCase
         $reflection = new ReflectionClass($this->service);
         $this->assertTrue($reflection->hasProperty('apiUrl'));
         $property = $reflection->getProperty('apiUrl');
-        $this->assertEquals('string', (string)$property->getType());
+        $this->assertEquals('string', (string) $property->getType());
     }
 
     #[Test]
@@ -54,7 +56,7 @@ class CountryServiceTest extends TestCase
         $method = $reflection->getMethod('getAllCountries');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', (string)$returnType);
+        $this->assertEquals('array', (string) $returnType);
         $this->assertCount(0, $method->getParameters());
     }
 
@@ -66,7 +68,7 @@ class CountryServiceTest extends TestCase
         $method = $reflection->getMethod('getCountriesForSelect');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', (string)$returnType);
+        $this->assertEquals('array', (string) $returnType);
     }
 
     #[Test]
@@ -77,7 +79,7 @@ class CountryServiceTest extends TestCase
         $method = $reflection->getMethod('getSimpleCountriesForSelect');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', (string)$returnType);
+        $this->assertEquals('array', (string) $returnType);
     }
 
     #[Test]
@@ -88,7 +90,7 @@ class CountryServiceTest extends TestCase
         $method = $reflection->getMethod('getCountryCodesForSelect');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', (string)$returnType);
+        $this->assertEquals('array', (string) $returnType);
     }
 
     #[Test]
@@ -100,7 +102,7 @@ class CountryServiceTest extends TestCase
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
         $this->assertTrue($returnType->allowsNull());
-        $this->assertEquals('?array', (string)$returnType);
+        $this->assertEquals('?array', (string) $returnType);
     }
 
     #[Test]
@@ -111,7 +113,7 @@ class CountryServiceTest extends TestCase
         $this->assertTrue($method->isPrivate());
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', (string)$returnType);
+        $this->assertEquals('array', (string) $returnType);
     }
 
     #[Test]
@@ -122,7 +124,7 @@ class CountryServiceTest extends TestCase
         $this->assertTrue($method->isPrivate());
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', (string)$returnType);
+        $this->assertEquals('array', (string) $returnType);
     }
 
     #[Test]

@@ -2,6 +2,7 @@
 
 namespace App\Application\Content\Contracts;
 
+use App\Domain\Content\Contracts\PageDtoWriteRepositoryInterface;
 use App\Models\Page;
 
 /**
@@ -14,8 +15,7 @@ use App\Models\Page;
  *   This interface can use Eloquent Models and Collections and is used by Application services
  *   for rendering UI (data for forms, blade templates, etc.) and NON-business logic with DB operations.
  *
- * @see \App\Domain\Content\Contracts\PageDtoWriteRepositoryInterface
- *
+ * @see PageDtoWriteRepositoryInterface
  */
 interface PageWriteRepositoryInterface
 {
@@ -27,6 +27,4 @@ interface PageWriteRepositoryInterface
 
     /** Delete page by id. */
     public function deleteById(int $id): bool;
-
-    
 }

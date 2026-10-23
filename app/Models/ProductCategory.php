@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Cviebrock\EloquentSluggable\Sluggable; // Ensure the package is installed and autoloaded
+use Illuminate\Database\Eloquent\Relations\HasMany; // Ensure the package is installed and autoloaded
 
 class ProductCategory extends Model
 {
-    use HasFactory, Sluggable, CrudTrait;
+    use CrudTrait, HasFactory, Sluggable;
 
     protected $fillable = [
         'name',
@@ -25,8 +25,8 @@ class ProductCategory extends Model
     {
         return [
             'slug' => [
-                'source' => 'name'
-            ]
+                'source' => 'name',
+            ],
         ];
     }
 

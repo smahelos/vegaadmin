@@ -1,17 +1,17 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AresLookupController;
 use App\Http\Controllers\Api\ClientController;
-use App\Http\Controllers\Api\SupplierController;
-use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\CurrencyController;
+use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\SessionController;
-use App\Http\Controllers\Api\AresLookupController;
 use App\Http\Controllers\Api\StatisticsController;
+use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UELSController;
+use App\Http\Controllers\Api\UserController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ Route::middleware(['api.require.frontend', 'refresh.frontend.session'])
     });
 
 // Public API endpoints - no authentication required (rate limited)
-Route::middleware(['web','throttle:60,1'])
+Route::middleware(['web', 'throttle:60,1'])
     ->name('api.')
     ->group(function () {
         // Countries and currencies

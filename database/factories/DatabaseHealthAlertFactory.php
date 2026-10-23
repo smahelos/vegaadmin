@@ -6,7 +6,7 @@ use App\Models\DatabaseHealthAlert;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\DatabaseHealthAlert>
+ * @extends Factory<DatabaseHealthAlert>
  */
 class DatabaseHealthAlertFactory extends Factory
 {
@@ -25,13 +25,36 @@ class DatabaseHealthAlertFactory extends Factory
     public function definition(): array
     {
         return [
-            'alert_type' => $this->faker->randomElement(['memory', 'disk', 'cpu', 'connections', 'slow_queries']),
-            'severity' => $this->faker->randomElement(['info', 'warning', 'critical']),
+            'alert_type' => $this->faker->randomElement([
+                'memory',
+                'disk',
+                'cpu',
+                'connections',
+                'slow_queries',
+            ]),
+            'severity' => $this->faker->randomElement([
+                'info',
+                'warning',
+                'critical',
+            ]),
             'message' => $this->faker->sentence(),
             'metric_data' => [
-                'value' => $this->faker->randomFloat(2, 0, 100),
-                'threshold' => $this->faker->randomFloat(2, 50, 100),
-                'unit' => $this->faker->randomElement(['%', 'MB', 'GB', 'seconds']),
+                'value' => $this->faker->randomFloat(
+                    2,
+                    0,
+                    100,
+                ),
+                'threshold' => $this->faker->randomFloat(
+                    2,
+                    50,
+                    100,
+                ),
+                'unit' => $this->faker->randomElement([
+                    '%',
+                    'MB',
+                    'GB',
+                    'seconds',
+                ]),
             ],
             'resolved' => $this->faker->boolean(),
             'resolved_at' => $this->faker->optional(0.7)->dateTimeBetween('-30 days'),
@@ -49,8 +72,16 @@ class DatabaseHealthAlertFactory extends Factory
                 'resolved' => false,
                 'resolved_at' => null,
                 'metric_data' => [
-                    'value' => $this->faker->randomFloat(2, 80, 100),
-                    'threshold' => $this->faker->randomFloat(2, 50, 80),
+                    'value' => $this->faker->randomFloat(
+                        2,
+                        80,
+                        100,
+                    ),
+                    'threshold' => $this->faker->randomFloat(
+                        2,
+                        50,
+                        80,
+                    ),
                     'unit' => '%',
                 ],
             ];
@@ -66,8 +97,16 @@ class DatabaseHealthAlertFactory extends Factory
             return [
                 'severity' => 'warning',
                 'metric_data' => [
-                    'value' => $this->faker->randomFloat(2, 60, 80),
-                    'threshold' => $this->faker->randomFloat(2, 50, 70),
+                    'value' => $this->faker->randomFloat(
+                        2,
+                        60,
+                        80,
+                    ),
+                    'threshold' => $this->faker->randomFloat(
+                        2,
+                        50,
+                        70,
+                    ),
                     'unit' => '%',
                 ],
             ];
@@ -84,8 +123,16 @@ class DatabaseHealthAlertFactory extends Factory
                 'severity' => 'info',
                 'resolved' => $this->faker->boolean(80), // 80% chance of being resolved
                 'metric_data' => [
-                    'value' => $this->faker->randomFloat(2, 30, 60),
-                    'threshold' => $this->faker->randomFloat(2, 40, 70),
+                    'value' => $this->faker->randomFloat(
+                        2,
+                        30,
+                        60,
+                    ),
+                    'threshold' => $this->faker->randomFloat(
+                        2,
+                        40,
+                        70,
+                    ),
                     'unit' => '%',
                 ],
             ];
@@ -128,7 +175,11 @@ class DatabaseHealthAlertFactory extends Factory
                 'alert_type' => 'memory',
                 'message' => 'High memory usage detected',
                 'metric_data' => [
-                    'value' => $this->faker->randomFloat(2, 70, 95),
+                    'value' => $this->faker->randomFloat(
+                        2,
+                        70,
+                        95,
+                    ),
                     'threshold' => 80,
                     'unit' => '%',
                 ],
@@ -146,7 +197,11 @@ class DatabaseHealthAlertFactory extends Factory
                 'alert_type' => 'disk',
                 'message' => 'High disk usage detected',
                 'metric_data' => [
-                    'value' => $this->faker->randomFloat(2, 70, 95),
+                    'value' => $this->faker->randomFloat(
+                        2,
+                        70,
+                        95,
+                    ),
                     'threshold' => 85,
                     'unit' => '%',
                 ],

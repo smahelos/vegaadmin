@@ -3,14 +3,13 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\StatusCategoryRequest;
-use App\Models\User;
 use App\Models\StatusCategory;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -20,10 +19,8 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class StatusCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-    protected User $regularUser;
     private StatusCategory $statusCategory;
 
     /**
@@ -57,7 +54,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'description' => 'Status for active items',
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -72,7 +69,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             // description is nullable
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($minimalData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -81,7 +78,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_missing_required_fields(): void
     {
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -97,7 +94,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'slug' => 'valid-slug',
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -112,7 +109,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'slug' => 'valid-slug',
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -127,7 +124,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'slug' => 'a', // Too short (min 2 characters)
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -142,7 +139,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'slug' => str_repeat('a', 256), // Exceeds max length of 255
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -159,7 +156,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'slug' => 'existing-slug', // Already exists
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -177,7 +174,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'slug' => 'existing-slug', // Same slug for update should be valid
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $request->merge(['id' => $existingCategory->id]);
         $validator = Validator::make($validData, $request->rules());
 
@@ -193,7 +190,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'description' => null,
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -203,11 +200,11 @@ class StatusCategoryRequestFeatureTest extends TestCase
     public function authorization_passes_with_required_permission(): void
     {
         $this->actingAs($this->adminUser, 'backpack')
-             ->postJson('/test-status-category', [
-                 'name' => 'Test Category',
-                 'slug' => 'test-category',
-             ])
-             ->assertStatus(200);
+            ->postJson('/test-status-category', [
+                'name' => 'Test Category',
+                'slug' => 'test-category',
+            ])
+            ->assertStatus(200);
     }
 
     #[Test]
@@ -224,11 +221,11 @@ class StatusCategoryRequestFeatureTest extends TestCase
         }
 
         $this->actingAs($userWithoutPermission, 'backpack')
-             ->postJson('/test-status-category', [
-                 'name' => 'Test Category',
-                 'slug' => 'test-category',
-             ])
-             ->assertStatus(403);
+            ->postJson('/test-status-category', [
+                'name' => 'Test Category',
+                'slug' => 'test-category',
+            ])
+            ->assertStatus(403);
     }
 
     #[Test]
@@ -243,7 +240,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function attributes_method_returns_correct_translations(): void
     {
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $attributes = $request->attributes();
 
         $this->assertArrayHasKey('name', $attributes);
@@ -265,7 +262,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'slug' => 'ab', // Exactly 2 characters (minimum)
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -289,7 +286,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
             'description' => 'This is a valid string description',
         ];
 
-        $request = new StatusCategoryRequest();
+        $request = new StatusCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());

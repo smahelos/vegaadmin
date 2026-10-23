@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Subscription>
+ * @extends Factory<Subscription>
  */
 class SubscriptionFactory extends Factory
 {
@@ -24,9 +24,14 @@ class SubscriptionFactory extends Factory
      */
     public function definition(): array
     {
-        $status = $this->faker->randomElement(['active', 'expired', 'cancelled', 'pending']);
+        $status = $this->faker->randomElement([
+            'active',
+            'expired',
+            'cancelled',
+            'pending',
+        ]);
         $startDate = $this->faker->dateTimeBetween('-6 months', 'now');
-        
+
         return [
             'user_id' => User::factory(),
             'subscription_plan_id' => SubscriptionPlan::factory(),
@@ -35,7 +40,11 @@ class SubscriptionFactory extends Factory
             'ends_at' => $this->faker->dateTimeBetween($startDate, '+1 year'),
             'trial_ends_at' => $status === 'trial' ? $this->faker->dateTimeBetween('now', '+30 days') : null,
             'next_billing_at' => $this->faker->dateTimeBetween('now', '+2 months'),
-            'amount' => $this->faker->randomFloat(2, 9.99, 199.99),
+            'amount' => $this->faker->randomFloat(
+                2,
+                9.99,
+                199.99,
+            ),
             'currency' => 'EUR',
             'metadata' => null,
         ];

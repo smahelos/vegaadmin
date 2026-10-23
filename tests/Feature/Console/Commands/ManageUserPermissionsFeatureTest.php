@@ -5,11 +5,11 @@ namespace Tests\Feature\Console\Commands;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
-use Illuminate\Support\Str;
 
 class ManageUserPermissionsFeatureTest extends TestCase
 {
@@ -28,7 +28,7 @@ class ManageUserPermissionsFeatureTest extends TestCase
     public function command_lists_roles(): void
     {
         $exitCode = Artisan::call('user:permissions', [
-            'action' => 'list-roles'
+            'action' => 'list-roles',
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -41,7 +41,7 @@ class ManageUserPermissionsFeatureTest extends TestCase
     public function command_lists_permissions(): void
     {
         $exitCode = Artisan::call('user:permissions', [
-            'action' => 'list-permissions'
+            'action' => 'list-permissions',
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -54,12 +54,12 @@ class ManageUserPermissionsFeatureTest extends TestCase
     public function command_shows_user_permissions(): void
     {
         $user = User::factory()->create([
-            'email' =>  Str::random(10) . '@example.com'
+            'email' => Str::random(10) . '@example.com',
         ]);
 
         $exitCode = Artisan::call('user:permissions', [
             'action' => 'show-user',
-            '--user' => $user->email
+            '--user' => $user->email,
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -72,13 +72,13 @@ class ManageUserPermissionsFeatureTest extends TestCase
     public function command_assigns_role_to_user(): void
     {
         $user = User::factory()->create([
-            'email' => Str::random(10) . '@example.com'
+            'email' => Str::random(10) . '@example.com',
         ]);
 
         $exitCode = Artisan::call('user:permissions', [
             'action' => 'assign-role',
             '--user' => $user->email,
-            '--role' => 'test_role'
+            '--role' => 'test_role',
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -92,7 +92,7 @@ class ManageUserPermissionsFeatureTest extends TestCase
     public function command_removes_role_from_user(): void
     {
         $user = User::factory()->create([
-            'email' => Str::random(10) . '@example.com'
+            'email' => Str::random(10) . '@example.com',
         ]);
 
         // First assign the role
@@ -101,7 +101,7 @@ class ManageUserPermissionsFeatureTest extends TestCase
         $exitCode = Artisan::call('user:permissions', [
             'action' => 'remove-role',
             '--user' => $user->email,
-            '--role' => 'test_role'
+            '--role' => 'test_role',
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -118,7 +118,7 @@ class ManageUserPermissionsFeatureTest extends TestCase
 
         $exitCode = Artisan::call('user:permissions', [
             'action' => 'show-user',
-            '--user' => $user->id
+            '--user' => $user->id,
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -129,7 +129,7 @@ class ManageUserPermissionsFeatureTest extends TestCase
     {
         $exitCode = Artisan::call('user:permissions', [
             'action' => 'show-user',
-            '--user' => 'nonexistent@example.com'
+            '--user' => 'nonexistent@example.com',
         ]);
 
         // Command should return error exit code when user is not found
@@ -143,13 +143,13 @@ class ManageUserPermissionsFeatureTest extends TestCase
     public function command_handles_invalid_role(): void
     {
         $user = User::factory()->create([
-            'email' => Str::random(10) . '@example.com'
+            'email' => Str::random(10) . '@example.com',
         ]);
 
         $exitCode = Artisan::call('user:permissions', [
             'action' => 'assign-role',
             '--user' => $user->email,
-            '--role' => 'nonexistent_role'
+            '--role' => 'nonexistent_role',
         ]);
 
         $this->assertEquals(1, $exitCode);
@@ -159,7 +159,7 @@ class ManageUserPermissionsFeatureTest extends TestCase
     public function command_handles_invalid_action(): void
     {
         $exitCode = Artisan::call('user:permissions', [
-            'action' => 'invalid-action'
+            'action' => 'invalid-action',
         ]);
 
         $this->assertEquals(1, $exitCode);
@@ -169,7 +169,7 @@ class ManageUserPermissionsFeatureTest extends TestCase
     public function command_provides_feedback(): void
     {
         Artisan::call('user:permissions', [
-            'action' => 'list-roles'
+            'action' => 'list-roles',
         ]);
 
         $output = Artisan::output();
@@ -181,7 +181,7 @@ class ManageUserPermissionsFeatureTest extends TestCase
     {
         // Test assign-role without required options
         $exitCode = Artisan::call('user:permissions', [
-            'action' => 'assign-role'
+            'action' => 'assign-role',
         ]);
 
         $this->assertEquals(1, $exitCode);

@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\PerformanceMetric;
+use Illuminate\Console\Command;
 
 class CleanPerformanceMetrics extends Command
 {
@@ -26,101 +26,114 @@ class CleanPerformanceMetrics extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return int
      */
     public function handle(): int
     {
         $days = $this->option('days');
         $type = $this->option('type');
         $dryRun = $this->option('dry-run');
-        
-        $this->info("Starting performance metrics cleanup...");
+
+        $this->info('Starting performance metrics cleanup...');
         $this->info("Type: {$type}, Days to keep: {$days}, Dry run: " . ($dryRun ? 'Yes' : 'No'));
-        
+
         try {
             $deletedCount = 0;
-            
+
             switch ($type) {
                 case 'old':
-                    $query = PerformanceMetric::where('measured_at', '<', now()->subDays($days));
+                    $query = PerformanceMetric::where(
+                        'measured_at',
+                        '<',
+                        now()->subDays($days),
+                    );
                     break;
-                    
+
                 case 'sample':
                     $query = PerformanceMetric::whereJsonContains('metadata->generated', true);
                     break;
-                    
+
                 case 'duplicate':
                     return $this->cleanDuplicates($dryRun);
-                    
+
                 case 'all':
-                    if (!$this->confirm('Are you sure you want to delete ALL performance metrics?')) {
+                    if (! $this->confirm('Are you sure you want to delete ALL performance metrics?')) {
                         $this->warn('Operation cancelled.');
+
                         return 1;
                     }
                     $query = PerformanceMetric::query();
                     break;
-                    
+
                 default:
                     $this->error("Invalid cleanup type: {$type}");
+
                     return 1;
             }
-            
+
             if ($dryRun) {
                 $count = $query->count();
                 $this->info("Would delete {$count} metrics");
-                
+
                 // Show sample of what would be deleted
-                $sample = $query->limit(5)->get(['id', 'metric_type', 'measured_at']);
+                $sample = $query->limit(5)->get([
+                    'id',
+                    'metric_type',
+                    'measured_at',
+                ]);
                 if ($sample->count() > 0) {
-                    $this->table(['ID', 'Type', 'Measured At'], $sample->toArray());
+                    $this->table([
+                        'ID',
+                        'Type',
+                        'Measured At',
+                    ], $sample->toArray());
                 }
             } else {
                 $deletedCount = $query->delete();
                 $this->info("Deleted {$deletedCount} performance metrics");
             }
-            
+
             return 0;
-            
+
         } catch (\Exception $e) {
-            $this->error("Cleanup failed: " . $e->getMessage());
-            
+            $this->error('Cleanup failed: ' . $e->getMessage());
+
             return 1;
         }
     }
-    
+
     /**
      * Clean duplicate metrics
      */
     private function cleanDuplicates($dryRun = false)
     {
-        $this->info("Cleaning duplicate metrics...");
-        
+        $this->info('Cleaning duplicate metrics...');
+
         // Get duplicates grouped by type and date
         $duplicates = PerformanceMetric::selectRaw('metric_type, DATE(measured_at) as date, COUNT(*) as count')
             ->groupBy('metric_type', \DB::raw('DATE(measured_at)'))
             ->havingRaw('COUNT(*) > 1')
             ->get();
-            
+
         if ($duplicates->isEmpty()) {
-            $this->info("No duplicates found.");
+            $this->info('No duplicates found.');
+
             return 0;
         }
-        
+
         $this->info("Found {$duplicates->count()} groups with duplicates");
-        
+
         $totalDeleted = 0;
-        
+
         foreach ($duplicates as $duplicate) {
             // Get all metrics for this type/date
             $metrics = PerformanceMetric::where('metric_type', $duplicate->metric_type)
                 ->whereDate('measured_at', $duplicate->date)
                 ->orderBy('measured_at', 'desc')
                 ->get();
-                
+
             // Keep the latest one, delete the rest
             $toDelete = $metrics->skip(1);
-            
+
             if ($dryRun) {
                 $this->line("Would delete {$toDelete->count()} duplicates for {$duplicate->metric_type} on {$duplicate->date}");
             } else {
@@ -129,11 +142,11 @@ class CleanPerformanceMetrics extends Command
                 $totalDeleted += $toDelete->count();
             }
         }
-        
-        if (!$dryRun) {
+
+        if (! $dryRun) {
             $this->info("Deleted {$totalDeleted} duplicate metrics");
         }
-        
+
         return 0;
     }
 }

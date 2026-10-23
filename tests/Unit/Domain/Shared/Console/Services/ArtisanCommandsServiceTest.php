@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Domain\Shared\Console\Services;
 
-use App\Domain\Shared\Console\Services\ArtisanCommandsService;
-use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
-use App\Domain\Shared\Console\Contracts\ArtisanCommandsDtoRepositoryInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\Shared\Console\Contracts\ArtisanCommandsDtoRepositoryInterface;
+use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
+use App\Domain\Shared\Console\Services\ArtisanCommandsService;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -21,7 +21,7 @@ class ArtisanCommandsServiceTest extends TestCase
         parent::setUp();
         $this->service = new ArtisanCommandsService(
             $this->createMock(ArtisanCommandsDtoRepositoryInterface::class),
-            $this->createMock(CacheServiceInterface::class)
+            $this->createMock(CacheServiceInterface::class),
         );
     }
 
@@ -42,10 +42,10 @@ class ArtisanCommandsServiceTest extends TestCase
         $params = $m->getParameters();
         $this->assertCount(1, $params);
         $this->assertEquals('onlyNames', $params[0]->getName());
-        $this->assertEquals('bool', (string)$params[0]->getType());
+        $this->assertEquals('bool', (string) $params[0]->getType());
         $this->assertTrue($params[0]->isDefaultValueAvailable());
         $this->assertFalse($params[0]->getDefaultValue());
-        $this->assertEquals('array', (string)$m->getReturnType());
+        $this->assertEquals('array', (string) $m->getReturnType());
     }
 
     #[Test]
@@ -58,14 +58,14 @@ class ArtisanCommandsServiceTest extends TestCase
         $params = $m->getParameters();
         $this->assertCount(2, $params);
         $this->assertEquals('categorySlug', $params[0]->getName());
-        $this->assertEquals('?string', (string)$params[0]->getType());
+        $this->assertEquals('?string', (string) $params[0]->getType());
         $this->assertTrue($params[0]->isDefaultValueAvailable());
         $this->assertNull($params[0]->getDefaultValue());
         $this->assertEquals('withoutCategory', $params[1]->getName());
-        $this->assertEquals('bool', (string)$params[1]->getType());
+        $this->assertEquals('bool', (string) $params[1]->getType());
         $this->assertTrue($params[1]->isDefaultValueAvailable());
         $this->assertFalse($params[1]->getDefaultValue());
-        $this->assertEquals('array', (string)$m->getReturnType());
+        $this->assertEquals('array', (string) $m->getReturnType());
     }
 
     #[Test]
@@ -75,7 +75,7 @@ class ArtisanCommandsServiceTest extends TestCase
         $this->assertTrue($r->hasMethod('getAllCategories'));
         $m = $r->getMethod('getAllCategories');
         $this->assertTrue($m->isPublic());
-        $this->assertEquals('array', (string)$m->getReturnType());
+        $this->assertEquals('array', (string) $m->getReturnType());
     }
 
     #[Test]
@@ -85,7 +85,7 @@ class ArtisanCommandsServiceTest extends TestCase
         $this->assertTrue($r->hasMethod('clearCommandsCache'));
         $m = $r->getMethod('clearCommandsCache');
         $this->assertTrue($m->isPublic());
-        $this->assertEquals('void', (string)$m->getReturnType());
+        $this->assertEquals('void', (string) $m->getReturnType());
     }
 
     #[Test]

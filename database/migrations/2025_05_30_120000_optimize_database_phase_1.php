@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -81,13 +81,13 @@ return new class extends Migration
 
             Schema::table('invoices', function (Blueprint $table) use ($constraintNames) {
                 // Add FK constraints that are missing
-                if (!in_array('invoices_client_id_foreign', $constraintNames)) {
+                if (! in_array('invoices_client_id_foreign', $constraintNames)) {
                     $table->foreign('client_id')->references('id')->on('clients')->onDelete('set null');
                 }
-                if (!in_array('invoices_user_id_foreign', $constraintNames)) {
+                if (! in_array('invoices_user_id_foreign', $constraintNames)) {
                     $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
                 }
-                if (!in_array('invoices_payment_method_id_foreign', $constraintNames)) {
+                if (! in_array('invoices_payment_method_id_foreign', $constraintNames)) {
                     $table->foreign('payment_method_id')->references('id')->on('payment_methods')->onDelete('set null');
                 }
 
@@ -99,17 +99,17 @@ return new class extends Migration
             Schema::table('invoices', function (Blueprint $table) {
                 try {
                     $table->foreign('client_id')->references('id')->on('clients')->onDelete('set null');
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Foreign key already exists, ignore
                 }
                 try {
                     $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Foreign key already exists, ignore
                 }
                 try {
                     $table->foreign('payment_method_id')->references('id')->on('payment_methods')->onDelete('set null');
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Foreign key already exists, ignore
                 }
             });
@@ -141,7 +141,7 @@ return new class extends Migration
                 }
             } else {
                 // For SQLite, check if index exists using PRAGMA
-                $indexes = DB::select("PRAGMA index_list(banks)");
+                $indexes = DB::select('PRAGMA index_list(banks)');
                 $indexExists = false;
                 foreach ($indexes as $index) {
                     if ($index->name === 'banks_code_unique') {
@@ -149,7 +149,7 @@ return new class extends Migration
                         break;
                     }
                 }
-                if (!$indexExists) {
+                if (! $indexExists) {
                     $table->unique('code', 'banks_code_unique');
                 }
             }
@@ -197,7 +197,7 @@ return new class extends Migration
                 }
             } else {
                 // For SQLite, check if index exists using PRAGMA
-                $indexes = DB::select("PRAGMA index_list(clients)");
+                $indexes = DB::select('PRAGMA index_list(clients)');
                 $indexExists = false;
                 foreach ($indexes as $index) {
                     if ($index->name === 'clients_ico_unique') {
@@ -205,7 +205,7 @@ return new class extends Migration
                         break;
                     }
                 }
-                if (!$indexExists) {
+                if (! $indexExists) {
                     $table->unique('ico', 'clients_ico_unique');
                 }
             }
@@ -219,7 +219,7 @@ return new class extends Migration
                 }
             } else {
                 // For SQLite, check if index exists using PRAGMA
-                $indexes = DB::select("PRAGMA index_list(suppliers)");
+                $indexes = DB::select('PRAGMA index_list(suppliers)');
                 $indexExists = false;
                 foreach ($indexes as $index) {
                     if ($index->name === 'suppliers_ico_unique') {
@@ -227,7 +227,7 @@ return new class extends Migration
                         break;
                     }
                 }
-                if (!$indexExists) {
+                if (! $indexExists) {
                     $table->unique('ico', 'suppliers_ico_unique');
                 }
             }
@@ -321,17 +321,17 @@ return new class extends Migration
             Schema::table('invoices', function (Blueprint $table) {
                 try {
                     $table->dropForeign(['payment_method_id']);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Foreign key doesn't exist, ignore
                 }
                 try {
                     $table->dropForeign(['user_id']);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Foreign key doesn't exist, ignore
                 }
                 try {
                     $table->dropForeign(['client_id']);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     // Foreign key doesn't exist, ignore
                 }
             });

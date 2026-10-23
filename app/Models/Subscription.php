@@ -10,9 +10,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subscription extends Model
 {
-    use HasFactory;
     use CrudTrait;
-    
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'subscription_plan_id',
@@ -80,7 +80,7 @@ class Subscription extends Model
      */
     public function isActive(): bool
     {
-        return $this->status === 'active' && 
+        return $this->status === 'active' &&
                ($this->ends_at === null || $this->ends_at > now());
     }
 
@@ -97,7 +97,7 @@ class Subscription extends Model
      */
     public function isExpired(): bool
     {
-        return $this->status === 'expired' || 
+        return $this->status === 'expired' ||
                ($this->ends_at !== null && $this->ends_at < now());
     }
 
@@ -119,6 +119,7 @@ class Subscription extends Model
     public function cancel(): bool
     {
         $this->status = 'cancelled';
+
         return $this->save();
     }
 
@@ -129,12 +130,12 @@ class Subscription extends Model
     {
         $this->status = 'active';
         $this->starts_at = now();
-        
+
         // Set trial period if applicable
         if ($this->subscriptionPlan->hasTrialPeriod()) {
             $this->trial_ends_at = now()->addDays($this->subscriptionPlan->trial_days);
         }
-        
+
         return $this->save();
     }
 }

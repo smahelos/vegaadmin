@@ -2,8 +2,8 @@
 
 namespace App\Domain\Shared\Listeners;
 
-use App\Domain\Shared\Events\FormDataChanged;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\Shared\Events\FormDataChanged;
 
 class InvalidateFormDataCache
 {
@@ -16,8 +16,6 @@ class InvalidateFormDataCache
 
     /**
      * Create the event listener
-     *
-     * @param CacheServiceInterface $cacheService
      */
     public function __construct(
         CacheServiceInterface $cacheService,
@@ -27,9 +25,6 @@ class InvalidateFormDataCache
 
     /**
      * Handle the event
-     *
-     * @param FormDataChanged $event
-     * @return void
      */
     public function handle(FormDataChanged $event): void
     {

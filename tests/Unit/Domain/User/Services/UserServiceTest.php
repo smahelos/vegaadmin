@@ -2,12 +2,11 @@
 
 namespace Tests\Unit\Domain\User\Services;
 
-use App\Domain\User\Services\UserService;
-use App\Domain\User\Contracts\UserReadRepositoryInterface;
-use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
-use App\Domain\Shared\Pagination\DTO\PageRequest;
-use App\Domain\Shared\Pagination\DTO\PaginatedResult;
+use App\Domain\User\Contracts\UserReadRepositoryInterface;
+use App\Domain\User\Contracts\UserServiceInterface;
+use App\Domain\User\Contracts\UserWriteRepositoryInterface;
+use App\Domain\User\Services\UserService;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -18,21 +17,26 @@ class UserServiceTest extends TestCase
         $read = $this->createMock(UserReadRepositoryInterface::class);
         $write = $this->createMock(UserWriteRepositoryInterface::class);
         $tx = $this->createMock(TransactionBoundaryInterface::class);
-        return new UserService($read, $write, $tx);
+
+        return new UserService(
+            $read,
+            $write,
+            $tx,
+        );
     }
 
     #[Test]
     public function service_implements_user_service_interface(): void
     {
         $service = $this->makeService();
-        $this->assertInstanceOf(\App\Domain\User\Contracts\UserServiceInterface::class, $service);
+        $this->assertInstanceOf(UserServiceInterface::class, $service);
     }
 
     #[Test]
     public function service_has_required_methods(): void
     {
         $reflection = new \ReflectionClass(UserService::class);
-        
+
         $requiredMethods = [
             'create',
             'findUserByEmail',
@@ -50,7 +54,7 @@ class UserServiceTest extends TestCase
             'changeEmail',
             'getActivitySummary',
         ];
-        
+
         foreach ($requiredMethods as $method) {
             $this->assertTrue($reflection->hasMethod($method), "Method {$method} should exist");
         }
@@ -62,10 +66,10 @@ class UserServiceTest extends TestCase
         $reflection = new \ReflectionClass(UserService::class);
         $method = $reflection->getMethod('create');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('data', $parameters[0]->getName());
-        
+
         // Check return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -78,10 +82,10 @@ class UserServiceTest extends TestCase
         $reflection = new \ReflectionClass(UserService::class);
         $method = $reflection->getMethod('findUserByEmail');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('email', $parameters[0]->getName());
-        
+
         // Check return type - should allow null
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -94,11 +98,11 @@ class UserServiceTest extends TestCase
         $reflection = new \ReflectionClass(UserService::class);
         $method = $reflection->getMethod('updatePassword');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(2, $parameters);
         $this->assertEquals('userId', $parameters[0]->getName());
         $this->assertEquals('password', $parameters[1]->getName());
-        
+
         // Check return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -109,7 +113,7 @@ class UserServiceTest extends TestCase
     public function service_method_return_types_are_properly_defined(): void
     {
         $reflection = new \ReflectionClass(UserService::class);
-        
+
         $methodReturnTypes = [
             'create' => 'App\\Domain\\User\\DTO\\UserDTO',
             'findUserByEmail' => '?App\\Domain\\User\\DTO\\UserDTO',
@@ -126,21 +130,25 @@ class UserServiceTest extends TestCase
             'changeEmail' => 'bool',
             'getActivitySummary' => 'array',
         ];
-        
+
         foreach ($methodReturnTypes as $methodName => $expectedType) {
             $method = $reflection->getMethod($methodName);
             $returnType = $method->getReturnType();
-            
+
             $this->assertNotNull($returnType, "Method {$methodName} should have return type");
-            
+
             $actualType = (string) $returnType;
-            
+
             // Handle nullable types properly
             if ($returnType->allowsNull()) {
                 $actualType = '?' . ltrim($actualType, '?');
             }
-                
-            $this->assertEquals($expectedType, $actualType, "Method {$methodName} return type mismatch");
+
+            $this->assertEquals(
+                $expectedType,
+                $actualType,
+                "Method {$methodName} return type mismatch",
+            );
         }
     }
 }

@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 
 /**
  * Third Party Service Provider.
- * 
+ *
  * Registers all third-party library service providers and external dependencies.
  * This keeps external dependencies isolated from our own application providers.
  */

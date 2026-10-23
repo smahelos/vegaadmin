@@ -4,9 +4,10 @@ namespace Database\Factories;
 
 use App\Models\StatusCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\StatusCategory>
+ * @extends Factory<StatusCategory>
  */
 class StatusCategoryFactory extends Factory
 {
@@ -25,10 +26,10 @@ class StatusCategoryFactory extends Factory
     public function definition(): array
     {
         $name = fake()->unique()->words(2, true);
-        
+
         return [
             'name' => $name,
-            'slug' => \Illuminate\Support\Str::slug($name),
+            'slug' => Str::slug($name),
             'description' => fake()->sentence(),
         ];
     }

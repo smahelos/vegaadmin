@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\Domain\Payment\Factories;
 
+use App\Domain\Payment\DTO\QrPaymentPayload;
 use App\Domain\Payment\Factories\QrPaymentProviderFactory;
 use App\Domain\Payment\Providers\QrPayment\CzechQrPaymentProvider;
-use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
-use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\TestCase;
 
@@ -37,7 +37,7 @@ class QrPaymentProviderFactoryTest extends TestCase
     {
         $provider1 = QrPaymentProviderFactory::createProvider('cz');
         $provider2 = QrPaymentProviderFactory::createProvider('CZ');
-        
+
         $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider1);
         $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider2);
     }
@@ -46,7 +46,7 @@ class QrPaymentProviderFactoryTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported country code: XX');
-        
+
         QrPaymentProviderFactory::createProvider('XX');
     }
 
@@ -59,7 +59,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '0100',
             iban: null,
             countryCode: 'SK',
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -75,7 +75,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '0100',
             iban: 'CZ6508000000192000145399',
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -91,7 +91,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '0900',
             iban: 'SK3112000000198742637541',
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -107,7 +107,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: null,
             iban: 'DE89370400440532013000',
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -123,7 +123,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '0100',
             iban: null,
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -139,7 +139,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '0900', // Slovak bank code
             iban: null,
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -155,7 +155,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '3000', // Non-Slovak bank code
             iban: null,
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -171,7 +171,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '0100',
             iban: null,
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -181,7 +181,7 @@ class QrPaymentProviderFactoryTest extends TestCase
     public function test_get_available_providers()
     {
         $providers = QrPaymentProviderFactory::getAvailableProviders();
-        
+
         $this->assertIsArray($providers);
         $this->assertArrayHasKey('CZ', $providers);
         $this->assertArrayHasKey('SK', $providers);
@@ -197,7 +197,7 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertTrue(QrPaymentProviderFactory::hasProvider('SK'));
         $this->assertTrue(QrPaymentProviderFactory::hasProvider('EU'));
         $this->assertFalse(QrPaymentProviderFactory::hasProvider('XX'));
-        
+
         // Test case insensitive
         $this->assertTrue(QrPaymentProviderFactory::hasProvider('cz'));
         $this->assertTrue(QrPaymentProviderFactory::hasProvider('sk'));
@@ -212,7 +212,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '0100',
             iban: 'CZ65 0800 0000 1920 0014 5399', // IBAN with spaces
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -228,7 +228,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '0100',
             iban: 'sk3112000000198742637541', // Lowercase IBAN
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
@@ -244,7 +244,7 @@ class QrPaymentProviderFactoryTest extends TestCase
             bankCode: '0100',
             iban: 'DE89370400440532013000', // German IBAN
             countryCode: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);

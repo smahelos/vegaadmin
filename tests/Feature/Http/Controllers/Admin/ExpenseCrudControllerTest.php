@@ -13,16 +13,15 @@ use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 class ExpenseCrudControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
-    private User $adminUser;
-    private User $regularUser;
     private UniversalLimitService $limitService;
 
     protected function setUp(): void
@@ -31,7 +30,7 @@ class ExpenseCrudControllerTest extends TestCase
         $this->setUpAdminTestEnvironment();
         $this->limitService = app(UniversalLimitService::class);
         // Ensure regular user has specific expense permission if exists
-        $permission = \Spatie\Permission\Models\Permission::where('name', 'can_create_edit_expense')
+        $permission = Permission::where('name', 'can_create_edit_expense')
             ->where('guard_name', 'backpack')
             ->first();
         if ($permission) {
@@ -42,6 +41,7 @@ class ExpenseCrudControllerTest extends TestCase
     private function ensureStatus(): Status
     {
         $category = StatusCategory::factory()->create(['slug' => 'expense-statuses']);
+
         return Status::factory()->create(['category_id' => $category->id]);
     }
 
@@ -64,7 +64,12 @@ class ExpenseCrudControllerTest extends TestCase
         $status = $this->ensureStatus();
         $category = ExpenseCategory::factory()->create();
 
-        $initial = $this->limitService->checkLimit($this->regularUser->id, 'expense', 'count', 'monthly');
+        $initial = $this->limitService->checkLimit(
+            $this->regularUser->id,
+            'expense',
+            'count',
+            'monthly',
+        );
         $initialUsage = $initial['current_usage'] ?? 0;
 
         $expense = Expense::factory()->create([
@@ -75,10 +80,21 @@ class ExpenseCrudControllerTest extends TestCase
             'category_id' => $category->id,
         ]);
 
-        $result = $this->limitService->recordUsage($this->regularUser->id, 'expense', 'count', 'monthly', 'backpack');
+        $result = $this->limitService->recordUsage(
+            $this->regularUser->id,
+            'expense',
+            'count',
+            'monthly',
+            'backpack',
+        );
         $this->assertTrue($result, 'recordUsage should return true when successful');
 
-        $after = $this->limitService->checkLimit($this->regularUser->id, 'expense', 'count', 'monthly');
+        $after = $this->limitService->checkLimit(
+            $this->regularUser->id,
+            'expense',
+            'count',
+            'monthly',
+        );
         $afterUsage = $after['current_usage'] ?? 0;
 
         $this->assertEquals($initialUsage + 1, $afterUsage);
@@ -104,7 +120,12 @@ class ExpenseCrudControllerTest extends TestCase
         $status = $this->ensureStatus();
         $category = ExpenseCategory::factory()->create();
 
-        $firstCheck = $this->limitService->checkLimit($this->regularUser->id, 'expense', 'count', 'monthly');
+        $firstCheck = $this->limitService->checkLimit(
+            $this->regularUser->id,
+            'expense',
+            'count',
+            'monthly',
+        );
         $this->assertTrue($firstCheck['allowed']);
 
         $expense1 = Expense::factory()->create([
@@ -114,13 +135,24 @@ class ExpenseCrudControllerTest extends TestCase
             'status_id' => $status->id,
             'category_id' => $category->id,
         ]);
-        $result1 = $this->limitService->recordUsage($this->regularUser->id, 'expense', 'count', 'monthly', 'backpack');
+        $result1 = $this->limitService->recordUsage(
+            $this->regularUser->id,
+            'expense',
+            'count',
+            'monthly',
+            'backpack',
+        );
         $this->assertTrue($result1, 'First recordUsage should succeed');
 
-        $secondCheck = $this->limitService->checkLimit($this->regularUser->id, 'expense', 'count', 'monthly');
+        $secondCheck = $this->limitService->checkLimit(
+            $this->regularUser->id,
+            'expense',
+            'count',
+            'monthly',
+        );
         $this->assertFalse($secondCheck['allowed']);
         $this->assertEquals('limit_exceeded', $secondCheck['reason']);
 
-    $this->assertDatabaseHas('expenses', ['id' => $expense1->id, 'user_id' => $this->regularUser->id]);
+        $this->assertDatabaseHas('expenses', ['id' => $expense1->id, 'user_id' => $this->regularUser->id]);
     }
 }

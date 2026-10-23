@@ -13,6 +13,7 @@ namespace App\Infrastructure\Authorization;
 final class PermissionCatalog
 {
     public const BACKPACK = 'backpack';
+
     public const WEB = 'web';
 
     /** @var array<string, list<string>> permission names by guard */
@@ -164,6 +165,10 @@ final class PermissionCatalog
 
     public static function has(string $permission, string $guard): bool
     {
-        return in_array($permission, self::PERMISSIONS[$guard] ?? [], true);
+        return in_array(
+            $permission,
+            self::PERMISSIONS[$guard] ?? [],
+            true,
+        );
     }
 }

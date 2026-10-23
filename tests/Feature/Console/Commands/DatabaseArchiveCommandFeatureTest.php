@@ -16,7 +16,6 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
         parent::setUp();
     }
 
-
     #[Test]
     public function command_executes_successfully(): void
     {
@@ -29,7 +28,7 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
     public function command_accepts_table_option(): void
     {
         $exitCode = Artisan::call('db:archive', [
-            '--table' => 'invoices'
+            '--table' => 'invoices',
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -39,7 +38,7 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
     public function command_accepts_dry_run_option(): void
     {
         $exitCode = Artisan::call('db:archive', [
-            '--dry-run' => true
+            '--dry-run' => true,
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -50,7 +49,7 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
     {
         $exitCode = Artisan::call('db:archive', [
             '--force' => true,
-            '--dry-run' => true
+            '--dry-run' => true,
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -60,7 +59,7 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
     public function command_uses_default_table(): void
     {
         Artisan::call('db:archive', [
-            '--dry-run' => true
+            '--dry-run' => true,
         ]);
 
         $output = Artisan::output();
@@ -72,12 +71,16 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
     #[Test]
     public function command_handles_different_tables(): void
     {
-        $tables = ['invoices', 'clients', 'suppliers'];
+        $tables = [
+            'invoices',
+            'clients',
+            'suppliers',
+        ];
 
         foreach ($tables as $table) {
             $exitCode = Artisan::call('db:archive', [
                 '--table' => $table,
-                '--dry-run' => true
+                '--dry-run' => true,
             ]);
 
             $this->assertEquals(0, $exitCode);
@@ -88,7 +91,7 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
     public function command_provides_feedback(): void
     {
         Artisan::call('db:archive', [
-            '--dry-run' => true
+            '--dry-run' => true,
         ]);
 
         $output = Artisan::output();
@@ -101,7 +104,7 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
     {
         $exitCode = Artisan::call('db:archive', [
             '--table' => 'invoices',
-            '--dry-run' => true
+            '--dry-run' => true,
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -116,7 +119,7 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
         // Test force option with dry-run for safety
         $exitCode = Artisan::call('db:archive', [
             '--force' => true,
-            '--dry-run' => true
+            '--dry-run' => true,
         ]);
 
         $this->assertEquals(0, $exitCode);
@@ -128,7 +131,7 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
         // Test with valid table name
         $exitCode = Artisan::call('db:archive', [
             '--table' => 'invoices',
-            '--dry-run' => true
+            '--dry-run' => true,
         ]);
 
         $this->assertEquals(0, $exitCode);

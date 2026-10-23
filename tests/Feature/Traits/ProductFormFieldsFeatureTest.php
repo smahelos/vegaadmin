@@ -2,17 +2,17 @@
 
 namespace Tests\Feature\Traits;
 
+use App\Infrastructure\Forms\Products\ProductFormFields;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
 use App\Models\Tax;
-use App\Infrastructure\Forms\Products\ProductFormFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ProductFormFieldsFeatureTest extends TestCase
 {
-    use RefreshDatabase, ProductFormFields;
+    use ProductFormFields, RefreshDatabase;
 
     #[Test]
     public function get_product_fields_returns_array(): void
@@ -60,7 +60,12 @@ class ProductFormFieldsFeatureTest extends TestCase
         $suppliers = [$supplier->id => $supplier->name];
 
         // Act
-        $result = $this->getProductFields($productCategories, $taxRates, $currencies, $suppliers);
+        $result = $this->getProductFields(
+            $productCategories,
+            $taxRates,
+            $currencies,
+            $suppliers,
+        );
 
         // Assert
         $this->assertIsArray($result);
@@ -237,7 +242,7 @@ class ProductFormFieldsFeatureTest extends TestCase
             [1 => 'Category 1'],
             [1 => 'Tax 1'],
             ['EUR' => 'EUR'],
-            [1 => 'Supplier 1']
+            [1 => 'Supplier 1'],
         ];
 
         // Act

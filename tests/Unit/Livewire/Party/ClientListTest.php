@@ -14,7 +14,7 @@ class ClientListTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->component = new ClientList();
+        $this->component = new ClientList;
     }
 
     #[Test]
@@ -26,8 +26,15 @@ class ClientListTest extends TestCase
     #[Test]
     public function component_has_correct_public_properties(): void
     {
-        $expectedProperties = ['search', 'status', 'orderBy', 'orderAsc', 'page', 'errorMessage'];
-        
+        $expectedProperties = [
+            'search',
+            'status',
+            'orderBy',
+            'orderAsc',
+            'page',
+            'errorMessage',
+        ];
+
         foreach ($expectedProperties as $property) {
             $this->assertTrue(property_exists($this->component, $property), "Property {$property} should exist");
         }
@@ -56,7 +63,7 @@ class ClientListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('updatingSearch');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -73,7 +80,7 @@ class ClientListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('updatingStatus');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -90,7 +97,7 @@ class ClientListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('resetFilters');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -107,7 +114,7 @@ class ClientListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -124,7 +131,7 @@ class ClientListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\Contracts\View\View', $returnType->getName());
     }
@@ -140,7 +147,7 @@ class ClientListTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->component);
         $docComment = $reflection->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('ClientList Livewire Component', $docComment);
     }
@@ -149,12 +156,12 @@ class ClientListTest extends TestCase
     public function component_structure_validation(): void
     {
         $reflection = new \ReflectionClass($this->component);
-        
+
         // Verify it's a concrete class
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isInterface());
         $this->assertTrue($reflection->isInstantiable());
-        
+
         // Verify expected method count (approximate)
         $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
         $this->assertGreaterThanOrEqual(6, count($methods));

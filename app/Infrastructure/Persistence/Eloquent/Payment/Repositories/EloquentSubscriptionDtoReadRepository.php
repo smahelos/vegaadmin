@@ -10,13 +10,13 @@ class EloquentSubscriptionDtoReadRepository implements SubscriptionDtoReadReposi
 {
     public function __construct(
         private readonly EloquentSubscriptionReadRepository $subscriptionReadRepository,
-        private readonly EloquentSubscriptionMapper $mapper
-    ) {
-    }
+        private readonly EloquentSubscriptionMapper $mapper,
+    ) {}
 
     public function findById(int $id): ?SubscriptionDTO
     {
         $subscriptionDto = $this->subscriptionReadRepository->findById($id);
+
         return $subscriptionDto ? $this->mapper->toDto($subscriptionDto) : null;
     }
 }

@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Domain\User\Services;
 
-use App\Domain\User\Services\UserService;
 use App\Domain\User\DTO\UserDTO;
+use App\Domain\User\Services\UserService;
 use App\Domain\User\ValueObjects\UserEmail;
-use App\Domain\User\ValueObjects\UserPassword;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -22,11 +22,11 @@ class UserServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create required permissions and roles
         Permission::create(['name' => 'admin', 'guard_name' => 'web']);
         Role::create(['name' => 'admin', 'guard_name' => 'web']);
-        
+
         $this->userService = app(UserService::class);
     }
 
@@ -34,13 +34,13 @@ class UserServiceTest extends TestCase
     public function creates_user_with_valid_data(): void
     {
         $uniqueEmail = 'test_' . uniqid() . '@example.com';
-    $email = UserEmail::fromString($uniqueEmail);
-    // UserService::create expects array values converted via UserWriteData; pass raw string password
-    $password = 'SecurePassword123';
+        $email = UserEmail::fromString($uniqueEmail);
+        // UserService::create expects array values converted via UserWriteData; pass raw string password
+        $password = 'SecurePassword123';
         $data = [
             'name' => 'Test User',
             'email' => (string) $email,
-            'password' => $password
+            'password' => $password,
         ];
         $user = $this->userService->create($data);
 
@@ -49,7 +49,7 @@ class UserServiceTest extends TestCase
         $this->assertEquals('Test User', $user->name);
         $this->assertDatabaseHas('users', [
             'email' => $uniqueEmail,
-            'name' => 'Test User'
+            'name' => 'Test User',
         ]);
     }
 
@@ -57,11 +57,11 @@ class UserServiceTest extends TestCase
     public function finds_user_by_email(): void
     {
         $user = User::factory()->create([
-            'email' => 'find@example.com'
+            'email' => 'find@example.com',
         ]);
 
-    $email = UserEmail::fromString('find@example.com');
-    $foundUser = $this->userService->findUserByEmail((string) $email);
+        $email = UserEmail::fromString('find@example.com');
+        $foundUser = $this->userService->findUserByEmail((string) $email);
 
         $this->assertNotNull($foundUser);
         $this->assertEquals($user->id, $foundUser->id);
@@ -70,8 +70,8 @@ class UserServiceTest extends TestCase
     #[Test]
     public function returns_null_for_non_existent_email(): void
     {
-    $email = UserEmail::fromString('nonexistent@example.com');
-    $foundUser = $this->userService->findUserByEmail((string) $email);
+        $email = UserEmail::fromString('nonexistent@example.com');
+        $foundUser = $this->userService->findUserByEmail((string) $email);
 
         $this->assertNull($foundUser);
     }
@@ -80,15 +80,15 @@ class UserServiceTest extends TestCase
     public function updates_user_password(): void
     {
         $user = User::factory()->create();
-    // updatePassword expects plain string
-    $newPassword = 'NewSecurePassword123';
+        // updatePassword expects plain string
+        $newPassword = 'NewSecurePassword123';
 
-    $oldHash = $user->password;
-    $result = $this->userService->updatePassword($user->id, $newPassword);
+        $oldHash = $user->password;
+        $result = $this->userService->updatePassword($user->id, $newPassword);
 
         $this->assertTrue($result);
         $user->refresh();
-        
+
         // Verify password hash has changed (storage uses repository-specific hashing)
         $this->assertNotEquals($oldHash, $user->password);
         $this->assertIsString($user->password);
@@ -100,13 +100,13 @@ class UserServiceTest extends TestCase
     {
         User::factory()->create(['email' => 'existing@example.com']);
 
-    $existingEmail = UserEmail::fromString('existing@example.com');
-    $newEmail = UserEmail::fromString('new@example.com');
+        $existingEmail = UserEmail::fromString('existing@example.com');
+        $newEmail = UserEmail::fromString('new@example.com');
 
-    $this->assertFalse($this->userService->isEmailUnique($existingEmail));
-    $this->assertTrue($this->userService->isEmailUnique($newEmail));
+        $this->assertFalse($this->userService->isEmailUnique($existingEmail));
+        $this->assertTrue($this->userService->isEmailUnique($newEmail));
     }
-    
+
     #[Test]
     public function soft_deletes_user(): void
     {
@@ -129,7 +129,7 @@ class UserServiceTest extends TestCase
         $this->assertTrue($result);
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
-            'deleted_at' => null
+            'deleted_at' => null,
         ]);
     }
 
@@ -137,11 +137,11 @@ class UserServiceTest extends TestCase
     public function updates_user_profile(): void
     {
         $user = User::factory()->create([
-            'name' => 'Original Name'
+            'name' => 'Original Name',
         ]);
 
         $profileData = [
-            'name' => 'Updated Name'
+            'name' => 'Updated Name',
         ];
 
         $result = $this->userService->updateProfile($user->id, $profileData);
@@ -155,9 +155,9 @@ class UserServiceTest extends TestCase
     public function changes_user_email_with_verification(): void
     {
         $user = User::factory()->create(['email' => 'old@example.com']);
-    $newEmail = UserEmail::fromString('new@example.com');
+        $newEmail = UserEmail::fromString('new@example.com');
 
-    $result = $this->userService->changeEmail($user->id, (string) $newEmail);
+        $result = $this->userService->changeEmail($user->id, (string) $newEmail);
 
         $this->assertTrue($result);
         $user->refresh();
@@ -177,7 +177,7 @@ class UserServiceTest extends TestCase
         $this->assertArrayHasKey('last_login', $summary);
         $this->assertArrayHasKey('total_logins', $summary);
         $this->assertArrayHasKey('account_created', $summary);
-        
+
         // Verify structure of activity summary
         $this->assertNull($summary['last_login']); // New user has no login yet
         $this->assertEquals(0, $summary['total_logins']); // New user has 0 logins
@@ -190,15 +190,15 @@ class UserServiceTest extends TestCase
         // Create first user
         User::factory()->create(['email' => 'duplicate@example.com']);
 
-    $email = UserEmail::fromString('duplicate@example.com');
-    $password = 'SecurePassword123';
+        $email = UserEmail::fromString('duplicate@example.com');
+        $password = 'SecurePassword123';
 
         // Expect database unique constraint exception (Model layer handles validation)
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         $data = [
             'name' => 'Duplicate User',
             'email' => (string) $email,
-            'password' => $password
+            'password' => $password,
         ];
         $this->userService->create($data);
     }
@@ -218,7 +218,7 @@ class UserServiceTest extends TestCase
     #[Test]
     public function returns_null_for_non_existent_user_id(): void
     {
-    // Service returns null when user not found; assert null instead of expecting exception
-    $this->assertNull($this->userService->findUserById(999999));
+        // Service returns null when user not found; assert null instead of expecting exception
+        $this->assertNull($this->userService->findUserById(999999));
     }
 }

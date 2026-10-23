@@ -3,18 +3,21 @@
 namespace Tests\Feature\Domain\Payment\Services;
 
 use App\Domain\Payment\Contracts\GatewayRegistryInterface;
+use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
+use App\Domain\Payment\Contracts\PaymentGatewayInterface;
+use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
+use App\Domain\Payment\DTO\PaymentDTO;
+use App\Domain\Payment\DTO\PaymentWriteData;
+use App\Domain\Payment\DTO\SubscriptionDTO;
+use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentPaymentMapper;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentWriteRepository;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\Fakes\Payment\FakePaymentGateway;
-use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
-use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentWriteRepository;
-use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentPaymentMapper;
-use App\Domain\Payment\DTO\PaymentDTO;
-use App\Domain\Payment\DTO\PaymentWriteData;
 use Tests\TestCase;
 use Tests\Traits\RefreshDatabaseWithData;
 
@@ -26,13 +29,15 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
     use RefreshDatabaseWithData;
 
     private SubscriptionPaymentServiceInterface $service;
+
     private FakePaymentGateway $gateway;
 
     protected function setUp(): void
     {
         parent::setUp();
         // Override fake gateway to return numeric gateway_payment_id compatible with DTO
-        $this->gateway = new class extends FakePaymentGateway {
+        $this->gateway = new class extends FakePaymentGateway
+        {
             public function createPayment(array $paymentData): array
             {
                 if ($this->shouldFailCreate) {
@@ -50,6 +55,7 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
                     'gateway_payment_id' => $gatewayPaymentId,
                 ];
                 $this->statuses[$gatewayPaymentId] = 'pending';
+
                 return [
                     'success' => true,
                     'payment_id' => $gatewayPaymentId,
@@ -59,64 +65,104 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
             }
         };
         // Override registry using instance() to ensure replacement of any prior resolved singleton
-        $registryStub = new class($this->gateway) implements GatewayRegistryInterface {
+        $registryStub = new class($this->gateway) implements GatewayRegistryInterface
+        {
             private array $store = [];
+
             private array $meta = [];
-            public function __construct(private $fake) {
+
+            public function __construct(private $fake)
+            {
                 $this->store['fake'] = $this->fake;
                 $this->meta['fake'] = [
                     'display_name' => 'Fake Gateway',
-                    'currencies' => ['EUR','USD'],
+                    'currencies' => ['EUR', 'USD'],
                     'recurring' => null,
                 ];
             }
-            public function register(string $name, \App\Domain\Payment\Contracts\PaymentGatewayInterface $gateway): void { $this->store[$name] = $gateway; }
-            public function get(string $name): ?\App\Domain\Payment\Contracts\PaymentGatewayInterface { return $this->store[$name] ?? null; }
-            public function names(): array { return array_keys($this->store); }
-            public function remove(string $name): void { unset($this->store[$name], $this->meta[$name]); }
-            public function metadata(string $name): ?array { return $this->meta[$name] ?? null; }
-            public function allMetadata(): array { return $this->meta; }
+
+            public function register(string $name, PaymentGatewayInterface $gateway): void
+            {
+                $this->store[$name] = $gateway;
+            }
+
+            public function get(string $name): ?PaymentGatewayInterface
+            {
+                return $this->store[$name] ?? null;
+            }
+
+            public function names(): array
+            {
+                return array_keys($this->store);
+            }
+
+            public function remove(string $name): void
+            {
+                unset($this->store[$name], $this->meta[$name]);
+            }
+
+            public function metadata(string $name): ?array
+            {
+                return $this->meta[$name] ?? null;
+            }
+
+            public function allMetadata(): array
+            {
+                return $this->meta;
+            }
         };
         app()->instance(GatewayRegistryInterface::class, $registryStub);
         // Bind safe PaymentDtoWriteRepositoryInterface for tests
         app()->bind(PaymentDtoWriteRepositoryInterface::class, function ($app) {
             $eloquent = $app->make(EloquentPaymentWriteRepository::class);
             $mapper = $app->make(EloquentPaymentMapper::class);
-            return new class($eloquent, $mapper) implements PaymentDtoWriteRepositoryInterface {
+
+            return new class($eloquent, $mapper) implements PaymentDtoWriteRepositoryInterface
+            {
                 public function __construct(
                     private EloquentPaymentWriteRepository $eloquent,
-                    private EloquentPaymentMapper $mapper
+                    private EloquentPaymentMapper $mapper,
                 ) {}
+
                 public function create(PaymentWriteData $attributes): PaymentDTO
                 {
                     $m = $this->eloquent->create($attributes->toModelAttributes());
+
                     return $this->mapper->toDto($m);
                 }
+
                 public function updateById(int $paymentId, PaymentWriteData $attributes): PaymentDTO
                 {
-                    $m = \App\Models\Payment::query()->find($paymentId);
+                    $m = Payment::query()->find($paymentId);
                     if ($m && ($arr = $attributes->toModelAttributes())) {
                         $m->fill($arr);
                         $m->save();
                     }
-                    $m = \App\Models\Payment::query()->findOrFail($paymentId);
+                    $m = Payment::query()->findOrFail($paymentId);
+
                     return $this->mapper->toDto($m);
                 }
+
                 public function applyRefund(int $paymentId, float $amount): bool
                 {
-                    $m = \App\Models\Payment::query()->find($paymentId);
+                    $m = Payment::query()->find($paymentId);
+
                     return $m ? $m->applyRefund($amount) : false;
                 }
             };
         });
         // Stub SubscriptionDtoReadRepositoryInterface to avoid mapper pitfalls
-        app()->bind(\App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface::class, function () {
-            return new class implements \App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface {
-                public function findById(int $id): ?\App\Domain\Payment\DTO\SubscriptionDTO
+        app()->bind(SubscriptionDtoReadRepositoryInterface::class, function () {
+            return new class implements SubscriptionDtoReadRepositoryInterface
+            {
+                public function findById(int $id): ?SubscriptionDTO
                 {
-                    $m = \App\Models\Subscription::find($id);
-                    if (!$m) { return null; }
-                    return \App\Domain\Payment\DTO\SubscriptionDTO::fromArray([
+                    $m = Subscription::find($id);
+                    if (! $m) {
+                        return null;
+                    }
+
+                    return SubscriptionDTO::fromArray([
                         'id' => (int) $m->id,
                         'user_id' => (int) $m->user_id,
                         'subscription_plan_id' => $m->subscription_plan_id ? (int) $m->subscription_plan_id : null,
@@ -126,7 +172,12 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
                         'ends_at' => $m->ends_at?->toDateTimeString(),
                         'trial_ends_at' => $m->trial_ends_at?->toDateTimeString(),
                         'next_billing_at' => $m->next_billing_at?->toDateTimeString(),
-                        'amount' => $m->amount !== null ? number_format((float)$m->amount, 2, '.', '') : null,
+                        'amount' => $m->amount !== null ? number_format(
+                            (float) $m->amount,
+                            2,
+                            '.',
+                            '',
+                        ) : null,
                         'currency' => $m->currency,
                         'metadata' => null,
                         'created_at' => $m->created_at?->toDateTimeString(),
@@ -149,6 +200,7 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
             'is_active' => true,
             'trial_days' => 0,
         ]);
+
         return Subscription::create([
             'user_id' => $u->id,
             'subscription_plan_id' => $plan->id,
@@ -161,10 +213,19 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
     private function createCompletedPayment(float $amount = 25.00): Payment
     {
         $subId = $this->newSubscription($amount)->id;
-        $process = $this->service->processSubscriptionPayment($subId, 'fake', [
-            'amount' => number_format($amount, 2, '.', ''),
-            'currency' => 'EUR',
-        ]);
+        $process = $this->service->processSubscriptionPayment(
+            $subId,
+            'fake',
+            [
+                'amount' => number_format(
+                    $amount,
+                    2,
+                    '.',
+                    '',
+                ),
+                'currency' => 'EUR',
+            ],
+        );
         $payment = Payment::findOrFail($process['payment_id']);
         // Complete via callback
         $this->service->handlePaymentCallback('fake', [
@@ -173,6 +234,7 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
             'status' => 'completed',
         ]);
         $payment->refresh();
+
         return $payment;
     }
 
@@ -190,7 +252,7 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
         $this->assertTrue($r2['success']);
         $payment->refresh();
         $this->assertEquals('refunded', $payment->status);
-        $this->assertEquals(20.00, (float)$payment->refunded_amount);
+        $this->assertEquals(20.00, (float) $payment->refunded_amount);
     }
 
     #[Test]
@@ -245,10 +307,19 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
     {
         $sub = $this->newSubscription(15.00);
         $subId = $sub->id;
-        $process = $this->service->processSubscriptionPayment($subId, 'fake', [
-            'amount' => number_format(15.00, 2, '.', ''),
-            'currency' => 'EUR',
-        ]);
+        $process = $this->service->processSubscriptionPayment(
+            $subId,
+            'fake',
+            [
+                'amount' => number_format(
+                    15.00,
+                    2,
+                    '.',
+                    '',
+                ),
+                'currency' => 'EUR',
+            ],
+        );
         $payment = Payment::findOrFail($process['payment_id']);
         $this->assertEquals('pending', $payment->status);
         $res = $this->service->refundSubscriptionPayment($payment->id, 5.00);
@@ -273,6 +344,6 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
         $this->assertTrue($r3['success']);
         $payment->refresh();
         $this->assertEquals('refunded', $payment->status);
-        $this->assertEquals(10.00, (float)$payment->refunded_amount);
+        $this->assertEquals(10.00, (float) $payment->refunded_amount);
     }
 }

@@ -14,7 +14,7 @@ class CleanPerformanceMetricsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->command = new CleanPerformanceMetrics();
+        $this->command = new CleanPerformanceMetrics;
     }
 
     #[Test]
@@ -29,9 +29,9 @@ class CleanPerformanceMetricsTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $signatureProperty = $reflection->getProperty('signature');
         $signatureProperty->setAccessible(true);
-        
+
         $signature = $signatureProperty->getValue($this->command);
-        
+
         $this->assertIsString($signature);
         $this->assertStringContainsString('db:clean-metrics', $signature);
         $this->assertStringContainsString('--days=90', $signature);
@@ -45,9 +45,9 @@ class CleanPerformanceMetricsTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $descriptionProperty = $reflection->getProperty('description');
         $descriptionProperty->setAccessible(true);
-        
+
         $description = $descriptionProperty->getValue($this->command);
-        
+
         $this->assertIsString($description);
         $this->assertStringContainsString('performance metrics', $description);
         $this->assertStringContainsString('database bloat', $description);
@@ -57,10 +57,10 @@ class CleanPerformanceMetricsTest extends TestCase
     public function command_has_handle_method(): void
     {
         $this->assertTrue(method_exists($this->command, 'handle'));
-        
+
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('handle');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -70,7 +70,7 @@ class CleanPerformanceMetricsTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('handle');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('int', $returnType->getName());
     }
@@ -79,16 +79,16 @@ class CleanPerformanceMetricsTest extends TestCase
     public function command_structure_validation(): void
     {
         $reflection = new \ReflectionClass($this->command);
-        
+
         // Check that class is properly structured
         $this->assertTrue($reflection->hasProperty('signature'));
         $this->assertTrue($reflection->hasProperty('description'));
         $this->assertTrue($reflection->hasMethod('handle'));
-        
+
         // Check properties are protected
         $signatureProperty = $reflection->getProperty('signature');
         $descriptionProperty = $reflection->getProperty('description');
-        
+
         $this->assertTrue($signatureProperty->isProtected());
         $this->assertTrue($descriptionProperty->isProtected());
     }
@@ -99,9 +99,9 @@ class CleanPerformanceMetricsTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $signatureProperty = $reflection->getProperty('signature');
         $signatureProperty->setAccessible(true);
-        
+
         $signature = $signatureProperty->getValue($this->command);
-        
+
         // Check default values are present
         $this->assertStringContainsString('days=90', $signature);
         $this->assertStringContainsString('type=old', $signature);
@@ -113,9 +113,9 @@ class CleanPerformanceMetricsTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $signatureProperty = $reflection->getProperty('signature');
         $signatureProperty->setAccessible(true);
-        
+
         $signature = $signatureProperty->getValue($this->command);
-        
+
         // Check all required options are present
         $this->assertStringContainsString('--days', $signature);
         $this->assertStringContainsString('--type', $signature);
@@ -127,7 +127,7 @@ class CleanPerformanceMetricsTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->command);
         $fileContent = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('App\Models\PerformanceMetric', $fileContent);
         $this->assertStringContainsString('use App\Models\PerformanceMetric;', $fileContent);
     }

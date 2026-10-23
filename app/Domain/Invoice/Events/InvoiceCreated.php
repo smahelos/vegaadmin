@@ -2,16 +2,16 @@
 
 namespace App\Domain\Invoice\Events;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
  * Domain event fired when a new invoice is created.
- * 
+ *
  * Triggered by:
  * - InvoiceService::createInvoice() when creating new invoice
- * 
+ *
  * Used for:
  * - Usage limit recording
  * - Audit logging
@@ -22,8 +22,6 @@ class InvoiceCreated implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -40,7 +38,7 @@ class InvoiceCreated implements DomainEvent
         private readonly InvoiceDTO $invoice,
         ?int $userId = null,
         private readonly array $metadata = [],
-        string $changeType = 'general'
+        string $changeType = 'general',
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
@@ -55,7 +53,7 @@ class InvoiceCreated implements DomainEvent
 
     public function getAggregateId(): int
     {
-        return $this->invoice->id instanceof InvoiceId ? $this->invoice->id->getValue() : (int)$this->invoice->id;
+        return $this->invoice->id instanceof InvoiceId ? $this->invoice->id->getValue() : (int) $this->invoice->id;
     }
 
     public function getDomain(): string
@@ -90,19 +88,19 @@ class InvoiceCreated implements DomainEvent
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
         return static::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

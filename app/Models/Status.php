@@ -5,8 +5,10 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class Status extends Model
 {
@@ -19,8 +21,9 @@ class Status extends Model
     |--------------------------------------------------------------------------
     */
     protected $table = 'statuses';
+
     protected $guarded = ['id'];
-    
+
     protected $casts = [
         'is_active' => 'boolean',
     ];
@@ -37,11 +40,11 @@ class Status extends Model
     {
         return $this->hasMany(Invoice::class, 'payment_status_id');
     }
-    
+
     /**
      * Get the category of this status
      */
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(StatusCategory::class, 'category_id');
     }
@@ -74,21 +77,22 @@ class Status extends Model
         if (empty($this->slug)) {
             return $this->name ?? __('invoices.placeholders.not_available');
         }
-        
+
         try {
             // Create translation key based on slug
             $translationKey = 'statuses.statuses.' . $this->slug;
-            
+
             // Check if translation exists
-            if (\Illuminate\Support\Facades\Lang::has($translationKey)) {
+            if (Lang::has($translationKey)) {
                 return trans($translationKey);
             }
-            
+
             // If translation doesn't exist, return original name
             return $this->name;
         } catch (\Exception $e) {
             // In case of error, return original name and log the error
             Log::error('Error translating payment status: ' . $e->getMessage());
+
             return $this->name;
         }
     }

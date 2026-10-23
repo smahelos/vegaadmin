@@ -3,7 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\ArchivePolicyRequest;
+use App\Models\ArchivePolicy;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -11,22 +17,22 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  */
 class ArchivePolicyCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use CreateOperation;
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation;
 
     /**
      * Configure the CrudPanel object
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\ArchivePolicy::class);
+        CRUD::setModel(ArchivePolicy::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/archive-policy');
         CRUD::setEntityNameStrings(
-            __('admin/database.archive_policies.entity.singular'), 
-            __('admin/database.archive_policies.entity.plural')
+            __('admin/database.archive_policies.entity.singular'),
+            __('admin/database.archive_policies.entity.plural'),
         );
     }
 
@@ -34,24 +40,24 @@ class ArchivePolicyCrudController extends CrudController
      * Define what happens when the List operation is loaded
      */
     protected function setupListOperation()
-    {   
+    {
         CRUD::column('table_name')
             ->label(__('admin/database.archive_policies.fields.table_name'))
             ->type('text');
-            
+
         CRUD::column('retention_months')
             ->label(__('admin/database.archive_policies.fields.retention_months'))
             ->type('number')
             ->suffix(' months');
-            
+
         CRUD::column('date_column')
             ->label(__('admin/database.archive_policies.fields.date_column'))
             ->type('text');
-            
+
         CRUD::column('is_active')
             ->label(__('admin/database.archive_policies.fields.is_active'))
             ->type('boolean');
-            
+
         CRUD::column('created_at')
             ->label(__('admin/database.archive_policies.fields.created_at'))
             ->type('datetime');
@@ -79,30 +85,30 @@ class ArchivePolicyCrudController extends CrudController
                                 <li><strong>' . __('admin/database.archive_policies.fields.is_active') . ':</strong> ' . __('admin/database.archive_policies.form_help.is_active') . '</li>
                                 <li><strong>' . __('admin/database.archive_policies.fields.description') . ':</strong> ' . __('admin/database.archive_policies.form_help.description') . '</li>
                             </ul>
-                        </div>'
+                        </div>',
         ]);
 
         CRUD::field('table_name')
             ->label(__('admin/database.archive_policies.fields.table_name'))
             ->type('text')
             ->hint(__('admin/database.archive_policies.hints.table_name'));
-            
+
         CRUD::field('retention_months')
             ->label(__('admin/database.archive_policies.fields.retention_months'))
             ->type('number')
             ->attributes(['min' => 1, 'max' => 120])
             ->hint(__('admin/database.archive_policies.hints.retention_months'));
-            
+
         CRUD::field('date_column')
             ->label(__('admin/database.archive_policies.fields.date_column'))
             ->type('text')
             ->hint(__('admin/database.archive_policies.hints.date_column'));
-            
+
         CRUD::field('is_active')
             ->label(__('admin/database.archive_policies.fields.is_active'))
             ->type('boolean')
             ->default(true);
-            
+
         CRUD::field('description')
             ->label(__('admin/database.archive_policies.fields.description'))
             ->type('textarea')
@@ -123,7 +129,7 @@ class ArchivePolicyCrudController extends CrudController
     protected function setupShowOperation()
     {
         $this->setupListOperation();
-        
+
         CRUD::column('description')
             ->label(__('admin/database.archive_policies.fields.description'))
             ->type('textarea');

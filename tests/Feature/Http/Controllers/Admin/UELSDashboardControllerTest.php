@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\EntityLimitUsage;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -11,11 +10,8 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class UELSDashboardControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
-
-    private User $adminUser;
-    private User $regularUser;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -59,5 +55,4 @@ class UELSDashboardControllerTest extends TestCase
             ->assertDontSeeText('Recent Activity')
             ->assertDontSeeText('Bulk Reset Usage');
     }
-
 }

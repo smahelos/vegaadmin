@@ -13,12 +13,12 @@ class AuthenticateTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-    $ref = new \ReflectionClass(Authenticate::class);
-    $this->middleware = $ref->newInstanceWithoutConstructor();
+        $ref = new \ReflectionClass(Authenticate::class);
+        $this->middleware = $ref->newInstanceWithoutConstructor();
     }
 
     #[Test]
-    public function redirectTo_method_exists_and_is_protected(): void
+    public function redirect_to_method_exists_and_is_protected(): void
     {
         $ref = new \ReflectionClass($this->middleware);
         $this->assertTrue($ref->hasMethod('redirectTo'));

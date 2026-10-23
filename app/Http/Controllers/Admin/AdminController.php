@@ -2,25 +2,25 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\Admin\AdminRequest;
-use Backpack\CRUD\app\Http\Controllers\AdminController as BackpackAdminController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Models\Invoice;
 use App\Models\Client;
-use App\Models\Supplier;
+use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Subscription;
+use App\Models\Supplier;
 use App\Models\User;
 use App\Models\UserActivitySummary;
+use Backpack\CRUD\app\Http\Controllers\AdminController as BackpackAdminController;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 class AdminController extends BackpackAdminController
 {
-    protected function setupDashboardRoutes($segment, $routeName, $controller)
-    {
-        Route::get($segment, $controller.'@dashboard')->name($routeName);
+    protected function setupDashboardRoutes(
+        $segment,
+        $routeName,
+        $controller,
+    ) {
+        Route::get($segment, $controller . '@dashboard')->name($routeName);
     }
 
     public function dashboard()
@@ -53,8 +53,16 @@ class AdminController extends BackpackAdminController
             $totalUsers = User::count();
 
             // Recent activity (last 30 days)
-            $recentInvoices = Invoice::where('created_at', '>=', now()->subDays(30))->count();
-            $recentClients = Client::where('created_at', '>=', now()->subDays(30))->count();
+            $recentInvoices = Invoice::where(
+                'created_at',
+                '>=',
+                now()->subDays(30),
+            )->count();
+            $recentClients = Client::where(
+                'created_at',
+                '>=',
+                now()->subDays(30),
+            )->count();
 
             // Revenue statistics
             $totalRevenue = Invoice::sum('payment_amount');
@@ -63,7 +71,11 @@ class AdminController extends BackpackAdminController
                 ->sum('payment_amount');
 
             // Subscriptions statistics
-            $subscriptions = Subscription::where('status', '=', 'active')->count();
+            $subscriptions = Subscription::where(
+                'status',
+                '=',
+                'active',
+            )->count();
 
             return [
                 'total_invoices' => $totalInvoices,
@@ -75,10 +87,11 @@ class AdminController extends BackpackAdminController
                 'recent_clients' => $recentClients,
                 'total_revenue' => $totalRevenue,
                 'monthly_revenue' => $monthlyRevenue,
-                'total_subscriptions' => $subscriptions
+                'total_subscriptions' => $subscriptions,
             ];
         } catch (\Exception $e) {
             Log::error('Failed to get dashboard stats: ' . $e->getMessage());
+
             return [
                 'total_invoices' => 0,
                 'total_clients' => 0,
@@ -89,7 +102,7 @@ class AdminController extends BackpackAdminController
                 'recent_clients' => 0,
                 'total_revenue' => 0,
                 'monthly_revenue' => 0,
-                'total_subscriptions' => 0
+                'total_subscriptions' => 0,
             ];
         }
     }
@@ -102,22 +115,38 @@ class AdminController extends BackpackAdminController
     {
         try {
             $totalUsers = UserActivitySummary::count();
-            $activeUsers = UserActivitySummary::where('invoices_last_30_days', '>', 0)->count();
-            $highActivityUsers = UserActivitySummary::where('invoices_last_30_days', '>=', 20)->count();
+            $activeUsers = UserActivitySummary::where(
+                'invoices_last_30_days',
+                '>',
+                0,
+            )->count();
+            $highActivityUsers = UserActivitySummary::where(
+                'invoices_last_30_days',
+                '>=',
+                20,
+            )->count();
             $inactiveUsers = UserActivitySummary::where('invoices_last_30_days', 0)->count();
 
             // Get most active users in last 30 days
-            $mostActiveUsers = UserActivitySummary::where('invoices_last_30_days', '>', 0)
+            $mostActiveUsers = UserActivitySummary::where(
+                'invoices_last_30_days',
+                '>',
+                0,
+            )
                 ->orderBy('invoices_last_30_days', 'desc')
                 ->limit(5)
                 ->get();
 
             // Calculate activity distribution
             $activityDistribution = [
-                'high' => UserActivitySummary::where('invoices_last_30_days', '>=', 20)->count(),
+                'high' => UserActivitySummary::where(
+                    'invoices_last_30_days',
+                    '>=',
+                    20,
+                )->count(),
                 'medium' => UserActivitySummary::whereBetween('invoices_last_30_days', [5, 19])->count(),
                 'low' => UserActivitySummary::whereBetween('invoices_last_30_days', [1, 4])->count(),
-                'inactive' => UserActivitySummary::where('invoices_last_30_days', 0)->count()
+                'inactive' => UserActivitySummary::where('invoices_last_30_days', 0)->count(),
             ];
 
             return [
@@ -127,10 +156,11 @@ class AdminController extends BackpackAdminController
                 'inactive_users' => $inactiveUsers,
                 'activity_rate' => $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100, 1) : 0,
                 'most_active_users' => $mostActiveUsers,
-                'activity_distribution' => $activityDistribution
+                'activity_distribution' => $activityDistribution,
             ];
         } catch (\Exception $e) {
             Log::error('Failed to get user activity stats: ' . $e->getMessage());
+
             return [
                 'error' => 'Unable to fetch user activity statistics: ' . $e->getMessage(),
                 'total_users' => 0,
@@ -139,7 +169,7 @@ class AdminController extends BackpackAdminController
                 'inactive_users' => 0,
                 'activity_rate' => 0,
                 'most_active_users' => collect([]),
-                'activity_distribution' => []
+                'activity_distribution' => [],
             ];
         }
     }

@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
-use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use App\Infrastructure\Shared\File\Traits\HasFileUploads as SharedHasFileUploads;
 use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Supplier extends Model
 {
-    use HasFactory, Notifiable, CrudTrait, HasPreferredLocale, SharedHasFileUploads;
+    use CrudTrait, HasFactory, HasPreferredLocale, Notifiable, SharedHasFileUploads;
 
     /*
     |--------------------------------------------------------------------------
@@ -21,6 +21,7 @@ class Supplier extends Model
     |--------------------------------------------------------------------------
     */
     protected $table = 'suppliers';
+
     protected $fillable = [
         'name',
         'email',
@@ -52,8 +53,12 @@ class Supplier extends Model
             'supplier_logo',
             $value,
             'suppliers/logos/' . ($this->id ?? uniqid()),
-            ['disk' => 'public', 'sanitizeFilename' => true, 'randomizeFilename' => false],
-            'supplier_logo'
+            [
+                'disk' => 'public',
+                'sanitizeFilename' => true,
+                'randomizeFilename' => false,
+            ],
+            'supplier_logo',
         );
     }
 
@@ -84,7 +89,11 @@ class Supplier extends Model
             // If this supplier is set as default, unset default status for other suppliers
             if ($supplier->is_default) {
                 self::where('user_id', $supplier->user_id)
-                    ->where('id', '!=', $supplier->id)
+                    ->where(
+                        'id',
+                        '!=',
+                        $supplier->id,
+                    )
                     ->update(['is_default' => false]);
             }
         });
@@ -134,35 +143,30 @@ class Supplier extends Model
 
     /**
      * Format account number in number/code format
-     *
-     * @return string|null
      */
     public function getFullAccountNumberAttribute(): ?string
     {
-        if (!empty($this->account_number) && !empty($this->bank_code)) {
+        if (! empty($this->account_number) && ! empty($this->bank_code)) {
             return $this->account_number . '/' . $this->bank_code;
         }
+
         return null;
     }
 
     /**
      * Check if supplier has complete payment information for QR payment
-     *
-     * @return bool
      */
     public function hasCompletePaymentInfo(): bool
     {
-        return !empty($this->account_number) && !empty($this->bank_code);
+        return ! empty($this->account_number) && ! empty($this->bank_code);
     }
 
     /**
      * Determine if supplier has any payment information for QR code
-     *
-     * @return bool
      */
     public function getHasPaymentInfoAttribute(): bool
     {
-        return (!empty($this->account_number) && !empty($this->bank_code)) || !empty($this->iban);
+        return (! empty($this->account_number) && ! empty($this->bank_code)) || ! empty($this->iban);
     }
 
     /**

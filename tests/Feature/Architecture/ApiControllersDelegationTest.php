@@ -22,16 +22,16 @@ class ApiControllersDelegationTest extends TestCase
         $root = app_path();
         $violations = [];
         foreach ($this->targets as $rel) {
-            $path = $root.'/'.$rel;
+            $path = $root . '/' . $rel;
             $this->assertFileExists($path, "Controller missing: $rel");
             $code = file_get_contents($path);
             $issues = $this->analyze($code);
-            if (!empty($issues)) {
-                $violations[] = $rel." =>\n  - ".implode("\n  - ", $issues);
+            if (! empty($issues)) {
+                $violations[] = $rel . " =>\n  - " . implode("\n  - ", $issues);
             }
         }
-        if (!empty($violations)) {
-            $this->fail("API controller delegation violations:\n".implode("\n", $violations));
+        if (! empty($violations)) {
+            $this->fail("API controller delegation violations:\n" . implode("\n", $violations));
         }
         $this->assertTrue(true);
     }
@@ -51,6 +51,7 @@ class ApiControllersDelegationTest extends TestCase
         if (preg_match('/->(select|join|leftJoin|groupBy|orderBy|where|whereIn)\s*\(/', $code)) {
             $issues[] = 'Query builder chain fragments detected.';
         }
+
         return $issues;
     }
 }

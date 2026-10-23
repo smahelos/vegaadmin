@@ -9,8 +9,6 @@ trait BankFormFields
 {
     /**
      * Get bank form fields definitions
-     *
-     * @return array
      */
     protected function getBankFields(): array
     {

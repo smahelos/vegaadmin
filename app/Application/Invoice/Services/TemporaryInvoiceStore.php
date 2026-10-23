@@ -11,7 +11,12 @@ class TemporaryInvoiceStore implements TemporaryInvoiceStoreInterface
     public function store(array $data, int $minutes = 10): string
     {
         $token = Str::random(64);
-        Cache::put($this->key($token), $data, now()->addMinutes($minutes));
+        Cache::put(
+            $this->key($token),
+            $data,
+            now()->addMinutes($minutes),
+        );
+
         return $token;
     }
 

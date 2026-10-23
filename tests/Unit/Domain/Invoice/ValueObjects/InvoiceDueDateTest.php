@@ -3,9 +3,9 @@
 namespace Tests\Unit\Domain\Invoice\ValueObjects;
 
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use InvalidArgumentException;
 
 class InvoiceDueDateTest extends TestCase
 {
@@ -14,9 +14,9 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDays = 30;
-        
+
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, $dueDays);
-        
+
         $this->assertInstanceOf(InvoiceDueDate::class, $dueDate);
         $this->assertEquals($issueDate, $dueDate->getIssueDate());
         $this->assertEquals($dueDays, $dueDate->getDueDays());
@@ -27,9 +27,9 @@ class InvoiceDueDateTest extends TestCase
     public function creates_from_current_date_and_days(): void
     {
         $dueDays = 15;
-        
+
         $dueDate = InvoiceDueDate::fromCurrentDateAndDays($dueDays);
-        
+
         $this->assertInstanceOf(InvoiceDueDate::class, $dueDate);
         $this->assertEquals($dueDays, $dueDate->getDueDays());
     }
@@ -39,9 +39,9 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $specificDueDate = new \DateTimeImmutable('2024-01-31');
-        
+
         $dueDate = InvoiceDueDate::fromDueDate($specificDueDate, $issueDate);
-        
+
         $this->assertInstanceOf(InvoiceDueDate::class, $dueDate);
         $this->assertEquals($issueDate, $dueDate->getIssueDate());
         $this->assertEquals($specificDueDate, $dueDate->getDueDate());
@@ -53,7 +53,7 @@ class InvoiceDueDateTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Due days cannot be negative, got: -5');
-        
+
         $issueDate = new \DateTimeImmutable('2024-01-01');
         InvoiceDueDate::fromIssueDateAndDays($issueDate, -5);
     }
@@ -63,7 +63,7 @@ class InvoiceDueDateTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Due days cannot exceed 365 days, got: 400');
-        
+
         $issueDate = new \DateTimeImmutable('2024-01-01');
         InvoiceDueDate::fromIssueDateAndDays($issueDate, 400);
     }
@@ -73,10 +73,10 @@ class InvoiceDueDateTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Due date cannot be before issue date');
-        
+
         $issueDate = new \DateTimeImmutable('2024-01-31');
         $dueDate = new \DateTimeImmutable('2024-01-01');
-        
+
         InvoiceDueDate::fromDueDate($dueDate, $issueDate);
     }
 
@@ -85,9 +85,9 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 10);
-        
+
         $currentDate = new \DateTimeImmutable('2024-01-15');
-        
+
         $this->assertTrue($dueDate->isOverdue($currentDate));
         $this->assertFalse($dueDate->isOverdue($issueDate));
     }
@@ -97,11 +97,11 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 30);
-        
+
         // Test future date
         $currentDate = new \DateTimeImmutable('2024-01-21');
         $this->assertEquals(10, $dueDate->getDaysUntilDue($currentDate));
-        
+
         // Test overdue
         $overdueDate = new \DateTimeImmutable('2024-02-05');
         $this->assertEquals(-5, $dueDate->getDaysUntilDue($overdueDate));
@@ -112,11 +112,11 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 30);
-        
+
         // Within 7 days
         $currentDate = new \DateTimeImmutable('2024-01-26');
         $this->assertTrue($dueDate->isDueSoon(7, $currentDate));
-        
+
         // Not due soon
         $earlierDate = new \DateTimeImmutable('2024-01-15');
         $this->assertFalse($dueDate->isDueSoon(7, $earlierDate));
@@ -127,7 +127,7 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 30);
-        
+
         $this->assertEquals('2024-01-31', $dueDate->formatDueDate());
         $this->assertEquals('2024-01-01', $dueDate->formatIssueDate());
         $this->assertEquals('31/01/2024', $dueDate->formatDueDate('d/m/Y'));
@@ -138,15 +138,15 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 10);
-        
+
         // Overdue
         $overdueDate = new \DateTimeImmutable('2024-01-15');
         $this->assertEquals('Overdue by 4 days', $dueDate->getStatusDescription($overdueDate));
-        
+
         // Due soon
         $soonDate = new \DateTimeImmutable('2024-01-08');
         $this->assertEquals('Due in 3 days', $dueDate->getStatusDescription($soonDate));
-        
+
         // Future
         $futureDate = new \DateTimeImmutable('2024-01-01');
         $this->assertEquals('Due in 10 days', $dueDate->getStatusDescription($futureDate));
@@ -157,9 +157,9 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $originalDueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 30);
-        
+
         $extendedDueDate = $originalDueDate->extend(15);
-        
+
         $this->assertEquals(45, $extendedDueDate->getDueDays());
         $this->assertEquals('2024-02-15', $extendedDueDate->formatDueDate());
         $this->assertEquals($issueDate, $extendedDueDate->getIssueDate());
@@ -170,10 +170,10 @@ class InvoiceDueDateTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Additional days must be positive, got: 0');
-        
+
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 30);
-        
+
         $dueDate->extend(0);
     }
 
@@ -182,7 +182,7 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 30);
-        
+
         $this->assertEquals('2024-01-31', (string) $dueDate);
     }
 
@@ -193,7 +193,7 @@ class InvoiceDueDateTest extends TestCase
         $dueDate1 = InvoiceDueDate::fromIssueDateAndDays($issueDate, 30);
         $dueDate2 = InvoiceDueDate::fromIssueDateAndDays($issueDate, 30);
         $dueDate3 = InvoiceDueDate::fromIssueDateAndDays($issueDate, 25);
-        
+
         $this->assertTrue($dueDate1->equals($dueDate2));
         $this->assertFalse($dueDate1->equals($dueDate3));
     }
@@ -203,7 +203,7 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 0);
-        
+
         $this->assertEquals(0, $dueDate->getDueDays());
         $this->assertEquals($issueDate, $dueDate->getDueDate());
         $this->assertEquals('2024-01-01', $dueDate->formatDueDate());
@@ -214,7 +214,7 @@ class InvoiceDueDateTest extends TestCase
     {
         $issueDate = new \DateTimeImmutable('2024-01-01');
         $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, 365);
-        
+
         $this->assertEquals(365, $dueDate->getDueDays());
         $this->assertEquals('2024-12-31', $dueDate->formatDueDate());
     }

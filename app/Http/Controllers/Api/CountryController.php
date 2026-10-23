@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
 class CountryController extends Controller
@@ -17,24 +17,51 @@ class CountryController extends Controller
 
     /**
      * Get list of countries for select element
-     *
-     * @return JsonResponse
      */
     public function getCountries(): JsonResponse
     {
-    $countries = $this->countryService->getCountries();
+        $countries = $this->countryService->getCountries();
 
         // If no countries returned, use the fallback directly
         if (empty($countries)) {
             $fallback = [
-                'CZ' => ['code' => 'CZ', 'name' => 'Czech Republic', 'flag' => '🇨🇿'],
-                'SK' => ['code' => 'SK', 'name' => 'Slovakia', 'flag' => '🇸🇰'],
-                'AT' => ['code' => 'AT', 'name' => 'Austria', 'flag' => '🇦🇹'],
-                'DE' => ['code' => 'DE', 'name' => 'Germany', 'flag' => '🇩🇪'],
-                'PL' => ['code' => 'PL', 'name' => 'Poland', 'flag' => '🇵🇱'],
-                'GB' => ['code' => 'GB', 'name' => 'United Kingdom', 'flag' => '🇬🇧'],
-                'US' => ['code' => 'US', 'name' => 'United States', 'flag' => '🇺🇸'],
+                'CZ' => [
+                    'code' => 'CZ',
+                    'name' => 'Czech Republic',
+                    'flag' => '🇨🇿',
+                ],
+                'SK' => [
+                    'code' => 'SK',
+                    'name' => 'Slovakia',
+                    'flag' => '🇸🇰',
+                ],
+                'AT' => [
+                    'code' => 'AT',
+                    'name' => 'Austria',
+                    'flag' => '🇦🇹',
+                ],
+                'DE' => [
+                    'code' => 'DE',
+                    'name' => 'Germany',
+                    'flag' => '🇩🇪',
+                ],
+                'PL' => [
+                    'code' => 'PL',
+                    'name' => 'Poland',
+                    'flag' => '🇵🇱',
+                ],
+                'GB' => [
+                    'code' => 'GB',
+                    'name' => 'United Kingdom',
+                    'flag' => '🇬🇧',
+                ],
+                'US' => [
+                    'code' => 'US',
+                    'name' => 'United States',
+                    'flag' => '🇺🇸',
+                ],
             ];
+
             return response()->json($fallback);
         }
 
@@ -43,15 +70,12 @@ class CountryController extends Controller
 
     /**
      * Get country details by code
-     *
-     * @param string $code
-     * @return JsonResponse
      */
     public function getCountry(string $code): JsonResponse
     {
         $country = $this->countryService->getCountry($code);
 
-        if (!$country) {
+        if (! $country) {
             abort(404, 'Country not found');
         }
 

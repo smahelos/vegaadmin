@@ -2,8 +2,9 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class ConvertPaymentStatusStringsToIds extends Migration
 {
@@ -13,7 +14,7 @@ class ConvertPaymentStatusStringsToIds extends Migration
     public function up(): void
     {
         // 1. Zjistíme, zda tabulka invoices obsahuje sloupec payment_status_id
-        if (!Schema::hasColumn('invoices', 'payment_status_id')) {
+        if (! Schema::hasColumn('invoices', 'payment_status_id')) {
             Schema::table('invoices', function (Blueprint $table) {
                 $table->unsignedBigInteger('payment_status_id')->nullable()->after('payment_status');
             });
@@ -21,7 +22,7 @@ class ConvertPaymentStatusStringsToIds extends Migration
 
         // 2. Získáme všechny stavy z tabulky statuses
         $statuses = DB::table('statuses')->get()->keyBy('name');
-        
+
         // 3. Mapujeme běžné názvy stavů na záznamy z tabulky (pro případ, že chybí některé záznamy)
         $statusMap = [
             'Uhrazená' => 'paid',
@@ -41,40 +42,40 @@ class ConvertPaymentStatusStringsToIds extends Migration
         foreach ($invoices as $invoice) {
             $statusName = $invoice->payment_status;
             $statusId = null;
-            
+
             // Hledání přímo podle názvu stavu
             if (isset($statuses[$statusName])) {
                 $statusId = $statuses[$statusName]->id;
-            } 
+            }
             // Hledání podle klíčů z mapování
             elseif (isset($statusMap[$statusName]) && isset($statuses[$statusMap[$statusName]])) {
                 $statusId = $statuses[$statusMap[$statusName]]->id;
             }
             // Pokud stav neexistuje, vytvoříme ho
             else {
-                $slug = \Illuminate\Support\Str::slug($statusName);
+                $slug = Str::slug($statusName);
                 $statusId = DB::table('statuses')->insertGetId([
                     'name' => $statusName,
                     'slug' => $slug,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-                
+
                 // Přidáme do naší cache
                 $newStatus = (object) [
                     'id' => $statusId,
                     'name' => $statusName,
-                    'slug' => $slug
+                    'slug' => $slug,
                 ];
                 $statuses[$statusName] = $newStatus;
             }
-            
+
             // Aktualizace faktury - přidání ID stavu
             DB::table('invoices')
                 ->where('id', $invoice->id)
                 ->update(['payment_status_id' => $statusId]);
         }
-        
+
         // Nyní máme vše převedeno, původní sloupec nechání pro zpětnou kompatibilitu
     }
 

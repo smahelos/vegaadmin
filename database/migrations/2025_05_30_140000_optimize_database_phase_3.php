@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class OptimizeDatabasePhase3 extends Migration
 {
@@ -15,7 +15,7 @@ class OptimizeDatabasePhase3 extends Migration
      */
     public function up()
     {
-        if (!app()->environment('testing')) {
+        if (! app()->environment('testing')) {
             echo "Phase 3: Implementing advanced database optimizations...\n";
         }
 
@@ -23,7 +23,7 @@ class OptimizeDatabasePhase3 extends Migration
         $this->createArchiveTables();
 
         // 2. CREATE MONITORING VIEWS FOR PERFORMANCE ANALYSIS (skip in testing)
-        if (!app()->environment('testing')) {
+        if (! app()->environment('testing')) {
             $this->createMonitoringViews();
         }
 
@@ -33,7 +33,7 @@ class OptimizeDatabasePhase3 extends Migration
         // 4. CREATE MAINTENANCE HELPER TABLES
         $this->createMaintenanceTables();
 
-        if (!app()->environment('testing')) {
+        if (! app()->environment('testing')) {
             echo "Phase 3 optimization completed successfully!\n";
             echo "Created archive tables, monitoring views, and maintenance structures.\n";
         }
@@ -93,7 +93,7 @@ class OptimizeDatabasePhase3 extends Migration
         // User activity summary view
         if ($driver === 'mysql') {
             // MySQL version with CREATE OR REPLACE and MySQL-specific functions
-            DB::statement("
+            DB::statement('
                 CREATE OR REPLACE VIEW user_activity_summary AS
                 SELECT
                     u.id as user_id,
@@ -112,10 +112,10 @@ class OptimizeDatabasePhase3 extends Migration
                 LEFT JOIN suppliers s ON u.id = s.user_id
                 LEFT JOIN products p ON u.id = p.user_id
                 GROUP BY u.id, u.name, u.email
-            ");
+            ');
         } else {
             // SQLite version - drop and recreate view, use SQLite-compatible functions
-            DB::statement("DROP VIEW IF EXISTS user_activity_summary");
+            DB::statement('DROP VIEW IF EXISTS user_activity_summary');
             DB::statement("
                 CREATE VIEW user_activity_summary AS
                 SELECT
@@ -160,7 +160,7 @@ class OptimizeDatabasePhase3 extends Migration
             ");
 
             // Database size monitoring view (MySQL only)
-            DB::statement("
+            DB::statement('
                 CREATE OR REPLACE VIEW database_size_monitor AS
                 SELECT
                     TABLE_NAME as table_name,
@@ -172,10 +172,10 @@ class OptimizeDatabasePhase3 extends Migration
                 FROM information_schema.TABLES
                 WHERE TABLE_SCHEMA = DATABASE()
                 ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC
-            ");
+            ');
         } else {
             // SQLite versions
-            DB::statement("DROP VIEW IF EXISTS invoice_statistics");
+            DB::statement('DROP VIEW IF EXISTS invoice_statistics');
             DB::statement("
                 CREATE VIEW invoice_statistics AS
                 SELECT
@@ -208,9 +208,17 @@ class OptimizeDatabasePhase3 extends Migration
         Schema::create('database_health_metrics', function (Blueprint $table) {
             $table->id();
             $table->string('metric_name'); // 'connections_used', 'query_cache_hit_rate', 'slow_queries_count', etc.
-            $table->decimal('metric_value', 15, 4);
+            $table->decimal(
+                'metric_value',
+                15,
+                4,
+            );
             $table->string('metric_unit')->nullable(); // '%', 'MB', 'count', 'ms'
-            $table->enum('status', ['good', 'warning', 'critical'])->default('good');
+            $table->enum('status', [
+                'good',
+                'warning',
+                'critical',
+            ])->default('good');
             $table->text('recommendation')->nullable(); // Dynamic recommendation based on actual values
             $table->timestamp('measured_at');
             $table->timestamps();
@@ -223,7 +231,11 @@ class OptimizeDatabasePhase3 extends Migration
         Schema::create('database_health_alerts', function (Blueprint $table) {
             $table->id();
             $table->string('alert_type'); // 'high_connections', 'low_cache_hit', 'slow_queries', etc.
-            $table->enum('severity', ['info', 'warning', 'critical']);
+            $table->enum('severity', [
+                'info',
+                'warning',
+                'critical',
+            ]);
             $table->text('message');
             $table->json('metric_data')->nullable(); // Store related metrics data
             $table->boolean('resolved')->default(false);
@@ -245,7 +257,12 @@ class OptimizeDatabasePhase3 extends Migration
             $table->id();
             $table->string('task_type'); // 'optimize', 'analyze', 'repair', 'archive', 'cleanup'
             $table->string('table_name');
-            $table->enum('status', ['pending', 'running', 'completed', 'failed'])->default('pending');
+            $table->enum('status', [
+                'pending',
+                'running',
+                'completed',
+                'failed',
+            ])->default('pending');
             $table->text('description')->nullable();
             $table->json('results')->nullable(); // Store task results
             $table->timestamp('started_at')->nullable();
@@ -262,7 +279,11 @@ class OptimizeDatabasePhase3 extends Migration
             $table->string('metric_type'); // 'query_time', 'table_size', 'index_usage', etc.
             $table->string('table_name')->nullable();
             $table->string('query_type')->nullable();
-            $table->decimal('metric_value', 10, 4);
+            $table->decimal(
+                'metric_value',
+                10,
+                4,
+            );
             $table->string('metric_unit'); // 'seconds', 'MB', 'rows', etc.
             $table->json('metadata')->nullable(); // Additional context
             $table->timestamp('measured_at');
@@ -288,11 +309,31 @@ class OptimizeDatabasePhase3 extends Migration
 
         // Insert default archive policies
         $archivePolicies = [
-            ['table_name' => 'invoices', 'retention_months' => 36, 'date_column' => 'created_at'],
-            ['table_name' => 'invoice_products', 'retention_months' => 36, 'date_column' => 'created_at'],
-            ['table_name' => 'clients', 'retention_months' => 36, 'date_column' => 'created_at'],
-            ['table_name' => 'suppliers', 'retention_months' => 36, 'date_column' => 'created_at'],
-            ['table_name' => 'activity_log', 'retention_months' => 12, 'date_column' => 'created_at'], // If exists
+            [
+                'table_name' => 'invoices',
+                'retention_months' => 36,
+                'date_column' => 'created_at',
+            ],
+            [
+                'table_name' => 'invoice_products',
+                'retention_months' => 36,
+                'date_column' => 'created_at',
+            ],
+            [
+                'table_name' => 'clients',
+                'retention_months' => 36,
+                'date_column' => 'created_at',
+            ],
+            [
+                'table_name' => 'suppliers',
+                'retention_months' => 36,
+                'date_column' => 'created_at',
+            ],
+            [
+                'table_name' => 'activity_log',
+                'retention_months' => 12,
+                'date_column' => 'created_at',
+            ], // If exists
         ];
 
         foreach ($archivePolicies as $policy) {
@@ -301,7 +342,7 @@ class OptimizeDatabasePhase3 extends Migration
                 'retention_months' => $policy['retention_months'],
                 'date_column' => $policy['date_column'],
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
         }
     }
@@ -313,7 +354,7 @@ class OptimizeDatabasePhase3 extends Migration
      */
     public function down()
     {
-        if (!app()->environment('testing')) {
+        if (! app()->environment('testing')) {
             echo "Rolling back Phase 3 optimizations...\n";
         }
 
@@ -325,16 +366,16 @@ class OptimizeDatabasePhase3 extends Migration
         Schema::dropIfExists('database_health_metrics');
 
         // Drop monitoring views
-        DB::statement("DROP VIEW IF EXISTS query_performance_monitor");
-        DB::statement("DROP VIEW IF EXISTS database_size_monitor");
-        DB::statement("DROP VIEW IF EXISTS invoice_statistics");
-        DB::statement("DROP VIEW IF EXISTS user_activity_summary");
+        DB::statement('DROP VIEW IF EXISTS query_performance_monitor');
+        DB::statement('DROP VIEW IF EXISTS database_size_monitor');
+        DB::statement('DROP VIEW IF EXISTS invoice_statistics');
+        DB::statement('DROP VIEW IF EXISTS user_activity_summary');
 
         // Drop archive tables
         Schema::dropIfExists('invoice_products_archive');
         Schema::dropIfExists('invoices_archive');
 
-        if (!app()->environment('testing')) {
+        if (! app()->environment('testing')) {
             echo "Phase 3 rollback completed.\n";
         }
     }

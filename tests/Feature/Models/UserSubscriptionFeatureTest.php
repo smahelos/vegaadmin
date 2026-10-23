@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -16,8 +17,8 @@ class UserSubscriptionFeatureTest extends TestCase
     public function user_has_subscriptions_relationship(): void
     {
         $user = User::factory()->create();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class, $user->subscriptions());
+
+        $this->assertInstanceOf(HasMany::class, $user->subscriptions());
     }
 
     #[Test]
@@ -40,11 +41,11 @@ class UserSubscriptionFeatureTest extends TestCase
         $user = User::factory()->create();
         $expiredSubscription = Subscription::factory()->create([
             'user_id' => $user->id,
-            'status' => 'expired'
+            'status' => 'expired',
         ]);
         $activeSubscription = Subscription::factory()->create([
             'user_id' => $user->id,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $result = $user->activeSubscription();
@@ -60,7 +61,7 @@ class UserSubscriptionFeatureTest extends TestCase
         $user = User::factory()->create();
         $expiredSubscription = Subscription::factory()->create([
             'user_id' => $user->id,
-            'status' => 'expired'
+            'status' => 'expired',
         ]);
 
         $result = $user->activeSubscription();
@@ -74,7 +75,7 @@ class UserSubscriptionFeatureTest extends TestCase
         $user = User::factory()->create();
         $activeSubscription = Subscription::factory()->create([
             'user_id' => $user->id,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $result = $user->hasActiveSubscription();
@@ -88,7 +89,7 @@ class UserSubscriptionFeatureTest extends TestCase
         $user = User::factory()->create();
         $expiredSubscription = Subscription::factory()->create([
             'user_id' => $user->id,
-            'status' => 'expired'
+            'status' => 'expired',
         ]);
 
         $result = $user->hasActiveSubscription();
@@ -110,13 +111,13 @@ class UserSubscriptionFeatureTest extends TestCase
     public function subscription_methods_have_correct_return_types(): void
     {
         $reflection = new \ReflectionClass(User::class);
-        
+
         // Test subscriptions relationship
         $method = $reflection->getMethod('subscriptions');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\Database\Eloquent\Relations\HasMany', $returnType->getName());
-        
+
         // Test hasActiveSubscription method
         $method = $reflection->getMethod('hasActiveSubscription');
         $returnType = $method->getReturnType();
@@ -131,12 +132,12 @@ class UserSubscriptionFeatureTest extends TestCase
         $firstActive = Subscription::factory()->create([
             'user_id' => $user->id,
             'status' => 'active',
-            'created_at' => now()->subDays(2)
+            'created_at' => now()->subDays(2),
         ]);
         $secondActive = Subscription::factory()->create([
             'user_id' => $user->id,
             'status' => 'active',
-            'created_at' => now()->subDays(1)
+            'created_at' => now()->subDays(1),
         ]);
 
         $result = $user->activeSubscription();
@@ -153,7 +154,7 @@ class UserSubscriptionFeatureTest extends TestCase
         $user = User::factory()->create();
         $subscription = Subscription::factory()->create([
             'user_id' => $user->id,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         // Initially has active subscription
@@ -161,10 +162,10 @@ class UserSubscriptionFeatureTest extends TestCase
 
         // Change status to expired
         $subscription->update(['status' => 'expired']);
-        
+
         // Refresh user model to clear any cached relationships
         $user->refresh();
-        
+
         // Should no longer have active subscription
         $this->assertFalse($user->hasActiveSubscription());
     }

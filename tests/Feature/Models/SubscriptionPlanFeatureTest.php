@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Models;
 
-use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use App\Models\SubscriptionPlanFeature;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -39,24 +41,24 @@ class SubscriptionPlanFeatureTest extends TestCase
     public function subscription_plan_has_subscriptions_relationship(): void
     {
         $plan = SubscriptionPlan::factory()->create();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class, $plan->subscriptions());
+
+        $this->assertInstanceOf(HasMany::class, $plan->subscriptions());
     }
 
     #[Test]
     public function subscription_plan_has_features_relationship(): void
     {
         $plan = SubscriptionPlan::factory()->create();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsToMany::class, $plan->features());
+
+        $this->assertInstanceOf(BelongsToMany::class, $plan->features());
     }
 
     #[Test]
     public function subscription_plan_can_attach_and_detach_features(): void
     {
         $plan = SubscriptionPlan::factory()->create();
-        $feature1 = \App\Models\SubscriptionPlanFeature::factory()->create(['name' => 'Feature 1']);
-        $feature2 = \App\Models\SubscriptionPlanFeature::factory()->create(['name' => 'Feature 2']);
+        $feature1 = SubscriptionPlanFeature::factory()->create(['name' => 'Feature 1']);
+        $feature2 = SubscriptionPlanFeature::factory()->create(['name' => 'Feature 2']);
 
         // Attach features to plan
         $plan->features()->attach([$feature1->id, $feature2->id]);
@@ -101,7 +103,7 @@ class SubscriptionPlanFeatureTest extends TestCase
     {
         $plan = SubscriptionPlan::factory()->create([
             'price' => 29.99,
-            'currency' => 'EUR'
+            'currency' => 'EUR',
         ]);
 
         $formattedPrice = $plan->getFormattedPriceAttribute();

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Product\DTO;
 
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 
 /**
@@ -37,7 +38,7 @@ class ProductWriteData
         $normCurrency = $data['currency'] ?? null;
 
         // Case 1: price as Money VO (domain type)
-        if (isset($data['price']) && $data['price'] instanceof \App\Domain\Shared\Money\ValueObjects\Money) {
+        if (isset($data['price']) && $data['price'] instanceof Money) {
             $normPrice = self::normalizeAmountString($data['price']->getAmount()); // force 2 decimals
             $normCurrency = $data['price']->getCurrency();
         }
@@ -48,7 +49,12 @@ class ProductWriteData
             if (isset($pm['amount'])) {
                 $normPrice = is_string($pm['amount'])
                     ? self::normalizeAmountString($pm['amount'])
-                    : number_format((float)$pm['amount'], 2, '.', '');
+                    : number_format(
+                        (float) $pm['amount'],
+                        2,
+                        '.',
+                        '',
+                    );
             }
             if (isset($pm['currency']) && is_string($pm['currency'])) {
                 $normCurrency = strtoupper($pm['currency']);
@@ -59,17 +65,27 @@ class ProductWriteData
         if ($normPrice === null && isset($data['amount'])) {
             $normPrice = is_string($data['amount'])
                 ? self::normalizeAmountString($data['amount'])
-                : number_format((float)$data['amount'], 2, '.', '');
+                : number_format(
+                    (float) $data['amount'],
+                    2,
+                    '.',
+                    '',
+                );
         }
         if ($normCurrency === null && isset($data['amount']) && isset($data['currency']) && is_string($data['currency'])) {
             $normCurrency = strtoupper($data['currency']);
         }
 
         // Case 4: legacy price float/string + optional currency
-        if ($normPrice === null && isset($data['price']) && !$data['price'] instanceof \App\Domain\Shared\Money\ValueObjects\Money) {
+        if ($normPrice === null && isset($data['price']) && ! $data['price'] instanceof Money) {
             $normPrice = is_string($data['price'])
                 ? self::normalizeAmountString($data['price'])
-                : number_format((float)$data['price'], 2, '.', '');
+                : number_format(
+                    (float) $data['price'],
+                    2,
+                    '.',
+                    '',
+                );
         }
 
         // Final normalization: ensure currency uppercase if provided
@@ -99,17 +115,41 @@ class ProductWriteData
      */
     private static function normalizeAmountString(string $amount): string
     {
-        $amount = str_replace([' ', ','], ['', '.'], trim($amount));
-        if (!preg_match('/^\d+(?:\.\d+)?$/', $amount)) {
+        $amount = str_replace(
+            [' ', ','],
+            ['', '.'],
+            trim($amount),
+        );
+        if (! preg_match('/^\d+(?:\.\d+)?$/', $amount)) {
             // Fallback - cast to float and format
-            return number_format((float)$amount, 2, '.', '');
+            return number_format(
+                (float) $amount,
+                2,
+                '.',
+                '',
+            );
         }
         // Limit to 2 decimals for storage
         if (str_contains($amount, '.')) {
-            [$i, $f] = explode('.', $amount, 2);
-            $f = substr($f, 0, 2);
-            return $i . '.' . str_pad($f, 2, '0', STR_PAD_RIGHT);
+            [$i, $f] = explode(
+                '.',
+                $amount,
+                2,
+            );
+            $f = substr(
+                $f,
+                0,
+                2,
+            );
+
+            return $i . '.' . str_pad(
+                $f,
+                2,
+                '0',
+                STR_PAD_RIGHT,
+            );
         }
+
         return $amount;
     }
 
@@ -120,7 +160,7 @@ class ProductWriteData
     public function toArray(): array
     {
         $properties = get_object_vars($this);
-        $filtered = array_filter($properties, fn($value) => $value !== null);
+        $filtered = array_filter($properties, fn ($value) => $value !== null);
 
         return array_map(fn (mixed $value): mixed => $value instanceof Unit ? $value->value : $value, $filtered);
     }

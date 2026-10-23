@@ -12,7 +12,8 @@ interface TransactionBoundaryInterface
      * Implementations must commit on success and rollback on exception, rethrowing the exception.
      *
      * @template T
-     * @param callable():T $callback
+     *
+     * @param  callable():T  $callback
      * @return T
      */
     public function transaction(callable $callback);

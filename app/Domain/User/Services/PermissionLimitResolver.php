@@ -2,17 +2,17 @@
 
 namespace App\Domain\User\Services;
 
-use App\Domain\User\Contracts\PermissionLimitResolverInterface;
-use App\Domain\User\Contracts\EntityLimitRepositoryInterface;
-use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\User\Contracts\EntityLimitRepositoryInterface;
+use App\Domain\User\Contracts\PermissionLimitResolverInterface;
+use App\Domain\User\Contracts\UserPermissionServiceInterface;
 
 /**
  * Permission Limit Resolver Service
- * 
+ *
  * Handles real-time calculation of entity limits based on user permissions.
  * Always returns the highest limit available to the user from all their permissions.
- * 
+ *
  * Updated to use userId instead of User objects for clean Domain layer architecture.
  */
 class PermissionLimitResolver implements PermissionLimitResolverInterface
@@ -59,7 +59,7 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
     public function __construct(
         EntityLimitRepositoryInterface $limitRepo,
         UserPermissionServiceInterface $userPermissionService,
-        CacheServiceInterface $cacheService
+        CacheServiceInterface $cacheService,
     ) {
         $this->limitRepo = $limitRepo;
         $this->userPermissionService = $userPermissionService;
@@ -92,37 +92,63 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
 
     /**
      * Get the effective limit for a user and entity type
-     * 
-     * @param int|null $userId The user ID (null for anonymous)
-     * @param string $entityType The entity type (invoice, client, etc.)
-     * @param string $metricType The metric type (count, value, size)
-     * @param string $periodType The period type (daily, monthly, etc.)
+     *
+     * @param  int|null  $userId  The user ID (null for anonymous)
+     * @param  string  $entityType  The entity type (invoice, client, etc.)
+     * @param  string  $metricType  The metric type (count, value, size)
+     * @param  string  $periodType  The period type (daily, monthly, etc.)
      * @return int The highest limit value, or 0 if no permission
      */
-    public function getUserLimit(?int $userId, string $entityType, string $metricType = 'count', string $periodType = 'daily'): int
-    {
+    public function getUserLimit(
+        ?int $userId,
+        string $entityType,
+        string $metricType = 'count',
+        string $periodType = 'daily',
+    ): int {
         // Handle anonymous users early
-        if (!$userId) {
-            return $this->getAnonymousLimit($entityType, $metricType, $periodType);
+        if (! $userId) {
+            return $this->getAnonymousLimit(
+                $entityType,
+                $metricType,
+                $periodType,
+            );
         }
 
         // Try cache first
-        $cacheKey = $this->getCacheKey($userId, $entityType, $metricType, $periodType);
+        $cacheKey = $this->getCacheKey(
+            $userId,
+            $entityType,
+            $metricType,
+            $periodType,
+        );
+
         return $this->cache()->remember(
             $cacheKey,
             function () use ($userId, $entityType, $metricType, $periodType) {
-                return $this->calculateUserLimit($userId, $entityType, $metricType, $periodType);
+                return $this->calculateUserLimit(
+                    $userId,
+                    $entityType,
+                    $metricType,
+                    $periodType,
+                );
             },
             self::CACHE_TTL,
-            [self::CACHE_TAG, "user:{$userId}", "entity:{$entityType}"]
+            [
+                self::CACHE_TAG,
+                "user:{$userId}",
+                "entity:{$entityType}",
+            ],
         );
     }
 
     /**
      * Get limit for anonymous users
      */
-    private function getAnonymousLimit(string $entityType, string $metricType, string $periodType): int
-    {
+    private function getAnonymousLimit(
+        string $entityType,
+        string $metricType,
+        string $periodType,
+    ): int {
         $limits = $this->repo()->getActiveByPermissions([self::ANONYMOUS_PERMISSION]);
         foreach ($limits as $row) {
             if (
@@ -133,28 +159,38 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
                 return (int) $row['limit_value'];
             }
         }
+
         return 0;
     }
 
     /**
      * Calculate the highest limit for a user based on all their permissions
      */
-    private function calculateUserLimit(int $userId, string $entityType, string $metricType, string $periodType): int
-    {
+    private function calculateUserLimit(
+        int $userId,
+        string $entityType,
+        string $metricType,
+        string $periodType,
+    ): int {
         // Check if user exists first
-        if (!$this->userPermissionService()->userExists($userId)) {
+        if (! $this->userPermissionService()->userExists($userId)) {
             return 0;
         }
 
         // Get all permissions for the user (via roles and direct permissions)
         $permissionNames = $this->userPermissionService()->getUserPermissions($userId);
-        
+
         if (empty($permissionNames)) {
             return 0;
         }
 
         // Use repository to load limits for these permissions and filter by entity/metric/period
-        $rows = $this->repo()->getActiveByPermissionsFiltered($permissionNames, $entityType, $metricType, $periodType);
+        $rows = $this->repo()->getActiveByPermissionsFiltered(
+            $permissionNames,
+            $entityType,
+            $metricType,
+            $periodType,
+        );
         if (empty($rows)) {
             return 0;
         }
@@ -165,13 +201,14 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
                 $highest = $val;
             }
         }
+
         return $highest;
     }
 
     /**
      * Get all limits for a user across all entity types
-     * 
-     * @param int|null $userId User ID
+     *
+     * @param  int|null  $userId  User ID
      * @return array Format: ['entity_type' => ['metric_type' => ['period_type' => limit_value]]]
      */
     public function getAllUserLimits(?int $userId): array
@@ -181,7 +218,12 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
         foreach ($this->repo()->getAllEntityTypes() as $entityType) {
             foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
                 foreach (array_keys($this->repo()->getAllPeriodTypes()) as $periodType) {
-                    $limit = $this->getUserLimit($userId, $entityType, $metricType, $periodType);
+                    $limit = $this->getUserLimit(
+                        $userId,
+                        $entityType,
+                        $metricType,
+                        $periodType,
+                    );
                     if ($limit > 0) {
                         $result[$entityType][$metricType][$periodType] = $limit;
                     }
@@ -201,7 +243,12 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
 
         foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
             foreach (array_keys($this->repo()->getAllPeriodTypes()) as $periodType) {
-                $limit = $this->getUserLimit($userId, $entityType, $metricType, $periodType);
+                $limit = $this->getUserLimit(
+                    $userId,
+                    $entityType,
+                    $metricType,
+                    $periodType,
+                );
                 if ($limit > 0) {
                     $result[$metricType][$periodType] = $limit;
                 }
@@ -220,7 +267,12 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
         foreach ($this->repo()->getAllEntityTypes() as $entityType) {
             foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
                 foreach (array_keys($this->repo()->getAllPeriodTypes()) as $periodType) {
-                    $cacheKey = $this->getCacheKey($userId, $entityType, $metricType, $periodType);
+                    $cacheKey = $this->getCacheKey(
+                        $userId,
+                        $entityType,
+                        $metricType,
+                        $periodType,
+                    );
                     $this->cache()->forget($cacheKey);
                 }
             }
@@ -239,28 +291,37 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
     /**
      * Get cache key for user limit
      */
-    private function getCacheKey(int $userId, string $entityType, string $metricType, string $periodType): string
-    {
+    private function getCacheKey(
+        int $userId,
+        string $entityType,
+        string $metricType,
+        string $periodType,
+    ): string {
         return self::CACHE_PREFIX . "{$userId}_{$entityType}_{$metricType}_{$periodType}";
     }
 
     /**
      * Check if user can create entity (has any permission that allows it)
-     * 
-     * @param int|null $userId User ID
-     * @param string $entityType Entity type
+     *
+     * @param  int|null  $userId  User ID
+     * @param  string  $entityType  Entity type
      * @return bool True if user can create entity
      */
     public function canUserCreateEntity(?int $userId, string $entityType): bool
     {
-        if (!$userId) {
+        if (! $userId) {
             return false;
         }
 
         // Check for any limit > 0 for any metric/period combination
         foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
             foreach (array_keys($this->repo()->getAllPeriodTypes()) as $periodType) {
-                if ($this->getUserLimit($userId, $entityType, $metricType, $periodType) > 0) {
+                if ($this->getUserLimit(
+                    $userId,
+                    $entityType,
+                    $metricType,
+                    $periodType,
+                ) > 0) {
                     return true;
                 }
             }
@@ -271,24 +332,29 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
 
     /**
      * Get user's permissions with their corresponding limits for an entity
-     * 
-     * @param int|null $userId User ID
-     * @param string $entityType Entity type
-    * @return array<int, array{permission:string, limits: array<string, array<string, int>>}>
+     *
+     * @param  int|null  $userId  User ID
+     * @param  string  $entityType  Entity type
+     * @return array<int, array{permission:string, limits: array<string, array<string, int>>}>
      */
     public function getUserPermissionLimits(?int $userId, string $entityType): array
     {
-        if (!$userId) {
+        if (! $userId) {
             // Return anonymous limits
             $anonymousLimits = [];
             foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
                 foreach (array_keys($this->repo()->getAllPeriodTypes()) as $periodType) {
-                    $limit = $this->getAnonymousLimit($entityType, $metricType, $periodType);
+                    $limit = $this->getAnonymousLimit(
+                        $entityType,
+                        $metricType,
+                        $periodType,
+                    );
                     if ($limit > 0) {
                         $anonymousLimits[$metricType][$periodType] = $limit;
                     }
                 }
             }
+
             return [[
                 'permission' => self::ANONYMOUS_PERMISSION,
                 'limits' => $anonymousLimits,
@@ -305,14 +371,14 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
         // Preload all limits for user's permissions in one go using repository
         $allLimits = array_values(array_filter(
             $this->repo()->getActiveByPermissions($permissionNames),
-            fn (array $row) => ($row['entity_type'] ?? null) === $entityType
+            fn (array $row) => ($row['entity_type'] ?? null) === $entityType,
         ));
 
         foreach ($permissionNames as $permissionName) {
             $limits = [];
             $permLimits = array_values(array_filter(
                 $allLimits,
-                fn (array $row) => ($row['permission_name'] ?? null) === $permissionName
+                fn (array $row) => ($row['permission_name'] ?? null) === $permissionName,
             ));
 
             foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
@@ -330,7 +396,7 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
                 }
             }
 
-            if (!empty($limits)) {
+            if ($limits !== []) {
                 $result[] = [
                     'permission' => $permissionName,
                     'limits' => $limits,

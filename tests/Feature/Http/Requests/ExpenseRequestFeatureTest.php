@@ -3,21 +3,20 @@
 namespace Tests\Feature\Http\Requests;
 
 use App\Http\Requests\ExpenseRequest;
-use App\Models\User;
-use App\Models\Supplier;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
 use App\Models\Status;
+use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for ExpenseRequest
@@ -27,22 +26,23 @@ use PHPUnit\Framework\Attributes\Test;
  */
 class ExpenseRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $user;
-    protected User $adminUser;
     protected User $targetUser;
+
     protected Supplier $supplier;
+
     protected ExpenseCategory $category;
+
     protected PaymentMethod $paymentMethod;
+
     protected Status $status;
+
     protected array $validExpenseData;
 
     /**
      * Set up the test environment.
      * Creates test user and valid expense data for request testing.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -83,14 +83,22 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         $this->validExpenseData = [
             'expense_date' => $this->faker->date(),
-            'amount' => $this->faker->randomFloat(2, 10, 1000),
+            'amount' => $this->faker->randomFloat(
+                2,
+                10,
+                1000,
+            ),
             'currency' => 'CZK',
             'supplier_id' => $this->supplier->id,
             'category_id' => $this->category->id,
             'payment_method_id' => $this->paymentMethod->id,
             'reference_number' => $this->faker->numerify('REF-####'),
             'description' => $this->faker->sentence,
-            'tax_amount' => $this->faker->randomFloat(2, 0, 50),
+            'tax_amount' => $this->faker->randomFloat(
+                2,
+                0,
+                50,
+            ),
             'status_id' => $this->status->id,
             'user_id' => $this->targetUser->id,
         ];
@@ -101,7 +109,7 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($this->validExpenseData, $request->rules());
 
         $this->assertFalse($validator->fails());
@@ -113,17 +121,27 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $requiredFields = ['expense_date', 'amount', 'currency', 'category_id', 'user_id'];
+        $requiredFields = [
+            'expense_date',
+            'amount',
+            'currency',
+            'category_id',
+            'user_id',
+        ];
 
         foreach ($requiredFields as $field) {
             $invalidData = $this->validExpenseData;
             unset($invalidData[$field]);
 
-            $request = new ExpenseRequest();
+            $request = new ExpenseRequest;
             $validator = Validator::make($invalidData, $request->rules());
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
-            $this->assertArrayHasKey($field, $validator->errors()->toArray(), "Should have error for missing {$field}");
+            $this->assertArrayHasKey(
+                $field,
+                $validator->errors()->toArray(),
+                "Should have error for missing {$field}",
+            );
         }
     }
 
@@ -135,7 +153,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseData;
         $invalidData['expense_date'] = 'invalid-date';
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -150,7 +168,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseData;
         $invalidData['amount'] = -100;
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -165,7 +183,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseData;
         $invalidData['currency'] = 'INVALID'; // Must be exactly 3 characters
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -180,7 +198,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseData;
         $invalidData['supplier_id'] = 99999;
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -195,7 +213,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseData;
         $invalidData['category_id'] = 99999;
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -210,7 +228,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseData;
         $invalidData['user_id'] = 99999;
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -230,7 +248,7 @@ class ExpenseRequestFeatureTest extends TestCase
             'user_id' => $this->targetUser->id,
         ];
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($minimalData, $request->rules());
 
         $this->assertFalse($validator->fails());
@@ -250,7 +268,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $dataWithNulls['tax_amount'] = null;
         $dataWithNulls['status_id'] = null;
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($dataWithNulls, $request->rules());
 
         $this->assertFalse($validator->fails());
@@ -265,7 +283,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseData;
         $invalidData['tax_amount'] = -10;
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -280,7 +298,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseData;
         $invalidData['reference_number'] = str_repeat('a', 256); // Too long (max 255)
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -298,7 +316,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $dataWithFile = $this->validExpenseData;
         $dataWithFile['receipt_file'] = $file;
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($dataWithFile, $request->rules());
 
         $this->assertFalse($validator->fails());
@@ -316,7 +334,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $dataWithFile = $this->validExpenseData;
         $dataWithFile['receipt_file'] = $file;
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $validator = Validator::make($dataWithFile, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -330,7 +348,7 @@ class ExpenseRequestFeatureTest extends TestCase
         $userWithoutPermission = User::factory()->create();
         $this->actingAs($userWithoutPermission);
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
 
         $this->assertFalse($request->authorize());
     }
@@ -338,7 +356,7 @@ class ExpenseRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_when_not_authenticated()
     {
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
 
         $this->assertFalse($request->authorize());
     }
@@ -348,7 +366,7 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
 
         $this->assertTrue($request->authorize());
     }
@@ -356,17 +374,29 @@ class ExpenseRequestFeatureTest extends TestCase
     #[Test]
     public function request_has_custom_attributes()
     {
-        $request = new ExpenseRequest();
+        $request = new ExpenseRequest;
         $attributes = $request->attributes();
 
         $expectedKeys = [
-            'expense_date', 'amount', 'currency', 'supplier_id', 'category_id',
-            'payment_method_id', 'reference_number', 'description', 'receipt_file',
-            'tax_amount', 'status_id'
+            'expense_date',
+            'amount',
+            'currency',
+            'supplier_id',
+            'category_id',
+            'payment_method_id',
+            'reference_number',
+            'description',
+            'receipt_file',
+            'tax_amount',
+            'status_id',
         ];
 
         foreach ($expectedKeys as $key) {
-            $this->assertArrayHasKey($key, $attributes, "Should have custom attribute for {$key}");
+            $this->assertArrayHasKey(
+                $key,
+                $attributes,
+                "Should have custom attribute for {$key}",
+            );
         }
     }
 
@@ -375,13 +405,18 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $validCurrencies = ['CZK', 'EUR', 'USD', 'GBP'];
+        $validCurrencies = [
+            'CZK',
+            'EUR',
+            'USD',
+            'GBP',
+        ];
 
         foreach ($validCurrencies as $currency) {
             $validData = $this->validExpenseData;
             $validData['currency'] = $currency;
 
-            $request = new ExpenseRequest();
+            $request = new ExpenseRequest;
             $validator = Validator::make($validData, $request->rules());
 
             $this->assertFalse($validator->fails(), "Validation should pass for currency: {$currency}");

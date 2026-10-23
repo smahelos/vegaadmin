@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Page;
 use App\Models\PageCategory;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class PageContentSeeder extends Seeder
 {
@@ -16,7 +16,7 @@ class PageContentSeeder extends Seeder
     {
         // Create categories first if they don't exist
         $this->createCategories();
-        
+
         // Create pages with content
         $this->createFeaturesPage();
         $this->createPricingPage();
@@ -35,26 +35,71 @@ class PageContentSeeder extends Seeder
     {
         $categories = [
             [
-                'name' => ['cs' => 'Hlavní stránky', 'en' => 'Main Pages', 'de' => 'Hauptseiten', 'sk' => 'Hlavné stránky'],
-                'slug' => ['cs' => 'hlavni-stranky', 'en' => 'main-pages', 'de' => 'hauptseiten', 'sk' => 'hlavne-stranky'],
-                'description' => ['cs' => 'Hlavní informační stránky webu', 'en' => 'Main informational pages of the website', 'de' => 'Hauptinformationsseiten der Website', 'sk' => 'Hlavné informačné stránky webu']
+                'name' => [
+                    'cs' => 'Hlavní stránky',
+                    'en' => 'Main Pages',
+                    'de' => 'Hauptseiten',
+                    'sk' => 'Hlavné stránky',
+                ],
+                'slug' => [
+                    'cs' => 'hlavni-stranky',
+                    'en' => 'main-pages',
+                    'de' => 'hauptseiten',
+                    'sk' => 'hlavne-stranky',
+                ],
+                'description' => [
+                    'cs' => 'Hlavní informační stránky webu',
+                    'en' => 'Main informational pages of the website',
+                    'de' => 'Hauptinformationsseiten der Website',
+                    'sk' => 'Hlavné informačné stránky webu',
+                ],
             ],
             [
-                'name' => ['cs' => 'Právní', 'en' => 'Legal', 'de' => 'Rechtlich', 'sk' => 'Právne'],
-                'slug' => ['cs' => 'pravni', 'en' => 'legal', 'de' => 'rechtlich', 'sk' => 'pravne'],
-                'description' => ['cs' => 'Právní dokumenty a podmínky', 'en' => 'Legal documents and terms', 'de' => 'Rechtliche Dokumente und Bedingungen', 'sk' => 'Právne dokumenty a podmienky']
+                'name' => [
+                    'cs' => 'Právní',
+                    'en' => 'Legal',
+                    'de' => 'Rechtlich',
+                    'sk' => 'Právne',
+                ],
+                'slug' => [
+                    'cs' => 'pravni',
+                    'en' => 'legal',
+                    'de' => 'rechtlich',
+                    'sk' => 'pravne',
+                ],
+                'description' => [
+                    'cs' => 'Právní dokumenty a podmínky',
+                    'en' => 'Legal documents and terms',
+                    'de' => 'Rechtliche Dokumente und Bedingungen',
+                    'sk' => 'Právne dokumenty a podmienky',
+                ],
             ],
             [
-                'name' => ['cs' => 'Podpora', 'en' => 'Support', 'de' => 'Unterstützung', 'sk' => 'Podpora'],
-                'slug' => ['cs' => 'podpora', 'en' => 'support', 'de' => 'unterstützung', 'sk' => 'podpora'],
-                'description' => ['cs' => 'Nápověda a dokumentace', 'en' => 'Help and documentation', 'de' => 'Hilfe und Dokumentation', 'sk' => 'Pomoc a dokumentácia']
-            ]
+                'name' => [
+                    'cs' => 'Podpora',
+                    'en' => 'Support',
+                    'de' => 'Unterstützung',
+                    'sk' => 'Podpora',
+                ],
+                'slug' => [
+                    'cs' => 'podpora',
+                    'en' => 'support',
+                    'de' => 'unterstützung',
+                    'sk' => 'podpora',
+                ],
+                'description' => [
+                    'cs' => 'Nápověda a dokumentace',
+                    'en' => 'Help and documentation',
+                    'de' => 'Hilfe und Dokumentation',
+                    'sk' => 'Pomoc a dokumentácia',
+                ],
+            ],
         ];
 
         foreach ($categories as $category) {
             PageCategory::firstOrCreate(
                 ['slug' => $category['slug']],
-                $category
+                $category,
             );
         }
     }
@@ -67,71 +112,118 @@ class PageContentSeeder extends Seeder
             'cs' => $this->getFeaturesContent('cs'),
             'en' => $this->getFeaturesContent('en'),
             'de' => $this->getFeaturesContent('de'),
-            'sk' => $this->getFeaturesContent('sk')
+            'sk' => $this->getFeaturesContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'funkce'],
             [
-                'name' => ['cs' => 'Funkce', 'en' => 'Features', 'de' => 'Funktionen', 'sk' => 'Funkcie'],
-                'slug' => ['cs' => 'funkce', 'en' => 'features', 'de' => 'funktionen', 'sk' => 'funkcie'],
+                'name' => [
+                    'cs' => 'Funkce',
+                    'en' => 'Features',
+                    'de' => 'Funktionen',
+                    'sk' => 'Funkcie',
+                ],
+                'slug' => [
+                    'cs' => 'funkce',
+                    'en' => 'features',
+                    'de' => 'funktionen',
+                    'sk' => 'funkcie',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 1,
-                'description' => ['cs' => 'Všechny funkce našeho fakturačního systému na jednom místě', 'en' => 'All features of our invoicing system in one place', 'de' => 'Alle Funktionen unseres Rechnungssystems an einem Ort', 'sk' => 'Všetky funkcie nášho fakturačného systému na jednom mieste'],
+                'description' => [
+                    'cs' => 'Všechny funkce našeho fakturačního systému na jednom místě',
+                    'en' => 'All features of our invoicing system in one place',
+                    'de' => 'Alle Funktionen unseres Rechnungssystems an einem Ort',
+                    'sk' => 'Všetky funkcie nášho fakturačného systému na jednom mieste',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
-    private function createPricingPage(): void {
+    private function createPricingPage(): void
+    {
         $categoryId = PageCategory::where('slug->cs', 'hlavni-stranky')->first()->id;
 
         $content = [
             'cs' => $this->getPricingContent('cs'),
             'en' => $this->getPricingContent('en'),
             'de' => $this->getPricingContent('de'),
-            'sk' => $this->getPricingContent('sk')
+            'sk' => $this->getPricingContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'cenik'],
             [
-                'name' => ['cs' => 'Ceník', 'en' => 'Pricing', 'de' => 'Preise', 'sk' => 'Cenník'],
-                'slug' => ['cs' => 'cenik', 'en' => 'pricing', 'de' => 'preise', 'sk' => 'cennik'],
+                'name' => [
+                    'cs' => 'Ceník',
+                    'en' => 'Pricing',
+                    'de' => 'Preise',
+                    'sk' => 'Cenník',
+                ],
+                'slug' => [
+                    'cs' => 'cenik',
+                    'en' => 'pricing',
+                    'de' => 'preise',
+                    'sk' => 'cennik',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 2,
-                'description' => ['cs' => 'Transparentní ceník našich služeb', 'en' => 'Transparent pricing of our services', 'de' => 'Transparente Preisgestaltung unserer Dienstleistungen', 'sk' => 'Transparentný cenník našich služieb'],
+                'description' => [
+                    'cs' => 'Transparentní ceník našich služeb',
+                    'en' => 'Transparent pricing of our services',
+                    'de' => 'Transparente Preisgestaltung unserer Dienstleistungen',
+                    'sk' => 'Transparentný cenník našich služieb',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
-    private function createTemplatesPage(): void {
+    private function createTemplatesPage(): void
+    {
         $categoryId = PageCategory::where('slug->cs', 'hlavni-stranky')->first()->id;
 
         $content = [
             'cs' => $this->getTemplatesContent('cs'),
             'en' => $this->getTemplatesContent('en'),
             'de' => $this->getTemplatesContent('de'),
-            'sk' => $this->getTemplatesContent('sk')
+            'sk' => $this->getTemplatesContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'sablony'],
             [
-                'name' => ['cs' => 'Šablony', 'en' => 'Templates', 'de' => 'Vorlagen', 'sk' => 'Šablóny'],
-                'slug' => ['cs' => 'sablony', 'en' => 'templates', 'de' => 'vorlagen', 'sk' => 'sablony'],
+                'name' => [
+                    'cs' => 'Šablony',
+                    'en' => 'Templates',
+                    'de' => 'Vorlagen',
+                    'sk' => 'Šablóny',
+                ],
+                'slug' => [
+                    'cs' => 'sablony',
+                    'en' => 'templates',
+                    'de' => 'vorlagen',
+                    'sk' => 'sablony',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 3,
-                'description' => ['cs' => 'Předpřipravené šablony faktur pro různá odvětví', 'en' => 'Pre-designed invoice templates for various industries', 'de' => 'Vorgefertigte Rechnungsvorlagen für verschiedene Branchen', 'sk' => 'Predpripravené šablóny faktúr pre rôzne odvetvia'],
+                'description' => [
+                    'cs' => 'Předpřipravené šablony faktur pro různá odvětví',
+                    'en' => 'Pre-designed invoice templates for various industries',
+                    'de' => 'Vorgefertigte Rechnungsvorlagen für verschiedene Branchen',
+                    'sk' => 'Predpripravené šablóny faktúr pre rôzne odvetvia',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
@@ -143,21 +235,36 @@ class PageContentSeeder extends Seeder
             'cs' => $this->getApiContent('cs'),
             'en' => $this->getApiContent('en'),
             'de' => $this->getApiContent('de'),
-            'sk' => $this->getApiContent('sk')
+            'sk' => $this->getApiContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'api'],
             [
-                'name' => ['cs' => 'API', 'en' => 'API', 'de' => 'API', 'sk' => 'API'],
-                'slug' => ['cs' => 'api', 'en' => 'api', 'de' => 'api', 'sk' => 'api'],
+                'name' => [
+                    'cs' => 'API',
+                    'en' => 'API',
+                    'de' => 'API',
+                    'sk' => 'API',
+                ],
+                'slug' => [
+                    'cs' => 'api',
+                    'en' => 'api',
+                    'de' => 'api',
+                    'sk' => 'api',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 4,
-                'description' => ['cs' => 'Informace o API pro vývojáře', 'en' => 'API information for developers', 'de' => 'API-Informationen für Entwickler', 'sk' => 'Informácie o API pre vývojárov'],
+                'description' => [
+                    'cs' => 'Informace o API pro vývojáře',
+                    'en' => 'API information for developers',
+                    'de' => 'API-Informationen für Entwickler',
+                    'sk' => 'Informácie o API pre vývojárov',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
@@ -169,21 +276,36 @@ class PageContentSeeder extends Seeder
             'cs' => $this->getHelpContent('cs'),
             'en' => $this->getHelpContent('en'),
             'de' => $this->getHelpContent('de'),
-            'sk' => $this->getHelpContent('sk')
+            'sk' => $this->getHelpContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'napoveda'],
             [
-                'name' => ['cs' => 'Nápověda', 'en' => 'Help', 'de' => 'Hilfe', 'sk' => 'Pomoc'],
-                'slug' => ['cs' => 'napoveda', 'en' => 'help', 'de' => 'hilfe', 'sk' => 'pomoc'],
+                'name' => [
+                    'cs' => 'Nápověda',
+                    'en' => 'Help',
+                    'de' => 'Hilfe',
+                    'sk' => 'Pomoc',
+                ],
+                'slug' => [
+                    'cs' => 'napoveda',
+                    'en' => 'help',
+                    'de' => 'hilfe',
+                    'sk' => 'pomoc',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 1,
-                'description' => ['cs' => 'Nápověda k používání systému', 'en' => 'Help for using the system', 'de' => 'Hilfe zur Nutzung des Systems', 'sk' => 'Pomoc pri používaní systému'],
+                'description' => [
+                    'cs' => 'Nápověda k používání systému',
+                    'en' => 'Help for using the system',
+                    'de' => 'Hilfe zur Nutzung des Systems',
+                    'sk' => 'Pomoc pri používaní systému',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
@@ -195,21 +317,36 @@ class PageContentSeeder extends Seeder
             'cs' => $this->getContactContent('cs'),
             'en' => $this->getContactContent('en'),
             'de' => $this->getContactContent('de'),
-            'sk' => $this->getContactContent('sk')
+            'sk' => $this->getContactContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'kontakt'],
             [
-                'name' => ['cs' => 'Kontakt', 'en' => 'Contact', 'de' => 'Kontakt', 'sk' => 'Kontakt'],
-                'slug' => ['cs' => 'kontakt', 'en' => 'contact', 'de' => 'kontakt', 'sk' => 'kontakt'],
+                'name' => [
+                    'cs' => 'Kontakt',
+                    'en' => 'Contact',
+                    'de' => 'Kontakt',
+                    'sk' => 'Kontakt',
+                ],
+                'slug' => [
+                    'cs' => 'kontakt',
+                    'en' => 'contact',
+                    'de' => 'kontakt',
+                    'sk' => 'kontakt',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 5,
-                'description' => ['cs' => 'Kontaktní informace a formulář', 'en' => 'Contact information and form', 'de' => 'Kontaktinformationen und Formular', 'sk' => 'Kontaktné informácie a formulár'],
+                'description' => [
+                    'cs' => 'Kontaktní informace a formulář',
+                    'en' => 'Contact information and form',
+                    'de' => 'Kontaktinformationen und Formular',
+                    'sk' => 'Kontaktné informácie a formulár',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
@@ -221,21 +358,36 @@ class PageContentSeeder extends Seeder
             'cs' => $this->getDocumentationContent('cs'),
             'en' => $this->getDocumentationContent('en'),
             'de' => $this->getDocumentationContent('de'),
-            'sk' => $this->getDocumentationContent('sk')
+            'sk' => $this->getDocumentationContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'dokumentace'],
             [
-                'name' => ['cs' => 'Dokumentace', 'en' => 'Documentation', 'de' => 'Dokumentation', 'sk' => 'Dokumentácia'],
-                'slug' => ['cs' => 'dokumentace', 'en' => 'documentation', 'de' => 'dokumentation', 'sk' => 'dokumentacia'],
+                'name' => [
+                    'cs' => 'Dokumentace',
+                    'en' => 'Documentation',
+                    'de' => 'Dokumentation',
+                    'sk' => 'Dokumentácia',
+                ],
+                'slug' => [
+                    'cs' => 'dokumentace',
+                    'en' => 'documentation',
+                    'de' => 'dokumentation',
+                    'sk' => 'dokumentacia',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 2,
-                'description' => ['cs' => 'Kompletní průvodce aplikací', 'en' => 'Complete application guide', 'de' => 'Kompletter Anwendungsguide', 'sk' => 'Kompletný sprievodca aplikáciou'],
+                'description' => [
+                    'cs' => 'Kompletní průvodce aplikací',
+                    'en' => 'Complete application guide',
+                    'de' => 'Kompletter Anwendungsguide',
+                    'sk' => 'Kompletný sprievodca aplikáciou',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
@@ -247,21 +399,36 @@ class PageContentSeeder extends Seeder
             'cs' => $this->getServiceStatusContent('cs'),
             'en' => $this->getServiceStatusContent('en'),
             'de' => $this->getServiceStatusContent('de'),
-            'sk' => $this->getServiceStatusContent('sk')
+            'sk' => $this->getServiceStatusContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'stav-sluzby'],
             [
-                'name' => ['cs' => 'Stav služby', 'en' => 'Service Status', 'de' => 'Dienststatus', 'sk' => 'Stav služby'],
-                'slug' => ['cs' => 'stav-sluzby', 'en' => 'service-status', 'de' => 'dienststatus', 'sk' => 'stav-sluzby'],
+                'name' => [
+                    'cs' => 'Stav služby',
+                    'en' => 'Service Status',
+                    'de' => 'Dienststatus',
+                    'sk' => 'Stav služby',
+                ],
+                'slug' => [
+                    'cs' => 'stav-sluzby',
+                    'en' => 'service-status',
+                    'de' => 'dienststatus',
+                    'sk' => 'stav-sluzby',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 3,
-                'description' => ['cs' => 'Aktuální stav systému', 'en' => 'Current system status', 'de' => 'Aktueller Systemstatus', 'sk' => 'Aktuálny stav systému'],
+                'description' => [
+                    'cs' => 'Aktuální stav systému',
+                    'en' => 'Current system status',
+                    'de' => 'Aktueller Systemstatus',
+                    'sk' => 'Aktuálny stav systému',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
@@ -273,21 +440,36 @@ class PageContentSeeder extends Seeder
             'cs' => $this->getPrivacyPolicyContent('cs'),
             'en' => $this->getPrivacyPolicyContent('en'),
             'de' => $this->getPrivacyPolicyContent('de'),
-            'sk' => $this->getPrivacyPolicyContent('sk')
+            'sk' => $this->getPrivacyPolicyContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'zasady-ochrany-osobnich-udaju'],
             [
-                'name' => ['cs' => 'Zásady ochrany osobních údajů', 'en' => 'Privacy Policy', 'de' => 'Datenschutzrichtlinie', 'sk' => 'Zásady ochrany osobných údajov'],
-                'slug' => ['cs' => 'zasady-ochrany-osobnich-udaju', 'en' => 'privacy-policy', 'de' => 'datenschutzrichtlinie', 'sk' => 'zasady-ochrany-osobnych-udajov'],
+                'name' => [
+                    'cs' => 'Zásady ochrany osobních údajů',
+                    'en' => 'Privacy Policy',
+                    'de' => 'Datenschutzrichtlinie',
+                    'sk' => 'Zásady ochrany osobných údajov',
+                ],
+                'slug' => [
+                    'cs' => 'zasady-ochrany-osobnich-udaju',
+                    'en' => 'privacy-policy',
+                    'de' => 'datenschutzrichtlinie',
+                    'sk' => 'zasady-ochrany-osobnych-udajov',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 1,
-                'description' => ['cs' => 'Informace o zpracování osobních údajů v souladu s GDPR', 'en' => 'Information on personal data processing in accordance with GDPR', 'de' => 'Informationen zur Verarbeitung personenbezogener Daten gemäß GDPR', 'sk' => 'Informácie o spracovaní osobných údajov v súlade s GDPR'],
+                'description' => [
+                    'cs' => 'Informace o zpracování osobních údajů v souladu s GDPR',
+                    'en' => 'Information on personal data processing in accordance with GDPR',
+                    'de' => 'Informationen zur Verarbeitung personenbezogener Daten gemäß GDPR',
+                    'sk' => 'Informácie o spracovaní osobných údajov v súlade s GDPR',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
@@ -299,21 +481,36 @@ class PageContentSeeder extends Seeder
             'cs' => $this->getTermsContent('cs'),
             'en' => $this->getTermsContent('en'),
             'de' => $this->getTermsContent('de'),
-            'sk' => $this->getTermsContent('sk')
+            'sk' => $this->getTermsContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'obchodni-podminky'],
             [
-                'name' => ['cs' => 'Obchodní podmínky', 'en' => 'Terms and Conditions', 'de' => 'Geschäftsbedingungen', 'sk' => 'Obchodné podmienky'],
-                'slug' => ['cs' => 'obchodni-podminky', 'en' => 'terms-and-conditions', 'de' => 'geschaftsbedingungen', 'sk' => 'obchodne-podmienky'],
+                'name' => [
+                    'cs' => 'Obchodní podmínky',
+                    'en' => 'Terms and Conditions',
+                    'de' => 'Geschäftsbedingungen',
+                    'sk' => 'Obchodné podmienky',
+                ],
+                'slug' => [
+                    'cs' => 'obchodni-podminky',
+                    'en' => 'terms-and-conditions',
+                    'de' => 'geschaftsbedingungen',
+                    'sk' => 'obchodne-podmienky',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 2,
-                'description' => ['cs' => 'Podmínky používání naší fakturační aplikace', 'en' => 'Terms of use of our invoicing application', 'de' => 'Nutzungsbedingungen unserer Rechnungsanwendung', 'sk' => 'Podmienky používania našej fakturačnej aplikácie'],
+                'description' => [
+                    'cs' => 'Podmínky používání naší fakturační aplikace',
+                    'en' => 'Terms of use of our invoicing application',
+                    'de' => 'Nutzungsbedingungen unserer Rechnungsanwendung',
+                    'sk' => 'Podmienky používania našej fakturačnej aplikácie',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
@@ -325,21 +522,36 @@ class PageContentSeeder extends Seeder
             'cs' => $this->getCookiesContent('cs'),
             'en' => $this->getCookiesContent('en'),
             'de' => $this->getCookiesContent('de'),
-            'sk' => $this->getCookiesContent('sk')
+            'sk' => $this->getCookiesContent('sk'),
         ];
 
         Page::updateOrCreate(
             ['slug->cs' => 'zasady-pouzivani-cookies'],
             [
-                'name' => ['cs' => 'Zásady používání cookies', 'en' => 'Cookies Policy', 'de' => 'Cookie-Richtlinie', 'sk' => 'Zásady používania cookies'],
-                'slug' => ['cs' => 'zasady-pouzivani-cookies', 'en' => 'cookies-policy', 'de' => 'cookie-richtlinie', 'sk' => 'zasady-pouzivania-cookies'],
+                'name' => [
+                    'cs' => 'Zásady používání cookies',
+                    'en' => 'Cookies Policy',
+                    'de' => 'Cookie-Richtlinie',
+                    'sk' => 'Zásady používania cookies',
+                ],
+                'slug' => [
+                    'cs' => 'zasady-pouzivani-cookies',
+                    'en' => 'cookies-policy',
+                    'de' => 'cookie-richtlinie',
+                    'sk' => 'zasady-pouzivania-cookies',
+                ],
                 'category_id' => $categoryId,
                 'sort_order' => 3,
-                'description' => ['cs' => 'Informace o tom, jak naše webová stránka používá soubory cookies', 'en' => 'Information on how our website uses cookies', 'de' => 'Informationen darüber, wie unsere Website Cookies verwendet', 'sk' => 'Informácie o tom, ako naša webová stránka používa súbory cookies'],
+                'description' => [
+                    'cs' => 'Informace o tom, jak naše webová stránka používá soubory cookies',
+                    'en' => 'Information on how our website uses cookies',
+                    'de' => 'Informationen darüber, wie unsere Website Cookies verwendet',
+                    'sk' => 'Informácie o tom, ako naša webová stránka používa súbory cookies',
+                ],
                 'content' => $content,
                 'published' => true,
                 'published_by' => User::first()?->id,
-            ]
+            ],
         );
     }
 
@@ -1288,7 +1500,6 @@ class PageContentSeeder extends Seeder
 
         return $lang[$locale] ?? $lang['cs'];
     }
-
 
     private function getTemplatesContent(string $locale): string
     {

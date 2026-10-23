@@ -2,10 +2,11 @@
 
 namespace Tests\Feature\Domain\Invoice\Notifications;
 
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder;
 use App\Models\Invoice;
 use App\Models\User;
-use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder;
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
@@ -17,6 +18,7 @@ class InvoiceDueReminderFeatureTest extends TestCase
     use RefreshDatabase;
 
     private Invoice $invoice;
+
     private User $user;
 
     protected function setUp(): void
@@ -47,7 +49,7 @@ class InvoiceDueReminderFeatureTest extends TestCase
             recipientType: 'supplier',
         );
         $notification = new InvoiceDueReminder($payload);
-        
+
         $this->user->notify($notification);
 
         Notification::assertSentTo($this->user, InvoiceDueReminder::class);
@@ -64,12 +66,12 @@ class InvoiceDueReminderFeatureTest extends TestCase
             recipientType: 'client',
         );
         $notification = new InvoiceDueReminder($payload);
-        
+
         Notification::route('mail', 'client@example.com')->notify($notification);
 
         Notification::assertSentTo(
-            new AnonymousNotifiable(), 
-            InvoiceDueReminder::class
+            new AnonymousNotifiable,
+            InvoiceDueReminder::class,
         );
     }
 
@@ -84,12 +86,16 @@ class InvoiceDueReminderFeatureTest extends TestCase
             recipientType: 'supplier',
         );
         $notification = new InvoiceDueReminder($payload);
-        
+
         $this->user->notify($notification);
 
-        Notification::assertSentTo($this->user, InvoiceDueReminder::class, function ($notification) {
-            return $notification instanceof \Illuminate\Contracts\Queue\ShouldQueue;
-        });
+        Notification::assertSentTo(
+            $this->user,
+            InvoiceDueReminder::class,
+            function ($notification) {
+                return $notification instanceof ShouldQueue;
+            },
+        );
     }
 
     #[Test]
@@ -103,18 +109,23 @@ class InvoiceDueReminderFeatureTest extends TestCase
             recipientType: 'supplier',
         );
         $notification = new InvoiceDueReminder($payload);
-        
+
         $this->user->notify($notification);
 
-        Notification::assertSentTo($this->user, InvoiceDueReminder::class, function ($notification) {
-            // Access invoice using reflection since it's protected
-            $reflection = new \ReflectionClass($notification);
-            $payloadProperty = $reflection->getProperty('payload');
-            $payloadProperty->setAccessible(true);
-            /** @var InvoiceReminderPayload $payload */
-            $payload = $payloadProperty->getValue($notification);
-            return $payload->invoiceNumber === $this->invoice->invoice_vs;
-        });
+        Notification::assertSentTo(
+            $this->user,
+            InvoiceDueReminder::class,
+            function ($notification) {
+                // Access invoice using reflection since it's protected
+                $reflection = new \ReflectionClass($notification);
+                $payloadProperty = $reflection->getProperty('payload');
+                $payloadProperty->setAccessible(true);
+                /** @var InvoiceReminderPayload $payload */
+                $payload = $payloadProperty->getValue($notification);
+
+                return $payload->invoiceNumber === $this->invoice->invoice_vs;
+            },
+        );
     }
 
     #[Test]
@@ -128,18 +139,23 @@ class InvoiceDueReminderFeatureTest extends TestCase
             recipientType: 'client',
         );
         $notification = new InvoiceDueReminder($payload);
-        
+
         $this->user->notify($notification);
 
-        Notification::assertSentTo($this->user, InvoiceDueReminder::class, function ($notification) {
-            // Access recipientType using reflection since it's protected
-            $reflection = new \ReflectionClass($notification);
-            $payloadProperty = $reflection->getProperty('payload');
-            $payloadProperty->setAccessible(true);
-            /** @var InvoiceReminderPayload $payload */
-            $payload = $payloadProperty->getValue($notification);
-            return $payload->recipientType === 'client';
-        });
+        Notification::assertSentTo(
+            $this->user,
+            InvoiceDueReminder::class,
+            function ($notification) {
+                // Access recipientType using reflection since it's protected
+                $reflection = new \ReflectionClass($notification);
+                $payloadProperty = $reflection->getProperty('payload');
+                $payloadProperty->setAccessible(true);
+                /** @var InvoiceReminderPayload $payload */
+                $payload = $payloadProperty->getValue($notification);
+
+                return $payload->recipientType === 'client';
+            },
+        );
     }
 
     #[Test]
@@ -350,16 +366,25 @@ class InvoiceDueReminderFeatureTest extends TestCase
         );
         $this->user->notify(new InvoiceDueReminder($supplierPayload));
 
-        Notification::assertSentTo($this->user, InvoiceDueReminder::class, function ($notification) {
-            $reflection = new \ReflectionClass($notification);
-            $payloadProperty = $reflection->getProperty('payload');
-            $payloadProperty->setAccessible(true);
-            /** @var InvoiceReminderPayload $payload */
-            $payload = $payloadProperty->getValue($notification);
-            return in_array($payload->recipientType, ['client', 'supplier']);
-        });
+        Notification::assertSentTo(
+            $this->user,
+            InvoiceDueReminder::class,
+            function ($notification) {
+                $reflection = new \ReflectionClass($notification);
+                $payloadProperty = $reflection->getProperty('payload');
+                $payloadProperty->setAccessible(true);
+                /** @var InvoiceReminderPayload $payload */
+                $payload = $payloadProperty->getValue($notification);
+
+                return in_array($payload->recipientType, ['client', 'supplier']);
+            },
+        );
 
         // Verify both notifications were sent
-        Notification::assertSentToTimes($this->user, InvoiceDueReminder::class, 2);
+        Notification::assertSentToTimes(
+            $this->user,
+            InvoiceDueReminder::class,
+            2,
+        );
     }
 }

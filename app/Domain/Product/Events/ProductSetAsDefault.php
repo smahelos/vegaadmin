@@ -2,16 +2,16 @@
 
 namespace App\Domain\Product\Events;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Product\DTO\ProductDTO;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
  * Domain event fired when a product is set as default.
- * 
+ *
  * Triggered by:
  * - ProductService::createProduct() when first product is automatically set as default
  * - ProductService::setDefaultProduct() when explicitly setting product as default
- * 
+ *
  * Used for:
  * - Audit logging
  * - User preference tracking
@@ -22,8 +22,6 @@ class ProductSetAsDefault implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -41,7 +39,7 @@ class ProductSetAsDefault implements DomainEvent
         private readonly ?ProductDTO $previousDefault = null,
         ?int $userId = null,
         private readonly array $metadata = [],
-        string $changeType = 'general'
+        string $changeType = 'general',
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
@@ -49,13 +47,13 @@ class ProductSetAsDefault implements DomainEvent
         $this->eventId = uniqid('user_', true);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
         return static::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
@@ -95,7 +93,7 @@ class ProductSetAsDefault implements DomainEvent
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

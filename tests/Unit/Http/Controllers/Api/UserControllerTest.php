@@ -2,12 +2,12 @@
 
 namespace Tests\Unit\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\UserController;
 use App\Application\User\Contracts\UserApplicationServiceInterface;
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
-use App\Models\User;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +29,7 @@ class UserControllerTest extends TestCase
     #[Test]
     public function controller_extends_base_controller(): void
     {
-        $this->assertInstanceOf(\App\Http\Controllers\Controller::class, $this->controller);
+        $this->assertInstanceOf(Controller::class, $this->controller);
     }
 
     #[Test]
@@ -56,10 +56,10 @@ class UserControllerTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->controller);
         $method = $reflection->getMethod('getUserAdmin');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertEquals(1, $method->getNumberOfParameters());
-        
+
         $parameters = $method->getParameters();
         $this->assertEquals('id', $parameters[0]->getName());
     }
@@ -75,7 +75,7 @@ class UserControllerTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->controller);
         $method = $reflection->getMethod('getUsersAdmin');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertEquals(0, $method->getNumberOfParameters());
     }
@@ -91,15 +91,15 @@ class UserControllerTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->controller);
         $method = $reflection->getMethod('searchUsersAdmin');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertEquals(1, $method->getNumberOfParameters());
-        
+
         $parameters = $method->getParameters();
         $this->assertEquals('request', $parameters[0]->getName());
         $paramType = $parameters[0]->getType();
         $this->assertNotNull($paramType);
-        $resolvedName = method_exists($paramType,'getName') ? $paramType->getName() : (string)$paramType;
+        $resolvedName = method_exists($paramType, 'getName') ? $paramType->getName() : (string) $paramType;
         $this->assertEquals(Request::class, $resolvedName);
     }
 
@@ -109,32 +109,10 @@ class UserControllerTest extends TestCase
         $reflection = new \ReflectionClass($this->controller);
         $method = $reflection->getMethod('searchUsersAdmin');
         $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $resolvedReturn = method_exists($returnType,'getName') ? $returnType->getName() : (string)$returnType;
-        $this->assertEquals(JsonResponse::class, $resolvedReturn);
-    }
 
-    #[Test]
-    public function controller_methods_are_properly_documented(): void
-    {
-        $reflection = new \ReflectionClass($this->controller);
-        
-        // Check getUserAdmin method documentation
-        $getUserAdminMethod = $reflection->getMethod('getUserAdmin');
-        $docComment = $getUserAdminMethod->getDocComment();
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param', $docComment);
-        $this->assertStringContainsString('@return', $docComment);
-        
-        // Check searchUsersAdmin method documentation
-        $searchMethod = $reflection->getMethod('searchUsersAdmin');
-        $docComment = $searchMethod->getDocComment();
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param', $docComment);
-        $this->assertStringContainsString('@return', $docComment);
-        $this->assertStringContainsString('Request', $docComment);
-        $this->assertStringContainsString('JsonResponse', $docComment);
+        $this->assertNotNull($returnType);
+        $resolvedReturn = method_exists($returnType, 'getName') ? $returnType->getName() : (string) $returnType;
+        $this->assertEquals(JsonResponse::class, $resolvedReturn);
     }
 
     #[Test]
@@ -164,19 +142,19 @@ class UserControllerTest extends TestCase
         // First param: UserApplicationServiceInterface
         $type0 = $params[0]->getType();
         $this->assertNotNull($type0);
-        $resolved0 = method_exists($type0,'getName') ? $type0->getName() : (string)$type0;
+        $resolved0 = method_exists($type0, 'getName') ? $type0->getName() : (string) $type0;
         $this->assertEquals(UserApplicationServiceInterface::class, $resolved0);
 
         // Second param: optional UserAuthorizationAdapterInterface with default null
         $type1 = $params[1]->getType();
         $this->assertNotNull($type1);
-        $resolved1 = method_exists($type1,'getName') ? $type1->getName() : (string)$type1;
+        $resolved1 = method_exists($type1, 'getName') ? $type1->getName() : (string) $type1;
         $this->assertEquals(UserAuthorizationAdapterInterface::class, $resolved1);
         $this->assertTrue($params[1]->isOptional());
     }
 
     #[Test]
-    public function deprecated_getUser_method_does_not_exist(): void
+    public function deprecated_get_user_method_does_not_exist(): void
     {
         $this->assertFalse(method_exists($this->controller, 'getUser'));
     }
@@ -197,7 +175,7 @@ class UserControllerTest extends TestCase
             '__construct',
             'getUserAdmin',
             'getUsersAdmin',
-            'searchUsersAdmin'
+            'searchUsersAdmin',
         ], $publicMethods);
     }
 }

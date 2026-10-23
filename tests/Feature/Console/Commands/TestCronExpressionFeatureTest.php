@@ -51,7 +51,7 @@ class TestCronExpressionFeatureTest extends TestCase
             'name' => 'Test Daily Task',
             'frequency' => 'daily',
             'run_at' => '12:30:00',
-            'command' => 'test:command'
+            'command' => 'test:command',
         ]);
 
         $this->artisan('cron:test', ['id' => $task->id])
@@ -70,7 +70,7 @@ class TestCronExpressionFeatureTest extends TestCase
             'frequency' => 'weekly',
             'run_at' => '09:15:00',
             'day_of_week' => 1, // Monday
-            'command' => 'test:command'
+            'command' => 'test:command',
         ]);
 
         $this->artisan('cron:test', ['id' => $task->id])
@@ -89,7 +89,7 @@ class TestCronExpressionFeatureTest extends TestCase
             'frequency' => 'monthly',
             'run_at' => '08:00:00',
             'day_of_month' => 15,
-            'command' => 'test:command'
+            'command' => 'test:command',
         ]);
 
         $this->artisan('cron:test', ['id' => $task->id])
@@ -107,7 +107,7 @@ class TestCronExpressionFeatureTest extends TestCase
             'name' => 'Test Custom Task',
             'frequency' => 'custom',
             'custom_expression' => '*/5 * * * *',
-            'command' => 'test:command'
+            'command' => 'test:command',
         ]);
 
         $this->artisan('cron:test', ['id' => $task->id])
@@ -133,7 +133,7 @@ class TestCronExpressionFeatureTest extends TestCase
             'name' => 'Test Task Without Time',
             'frequency' => 'daily',
             'run_at' => null,
-            'command' => 'test:command'
+            'command' => 'test:command',
         ]);
 
         $this->artisan('cron:test', ['id' => $task->id])
@@ -151,7 +151,7 @@ class TestCronExpressionFeatureTest extends TestCase
             'name' => 'Test Unknown Frequency',
             'frequency' => 'unknown',
             'run_at' => '10:30:00',
-            'command' => 'test:command'
+            'command' => 'test:command',
         ]);
 
         $this->artisan('cron:test', ['id' => $task->id])
@@ -178,7 +178,7 @@ class TestCronExpressionFeatureTest extends TestCase
             'name' => 'Test Simulation',
             'frequency' => 'daily',
             'run_at' => '12:00:00',
-            'command' => 'list' // Use an existing artisan command
+            'command' => 'list', // Use an existing artisan command
         ]);
 
         $this->artisan('cron:test', ['id' => $task->id])
@@ -194,7 +194,7 @@ class TestCronExpressionFeatureTest extends TestCase
             'name' => 'Test No Simulation',
             'frequency' => 'daily',
             'run_at' => '12:00:00',
-            'command' => 'list'
+            'command' => 'list',
         ]);
 
         $this->artisan('cron:test', ['id' => $task->id])

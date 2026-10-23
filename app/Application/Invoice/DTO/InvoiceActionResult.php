@@ -17,7 +17,7 @@ class InvoiceActionResult
         /** Generic associative payload for arbitrary data (limits, extra context). */
         public readonly ?array $data = null,
         /** Mutated / affected invoice when relevant. */
-        public readonly Invoice|null $invoice = null,
+        public readonly ?Invoice $invoice = null,
         /** PDF response when action generates a PDF. */
         public readonly ?Response $response = null,
         /** Underlying error (not exposed to end-user, for logging/inspection in tests). */
@@ -25,15 +25,35 @@ class InvoiceActionResult
     ) {}
 
     /** Success factory */
-    public static function success(string|null $message = null, array|null $data = null, Invoice|null $invoice = null, Response|null $response = null): self
-    {
-        return new self(InvoiceActionStatus::SUCCESS, $message, $data, $invoice, $response);
+    public static function success(
+        ?string $message = null,
+        ?array $data = null,
+        ?Invoice $invoice = null,
+        ?Response $response = null,
+    ): self {
+        return new self(
+            InvoiceActionStatus::SUCCESS,
+            $message,
+            $data,
+            $invoice,
+            $response,
+        );
     }
 
     /** Failure factory */
-    public static function failure(?string $message = null, ?\Throwable $error = null, ?array $data = null): self
-    {
-        return new self(InvoiceActionStatus::FAILURE, $message, $data, null, null, $error);
+    public static function failure(
+        ?string $message = null,
+        ?\Throwable $error = null,
+        ?array $data = null,
+    ): self {
+        return new self(
+            InvoiceActionStatus::FAILURE,
+            $message,
+            $data,
+            null,
+            null,
+            $error,
+        );
     }
 
     public function isSuccess(): bool

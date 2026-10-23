@@ -3,6 +3,7 @@
 namespace Tests\Feature\Models;
 
 use App\Models\DatabaseHealthMetric;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,7 +18,7 @@ use Tests\Traits\RequiresOptimizationTables;
  */
 class DatabaseHealthMetricFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, RequiresOptimizationTables;
+    use RefreshDatabase, RequiresOptimizationTables, WithFaker;
 
     #[Test]
     public function can_create_database_health_metric_with_factory(): void
@@ -66,7 +67,7 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         $this->assertIsString($metric->metric_value); // Decimal cast returns string
         $this->assertEquals('123.4567', $metric->metric_value);
-        $this->assertInstanceOf(\Carbon\Carbon::class, $metric->measured_at);
+        $this->assertInstanceOf(Carbon::class, $metric->measured_at);
         $this->assertEquals('2025-06-18 15:30:45', $metric->measured_at->format('Y-m-d H:i:s'));
     }
 
@@ -99,7 +100,7 @@ class DatabaseHealthMetricFeatureTest extends TestCase
         $this->assertStringContainsString('Critical', $criticalMetric->getStatusBadgeAttribute());
 
         // Test unknown status by creating a metric and manually setting invalid status
-        $unknownMetric = new DatabaseHealthMetric();
+        $unknownMetric = new DatabaseHealthMetric;
         $unknownMetric->status = 'unknown'; // This won't be saved, just for testing accessor
         $this->assertStringContainsString('text-bg-light', $unknownMetric->getStatusBadgeAttribute());
         $this->assertStringContainsString('Unknown', $unknownMetric->getStatusBadgeAttribute());
@@ -277,7 +278,7 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         $this->assertDatabaseHas('database_health_metrics', array_merge(
             ['id' => $metric->id],
-            $newData
+            $newData,
         ));
     }
 

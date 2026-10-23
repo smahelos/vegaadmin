@@ -13,7 +13,7 @@ class RefreshBackpackSessionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RefreshBackpackSession();
+        $this->middleware = new RefreshBackpackSession;
     }
 
     #[Test]

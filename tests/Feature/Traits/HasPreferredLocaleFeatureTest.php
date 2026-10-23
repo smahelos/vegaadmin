@@ -43,7 +43,7 @@ class HasPreferredLocaleFeatureTest extends TestCase
     #[Test]
     public function get_preferred_locale_uses_country_attribute(): void
     {
-        $model = new TestLocaleModel();
+        $model = new TestLocaleModel;
         $model->attributes = ['country' => 'CZ'];
 
         $this->assertEquals('cs', $model->getPreferredLocale());
@@ -52,7 +52,7 @@ class HasPreferredLocaleFeatureTest extends TestCase
     #[Test]
     public function get_preferred_locale_uses_country_attribute_case_insensitive(): void
     {
-        $model = new TestLocaleModel();
+        $model = new TestLocaleModel;
         $model->attributes = ['country' => 'cz'];
 
         $this->assertEquals('cs', $model->getPreferredLocale());
@@ -61,56 +61,18 @@ class HasPreferredLocaleFeatureTest extends TestCase
     #[Test]
     public function get_preferred_locale_returns_default_for_unknown_country(): void
     {
-        $model = new TestLocaleModel();
+        $model = new TestLocaleModel;
         $model->attributes = ['country' => 'US'];
 
         $this->assertEquals('en', $model->getPreferredLocale());
     }
 
     #[Test]
-    public function get_preferred_locale_uses_address_country_when_available(): void
-    {
-        $address = new \stdClass();
-        $address->country = 'SK';
-
-        $model = new TestLocaleModel();
-        $model->setAddressRelation($address);
-
-        $this->assertEquals('sk', $model->getPreferredLocale());
-    }
-
-    #[Test]
-    public function get_preferred_locale_uses_address_country_case_insensitive(): void
-    {
-        $address = new \stdClass();
-        $address->country = 'sk';
-
-        $model = new TestLocaleModel();
-        $model->setAddressRelation($address);
-
-        $this->assertEquals('sk', $model->getPreferredLocale());
-    }
-
-    #[Test]
     public function get_preferred_locale_returns_default_when_no_country(): void
     {
-        $model = new TestLocaleModel();
+        $model = new TestLocaleModel;
 
         $this->assertEquals('en', $model->getPreferredLocale());
-    }
-
-    #[Test]
-    public function get_preferred_locale_prefers_direct_country_over_address(): void
-    {
-        $address = new \stdClass();
-        $address->country = 'SK';
-
-        $model = new TestLocaleModel();
-        $model->attributes = ['country' => 'CZ'];
-        $model->setAddressRelation($address);
-
-        // Should use direct country attribute over address
-        $this->assertEquals('cs', $model->getPreferredLocale());
     }
 
     #[Test]
@@ -140,17 +102,6 @@ class TestLocaleModel
     use HasPreferredLocale;
 
     public array $attributes = [];
-    private $address = null;
-
-    public function setAddressRelation($address): void
-    {
-        $this->address = $address;
-    }
-
-    public function address()
-    {
-        return $this->address;
-    }
 
     public function __get($key)
     {

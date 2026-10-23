@@ -4,50 +4,44 @@ namespace Tests\Feature\Http\Controllers\Frontend\Auth;
 
 use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Requests\RegistrationRequest;
-use App\Models\User;
+use App\Infrastructure\Forms\User\UserFormFields;
 use App\Models\Supplier;
-use App\Domain\Payment\Services\BankService;
-use App\Domain\Shared\Geography\Services\CountryService;
-use App\Domain\User\Services\LocaleService;
+use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use PHPUnit\Framework\Attributes\Test;
 
 class RegisterControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
     protected string $validEmail;
+
     protected string $validPassword;
+
     protected array $validUserData;
 
     /**
      * Helper method to generate locale-based routes.
-     *
-     * @param string $name
-     * @param array $parameters
-     * @param string $locale
-     * @return string
      */
-    private function localizedRoute(string $name, array $parameters = [], string $locale = 'en'): string
-    {
+    private function localizedRoute(
+        string $name,
+        array $parameters = [],
+        string $locale = 'en',
+    ): string {
         return route($name, array_merge(['locale' => $locale], $parameters));
     }
 
     /**
      * Set up the test environment before each test.
      * Creates permissions, roles, and valid test data for registration testing.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -92,7 +86,13 @@ class RegisterControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('auth.register');
-        $response->assertViewHas(['userFields', 'passwordFields', 'banks', 'banksData', 'countries']);
+        $response->assertViewHas([
+            'userFields',
+            'passwordFields',
+            'banks',
+            'banksData',
+            'countries',
+        ]);
     }
 
     /**
@@ -181,7 +181,11 @@ class RegisterControllerTest extends TestCase
 
         $response = $this->post('/en/register', $invalidData);
 
-        $response->assertSessionHasErrors(['name', 'email', 'password']);
+        $response->assertSessionHasErrors([
+            'name',
+            'email',
+            'password',
+        ]);
         $this->assertFalse(Auth::check());
     }
 
@@ -407,7 +411,7 @@ class RegisterControllerTest extends TestCase
         $targetUrl = $response->getTargetUrl();
         $this->assertTrue(
             str_contains($targetUrl, '/en/') || str_ends_with($targetUrl, '/en'),
-            'Redirect URL should contain locale in path format, got: ' . $targetUrl
+            'Redirect URL should contain locale in path format, got: ' . $targetUrl,
         );
     }
 
@@ -484,6 +488,6 @@ class RegisterControllerTest extends TestCase
     {
         $traits = class_uses(RegisterController::class);
 
-        $this->assertContains(\App\Infrastructure\Forms\User\UserFormFields::class, $traits);
+        $this->assertContains(UserFormFields::class, $traits);
     }
 }

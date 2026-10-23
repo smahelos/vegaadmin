@@ -2,12 +2,12 @@
 
 namespace App\Providers;
 
-use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use App\Domain\User\Events\UserDataChanged;
 use App\Domain\Shared\Events\FormDataChanged;
-use App\Domain\User\Listeners\InvalidateUserCache;
 use App\Domain\Shared\Listeners\InvalidateFormDataCache;
+use App\Domain\User\Events\UserDataChanged;
+use App\Domain\User\Listeners\InvalidateUserCache;
 use App\Infrastructure\Authorization\Listeners\UELSPermissionChangeListener;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Spatie\Permission\Events\PermissionAttached;
 use Spatie\Permission\Events\PermissionDetached;
 use Spatie\Permission\Events\RoleAttached;
@@ -47,8 +47,8 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-    parent::boot();
-    // Model observers are registered in the bounded context providers (ADR D-042).
+        parent::boot();
+        // Model observers are registered in the bounded context providers (ADR D-042).
     }
 
     /**

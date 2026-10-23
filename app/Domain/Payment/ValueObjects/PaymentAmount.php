@@ -2,6 +2,7 @@
 
 namespace App\Domain\Payment\ValueObjects;
 
+use App\Domain\Shared\Money\ValueObjects\Money;
 use InvalidArgumentException;
 
 /**
@@ -10,6 +11,7 @@ use InvalidArgumentException;
 class PaymentAmount
 {
     private float $amount;
+
     private string $currency;
 
     // Limits delegated to PaymentAmountLimits helper for single source of truth.
@@ -30,17 +32,24 @@ class PaymentAmount
     public static function fromString(string $amountString, string $currency): self
     {
         $amount = floatval($amountString);
+
         return new self($amount, $currency);
     }
 
     /**
      * Create PaymentAmount from Money VO (validates 2-decimal constraint and limits).
      */
-    public static function fromMoney(\App\Domain\Shared\Money\ValueObjects\Money $money): self
+    public static function fromMoney(Money $money): self
     {
         $currency = $money->getCurrency();
         // Force 2 decimal monetary semantic for payments.
-        $float = (float) number_format((float)$money->getAmount(), 2, '.', '');
+        $float = (float) number_format(
+            (float) $money->getAmount(),
+            2,
+            '.',
+            '',
+        );
+
         return new self($float, $currency);
     }
 
@@ -65,7 +74,12 @@ class PaymentAmount
      */
     public function getFormattedAmount(): string
     {
-        return number_format($this->amount, 2, '.', '');
+        return number_format(
+            $this->amount,
+            2,
+            '.',
+            '',
+        );
     }
 
     /**
@@ -91,7 +105,7 @@ class PaymentAmount
     {
         if ($this->currency !== $other->currency) {
             throw new InvalidArgumentException(
-                "Cannot add amounts with different currencies: {$this->currency} vs {$other->currency}"
+                "Cannot add amounts with different currencies: {$this->currency} vs {$other->currency}",
             );
         }
 
@@ -105,7 +119,7 @@ class PaymentAmount
     {
         if ($this->currency !== $other->currency) {
             throw new InvalidArgumentException(
-                "Cannot subtract amounts with different currencies: {$this->currency} vs {$other->currency}"
+                "Cannot subtract amounts with different currencies: {$this->currency} vs {$other->currency}",
             );
         }
 
@@ -117,7 +131,7 @@ class PaymentAmount
      */
     public function equals(PaymentAmount $other): bool
     {
-        return $this->currency === $other->currency && 
+        return $this->currency === $other->currency &&
                abs($this->amount - $other->amount) < 0.001;
     }
 
@@ -128,7 +142,7 @@ class PaymentAmount
     {
         if ($this->currency !== $other->currency) {
             throw new InvalidArgumentException(
-                "Cannot compare amounts with different currencies: {$this->currency} vs {$other->currency}"
+                "Cannot compare amounts with different currencies: {$this->currency} vs {$other->currency}",
             );
         }
 
@@ -150,7 +164,7 @@ class PaymentAmount
     {
         if ($amount < PaymentAmountLimits::minAmount()) {
             throw new InvalidArgumentException(
-        "Payment amount must be at least " . PaymentAmountLimits::minAmount() . ", got: {$amount}"
+                'Payment amount must be at least ' . PaymentAmountLimits::minAmount() . ", got: {$amount}",
             );
         }
     }
@@ -161,7 +175,7 @@ class PaymentAmount
     private function validateCurrency(string $currency): void
     {
         $currency = strtoupper($currency);
-        if (!PaymentAmountLimits::isSupported($currency)) {
+        if (! PaymentAmountLimits::isSupported($currency)) {
             throw new InvalidArgumentException("Unsupported currency: {$currency}");
         }
     }
@@ -173,10 +187,10 @@ class PaymentAmount
     {
         $currency = strtoupper($currency);
         $maxAmount = PaymentAmountLimits::maxFor($currency);
-        
+
         if ($amount > $maxAmount) {
             throw new InvalidArgumentException(
-                "Amount {$amount} {$currency} exceeds maximum limit of {$maxAmount} {$currency}"
+                "Amount {$amount} {$currency} exceeds maximum limit of {$maxAmount} {$currency}",
             );
         }
     }

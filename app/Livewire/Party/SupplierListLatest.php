@@ -4,15 +4,18 @@ namespace App\Livewire\Party;
 
 use App\Livewire\Shared\Paginates;
 use App\Models\Supplier;
-use Livewire\Component;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class SupplierListLatest extends Component
 {
     use Paginates;
 
     public bool $orderAsc = false;
+
     public string $orderBy = 'created_at';
+
     public ?string $errorMessage = null;
 
     /**
@@ -21,7 +24,7 @@ class SupplierListLatest extends Component
     public function sortBy(string $field): void
     {
         if ($this->orderBy === $field) {
-            $this->orderAsc = !$this->orderAsc;
+            $this->orderAsc = ! $this->orderAsc;
         } else {
             $this->orderBy = $field;
             $this->orderAsc = true;
@@ -30,7 +33,7 @@ class SupplierListLatest extends Component
         $this->resetPage();
     }
 
-    public function render(): \Illuminate\Contracts\View\View
+    public function render(): View
     {
         try {
             $query = Supplier::where('user_id', Auth::id());
@@ -44,6 +47,7 @@ class SupplierListLatest extends Component
             ]);
         } catch (\Exception $e) {
             $this->errorMessage = 'Error while loading suppliers.';
+
             return view('livewire.party.supplier-list-latest', [
                 'suppliers' => collect(),
                 'hasData' => false,

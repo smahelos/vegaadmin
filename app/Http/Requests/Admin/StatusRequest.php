@@ -3,15 +3,13 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class StatusRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -21,8 +19,6 @@ class StatusRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -31,9 +27,15 @@ class StatusRequest extends FormRequest
         if ($id) {
             $slugRule = $slugRule->ignore($id);
         }
+
         return [
             'name' => 'required|string|max:255',
-            'slug' => ['required','string','max:255', $slugRule],
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                $slugRule,
+            ],
             'category_id' => 'required|exists:status_categories,id',
             'color' => 'nullable|string|max:255',
             'description' => 'nullable|string',
@@ -43,8 +45,6 @@ class StatusRequest extends FormRequest
 
     /**
      * Get custom attributes for validator errors
-     *
-     * @return array
      */
     public function attributes(): array
     {
@@ -60,8 +60,6 @@ class StatusRequest extends FormRequest
 
     /**
      * Prepare the data for validation.
-     *
-     * @return void
      */
     protected function prepareForValidation(): void
     {

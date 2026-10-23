@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Domain\Shared\Status\ValueObjects\StatusCode;
+use App\Models\ArtisanCommandCategory;
 use App\Models\Status;
 use App\Models\StatusCategory;
-use App\Models\ArtisanCommandCategory;
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\Domain\Shared\Status\ValueObjects\StatusCode;
 
 class TestingDatabaseSeeder extends Seeder
 {
@@ -86,7 +86,7 @@ class TestingDatabaseSeeder extends Seeder
             'can_view_invoice',
             'can_view_product',
             'can_view_supplier',
-            'can_view_user'
+            'can_view_user',
         ]);
 
         // Frontend user role (web) - basic frontend access
@@ -105,7 +105,7 @@ class TestingDatabaseSeeder extends Seeder
             'frontend.can_view_client',
             'frontend.can_view_invoice',
             'frontend.can_view_product',
-            'frontend.can_view_supplier'
+            'frontend.can_view_supplier',
         ]);
 
         // Frontend user plus role (web) - enhanced frontend access
@@ -133,7 +133,7 @@ class TestingDatabaseSeeder extends Seeder
             'frontend.can_view_invoice',
             'frontend.can_view_product',
             'frontend.can_view_subscription',
-            'frontend.can_view_supplier'
+            'frontend.can_view_supplier',
         ]);
     }
 
@@ -148,8 +148,8 @@ class TestingDatabaseSeeder extends Seeder
             [
                 'name' => 'Test Admin User',
                 'password' => Hash::make('password'),
-                'email_verified_at' => now()
-            ]
+                'email_verified_at' => now(),
+            ],
         );
 
         // Clear ALL existing roles and permissions for admin user first!
@@ -162,15 +162,14 @@ class TestingDatabaseSeeder extends Seeder
             $admin->assignRole($adminRole);
         }
 
-
         // Create backend user
         $backendUser = User::firstOrCreate(
             ['email' => 'test-backend@example.com'],
             [
                 'name' => 'Test Backend User',
                 'password' => Hash::make('password'),
-                'email_verified_at' => now()
-            ]
+                'email_verified_at' => now(),
+            ],
         );
         // Clear ALL existing roles and permissions for backend user first!
         $backendUser->roles()->detach();
@@ -188,8 +187,8 @@ class TestingDatabaseSeeder extends Seeder
             [
                 'name' => 'Test Frontend User',
                 'password' => Hash::make('password'),
-                'email_verified_at' => now()
-            ]
+                'email_verified_at' => now(),
+            ],
         );
         $frontendUser->assignRole('frontend_user');
 
@@ -199,8 +198,8 @@ class TestingDatabaseSeeder extends Seeder
             [
                 'name' => 'Test Frontend Plus User',
                 'password' => Hash::make('password'),
-                'email_verified_at' => now()
-            ]
+                'email_verified_at' => now(),
+            ],
         );
         $frontendPlusUser->assignRole('frontend_user_plus');
     }
@@ -209,20 +208,20 @@ class TestingDatabaseSeeder extends Seeder
     {
         // Ensure invoice payment status category exists
         $category = StatusCategory::firstOrCreate([
-            'slug' => 'invoice-payment'
+            'slug' => 'invoice-payment',
         ], [
             'name' => 'Invoice Payment Status',
-            'description' => 'Payment status for invoices'
+            'description' => 'Payment status for invoices',
         ]);
 
         // Seed all enum-defined system statuses (required ones)
         foreach (StatusCode::cases() as $case) {
             Status::firstOrCreate([
                 'slug' => $case->value,
-                'category_id' => $category->id
+                'category_id' => $category->id,
             ], [
                 'name' => $case->label(),
-                'description' => $case->label() . ' system status'
+                'description' => $case->label() . ' system status',
             ]);
         }
     }
@@ -233,9 +232,24 @@ class TestingDatabaseSeeder extends Seeder
         DB::table('archive_policies')->delete();
 
         $policies = [
-            ['table_name' => 'invoices', 'enabled' => true, 'retention_months' => 24, 'date_column' => 'created_at'],
-            ['table_name' => 'clients', 'enabled' => true, 'retention_months' => 36, 'date_column' => 'created_at'],
-            ['table_name' => 'suppliers', 'enabled' => true, 'retention_months' => 36, 'date_column' => 'created_at'],
+            [
+                'table_name' => 'invoices',
+                'enabled' => true,
+                'retention_months' => 24,
+                'date_column' => 'created_at',
+            ],
+            [
+                'table_name' => 'clients',
+                'enabled' => true,
+                'retention_months' => 36,
+                'date_column' => 'created_at',
+            ],
+            [
+                'table_name' => 'suppliers',
+                'enabled' => true,
+                'retention_months' => 36,
+                'date_column' => 'created_at',
+            ],
         ];
 
         foreach ($policies as $policy) {
@@ -243,8 +257,8 @@ class TestingDatabaseSeeder extends Seeder
                 ['table_name' => $policy['table_name']],
                 array_merge($policy, [
                     'created_at' => now(),
-                    'updated_at' => now()
-                ])
+                    'updated_at' => now(),
+                ]),
             );
         }
     }
@@ -254,7 +268,7 @@ class TestingDatabaseSeeder extends Seeder
         // Create a test category if needed
         ArtisanCommandCategory::firstOrCreate([
             'name' => 'General',
-            'slug' => 'general'
+            'slug' => 'general',
         ]);
     }
 }

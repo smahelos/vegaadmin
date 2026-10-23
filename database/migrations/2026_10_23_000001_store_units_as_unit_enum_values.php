@@ -29,8 +29,17 @@ return new class extends Migration
     ];
 
     private const UNITS = [
-        'pieces', 'hours', 'days', 'kilograms', 'grams', 'liters', 'milliliters',
-        'meters', 'centimeters', 'cubic_meters', 'cubic_centimeters',
+        'pieces',
+        'hours',
+        'days',
+        'kilograms',
+        'grams',
+        'liters',
+        'milliliters',
+        'meters',
+        'centimeters',
+        'cubic_meters',
+        'cubic_centimeters',
     ];
 
     public function up(): void

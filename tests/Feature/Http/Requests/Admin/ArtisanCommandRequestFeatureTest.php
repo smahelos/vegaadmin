@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 use App\Http\Requests\Admin\ArtisanCommandRequest;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
@@ -15,10 +14,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class ArtisanCommandRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesAdminTestEnvironment;
-
-    protected User $adminUser;
-    protected User $regularUser;
+    use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
 
     protected function setUp(): void
     {
@@ -41,7 +37,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'sort_order' => 1,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -52,7 +48,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     {
         $invalidData = [];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -72,7 +68,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'category_id' => $category->id,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -90,7 +86,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'category_id' => $category->id,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -109,7 +105,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'category_id' => $category->id,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -129,7 +125,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'id' => $command->id,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $request->merge(['id' => $command->id]);
 
         $validator = Validator::make($validData, $request->rules());
@@ -146,7 +142,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'category_id' => 99999, // Non-existent
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -164,7 +160,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'category_id' => $category->id,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -183,7 +179,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'parameters_description' => null,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -201,7 +197,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'is_active' => 'invalid',
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -227,7 +223,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'is_active' => false,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
 
         $validator1 = Validator::make($validData1, $request->rules());
         $validator2 = Validator::make($validData2, $request->rules());
@@ -248,7 +244,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'sort_order' => -1,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -267,7 +263,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
             'sort_order' => 100,
         ];
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -278,21 +274,21 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $this->assertTrue($request->authorize());
     }
 
     #[Test]
     public function authorization_fails_when_not_authenticated()
     {
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $this->assertFalse($request->authorize());
     }
 
     #[Test]
     public function request_has_custom_attributes()
     {
-        $request = new ArtisanCommandRequest();
+        $request = new ArtisanCommandRequest;
         $attributes = $request->attributes();
 
         $this->assertIsArray($attributes);

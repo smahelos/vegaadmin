@@ -19,12 +19,13 @@ class GoPayGatewayBehaviorTest extends TestCase
     use RefreshDatabaseWithData;
 
     private RealGoPayGateway $gateway;
+
     private StubPayments $stub;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->stub = new StubPayments();
+        $this->stub = new StubPayments;
         $this->gateway = new RealGoPayGateway($this->stub);
     }
 
@@ -41,6 +42,7 @@ class GoPayGatewayBehaviorTest extends TestCase
             'is_active' => true,
             'trial_days' => 0,
         ]);
+
         return Subscription::create([
             'user_id' => $user->id,
             'subscription_plan_id' => $plan->id,

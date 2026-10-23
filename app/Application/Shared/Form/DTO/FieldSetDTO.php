@@ -10,7 +10,7 @@ class FieldSetDTO
 {
     /** @param FieldDTO[] $fields */
     public function __construct(
-        private array $fields
+        private array $fields,
     ) {}
 
     /**
@@ -23,11 +23,12 @@ class FieldSetDTO
 
     /**
      * Convert all fields to array form for existing blade expectations.
+     *
      * @return array<int,array<string,mixed>>
      */
     public function toArray(): array
     {
-        return array_map(static fn(FieldDTO $f) => $f->toArray(), $this->fields);
+        return array_map(static fn (FieldDTO $f) => $f->toArray(), $this->fields);
     }
 
     /**
@@ -40,6 +41,7 @@ class FieldSetDTO
                 return $field;
             }
         }
+
         return null;
     }
 }

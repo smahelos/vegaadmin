@@ -29,7 +29,7 @@ enum StatusCode: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::APPROVED => 'Approved',
             self::CANCELLED => 'Cancelled',
             self::CANCELLED_EXPENSE => 'Cancelled Expense',
@@ -53,7 +53,7 @@ enum StatusCode: string
      */
     public static function allSlugs(): array
     {
-        return array_map(static fn(self $c) => $c->value, self::cases());
+        return array_map(static fn (self $c) => $c->value, self::cases());
     }
 
     /**

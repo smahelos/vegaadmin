@@ -2,15 +2,15 @@
 
 namespace App\Domain\Product\Events;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Product\DTO\ProductDTO;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
  * Domain event fired when a product is deleted.
- * 
+ *
  * Triggered by:
  * - ProductService::deleteProduct() when deleting product
- * 
+ *
  * Used for:
  * - Audit logging
  * - Cleanup operations
@@ -21,8 +21,6 @@ class ProductDeleted implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -39,7 +37,7 @@ class ProductDeleted implements DomainEvent
         private readonly ProductDTO $product,
         ?int $userId = null,
         private readonly array $metadata = [],
-        string $changeType = 'general'
+        string $changeType = 'general',
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
@@ -77,19 +75,19 @@ class ProductDeleted implements DomainEvent
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
         return static::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

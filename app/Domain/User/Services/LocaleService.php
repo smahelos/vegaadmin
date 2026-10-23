@@ -2,18 +2,16 @@
 
 namespace App\Domain\User\Services;
 
-use App\Domain\User\Contracts\LocaleServiceInterface;
-use App\Domain\User\Contracts\Locale;
 use App\Domain\Shared\Session\Contracts\SessionInterface;
+use App\Domain\User\Contracts\Locale;
+use App\Domain\User\Contracts\LocaleServiceInterface;
 
 class LocaleService implements LocaleServiceInterface
 {
     public function __construct(
         private readonly SessionInterface $session,
-        private readonly Locale $locale
-    )
-    {
-    }
+        private readonly Locale $locale,
+    ) {}
 
     /**
      * Get available locales from config.
@@ -30,9 +28,8 @@ class LocaleService implements LocaleServiceInterface
      *
      * Priority: request -> data -> session -> fallback.
      *
-     * @param string|null $requestLocale Locale from request
-     * @param string|null $dataLocale Locale from stored data (e.g. cached invoice)
-     * @return string
+     * @param  string|null  $requestLocale  Locale from request
+     * @param  string|null  $dataLocale  Locale from stored data (e.g. cached invoice)
      */
     public function determineLocale(?string $requestLocale = null, ?string $dataLocale = null): string
     {
@@ -46,11 +43,12 @@ class LocaleService implements LocaleServiceInterface
     public function localeFromCountry(?string $country): string
     {
         $fallback = $this->locale->getFallbackLocale();
-        if (!$country) {
+        if (! $country) {
             return $fallback;
         }
         $map = $this->locale->getCountryLocaleMap();
         $code = strtoupper($country);
+
         return $map[$code] ?? $fallback;
     }
 
@@ -58,16 +56,20 @@ class LocaleService implements LocaleServiceInterface
      * Set application locale and update session.
      * Falls back to configured fallback locale when invalid.
      *
-     * @param string $locale Locale to set
-     * @return void
+     * @param  string  $locale  Locale to set
      */
     public function setLocale(string $locale): void
     {
         $availableLocales = $this->getAvailableLocales();
 
-        if (in_array($locale, $availableLocales, true)) {
+        if (in_array(
+            $locale,
+            $availableLocales,
+            true,
+        )) {
             $this->locale->setLocale($locale);
             $this->session->put('locale', $locale);
+
             return;
         }
 

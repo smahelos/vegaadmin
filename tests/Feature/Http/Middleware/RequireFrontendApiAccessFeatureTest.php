@@ -6,9 +6,9 @@ use App\Http\Middleware\RequireFrontendApiAccess;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RequireFrontendApiAccessFeatureTest extends TestCase
@@ -20,7 +20,7 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RequireFrontendApiAccess();
+        $this->middleware = new RequireFrontendApiAccess;
         Permission::firstOrCreate(['name' => 'frontend.api.access', 'guard_name' => 'web']);
         $role = Role::firstOrCreate(['name' => 'frontend_user', 'guard_name' => 'web']);
         $role->givePermissionTo('frontend.api.access');
@@ -29,11 +29,18 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
     #[Test]
     public function unauthenticated_json_request_gets_401(): void
     {
-        $request = Request::create('/api/frontend/resource', 'GET', [], [], [], [
-            'HTTP_ACCEPT' => 'application/json',
-            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'
-        ]);
-        $response = $this->middleware->handle($request, fn() => response('OK'));
+        $request = Request::create(
+            '/api/frontend/resource',
+            'GET',
+            [],
+            [],
+            [],
+            [
+                'HTTP_ACCEPT' => 'application/json',
+                'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+            ],
+        );
+        $response = $this->middleware->handle($request, fn () => response('OK'));
         $this->assertEquals(401, $response->getStatusCode());
         $json = json_decode($response->getContent(), true);
         $this->assertEquals(401, $json['code']);
@@ -44,11 +51,18 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
-        $request = Request::create('/api/frontend/resource', 'GET', [], [], [], [
-            'HTTP_ACCEPT' => 'application/json',
-            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'
-        ]);
-        $response = $this->middleware->handle($request, fn() => response('OK'));
+        $request = Request::create(
+            '/api/frontend/resource',
+            'GET',
+            [],
+            [],
+            [],
+            [
+                'HTTP_ACCEPT' => 'application/json',
+                'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
+            ],
+        );
+        $response = $this->middleware->handle($request, fn () => response('OK'));
         $this->assertEquals(403, $response->getStatusCode());
     }
 
@@ -61,7 +75,11 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
         $this->actingAs($user, 'web');
         $request = Request::create('/api/frontend/resource');
         $passed = false;
-        $this->middleware->handle($request, function () use (&$passed) { $passed = true; return response('OK'); });
+        $this->middleware->handle($request, function () use (&$passed) {
+            $passed = true;
+
+            return response('OK');
+        });
         $this->assertTrue($passed);
     }
 }

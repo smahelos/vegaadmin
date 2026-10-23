@@ -2,7 +2,6 @@
 
 namespace App\Domain\Shared\File\Config;
 
-
 /**
  * High-level configuration accessor & merger for file upload contexts.
  */
@@ -22,12 +21,13 @@ class FileUploadConfig
         $override = $context && isset($contexts[$context]) ? $contexts[$context] : [];
 
         $merged = $this->deepMerge($default, $override);
+
         return new FileUploadContextConfig(
-            max(1, (int)($merged['max_kb'] ?? 10240)),
-            array_values(array_unique(array_map('strtolower', (array)($merged['allowed_extensions'] ?? [])))),
-            array_values(array_unique((array)($merged['allowed_mime_groups'] ?? []))),
-            (array)($merged['thumbnail'] ?? []),
-            (bool)($merged['hash_deduplication']['enabled'] ?? false)
+            max(1, (int) ($merged['max_kb'] ?? 10240)),
+            array_values(array_unique(array_map('strtolower', (array) ($merged['allowed_extensions'] ?? [])))),
+            array_values(array_unique((array) ($merged['allowed_mime_groups'] ?? []))),
+            (array) ($merged['thumbnail'] ?? []),
+            (bool) ($merged['hash_deduplication']['enabled'] ?? false),
         );
     }
 
@@ -45,12 +45,16 @@ class FileUploadConfig
                 $base[$k] = $v;
             }
         }
+
         return $base;
     }
 
     private function isListArray(array $arr): bool
     {
-        if ($arr === []) { return true; }
+        if ($arr === []) {
+            return true;
+        }
+
         return array_keys($arr) === range(0, count($arr) - 1);
     }
 }

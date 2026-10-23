@@ -5,24 +5,29 @@ namespace App\Infrastructure\Authorization\Services;
 use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Illuminate\Support\Str;
 
 /**
  * Infrastructure service that configures Backpack CRUD access using Spatie permissions.
  */
 class CrudAccessService implements CrudAccessServiceInterface
 {
-    public function __construct(private readonly UserAuthorizationAdapterInterface $auth)
-    {
-    }
+    public function __construct(private readonly UserAuthorizationAdapterInterface $auth) {}
 
     public function configureCrudAccess(CrudPanel $crud, int $userId): void
     {
         // Default deny
-        $crud->denyAccess(['list', 'show', 'create', 'update', 'delete']);
+        $crud->denyAccess([
+            'list',
+            'show',
+            'create',
+            'update',
+            'delete',
+        ]);
 
         $table = $crud->getModel()->getTable();
         // Derive entity name from table (e.g. users -> user, subscriptions -> subscription)
-        $entity = \Illuminate\Support\Str::singular($table);
+        $entity = Str::singular($table);
 
         $isAdmin = $this->auth->isBackpackAdmin($userId);
         $canView = $this->auth->hasBackpackViewPermission($userId, $entity);
@@ -30,7 +35,14 @@ class CrudAccessService implements CrudAccessServiceInterface
 
         // Admin or edit permission: allow full CRUD including list/show
         if ($isAdmin || $canEdit) {
-            $crud->allowAccess(['list', 'show', 'create', 'update', 'delete']);
+            $crud->allowAccess([
+                'list',
+                'show',
+                'create',
+                'update',
+                'delete',
+            ]);
+
             return;
         }
 

@@ -3,26 +3,21 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\SubscriptionPlan;
-use App\Models\User;
+use App\Models\SubscriptionPlanFeature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 class SubscriptionPlanCrudControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
-
-    private User $adminUser;
-    private User $regularUser;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->setUpAdminTestEnvironment();
     }
 
@@ -62,8 +57,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create some features for testing
-        $feature1 = \App\Models\SubscriptionPlanFeature::factory()->create();
-        $feature2 = \App\Models\SubscriptionPlanFeature::factory()->create();
+        $feature1 = SubscriptionPlanFeature::factory()->create();
+        $feature2 = SubscriptionPlanFeature::factory()->create();
         $uniquePlanName = 'Premium Plan ' . uniqid();
         $data = [
             'name' => $uniquePlanName,
@@ -144,8 +139,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         ]);
 
         // Create some features for testing
-        $feature1 = \App\Models\SubscriptionPlanFeature::factory()->create();
-        $feature2 = \App\Models\SubscriptionPlanFeature::factory()->create();
+        $feature1 = SubscriptionPlanFeature::factory()->create();
+        $feature2 = SubscriptionPlanFeature::factory()->create();
 
         $data = [
             'name' => 'Updated Plan',
@@ -159,7 +154,7 @@ class SubscriptionPlanCrudControllerTest extends TestCase
             'is_active' => false,
         ];
 
-        // Test business logic directly in database 
+        // Test business logic directly in database
         // HTTP testing for Backpack updates is complex due to CSRF tokens and middleware
         $plan->update($data);
 
@@ -187,8 +182,12 @@ class SubscriptionPlanCrudControllerTest extends TestCase
 
         // Backpack may return 200 for successful deletes or redirect
         $this->assertTrue(
-            in_array($response->getStatusCode(), [200, 201, 302]),
-            'Expected status 200, 201, or 302 but got ' . $response->getStatusCode()
+            in_array($response->getStatusCode(), [
+                200,
+                201,
+                302,
+            ]),
+            'Expected status 200, 201, or 302 but got ' . $response->getStatusCode(),
         );
 
         $this->assertDatabaseMissing('subscription_plans', [
@@ -221,7 +220,14 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         $response = $this->postJson('/admin/subscription-plan', $data);
 
         $response->assertStatus(422); // Validation error
-        $response->assertJsonValidationErrors(['name', 'price', 'currency', 'billing_period', 'billing_interval', 'trial_days']);
+        $response->assertJsonValidationErrors([
+            'name',
+            'price',
+            'currency',
+            'billing_period',
+            'billing_interval',
+            'trial_days',
+        ]);
     }
 
     #[Test]

@@ -2,12 +2,12 @@
 
 namespace Tests\Feature\Providers;
 
-use App\Models\Invoice;
+use App\Http\Controllers\Admin\UserCrudController;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
+use App\Models\Invoice;
 use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Blade;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -28,8 +28,12 @@ class AppServiceProviderFeatureTest extends TestCase
         // Test that observer is actually working by creating an invoice
         $invoice = Invoice::factory()->create([
             'invoice_text' => json_encode([
-                ['name' => 'Test Product', 'quantity' => 1, 'price' => 100]
-            ])
+                [
+                    'name' => 'Test Product',
+                    'quantity' => 1,
+                    'price' => 100,
+                ],
+            ]),
         ]);
 
         $this->assertDatabaseHas('invoices', ['id' => $invoice->id]);
@@ -75,7 +79,7 @@ class AppServiceProviderFeatureTest extends TestCase
     public function user_crud_controller_binding_is_registered(): void
     {
         $originalController = \Backpack\PermissionManager\app\Http\Controllers\UserCrudController::class;
-        $customController = \App\Http\Controllers\Admin\UserCrudController::class;
+        $customController = UserCrudController::class;
 
         $resolved = app($originalController);
         $this->assertInstanceOf($customController, $resolved);

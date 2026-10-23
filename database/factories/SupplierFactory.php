@@ -12,22 +12,28 @@ class SupplierFactory extends Factory
 
     public function definition(): array
     {
-        $rand = random_int(1000,9999);
+        $rand = random_int(1000, 9999);
+
         return [
-            'name' => 'Supplier '.$rand,
-            'email' => 'supplier'.$rand.'@example.test',
-            'phone' => '+420'.random_int(100000000,999999999),
-            'street' => 'Street '.$rand,
-            'city' => 'City'.$rand,
-            'zip' => str_pad((string)random_int(10000,99999),5,'0',STR_PAD_LEFT),
+            'name' => 'Supplier ' . $rand,
+            'email' => 'supplier' . $rand . '@example.test',
+            'phone' => '+420' . random_int(100000000, 999999999),
+            'street' => 'Street ' . $rand,
+            'city' => 'City' . $rand,
+            'zip' => str_pad(
+                (string) random_int(10000, 99999),
+                5,
+                '0',
+                STR_PAD_LEFT,
+            ),
             'country' => 'CZ',
-            'ico' => (string)random_int(10000000,99999999),
-            'dic' => 'CZ'.random_int(10000000,99999999),
-            'description' => 'Test supplier '.$rand,
+            'ico' => (string) random_int(10000000, 99999999),
+            'dic' => 'CZ' . random_int(10000000, 99999999),
+            'description' => 'Test supplier ' . $rand,
             'is_default' => false,
             'user_id' => User::factory(),
-            'account_number' => (string)random_int(100000000,999999999),
-            'bank_code' => (string)random_int(1000,9999),
+            'account_number' => (string) random_int(100000000, 999999999),
+            'bank_code' => (string) random_int(1000, 9999),
             'iban' => null,
             'swift' => null,
             'bank_name' => 'Test Bank',

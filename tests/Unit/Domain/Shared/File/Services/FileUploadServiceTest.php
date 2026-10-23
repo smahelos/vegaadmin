@@ -3,8 +3,6 @@
 namespace Tests\Unit\Domain\Shared\File\Services;
 
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -23,8 +21,6 @@ class FileUploadServiceTest extends TestCase
     {
         $this->assertInstanceOf(FileUploadServiceInterface::class, $this->service);
     }
-
-    
 
     #[Test]
     public function sanitize_filename_removes_invalid_chars(): void

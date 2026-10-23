@@ -3,7 +3,6 @@
 namespace App\Infrastructure\Persistence\Eloquent\Shared\Tax\Repositories;
 
 use App\Models\Tax;
-use Illuminate\Support\Collection;
 
 /**
  * Eloquent-based repository for Tax entities.
@@ -53,6 +52,7 @@ class EloquentTaxRepository
     {
         $tax = Tax::findOrFail($id);
         $tax->update($data);
+
         return $tax->fresh();
     }
 

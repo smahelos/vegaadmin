@@ -2,31 +2,37 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\Admin\ProductRequest;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
-use App\Domain\Shared\Tax\Contracts\TaxServiceInterface; // fixed namespace
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use App\Models\User;
+use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
+use App\Http\Requests\Admin\ProductRequest;
+use App\Models\Product; // fixed namespace
 use App\Models\Supplier;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Models\User;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ProductCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+    use CreateOperation {
         store as traitStore;
     }
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation; // Usage recording via generic observer
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation; // Usage recording via generic observer
 
     private ProductApplicationServiceInterface $productService;
+
     private TaxServiceInterface $taxesService;
 
     public function __construct(
         ProductApplicationServiceInterface $productService,
-        TaxServiceInterface $taxesService
+        TaxServiceInterface $taxesService,
     ) {
         parent::__construct();
         $this->productService = $productService;
@@ -38,11 +44,11 @@ class ProductCrudController extends CrudController
      */
     public function setup(): void
     {
-        CRUD::setModel(\App\Models\Product::class);
+        CRUD::setModel(Product::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/product');
         CRUD::setEntityNameStrings(
             __('products.entity.singular'),
-            __('products.entity.plural')
+            __('products.entity.plural'),
         );
     }
 
@@ -52,34 +58,48 @@ class ProductCrudController extends CrudController
     protected function setupListOperation(): void
     {
         // Add filters
-        CRUD::addFilter([
-            'type' => 'simple',
-            'name' => 'is_active',
-            'label' => __('products.filters.active_only'),
-        ],
-        false,
-        function () {
-            CRUD::addClause('where', 'is_active', '1');
-        });
+        CRUD::addFilter(
+            [
+                'type' => 'simple',
+                'name' => 'is_active',
+                'label' => __('products.filters.active_only'),
+            ],
+            false,
+            function () {
+                CRUD::addClause(
+                    'where',
+                    'is_active',
+                    '1',
+                );
+            },
+        );
 
         CRUD::filter('user_id')
             ->type('select2')
             ->label(__('products.fields.user_id'))
             ->values(
-                User::all()->pluck('name', 'id')->toArray(),
+                User::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function($value) {
-                CRUD::addClause('where', 'user_id', $value);
+            ->whenActive(function ($value) {
+                CRUD::addClause(
+                    'where',
+                    'user_id',
+                    $value,
+                );
             });
 
         CRUD::filter('supplier_id')
             ->type('select2')
             ->label(__('products.fields.supplier_id'))
             ->values(
-                Supplier::all()->pluck('name', 'id')->toArray(),
+                Supplier::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function($value) {
-                CRUD::addClause('where', 'supplier_id', $value);
+            ->whenActive(function ($value) {
+                CRUD::addClause(
+                    'where',
+                    'supplier_id',
+                    $value,
+                );
             });
 
         CRUD::column('user_id')
@@ -87,7 +107,7 @@ class ProductCrudController extends CrudController
             ->label(__('products.fields.user_id'))
             ->entity('user')
             ->attribute('name')
-            ->value(function($entry) {
+            ->value(function ($entry) {
                 return $entry->user_id ? $entry->user->name : 'N/A';
             });
 
@@ -96,19 +116,19 @@ class ProductCrudController extends CrudController
         CRUD::column('supplier_id')
             ->type('select_from_array')
             ->label(__('products.fields.supplier_id'))
-            ->value(function($entry) {
+            ->value(function ($entry) {
                 return $entry->supplier ? $entry->supplier->name : 'N/A';
             });
         CRUD::column('category_id')
             ->type('select_from_array')
             ->label(__('products.fields.category_id'))
-            ->value(function($entry) {
+            ->value(function ($entry) {
                 return $entry->category ? $entry->category->name : 'N/A';
             });
         CRUD::column('tax_id')
             ->type('select_from_array')
             ->label(__('products.fields.tax_id'))
-            ->value(function($entry) {
+            ->value(function ($entry) {
                 return $entry->tax ? $entry->tax->name : 'N/A';
             });
         CRUD::column('is_default')->type('boolean')->label(__('products.fields.is_default'));
@@ -129,13 +149,13 @@ class ProductCrudController extends CrudController
             ->hint(__('products.hints.slug'));
 
         CRUD::field('user_id')
-        ->type('hidden')
-        ->label(__('products.fields.user_id'))
-        ->entity('user')
-        ->attribute('name')
-        ->options(function ($query) {
-            return $query->orderBy('name', 'ASC')->get();
-        });
+            ->type('hidden')
+            ->label(__('products.fields.user_id'))
+            ->entity('user')
+            ->attribute('name')
+            ->options(function ($query) {
+                return $query->orderBy('name', 'ASC')->get();
+            });
 
         CRUD::field('supplier_id')
             ->type('select')
@@ -186,7 +206,7 @@ class ProductCrudController extends CrudController
             // ->uploadRoute('backpack.upload')
             ->hint(__('products.hints.image'))
             ->wrapper([
-                'class' => 'form-group col-md-6'
+                'class' => 'form-group col-md-6',
             ]);
 
         // Add JavaScript for better handling of the custom field
@@ -210,7 +230,7 @@ class ProductCrudController extends CrudController
                         }
                     });
                 });
-            </script>'
+            </script>',
         ]);
     }
 
@@ -229,7 +249,7 @@ class ProductCrudController extends CrudController
     {
         if (backpack_user()) {
             $request = $this->crud->getRequest();
-            if (!$request->has('user_id') || empty($request->input('user_id'))) {
+            if (! $request->has('user_id') || empty($request->input('user_id'))) {
                 $request->merge(['user_id' => backpack_user()->id]);
             }
         }
@@ -241,7 +261,7 @@ class ProductCrudController extends CrudController
     public function store()
     {
         $this->beforeEntityStore();
+
         return $this->traitStore();
     }
-
 }

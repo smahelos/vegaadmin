@@ -2,16 +2,16 @@
 
 namespace App\Domain\Product\Services;
 
-use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Domain\Product\Contracts\ProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
+use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Domain\Product\DTO\ProductDTO;
-use App\Domain\User\ValueObjects\UserId;
 use App\Domain\Product\DTO\ProductWriteData;
-use App\Domain\Product\ValueObjects\ProductId;
-use App\Domain\Product\Validation\ProductCreationValidator;
-use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Product\Events\ProductCreated;
+use App\Domain\Product\Validation\ProductCreationValidator;
+use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
+use App\Domain\User\ValueObjects\UserId;
 
 class ProductService implements ProductServiceInterface
 {
@@ -37,7 +37,7 @@ class ProductService implements ProductServiceInterface
         ProductDtoReadRepositoryInterface $productReadRepository,
         ProductDtoWriteRepositoryInterface $productWriteRepository,
         ProductCreationValidator $validator,
-        private readonly EventPublisherInterface $events
+        private readonly EventPublisherInterface $events,
     ) {
         $this->productReadRepository = $productReadRepository;
         $this->productWriteRepository = $productWriteRepository;
@@ -51,7 +51,7 @@ class ProductService implements ProductServiceInterface
     {
         // Validate product data using domain validator
         $validatedData = $this->validator->validateForCreation($writeData->toArray(), $userId->toInt());
-        
+
         // Get user product count
         if ($this->productReadRepository->getUserProductCount($userId) === 0) {
             // First product is automatically default
@@ -75,8 +75,9 @@ class ProductService implements ProductServiceInterface
     {
         // Validate product data using domain validator
         $validatedData = $this->validator->validateForUpdate($writeData->toArray());
-        
+
         $validatedWriteData = ProductWriteData::fromArray($validatedData);
+
         return $this->productWriteRepository->update($productId, $validatedWriteData);
     }
 

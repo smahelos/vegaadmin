@@ -9,13 +9,11 @@ interface CountryApplicationServiceInterface
      */
     public function getCountries(): array;
 
-    /**
-     * @return array|null
-     */
     public function getCountry(string $code): ?array;
 
     /**
      * Simplified mapping code => name for selects.
+     *
      * @return array<string,string>
      */
     public function getCountryCodesForSelect(): array;

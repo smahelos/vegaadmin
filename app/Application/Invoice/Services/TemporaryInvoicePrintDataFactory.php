@@ -16,10 +16,10 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
 
     public function fromArray(array $invoiceData): PrintableInvoiceData
     {
-        $currency = strtoupper((string)($invoiceData['payment_currency'] ?? 'CZK'));
+        $currency = strtoupper((string) ($invoiceData['payment_currency'] ?? 'CZK'));
         $issue = $this->toImmutable($invoiceData['issue_date'] ?? null);
-        $dueIn = isset($invoiceData['due_in']) ? (int)$invoiceData['due_in'] : null;
-        $dueDate = $issue && $dueIn !== null ? $issue->modify('+' . (int)$dueIn . ' days') : null;
+        $dueIn = isset($invoiceData['due_in']) ? (int) $invoiceData['due_in'] : null;
+        $dueDate = $issue && $dueIn !== null ? $issue->modify('+' . (int) $dueIn . ' days') : null;
 
         $products = $this->products->fromValidated($invoiceData['invoice-products']);
         $items = array_map(fn (InvoiceProductWriteData $product): PrintableInvoiceItemData => new PrintableInvoiceItemData(
@@ -81,7 +81,13 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
 
     private function toImmutable(?string $d): ?\DateTimeImmutable
     {
-        if (!$d) { return null; }
-        try { return new \DateTimeImmutable($d); } catch (\Exception) { return null; }
+        if (! $d) {
+            return null;
+        }
+        try {
+            return new \DateTimeImmutable($d);
+        } catch (\Exception) {
+            return null;
+        }
     }
 }

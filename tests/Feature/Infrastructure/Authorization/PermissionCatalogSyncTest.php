@@ -28,7 +28,11 @@ class PermissionCatalogSyncTest extends TestCase
 
         foreach (PermissionCatalog::ROLES as $guard => $roles) {
             foreach ($roles as $role => $names) {
-                $this->assertEqualsCanonicalizing($names, Role::findByName($role, $guard)->permissions->pluck('name')->all(), $role);
+                $this->assertEqualsCanonicalizing(
+                    $names,
+                    Role::findByName($role, $guard)->permissions->pluck('name')->all(),
+                    $role,
+                );
             }
         }
     }

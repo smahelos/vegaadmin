@@ -14,7 +14,7 @@ class UserPasswordTest extends TestCase
         // Test static method that doesn't require Laravel framework
         $weakScore = UserPassword::getStrengthScore('abc');
         $strongScore = UserPassword::getStrengthScore('Complex123!');
-        
+
         $this->assertIsInt($weakScore);
         $this->assertIsInt($strongScore);
         $this->assertGreaterThan($weakScore, $strongScore);
@@ -28,7 +28,7 @@ class UserPasswordTest extends TestCase
         // Test static method for strength descriptions
         $weakDesc = UserPassword::getStrengthDescription('abc');
         $strongDesc = UserPassword::getStrengthDescription('Complex123!');
-        
+
         $this->assertIsString($weakDesc);
         $this->assertIsString($strongDesc);
         $this->assertNotEquals($weakDesc, $strongDesc);
@@ -40,7 +40,7 @@ class UserPasswordTest extends TestCase
         // Test static method for password requirements checking
         $weakPassword = 'abc';
         $strongPassword = 'Complex123!';
-        
+
         $this->assertFalse(UserPassword::meetsSecurityRequirements($weakPassword));
         $this->assertTrue(UserPassword::meetsSecurityRequirements($strongPassword));
     }
@@ -51,7 +51,7 @@ class UserPasswordTest extends TestCase
         // Test boundary conditions for strength scoring
         $emptyScore = UserPassword::getStrengthScore('');
         $maxScore = UserPassword::getStrengthScore('Very$Complex!Password123@');
-        
+
         $this->assertEquals(0, $emptyScore);
         $this->assertLessThanOrEqual(100, $maxScore);
     }
@@ -61,18 +61,18 @@ class UserPasswordTest extends TestCase
     {
         // Test class structure without instantiation (no Laravel framework)
         $reflection = new \ReflectionClass(UserPassword::class);
-        
+
         $this->assertTrue($reflection->hasMethod('fromPlainText'));
         $this->assertTrue($reflection->hasMethod('fromHash'));
         $this->assertTrue($reflection->hasMethod('getHash'));
         $this->assertTrue($reflection->hasMethod('verify'));
         $this->assertTrue($reflection->hasMethod('getStrengthScore'));
-        
+
         // Test method visibility and static nature
         $fromPlainText = $reflection->getMethod('fromPlainText');
         $this->assertTrue($fromPlainText->isStatic());
         $this->assertTrue($fromPlainText->isPublic());
-        
+
         $getStrengthScore = $reflection->getMethod('getStrengthScore');
         $this->assertTrue($getStrengthScore->isStatic());
         $this->assertTrue($getStrengthScore->isPublic());
@@ -82,7 +82,7 @@ class UserPasswordTest extends TestCase
     public function method_return_types_are_properly_defined(): void
     {
         $reflection = new \ReflectionClass(UserPassword::class);
-        
+
         $methodReturnTypes = [
             'fromPlainText' => 'self',
             'fromHash' => 'self',
@@ -92,19 +92,23 @@ class UserPasswordTest extends TestCase
             'getStrengthDescription' => 'string',
             'meetsSecurityRequirements' => 'bool',
         ];
-        
+
         foreach ($methodReturnTypes as $methodName => $expectedType) {
             $method = $reflection->getMethod($methodName);
             $returnType = $method->getReturnType();
-            
+
             $this->assertNotNull($returnType, "Method {$methodName} should have return type");
-            
+
             $actualType = (string) $returnType;
             if ($returnType->allowsNull()) {
                 $actualType = '?' . ltrim($actualType, '?');
             }
-                
-            $this->assertEquals($expectedType, $actualType, "Method {$methodName} return type mismatch");
+
+            $this->assertEquals(
+                $expectedType,
+                $actualType,
+                "Method {$methodName} return type mismatch",
+            );
         }
     }
 }

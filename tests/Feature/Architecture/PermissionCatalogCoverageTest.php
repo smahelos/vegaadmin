@@ -32,27 +32,39 @@ class PermissionCatalogCoverageTest extends TestCase
         ];
 
         $missing = [];
-        foreach ((new Finder())->files()->in([app_path(), base_path('routes')])->name('*.php') as $file) {
+        foreach ((new Finder)->files()->in([app_path(), base_path('routes')])->name('*.php') as $file) {
             $code = $file->getContents();
             foreach ($patterns as $pattern) {
-                preg_match_all($pattern, $code, $matches);
+                preg_match_all(
+                    $pattern,
+                    $code,
+                    $matches,
+                );
                 foreach ($matches[1] as $permission) {
                     $guard = str_starts_with($permission, 'frontend.') ? PermissionCatalog::WEB : PermissionCatalog::BACKPACK;
-                    if (! PermissionCatalog::has($permission, $guard) && ! in_array($permission, self::UNREACHABLE, true)) {
+                    if (! PermissionCatalog::has($permission, $guard) && ! in_array(
+                        $permission,
+                        self::UNREACHABLE,
+                        true,
+                    )) {
                         $missing[] = "{$guard}:{$permission} (" . $file->getRelativePathname() . ')';
                     }
                 }
             }
         }
 
-        $this->assertSame([], array_values(array_unique($missing)), 'Permissions missing in PermissionCatalog');
+        $this->assertSame(
+            [],
+            array_values(array_unique($missing)),
+            'Permissions missing in PermissionCatalog',
+        );
     }
 
     #[Test]
     public function admin_limit_bypass_permissions_are_in_the_catalog(): void
     {
         $missing = [];
-        foreach ((new Finder())->files()->in(app_path('Http/Requests/Admin'))->name('*.php') as $file) {
+        foreach ((new Finder)->files()->in(app_path('Http/Requests/Admin'))->name('*.php') as $file) {
             $class = 'App\\Http\\Requests\\Admin\\' . $file->getBasename('.php');
             $reflection = new \ReflectionClass($class);
             if ($reflection->isAbstract() || ! $reflection->isSubclassOf(AdminBaseEntityRequest::class)) {
@@ -67,6 +79,10 @@ class PermissionCatalogCoverageTest extends TestCase
             }
         }
 
-        $this->assertSame([], $missing, 'Limit bypass permissions missing in PermissionCatalog');
+        $this->assertSame(
+            [],
+            $missing,
+            'Limit bypass permissions missing in PermissionCatalog',
+        );
     }
 }

@@ -26,7 +26,7 @@ return new class extends Migration
         Schema::table('invoices', function (Blueprint $table) {
             // Odstranění cizího klíče
             $table->dropForeign(['supplier_id']);
-            
+
             // Odstranění sloupců
             $table->dropColumn(['supplier_id']);
         });

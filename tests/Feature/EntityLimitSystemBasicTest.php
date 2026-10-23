@@ -2,9 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Http\Requests\Admin\BaseEntityRequest;
+use App\Http\Requests\Admin\ClientRequest;
+use App\Http\Requests\Admin\InvoiceRequest;
+use App\Http\Requests\Admin\SupplierRequest;
 use App\Models\EntityLimit;
 use App\Models\User;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Lang;
 use PHPUnit\Framework\Attributes\Test;
@@ -25,7 +29,7 @@ class EntityLimitSystemBasicTest extends TestCase
         parent::setUp();
 
         // Get roles and permissions created by TestingDatabaseSeeder
-        //$adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
+        // $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $frontendUserRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
         $backendUserRole = Role::where('name', 'backend_user')->where('guard_name', 'backpack')->first();
         $permission = Permission::where('name', 'can_create_edit_invoice')
@@ -37,7 +41,7 @@ class EntityLimitSystemBasicTest extends TestCase
         $permission3 = Permission::where('name', 'can_create_edit_supplier')
             ->where('guard_name', 'backpack')
             ->first();
-        
+
         // Create admin user with admin role (has all permissions)
         $this->backendUser = User::factory()->create();
         $this->backendUser->assignRole($backendUserRole);
@@ -58,7 +62,7 @@ class EntityLimitSystemBasicTest extends TestCase
         // Create permission for testing
         Permission::firstOrCreate([
             'name' => 'test_invoice_limit',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         $limit = EntityLimit::factory()->create([
@@ -80,13 +84,13 @@ class EntityLimitSystemBasicTest extends TestCase
     public function universal_limit_service_can_check_limits(): void
     {
         $this->actingAs($this->user, 'web');
-        
+
         // Create permission for testing
         Permission::firstOrCreate([
             'name' => 'monthly_invoice_limit',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
-        
+
         // Give user the permission
         $this->user->givePermissionTo('monthly_invoice_limit');
 
@@ -103,14 +107,26 @@ class EntityLimitSystemBasicTest extends TestCase
         $limitService = app(UniversalLimitService::class);
 
         // Should be allowed initially
-        $check = $limitService->checkLimit($this->user->id, 'invoice', 'count', 'monthly', 1);
+        $check = $limitService->checkLimit(
+            $this->user->id,
+            'invoice',
+            'count',
+            'monthly',
+            1,
+        );
         $this->assertTrue($check['allowed']);
 
         // Record usage
         $this->assertTrue($limitService->recordUsage($this->user->id, 'invoice', 'count', 'monthly', 'web', 1));
 
         // Should still be allowed
-        $check = $limitService->checkLimit($this->user->id, 'invoice', 'count', 'monthly', 1);
+        $check = $limitService->checkLimit(
+            $this->user->id,
+            'invoice',
+            'count',
+            'monthly',
+            1,
+        );
         $this->assertTrue($check['allowed']);
     }
 
@@ -120,10 +136,10 @@ class EntityLimitSystemBasicTest extends TestCase
         $this->actingAs($this->backendUser, 'backpack');
 
         // Test InvoiceRequest instantiation
-        $request = new \App\Http\Requests\Admin\InvoiceRequest();
-        
+        $request = new InvoiceRequest;
+
         // Test that it extends BaseEntityRequest
-        $this->assertInstanceOf(\App\Http\Requests\Admin\BaseEntityRequest::class, $request);
+        $this->assertInstanceOf(BaseEntityRequest::class, $request);
 
         // Test entity type method
         $reflection = new \ReflectionClass($request);
@@ -143,8 +159,8 @@ class EntityLimitSystemBasicTest extends TestCase
         $this->actingAs($this->backendUser, 'backpack');
 
         // Test ClientRequest
-        $clientRequest = new \App\Http\Requests\Admin\ClientRequest();
-        $this->assertInstanceOf(\App\Http\Requests\Admin\BaseEntityRequest::class, $clientRequest);
+        $clientRequest = new ClientRequest;
+        $this->assertInstanceOf(BaseEntityRequest::class, $clientRequest);
 
         $reflection = new \ReflectionClass($clientRequest);
         $method = $reflection->getMethod('getEntityType');
@@ -152,8 +168,8 @@ class EntityLimitSystemBasicTest extends TestCase
         $this->assertEquals('client', $method->invoke($clientRequest));
 
         // Test SupplierRequest
-        $supplierRequest = new \App\Http\Requests\Admin\SupplierRequest();
-        $this->assertInstanceOf(\App\Http\Requests\Admin\BaseEntityRequest::class, $supplierRequest);
+        $supplierRequest = new SupplierRequest;
+        $this->assertInstanceOf(BaseEntityRequest::class, $supplierRequest);
 
         $reflection = new \ReflectionClass($supplierRequest);
         $method = $reflection->getMethod('getEntityType');

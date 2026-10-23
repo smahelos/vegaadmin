@@ -3,11 +3,13 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
+use App\Application\Payment\DTO\RefundResultDTO;
+use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
+use App\Models\Payment;
+use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Gate;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -22,10 +24,14 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
 
         // Stub application service to return deterministic redirect URL
         $this->app->bind(PaymentApplicationServiceInterface::class, function () {
-            return new class implements PaymentApplicationServiceInterface {
-                public function initiateSubscription(\App\Models\Subscription $subscription, string $gateway, array $data = []): \App\Application\Payment\DTO\SubscriptionPaymentResultDTO
-                {
-                    return new \App\Application\Payment\DTO\SubscriptionPaymentResultDTO(
+            return new class implements PaymentApplicationServiceInterface
+            {
+                public function initiateSubscription(
+                    Subscription $subscription,
+                    string $gateway,
+                    array $data = [],
+                ): SubscriptionPaymentResultDTO {
+                    return new SubscriptionPaymentResultDTO(
                         success: true,
                         paymentId: 123,
                         status: 'pending',
@@ -40,23 +46,50 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
                             'redirect_url' => 'https://pay.example.test/order/123',
                             'amount' => 50.00,
                             'currency' => 'EUR',
-                        ]
+                        ],
                     );
                 }
-                public function handleCallback(string $gateway, array $payload): \App\Application\Payment\DTO\SubscriptionPaymentResultDTO
+
+                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
                 {
-                    return new \App\Application\Payment\DTO\SubscriptionPaymentResultDTO(success: true, status: 'pending', raw: ['success' => true]);
+                    return new SubscriptionPaymentResultDTO(
+                        success: true,
+                        status: 'pending',
+                        raw: ['success' => true],
+                    );
                 }
-                public function verify(\App\Models\Payment $payment): \App\Application\Payment\DTO\SubscriptionPaymentResultDTO
+
+                public function verify(Payment $payment): SubscriptionPaymentResultDTO
                 {
-                    return new \App\Application\Payment\DTO\SubscriptionPaymentResultDTO(success: true, status: 'pending', paymentId: $payment->id, raw: ['success' => true]);
+                    return new SubscriptionPaymentResultDTO(
+                        success: true,
+                        status: 'pending',
+                        paymentId: $payment->id,
+                        raw: ['success' => true],
+                    );
                 }
-                public function refund(\App\Models\Payment $payment, ?float $amount = null): \App\Application\Payment\DTO\RefundResultDTO
+
+                public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
                 {
-                    return new \App\Application\Payment\DTO\RefundResultDTO(success: true, paymentId: $payment->id, refundedAmount: $amount ?? 0.0, currency: 'EUR', status: 'refunded', raw: ['success' => true]);
+                    return new RefundResultDTO(
+                        success: true,
+                        paymentId: $payment->id,
+                        refundedAmount: $amount ?? 0.0,
+                        currency: 'EUR',
+                        status: 'refunded',
+                        raw: ['success' => true],
+                    );
                 }
-                public function getAvailableGateways(): array { return ['gopay']; }
-                public function cancelSubscription(\App\Models\Subscription $subscription): bool { return true; }
+
+                public function getAvailableGateways(): array
+                {
+                    return ['gopay'];
+                }
+
+                public function cancelSubscription(Subscription $subscription): bool
+                {
+                    return true;
+                }
             };
         });
     }
@@ -151,7 +184,7 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
         $this->post(route('subscriptions.subscribe', [
             'locale' => 'cs',
             'plan' => $plan->id,
-        ]), [ 'gateway' => 'gopay' ]);
+        ]), ['gateway' => 'gopay']);
 
         $subscription = $user->subscriptions()->first();
         $this->assertNotNull($subscription);
@@ -162,7 +195,9 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
         $subscription->save();
 
         // Bypass policy authorization for test scope; focus on cancellation behavior.
-        Gate::before(function () { return true; });
+        Gate::before(function () {
+            return true;
+        });
 
         $response = $this->delete(route('subscriptions.cancel', [
             'locale' => 'cs',

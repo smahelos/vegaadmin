@@ -13,7 +13,7 @@ class RequireFrontendApiAccessTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RequireFrontendApiAccess();
+        $this->middleware = new RequireFrontendApiAccess;
     }
 
     #[Test]

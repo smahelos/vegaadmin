@@ -4,16 +4,18 @@ namespace Database\Factories;
 
 use App\Models\ExpenseCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ExpenseCategory>
+ * @extends Factory<ExpenseCategory>
  */
 class ExpenseCategoryFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     * @var class-string<Model>
      */
     protected $model = ExpenseCategory::class;
 
@@ -25,7 +27,7 @@ class ExpenseCategoryFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->words(2, true);
-        
+
         return [
             'name' => $name,
             'slug' => $this->faker->unique()->slug(),
@@ -58,11 +60,11 @@ class ExpenseCategoryFactory extends Factory
     /**
      * Create a category with a specific name and color.
      */
-    public function withNameAndColor(string $name, string $color = null): static
+    public function withNameAndColor(string $name, ?string $color = null): static
     {
         return $this->state(fn (array $attributes) => [
             'name' => $name,
-            'slug' => \Illuminate\Support\Str::slug($name),
+            'slug' => Str::slug($name),
             'color' => $color ?? $this->faker->hexColor(),
         ]);
     }

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('expenses', function (Blueprint $table) {
             $table->text('attachments')->default(null)->after('receipt_file');
         });
-        
+
         Schema::table('expenses', function (Blueprint $table) {
             $table->dropColumn('receipt_file');
         });

@@ -18,7 +18,7 @@ class EloquentPaymentMethodRepository
 
     public function getAllForDropdown(): array
     {
-        return PaymentMethod::all()->pluck('slug', 'id')->toArray();
+        return PaymentMethod::pluck('slug', 'id')->toArray();
     }
 
     public function findById(int $id): ?PaymentMethod
@@ -40,6 +40,7 @@ class EloquentPaymentMethodRepository
     {
         $paymentMethod = PaymentMethod::findOrFail($id);
         $paymentMethod->update($data);
+
         return $paymentMethod->fresh();
     }
 

@@ -2,9 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\ValidationException;
 
 class SupplierRequest extends BaseEntityRequest
@@ -27,8 +26,6 @@ class SupplierRequest extends BaseEntityRequest
 
     /**
      * Get the validation rules that apply to the request
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -67,8 +64,6 @@ class SupplierRequest extends BaseEntityRequest
 
     /**
      * Get custom attributes for validator errors
-     *
-     * @return array
      */
     public function attributes(): array
     {
@@ -97,8 +92,7 @@ class SupplierRequest extends BaseEntityRequest
     /**
      * Handle a failed validation attempt.
      *
-     * @param \Illuminate\Contracts\Validation\Validator $validator
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     protected function failedValidation(Validator $validator)
     {
@@ -106,7 +100,7 @@ class SupplierRequest extends BaseEntityRequest
             redirect()->back()
                 ->withErrors($validator->errors())
                 ->withInput()
-                ->with('error', trans('suppliers.messages.validation_failed'))
+                ->with('error', trans('suppliers.messages.validation_failed')),
         );
     }
 }

@@ -17,7 +17,7 @@ class PaymentMethodRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new PaymentMethodRequest();
+        $this->request = new PaymentMethodRequest;
     }
 
     #[Test]
@@ -61,7 +61,7 @@ class PaymentMethodRequestTest extends TestCase
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', (string)$returnType);
+        $this->assertEquals('array', (string) $returnType);
     }
 
     #[Test]
@@ -71,7 +71,7 @@ class PaymentMethodRequestTest extends TestCase
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', (string)$returnType);
+        $this->assertEquals('array', (string) $returnType);
     }
 
     #[Test]
@@ -81,6 +81,6 @@ class PaymentMethodRequestTest extends TestCase
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals('bool', (string)$returnType);
+        $this->assertEquals('bool', (string) $returnType);
     }
 }

@@ -4,7 +4,6 @@ namespace App\Infrastructure\Persistence\Eloquent\Party\Mappers;
 
 use App\Domain\Party\DTO\ClientDTO;
 use App\Models\Client;
-use Illuminate\Support\Collection;
 
 class EloquentClientMapper
 {
@@ -18,7 +17,10 @@ class EloquentClientMapper
         }
 
         $toArray = static function ($value): ?array {
-            if ($value === null) { return null; }
+            if ($value === null) {
+                return null;
+            }
+
             return is_array($value) ? $value : [$value];
         };
 

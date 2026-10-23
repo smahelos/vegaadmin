@@ -19,14 +19,14 @@ class RequireFrontendApiAccess
     public function handle(Request $request, Closure $next): Response
     {
         // Only check web guard - never mix with backpack
-        if (!Auth::guard('web')->check()) {
+        if (! Auth::guard('web')->check()) {
             return $this->unauthorized($request);
         }
 
         $user = Auth::guard('web')->user();
 
         // Check if user has frontend API access permission
-        if (!$user->can('frontend.api.access')) {
+        if (! $user->can('frontend.api.access')) {
             return $this->forbidden($request);
         }
 
@@ -41,7 +41,7 @@ class RequireFrontendApiAccess
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'error' => __('users.auth.unauthenticated'),
-                'code' => 401
+                'code' => 401,
             ], 401);
         }
 
@@ -56,7 +56,7 @@ class RequireFrontendApiAccess
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'error' => __('users.auth.forbidden'),
-                'code' => 403
+                'code' => 403,
             ], 403);
         }
 

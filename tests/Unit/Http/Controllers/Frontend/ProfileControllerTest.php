@@ -2,11 +2,12 @@
 
 namespace Tests\Unit\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Frontend\ProfileController;
 use App\Application\User\Contracts\UserApplicationServiceInterface;
-use App\Domain\User\ValueObjects\UserPassword;
-use App\Models\User;
 use App\Domain\User\DTO\UserDTO;
+use App\Domain\User\ValueObjects\UserPassword;
+use App\Http\Controllers\Frontend\ProfileController;
+use App\Http\Requests\PasswordUpdateRequest;
+use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\Attributes\Test;
@@ -26,15 +27,48 @@ class ProfileControllerTest extends TestCase
     {
         parent::setUp();
         // Simple stub implementing only methods used
-        $this->userAppServiceStub = new class implements UserApplicationServiceInterface {
+        $this->userAppServiceStub = new class implements UserApplicationServiceInterface
+        {
             public array $calls = [];
-            public function findUserById(int $id): ?UserDTO { 
-                $u = new User(); $u->id = $id; return UserDTO::fromArray($u->toArray());
+
+            public function findUserById(int $id): ?UserDTO
+            {
+                $u = new User;
+                $u->id = $id;
+
+                return UserDTO::fromArray($u->toArray());
             }
-            public function getAllUsers() { return collect(); }
-            public function searchUsers(?string $term, int $perPage = 10, int $page = 1): LengthAwarePaginator { return new LengthAwarePaginator([],0,$perPage); }
-            public function updateProfile(int $userId, array $data): bool { $this->calls[] = ['updateProfile',$data]; return true; }
-            public function updatePassword(int $userId, UserPassword $password): bool { $this->calls[] = ['updatePassword',$password instanceof UserPassword]; return true; }
+
+            public function getAllUsers()
+            {
+                return collect();
+            }
+
+            public function searchUsers(
+                ?string $term,
+                int $perPage = 10,
+                int $page = 1,
+            ): LengthAwarePaginator {
+                return new LengthAwarePaginator(
+                    [],
+                    0,
+                    $perPage,
+                );
+            }
+
+            public function updateProfile(int $userId, array $data): bool
+            {
+                $this->calls[] = ['updateProfile', $data];
+
+                return true;
+            }
+
+            public function updatePassword(int $userId, UserPassword $password): bool
+            {
+                $this->calls[] = ['updatePassword', $password instanceof UserPassword];
+
+                return true;
+            }
         };
     }
 
@@ -42,14 +76,19 @@ class ProfileControllerTest extends TestCase
     public function update_password_uses_value_object(): void
     {
         $controller = new ProfileController($this->userAppServiceStub);
-        $user = new User();
+        $user = new User;
         $user->id = 55;
         Auth::shouldReceive('id')->andReturn($user->id);
 
         // Simulate request object minimal
-        $request = new class extends \App\Http\Requests\PasswordUpdateRequest {
+        $request = new class extends PasswordUpdateRequest
+        {
             public string $password = 'Abcdefg1';
-            public function validated($key = null, $default = null) { return []; }
+
+            public function validated($key = null, $default = null)
+            {
+                return [];
+            }
         };
 
         $response = $controller->updatePassword($request);

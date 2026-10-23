@@ -2,12 +2,12 @@
 
 namespace App\Domain\User\ValueObjects;
 
-use InvalidArgumentException;
 use App\Domain\Shared\Hash\Contracts\HashInterface;
+use InvalidArgumentException;
 
 /**
  * User Password Value Object
- * 
+ *
  * Handles password validation, hashing and security requirements
  */
 class UserPassword
@@ -27,7 +27,7 @@ class UserPassword
      */
     private function __construct(
         string $hashedPassword,
-        HashInterface $hashService
+        HashInterface $hashService,
     ) {
         $this->hashedPassword = $hashedPassword;
         $this->hashService = $hashService;
@@ -48,10 +48,11 @@ class UserPassword
     {
         self::validatePlainPassword($plainPassword);
         $hasher = $hasher ?? self::$defaultHasher;
-        if (!$hasher) {
+        if (! $hasher) {
             throw new InvalidArgumentException('Hash service is not configured');
         }
         $hashedPassword = $hasher->hash($plainPassword);
+
         return new self($hashedPassword, $hasher);
     }
 
@@ -64,9 +65,10 @@ class UserPassword
             throw new InvalidArgumentException('Hashed password cannot be empty');
         }
         $hasher = $hasher ?? self::$defaultHasher;
-        if (!$hasher) {
+        if (! $hasher) {
             throw new InvalidArgumentException('Hash service is not configured');
         }
+
         return new self($hashedPassword, $hasher);
     }
 
@@ -105,8 +107,14 @@ class UserPassword
 
         // Check for common weak passwords
         $weakPasswords = [
-            'password', 'password123', '12345678', 'qwerty123',
-            'admin123', 'user123', 'test123', '123456789'
+            'password',
+            'password123',
+            '12345678',
+            'qwerty123',
+            'admin123',
+            'user123',
+            'test123',
+            '123456789',
         ];
 
         if (in_array(strtolower($password), $weakPasswords)) {
@@ -143,7 +151,7 @@ class UserPassword
      */
     public function rehash(): self
     {
-        if (!$this->needsRehash()) {
+        if (! $this->needsRehash()) {
             return $this;
         }
 
@@ -160,19 +168,37 @@ class UserPassword
         $length = strlen($plainPassword);
 
         // Length scoring
-        if ($length >= 8) $score += 25;
-        if ($length >= 12) $score += 15;
-        if ($length >= 16) $score += 10;
+        if ($length >= 8) {
+            $score += 25;
+        }
+        if ($length >= 12) {
+            $score += 15;
+        }
+        if ($length >= 16) {
+            $score += 10;
+        }
 
         // Character variety scoring
-        if (preg_match('/[a-z]/', $plainPassword)) $score += 10;
-        if (preg_match('/[A-Z]/', $plainPassword)) $score += 10;
-        if (preg_match('/[0-9]/', $plainPassword)) $score += 10;
-        if (preg_match('/[^a-zA-Z0-9]/', $plainPassword)) $score += 15;
+        if (preg_match('/[a-z]/', $plainPassword)) {
+            $score += 10;
+        }
+        if (preg_match('/[A-Z]/', $plainPassword)) {
+            $score += 10;
+        }
+        if (preg_match('/[0-9]/', $plainPassword)) {
+            $score += 10;
+        }
+        if (preg_match('/[^a-zA-Z0-9]/', $plainPassword)) {
+            $score += 15;
+        }
 
         // Pattern penalties
-        if (preg_match('/(.)\1{2,}/', $plainPassword)) $score -= 10; // Repeated characters
-        if (preg_match('/123|abc|qwe/i', $plainPassword)) $score -= 10; // Sequential characters
+        if (preg_match('/(.)\1{2,}/', $plainPassword)) {
+            $score -= 10;
+        } // Repeated characters
+        if (preg_match('/123|abc|qwe/i', $plainPassword)) {
+            $score -= 10;
+        } // Sequential characters
 
         return max(0, min(100, $score));
     }
@@ -184,9 +210,16 @@ class UserPassword
     {
         $score = self::getStrengthScore($plainPassword);
 
-        if ($score < 30) return 'Weak';
-        if ($score < 60) return 'Fair';
-        if ($score < 80) return 'Good';
+        if ($score < 30) {
+            return 'Weak';
+        }
+        if ($score < 60) {
+            return 'Fair';
+        }
+        if ($score < 80) {
+            return 'Good';
+        }
+
         return 'Strong';
     }
 
@@ -197,6 +230,7 @@ class UserPassword
     {
         try {
             self::validatePlainPassword($plainPassword);
+
             return self::getStrengthScore($plainPassword) >= 50;
         } catch (InvalidArgumentException $e) {
             return false;

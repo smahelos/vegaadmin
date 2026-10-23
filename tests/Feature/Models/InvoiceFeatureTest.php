@@ -2,19 +2,21 @@
 
 namespace Tests\Feature\Models;
 
-use App\Models\Invoice;
 use App\Models\Client;
-use App\Models\Supplier;
-use App\Models\User;
+use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Status;
-use App\Models\InvoiceProduct;
+use App\Models\StatusCategory;
+use App\Models\Supplier;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -225,14 +227,14 @@ class InvoiceFeatureTest extends TestCase
         // We'll test that when color attribute is an empty string (falsy),
         // the method falls back to slug mapping
 
-        $statusCategory = \App\Models\StatusCategory::factory()->create();
+        $statusCategory = StatusCategory::factory()->create();
         $status = Status::create([
             'name' => 'Paid Status',
             'slug' => 'paid',
             'category_id' => $statusCategory->id,
             'color' => '', // Empty string should trigger fallback to slug mapping
             'description' => 'Test status',
-            'is_active' => true
+            'is_active' => true,
         ]);
 
         $client = Client::factory()->create();
@@ -251,7 +253,7 @@ class InvoiceFeatureTest extends TestCase
             'payment_status_id' => $status->id,
             'payment_method_id' => $paymentMethod->id,
             'payment_amount' => 1000,
-            'payment_currency' => 'USD'
+            'payment_currency' => 'USD',
         ]);
 
         $colorClass = $invoice->getStatusColorClassAttribute();
@@ -276,7 +278,7 @@ class InvoiceFeatureTest extends TestCase
         $issueDate = Carbon::parse('2025-01-01');
         $invoice = Invoice::factory()->create([
             'issue_date' => $issueDate,
-            'due_in' => 30
+            'due_in' => 30,
         ]);
 
         $dueDate = $invoice->getDueDateAttribute();
@@ -306,7 +308,7 @@ class InvoiceFeatureTest extends TestCase
             'payment_status_id' => $status->id,
             'payment_method_id' => $paymentMethod->id,
             'payment_amount' => 1000,
-            'payment_currency' => 'USD'
+            'payment_currency' => 'USD',
         ]);
 
         $dueDate = $invoice->getDueDateAttribute();
@@ -343,7 +345,7 @@ class InvoiceFeatureTest extends TestCase
 
         $paymentMethods = $invoice->paymentMethods();
 
-        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $paymentMethods);
+        $this->assertInstanceOf(Collection::class, $paymentMethods);
         $this->assertCount(1, $paymentMethods);
         $this->assertEquals($paymentMethod->id, $paymentMethods->first()->id);
     }
@@ -355,7 +357,7 @@ class InvoiceFeatureTest extends TestCase
 
         $paymentMethods = $invoice->paymentMethods();
 
-        $this->assertInstanceOf(\Illuminate\Support\Collection::class, $paymentMethods);
+        $this->assertInstanceOf(Collection::class, $paymentMethods);
         $this->assertCount(0, $paymentMethods);
     }
 
@@ -368,7 +370,7 @@ class InvoiceFeatureTest extends TestCase
             'invoice_id' => $invoice->id,
             'name' => 'Test Product',
             'quantity' => 2,
-            'price' => 100.00
+            'price' => 100.00,
         ]);
 
         $invoiceProductsData = $invoice->getInvoiceProductsDataAttribute();
@@ -385,11 +387,11 @@ class InvoiceFeatureTest extends TestCase
     {
         $invoice = Invoice::factory()->create([
             'payment_amount' => 1234.56,
-            'payment_currency' => 'eur'
+            'payment_currency' => 'eur',
         ]);
 
         $money = $invoice->payment_amount_money; // Money VO
-    $this->assertEquals('1234.56', $money->getAmount());
+        $this->assertEquals('1234.56', $money->getAmount());
         $this->assertEquals('EUR', $money->getCurrency());
     }
 
@@ -397,7 +399,7 @@ class InvoiceFeatureTest extends TestCase
     public function subtotal_money_attribute_aggregates_products_correctly(): void
     {
         $invoice = Invoice::factory()->create([
-            'payment_currency' => 'czk'
+            'payment_currency' => 'czk',
         ]);
 
         // Two products: (100 * 2) + (50 * 3) = 350.00
@@ -405,13 +407,13 @@ class InvoiceFeatureTest extends TestCase
             'invoice_id' => $invoice->id,
             'price' => 100.00,
             'quantity' => 2,
-            'currency' => 'CZK'
+            'currency' => 'CZK',
         ]);
         InvoiceProduct::factory()->create([
             'invoice_id' => $invoice->id,
             'price' => 50.00,
             'quantity' => 3,
-            'currency' => 'CZK'
+            'currency' => 'CZK',
         ]);
 
         $money = $invoice->subtotal_money; // Money VO
@@ -423,7 +425,7 @@ class InvoiceFeatureTest extends TestCase
     public function total_tax_money_attribute_sums_tax_correctly(): void
     {
         $invoice = Invoice::factory()->create([
-            'payment_currency' => 'usd'
+            'payment_currency' => 'usd',
         ]);
 
         // The stored tax of each line is summed as it is
@@ -438,7 +440,7 @@ class InvoiceFeatureTest extends TestCase
             'is_custom_product' => false,
             'tax_rate' => 21,
             'tax_amount' => '21.00',
-            'total_price' => '121.00'
+            'total_price' => '121.00',
         ]);
         InvoiceProduct::create([
             'invoice_id' => $invoice->id,
@@ -451,12 +453,11 @@ class InvoiceFeatureTest extends TestCase
             'is_custom_product' => false,
             'tax_rate' => 12,
             'tax_amount' => '12.00',
-            'total_price' => '112.00'
+            'total_price' => '112.00',
         ]);
 
         $money = $invoice->total_tax_money;
         $this->assertEquals('33', $money->getAmount());
         $this->assertEquals('USD', $money->getCurrency());
     }
-
 }

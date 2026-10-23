@@ -2,7 +2,10 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\User\Contracts\EntityLimitRepositoryInterface;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
+use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Services\PermissionLimitResolver;
 use App\Http\Controllers\Api\UELSController;
 use App\Models\User;
@@ -17,6 +20,7 @@ class UELSControllerFeatureTest extends TestCase
     use RefreshDatabase;
 
     private UniversalLimitServiceInterface $fakeService;
+
     private PermissionLimitResolver $fakeResolver;
 
     protected function setUp(): void
@@ -24,7 +28,7 @@ class UELSControllerFeatureTest extends TestCase
         parent::setUp();
 
         // Test-only routes bypassing complex middleware chains to reach controller logic deterministically
-        Route::middleware(['web','auth:web'])->group(function() {
+        Route::middleware(['web', 'auth:web'])->group(function () {
             Route::get('/test/uels/{entity}', [UELSController::class, 'getEntityData']);
             Route::get('/test/uels-all', [UELSController::class, 'getAllEntitiesData']);
             Route::get('/test/uels-permissions', [UELSController::class, 'getPermissions']);
@@ -32,82 +36,275 @@ class UELSControllerFeatureTest extends TestCase
 
         // Bind fake PermissionLimitResolver as singleton with configurable permission limits
         $this->app->singleton(PermissionLimitResolver::class, function () {
-            return new class extends PermissionLimitResolver {
+            return new class extends PermissionLimitResolver
+            {
                 public array $permissionLimits = [
-                    'client' => [], 'supplier' => [], 'product' => [], 'invoice' => []
+                    'client' => [],
+                    'supplier' => [],
+                    'product' => [],
+                    'invoice' => [],
                 ];
-                public function __construct() {
-                    $limitRepo = new class implements \App\Domain\User\Contracts\EntityLimitRepositoryInterface {
-                        public function getActiveByPermissions(array $permissionNames): array { return []; }
-                        public function getPermissionNamesForEntity(string $entityType, bool $includeInactive = true): array { return []; }
-                        public function getActiveByPermissionsFiltered(array $permissionNames, string $entityType, string $metricType, string $periodType): array { return []; }
-                        public function getAllEntityTypes(): array { return ['client','supplier','product','invoice']; }
-                        public function getAllMetricTypes(): array { return ['count' => 'count']; }
-                        public function getAllPeriodTypes(): array { return ['daily' => 'daily','weekly' => 'weekly','monthly' => 'monthly','yearly' => 'yearly','lifetime' => 'lifetime']; }
+
+                public function __construct()
+                {
+                    $limitRepo = new class implements EntityLimitRepositoryInterface
+                    {
+                        public function getActiveByPermissions(array $permissionNames): array
+                        {
+                            return [];
+                        }
+
+                        public function getPermissionNamesForEntity(string $entityType, bool $includeInactive = true): array
+                        {
+                            return [];
+                        }
+
+                        public function getActiveByPermissionsFiltered(
+                            array $permissionNames,
+                            string $entityType,
+                            string $metricType,
+                            string $periodType,
+                        ): array {
+                            return [];
+                        }
+
+                        public function getAllEntityTypes(): array
+                        {
+                            return [
+                                'client',
+                                'supplier',
+                                'product',
+                                'invoice',
+                            ];
+                        }
+
+                        public function getAllMetricTypes(): array
+                        {
+                            return ['count' => 'count'];
+                        }
+
+                        public function getAllPeriodTypes(): array
+                        {
+                            return [
+                                'daily' => 'daily',
+                                'weekly' => 'weekly',
+                                'monthly' => 'monthly',
+                                'yearly' => 'yearly',
+                                'lifetime' => 'lifetime',
+                            ];
+                        }
                     };
-                    $permissionSvc = new class implements \App\Domain\User\Contracts\UserPermissionServiceInterface {
-                        public function userExists(int $userId): bool { return true; }
-                        public function getUserPermissions(int $userId, string $guard = 'web'): array { return []; }
-                        public function hasPermission(int $userId, string $permission, string $guard = 'web'): bool { return false; }
-                        public function hasAnyPermission(int $userId, array $permissions, string $guard = 'web'): bool { return false; }
+                    $permissionSvc = new class implements UserPermissionServiceInterface
+                    {
+                        public function userExists(int $userId): bool
+                        {
+                            return true;
+                        }
+
+                        public function getUserPermissions(int $userId, string $guard = 'web'): array
+                        {
+                            return [];
+                        }
+
+                        public function hasPermission(
+                            int $userId,
+                            string $permission,
+                            string $guard = 'web',
+                        ): bool {
+                            return false;
+                        }
+
+                        public function hasAnyPermission(
+                            int $userId,
+                            array $permissions,
+                            string $guard = 'web',
+                        ): bool {
+                            return false;
+                        }
                     };
-                    $cache = new class implements \App\Domain\Shared\Cache\Contracts\CacheServiceInterface {
+                    $cache = new class implements CacheServiceInterface
+                    {
                         private array $data = [];
-                        public function remember(string $key, mixed $data, int $ttl = 3600, array $tags = []): mixed { return is_callable($data) ? $this->data[$key] = $data() : ($this->data[$key] = $data); }
-                        public function get(string $key): mixed { return $this->data[$key] ?? null; }
-                        public function put(string $key, mixed $data, int $ttl = 3600, array $tags = []): bool { $this->data[$key] = $data; return true; }
-                        public function forget(string $key): bool { unset($this->data[$key]); return true; }
-                        public function invalidateTags(array $tags): bool { return true; }
-                        public function userKey(int $userId, string $suffix): string { return "u_{$userId}_{$suffix}"; }
-                        public function globalKey(string $suffix): string { return "g_{$suffix}"; }
-                        public function increment(string $key, int $amount): bool { $current = (int)($this->data[$key] ?? 0); $this->data[$key] = $current + $amount; return true; }
+
+                        public function remember(
+                            string $key,
+                            mixed $data,
+                            int $ttl = 3600,
+                            array $tags = [],
+                        ): mixed {
+                            return is_callable($data) ? $this->data[$key] = $data() : ($this->data[$key] = $data);
+                        }
+
+                        public function get(string $key): mixed
+                        {
+                            return $this->data[$key] ?? null;
+                        }
+
+                        public function put(
+                            string $key,
+                            mixed $data,
+                            int $ttl = 3600,
+                            array $tags = [],
+                        ): bool {
+                            $this->data[$key] = $data;
+
+                            return true;
+                        }
+
+                        public function forget(string $key): bool
+                        {
+                            unset($this->data[$key]);
+
+                            return true;
+                        }
+
+                        public function invalidateTags(array $tags): bool
+                        {
+                            return true;
+                        }
+
+                        public function userKey(int $userId, string $suffix): string
+                        {
+                            return "u_{$userId}_{$suffix}";
+                        }
+
+                        public function globalKey(string $suffix): string
+                        {
+                            return "g_{$suffix}";
+                        }
+
+                        public function increment(string $key, int $amount): bool
+                        {
+                            $current = (int) ($this->data[$key] ?? 0);
+                            $this->data[$key] = $current + $amount;
+
+                            return true;
+                        }
                     };
-                    parent::__construct($limitRepo, $permissionSvc, $cache);
+                    parent::__construct(
+                        $limitRepo,
+                        $permissionSvc,
+                        $cache,
+                    );
                 }
-                public function getUserLimit(?int $userId, string $entityType, string $metricType = 'count', string $periodType = 'daily'): int { return 0; }
-                public function getAllUserLimits(?int $userId): array { return []; }
-                public function getEntityLimits(?int $userId, string $entityType): array { return []; }
-                public function getUserPermissionLimits(?int $userId, string $entity): array { return $this->permissionLimits[$entity] ?? []; }
+
+                public function getUserLimit(
+                    ?int $userId,
+                    string $entityType,
+                    string $metricType = 'count',
+                    string $periodType = 'daily',
+                ): int {
+                    return 0;
+                }
+
+                public function getAllUserLimits(?int $userId): array
+                {
+                    return [];
+                }
+
+                public function getEntityLimits(?int $userId, string $entityType): array
+                {
+                    return [];
+                }
+
+                public function getUserPermissionLimits(?int $userId, string $entity): array
+                {
+                    return $this->permissionLimits[$entity] ?? [];
+                }
             };
         });
 
         // Bind fake UniversalLimitServiceInterface used by controller
         $this->app->singleton(UniversalLimitServiceInterface::class, function () {
-            $svc = new class implements UniversalLimitServiceInterface {
+            $svc = new class implements UniversalLimitServiceInterface
+            {
                 public array $entityInfo = [
                     'has_permission' => true,
                     'user_permissions' => null,
-                    'limits' => []
+                    'limits' => [],
                 ];
+
                 public array $usageStats = [];
-                public function checkLimit(?int $userId, string $entityType, string $metricType = 'count', string $periodType = 'daily', int|float $value = 1): array { return []; }
-                public function recordUsage(?int $userId, string $entityType, string $metricType = 'count', ?string $periodType = 'daily', string $guard = 'web', int|float $value = 1): bool { return true; }
-                public function resetUsage(?int $userId, string $entityType, string $metricType = 'count', string $periodType = 'daily'): bool { return true; }
-                public function getUsageStatistics(?int $userId, string $entityType, string $metricType = 'count', string $periodType = 'daily'): array {
+
+                public function checkLimit(
+                    ?int $userId,
+                    string $entityType,
+                    string $metricType = 'count',
+                    string $periodType = 'daily',
+                    int|float $value = 1,
+                ): array {
+                    return [];
+                }
+
+                public function recordUsage(
+                    ?int $userId,
+                    string $entityType,
+                    string $metricType = 'count',
+                    ?string $periodType = 'daily',
+                    string $guard = 'web',
+                    int|float $value = 1,
+                ): bool {
+                    return true;
+                }
+
+                public function resetUsage(
+                    ?int $userId,
+                    string $entityType,
+                    string $metricType = 'count',
+                    string $periodType = 'daily',
+                ): bool {
+                    return true;
+                }
+
+                public function getUsageStatistics(
+                    ?int $userId,
+                    string $entityType,
+                    string $metricType = 'count',
+                    string $periodType = 'daily',
+                ): array {
                     return $this->usageStats[$periodType] ?? [];
                 }
-                public function getBestPeriodType(?int $userId, string $entityType, string $metricType = 'count'): string { return 'monthly'; }
-                public function getEntityLimitInfo(?int $userId, string $entityType): array {
+
+                public function getBestPeriodType(
+                    ?int $userId,
+                    string $entityType,
+                    string $metricType = 'count',
+                ): string {
+                    return 'monthly';
+                }
+
+                public function getEntityLimitInfo(?int $userId, string $entityType): array
+                {
                     if ($this->entityInfo['user_permissions'] === null) {
-                        $this->entityInfo['user_permissions'] = [[ 'daily' => true, 'weekly' => true, 'monthly' => true, 'yearly' => true, 'lifetime' => true ]];
+                        $this->entityInfo['user_permissions'] = [[
+                            'daily' => true,
+                            'weekly' => true,
+                            'monthly' => true,
+                            'yearly' => true,
+                            'lifetime' => true,
+                        ]];
                     }
+
                     return $this->entityInfo;
                 }
-                public function canUserCreateEntity(?int $userId, string $entityType): bool {
-                    return (bool)($this->entityInfo['has_permission'] ?? false);
+
+                public function canUserCreateEntity(?int $userId, string $entityType): bool
+                {
+                    return (bool) ($this->entityInfo['has_permission'] ?? false);
                 }
             };
+
             // Return stub instance
             return $svc;
         });
-    // Resolve now so we hold references
+        // Resolve now so we hold references
         $this->fakeService = $this->app->make(UniversalLimitServiceInterface::class);
-    $this->fakeResolver = $this->app->make(PermissionLimitResolver::class);
+        $this->fakeResolver = $this->app->make(PermissionLimitResolver::class);
     }
 
     private function makeUser(): User
     {
-        return User::factory()->create([ 'password' => Hash::make('secret123') ]);
+        return User::factory()->create(['password' => Hash::make('secret123')]);
     }
 
     #[Test]
@@ -135,7 +332,7 @@ class UELSControllerFeatureTest extends TestCase
         $this->fakeService->entityInfo = [
             'has_permission' => false,
             'user_permissions' => [],
-            'limits' => []
+            'limits' => [],
         ];
         $resp = $this->getJson('/test/uels/client');
         $resp->assertOk();
@@ -150,8 +347,8 @@ class UELSControllerFeatureTest extends TestCase
         $this->actingAs($user, 'web');
         $this->fakeService->entityInfo = [
             'has_permission' => true,
-            'user_permissions' => [[ 'daily' => false ]],
-            'limits' => []
+            'user_permissions' => [['daily' => false]],
+            'limits' => [],
         ];
         $this->fakeService->usageStats = []; // no stats generated
         $resp = $this->getJson('/test/uels/client');
@@ -168,15 +365,43 @@ class UELSControllerFeatureTest extends TestCase
         // Setup stats: weekly wins (limit 10 -> effective 42) vs daily 1 -> 30, monthly 15 -> 15
         $this->fakeService->entityInfo = [
             'has_permission' => true,
-            'user_permissions' => [[ 'daily' => true, 'weekly' => true, 'monthly' => true ]],
-            'limits' => []
+            'user_permissions' => [[
+                'daily' => true,
+                'weekly' => true,
+                'monthly' => true,
+            ]],
+            'limits' => [],
         ];
         $this->fakeService->usageStats = [
-            'daily' => [ 'limit' => 1, 'current_usage' => 0, 'remaining' => 1, 'usage_percentage' => 0, 'can_create' => true, 'period_start' => 's','period_end' => 'e' ],
-            'weekly' => [ 'limit' => 10, 'current_usage' => 2, 'remaining' => 8, 'usage_percentage' => 20, 'can_create' => true, 'period_start' => 's','period_end' => 'e' ],
-            'monthly' => [ 'limit' => 15, 'current_usage' => 5, 'remaining' => 10, 'usage_percentage' => 33.3, 'can_create' => true, 'period_start' => 's','period_end' => 'e' ],
+            'daily' => [
+                'limit' => 1,
+                'current_usage' => 0,
+                'remaining' => 1,
+                'usage_percentage' => 0,
+                'can_create' => true,
+                'period_start' => 's',
+                'period_end' => 'e',
+            ],
+            'weekly' => [
+                'limit' => 10,
+                'current_usage' => 2,
+                'remaining' => 8,
+                'usage_percentage' => 20,
+                'can_create' => true,
+                'period_start' => 's',
+                'period_end' => 'e',
+            ],
+            'monthly' => [
+                'limit' => 15,
+                'current_usage' => 5,
+                'remaining' => 10,
+                'usage_percentage' => 33.3,
+                'can_create' => true,
+                'period_start' => 's',
+                'period_end' => 'e',
+            ],
             'yearly' => [],
-            'lifetime' => []
+            'lifetime' => [],
         ];
         $resp = $this->getJson('/test/uels/client');
         $resp->assertOk();
@@ -192,14 +417,27 @@ class UELSControllerFeatureTest extends TestCase
         $this->actingAs($user, 'web');
         $this->fakeService->entityInfo = [
             'has_permission' => true,
-            'user_permissions' => [[ 'daily' => true ]],
-            'limits' => []
+            'user_permissions' => [['daily' => true]],
+            'limits' => [],
         ];
         $this->fakeService->usageStats = [
-            'daily' => [ 'limit' => 3,'current_usage' => 1,'remaining' => 2,'usage_percentage' => 33,'can_create' => true,'period_start' => 's','period_end' => 'e' ]
+            'daily' => [
+                'limit' => 3,
+                'current_usage' => 1,
+                'remaining' => 2,
+                'usage_percentage' => 33,
+                'can_create' => true,
+                'period_start' => 's',
+                'period_end' => 'e',
+            ],
         ];
-    $resp = $this->getJson('/test/uels-all');
-        $resp->assertOk()->assertJsonStructure(['entities' => ['client','supplier','product','invoice']]);
+        $resp = $this->getJson('/test/uels-all');
+        $resp->assertOk()->assertJsonStructure(['entities' => [
+            'client',
+            'supplier',
+            'product',
+            'invoice',
+        ]]);
     }
 
     #[Test]
@@ -227,16 +465,30 @@ class UELSControllerFeatureTest extends TestCase
         $this->actingAs($user, 'web');
         // Configure limits for client & product directly on anonymous instance
         $resolver = $this->fakeResolver;
-        $setLimits = function(object $resolver, string $entity, array $limits): void {
+        $setLimits = function (
+            object $resolver,
+            string $entity,
+            array $limits,
+        ): void {
             if (property_exists($resolver, 'permissionLimits')) {
                 $resolver->permissionLimits[$entity] = $limits;
             }
         };
         $setLimits($resolver, 'client', [
-            ['permission' => 'client.create.daily.10', 'limit' => 10, 'period' => 'daily', 'metric' => 'count']
+            [
+                'permission' => 'client.create.daily.10',
+                'limit' => 10,
+                'period' => 'daily',
+                'metric' => 'count',
+            ],
         ]);
         $setLimits($resolver, 'product', [
-            ['permission' => 'product.create.monthly.50', 'limit' => 50, 'period' => 'monthly', 'metric' => 'count']
+            [
+                'permission' => 'product.create.monthly.50',
+                'limit' => 50,
+                'period' => 'monthly',
+                'metric' => 'count',
+            ],
         ]);
         $resp = $this->getJson('/test/uels-permissions');
         $resp->assertOk();

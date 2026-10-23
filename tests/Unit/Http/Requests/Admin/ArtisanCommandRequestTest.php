@@ -14,7 +14,7 @@ class ArtisanCommandRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new ArtisanCommandRequest();
+        $this->request = new ArtisanCommandRequest;
     }
 
     #[Test]
@@ -29,7 +29,7 @@ class ArtisanCommandRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -40,7 +40,7 @@ class ArtisanCommandRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -51,18 +51,17 @@ class ArtisanCommandRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
-
 
     #[Test]
     public function authorize_method_exists_and_is_public(): void
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -71,7 +70,7 @@ class ArtisanCommandRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -80,8 +79,7 @@ class ArtisanCommandRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
+
         $this->assertTrue($method->isPublic());
     }
-
 }

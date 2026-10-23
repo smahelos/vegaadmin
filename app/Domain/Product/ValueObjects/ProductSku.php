@@ -18,6 +18,7 @@ class ProductSku
     private string $value;
 
     private const MIN_LENGTH = 3;
+
     private const MAX_LENGTH = 32;
 
     public function __construct(string $value)
@@ -51,9 +52,9 @@ class ProductSku
     {
         $length = strlen($value);
         if ($length < self::MIN_LENGTH || $length > self::MAX_LENGTH) {
-            throw new InvalidArgumentException("SKU length must be between " . self::MIN_LENGTH . " and " . self::MAX_LENGTH . " characters.");
+            throw new InvalidArgumentException('SKU length must be between ' . self::MIN_LENGTH . ' and ' . self::MAX_LENGTH . ' characters.');
         }
-        if (!preg_match('/^[A-Z][A-Z0-9_-]*$/', $value)) {
+        if (! preg_match('/^[A-Z][A-Z0-9_-]*$/', $value)) {
             throw new InvalidArgumentException('SKU must start with a letter and contain only A-Z, 0-9, dash or underscore.');
         }
         if (preg_match('/(--|__|-_ |_-)/', $value)) {

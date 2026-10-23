@@ -13,7 +13,7 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->request = new DatabaseMaintenanceLogRequest();
+        $this->request = new DatabaseMaintenanceLogRequest;
     }
 
     #[Test]
@@ -29,10 +29,9 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType;
+        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string) $returnType;
         $this->assertEquals('bool', $typeName);
     }
-
 
     #[Test]
     public function rules_method_has_correct_return_type(): void
@@ -41,7 +40,7 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType;
+        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string) $returnType;
         $this->assertEquals('array', $typeName);
     }
 
@@ -52,7 +51,7 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType;
+        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string) $returnType;
         $this->assertEquals('array', $typeName);
     }
 
@@ -63,7 +62,7 @@ class DatabaseMaintenanceLogRequestTest extends TestCase
         $method = $reflection->getMethod('messages');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType;
+        $typeName = $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string) $returnType;
         $this->assertEquals('array', $typeName);
     }
 

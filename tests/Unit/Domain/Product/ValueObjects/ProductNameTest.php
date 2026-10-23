@@ -14,7 +14,7 @@ class ProductNameTest extends TestCase
     {
         $name = new ProductName('  Test Product  ');
         $this->assertSame('Test Product', $name->getValue());
-        $this->assertSame('Test Product', (string)$name);
+        $this->assertSame('Test Product', (string) $name);
     }
 
     #[Test]

@@ -14,8 +14,8 @@ class SupplierListTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->component = new SupplierList();
+
+        $this->component = new SupplierList;
     }
 
     #[Test]
@@ -39,14 +39,14 @@ class SupplierListTest extends TestCase
     {
         $this->component->orderBy = 'name';
         $this->component->orderAsc = false;
-        
+
         $this->component->sortBy('name');
-        
+
         $this->assertEquals('name', $this->component->orderBy);
         $this->assertTrue($this->component->orderAsc);
-        
+
         $this->component->sortBy('name');
-        
+
         $this->assertEquals('name', $this->component->orderBy);
         $this->assertFalse($this->component->orderAsc);
     }
@@ -56,9 +56,9 @@ class SupplierListTest extends TestCase
     {
         $this->component->orderBy = 'name';
         $this->component->orderAsc = false;
-        
+
         $this->component->sortBy('email');
-        
+
         $this->assertEquals('email', $this->component->orderBy);
         $this->assertTrue($this->component->orderAsc);
     }
@@ -69,7 +69,7 @@ class SupplierListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         // Render method should have no explicit return type in this component
         $this->assertNull($returnType);
     }
@@ -80,7 +80,7 @@ class SupplierListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNull($returnType);
     }
 
@@ -90,7 +90,7 @@ class SupplierListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('updatingSearch');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNull($returnType);
     }
 }

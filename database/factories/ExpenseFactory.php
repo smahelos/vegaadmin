@@ -9,16 +9,17 @@ use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Expense>
+ * @extends Factory<Expense>
  */
 class ExpenseFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     * @var class-string<Model>
      */
     protected $model = Expense::class;
 
@@ -34,12 +35,20 @@ class ExpenseFactory extends Factory
             'supplier_id' => Supplier::factory(),
             'category_id' => ExpenseCategory::factory(),
             'expense_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
-            'amount' => $this->faker->randomFloat(2, 10, 10000),
+            'amount' => $this->faker->randomFloat(
+                2,
+                10,
+                10000,
+            ),
             'currency' => $this->faker->currencyCode(),
             'payment_method_id' => PaymentMethod::factory(),
             'reference_number' => $this->faker->optional()->numerify('REF-########'),
             'description' => $this->faker->sentence(),
-            'tax_amount' => $this->faker->randomFloat(2, 0, 1000),
+            'tax_amount' => $this->faker->randomFloat(
+                2,
+                0,
+                1000,
+            ),
             'tax_included' => $this->faker->boolean(),
             'status_id' => Status::factory(),
             'attachments' => null, // Will be handled by mutator if needed

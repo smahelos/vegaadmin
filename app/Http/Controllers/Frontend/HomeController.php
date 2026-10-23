@@ -2,19 +2,16 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Routing\Controller;
-use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
     /**
      * Handle the incoming request and redirect based on authentication status
-     *
-     * @param  Request $request
-     * @return Response|RedirectResponse
      */
     public function index(Request $request): RedirectResponse|Response
     {

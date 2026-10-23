@@ -8,14 +8,12 @@ use App\Models\StatusCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
+// alias if needed
 use Tests\Traits\CreatesAdminTestEnvironment;
-use Illuminate\Support\Facades\Route as RouteFacade; // alias if needed
-use Illuminate\Support\Str;
 
 /**
  * Feature test for StatusRequest class.
@@ -23,10 +21,8 @@ use Illuminate\Support\Str;
  */
 class StatusRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-    protected User $regularUser;
     private StatusCategory $statusCategory;
 
     /**
@@ -85,7 +81,11 @@ class StatusRequestFeatureTest extends TestCase
         $response = $this->postJson('/test-status', []);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['name', 'slug', 'category_id']);
+        $response->assertJsonValidationErrors([
+            'name',
+            'slug',
+            'category_id',
+        ]);
     }
 
     /**
@@ -247,7 +247,7 @@ class StatusRequestFeatureTest extends TestCase
     #[Test]
     public function custom_attributes_are_defined(): void
     {
-        $request = new StatusRequest();
+        $request = new StatusRequest;
         $attributes = $request->attributes();
 
         $expectedAttributes = [

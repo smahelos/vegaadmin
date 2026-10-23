@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class MysqlOptimizationLog extends Model
 {
@@ -29,7 +29,7 @@ class MysqlOptimizationLog extends Model
         'recommended_value',
         'description',
         'priority',
-        'applied'
+        'applied',
     ];
 
     /**
@@ -38,7 +38,7 @@ class MysqlOptimizationLog extends Model
      * @var array
      */
     protected $casts = [
-        'applied' => 'boolean'
+        'applied' => 'boolean',
     ];
 
     /**
@@ -49,7 +49,7 @@ class MysqlOptimizationLog extends Model
         $badges = [
             'high' => '<span class="badge text-bg-danger">High</span>',
             'medium' => '<span class="badge text-bg-warning">Medium</span>',
-            'low' => '<span class="badge text-bg-info">Low</span>'
+            'low' => '<span class="badge text-bg-info">Low</span>',
         ];
 
         return $badges[$this->priority] ?? '<span class="badge text-bg-light">Unknown</span>';
@@ -60,7 +60,7 @@ class MysqlOptimizationLog extends Model
      */
     public function getAppliedBadgeAttribute()
     {
-        return $this->applied 
+        return $this->applied
             ? '<span class="badge text-bg-success">Applied</span>'
             : '<span class="badge text-bg-secondary">Pending</span>';
     }
@@ -75,7 +75,8 @@ class MysqlOptimizationLog extends Model
         }
 
         try {
-            $result = \DB::select("SHOW VARIABLES LIKE ?", [$this->setting_name]);
+            $result = \DB::select('SHOW VARIABLES LIKE ?', [$this->setting_name]);
+
             return $result[0]->Value ?? 'Not found';
         } catch (\Exception $e) {
             return 'Error reading';

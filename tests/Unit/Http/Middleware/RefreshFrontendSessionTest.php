@@ -13,7 +13,7 @@ class RefreshFrontendSessionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RefreshFrontendSession();
+        $this->middleware = new RefreshFrontendSession;
     }
 
     #[Test]

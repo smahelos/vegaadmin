@@ -3,13 +3,21 @@
 namespace Tests\Traits;
 
 use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 
 trait CreatesFrontendTestEnvironment
 {
+    protected User $adminUser;
+
+    protected User $backendAdminUser;
+
+    protected User $unauthorizedAdmin;
+
+    protected User $user;
+
     /**
      * Set up frontend test environment with all required permissions and roles
      */
@@ -25,7 +33,7 @@ trait CreatesFrontendTestEnvironment
         $requiredFrontendPermissions = [
             'frontend.api.access',
             'frontend.can_create_edit_user',
-            'frontend.can_create_edit_supplier', 
+            'frontend.can_create_edit_supplier',
             'frontend.can_create_edit_client',
             'frontend.can_create_edit_invoice',
             'frontend.can_create_edit_product',
@@ -47,7 +55,7 @@ trait CreatesFrontendTestEnvironment
         // Ensure required permissions exist for backpack guard
         $requiredBackendPermissions = [
             'can_create_edit_user',
-            'can_create_edit_supplier', 
+            'can_create_edit_supplier',
             'can_create_edit_client',
             'can_create_edit_invoice',
             'can_create_edit_product',
@@ -69,52 +77,52 @@ trait CreatesFrontendTestEnvironment
             'backpack.access',
             'backpack.api.access',
             'can_view_client',
-            'can_view_user'
+            'can_view_user',
         ];
 
         foreach ($requiredFrontendPermissions as $permissionName) {
             Permission::firstOrCreate([
                 'name' => $permissionName,
-                'guard_name' => 'web'
+                'guard_name' => 'web',
             ]);
         }
 
         foreach ($requiredBackendPermissions as $permissionName) {
             Permission::firstOrCreate([
                 'name' => $permissionName,
-                'guard_name' => 'backpack'
+                'guard_name' => 'backpack',
             ]);
         }
 
         foreach ($requiredApiBackendPermissions as $permissionName) {
             Permission::firstOrCreate([
                 'name' => $permissionName,
-                'guard_name' => 'backpack'
+                'guard_name' => 'backpack',
             ]);
         }
 
         // Ensure admin role exists
         $adminRole = Role::firstOrCreate([
             'name' => 'admin',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         // Ensure admin role exists
         $backendAdminRole = Role::firstOrCreate([
             'name' => 'admin',
-            'guard_name' => 'backpack'
+            'guard_name' => 'backpack',
         ]);
 
         // Create unauthorized admin role (without can_view_client, can_view_user etc. permissions)
         $unauthorizedRole = Role::firstOrCreate([
             'name' => 'unauthorized_admin',
-            'guard_name' => 'backpack'
+            'guard_name' => 'backpack',
         ]);
 
         // Ensure frontend_user role exists
         $frontendUserRole = Role::firstOrCreate([
             'name' => 'frontend_user',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         // Give admin role all permissions
@@ -122,28 +130,26 @@ trait CreatesFrontendTestEnvironment
         $adminRole->syncPermissions($frontendPermissions);
 
         // Create admin user with admin role (if not already set)
-        if (!isset($this->adminUser)) {
+        if (! isset($this->adminUser)) {
             $this->adminUser = User::factory()->create([
                 'name' => 'Admin User',
-                'email' => 'admin@example.com'
+                'email' => 'admin@example.com',
             ]);
         }
         $this->adminUser->assignRole($adminRole);
-
 
         // Give admin role all permissions
         $backendPermissions = Permission::where('guard_name', 'backpack')->get();
         $backendAdminRole->syncPermissions($backendPermissions);
 
         // Create admin user with admin role (if not already set)
-        if (!isset($this->backendAdminUser)) {
+        if (! isset($this->backendAdminUser)) {
             $this->backendAdminUser = User::factory()->create([
                 'name' => 'Backend Admin User',
-                'email' => 'backend.admin@example.com'
+                'email' => 'backend.admin@example.com',
             ]);
         }
         $this->backendAdminUser->assignRole($backendAdminRole);
-
 
         // Give unauthorized admin role basic permissions
         $basicBackpackPermissions = Permission::where('guard_name', 'backpack')
@@ -152,30 +158,30 @@ trait CreatesFrontendTestEnvironment
         $unauthorizedRole->syncPermissions($basicBackpackPermissions);
 
         // Create unauthorized admin user with admin role (if not already set)
-        if (!isset($this->unauthorizedAdmin)) {
+        if (! isset($this->unauthorizedAdmin)) {
             $this->unauthorizedAdmin = User::factory()->create([
                 'name' => 'Unauthorized Admin',
-                'email' => 'unauthorized@example.com'
+                'email' => 'unauthorized@example.com',
             ]);
         }
         $this->unauthorizedAdmin->assignRole($unauthorizedRole);
 
         // Create regular user with limited role (if not already set)
-        if (!isset($this->user)) {
+        if (! isset($this->user)) {
             $this->user = User::factory()->create();
         }
         $this->user->assignRole($frontendUserRole);
         // Give frontend_user role minimal API permissions
         $frontendUserRole->syncPermissions(
-            Permission::where('guard_name','web')
-                ->whereIn('name', ['frontend.api.access','frontend.can_create_edit_invoice'])
-                ->get()
+            Permission::where('guard_name', 'web')
+                ->whereIn('name', ['frontend.api.access', 'frontend.can_create_edit_invoice'])
+                ->get(),
         );
-        
+
         // Get frontend.api.access permission if it exists
         $frontendApiAccessPermission = Permission::where('name', 'frontend.api.access')
-                                             ->where('guard_name', 'web')
-                                             ->first();
+            ->where('guard_name', 'web')
+            ->first();
         if ($frontendApiAccessPermission) {
             $this->user->givePermissionTo($frontendApiAccessPermission);
         }
@@ -187,7 +193,7 @@ trait CreatesFrontendTestEnvironment
     private function ensurePermissionTables(): void
     {
         // permissions
-        if (!Schema::hasTable('permissions')) {
+        if (! Schema::hasTable('permissions')) {
             Schema::create('permissions', function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('name');
@@ -196,7 +202,7 @@ trait CreatesFrontendTestEnvironment
             });
         }
         // roles
-        if (!Schema::hasTable('roles')) {
+        if (! Schema::hasTable('roles')) {
             Schema::create('roles', function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('name');
@@ -205,7 +211,7 @@ trait CreatesFrontendTestEnvironment
             });
         }
         // model_has_permissions
-        if (!Schema::hasTable('model_has_permissions')) {
+        if (! Schema::hasTable('model_has_permissions')) {
             Schema::create('model_has_permissions', function (Blueprint $table) {
                 $table->unsignedInteger('permission_id');
                 $table->string('model_type');
@@ -214,7 +220,7 @@ trait CreatesFrontendTestEnvironment
             });
         }
         // model_has_roles
-        if (!Schema::hasTable('model_has_roles')) {
+        if (! Schema::hasTable('model_has_roles')) {
             Schema::create('model_has_roles', function (Blueprint $table) {
                 $table->unsignedInteger('role_id');
                 $table->string('model_type');
@@ -223,7 +229,7 @@ trait CreatesFrontendTestEnvironment
             });
         }
         // role_has_permissions
-        if (!Schema::hasTable('role_has_permissions')) {
+        if (! Schema::hasTable('role_has_permissions')) {
             Schema::create('role_has_permissions', function (Blueprint $table) {
                 $table->unsignedInteger('permission_id');
                 $table->unsignedInteger('role_id');

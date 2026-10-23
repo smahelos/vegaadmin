@@ -14,7 +14,7 @@ class BankRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new BankRequest();
+        $this->request = new BankRequest;
     }
 
     #[Test]

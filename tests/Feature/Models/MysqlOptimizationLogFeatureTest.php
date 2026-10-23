@@ -20,7 +20,7 @@ class MysqlOptimizationLogFeatureTest extends TestCase
             'recommended_value' => '1G',
             'description' => 'Buffer pool size should be increased',
             'priority' => 'high',
-            'applied' => false
+            'applied' => false,
         ];
 
         $log = MysqlOptimizationLog::create($data);
@@ -30,7 +30,7 @@ class MysqlOptimizationLogFeatureTest extends TestCase
             'setting_name' => 'innodb_buffer_pool_size',
             'current_value' => '128M',
             'recommended_value' => '1G',
-            'priority' => 'high'
+            'priority' => 'high',
         ]);
     }
 
@@ -41,7 +41,7 @@ class MysqlOptimizationLogFeatureTest extends TestCase
 
         $this->assertInstanceOf(MysqlOptimizationLog::class, $log);
         $this->assertDatabaseHas('mysql_optimization_logs', [
-            'id' => $log->id
+            'id' => $log->id,
         ]);
     }
 
@@ -159,7 +159,7 @@ class MysqlOptimizationLogFeatureTest extends TestCase
         $highPriorityLogs = MysqlOptimizationLog::highPriority()->get();
 
         $this->assertCount(2, $highPriorityLogs);
-        $this->assertTrue($highPriorityLogs->every(fn($log) => $log->priority === 'high'));
+        $this->assertTrue($highPriorityLogs->every(fn ($log) => $log->priority === 'high'));
     }
 
     #[Test]
@@ -171,7 +171,7 @@ class MysqlOptimizationLogFeatureTest extends TestCase
         $unappliedLogs = MysqlOptimizationLog::unapplied()->get();
 
         $this->assertCount(3, $unappliedLogs);
-        $this->assertTrue($unappliedLogs->every(fn($log) => !$log->applied));
+        $this->assertTrue($unappliedLogs->every(fn ($log) => ! $log->applied));
     }
 
     #[Test]
@@ -184,7 +184,7 @@ class MysqlOptimizationLogFeatureTest extends TestCase
         $highPriorityUnappliedLogs = MysqlOptimizationLog::highPriority()->unapplied()->get();
 
         $this->assertCount(2, $highPriorityUnappliedLogs);
-        $this->assertTrue($highPriorityUnappliedLogs->every(fn($log) => $log->priority === 'high' && !$log->applied));
+        $this->assertTrue($highPriorityUnappliedLogs->every(fn ($log) => $log->priority === 'high' && ! $log->applied));
     }
 
     #[Test]
@@ -208,7 +208,7 @@ class MysqlOptimizationLogFeatureTest extends TestCase
 
         $log->update([
             'applied' => true,
-            'current_value' => '1G'
+            'current_value' => '1G',
         ]);
 
         $this->assertTrue($log->fresh()->applied);
@@ -224,7 +224,7 @@ class MysqlOptimizationLogFeatureTest extends TestCase
         $log->delete();
 
         $this->assertDatabaseMissing('mysql_optimization_logs', [
-            'id' => $logId
+            'id' => $logId,
         ]);
     }
 }

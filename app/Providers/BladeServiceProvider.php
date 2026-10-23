@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\ServiceProvider;
 
 class BladeServiceProvider extends ServiceProvider
 {
@@ -23,10 +23,11 @@ class BladeServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Blade::directive('renderRequiredMark', function ($field) {
-            if(isset($field['required']) && $field['required'] === true) {
-                    return '<span class="text-red-500">*</span>';
-                }
-                return '';
-            });
+            if (isset($field['required']) && $field['required'] === true) {
+                return '<span class="text-red-500">*</span>';
+            }
+
+            return '';
+        });
     }
 }

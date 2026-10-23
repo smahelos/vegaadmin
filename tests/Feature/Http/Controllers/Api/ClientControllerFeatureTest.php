@@ -4,16 +4,16 @@ namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Models\Client;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 /**
  * Feature tests for Api\ClientController
- * 
+ *
  * Tests all API endpoints: getClient($id), getClients(), getDefaultClient()
  * Tests authentication scenarios, authorization (admin vs regular user access), error handling
  * Tests JSON responses, HTTP status codes, and security boundaries
@@ -23,16 +23,19 @@ class ClientControllerFeatureTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $admin;
+
     protected User $user;
+
     protected User $viewer;
+
     protected Client $adminClient;
+
     protected Client $userClient;
+
     protected Client $defaultClient;
 
     /**
      * Set up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -40,7 +43,7 @@ class ClientControllerFeatureTest extends TestCase
 
         // Create permissions and roles
         $this->createPermissionsAndRoles();
-        
+
         // Create test users with proper roles
         $this->createTestUsers();
 
@@ -56,29 +59,29 @@ class ClientControllerFeatureTest extends TestCase
         // Frontend permissions
         Permission::firstOrCreate(['name' => 'frontend.api.access', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'frontend.api.clients', 'guard_name' => 'web']);
-        
+
         // Backpack permissions
         Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'backpack.api.access', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'can_view_client', 'guard_name' => 'backpack']);
-        
+
         // Create roles
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
         $adminRole->syncPermissions([
             'backpack.access',
-            'backpack.api.access', 
-            'can_view_client'
+            'backpack.api.access',
+            'can_view_client',
         ]);
-        
+
         $userRole = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
         $userRole->syncPermissions([
             'frontend.api.access',
-            'frontend.api.clients'
+            'frontend.api.clients',
         ]);
-        
+
         $viewerRole = Role::firstOrCreate(['name' => 'viewer', 'guard_name' => 'web']);
         $viewerRole->syncPermissions([
-            'frontend.api.access'
+            'frontend.api.access',
         ]);
     }
 
@@ -97,7 +100,7 @@ class ClientControllerFeatureTest extends TestCase
 
         // Create regular user
         $this->user = User::factory()->create([
-            'name' => 'Regular User', 
+            'name' => 'Regular User',
             'email' => 'user@example.com',
         ]);
         $userRole = Role::where('name', 'user')->where('guard_name', 'web')->first();
@@ -201,7 +204,7 @@ class ClientControllerFeatureTest extends TestCase
         $response->assertStatus(401)
             ->assertJson([
                 'error' => __('users.auth.unauthenticated'),
-                'code' => 401
+                'code' => 401,
             ]);
     }
 
@@ -252,11 +255,11 @@ class ClientControllerFeatureTest extends TestCase
                     'name',
                     'email',
                     'user_id',
-                ]
+                ],
             ]);
 
-    $clients = $response->json();
-    $this->assertGreaterThanOrEqual(1, count($clients)); // At least one client
+        $clients = $response->json();
+        $this->assertGreaterThanOrEqual(1, count($clients)); // At least one client
     }
 
     /**
@@ -275,21 +278,21 @@ class ClientControllerFeatureTest extends TestCase
                     'name',
                     'email',
                     'user_id',
-                ]
+                ],
             ]);
 
         $clients = $response->json();
-        
+
         // Verify all returned clients belong to the user
         foreach ($clients as $client) {
             $this->assertEquals($this->user->id, $client['user_id']);
         }
-        
+
         // Verify user's clients are included
         $clientIds = collect($clients)->pluck('id')->toArray();
         $this->assertContains($this->userClient->id, $clientIds);
         $this->assertContains($this->defaultClient->id, $clientIds);
-        
+
         // Verify admin's client is not included
         $this->assertNotContains($this->adminClient->id, $clientIds);
     }
@@ -305,7 +308,7 @@ class ClientControllerFeatureTest extends TestCase
         $response->assertStatus(401)
             ->assertJson([
                 'error' => __('users.auth.unauthenticated'),
-                'code' => 401
+                'code' => 401,
             ]);
     }
 
@@ -340,13 +343,13 @@ class ClientControllerFeatureTest extends TestCase
             'name' => 'Test User',
         ]);
         $testUser->assignRole('user'); // Assign frontend role
-        
+
         $firstClient = Client::factory()->create([
             'user_id' => $testUser->id,
             'name' => 'First Client',
             'is_default' => false,
         ]);
-        
+
         $secondClient = Client::factory()->create([
             'user_id' => $testUser->id,
             'name' => 'Second Client',
@@ -357,10 +360,10 @@ class ClientControllerFeatureTest extends TestCase
             ->getJson('/api/client/default');
 
         $response->assertStatus(200);
-        
+
         $client = $response->json();
         $this->assertEquals($testUser->id, $client['user_id']);
-        
+
         // Should return one of the user's clients (most recent by created_at)
         $clientIds = [$firstClient->id, $secondClient->id];
         $this->assertContains($client['id'], $clientIds);
@@ -399,7 +402,7 @@ class ClientControllerFeatureTest extends TestCase
         $response->assertStatus(401)
             ->assertJson([
                 'error' => __('users.auth.unauthenticated'),
-                'code' => 401
+                'code' => 401,
             ]);
     }
 
@@ -425,7 +428,7 @@ class ClientControllerFeatureTest extends TestCase
         $response->assertStatus(403)
             ->assertJson([
                 'error' => __('users.auth.forbidden'),
-                'code' => 403
+                'code' => 403,
             ]);
     }
 

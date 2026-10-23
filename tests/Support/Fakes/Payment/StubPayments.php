@@ -12,10 +12,15 @@ class StubPayments extends Payments
 {
     /** @var array<string,array<string,mixed>> */
     private array $store = [];
+
     public array $config;
+
     public bool $failCreate = false;
+
     public bool $failStatus = false;
+
     public bool $failRefund = false;
+
     public bool $failCancel = false;
 
     public function __construct(array $config = [])
@@ -26,9 +31,14 @@ class StubPayments extends Payments
 
     private function fakeResponse(bool $success, array $json = []): object
     {
-        return new class($success, $json) {
+        return new class($success, $json)
+        {
             public function __construct(public bool $success, public array $json) {}
-            public function hasSucceed(): bool { return $this->success; }
+
+            public function hasSucceed(): bool
+            {
+                return $this->success;
+            }
         };
     }
 
@@ -44,6 +54,7 @@ class StubPayments extends Payments
             'gw_url' => 'https://fake.gopay/redirect/' . $id,
             'amount' => $payment['amount'] ?? 0,
         ];
+
         return $this->fakeResponse(true, $this->store[$id]);
     }
 
@@ -53,6 +64,7 @@ class StubPayments extends Payments
             return $this->fakeResponse(false, ['error' => 'status_failed']);
         }
         $data = $this->store[$id] ?? ['id' => $id, 'state' => 'CREATED'];
+
         return $this->fakeResponse(true, $data);
     }
 
@@ -64,6 +76,7 @@ class StubPayments extends Payments
         if (isset($this->store[$id])) {
             $this->store[$id]['state'] = isset($data['amount']) ? 'PARTIALLY_REFUNDED' : 'REFUNDED';
         }
+
         return $this->fakeResponse(true, $this->store[$id] ?? ['id' => $id, 'state' => 'REFUNDED']);
     }
 
@@ -75,6 +88,7 @@ class StubPayments extends Payments
         if (isset($this->store[$id])) {
             $this->store[$id]['state'] = 'CANCELED';
         }
+
         return $this->fakeResponse(true, $this->store[$id] ?? ['id' => $id, 'state' => 'CANCELED']);
     }
 }

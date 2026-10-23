@@ -5,8 +5,8 @@ namespace App\Domain\Product\Validation;
 use App\Domain\Product\Exceptions\ProductValidationException;
 use App\Domain\Product\ValueObjects\ProductName;
 use App\Domain\Product\ValueObjects\ProductPrice;
-use App\Domain\Shared\Unit\Enums\Unit;
 use App\Domain\Shared\Str\Contracts\Str;
+use App\Domain\Shared\Unit\Enums\Unit;
 
 /**
  * Domain validator for Product business rules and constraints.
@@ -17,7 +17,7 @@ class ProductCreationValidator
 
     /**
      * Validate product data for creation.
-     * 
+     *
      * @throws ProductValidationException
      */
     public function validateForCreation(array $data, int $userId): array
@@ -26,54 +26,54 @@ class ProductCreationValidator
         if (empty($data['name'])) {
             throw ProductValidationException::invalidName($data['name'] ?? '');
         }
-        
+
         // Validate name using Value Object
         $name = ProductName::fromString($data['name']);
-        
+
         // Validate price if provided
         if (isset($data['price'])) {
             $price = ProductPrice::fromFloat((float) $data['price']);
-            if ($price->isZero() && !($data['allow_zero_price'] ?? false)) {
+            if ($price->isZero() && ! ($data['allow_zero_price'] ?? false)) {
                 throw ProductValidationException::invalidPrice($price->getValue());
             }
         }
-        
+
         // Validate currency
-        if (!empty($data['currency']) && !$this->isValidCurrency($data['currency'])) {
+        if (! empty($data['currency']) && ! $this->isValidCurrency($data['currency'])) {
             throw ProductValidationException::invalidCurrency($data['currency']);
         }
-        
+
         return $this->normalizeProductData($data, $userId);
     }
-    
+
     /**
      * Validate product data for updates.
-     * 
+     *
      * @throws ProductValidationException
      */
     public function validateForUpdate(array $data): array
     {
         // Validate name if provided
-        if (isset($data['name']) && !empty($data['name'])) {
+        if (isset($data['name']) && ! empty($data['name'])) {
             ProductName::fromString($data['name']);
         }
-        
+
         // Validate price if provided
         if (isset($data['price']) && $data['price'] !== null) {
             $price = ProductPrice::fromFloat((float) $data['price']);
-            if ($price->isZero() && !($data['allow_zero_price'] ?? false)) {
+            if ($price->isZero() && ! ($data['allow_zero_price'] ?? false)) {
                 throw ProductValidationException::invalidPrice($price->getValue());
             }
         }
-        
+
         // Validate currency if provided
-        if (isset($data['currency']) && !empty($data['currency']) && !$this->isValidCurrency($data['currency'])) {
+        if (isset($data['currency']) && ! empty($data['currency']) && ! $this->isValidCurrency($data['currency'])) {
             throw ProductValidationException::invalidCurrency($data['currency']);
         }
-        
+
         return $data;
     }
-    
+
     /**
      * Normalize product data with defaults and business rules.
      */
@@ -95,13 +95,25 @@ class ProductCreationValidator
             'user_id' => $userId,
         ];
     }
-    
+
     /**
      * Validate currency code.
      */
     private function isValidCurrency(string $currency): bool
     {
-        $validCurrencies = ['CZK', 'EUR', 'USD', 'GBP', 'PLN', 'HUF'];
-        return in_array(strtoupper($currency), $validCurrencies, true);
+        $validCurrencies = [
+            'CZK',
+            'EUR',
+            'USD',
+            'GBP',
+            'PLN',
+            'HUF',
+        ];
+
+        return in_array(
+            strtoupper($currency),
+            $validCurrencies,
+            true,
+        );
     }
 }

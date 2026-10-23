@@ -27,7 +27,7 @@ class SubscriptionPlanRequest extends FormRequest
     {
         // Only allow logged in users with proper permissions
         $user = backpack_user();
-        
+
         return $user && $user->hasPermissionTo('can_create_edit_subscription_plan', 'backpack');
     }
 

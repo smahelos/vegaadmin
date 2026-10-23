@@ -4,25 +4,25 @@ namespace App\Application\Invoice\Services\Specialized;
 
 use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceLimitApplicationServiceInterface;
-use App\Application\Product\Contracts\ProductApplicationServiceInterface;
-use App\Application\Product\Contracts\InvoiceProductReadRepositoryInterface;
+use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
+use App\Application\Invoice\DTO\InvoiceFormDTO;
+use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
 use App\Application\Party\Contracts\PartyApplicationServiceInterface;
-use App\Domain\User\ValueObjects\UserId;
+use App\Application\Product\Contracts\InvoiceProductReadRepositoryInterface;
+use App\Application\Product\Contracts\ProductApplicationServiceInterface;
+use App\Application\Shared\Form\DTO\FieldSetDTO;
+use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
-use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
-use App\Domain\User\Contracts\UserReadRepositoryInterface;
-use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
-use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Contracts\BankServiceInterface;
+use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
-use App\Application\Invoice\DTO\InvoiceFormDTO;
-use App\Application\Shared\Form\DTO\FieldSetDTO;
-use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
-use Illuminate\Support\Collection;
-use Illuminate\Http\Request;
+use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
+use App\Domain\User\Contracts\UserReadRepositoryInterface;
+use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -50,7 +50,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function getFormData(UserId $userId, ?InvoiceId $invoiceId = null): array
     {
         $userIdInt = $userId->toInt();
-        
+
         $formData = [
             'products' => $this->getProducts($userId),
             'clients' => $this->getClients($userId),
@@ -76,10 +76,10 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function prepareFormData(UserId $userId, ?InvoiceId $invoiceId = null): array
     {
         $formData = $this->getFormData($userId, $invoiceId);
-        
+
         // Add additional preparation logic here
         $formData['selectOptions'] = $this->getSelectOptions($userId);
-        
+
         return $formData;
     }
 
@@ -90,7 +90,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     {
         $user = $this->userReadRepository->findUserById($userId);
         $userIdInt = $userId->toInt();
-        
+
         return [
             'currency' => 'CZK',
             'language' => 'cs',
@@ -107,7 +107,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function getSelectOptions(UserId $userId): array
     {
         $userIdInt = $userId->toInt();
-        
+
         return [
             'products' => $this->productApplicationService->getProductsDropdown($userIdInt),
             'clients' => $this->partyApplicationService->clientOptions($userIdInt),
@@ -124,6 +124,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function getProducts(UserId $userId): Collection
     {
         $userIdInt = $userId->toInt();
+
         return $this->productApplicationService->listProducts($userIdInt);
     }
 
@@ -134,6 +135,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     {
         $userIdInt = $userId->toInt();
         $clients = $this->partyApplicationService->clientOptions($userIdInt);
+
         return collect($clients);
     }
 
@@ -144,6 +146,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     {
         $userIdInt = $userId->toInt();
         $suppliers = $this->partyApplicationService->supplierOptions($userIdInt);
+
         return collect($suppliers);
     }
 
@@ -153,6 +156,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function getBanks(UserId $userId): Collection
     {
         $banks = $this->bankService->getBanksForDropdown();
+
         return collect($banks);
     }
 
@@ -162,6 +166,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function getPaymentMethods(UserId $userId): Collection
     {
         $paymentMethods = $this->paymentMethodRepository->all();
+
         return collect($paymentMethods);
     }
 
@@ -171,6 +176,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function getTaxes(UserId $userId): Collection
     {
         $taxes = $this->taxRepository->getAllTaxes();
+
         return collect($taxes);
     }
 
@@ -235,16 +241,16 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         $selectedClient = null;
         if ($request->has('client_id')) {
             try {
-                $selectedClient = $this->partyApplicationService->findClient($userId, (int)$request->client_id);
+                $selectedClient = $this->partyApplicationService->findClient($userId, (int) $request->client_id);
             } catch (ModelNotFoundException $e) {
                 Log::error('Error loading client: ' . $e->getMessage(), [
-                    'user_id' => $userId
+                    'user_id' => $userId,
                 ]);
                 session()->flash('error', __('clients.messages.not_found'));
             }
         }
 
-        if (!$selectedClient) {
+        if (! $selectedClient) {
             $selectedClient = $this->partyApplicationService->defaultClient($userId);
         }
 
@@ -252,15 +258,15 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         $defaultSupplier = null;
         if ($request->has('supplier_id')) {
             try {
-                $defaultSupplier = $this->partyApplicationService->findSupplier($userId, (int)$request->supplier_id);
+                $defaultSupplier = $this->partyApplicationService->findSupplier($userId, (int) $request->supplier_id);
             } catch (ModelNotFoundException $e) {
                 Log::error('Error loading supplier: ' . $e->getMessage(), [
-                    'user_id' => $userId
+                    'user_id' => $userId,
                 ]);
             }
         }
 
-        if (!$defaultSupplier) {
+        if (! $defaultSupplier) {
             $defaultSupplier = $this->partyApplicationService->defaultSupplier($userId);
         }
 
@@ -277,7 +283,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             $clients,
             $suppliers,
             $paymentMethods,
-            $statuses
+            $statuses,
         );
 
         return new InvoiceFormDTO($fieldSet, [
@@ -302,9 +308,12 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     /**
      * Prepare data for invoice editing form (legacy compatibility)
      */
-    public function prepareEditData(int $userId, int $invoiceId, string $locale): InvoiceFormDTO
-    {
-// Get UserDTO from int $userId
+    public function prepareEditData(
+        int $userId,
+        int $invoiceId,
+        string $locale,
+    ): InvoiceFormDTO {
+        // Get UserDTO from int $userId
         $userIdVO = UserId::fromInt($userId);
         $user = $this->userReadRepository->findUserById($userIdVO);
 
@@ -313,10 +322,15 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         // In Application layer we work with Eloquent model on top of UI for eager loading and dynamic accessors (for example blade accessors)
         // In Domain layer we work with InvoiceDTO only
         $invoice = $this->invoiceReadRepository->findForUser($userId, $invoiceId);
-        if (!$invoice) {
+        if (! $invoice) {
             throw new ModelNotFoundException('Invoice not accessible for user');
         }
-        $invoice->load(['client', 'supplier', 'paymentStatus', 'paymentMethod']);
+        $invoice->load([
+            'client',
+            'supplier',
+            'paymentStatus',
+            'paymentMethod',
+        ]);
 
         // Get related parties - we need full DTOs for edit view (for example to show client email)
         $client = $invoice->client;
@@ -324,11 +338,19 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
 
         // Optional related DTOs (null-safe)
         // We can use DTOs from relations if loaded, otherwise try to load via Party service (with permission check)
-        if (!$client && !empty($invoice->client_id)) {
-            try { $client = $this->partyApplicationService->findClient($userId, (int)$invoice->client_id); } catch (ModelNotFoundException $e) { $client = null; }
+        if (! $client && ! empty($invoice->client_id)) {
+            try {
+                $client = $this->partyApplicationService->findClient($userId, (int) $invoice->client_id);
+            } catch (ModelNotFoundException $e) {
+                $client = null;
+            }
         }
-        if (!$supplier && !empty($invoice->supplier_id)) {
-            try { $supplier = $this->partyApplicationService->findSupplier($userId, (int)$invoice->supplier_id); } catch (ModelNotFoundException $e) { $supplier = null; }
+        if (! $supplier && ! empty($invoice->supplier_id)) {
+            try {
+                $supplier = $this->partyApplicationService->findSupplier($userId, (int) $invoice->supplier_id);
+            } catch (ModelNotFoundException $e) {
+                $supplier = null;
+            }
         }
 
         // Dropdown and related data
@@ -347,7 +369,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             $clients,
             $suppliers,
             $paymentMethods,
-            $statuses
+            $statuses,
         );
 
         return new InvoiceFormDTO($fieldSet, [
@@ -374,10 +396,15 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function prepareShowData(int $userId, int $invoiceId): InvoiceFormDTO
     {
         $invoice = $this->invoiceReadRepository->findForUser($userId, $invoiceId);
-        if (!$invoice) { 
-            throw new ModelNotFoundException('Invoice not accessible for user'); 
+        if (! $invoice) {
+            throw new ModelNotFoundException('Invoice not accessible for user');
         }
-        $invoice->load(['supplier', 'client', 'paymentMethod', 'paymentStatus']);
+        $invoice->load([
+            'supplier',
+            'client',
+            'paymentMethod',
+            'paymentStatus',
+        ]);
 
         // Get related parties - we need full DTOs for edit view (for example to show client email)
         $client = $invoice->client;
@@ -385,24 +412,24 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
 
         // Optional related DTOs (null-safe)
         // We can use DTOs from relations if loaded, otherwise try to load via Party service (with permission check)
-        if (!$client && !empty($invoice->client_id)) {
-            try { 
-                $client = $this->partyApplicationService->findClient($userId, (int)$invoice->client_id); 
-            } catch (ModelNotFoundException $e) { 
-                $client = null; 
+        if (! $client && ! empty($invoice->client_id)) {
+            try {
+                $client = $this->partyApplicationService->findClient($userId, (int) $invoice->client_id);
+            } catch (ModelNotFoundException $e) {
+                $client = null;
             }
         }
-        if (!$supplier && !empty($invoice->supplier_id)) {
-            try { 
-                $supplier = $this->partyApplicationService->findSupplier($userId, (int)$invoice->supplier_id); 
-            } catch (ModelNotFoundException $e) { 
-                $supplier = null; 
+        if (! $supplier && ! empty($invoice->supplier_id)) {
+            try {
+                $supplier = $this->partyApplicationService->findSupplier($userId, (int) $invoice->supplier_id);
+            } catch (ModelNotFoundException $e) {
+                $supplier = null;
             }
         }
 
         $invoiceProducts = $this->productReadRepository->allForInvoice($invoiceId);
         $limitsData = $this->getInvoicesLimit($userId);
-        
+
         // For now, return a simplified DTO with empty FieldSetDTO
         $fieldSetDto = new FieldSetDTO([]);
         $meta = [
@@ -415,7 +442,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             'supplier' => $supplier,
             'invoiceProducts' => $invoiceProducts,
         ];
-        
+
         return new InvoiceFormDTO($fieldSetDto, $meta);
     }
 
@@ -451,6 +478,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     private function getInvoicesLimit(int $userId): array
     {
         $limitInfo = $this->invoiceLimitService->getLimitInfo(new UserId($userId));
+
         return $limitInfo;
     }
 }

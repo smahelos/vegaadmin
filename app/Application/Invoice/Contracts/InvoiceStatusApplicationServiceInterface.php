@@ -2,10 +2,10 @@
 
 namespace App\Application\Invoice\Contracts;
 
-use App\Domain\User\ValueObjects\UserId;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Status\ValueObjects\StatusId;
+use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Support\Collection;
 
 /**
@@ -21,7 +21,11 @@ interface InvoiceStatusApplicationServiceInterface
     /**
      * Change invoice status
      */
-    public function changeStatus(InvoiceId $invoiceId, StatusId $statusId, UserId $userId): InvoiceDTO;
+    public function changeStatus(
+        InvoiceId $invoiceId,
+        StatusId $statusId,
+        UserId $userId,
+    ): InvoiceDTO;
 
     /**
      * Get available statuses for invoice
@@ -36,7 +40,11 @@ interface InvoiceStatusApplicationServiceInterface
     /**
      * Check if status change is allowed
      */
-    public function canChangeStatus(InvoiceId $invoiceId, StatusId $statusId, UserId $userId): bool;
+    public function canChangeStatus(
+        InvoiceId $invoiceId,
+        StatusId $statusId,
+        UserId $userId,
+    ): bool;
 
     /**
      * Get invoices grouped by status

@@ -12,6 +12,7 @@ use Tests\TestCase;
 class FrontendControllersEloquentUsageTest extends TestCase
 {
     private array $baselineControllers;
+
     private int $maxAllowed;
 
     protected function setUp(): void
@@ -19,7 +20,12 @@ class FrontendControllersEloquentUsageTest extends TestCase
         parent::setUp();
         $path = base_path('architecture/baselines/frontend_controller_eloquent_baseline.json');
         $this->assertFileExists($path, 'Missing baseline JSON: generate or commit frontend_controller_eloquent_baseline.json');
-        $json = json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+        $json = json_decode(
+            file_get_contents($path),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
         $this->baselineControllers = $json['controllers'];
         $this->maxAllowed = $json['rule']['max_eloquent_static_calls'] ?? 1;
     }
@@ -32,7 +38,7 @@ class FrontendControllersEloquentUsageTest extends TestCase
             $full = app_path($relPath ? str_replace('Http/Controllers', '/Http/Controllers', $relPath) : '');
             // Safer resolution
             $full = app_path($relPath);
-            if (!file_exists($full)) {
+            if (! file_exists($full)) {
                 // New / removed controller -> skip (does not constitute violation)
                 continue;
             }
@@ -43,31 +49,59 @@ class FrontendControllersEloquentUsageTest extends TestCase
             }
         }
 
-        if (!empty($violations)) {
-            $this->fail("Frontend controller thinness violations:\n".implode("\n", $violations));
+        if (! empty($violations)) {
+            $this->fail("Frontend controller thinness violations:\n" . implode("\n", $violations));
         }
         $this->assertTrue(true);
     }
 
     private function countEloquentStaticCalls(string $content): int
     {
-        $methods = ['where','create','find','all','first','update','delete','pluck','paginate','orderBy','count','sum','avg','min','max'];
+        $methods = [
+            'where',
+            'create',
+            'find',
+            'all',
+            'first',
+            'update',
+            'delete',
+            'pluck',
+            'paginate',
+            'orderBy',
+            'count',
+            'sum',
+            'avg',
+            'min',
+            'max',
+        ];
         $total = 0;
 
         // Count fully-qualified static calls (App\Models\Model::method())
         foreach ($methods as $m) {
-            if (preg_match_all('/App\\\\Models\\\\[A-Za-z0-9_]+::' . $m . '\\s*\(/', $content, $mm)) {
+            if (preg_match_all(
+                '/App\\\\Models\\\\[A-Za-z0-9_]+::' . $m . '\\s*\(/',
+                $content,
+                $mm,
+            )) {
                 $total += count($mm[0]);
             }
         }
 
         // Detect imported model short names via use statements and count ShortName::method() occurrences
-        if (preg_match_all('/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+);/m', $content, $imports)) {
+        if (preg_match_all(
+            '/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+);/m',
+            $content,
+            $imports,
+        )) {
             $imported = array_unique($imports[1]);
             foreach ($imported as $short) {
                 foreach ($methods as $m) {
                     $pattern = '/(?<![A-Za-z0-9_])' . $short . '::' . $m . '\\s*\(/';
-                    if (preg_match_all($pattern, $content, $mm)) {
+                    if (preg_match_all(
+                        $pattern,
+                        $content,
+                        $mm,
+                    )) {
                         $total += count($mm[0]);
                     }
                 }

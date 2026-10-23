@@ -8,6 +8,7 @@ namespace App\Domain\Shared\Pagination\DTO;
 class PageRequest
 {
     private int $page;
+
     private int $perPage;
 
     public function __construct(int $page = 1, int $perPage = 10)

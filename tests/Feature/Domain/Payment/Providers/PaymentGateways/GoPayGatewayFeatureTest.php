@@ -3,11 +3,11 @@
 namespace Tests\Feature\Domain\Payment\Providers\PaymentGateways;
 
 use App\Domain\Payment\Contracts\PaymentGatewayInterface;
-use App\Models\Subscription;
 use App\Infrastructure\Providers\Payment\GoPayGateway;
-use Tests\Support\Stubs\Payment\StubGoPayPayments;
+use App\Models\Subscription;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\Stubs\Payment\StubGoPayPayments;
 use Tests\TestCase;
 
 class GoPayGatewayFeatureTest extends TestCase
@@ -15,13 +15,14 @@ class GoPayGatewayFeatureTest extends TestCase
     use RefreshDatabase;
 
     private GoPayGateway $gateway;
+
     private StubGoPayPayments $stub;
 
     protected function setUp(): void
     {
-    parent::setUp();
-    $this->stub = new StubGoPayPayments();
-    $this->gateway = new GoPayGateway($this->stub); // inject stub
+        parent::setUp();
+        $this->stub = new StubGoPayPayments;
+        $this->gateway = new GoPayGateway($this->stub); // inject stub
     }
 
     #[Test]
@@ -34,7 +35,7 @@ class GoPayGatewayFeatureTest extends TestCase
     public function gateway_has_correct_name(): void
     {
         $name = $this->gateway->getName();
-        
+
         $this->assertIsString($name);
         $this->assertEquals('GoPay', $name);
     }
@@ -43,7 +44,7 @@ class GoPayGatewayFeatureTest extends TestCase
     public function gateway_supports_eur_currency(): void
     {
         $currencies = $this->gateway->getSupportedCurrencies();
-        
+
         $this->assertIsArray($currencies);
         $this->assertContains('EUR', $currencies);
     }
@@ -52,7 +53,7 @@ class GoPayGatewayFeatureTest extends TestCase
     public function gateway_availability_check_returns_boolean(): void
     {
         $isAvailable = $this->gateway->isAvailable();
-        
+
         $this->assertIsBool($isAvailable);
         // NOTE: Without proper GoPay credentials, this will likely return false
         // which is expected behavior for this test environment
@@ -62,31 +63,31 @@ class GoPayGatewayFeatureTest extends TestCase
     public function gateway_methods_have_correct_return_types(): void
     {
         $reflection = new \ReflectionClass($this->gateway);
-        
+
         // Test getName method
-    $method = $reflection->getMethod('getName');
-    $returnType = $method->getReturnType();
-    $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        
+        $method = $reflection->getMethod('getName');
+        $returnType = $method->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+
         // Test getSupportedCurrencies method
-    $method = $reflection->getMethod('getSupportedCurrencies');
-    $returnType = $method->getReturnType();
-    $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        
+        $method = $reflection->getMethod('getSupportedCurrencies');
+        $returnType = $method->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+
         // Test isAvailable method
-    $method = $reflection->getMethod('isAvailable');
-    $returnType = $method->getReturnType();
-    $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        
+        $method = $reflection->getMethod('isAvailable');
+        $returnType = $method->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+
         // Test createPayment method
-    $method = $reflection->getMethod('createPayment');
-    $returnType = $method->getReturnType();
-    $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        
+        $method = $reflection->getMethod('createPayment');
+        $returnType = $method->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+
         // Test getPaymentStatus method
-    $method = $reflection->getMethod('getPaymentStatus');
-    $returnType = $method->getReturnType();
-    $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $method = $reflection->getMethod('getPaymentStatus');
+        $returnType = $method->getReturnType();
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
     }
 
     #[Test]

@@ -5,9 +5,10 @@ namespace Database\Factories;
 use App\Models\Status;
 use App\Models\StatusCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Status>
+ * @extends Factory<Status>
  */
 class StatusFactory extends Factory
 {
@@ -26,13 +27,14 @@ class StatusFactory extends Factory
     public function definition(): array
     {
         $rand = uniqid();
-        $name = 'Status '.substr($rand,-5);
+        $name = 'Status ' . substr($rand, -5);
+
         return [
             'name' => $name,
-            'slug' => \Illuminate\Support\Str::slug($name),
+            'slug' => Str::slug($name),
             'category_id' => StatusCategory::factory(),
             'color' => 'blue',
-            'description' => 'Test status '.$name,
+            'description' => 'Test status ' . $name,
             'is_active' => true,
         ];
     }

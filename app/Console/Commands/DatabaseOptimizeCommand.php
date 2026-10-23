@@ -31,8 +31,8 @@ class DatabaseOptimizeCommand extends Command
         $repair = $this->option('repair');
         $force = $this->option('force');
 
-        $this->info("Database Optimization Tool");
-        $this->info("=========================");
+        $this->info('Database Optimization Tool');
+        $this->info('=========================');
 
         if ($tableName === 'all') {
             $tables = $this->getAllTables();
@@ -41,16 +41,22 @@ class DatabaseOptimizeCommand extends Command
         }
 
         // If force is not set and we're in interactive mode, ask for confirmation
-        if (!$force && $this->input->isInteractive() && !$this->confirm("Do you want to proceed with optimization of " . count($tables) . " table(s)?")) {
-            $this->info("Optimization cancelled.");
+        if (! $force && $this->input->isInteractive() && ! $this->confirm('Do you want to proceed with optimization of ' . count($tables) . ' table(s)?')) {
+            $this->info('Optimization cancelled.');
+
             return Command::SUCCESS;
         }
 
         foreach ($tables as $table) {
-            $this->optimizeTable($table, $analyze, $repair);
+            $this->optimizeTable(
+                $table,
+                $analyze,
+                $repair,
+            );
         }
 
         $this->info("\n✅ Database optimization completed!");
+
         return Command::SUCCESS;
     }
 
@@ -81,7 +87,7 @@ class DatabaseOptimizeCommand extends Command
             ORDER BY TABLE_NAME
         ");
 
-        return array_map(function($table) {
+        return array_map(function ($table) {
             return $table->TABLE_NAME;
         }, $tables);
     }
@@ -93,7 +99,7 @@ class DatabaseOptimizeCommand extends Command
     {
         $tables = DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
 
-        return array_map(function($table) {
+        return array_map(function ($table) {
             return $table->name;
         }, $tables);
     }
@@ -101,8 +107,11 @@ class DatabaseOptimizeCommand extends Command
     /**
      * Optimize a specific table
      */
-    private function optimizeTable($tableName, $analyze = false, $repair = false)
-    {
+    private function optimizeTable(
+        $tableName,
+        $analyze = false,
+        $repair = false,
+    ) {
         $this->info("\n🔧 Optimizing table: {$tableName}");
 
         $driver = DB::connection()->getDriverName();
@@ -115,7 +124,7 @@ class DatabaseOptimizeCommand extends Command
             'description' => "Optimizing table {$tableName} ({$driver})",
             'started_at' => now(),
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         try {
@@ -126,7 +135,12 @@ class DatabaseOptimizeCommand extends Command
             $results['before'] = $beforeStats;
 
             if ($driver === 'mysql') {
-                $this->optimizeMySQLTable($tableName, $analyze, $repair, $results);
+                $this->optimizeMySQLTable(
+                    $tableName,
+                    $analyze,
+                    $repair,
+                    $results,
+                );
             } else {
                 $this->optimizeSQLiteTable($tableName, $results);
             }
@@ -141,7 +155,7 @@ class DatabaseOptimizeCommand extends Command
             $improvement = $sizeBefore > 0 ? (($sizeBefore - $sizeAfter) / $sizeBefore) * 100 : 0;
 
             if ($improvement > 0) {
-                $this->line("  📉 Size reduced by: " . round($improvement, 2) . "% ({$sizeBefore}MB → {$sizeAfter}MB)");
+                $this->line('  📉 Size reduced by: ' . round($improvement, 2) . "% ({$sizeBefore}MB → {$sizeAfter}MB)");
             } else {
                 $this->line("  📊 Size: {$sizeAfter}MB (no reduction)");
             }
@@ -153,10 +167,10 @@ class DatabaseOptimizeCommand extends Command
                     'status' => 'completed',
                     'completed_at' => now(),
                     'results' => json_encode($results),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
-            $this->line("  ✅ Optimization completed successfully");
+            $this->line('  ✅ Optimization completed successfully');
 
             // Store performance metric
             DB::table('performance_metrics')->insert([
@@ -167,11 +181,11 @@ class DatabaseOptimizeCommand extends Command
                 'metadata' => json_encode([
                     'size_before_mb' => $sizeBefore,
                     'size_after_mb' => $sizeAfter,
-                    'driver' => $driver
+                    'driver' => $driver,
                 ]),
                 'measured_at' => now(),
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
         } catch (\Exception $e) {
@@ -182,36 +196,40 @@ class DatabaseOptimizeCommand extends Command
                     'status' => 'failed',
                     'completed_at' => now(),
                     'results' => json_encode(['error' => $e->getMessage()]),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
-            $this->error("  ❌ Optimization failed: " . $e->getMessage());
+            $this->error('  ❌ Optimization failed: ' . $e->getMessage());
         }
     }
 
     /**
      * Optimize MySQL table
      */
-    private function optimizeMySQLTable($tableName, $analyze, $repair, &$results)
-    {
+    private function optimizeMySQLTable(
+        $tableName,
+        $analyze,
+        $repair,
+        &$results,
+    ) {
         // Repair table if requested
         if ($repair) {
-            $this->line("  🔨 Repairing table...");
+            $this->line('  🔨 Repairing table...');
             $repairResult = DB::select("REPAIR TABLE `{$tableName}`");
             $results['repair'] = $repairResult;
-            $this->line("  ✅ Repair completed");
+            $this->line('  ✅ Repair completed');
         }
 
         // Analyze table if requested
         if ($analyze) {
-            $this->line("  📊 Analyzing table...");
+            $this->line('  📊 Analyzing table...');
             $analyzeResult = DB::select("ANALYZE TABLE `{$tableName}`");
             $results['analyze'] = $analyzeResult;
-            $this->line("  ✅ Analysis completed");
+            $this->line('  ✅ Analysis completed');
         }
 
         // Optimize table
-        $this->line("  ⚡ Optimizing table...");
+        $this->line('  ⚡ Optimizing table...');
         $optimizeResult = DB::select("OPTIMIZE TABLE `{$tableName}`");
         $results['optimize'] = $optimizeResult;
     }
@@ -221,16 +239,16 @@ class DatabaseOptimizeCommand extends Command
      */
     private function optimizeSQLiteTable($tableName, &$results)
     {
-        $this->line("  📝 SQLite optimization (limited operations):");
+        $this->line('  📝 SQLite optimization (limited operations):');
 
         // SQLite equivalent: VACUUM is database-wide, REINDEX is per-table
-        $this->line("  📊 Reindexing table...");
+        $this->line('  📊 Reindexing table...');
         try {
             DB::statement("REINDEX `{$tableName}`");
             $results['reindex'] = 'completed';
-            $this->line("  ✅ Reindex completed");
+            $this->line('  ✅ Reindex completed');
         } catch (\Exception $e) {
-            $this->line("  ⚠️ Reindex skipped: " . $e->getMessage());
+            $this->line('  ⚠️ Reindex skipped: ' . $e->getMessage());
             $results['reindex'] = 'skipped';
         }
     }
@@ -254,7 +272,7 @@ class DatabaseOptimizeCommand extends Command
      */
     private function getMySQLTableStats($tableName)
     {
-        $stats = DB::selectOne("
+        $stats = DB::selectOne('
             SELECT
                 TABLE_ROWS as row_count,
                 ROUND((DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) as size_mb,
@@ -265,7 +283,7 @@ class DatabaseOptimizeCommand extends Command
             FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
             AND TABLE_NAME = ?
-        ", [$tableName]);
+        ', [$tableName]);
 
         return [
             'row_count' => $stats->row_count ?? 0,
@@ -273,7 +291,7 @@ class DatabaseOptimizeCommand extends Command
             'data_size_mb' => $stats->data_size_mb ?? 0,
             'index_size_mb' => $stats->index_size_mb ?? 0,
             'storage_engine' => $stats->storage_engine ?? 'unknown',
-            'data_free' => $stats->data_free ?? 0
+            'data_free' => $stats->data_free ?? 0,
         ];
     }
 
@@ -291,7 +309,7 @@ class DatabaseOptimizeCommand extends Command
                 'data_size_mb' => 0,
                 'index_size_mb' => 0,
                 'storage_engine' => 'sqlite',
-                'data_free' => 0
+                'data_free' => 0,
             ];
         } catch (\Exception $e) {
             return [
@@ -300,7 +318,7 @@ class DatabaseOptimizeCommand extends Command
                 'data_size_mb' => 0,
                 'index_size_mb' => 0,
                 'storage_engine' => 'sqlite',
-                'data_free' => 0
+                'data_free' => 0,
             ];
         }
     }

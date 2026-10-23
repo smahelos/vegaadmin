@@ -15,7 +15,7 @@ class ProductPriceTest extends TestCase
         $price = new ProductPrice(123.456);
         $this->assertSame(123.46, $price->getValue());
         $this->assertSame('123.46', $price->getFormatted());
-        $this->assertSame('123.46', (string)$price);
+        $this->assertSame('123.46', (string) $price);
     }
 
     #[Test]
@@ -42,12 +42,12 @@ class ProductPriceTest extends TestCase
         $this->assertTrue($a->equals($b));
 
         $sum = $a->add(new ProductPrice(2.50));
-        $this->assertSame('12.50', (string)$sum);
+        $this->assertSame('12.50', (string) $sum);
 
         $diff = $sum->subtract(new ProductPrice(2.50));
-        $this->assertSame('10.00', (string)$diff);
+        $this->assertSame('10.00', (string) $diff);
 
         $multiplied = $a->multiply(2.25);
-        $this->assertSame('22.50', (string)$multiplied);
+        $this->assertSame('22.50', (string) $multiplied);
     }
 }

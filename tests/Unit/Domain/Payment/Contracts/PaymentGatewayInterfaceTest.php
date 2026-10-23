@@ -19,8 +19,16 @@ class PaymentGatewayInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
         foreach ([
-            'createPayment','processPaymentReturn','verifyPayment','cancelPayment','refundPayment',
-            'getPaymentStatus','getSupportedCurrencies','isAvailable','getName','getDisplayName'
+            'createPayment',
+            'processPaymentReturn',
+            'verifyPayment',
+            'cancelPayment',
+            'refundPayment',
+            'getPaymentStatus',
+            'getSupportedCurrencies',
+            'isAvailable',
+            'getName',
+            'getDisplayName',
         ] as $method) {
             $this->assertTrue($reflection->hasMethod($method), "Missing method {$method}");
         }
@@ -30,16 +38,16 @@ class PaymentGatewayInterfaceTest extends TestCase
     public function method_signatures_and_return_types(): void
     {
         $r = new \ReflectionClass(PaymentGatewayInterface::class);
-        $this->assertEquals('array', (string)$r->getMethod('createPayment')->getReturnType());
-        $this->assertEquals('array', (string)$r->getMethod('processPaymentReturn')->getReturnType());
-        $this->assertEquals('array', (string)$r->getMethod('verifyPayment')->getReturnType());
-        $this->assertEquals('bool', (string)$r->getMethod('cancelPayment')->getReturnType());
-        $this->assertEquals('array', (string)$r->getMethod('refundPayment')->getReturnType());
-        $this->assertEquals('string', (string)$r->getMethod('getPaymentStatus')->getReturnType());
-        $this->assertEquals('array', (string)$r->getMethod('getSupportedCurrencies')->getReturnType());
-        $this->assertEquals('bool', (string)$r->getMethod('isAvailable')->getReturnType());
-        $this->assertEquals('string', (string)$r->getMethod('getName')->getReturnType());
-        $this->assertEquals('string', (string)$r->getMethod('getDisplayName')->getReturnType());
+        $this->assertEquals('array', (string) $r->getMethod('createPayment')->getReturnType());
+        $this->assertEquals('array', (string) $r->getMethod('processPaymentReturn')->getReturnType());
+        $this->assertEquals('array', (string) $r->getMethod('verifyPayment')->getReturnType());
+        $this->assertEquals('bool', (string) $r->getMethod('cancelPayment')->getReturnType());
+        $this->assertEquals('array', (string) $r->getMethod('refundPayment')->getReturnType());
+        $this->assertEquals('string', (string) $r->getMethod('getPaymentStatus')->getReturnType());
+        $this->assertEquals('array', (string) $r->getMethod('getSupportedCurrencies')->getReturnType());
+        $this->assertEquals('bool', (string) $r->getMethod('isAvailable')->getReturnType());
+        $this->assertEquals('string', (string) $r->getMethod('getName')->getReturnType());
+        $this->assertEquals('string', (string) $r->getMethod('getDisplayName')->getReturnType());
     }
 
     #[Test]
@@ -54,7 +62,7 @@ class PaymentGatewayInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
         $this->assertTrue($reflection->hasMethod('createPayment'));
-        
+
         $method = $reflection->getMethod('createPayment');
         $this->assertTrue($method->isAbstract());
         $this->assertTrue($method->isPublic());
@@ -65,7 +73,7 @@ class PaymentGatewayInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
         $this->assertTrue($reflection->hasMethod('verifyPayment'));
-        
+
         $method = $reflection->getMethod('verifyPayment');
         $this->assertTrue($method->isAbstract());
         $this->assertTrue($method->isPublic());
@@ -76,7 +84,7 @@ class PaymentGatewayInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
         $this->assertTrue($reflection->hasMethod('cancelPayment'));
-        
+
         $method = $reflection->getMethod('cancelPayment');
         $this->assertTrue($method->isAbstract());
         $this->assertTrue($method->isPublic());
@@ -87,7 +95,7 @@ class PaymentGatewayInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
         $this->assertTrue($reflection->hasMethod('isAvailable'));
-        
+
         $method = $reflection->getMethod('isAvailable');
         $this->assertTrue($method->isAbstract());
         $this->assertTrue($method->isPublic());
@@ -99,7 +107,7 @@ class PaymentGatewayInterfaceTest extends TestCase
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
         $method = $reflection->getMethod('createPayment');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('paymentData', $parameters[0]->getName());
         $this->assertEquals('array', $parameters[0]->getType()->getName());
@@ -111,7 +119,7 @@ class PaymentGatewayInterfaceTest extends TestCase
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
         $method = $reflection->getMethod('verifyPayment');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('paymentId', $parameters[0]->getName());
         $this->assertEquals('string', $parameters[0]->getType()->getName());
@@ -123,7 +131,7 @@ class PaymentGatewayInterfaceTest extends TestCase
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
         $method = $reflection->getMethod('cancelPayment');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('paymentId', $parameters[0]->getName());
         $this->assertEquals('string', $parameters[0]->getType()->getName());
@@ -133,15 +141,15 @@ class PaymentGatewayInterfaceTest extends TestCase
     public function methods_have_correct_return_types(): void
     {
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
-        
+
         // createPayment should return array
         $createMethod = $reflection->getMethod('createPayment');
         $this->assertEquals('array', $createMethod->getReturnType()->getName());
-        
+
         // verifyPayment should return array
         $verifyMethod = $reflection->getMethod('verifyPayment');
         $this->assertEquals('array', $verifyMethod->getReturnType()->getName());
-        
+
         // cancelPayment should return bool (not array!)
         $cancelMethod = $reflection->getMethod('cancelPayment');
         $this->assertEquals('bool', $cancelMethod->getReturnType()->getName());
@@ -153,7 +161,7 @@ class PaymentGatewayInterfaceTest extends TestCase
         $reflection = new \ReflectionClass(PaymentGatewayInterface::class);
         $method = $reflection->getMethod('isAvailable');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }

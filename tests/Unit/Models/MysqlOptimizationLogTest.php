@@ -16,7 +16,7 @@ class MysqlOptimizationLogTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = new MysqlOptimizationLog();
+        $this->model = new MysqlOptimizationLog;
     }
 
     #[Test]
@@ -52,7 +52,7 @@ class MysqlOptimizationLogTest extends TestCase
             'recommended_value',
             'description',
             'priority',
-            'applied'
+            'applied',
         ];
 
         $this->assertEquals($expectedFillable, $this->model->getFillable());
@@ -62,7 +62,7 @@ class MysqlOptimizationLogTest extends TestCase
     public function model_has_correct_casts(): void
     {
         $expectedCasts = [
-            'applied' => 'boolean'
+            'applied' => 'boolean',
         ];
 
         foreach ($expectedCasts as $attribute => $cast) {
@@ -74,7 +74,7 @@ class MysqlOptimizationLogTest extends TestCase
     public function get_priority_badge_attribute_returns_correct_badge_for_high(): void
     {
         $this->model->priority = 'high';
-        
+
         $expected = '<span class="badge text-bg-danger">High</span>';
         $this->assertEquals($expected, $this->model->getPriorityBadgeAttribute());
     }
@@ -83,7 +83,7 @@ class MysqlOptimizationLogTest extends TestCase
     public function get_priority_badge_attribute_returns_correct_badge_for_medium(): void
     {
         $this->model->priority = 'medium';
-        
+
         $expected = '<span class="badge text-bg-warning">Medium</span>';
         $this->assertEquals($expected, $this->model->getPriorityBadgeAttribute());
     }
@@ -92,7 +92,7 @@ class MysqlOptimizationLogTest extends TestCase
     public function get_priority_badge_attribute_returns_correct_badge_for_low(): void
     {
         $this->model->priority = 'low';
-        
+
         $expected = '<span class="badge text-bg-info">Low</span>';
         $this->assertEquals($expected, $this->model->getPriorityBadgeAttribute());
     }
@@ -101,7 +101,7 @@ class MysqlOptimizationLogTest extends TestCase
     public function get_priority_badge_attribute_returns_unknown_badge_for_invalid_priority(): void
     {
         $this->model->priority = 'invalid_priority';
-        
+
         $expected = '<span class="badge text-bg-light">Unknown</span>';
         $this->assertEquals($expected, $this->model->getPriorityBadgeAttribute());
     }
@@ -110,7 +110,7 @@ class MysqlOptimizationLogTest extends TestCase
     public function get_applied_badge_attribute_returns_applied_badge_when_true(): void
     {
         $this->model->applied = true;
-        
+
         $expected = '<span class="badge text-bg-success">Applied</span>';
         $this->assertEquals($expected, $this->model->getAppliedBadgeAttribute());
     }
@@ -119,7 +119,7 @@ class MysqlOptimizationLogTest extends TestCase
     public function get_applied_badge_attribute_returns_pending_badge_when_false(): void
     {
         $this->model->applied = false;
-        
+
         $expected = '<span class="badge text-bg-secondary">Pending</span>';
         $this->assertEquals($expected, $this->model->getAppliedBadgeAttribute());
     }
@@ -128,7 +128,7 @@ class MysqlOptimizationLogTest extends TestCase
     public function get_current_value_from_db_attribute_returns_current_value_when_set(): void
     {
         $this->model->current_value = '256M';
-        
+
         $this->assertEquals('256M', $this->model->getCurrentValueFromDbAttribute());
     }
 

@@ -6,9 +6,9 @@ use App\Http\Middleware\RequireBackpackAccess;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RequireBackpackAccessFeatureTest extends TestCase
@@ -20,7 +20,7 @@ class RequireBackpackAccessFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RequireBackpackAccess();
+        $this->middleware = new RequireBackpackAccess;
         Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
         $role = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
         $role->givePermissionTo('backpack.access');
@@ -30,8 +30,15 @@ class RequireBackpackAccessFeatureTest extends TestCase
     public function unauthenticated_json_request_gets_401(): void
     {
         app()->setLocale('cs');
-        $request = Request::create('/admin/dashboard', 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/json']);
-        $response = $this->middleware->handle($request, fn() => response('OK'));
+        $request = Request::create(
+            '/admin/dashboard',
+            'GET',
+            [],
+            [],
+            [],
+            ['HTTP_ACCEPT' => 'application/json'],
+        );
+        $response = $this->middleware->handle($request, fn () => response('OK'));
         $this->assertEquals(401, $response->getStatusCode());
         $this->assertSame('Nejste přihlášeni.', $response->getData(true)['error']);
     }
@@ -42,8 +49,15 @@ class RequireBackpackAccessFeatureTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'backpack');
         app()->setLocale('cs');
-        $request = Request::create('/admin/dashboard', 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/json']);
-        $response = $this->middleware->handle($request, fn() => response('OK'));
+        $request = Request::create(
+            '/admin/dashboard',
+            'GET',
+            [],
+            [],
+            [],
+            ['HTTP_ACCEPT' => 'application/json'],
+        );
+        $response = $this->middleware->handle($request, fn () => response('OK'));
         $this->assertEquals(403, $response->getStatusCode());
         $this->assertSame('Přístup odepřen. Nemáte oprávnění pro přístup do administrace.', $response->getData(true)['error']);
     }
@@ -57,7 +71,11 @@ class RequireBackpackAccessFeatureTest extends TestCase
         $this->actingAs($user, 'backpack');
         $request = Request::create('/admin/dashboard');
         $passed = false;
-        $this->middleware->handle($request, function () use (&$passed) { $passed = true; return response('OK'); });
+        $this->middleware->handle($request, function () use (&$passed) {
+            $passed = true;
+
+            return response('OK');
+        });
         $this->assertTrue($passed);
     }
 }

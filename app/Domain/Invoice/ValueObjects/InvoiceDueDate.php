@@ -6,19 +6,21 @@ use InvalidArgumentException;
 
 /**
  * Invoice Due Date Value Object
- * 
+ *
  * Handles invoice due date calculations and validations
  */
 class InvoiceDueDate
 {
     private \DateTimeImmutable $dueDate;
+
     private \DateTimeImmutable $issueDate;
+
     private int $dueDays;
 
     public function __construct(\DateTimeImmutable $issueDate, int $dueDays)
     {
         $this->validateDueDays($dueDays);
-        
+
         $this->issueDate = $issueDate;
         $this->dueDays = $dueDays;
         $this->dueDate = $issueDate->add(new \DateInterval("P{$dueDays}D"));
@@ -37,7 +39,7 @@ class InvoiceDueDate
      */
     public static function fromCurrentDateAndDays(int $dueDays): self
     {
-        return new self(new \DateTimeImmutable(), $dueDays);
+        return new self(new \DateTimeImmutable, $dueDays);
     }
 
     /**
@@ -45,13 +47,14 @@ class InvoiceDueDate
      */
     public static function fromDueDate(\DateTimeImmutable $dueDate, ?\DateTimeImmutable $issueDate = null): self
     {
-        $issueDate = $issueDate ?? new \DateTimeImmutable();
-        
+        $issueDate = $issueDate ?? new \DateTimeImmutable;
+
         if ($dueDate < $issueDate) {
             throw new InvalidArgumentException('Due date cannot be before issue date');
         }
 
         $dueDays = $issueDate->diff($dueDate)->days;
+
         return new self($issueDate, $dueDays);
     }
 
@@ -98,7 +101,8 @@ class InvoiceDueDate
      */
     public function isOverdue(?\DateTimeImmutable $currentDate = null): bool
     {
-        $currentDate = $currentDate ?? new \DateTimeImmutable();
+        $currentDate = $currentDate ?? new \DateTimeImmutable;
+
         return $currentDate > $this->dueDate;
     }
 
@@ -107,9 +111,9 @@ class InvoiceDueDate
      */
     public function getDaysUntilDue(?\DateTimeImmutable $currentDate = null): int
     {
-        $currentDate = $currentDate ?? new \DateTimeImmutable();
+        $currentDate = $currentDate ?? new \DateTimeImmutable;
         $diff = $currentDate->diff($this->dueDate);
-        
+
         return $diff->invert ? -$diff->days : $diff->days;
     }
 
@@ -119,6 +123,7 @@ class InvoiceDueDate
     public function isDueSoon(int $withinDays = 7, ?\DateTimeImmutable $currentDate = null): bool
     {
         $daysUntilDue = $this->getDaysUntilDue($currentDate);
+
         return $daysUntilDue >= 0 && $daysUntilDue <= $withinDays;
     }
 
@@ -145,15 +150,18 @@ class InvoiceDueDate
     {
         if ($this->isOverdue($currentDate)) {
             $daysOverdue = abs($this->getDaysUntilDue($currentDate));
+
             return "Overdue by {$daysOverdue} days";
         }
 
         if ($this->isDueSoon(7, $currentDate)) {
             $daysUntilDue = $this->getDaysUntilDue($currentDate);
+
             return "Due in {$daysUntilDue} days";
         }
 
         $daysUntilDue = $this->getDaysUntilDue($currentDate);
+
         return "Due in {$daysUntilDue} days";
     }
 

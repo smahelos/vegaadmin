@@ -5,11 +5,10 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Auth;
 
 class SetLocale
 {
@@ -20,25 +19,35 @@ class SetLocale
     {
         try {
             $lang = $this->determineLocale($request);
-            
+
             // Verify that language is supported
-            $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+            $availableLocales = config('app.available_locales', [
+                'cs',
+                'en',
+                'de',
+                'sk',
+            ]);
             if (in_array($lang, $availableLocales)) {
                 App::setLocale($lang);
                 Session::put('locale', $lang);
-                
+
                 // Set cookie for 30 days
-                cookie()->queue('locale', $lang, 60 * 24 * 30);
+                cookie()->queue(
+                    'locale',
+                    $lang,
+                    60 * 24 * 30,
+                );
             } else {
                 $fallbackLocale = config('app.fallback_locale', 'cs');
                 App::setLocale($fallbackLocale);
                 Session::put('locale', $fallbackLocale);
             }
-    
+
             return $next($request);
         } catch (\Exception $e) {
             // Log errors but don't stop request processing
             Log::error('Error in SetLocale middleware: ' . $e->getMessage());
+
             return $next($request);
         }
     }
@@ -50,8 +59,13 @@ class SetLocale
     {
         // 0. From URL segment (highest priority)
         $locale = $request->segment(1);
-        if (!empty($locale)) {
-            $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+        if (! empty($locale)) {
+            $availableLocales = config('app.available_locales', [
+                'cs',
+                'en',
+                'de',
+                'sk',
+            ]);
             if (in_array($locale, $availableLocales)) {
                 return $locale;
             }
@@ -60,7 +74,12 @@ class SetLocale
         // 1. From route parameter (second priority)
         if ($request->route() && $request->route()->parameter('locale')) {
             $routeLocale = $request->route()->parameter('locale');
-            $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+            $availableLocales = config('app.available_locales', [
+                'cs',
+                'en',
+                'de',
+                'sk',
+            ]);
             if (in_array($routeLocale, $availableLocales)) {
                 return $routeLocale;
             }

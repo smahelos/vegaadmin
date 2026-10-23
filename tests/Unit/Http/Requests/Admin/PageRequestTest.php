@@ -18,7 +18,7 @@ class PageRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new PageRequest();
+        $this->request = new PageRequest;
     }
 
     #[Test]
@@ -33,7 +33,7 @@ class PageRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -44,7 +44,7 @@ class PageRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -55,18 +55,17 @@ class PageRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
-
 
     #[Test]
     public function authorize_method_exists_and_is_public(): void
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -75,7 +74,7 @@ class PageRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -84,10 +83,9 @@ class PageRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
+
         $this->assertTrue($method->isPublic());
     }
-
 
     #[Test]
     public function rules_method_returns_array(): void
@@ -96,7 +94,7 @@ class PageRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -108,22 +106,21 @@ class PageRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
-
 
     #[Test]
     public function rules_contains_required_validation_rules(): void
     {
         // Test that the rules method exists and has correct structure
         $this->assertTrue(method_exists(PageRequest::class, 'rules'));
-        
+
         $reflection = new \ReflectionClass(PageRequest::class);
         $method = $reflection->getMethod('rules');
         $this->assertTrue($method->isPublic());
-        
+
         // For Unit test, we only test method existence and return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -135,15 +132,14 @@ class PageRequestTest extends TestCase
     {
         // Test that the attributes method exists and has correct structure
         $this->assertTrue(method_exists(PageRequest::class, 'attributes'));
-        
+
         $reflection = new \ReflectionClass(PageRequest::class);
         $method = $reflection->getMethod('attributes');
         $this->assertTrue($method->isPublic());
-        
+
         // For Unit test, we only test method existence and return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
-
 }

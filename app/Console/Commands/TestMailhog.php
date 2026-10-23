@@ -39,18 +39,20 @@ class TestMailhog extends Command
         $this->info('MAIL_MAILER: ' . config('mail.default'));
         $this->info('MAIL_HOST: ' . config('mail.mailers.smtp.host'));
         $this->info('MAIL_PORT: ' . config('mail.mailers.smtp.port'));
-        
+
         try {
             Mail::raw('Test email from VegaAdmin application at: ' . now(), function ($message) use ($recipients, $subject) {
                 $message->to($recipients)
                     ->subject($subject);
             });
             $this->info('Email sent successfully! Check Mailhog at: http://localhost:8025');
+
             return 0;
         } catch (\Exception $e) {
             $this->error('Error sending email: ' . $e->getMessage());
             $this->error('Stack trace:');
             $this->error($e->getTraceAsString());
+
             return 1;
         }
     }

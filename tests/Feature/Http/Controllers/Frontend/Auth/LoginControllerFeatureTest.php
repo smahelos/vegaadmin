@@ -3,9 +3,9 @@
 namespace Tests\Feature\Http\Controllers\Frontend\Auth;
 
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -51,7 +51,7 @@ class LoginControllerFeatureTest extends TestCase
         $locale = config('app.locale');
         $passwordPlain = 'Secret123!';
         $user = User::factory()->create([
-            'email' => 'user_'.uniqid().'@example.com',
+            'email' => 'user_' . uniqid() . '@example.com',
             'password' => Hash::make($passwordPlain),
         ]);
 

@@ -39,7 +39,7 @@ class EloquentStatusMapper
             'slug' => $dto->slug,
             'description' => $dto->description,
             'color' => $dto->color,
-            'category_id' => $dto->category_id, 
+            'category_id' => $dto->category_id,
             'is_active' => $dto->is_active,
         ];
     }

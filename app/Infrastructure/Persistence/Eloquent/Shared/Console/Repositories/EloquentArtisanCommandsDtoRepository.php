@@ -2,8 +2,8 @@
 
 namespace App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories;
 
-use App\Domain\Shared\Console\Contracts\ArtisanCommandsDtoRepositoryInterface;
 use App\Application\Shared\Console\Contracts\ArtisanCommandsRepositoryInterface;
+use App\Domain\Shared\Console\Contracts\ArtisanCommandsDtoRepositoryInterface;
 
 /**
  * Eloquent implementation of Artisan Commands DTO repository.
@@ -18,7 +18,7 @@ class EloquentArtisanCommandsDtoRepository implements ArtisanCommandsDtoReposito
     /**
      * Retrieve all registered Artisan commands.
      *
-     * @param bool $onlyNames When true returns associative array [name=>name]; otherwise name=>"name - description"
+     * @param  bool  $onlyNames  When true returns associative array [name=>name]; otherwise name=>"name - description"
      * @return array<string,string>
      */
     public function getAllCommands(bool $onlyNames = false): array
@@ -30,7 +30,7 @@ class EloquentArtisanCommandsDtoRepository implements ArtisanCommandsDtoReposito
     /** {@inheritdoc} */
     public function getCommandsByCategory(?string $categorySlug = null, bool $withoutCategory = false): array
     {
-        // This method returns raw strings from repository, not models  
+        // This method returns raw strings from repository, not models
         return $this->acRepository->getCommandsByCategory($categorySlug, $withoutCategory);
     }
 

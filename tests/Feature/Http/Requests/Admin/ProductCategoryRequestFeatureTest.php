@@ -2,19 +2,18 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\ProductCategoryRequest;
-use App\Models\User;
+use App\Models\EntityLimit;
 use App\Models\ProductCategory;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
-use App\Models\EntityLimit;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 
 /**
  * Feature test for ProductCategoryRequest class.
@@ -22,12 +21,12 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
  */
 class ProductCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     protected User $user;
-    protected User $regularUser;
-    protected User $adminUser;
+
     private ProductCategory $productCategory;
+
     private UniversalLimitService $limitService;
 
     /**
@@ -72,7 +71,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'description' => 'Electronic devices and accessories',
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -86,7 +85,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             // slug and description are nullable
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($minimalData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -95,7 +94,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_missing_required_fields(): void
     {
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -109,7 +108,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'name' => 'A', // Too short (min 2 characters)
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -123,7 +122,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'name' => str_repeat('a', 256), // Exceeds max length of 255
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -138,7 +137,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'slug' => str_repeat('a', 256), // Exceeds max length of 255
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -155,7 +154,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'slug' => 'existing-slug', // Already exists
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -172,7 +171,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'slug' => 'existing-slug', // Same slug for update should be valid
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $request->merge(['id' => $existingCategory->id]);
         $validator = Validator::make($validData, $request->rules());
 
@@ -187,7 +186,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'slug' => null,
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -201,7 +200,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'description' => null,
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -215,7 +214,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'name' => 'AB', // Exactly 2 characters (minimum)
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -246,7 +245,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'description' => 'This is a valid string description for the product category',
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -256,10 +255,10 @@ class ProductCategoryRequestFeatureTest extends TestCase
     public function authorization_passes_for_authenticated_user(): void
     {
         $this->actingAs($this->adminUser, 'backpack')
-             ->postJson('/test-product-category', [
-                 'name' => 'Test Category',
-             ])
-             ->assertStatus(200);
+            ->postJson('/test-product-category', [
+                'name' => 'Test Category',
+            ])
+            ->assertStatus(200);
     }
 
     #[Test]
@@ -279,19 +278,31 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $this->revokeUnlimitedAccess('product_category');
         $this->actingAs($this->adminUser, 'backpack');
         // Strict limit 1
-        EntityLimit::where('entity_type','product_category')->update(['limit_value'=>1]);
+        EntityLimit::where('entity_type', 'product_category')->update(['limit_value' => 1]);
 
         $this->postJson('/test-product-category', [
             'name' => 'First Cat',
         ])->assertStatus(200);
 
         // Manually record usage so second authorize fails
-        $this->limitService->recordUsage($this->adminUser->id,'product_category','count','monthly','backpack');
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'product_category',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
-        $request = new class extends ProductCategoryRequest { public function rules(): array { return []; } };
-        $request->replace(['name'=>'Second Cat']);
-        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> null]);
+        $this->expectException(EntityLimitExceededException::class);
+        $request = new class extends ProductCategoryRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
+        $request->replace(['name' => 'Second Cat']);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
         $request->authorize();
     }
@@ -300,12 +311,24 @@ class ProductCategoryRequestFeatureTest extends TestCase
     public function category_update_bypasses_limit_checks(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-    EntityLimit::where('entity_type','product_category')->update(['limit_value'=>0]);
-        $this->limitService->recordUsage($this->adminUser->id,'product_category','count','monthly','backpack');
+        EntityLimit::where('entity_type', 'product_category')->update(['limit_value' => 0]);
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'product_category',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
-        $request = new class extends ProductCategoryRequest { public function rules(): array { return []; } };
-        $request->replace(['name'=>'Updated Cat']);
-        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> 'existing-cat']);
+        $request = new class extends ProductCategoryRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
+        $request->replace(['name' => 'Updated Cat']);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-cat']);
         $request->setMethod('PUT');
         $this->assertTrue($request->authorize());
     }
@@ -314,15 +337,15 @@ class ProductCategoryRequestFeatureTest extends TestCase
     public function authorization_fails_for_unauthenticated_user(): void
     {
         $this->postJson('/test-product-category', [
-                 'name' => 'Test Category',
-             ])
-             ->assertStatus(403);
+            'name' => 'Test Category',
+        ])
+            ->assertStatus(403);
     }
 
     #[Test]
     public function attributes_method_returns_correct_translations(): void
     {
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $attributes = $request->attributes();
 
         $this->assertArrayHasKey('name', $attributes);
@@ -343,7 +366,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'slug' => '', // Empty string should be treated as null
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -356,7 +379,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'name' => '  Valid Name  ', // Name with whitespace
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -370,7 +393,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'slug' => 'valid-slug_123', // Slug with special characters
         ];
 
-        $request = new ProductCategoryRequest();
+        $request = new ProductCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());

@@ -6,8 +6,8 @@ use App\Http\Controllers\Api\ApiBackpackController;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
-use Tests\TestCase;
 use ReflectionClass;
+use Tests\TestCase;
 
 class ApiBackpackControllerFeatureTest extends TestCase
 {
@@ -17,7 +17,7 @@ class ApiBackpackControllerFeatureTest extends TestCase
     {
         parent::setUp();
         // Define temporary test routes using reflection to access protected controller methods (no fake wrapper class)
-        Route::middleware('web')->get('/api/test-backpack-auth-user', function() {
+        Route::middleware('web')->get('/api/test-backpack-auth-user', function () {
             $controller = app(ApiBackpackController::class);
             $ref = new ReflectionClass($controller);
             $mAuth = $ref->getMethod('getAuthenticatedUser');
@@ -26,22 +26,29 @@ class ApiBackpackControllerFeatureTest extends TestCase
             // Determine guard used
             $guardUsed = 'none';
             if ($user) {
-                if (auth('backpack')->check() && auth('backpack')->id() === $user->id) { $guardUsed = 'backpack'; }
-                elseif (auth('web')->check() && auth('web')->id() === $user->id) { $guardUsed = 'web'; }
-                elseif (auth('sanctum')->check() && auth('sanctum')->id() === $user->id) { $guardUsed = 'sanctum'; }
-                else { $guardUsed = 'unknown'; }
+                if (auth('backpack')->check() && auth('backpack')->id() === $user->id) {
+                    $guardUsed = 'backpack';
+                } elseif (auth('web')->check() && auth('web')->id() === $user->id) {
+                    $guardUsed = 'web';
+                } elseif (auth('sanctum')->check() && auth('sanctum')->id() === $user->id) {
+                    $guardUsed = 'sanctum';
+                } else {
+                    $guardUsed = 'unknown';
+                }
             }
+
             return response()->json([
                 'user_id' => $user?->id ?? 'unauthenticated',
                 'guard_used' => $guardUsed,
             ]);
         });
-        Route::middleware('web')->get('/api/test-backpack-auth-context', function() {
+        Route::middleware('web')->get('/api/test-backpack-auth-context', function () {
             $controller = app(ApiBackpackController::class);
             $ref = new ReflectionClass($controller);
             $mCtx = $ref->getMethod('getLogContext');
             $mCtx->setAccessible(true);
             $ctx = $mCtx->invoke($controller, []);
+
             return response()->json(['context' => $ctx]);
         });
     }
@@ -85,8 +92,18 @@ class ApiBackpackControllerFeatureTest extends TestCase
         $response->assertOk()
             ->assertJsonStructure([
                 'context' => [
-                    'user_id', 'route', 'path', 'is_admin', 'guards' => ['backpack', 'web', 'sanctum'], 'session_id', 'has_backpack_session'
-                ]
+                    'user_id',
+                    'route',
+                    'path',
+                    'is_admin',
+                    'guards' => [
+                        'backpack',
+                        'web',
+                        'sanctum',
+                    ],
+                    'session_id',
+                    'has_backpack_session',
+                ],
             ]);
     }
 }

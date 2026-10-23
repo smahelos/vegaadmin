@@ -6,9 +6,15 @@ return [
         // Maximum file size in KB (10 MB default)
         'max_kb' => env('FILE_UPLOAD_MAX_KB', 10240),
         // Allowed filename extensions (lowercase, without dots). Empty array means allow all (NOT recommended in production).
-        'allowed_extensions' => ['jpg','jpeg','png','webp','pdf'],
+        'allowed_extensions' => [
+            'jpg',
+            'jpeg',
+            'png',
+            'webp',
+            'pdf',
+        ],
         // Allowed MIME prefix groups (e.g. image/ will allow image/png, image/jpeg). Empty array skips MIME prefix filtering.
-        'allowed_mime_groups' => ['image/','application/pdf'],
+        'allowed_mime_groups' => ['image/', 'application/pdf'],
         // Thumbnail generation defaults.
         'thumbnail' => [
             'enabled' => env('FILE_UPLOAD_THUMBNAIL_ENABLED', true),
@@ -28,7 +34,14 @@ return [
         'invoice_logo' => [
             // Align with request validation rule `max:2048` (in KB)
             'max_kb' => 2048, // 2 MB
-            'allowed_extensions' => ['png','jpg','jpeg','gif','svg','webp'],
+            'allowed_extensions' => [
+                'png',
+                'jpg',
+                'jpeg',
+                'gif',
+                'svg',
+                'webp',
+            ],
             'allowed_mime_groups' => ['image/'],
             'thumbnail' => [
                 'enabled' => true,
@@ -37,11 +50,16 @@ return [
                 'path' => 'thumbnails',
                 'quality' => 85,
             ],
-            'hash_deduplication' => [ 'enabled' => true ],
+            'hash_deduplication' => ['enabled' => true],
         ],
         'supplier_logo' => [
             'max_kb' => 2048, // 2 MB
-            'allowed_extensions' => ['png','jpg','jpeg','webp'],
+            'allowed_extensions' => [
+                'png',
+                'jpg',
+                'jpeg',
+                'webp',
+            ],
             'allowed_mime_groups' => ['image/'],
             'thumbnail' => [
                 'enabled' => true,
@@ -50,11 +68,17 @@ return [
                 'path' => 'thumbnails',
                 'quality' => 85,
             ],
-            'hash_deduplication' => [ 'enabled' => true ],
+            'hash_deduplication' => ['enabled' => true],
         ],
         'product_image' => [
             'max_kb' => 2048, // 2 MB
-            'allowed_extensions' => ['jpg','jpeg','png','gif','webp'],
+            'allowed_extensions' => [
+                'jpg',
+                'jpeg',
+                'png',
+                'gif',
+                'webp',
+            ],
             'allowed_mime_groups' => ['image/'],
             'thumbnail' => [
                 'enabled' => true,
@@ -63,22 +87,39 @@ return [
                 'path' => 'thumbnails',
                 'quality' => 85,
             ],
-            'hash_deduplication' => [ 'enabled' => true ],
+            'hash_deduplication' => ['enabled' => true],
         ],
         'attachment' => [
             'max_kb' => 20480, // 20 MB
             // Preserve legacy allowance: images + office docs + pdf + txt + archives
             'allowed_extensions' => [
-                'jpg','jpeg','png','gif','webp',
-                'pdf','doc','docx','xls','xlsx','csv','txt','zip'
+                'jpg',
+                'jpeg',
+                'png',
+                'gif',
+                'webp',
+                'pdf',
+                'doc',
+                'docx',
+                'xls',
+                'xlsx',
+                'csv',
+                'txt',
+                'zip',
             ],
             'allowed_mime_groups' => [
-                'image/','application/pdf','application/msword','application/vnd','text/plain','text/csv','application/zip'
+                'image/',
+                'application/pdf',
+                'application/msword',
+                'application/vnd',
+                'text/plain',
+                'text/csv',
+                'application/zip',
             ],
             'thumbnail' => [
                 'enabled' => false,
             ],
-            'hash_deduplication' => [ 'enabled' => true ],
+            'hash_deduplication' => ['enabled' => true],
         ],
     ],
 ];

@@ -29,8 +29,8 @@ class DatabaseMonitorCommand extends Command
         $metric = $this->option('metric');
         $store = $this->option('store');
 
-        $this->info("Database Performance Monitor");
-        $this->info("==========================");
+        $this->info('Database Performance Monitor');
+        $this->info('==========================');
 
         if ($metric === 'all' || $metric === 'size') {
             $this->checkDatabaseSize($store);
@@ -61,7 +61,7 @@ class DatabaseMonitorCommand extends Command
     private function checkDatabaseSize($store = false)
     {
         $this->info("\n📊 Database Size Analysis:");
-        $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         $driver = DB::connection()->getDriverName();
 
@@ -91,7 +91,13 @@ class DatabaseMonitorCommand extends Command
             LIMIT 10
         ");
 
-        $headers = ['Table', 'Rows', 'Total (MB)', 'Data (MB)', 'Index (MB)'];
+        $headers = [
+            'Table',
+            'Rows',
+            'Total (MB)',
+            'Data (MB)',
+            'Index (MB)',
+        ];
         $data = [];
 
         foreach ($sizes as $size) {
@@ -100,24 +106,34 @@ class DatabaseMonitorCommand extends Command
                 number_format($size->row_count),
                 $size->size_mb,
                 $size->data_size_mb,
-                $size->index_size_mb
+                $size->index_size_mb,
             ];
 
             if ($store) {
-                $this->storeMetric('table_size', $size->table_name, $size->size_mb, 'MB');
-                $this->storeMetric('table_rows', $size->table_name, $size->row_count, 'rows');
+                $this->storeMetric(
+                    'table_size',
+                    $size->table_name,
+                    $size->size_mb,
+                    'MB',
+                );
+                $this->storeMetric(
+                    'table_rows',
+                    $size->table_name,
+                    $size->row_count,
+                    'rows',
+                );
             }
         }
 
         $this->table($headers, $data);
 
         // Total database size
-        $totalSize = DB::selectOne("
+        $totalSize = DB::selectOne('
             SELECT
                 ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) as total_mb
             FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
-        ");
+        ');
 
         $this->info("💾 Total Database Size: {$totalSize->total_mb} MB");
     }
@@ -137,16 +153,21 @@ class DatabaseMonitorCommand extends Command
             $count = DB::selectOne("SELECT COUNT(*) as count FROM {$table->name}");
             $data[] = [
                 $table->name,
-                number_format($count->count)
+                number_format($count->count),
             ];
 
             if ($store) {
-                $this->storeMetric('table_rows', $table->name, $count->count, 'rows');
+                $this->storeMetric(
+                    'table_rows',
+                    $table->name,
+                    $count->count,
+                    'rows',
+                );
             }
         }
 
         $this->table($headers, $data);
-                $this->info("💾 Database Type: SQLite (size metrics limited)");
+        $this->info('💾 Database Type: SQLite (size metrics limited)');
     }
 
     /**
@@ -154,18 +175,23 @@ class DatabaseMonitorCommand extends Command
      */
     private function checkIndexUsage($store = false)
     {
-        $this->info("
-🔍 Index Usage Analysis:");
-        $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━");
+        $this->info('
+🔍 Index Usage Analysis:');
+        $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'mysql') {
             $this->checkMySQLIndexUsage($store);
         } else {
-            $this->info("📝 Index analysis limited for SQLite");
+            $this->info('📝 Index analysis limited for SQLite');
             if ($store) {
-                $this->storeMetric('index_count', null, 0, 'indexes');
+                $this->storeMetric(
+                    'index_count',
+                    null,
+                    0,
+                    'indexes',
+                );
             }
         }
     }
@@ -205,15 +231,26 @@ class DatabaseMonitorCommand extends Command
                 $index->index_name,
                 $index->non_unique ? 'No' : 'Yes',
                 number_format($index->cardinality),
-                $index->column_name
+                $index->column_name,
             ];
         }
 
-        $headers = ['Table', 'Index', 'Unique', 'Cardinality', 'Column'];
+        $headers = [
+            'Table',
+            'Index',
+            'Unique',
+            'Cardinality',
+            'Column',
+        ];
         $this->table($headers, array_slice($indexData, 0, 15)); // Show first 15
 
         if ($store) {
-            $this->storeMetric('index_count', null, count($indexData), 'indexes');
+            $this->storeMetric(
+                'index_count',
+                null,
+                count($indexData),
+                'indexes',
+            );
         }
     }
 
@@ -223,7 +260,7 @@ class DatabaseMonitorCommand extends Command
     private function checkSlowQueries($store = false)
     {
         $this->info("\n⚡ Query Performance Analysis:");
-        $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         $driver = DB::connection()->getDriverName();
 
@@ -243,7 +280,7 @@ class DatabaseMonitorCommand extends Command
         $slowLogStatus = DB::selectOne("SHOW VARIABLES LIKE 'slow_query_log'");
         $longQueryTime = DB::selectOne("SHOW VARIABLES LIKE 'long_query_time'");
 
-        $this->info("Slow Query Log: " . ($slowLogStatus->Value === 'ON' ? '✅ Enabled' : '❌ Disabled'));
+        $this->info('Slow Query Log: ' . ($slowLogStatus->Value === 'ON' ? '✅ Enabled' : '❌ Disabled'));
         $this->info("Long Query Time: {$longQueryTime->Value}s");
 
         $this->performQueryTests($store);
@@ -254,7 +291,7 @@ class DatabaseMonitorCommand extends Command
      */
     private function checkSQLiteQueryPerformance($store = false)
     {
-        $this->info("📝 SQLite Query Performance (basic testing):");
+        $this->info('📝 SQLite Query Performance (basic testing):');
         $this->performQueryTests($store);
     }
 
@@ -267,9 +304,9 @@ class DatabaseMonitorCommand extends Command
         $this->info("\n📈 Testing Query Performance:");
 
         $testQueries = [
-            'invoices_count' => "SELECT COUNT(*) FROM invoices",
-            'clients_count' => "SELECT COUNT(*) FROM clients",
-            'suppliers_count' => "SELECT COUNT(*) FROM suppliers",
+            'invoices_count' => 'SELECT COUNT(*) FROM invoices',
+            'clients_count' => 'SELECT COUNT(*) FROM clients',
+            'suppliers_count' => 'SELECT COUNT(*) FROM suppliers',
         ];
 
         foreach ($testQueries as $queryName => $query) {
@@ -283,10 +320,16 @@ class DatabaseMonitorCommand extends Command
                 $this->line("{$status} {$queryName}: {$executionTime}ms");
 
                 if ($store) {
-                    $this->storeMetric('query_time', null, $executionTime, 'ms', [
-                        'query_name' => $queryName,
-                        'query' => $query
-                    ]);
+                    $this->storeMetric(
+                        'query_time',
+                        null,
+                        $executionTime,
+                        'ms',
+                        [
+                            'query_name' => $queryName,
+                            'query' => $query,
+                        ],
+                    );
                 }
             } catch (\Exception $e) {
                 $this->line("❌ {$queryName}: Error - " . $e->getMessage());
@@ -300,18 +343,23 @@ class DatabaseMonitorCommand extends Command
     private function checkConnections($store = false)
     {
         $this->info("\n🔗 Connection Analysis:");
-        $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━");
+        $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         $driver = DB::connection()->getDriverName();
 
         if ($driver === 'mysql') {
             $this->checkMySQLConnections($store);
         } else {
-            $this->info("📝 Connection analysis limited for SQLite");
-            $this->info("Current Connection: 1 (SQLite file-based)");
+            $this->info('📝 Connection analysis limited for SQLite');
+            $this->info('Current Connection: 1 (SQLite file-based)');
 
             if ($store) {
-                $this->storeMetric('connections_current', null, 1, 'connections');
+                $this->storeMetric(
+                    'connections_current',
+                    null,
+                    1,
+                    'connections',
+                );
             }
         }
     }
@@ -321,7 +369,7 @@ class DatabaseMonitorCommand extends Command
      */
     private function checkMySQLConnections($store = false)
     {
-        $processlist = DB::select("SHOW PROCESSLIST");
+        $processlist = DB::select('SHOW PROCESSLIST');
         $connections = count($processlist);
 
         $maxConnections = DB::selectOne("SHOW VARIABLES LIKE 'max_connections'");
@@ -329,11 +377,21 @@ class DatabaseMonitorCommand extends Command
 
         $this->info("Current Connections: {$threadsConnected->Value}");
         $this->info("Max Connections: {$maxConnections->Value}");
-        $this->info("Connection Usage: " . round(($threadsConnected->Value / $maxConnections->Value) * 100, 1) . "%");
+        $this->info('Connection Usage: ' . round(($threadsConnected->Value / $maxConnections->Value) * 100, 1) . '%');
 
         if ($store) {
-            $this->storeMetric('connections_current', null, $threadsConnected->Value, 'connections');
-            $this->storeMetric('connections_max', null, $maxConnections->Value, 'connections');
+            $this->storeMetric(
+                'connections_current',
+                null,
+                $threadsConnected->Value,
+                'connections',
+            );
+            $this->storeMetric(
+                'connections_max',
+                null,
+                $maxConnections->Value,
+                'connections',
+            );
         }
     }
 
@@ -343,11 +401,11 @@ class DatabaseMonitorCommand extends Command
     private function checkUserActivity()
     {
         $this->info("\n👥 User Activity Summary:");
-        $this->line("━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         try {
             // Try to use the view if it exists (MySQL only)
-            $userStats = DB::select("
+            $userStats = DB::select('
                 SELECT
                     user_id,
                     user_name,
@@ -360,38 +418,50 @@ class DatabaseMonitorCommand extends Command
                 FROM user_activity_summary
                 ORDER BY total_invoices DESC
                 LIMIT 10
-            ");
+            ');
 
-            $headers = ['User ID', 'Name', 'Total Invoices', 'Last 30d', 'Last 7d', 'Clients', 'Suppliers'];
+            $headers = [
+                'User ID',
+                'Name',
+                'Total Invoices',
+                'Last 30d',
+                'Last 7d',
+                'Clients',
+                'Suppliers',
+            ];
             $data = [];
 
             foreach ($userStats as $stat) {
                 $data[] = [
                     $stat->user_id,
-                    substr($stat->user_name, 0, 20),
+                    substr(
+                        $stat->user_name,
+                        0,
+                        20,
+                    ),
                     $stat->total_invoices,
                     $stat->invoices_last_30_days,
                     $stat->invoices_last_7_days,
                     $stat->total_clients,
-                    $stat->total_suppliers
+                    $stat->total_suppliers,
                 ];
             }
 
             $this->table($headers, $data);
         } catch (\Exception $e) {
             // Fallback for SQLite - basic user count
-            $this->info("📝 Basic user statistics (view not available):");
+            $this->info('📝 Basic user statistics (view not available):');
 
             try {
-                $userCount = DB::selectOne("SELECT COUNT(*) as count FROM users");
-                $invoiceCount = DB::selectOne("SELECT COUNT(*) as count FROM invoices");
-                $clientCount = DB::selectOne("SELECT COUNT(*) as count FROM clients");
+                $userCount = DB::selectOne('SELECT COUNT(*) as count FROM users');
+                $invoiceCount = DB::selectOne('SELECT COUNT(*) as count FROM invoices');
+                $clientCount = DB::selectOne('SELECT COUNT(*) as count FROM clients');
 
                 $this->info("Total Users: {$userCount->count}");
                 $this->info("Total Invoices: {$invoiceCount->count}");
                 $this->info("Total Clients: {$clientCount->count}");
             } catch (\Exception $e2) {
-                $this->info("❌ Unable to fetch user statistics: " . $e2->getMessage());
+                $this->info('❌ Unable to fetch user statistics: ' . $e2->getMessage());
             }
         }
     }
@@ -399,17 +469,22 @@ class DatabaseMonitorCommand extends Command
     /**
      * Store metric in performance_metrics table
      */
-    private function storeMetric($metricType, $tableName, $value, $unit, $metadata = [])
-    {
+    private function storeMetric(
+        $metricType,
+        $tableName,
+        $value,
+        $unit,
+        $metadata = [],
+    ) {
         DB::table('performance_metrics')->insert([
             'metric_type' => $metricType,
             'table_name' => $tableName,
             'metric_value' => $value,
             'metric_unit' => $unit,
-            'metadata' => !empty($metadata) ? json_encode($metadata) : null,
+            'metadata' => ! empty($metadata) ? json_encode($metadata) : null,
             'measured_at' => now(),
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
     }
 }

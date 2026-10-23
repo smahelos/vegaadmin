@@ -5,6 +5,8 @@ namespace Tests\Feature\Models;
 use App\Models\Bank;
 use App\Models\Supplier;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
@@ -32,20 +34,20 @@ class BankFeatureTest extends TestCase
     {
         $bank = Bank::factory()->create([
             'code' => '0100',
-            'name' => 'Czech National Bank'
+            'name' => 'Czech National Bank',
         ]);
 
         // Bank serves as reference data for suppliers
         $this->assertDatabaseHas('banks', [
             'code' => '0100',
-            'name' => 'Czech National Bank'
+            'name' => 'Czech National Bank',
         ]);
 
         // Suppliers can reference this bank via bank_code field
         $user = User::factory()->create();
         $supplier = Supplier::factory()->create([
             'user_id' => $user->id,
-            'bank_code' => '0100'
+            'bank_code' => '0100',
         ]);
 
         $this->assertEquals('0100', $supplier->bank_code);
@@ -56,7 +58,7 @@ class BankFeatureTest extends TestCase
     {
         $bank1 = Bank::factory()->create(['code' => '1234']);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         Bank::factory()->create(['code' => '1234']);
     }
 
@@ -167,7 +169,7 @@ class BankFeatureTest extends TestCase
 
         $this->assertNotNull($bank->created_at);
         $this->assertNotNull($bank->updated_at);
-        $this->assertInstanceOf(\Carbon\Carbon::class, $bank->created_at);
-        $this->assertInstanceOf(\Carbon\Carbon::class, $bank->updated_at);
+        $this->assertInstanceOf(Carbon::class, $bank->created_at);
+        $this->assertInstanceOf(Carbon::class, $bank->updated_at);
     }
 }

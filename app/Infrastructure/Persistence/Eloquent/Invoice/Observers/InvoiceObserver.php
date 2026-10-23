@@ -19,7 +19,12 @@ final class InvoiceObserver
 
     public function updated(Invoice $invoice): void
     {
-        if ($invoice->isDirty(['payment_amount', 'payment_status_id', 'issue_date', 'due_in'])) {
+        if ($invoice->isDirty([
+            'payment_amount',
+            'payment_status_id',
+            'issue_date',
+            'due_in',
+        ])) {
             $this->publishUserDataChanged($invoice);
         }
     }

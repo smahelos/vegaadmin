@@ -3,23 +3,18 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\SubscriptionRequest;
-use App\Models\User;
-use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 class SubscriptionRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-    protected User $regularUser;
     private SubscriptionRequest $request;
 
     protected function setUp(): void
@@ -28,8 +23,8 @@ class SubscriptionRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-        
-        $this->request = new SubscriptionRequest();
+
+        $this->request = new SubscriptionRequest;
     }
 
     #[Test]
@@ -65,7 +60,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('subscription_plan_id', $validator->errors()->toArray());
     }
@@ -82,7 +77,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('subscription_plan_id', $validator->errors()->toArray());
     }
@@ -91,7 +86,7 @@ class SubscriptionRequestFeatureTest extends TestCase
     public function validation_fails_when_user_id_is_missing(): void
     {
         $subscriptionPlan = SubscriptionPlan::factory()->create();
-        
+
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'status' => 'active',
@@ -100,7 +95,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('user_id', $validator->errors()->toArray());
     }
@@ -109,7 +104,7 @@ class SubscriptionRequestFeatureTest extends TestCase
     public function validation_fails_when_user_id_does_not_exist(): void
     {
         $subscriptionPlan = SubscriptionPlan::factory()->create();
-        
+
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => 99999,
@@ -119,7 +114,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('user_id', $validator->errors()->toArray());
     }
@@ -129,7 +124,7 @@ class SubscriptionRequestFeatureTest extends TestCase
     {
         $subscriptionPlan = SubscriptionPlan::factory()->create();
         $user = User::factory()->create();
-        
+
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
@@ -139,7 +134,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('status', $validator->errors()->toArray());
     }
@@ -149,7 +144,7 @@ class SubscriptionRequestFeatureTest extends TestCase
     {
         $subscriptionPlan = SubscriptionPlan::factory()->create();
         $user = User::factory()->create();
-        
+
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
@@ -158,7 +153,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('amount', $validator->errors()->toArray());
     }
@@ -168,7 +163,7 @@ class SubscriptionRequestFeatureTest extends TestCase
     {
         $subscriptionPlan = SubscriptionPlan::factory()->create();
         $user = User::factory()->create();
-        
+
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
@@ -179,7 +174,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('starts_at', $validator->errors()->toArray());
     }
@@ -189,7 +184,7 @@ class SubscriptionRequestFeatureTest extends TestCase
     {
         $subscriptionPlan = SubscriptionPlan::factory()->create();
         $user = User::factory()->create();
-        
+
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
@@ -201,7 +196,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('ends_at', $validator->errors()->toArray());
     }
@@ -211,7 +206,7 @@ class SubscriptionRequestFeatureTest extends TestCase
     {
         $subscriptionPlan = SubscriptionPlan::factory()->create();
         $user = User::factory()->create();
-        
+
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
@@ -223,7 +218,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertFalse($validator->fails());
     }
 
@@ -232,7 +227,7 @@ class SubscriptionRequestFeatureTest extends TestCase
     {
         $subscriptionPlan = SubscriptionPlan::factory()->create();
         $user = User::factory()->create();
-        
+
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
@@ -242,7 +237,7 @@ class SubscriptionRequestFeatureTest extends TestCase
         ];
 
         $validator = Validator::make($data, $this->request->rules());
-        
+
         $this->assertFalse($validator->fails());
     }
 
@@ -251,9 +246,15 @@ class SubscriptionRequestFeatureTest extends TestCase
     {
         $subscriptionPlan = SubscriptionPlan::factory()->create();
         $user = User::factory()->create();
-        
-        $validStatuses = ['pending', 'active', 'cancelled', 'expired', 'past_due'];
-        
+
+        $validStatuses = [
+            'pending',
+            'active',
+            'cancelled',
+            'expired',
+            'past_due',
+        ];
+
         foreach ($validStatuses as $status) {
             $data = [
                 'subscription_plan_id' => $subscriptionPlan->id,
@@ -264,7 +265,7 @@ class SubscriptionRequestFeatureTest extends TestCase
             ];
 
             $validator = Validator::make($data, $this->request->rules());
-            
+
             $this->assertFalse($validator->fails(), "Status '$status' should be valid");
         }
     }

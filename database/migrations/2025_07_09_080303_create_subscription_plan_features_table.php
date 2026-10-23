@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('sort_order')->default(0);
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Indexes for better performance
             $table->index(['is_active', 'sort_order']);
             $table->index('slug');

@@ -12,8 +12,6 @@ final class AnalyticsDataChanged implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -32,17 +30,16 @@ final class AnalyticsDataChanged implements DomainEvent
     /**
      * Create a new event instance
      *
-     * @param int $userId User whose analytics data changed
-     * @param string $changeType Type of change (invoice, client, supplier, statistics)
-     * @param int|null $entityId Optional entity ID that caused the change
+     * @param  int  $userId  User whose analytics data changed
+     * @param  string  $changeType  Type of change (invoice, client, supplier, statistics)
+     * @param  int|null  $entityId  Optional entity ID that caused the change
      */
     public function __construct(
-        int $userId, 
-        string $changeType = 'general', 
+        int $userId,
+        string $changeType = 'general',
         ?int $entityId = null,
         private readonly array $metadata = [],
-    )
-    {
+    ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
         $this->entityId = $entityId;
@@ -50,19 +47,19 @@ final class AnalyticsDataChanged implements DomainEvent
         $this->eventId = uniqid('analytics_', true);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
-        return static::class;
+        return self::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getPayload(): array
     {
         return [
@@ -73,7 +70,7 @@ final class AnalyticsDataChanged implements DomainEvent
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

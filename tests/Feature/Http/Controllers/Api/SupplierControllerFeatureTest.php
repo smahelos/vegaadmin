@@ -4,16 +4,16 @@ namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Models\Supplier;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 /**
  * Feature tests for Api\SupplierController
- * 
+ *
  * Tests all API endpoints: getSupplier($id), getSuppliers(), getDefaultSupplier()
  * Tests authentication scenarios, authorization (admin vs regular user access), error handling
  * Tests JSON responses, HTTP status codes, and security boundaries
@@ -23,16 +23,19 @@ class SupplierControllerFeatureTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $admin;
+
     protected User $user;
+
     protected User $viewer;
+
     protected Supplier $adminSupplier;
+
     protected Supplier $userSupplier;
+
     protected Supplier $defaultSupplier;
 
     /**
      * Set up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -40,7 +43,7 @@ class SupplierControllerFeatureTest extends TestCase
 
         // Create permissions and roles
         $this->createPermissionsAndRoles();
-        
+
         // Create test users with proper roles
         $this->createTestUsers();
 
@@ -56,29 +59,29 @@ class SupplierControllerFeatureTest extends TestCase
         // Frontend permissions
         Permission::firstOrCreate(['name' => 'frontend.api.access', 'guard_name' => 'web']);
         Permission::firstOrCreate(['name' => 'frontend.api.suppliers', 'guard_name' => 'web']);
-        
+
         // Backpack permissions
         Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'backpack.api.access', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'can_view_supplier', 'guard_name' => 'backpack']);
-        
+
         // Create roles
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
         $adminRole->syncPermissions([
             'backpack.access',
-            'backpack.api.access', 
-            'can_view_supplier'
+            'backpack.api.access',
+            'can_view_supplier',
         ]);
-        
+
         $userRole = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
         $userRole->syncPermissions([
             'frontend.api.access',
-            'frontend.api.suppliers'
+            'frontend.api.suppliers',
         ]);
-        
+
         $viewerRole = Role::firstOrCreate(['name' => 'viewer', 'guard_name' => 'web']);
         $viewerRole->syncPermissions([
-            'frontend.api.access'
+            'frontend.api.access',
         ]);
     }
 
@@ -97,7 +100,7 @@ class SupplierControllerFeatureTest extends TestCase
 
         // Create regular user
         $this->user = User::factory()->create([
-            'name' => 'Regular User', 
+            'name' => 'Regular User',
             'email' => 'user@example.com',
         ]);
         $userRole = Role::where('name', 'user')->where('guard_name', 'web')->first();
@@ -200,7 +203,7 @@ class SupplierControllerFeatureTest extends TestCase
         $response->assertStatus(401)
             ->assertJson([
                 'error' => __('users.auth.unauthenticated'),
-                'code' => 401
+                'code' => 401,
             ]);
     }
 
@@ -211,7 +214,7 @@ class SupplierControllerFeatureTest extends TestCase
     public function get_supplier_with_non_existent_id_returns_404(): void
     {
         $nonExistentId = 999999;
-            
+
         $response = $this->actingAs($this->admin, 'backpack')
             ->getJson("/api/admin/supplier/{$nonExistentId}");
 
@@ -231,14 +234,22 @@ class SupplierControllerFeatureTest extends TestCase
             ->getJson('/api/admin/supplier');
 
         $response->assertStatus(200);
-            
+
         $suppliers = $response->json();
         $this->assertIsArray($suppliers);
-            
+
         // Admin should see all suppliers
-        $expectedSuppliers = [$this->adminSupplier, $this->userSupplier, $this->defaultSupplier];
-        $this->assertGreaterThanOrEqual(3, count($suppliers), 'Admin should see at least the 3 test suppliers');
-            
+        $expectedSuppliers = [
+            $this->adminSupplier,
+            $this->userSupplier,
+            $this->defaultSupplier,
+        ];
+        $this->assertGreaterThanOrEqual(
+            3,
+            count($suppliers),
+            'Admin should see at least the 3 test suppliers',
+        );
+
         // Check if all test suppliers are included
         $supplierIds = collect($suppliers)->pluck('id')->toArray();
         $this->assertContains($this->adminSupplier->id, $supplierIds);
@@ -256,19 +267,19 @@ class SupplierControllerFeatureTest extends TestCase
             ->getJson('/api/supplier');
 
         $response->assertStatus(200);
-            
+
         $suppliers = $response->json();
         $this->assertIsArray($suppliers);
-            
+
         // User should see only their own suppliers
         $this->assertCount(2, $suppliers);
-            
+
         // Check if only user's suppliers are included
         $supplierIds = collect($suppliers)->pluck('id')->toArray();
         $this->assertContains($this->userSupplier->id, $supplierIds);
         $this->assertContains($this->defaultSupplier->id, $supplierIds);
         $this->assertNotContains($this->adminSupplier->id, $supplierIds);
-            
+
         // Verify all returned suppliers belong to the authenticated user
         foreach ($suppliers as $supplier) {
             $this->assertEquals($this->user->id, $supplier['user_id']);
@@ -286,7 +297,7 @@ class SupplierControllerFeatureTest extends TestCase
         $response->assertStatus(401)
             ->assertJson([
                 'error' => __('users.auth.unauthenticated'),
-                'code' => 401
+                'code' => 401,
             ]);
     }
 
@@ -322,11 +333,11 @@ class SupplierControllerFeatureTest extends TestCase
             ->getJson('/api/supplier/default');
 
         $response->assertStatus(200);
-            
+
         $supplier = $response->json();
         $this->assertEquals($this->user->id, $supplier['user_id']);
         $this->assertFalse($supplier['is_default']);
-            
+
         // Should return the most recently created supplier
         $mostRecent = Supplier::where('user_id', $this->user->id)
             ->orderBy('created_at', 'desc')
@@ -363,7 +374,7 @@ class SupplierControllerFeatureTest extends TestCase
         $response->assertStatus(401)
             ->assertJson([
                 'error' => __('users.auth.unauthenticated'),
-                'code' => 401
+                'code' => 401,
             ]);
     }
 
@@ -382,8 +393,11 @@ class SupplierControllerFeatureTest extends TestCase
 
         foreach ($endpoints as $endpoint) {
             $response = $this->getJson($endpoint);
-            $this->assertContains($response->status(), [401], 
-                "Endpoint {$endpoint} should require authentication");
+            $this->assertContains(
+                $response->status(),
+                [401],
+                "Endpoint {$endpoint} should require authentication",
+            );
         }
     }
 
@@ -455,7 +469,7 @@ class SupplierControllerFeatureTest extends TestCase
                     'has_payment_info',
                     'created_at',
                     'updated_at',
-                ]
+                ],
             ]);
     }
 
@@ -481,7 +495,7 @@ class SupplierControllerFeatureTest extends TestCase
     public function admin_api_route_requires_admin_role(): void
     {
         $response = $this->actingAs($this->user, 'backpack')
-                ->getJson("/api/admin/supplier/{$this->userSupplier->id}");
+            ->getJson("/api/admin/supplier/{$this->userSupplier->id}");
         $response->assertStatus(403)
             ->assertJson([
                 'error' => __('backpack::crud.unauthorized_access'),
@@ -527,19 +541,36 @@ class SupplierControllerFeatureTest extends TestCase
             ->getJson("/api/supplier/{$this->userSupplier->id}");
 
         $response->assertStatus(200);
-            
+
         $supplier = $response->json();
-            
+
         // Verify all fields needed by frontend are present
         $requiredFields = [
-            'id', 'name', 'email', 'phone', 'street', 'city', 'zip', 
-            'country', 'ico', 'dic', 'account_number', 'bank_code', 
-            'bank_name', 'iban', 'swift', 'is_default', 'has_payment_info'
+            'id',
+            'name',
+            'email',
+            'phone',
+            'street',
+            'city',
+            'zip',
+            'country',
+            'ico',
+            'dic',
+            'account_number',
+            'bank_code',
+            'bank_name',
+            'iban',
+            'swift',
+            'is_default',
+            'has_payment_info',
         ];
-            
+
         foreach ($requiredFields as $field) {
-            $this->assertArrayHasKey($field, $supplier, 
-                "Field {$field} is missing from supplier response");
+            $this->assertArrayHasKey(
+                $field,
+                $supplier,
+                "Field {$field} is missing from supplier response",
+            );
         }
     }
 

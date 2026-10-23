@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class PerformanceMetric extends Model
 {
@@ -23,7 +23,7 @@ class PerformanceMetric extends Model
         'metric_value',
         'metric_unit',
         'metadata',
-        'measured_at'
+        'measured_at',
     ];
 
     /**
@@ -34,7 +34,7 @@ class PerformanceMetric extends Model
     protected $casts = [
         'metadata' => 'array',
         'measured_at' => 'datetime',
-        'metric_value' => 'decimal:4'
+        'metric_value' => 'decimal:4',
     ];
 
     /**
@@ -52,7 +52,6 @@ class PerformanceMetric extends Model
     {
         return ucfirst(str_replace('_', ' ', $this->metric_type));
     }
-
 
     /**
      * Scope for specific metric type
@@ -75,6 +74,10 @@ class PerformanceMetric extends Model
      */
     public function scopeRecent($query, $days = 30)
     {
-        return $query->where('measured_at', '>=', now()->subDays($days));
+        return $query->where(
+            'measured_at',
+            '>=',
+            now()->subDays($days),
+        );
     }
 }

@@ -6,8 +6,6 @@ trait UserFormFields
 {
     /**
      * Get user form fields definitions
-     *
-     * @return array
      */
     public function getUserFields(): array
     {
@@ -32,8 +30,7 @@ trait UserFormFields
     /**
      * Get password field definitions for password change form
      *
-     * @param bool $isEdit Whether the form is for editing an existing user
-     * @return array
+     * @param  bool  $isEdit  Whether the form is for editing an existing user
      */
     public function getPasswordFields(bool $isEdit = false): array
     {
@@ -71,7 +68,7 @@ trait UserFormFields
                 'hint' => __('users.hints.current_password'),
             ],
         ];
-        
+
         return $fields;
     }
 }

@@ -2,24 +2,29 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\Admin\CronTaskRequest;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Prologue\Alerts\Facades\Alert;
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
-use Illuminate\Support\Facades\Log;
+use App\Http\Requests\Admin\CronTaskRequest;
+use App\Models\CronTask;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Prologue\Alerts\Facades\Alert;
 
 class CronTaskCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use CreateOperation;
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation;
 
     public function setup()
     {
-        CRUD::setModel(\App\Models\CronTask::class);
+        CRUD::setModel(CronTask::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/cron-task');
         CRUD::setEntityNameStrings(__('cron_tasks.entity.singular'), __('cron_tasks.entity.plural'));
     }
@@ -39,25 +44,29 @@ class CronTaskCrudController extends CrudController
         CRUD::column('next_run')
             ->label(__('cron_tasks.fields.next_run'))
             ->type('closure')
-            ->function(function($entry) {
-                if (null !== $entry) {
+            ->function(function ($entry) {
+                if ($entry !== null) {
                     $nextRun = $entry->getNextRunDate();
                 } else {
                     $nextRun = null;
                 }
+
                 return $nextRun ? $nextRun->format('Y-m-d H:i:s') . ' - (' . $nextRun->diffForHumans() . ')' : '-';
-        });
+            });
         CRUD::column('is_active')->label(__('cron_tasks.fields.is_active'))
             ->type('boolean');
         CRUD::column('last_run')->label(__('cron_tasks.fields.last_run'))
             ->type('datetime');
 
-        CRUD::addButton('line', 'run_cron', 'view', 'admin.buttons.run_cron', 'end');
+        CRUD::addButton(
+            'line',
+            'run_cron',
+            'view',
+            'admin.buttons.run_cron',
+            'end',
+        );
     }
 
-    /**
-     * @var ArtisanCommandsServiceInterface
-     */
     protected ArtisanCommandsServiceInterface $commandsService;
 
     /**
@@ -77,8 +86,8 @@ class CronTaskCrudController extends CrudController
             ->type('text')
             ->tab(__('cron_tasks.tabs.basic'));
 
-    // Prepare commands for select form (cron command category) via injected service
-    $commands = $this->commandsService->getCommandsByCategory('cron');
+        // Prepare commands for select form (cron command category) via injected service
+        $commands = $this->commandsService->getCommandsByCategory('cron');
 
         // Base command
         CRUD::field('base_command')
@@ -87,7 +96,7 @@ class CronTaskCrudController extends CrudController
             ->options($commands)
             ->allows_null(false)
             ->wrapper([
-                'class' => 'form-group col-md-6'
+                'class' => 'form-group col-md-6',
             ])
             ->tab(__('cron_tasks.tabs.basic'));
 
@@ -97,7 +106,7 @@ class CronTaskCrudController extends CrudController
             ->type('text')
             ->hint(__('cron_tasks.hints.command_params'))
             ->wrapper([
-                'class' => 'form-group col-md-6'
+                'class' => 'form-group col-md-6',
             ])
             ->tab(__('cron_tasks.tabs.basic'));
 
@@ -121,7 +130,11 @@ class CronTaskCrudController extends CrudController
             ->type('datepicker')
             ->datepicker_options(['onlyTimepicker' => true])
             ->tab(__('cron_tasks.tabs.schedule'))
-            ->depends('frequency', ['daily', 'weekly', 'monthly']);
+            ->depends('frequency', [
+                'daily',
+                'weekly',
+                'monthly',
+            ]);
 
         CRUD::field('day_of_week')
             ->label(__('cron_tasks.fields.day_of_week'))
@@ -177,7 +190,7 @@ class CronTaskCrudController extends CrudController
                     'readonly' => 'readonly',
                     'class' => 'form-control',
                     'rows' => 10,
-                ]
+                ],
             )
             ->tab(__('cron_tasks.tabs.history'));
 
@@ -226,14 +239,20 @@ class CronTaskCrudController extends CrudController
 
     protected function setupOperationButtons()
     {
-        CRUD::operation('list', function() {
-            CRUD::addButton('line', 'run_cron', 'view', 'admin.buttons.run_cron', 'end');
+        CRUD::operation('list', function () {
+            CRUD::addButton(
+                'line',
+                'run_cron',
+                'view',
+                'admin.buttons.run_cron',
+                'end',
+            );
         });
     }
 
     public function runCronTask($id)
     {
-        $task = \App\Models\CronTask::findOrFail($id);
+        $task = CronTask::findOrFail($id);
 
         try {
             $task->simulateRun();

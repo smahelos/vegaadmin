@@ -4,27 +4,23 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Models\EntityLimit;
 use App\Models\Supplier;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class SupplierLogoUploadTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesFrontendTestEnvironment;
-
-    private User $user;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->setUpFrontendTestEnvironment();
 
         $permission = Permission::where('name', 'frontend.can_create_edit_supplier')
@@ -32,10 +28,10 @@ class SupplierLogoUploadTest extends TestCase
             ->first();
 
         $this->user->givePermissionTo($permission);
-        
+
         // Set fake storage for testing
         Storage::fake('public');
-        
+
         // Create entity limit for suppliers
         $this->createSupplierEntityLimit();
     }
@@ -61,8 +57,12 @@ class SupplierLogoUploadTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $logo = UploadedFile::fake()->image('supplier_logo.jpg', 200, 200);
-        
+        $logo = UploadedFile::fake()->image(
+            'supplier_logo.jpg',
+            200,
+            200,
+        );
+
         $supplierData = [
             'name' => 'Test Supplier',
             'email' => 'test@supplier.com',
@@ -91,7 +91,11 @@ class SupplierLogoUploadTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
-        $logo = UploadedFile::fake()->image('new_logo.png', 150, 150);
+        $logo = UploadedFile::fake()->image(
+            'new_logo.png',
+            150,
+            150,
+        );
 
         $updateData = [
             'name' => $supplier->name,
@@ -106,7 +110,7 @@ class SupplierLogoUploadTest extends TestCase
 
         $response = $this->put(
             route('frontend.supplier.update', ['locale' => 'en', 'id' => $supplier->id]),
-            $updateData
+            $updateData,
         );
 
         $response->assertRedirect(route('frontend.suppliers', ['locale' => 'en']));
@@ -121,11 +125,11 @@ class SupplierLogoUploadTest extends TestCase
     public function old_logo_is_deleted_when_uploading_new_logo(): void
     {
         $this->actingAs($this->user, 'web');
-        
+
         // Create supplier with existing logo
         $oldLogo = UploadedFile::fake()->image('old_logo.jpg');
         $oldLogoPath = $oldLogo->store('suppliers/logos', 'public');
-        
+
         $supplier = Supplier::factory()->create([
             'user_id' => $this->user->id,
             'supplier_logo' => $oldLogoPath,
@@ -133,7 +137,7 @@ class SupplierLogoUploadTest extends TestCase
 
         // Upload new logo
         $newLogo = UploadedFile::fake()->image('new_logo.png');
-        
+
         $updateData = [
             'name' => $supplier->name,
             'email' => $supplier->email,
@@ -147,13 +151,13 @@ class SupplierLogoUploadTest extends TestCase
 
         $response = $this->put(
             route('frontend.supplier.update', ['locale' => 'en', 'id' => $supplier->id]),
-            $updateData
+            $updateData,
         );
 
         $response->assertRedirect(route('frontend.suppliers', ['locale' => 'en']));
-        
+
         $supplier->refresh();
-        
+
         // Check old logo is deleted and new logo exists
         $this->assertFalse(Storage::disk('public')->exists($oldLogoPath));
         $this->assertTrue(Storage::disk('public')->exists($supplier->supplier_logo));
@@ -164,9 +168,9 @@ class SupplierLogoUploadTest extends TestCase
     public function logo_upload_validates_file_type(): void
     {
         $this->actingAs($this->user, 'web');
-        
+
         $invalidFile = UploadedFile::fake()->create('document.pdf', 1000);
-        
+
         $supplierData = [
             'name' => 'Test Supplier',
             'email' => 'test@supplier.com',
@@ -189,7 +193,7 @@ class SupplierLogoUploadTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         $largeLogo = UploadedFile::fake()->image('large_logo.jpg')->size(3000); // 3MB
-        
+
         $supplierData = [
             'name' => 'Test Supplier',
             'email' => 'test@supplier.com',

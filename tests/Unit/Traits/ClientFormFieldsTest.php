@@ -42,19 +42,6 @@ class ClientFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function trait_has_proper_docblocks(): void
-    {
-        $reflection = new \ReflectionClass(ClientFormFields::class);
-
-        // Check getClientFields method docblock
-        $method = $reflection->getMethod('getClientFields');
-        $docComment = $method->getDocComment();
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('Get client form fields definitions', $docComment);
-        $this->assertStringContainsString('@return array', $docComment);
-    }
-
-    #[Test]
     public function trait_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(ClientFormFields::class);
@@ -77,7 +64,7 @@ class ClientFormFieldsTest extends TestCase
         // Should have exactly 1 method
         $this->assertCount(1, $methods);
 
-        $methodNames = array_map(fn($method) => $method->getName(), $methods);
+        $methodNames = array_map(fn ($method) => $method->getName(), $methods);
         $this->assertContains('getClientFields', $methodNames);
     }
 

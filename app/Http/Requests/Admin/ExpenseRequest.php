@@ -22,8 +22,6 @@ class ExpenseRequest extends BaseEntityRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -45,11 +43,21 @@ class ExpenseRequest extends BaseEntityRequest
         ];
 
         if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
-            foreach (['expense_date','amount','currency','category_id','user_id'] as $field) {
-                $rules[$field] = str_replace('required','sometimes',$rules[$field]);
+            foreach ([
+                'expense_date',
+                'amount',
+                'currency',
+                'category_id',
+                'user_id',
+            ] as $field) {
+                $rules[$field] = str_replace(
+                    'required',
+                    'sometimes',
+                    $rules[$field],
+                );
             }
             // Ensure description is marked as sometimes so it is validated when alone
-            if (isset($rules['description']) && !str_contains($rules['description'], 'sometimes')) {
+            if (isset($rules['description']) && ! str_contains($rules['description'], 'sometimes')) {
                 $rules['description'] = 'sometimes|string';
             }
         }
@@ -59,8 +67,6 @@ class ExpenseRequest extends BaseEntityRequest
 
     /**
      * Get custom attributes for validator errors.
-     *
-     * @return array
      */
     public function attributes(): array
     {

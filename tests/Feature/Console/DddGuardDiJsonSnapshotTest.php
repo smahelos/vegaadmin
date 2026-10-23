@@ -25,27 +25,49 @@ class DddGuardDiJsonSnapshotTest extends TestCase
 
         $data = json_decode($json, true);
         $this->assertIsArray($data, 'Output must decode to array');
-        foreach (['status','violations','advisories','di'] as $key) {
-            $this->assertArrayHasKey($key, $data, "Missing top-level key {$key}");
+        foreach ([
+            'status',
+            'violations',
+            'advisories',
+            'di',
+        ] as $key) {
+            $this->assertArrayHasKey(
+                $key,
+                $data,
+                "Missing top-level key {$key}",
+            );
         }
         $this->assertIsArray($data['violations']);
         $this->assertIsArray($data['advisories']);
 
-        if (!is_null($data['di'])) {
+        if (! is_null($data['di'])) {
             $this->assertArrayHasKey('violations', $data['di']);
             $this->assertArrayHasKey('advisories', $data['di']);
             $this->assertIsArray($data['di']['violations']);
             $this->assertIsArray($data['di']['advisories']);
             foreach ($data['di']['violations'] as $v) {
-                foreach (['type','path','line','message'] as $vk) {
-                    $this->assertArrayHasKey($vk, $v, "DI violation missing {$vk}");
+                foreach ([
+                    'type',
+                    'path',
+                    'line',
+                    'message',
+                ] as $vk) {
+                    $this->assertArrayHasKey(
+                        $vk,
+                        $v,
+                        "DI violation missing {$vk}",
+                    );
                 }
             }
         }
 
         // Basic sanity: exit code should reflect violations presence
-        if (!empty($data['di']['violations']) || !empty($data['violations'])) {
-            $this->assertNotSame(0, $exitCode, 'Exit code should be non-zero when violations exist');
+        if (! empty($data['di']['violations']) || ! empty($data['violations'])) {
+            $this->assertNotSame(
+                0,
+                $exitCode,
+                'Exit code should be non-zero when violations exist',
+            );
         }
     }
 }

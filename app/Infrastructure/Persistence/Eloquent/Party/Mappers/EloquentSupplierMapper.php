@@ -4,7 +4,6 @@ namespace App\Infrastructure\Persistence\Eloquent\Party\Mappers;
 
 use App\Domain\Party\DTO\SupplierDTO;
 use App\Models\Supplier;
-use Illuminate\Support\Collection;
 
 class EloquentSupplierMapper
 {
@@ -18,7 +17,10 @@ class EloquentSupplierMapper
         }
 
         $toArray = static function ($value): ?array {
-            if ($value === null) { return null; }
+            if ($value === null) {
+                return null;
+            }
+
             return is_array($value) ? $value : [$value];
         };
 

@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Application\Auth\Contracts\AuthorizationServiceInterface;
+use App\Application\Auth\Services\AuthorizationService;
+use App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy;
+use App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,8 +19,8 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        \App\Models\Subscription::class => \App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy::class,
-        \App\Models\SubscriptionPlan::class => \App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy::class,
+        Subscription::class => SubscriptionPolicy::class,
+        SubscriptionPlan::class => SubscriptionPlanPolicy::class,
     ];
 
     /**
@@ -25,8 +31,8 @@ class AuthServiceProvider extends ServiceProvider
         parent::register();
 
         $this->app->bind(
-            \App\Application\Auth\Contracts\AuthorizationServiceInterface::class,
-            \App\Application\Auth\Services\AuthorizationService::class
+            AuthorizationServiceInterface::class,
+            AuthorizationService::class,
         );
     }
 
@@ -39,8 +45,12 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         // Define macro for multi-guard authentication check
-        Auth::macro('checkAny', function (array $guards = null) {
-            $guards = $guards ?: ['web', 'backpack', 'api'];
+        Auth::macro('checkAny', function (?array $guards = null) {
+            $guards = $guards ?: [
+                'web',
+                'backpack',
+                'api',
+            ];
 
             foreach ($guards as $guard) {
                 if (Auth::guard($guard)->check()) {
@@ -52,8 +62,12 @@ class AuthServiceProvider extends ServiceProvider
         });
 
         // Define macro for getting user from any guard
-        Auth::macro('userFromAny', function (array $guards = null) {
-            $guards = $guards ?: ['web', 'backpack', 'api'];
+        Auth::macro('userFromAny', function (?array $guards = null) {
+            $guards = $guards ?: [
+                'web',
+                'backpack',
+                'api',
+            ];
 
             foreach ($guards as $guard) {
                 if (Auth::guard($guard)->check()) {

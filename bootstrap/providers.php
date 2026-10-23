@@ -1,26 +1,43 @@
 <?php
 
+use App\Providers\AnalyticsServiceProvider;
+use App\Providers\AppServiceProvider;
+use App\Providers\AuthServiceProvider;
+use App\Providers\BladeServiceProvider;
+use App\Providers\ContentServiceProvider;
+use App\Providers\DomainEventsServiceProvider;
+use App\Providers\EventServiceProvider;
+use App\Providers\InvoiceServiceProvider;
+use App\Providers\PartyServiceProvider;
+use App\Providers\PaymentServiceProvider;
+use App\Providers\ProductServiceProvider;
+use App\Providers\RouteServiceProvider;
+use App\Providers\SharedServiceProvider;
+use App\Providers\ThirdPartyServiceProvider;
+use App\Providers\UIServiceProvider;
+use App\Providers\UserServiceProvider;
+
 return [
     // Core Laravel providers
-    App\Providers\AppServiceProvider::class,
-    App\Providers\AuthServiceProvider::class,             // Also Auth application context
-    App\Providers\EventServiceProvider::class,
-    App\Providers\RouteServiceProvider::class,
-    App\Providers\BladeServiceProvider::class,
+    AppServiceProvider::class,
+    AuthServiceProvider::class,             // Also Auth application context
+    EventServiceProvider::class,
+    RouteServiceProvider::class,
+    BladeServiceProvider::class,
 
     // Domain Events provider (Global)
-    App\Providers\DomainEventsServiceProvider::class,
+    DomainEventsServiceProvider::class,
 
     // Bounded context composition roots (ADR D-042)
-    App\Providers\SharedServiceProvider::class,
-    App\Providers\AnalyticsServiceProvider::class,
-    App\Providers\ContentServiceProvider::class,
-    App\Providers\InvoiceServiceProvider::class,
-    App\Providers\PartyServiceProvider::class,
-    App\Providers\PaymentServiceProvider::class,
-    App\Providers\ProductServiceProvider::class,
-    App\Providers\UserServiceProvider::class,
+    SharedServiceProvider::class,
+    AnalyticsServiceProvider::class,
+    ContentServiceProvider::class,
+    InvoiceServiceProvider::class,
+    PartyServiceProvider::class,
+    PaymentServiceProvider::class,
+    ProductServiceProvider::class,
+    UserServiceProvider::class,
 
-    App\Providers\UIServiceProvider::class,               // Presentation layer (UI, Blade, Locale)
-    App\Providers\ThirdPartyServiceProvider::class,      // External dependencies
+    UIServiceProvider::class,               // Presentation layer (UI, Blade, Locale)
+    ThirdPartyServiceProvider::class,      // External dependencies
 ];

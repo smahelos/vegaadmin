@@ -2,22 +2,19 @@
 
 namespace App\Domain\Shared\Geography\Services;
 
-use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
 use App\Domain\Shared\Http\Contracts\HttpClientInterface;
 
 class CountryService implements CountryServiceInterface
 {
     public function __construct(
         private HttpClientInterface $httpClient,
-        private CacheServiceInterface $cacheService
-    )
-    {
-    }
-    
+        private CacheServiceInterface $cacheService,
+    ) {}
+
     /**
      * Base URL for external country API.
-     * @var string
      */
     protected string $apiUrl = 'https://restcountries.com/v3.1';
 
@@ -33,18 +30,26 @@ class CountryService implements CountryServiceInterface
      */
     public function getAllCountries(): array
     {
-        return $this->cacheService->remember('countries_all', function () {
-            try {
-                $response = $this->httpClient->get("{$this->apiUrl}/all?fields=name,cca2,flag", ['timeout' => 5]);
-                if (!empty($response) && is_array($response)) {
-                    usort($response, function ($a, $b) { return $a['name']['common'] <=> $b['name']['common']; });
-                    return $response;
+        return $this->cacheService->remember(
+            'countries_all',
+            function () {
+                try {
+                    $response = $this->httpClient->get("{$this->apiUrl}/all?fields=name,cca2,flag", ['timeout' => 5]);
+                    if (! empty($response) && is_array($response)) {
+                        usort($response, function ($a, $b) {
+                            return $a['name']['common'] <=> $b['name']['common'];
+                        });
+
+                        return $response;
+                    }
+
+                    return $this->getFallbackCountryCodes();
+                } catch (\Exception $e) {
+                    return $this->getFallbackCountryCodes();
                 }
-                return $this->getFallbackCountryCodes();
-            } catch (\Exception $e) {
-                return $this->getFallbackCountryCodes();
-            }
-        }, 86400); // Cache for 24 hours
+            },
+            86400,
+        ); // Cache for 24 hours
     }
 
     /**
@@ -59,13 +64,41 @@ class CountryService implements CountryServiceInterface
     private function getFallbackCountryCodes(): array
     {
         return [
-            ['cca2' => 'CZ', 'name' => ['common' => 'Czech Republic'], 'flag' => '🇨🇿'],
-            ['cca2' => 'SK', 'name' => ['common' => 'Slovakia'], 'flag' => '🇸🇰'],
-            ['cca2' => 'AT', 'name' => ['common' => 'Austria'], 'flag' => '🇦🇹'],
-            ['cca2' => 'DE', 'name' => ['common' => 'Germany'], 'flag' => '🇩🇪'],
-            ['cca2' => 'PL', 'name' => ['common' => 'Poland'], 'flag' => '🇵🇱'],
-            ['cca2' => 'GB', 'name' => ['common' => 'United Kingdom'], 'flag' => '🇬🇧'],
-            ['cca2' => 'US', 'name' => ['common' => 'United States'], 'flag' => '🇺🇸'],
+            [
+                'cca2' => 'CZ',
+                'name' => ['common' => 'Czech Republic'],
+                'flag' => '🇨🇿',
+            ],
+            [
+                'cca2' => 'SK',
+                'name' => ['common' => 'Slovakia'],
+                'flag' => '🇸🇰',
+            ],
+            [
+                'cca2' => 'AT',
+                'name' => ['common' => 'Austria'],
+                'flag' => '🇦🇹',
+            ],
+            [
+                'cca2' => 'DE',
+                'name' => ['common' => 'Germany'],
+                'flag' => '🇩🇪',
+            ],
+            [
+                'cca2' => 'PL',
+                'name' => ['common' => 'Poland'],
+                'flag' => '🇵🇱',
+            ],
+            [
+                'cca2' => 'GB',
+                'name' => ['common' => 'United Kingdom'],
+                'flag' => '🇬🇧',
+            ],
+            [
+                'cca2' => 'US',
+                'name' => ['common' => 'United States'],
+                'flag' => '🇺🇸',
+            ],
         ];
     }
 
@@ -79,13 +112,22 @@ class CountryService implements CountryServiceInterface
     {
         $countries = $this->getAllCountries();
         $result = [];
-        if (empty($countries)) { return $this->getFallbackCountryCodesFormatted(); }
+        if (empty($countries)) {
+            return $this->getFallbackCountryCodesFormatted();
+        }
         foreach ($countries as $country) {
             if (isset($country['cca2'], $country['name']['common'], $country['flag'])) {
-                $result[$country['cca2']] = [ 'code' => $country['cca2'], 'name' => $country['name']['common'], 'flag' => $country['flag'] ];
+                $result[$country['cca2']] = [
+                    'code' => $country['cca2'],
+                    'name' => $country['name']['common'],
+                    'flag' => $country['flag'],
+                ];
             }
         }
-        if (empty($result)) { return $this->getFallbackCountryCodesFormatted(); }
+        if ($result === []) {
+            return $this->getFallbackCountryCodesFormatted();
+        }
+
         return $result;
     }
 
@@ -97,13 +139,41 @@ class CountryService implements CountryServiceInterface
     private function getFallbackCountryCodesFormatted(): array
     {
         return [
-            'CZ' => ['code' => 'CZ', 'name' => 'Czech Republic', 'flag' => '🇨🇿'],
-            'SK' => ['code' => 'SK', 'name' => 'Slovakia', 'flag' => '🇸🇰'],
-            'AT' => ['code' => 'AT', 'name' => 'Austria', 'flag' => '🇦🇹'],
-            'DE' => ['code' => 'DE', 'name' => 'Germany', 'flag' => '🇩🇪'],
-            'PL' => ['code' => 'PL', 'name' => 'Poland', 'flag' => '🇵🇱'],
-            'GB' => ['code' => 'GB', 'name' => 'United Kingdom', 'flag' => '🇬🇧'],
-            'US' => ['code' => 'US', 'name' => 'United States', 'flag' => '🇺🇸'],
+            'CZ' => [
+                'code' => 'CZ',
+                'name' => 'Czech Republic',
+                'flag' => '🇨🇿',
+            ],
+            'SK' => [
+                'code' => 'SK',
+                'name' => 'Slovakia',
+                'flag' => '🇸🇰',
+            ],
+            'AT' => [
+                'code' => 'AT',
+                'name' => 'Austria',
+                'flag' => '🇦🇹',
+            ],
+            'DE' => [
+                'code' => 'DE',
+                'name' => 'Germany',
+                'flag' => '🇩🇪',
+            ],
+            'PL' => [
+                'code' => 'PL',
+                'name' => 'Poland',
+                'flag' => '🇵🇱',
+            ],
+            'GB' => [
+                'code' => 'GB',
+                'name' => 'United Kingdom',
+                'flag' => '🇬🇧',
+            ],
+            'US' => [
+                'code' => 'US',
+                'name' => 'United States',
+                'flag' => '🇺🇸',
+            ],
         ];
     }
 
@@ -117,8 +187,11 @@ class CountryService implements CountryServiceInterface
         $countries = $this->getAllCountries();
         $result = [];
         foreach ($countries as $country) {
-            if (isset($country['cca2'], $country['name']['common'])) { $result[$country['cca2']] = $country['name']['common']; }
+            if (isset($country['cca2'], $country['name']['common'])) {
+                $result[$country['cca2']] = $country['name']['common'];
+            }
         }
+
         return $result;
     }
 
@@ -132,9 +205,12 @@ class CountryService implements CountryServiceInterface
         $countries = $this->getAllCountries();
         $result = [];
         foreach ($countries as $country) {
-            if (isset($country['cca2'], $country['name']['common'])) { $result[$country['cca2']] = $country['name']['common']; }
+            if (isset($country['cca2'], $country['name']['common'])) {
+                $result[$country['cca2']] = $country['name']['common'];
+            }
         }
         asort($result);
+
         return $result;
     }
 
@@ -143,22 +219,28 @@ class CountryService implements CountryServiceInterface
      * Uses cache per country for performance and resilience.
      * Returns null if the country cannot be retrieved.
      *
-     * @param string $code ISO alpha-2 country code (e.g. "CZ", "US").
+     * @param  string  $code  ISO alpha-2 country code (e.g. "CZ", "US").
      * @return array|null Array matching structure from getAllCountries() or null.
      */
     public function getCountryByCode(string $code): ?array
     {
         $code = strtoupper($code);
-        return $this->cacheService->remember("country_{$code}", function () use ($code) {
-            try {
-                $response = $this->httpClient->get("{$this->apiUrl}/alpha/{$code}");
-                if (!empty($response) && is_array($response)) {
-                    return $response[0] ?? null;
+
+        return $this->cacheService->remember(
+            "country_{$code}",
+            function () use ($code) {
+                try {
+                    $response = $this->httpClient->get("{$this->apiUrl}/alpha/{$code}");
+                    if (! empty($response) && is_array($response)) {
+                        return $response[0] ?? null;
+                    }
+
+                    return null;
+                } catch (\Exception $e) {
+                    return null;
                 }
-                return null;
-            } catch (\Exception $e) { 
-                return null; 
-            }
-        }, 86400);
+            },
+            86400,
+        );
     }
 }

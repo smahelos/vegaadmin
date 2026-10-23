@@ -55,12 +55,12 @@ class UserWriteData
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
-        
+
         // Only include password if it's not null
         if ($this->password !== null) {
             $data['password'] = $this->password;
         }
-        
+
         return $data;
     }
 }

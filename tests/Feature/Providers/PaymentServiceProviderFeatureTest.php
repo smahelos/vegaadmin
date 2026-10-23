@@ -2,15 +2,16 @@
 
 namespace Tests\Feature\Providers;
 
-use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
-use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Contracts\BankServiceInterface;
 use App\Domain\Payment\Contracts\GatewayRegistryInterface;
-use App\Infrastructure\Providers\Payment\GoPayGateway;
-use App\Domain\Payment\Services\SubscriptionPaymentService;
-use App\Domain\Payment\Services\QrPaymentService;
+use App\Domain\Payment\Contracts\PaymentGatewayInterface;
+use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
+use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Domain\Payment\Services\BankService;
 use App\Domain\Payment\Services\GatewayRegistry;
+use App\Domain\Payment\Services\QrPaymentService;
+use App\Domain\Payment\Services\SubscriptionPaymentService;
+use App\Infrastructure\Providers\Payment\GoPayGateway;
 use App\Providers\PaymentServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -88,7 +89,7 @@ class PaymentServiceProviderFeatureTest extends TestCase
         $gateway = $this->app->make('payment.gateway.gopay');
         $this->assertInstanceOf(SubscriptionPaymentServiceInterface::class, $service);
         $interfaces = class_implements($gateway);
-        $this->assertContains(\App\Domain\Payment\Contracts\PaymentGatewayInterface::class, $interfaces);
+        $this->assertContains(PaymentGatewayInterface::class, $interfaces);
         $this->assertInstanceOf(QrPaymentService::class, $this->app->make(QrPaymentServiceInterface::class));
         $this->assertInstanceOf(BankService::class, $this->app->make(BankServiceInterface::class));
         $this->assertInstanceOf(GatewayRegistry::class, $this->app->make(GatewayRegistryInterface::class));

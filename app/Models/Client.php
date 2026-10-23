@@ -4,16 +4,16 @@ namespace App\Models;
 
 use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class Client extends Model
 {
-    use HasFactory, HasRoles, Notifiable, CrudTrait, HasPreferredLocale;
+    use CrudTrait, HasFactory, HasPreferredLocale, HasRoles, Notifiable;
 
     /*
     |--------------------------------------------------------------------------
@@ -21,6 +21,7 @@ class Client extends Model
     |--------------------------------------------------------------------------
     */
     protected $table = 'clients';
+
     protected $guarded = ['id'];
 
     /**
@@ -45,7 +46,11 @@ class Client extends Model
             // If this client is set as default, unset default status for other clients
             if ($model->is_default) {
                 self::where('user_id', $model->user_id)
-                    ->where('id', '!=', $model->id)
+                    ->where(
+                        'id',
+                        '!=',
+                        $model->id,
+                    )
                     ->update(['is_default' => false]);
             }
         });

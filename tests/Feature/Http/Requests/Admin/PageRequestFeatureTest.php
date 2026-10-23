@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\PageRequest;
 use App\Models\PageCategory;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,10 +16,10 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class PageRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     private PageRequest $request;
-    private User $adminUser;
+
     private PageCategory $category;
 
     protected function setUp(): void
@@ -29,7 +28,7 @@ class PageRequestFeatureTest extends TestCase
 
         $this->setUpAdminTestEnvironment();
         $this->category = PageCategory::factory()->create();
-        $this->request = new PageRequest();
+        $this->request = new PageRequest;
 
         Route::post('/admin/test-page-validation', function (PageRequest $request) {
             return response()->json(['success' => true]);
@@ -149,10 +148,17 @@ class PageRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_boolean_values_for_published(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        foreach (['1','0',1,0,true,false] as $value) {
+        foreach ([
+            '1',
+            '0',
+            1,
+            0,
+            true,
+            false,
+        ] as $value) {
             $response = $this->postJson('/admin/test-page-validation', [
-                'name_cs' => 'Name '.uniqid(),
-                'slug_cs' => 'slug-'.uniqid(),
+                'name_cs' => 'Name ' . uniqid(),
+                'slug_cs' => 'slug-' . uniqid(),
                 'published' => $value,
             ]);
             $response->assertStatus(200);
@@ -184,15 +190,13 @@ class PageRequestFeatureTest extends TestCase
         $response->assertStatus(200);
     }
 
-
-
     #[Test]
     public function prepare_for_validation_transforms_multilingual_data_correctly(): void
     {
         // Define route locally to capture transformed output
-        \Illuminate\Support\Facades\Route::post('/admin/test-page-transform', function (PageRequest $request) {
+        Route::post('/admin/test-page-transform', function (PageRequest $request) {
             return response()->json($request->all());
-        })->middleware(['web','auth:backpack']);
+        })->middleware(['web', 'auth:backpack']);
         $this->actingAs($this->adminUser, 'backpack');
         $payload = [
             'name_cs' => 'Nazev',
@@ -202,8 +206,8 @@ class PageRequestFeatureTest extends TestCase
         ];
         $response = $this->postJson('/admin/test-page-transform', $payload);
         $response->assertStatus(200)
-            ->assertJsonMissing(['name_cs','name_en'])
-            ->assertJsonStructure(['name'=>['cs','en'],'slug'=>['cs','en']]);
+            ->assertJsonMissing(['name_cs', 'name_en'])
+            ->assertJsonStructure(['name' => ['cs', 'en'], 'slug' => ['cs', 'en']]);
     }
 
     #[Test]
@@ -214,7 +218,7 @@ class PageRequestFeatureTest extends TestCase
             'name_cs' => '',
             'slug_cs' => '',
         ]);
-        $response->assertStatus(422)->assertJsonValidationErrors(['name','slug']);
+        $response->assertStatus(422)->assertJsonValidationErrors(['name', 'slug']);
     }
 
     #[Test]
@@ -226,7 +230,7 @@ class PageRequestFeatureTest extends TestCase
             'slug_cs' => 'valid-slug',
         ]);
         $response->assertStatus(422);
-        $this->assertStringContainsString(__('pages.fields.name').' (CS)', $response->json('errors')['name.cs'][0]);
+        $this->assertStringContainsString(__('pages.fields.name') . ' (CS)', $response->json('errors')['name.cs'][0]);
     }
 
     #[Test]

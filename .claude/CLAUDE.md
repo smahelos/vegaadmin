@@ -39,7 +39,9 @@ docker exec BILLEX-app php artisan test --parallel                       # parat
 docker exec BILLEX-app php artisan test tests/Unit/Domain/Payment/       # directory
 docker exec BILLEX-app php artisan test --filter=InvoiceRequestTest      # single test/class
 docker exec BILLEX-app php artisan ddd:guard                             # architecture guard
-docker exec BILLEX-app vendor/bin/pint --test app/Models/Bank.php       # check formatting of given files
+docker exec BILLEX-app vendor/bin/phpcbf                                 # multi-line layout (run before Pint)
+docker exec BILLEX-app vendor/bin/pint --dirty                           # format changed files
+docker exec BILLEX-app vendor/bin/phpstan analyse --memory-limit=4G      # Larastan at the level in phpstan.neon
 ```
 
 - `app` and `cron` bind-mount the project (`./:/var/www`): code changes apply immediately, `vendor/` comes from the host (`docker exec BILLEX-app composer install` after `composer.lock` changes). Rebuild (`docker compose up -d --build app cron`) only after changing `app.dockerfile` or the `WWW_UID`/`WWW_GID` build args in `.env`. `cron` runs `php artisan schedule:work` from the same image. `public/storage` stays a relative symlink (`../storage/app/public`).

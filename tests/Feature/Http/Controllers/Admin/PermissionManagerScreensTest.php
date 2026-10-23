@@ -31,17 +31,36 @@ final class PermissionManagerScreensTest extends TestCase
     public static function screens(): array
     {
         return [
-            'role form in Czech' => ['/admin/role/create', 'cs', 'Název'],
-            'role form in Slovak' => ['/admin/role/create', 'sk', 'Názov'],
-            'permission form in Czech' => ['/admin/permission/create', 'cs', 'Název'],
-            'permission form in Slovak' => ['/admin/permission/create', 'sk', 'Názov'],
+            'role form in Czech' => [
+                '/admin/role/create',
+                'cs',
+                'Název',
+            ],
+            'role form in Slovak' => [
+                '/admin/role/create',
+                'sk',
+                'Názov',
+            ],
+            'permission form in Czech' => [
+                '/admin/permission/create',
+                'cs',
+                'Název',
+            ],
+            'permission form in Slovak' => [
+                '/admin/permission/create',
+                'sk',
+                'Názov',
+            ],
         ];
     }
 
     #[Test]
     #[DataProvider('screens')]
-    public function screen_shows_translated_labels(string $url, string $locale, string $label): void
-    {
+    public function screen_shows_translated_labels(
+        string $url,
+        string $locale,
+        string $label,
+    ): void {
         $this->actingAs($this->adminUser, 'backpack');
 
         $this->withSession(['backpack.language-switcher.locale' => $locale])

@@ -3,12 +3,21 @@
     "rules": {
         "concat_space": {
             "spacing": "one"
+        },
+        "trailing_comma_in_multiline": {
+            "elements": [
+                "arguments",
+                "arrays",
+                "match",
+                "parameters"
+            ]
         }
     },
     "exclude": [
         "data",
         "storage",
         "vendor",
-        "node_modules"
+        "node_modules",
+        "backup"
     ]
 }

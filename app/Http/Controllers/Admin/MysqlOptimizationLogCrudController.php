@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\Admin\MysqlOptimizationLogRequest;
+use App\Models\MysqlOptimizationLog;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
@@ -11,23 +13,27 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  */
 class MysqlOptimizationLogCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use ListOperation;
+    use ShowOperation;
 
     /**
      * Configure the CrudPanel object
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\MysqlOptimizationLog::class);
+        CRUD::setModel(MysqlOptimizationLog::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/mysql-optimization-log');
         CRUD::setEntityNameStrings(
-            __('admin/database.optimization_logs.entity.singular'), 
-            __('admin/database.optimization_logs.entity.plural')
+            __('admin/database.optimization_logs.entity.singular'),
+            __('admin/database.optimization_logs.entity.plural'),
         );
-        
+
         // Only allow viewing and showing logs, no create/edit/delete
-        CRUD::denyAccess(['create', 'update', 'delete']);
+        CRUD::denyAccess([
+            'create',
+            'update',
+            'delete',
+        ]);
     }
 
     /**
@@ -38,41 +44,41 @@ class MysqlOptimizationLogCrudController extends CrudController
         CRUD::column('setting_name')
             ->label(__('admin/database.optimization_logs.fields.setting_name'))
             ->type('text');
-            
+
         CRUD::column('current_value')
             ->label(__('admin/database.optimization_logs.fields.current_value'))
             ->type('text');
-            
+
         CRUD::column('recommended_value')
             ->label(__('admin/database.optimization_logs.fields.recommended_value'))
             ->type('text');
-            
+
         CRUD::column('description')
             ->label(__('admin/database.optimization_logs.fields.description'))
             ->type('text')
             ->limit(100);
-            
+
         CRUD::column('priority')
             ->label(__('admin/database.optimization_logs.fields.priority'))
             ->type('badge')
             ->options([
                 'high' => 'danger',
                 'medium' => 'warning',
-                'low' => 'info'
+                'low' => 'info',
             ]);
-            
+
         CRUD::column('applied')
             ->label(__('admin/database.optimization_logs.fields.applied'))
             ->type('badge')
             ->options([
                 1 => 'success',
-                0 => 'secondary'
+                0 => 'secondary',
             ])
             ->text([
                 1 => __('admin/database.optimization_logs.statuses.applied'),
-                0 => __('admin/database.optimization_logs.statuses.pending')
+                0 => __('admin/database.optimization_logs.statuses.pending'),
             ]);
-            
+
         CRUD::column('created_at')
             ->label(__('admin/database.optimization_logs.fields.created_at'))
             ->type('datetime');
@@ -84,11 +90,11 @@ class MysqlOptimizationLogCrudController extends CrudController
     protected function setupShowOperation()
     {
         $this->setupListOperation();
-        
+
         CRUD::column('description')
             ->label(__('admin/database.optimization_logs.fields.description'))
             ->type('textarea');
-            
+
         CRUD::column('updated_at')
             ->label(__('admin/database.optimization_logs.fields.updated_at'))
             ->type('datetime');

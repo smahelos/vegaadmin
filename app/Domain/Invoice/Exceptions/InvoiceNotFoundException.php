@@ -6,7 +6,7 @@ use App\Domain\Invoice\ValueObjects\InvoiceId;
 
 /**
  * Domain exception thrown when an invoice cannot be found.
- * 
+ *
  * Used when:
  * - Invoice lookup by ID fails
  * - Invoice authorization fails

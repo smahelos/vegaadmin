@@ -45,13 +45,11 @@ class StatusCategoryRequest extends FormRequest
 
     /**
      * Prepare the data for validation.
-     *
-     * @return void
      */
     protected function prepareForValidation(): void
     {
         // Generate slug if not provided
-        if (empty($this->slug) && !empty($this->name)) {
+        if (empty($this->slug) && ! empty($this->name)) {
             $this->merge([
                 'slug' => Str::slug($this->name),
             ]);

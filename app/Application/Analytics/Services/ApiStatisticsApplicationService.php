@@ -3,8 +3,9 @@
 namespace App\Application\Analytics\Services;
 
 use App\Application\Analytics\Contracts\ApiStatisticsApplicationServiceInterface;
-use Illuminate\Http\Request;
+use App\Application\Analytics\Contracts\ApiStatisticsRepository;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 /**
  * Application service implementing API statistics aggregation logic.
@@ -13,7 +14,7 @@ use Carbon\Carbon;
 class ApiStatisticsApplicationService implements ApiStatisticsApplicationServiceInterface
 {
     public function __construct(
-        protected \App\Application\Analytics\Contracts\ApiStatisticsRepository $apiStatisticsRepository
+        protected ApiStatisticsRepository $apiStatisticsRepository,
     ) {}
 
     public function monthlyRevenue(Request $request): array
@@ -21,6 +22,7 @@ class ApiStatisticsApplicationService implements ApiStatisticsApplicationService
         $query = $this->apiStatisticsRepository->getMonthlyRevenueQuery();
 
         $query = $this->applyFilters($query, $request);
+
         return $query->get()->toArray();
     }
 
@@ -39,6 +41,7 @@ class ApiStatisticsApplicationService implements ApiStatisticsApplicationService
         $query = $this->apiStatisticsRepository->getInvoiceStatusQuery();
 
         $query = $this->applyFilters($query, $request);
+
         return $query->get()->toArray();
     }
 
@@ -47,6 +50,7 @@ class ApiStatisticsApplicationService implements ApiStatisticsApplicationService
         $query = $this->apiStatisticsRepository->getPaymentMethodsQuery();
 
         $query = $this->applyFilters($query, $request);
+
         return $query->get()->toArray();
     }
 
@@ -64,6 +68,7 @@ class ApiStatisticsApplicationService implements ApiStatisticsApplicationService
         }
 
         $revenueData = $revenueQuery->get();
+
         return $revenueData->concat($expenseData)->sortBy('month')->values()->toArray();
     }
 
@@ -71,6 +76,7 @@ class ApiStatisticsApplicationService implements ApiStatisticsApplicationService
     private function calculateStartDate(string $timeRange): Carbon
     {
         $now = now();
+
         return match ($timeRange) {
             'month' => $now->subMonth(),
             'quarter' => $now->subMonths(3),
@@ -85,10 +91,11 @@ class ApiStatisticsApplicationService implements ApiStatisticsApplicationService
         $query = $this->applyTimeRangeFilter($query, $request);
         if ($request->has('clients')) {
             $clients = $request->input('clients');
-            if (!empty($clients)) {
+            if (! empty($clients)) {
                 $query->whereIn('client_id', $clients);
             }
         }
+
         return $query;
     }
 
@@ -113,6 +120,7 @@ class ApiStatisticsApplicationService implements ApiStatisticsApplicationService
                         ->whereRaw("STR_TO_DATE($dateColumn, '%Y-%m-%d') <= ?", [$dateTo]);
                 });
             }
+
             return $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
         }
 
@@ -137,6 +145,11 @@ class ApiStatisticsApplicationService implements ApiStatisticsApplicationService
         if ($modelTable === 'invoices') {
             return $query->whereRaw("STR_TO_DATE($dateColumn, '%Y-%m-%d') >= ?", [$startDate->format('Y-m-d')]);
         }
-        return $query->where($dateColumn, '>=', $startDate->format('Y-m-d'));
+
+        return $query->where(
+            $dateColumn,
+            '>=',
+            $startDate->format('Y-m-d'),
+        );
     }
 }

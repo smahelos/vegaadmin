@@ -11,7 +11,7 @@ use InvalidArgumentException;
 final class InvoiceId
 {
     public function __construct(
-        private readonly int $value
+        private readonly int $value,
     ) {
         if ($value <= 0) {
             throw new InvalidArgumentException('Invoice ID must be a positive integer.');

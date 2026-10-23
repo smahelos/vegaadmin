@@ -18,7 +18,8 @@ class TaxFormFieldsFeatureTest extends TestCase
         parent::setUp();
 
         // Create anonymous class using the trait
-        $this->traitInstance = new class {
+        $this->traitInstance = new class
+        {
             use TaxFormFields;
 
             public function callGetTaxFields(): array
@@ -29,7 +30,7 @@ class TaxFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getTaxFields_returns_properly_structured_tax_fields(): void
+    public function get_tax_fields_returns_properly_structured_tax_fields(): void
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
@@ -65,7 +66,7 @@ class TaxFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getTaxFields_uses_translation_keys(): void
+    public function get_tax_fields_uses_translation_keys(): void
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
@@ -82,18 +83,23 @@ class TaxFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getTaxFields_field_names_are_correct(): void
+    public function get_tax_fields_field_names_are_correct(): void
     {
         $fields = $this->traitInstance->callGetTaxFields();
         $fieldNames = collect($fields)->pluck('name')->toArray();
 
-        $expectedFields = ['name', 'rate', 'slug', 'description'];
+        $expectedFields = [
+            'name',
+            'rate',
+            'slug',
+            'description',
+        ];
 
         $this->assertEquals($expectedFields, $fieldNames);
     }
 
     #[Test]
-    public function getTaxFields_required_fields_are_properly_set(): void
+    public function get_tax_fields_required_fields_are_properly_set(): void
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
@@ -108,7 +114,7 @@ class TaxFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getTaxFields_field_types_are_appropriate(): void
+    public function get_tax_fields_field_types_are_appropriate(): void
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
@@ -121,7 +127,7 @@ class TaxFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getTaxFields_default_values_are_set_correctly(): void
+    public function get_tax_fields_default_values_are_set_correctly(): void
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
@@ -130,7 +136,7 @@ class TaxFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getTaxFields_all_fields_have_required_attributes(): void
+    public function get_tax_fields_all_fields_have_required_attributes(): void
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
@@ -148,7 +154,13 @@ class TaxFormFieldsFeatureTest extends TestCase
 
             // Check that type is a valid field type
             $this->assertIsString($field['type']);
-            $this->assertContains($field['type'], ['text', 'number', 'textarea', 'select', 'boolean']);
+            $this->assertContains($field['type'], [
+                'text',
+                'number',
+                'textarea',
+                'select',
+                'boolean',
+            ]);
 
             // Check that required is boolean
             $this->assertIsBool($field['required']);
@@ -156,7 +168,7 @@ class TaxFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getTaxFields_rate_field_has_number_type(): void
+    public function get_tax_fields_rate_field_has_number_type(): void
     {
         $fields = $this->traitInstance->callGetTaxFields();
 

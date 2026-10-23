@@ -3,8 +3,8 @@
 namespace App\Application\Invoice\Form;
 
 use App\Application\Shared\Form\DTO\FieldDTO;
-use App\Application\Shared\Form\Enum\FieldType;
 use App\Application\Shared\Form\DTO\FieldSetDTO;
+use App\Application\Shared\Form\Enum\FieldType;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields; // Temporarily reuse trait logic Phase 1
 
 /**
@@ -18,16 +18,21 @@ class InvoiceCreateFieldSetFactory
 
     /**
      * Build FieldSetDTO from legacy trait output.
-     *
-     * @param array $clients
-     * @param array $suppliers
-     * @param array $paymentMethods
-     * @param array $statuses
-     * @param array $currencies
      */
-    public function build(array $clients, array $suppliers, array $paymentMethods, array $statuses, array $currencies = []): FieldSetDTO
-    {
-        $raw = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses, $currencies);
+    public function build(
+        array $clients,
+        array $suppliers,
+        array $paymentMethods,
+        array $statuses,
+        array $currencies = [],
+    ): FieldSetDTO {
+        $raw = $this->getInvoiceFields(
+            $clients,
+            $suppliers,
+            $paymentMethods,
+            $statuses,
+            $currencies,
+        );
         $fields = [];
         foreach ($raw as $item) {
             $fields[] = new FieldDTO(
@@ -35,7 +40,7 @@ class InvoiceCreateFieldSetFactory
                 label: $item['label'] ?? '',
                 type: $item['type'] ?? FieldType::TEXT,
                 options: $item['options'] ?? [],
-                required: (bool)($item['required'] ?? false),
+                required: (bool) ($item['required'] ?? false),
                 hint: $item['hint'] ?? '',
                 placeholder: $item['placeholder'] ?? '',
                 default: $item['default'] ?? null,
@@ -45,6 +50,7 @@ class InvoiceCreateFieldSetFactory
                 accept: $item['accept'] ?? null,
             );
         }
+
         return new FieldSetDTO($fields);
     }
 
@@ -59,25 +65,80 @@ class InvoiceCreateFieldSetFactory
         array $suppliers = [],
         array $paymentMethods = [],
         array $statuses = [],
-        array $currencies = []
+        array $currencies = [],
     ): array {
         try {
             // Attempt to call the original trait implementation (requires Laravel container)
-            return $this->traitGetInvoiceFields($clients, $suppliers, $paymentMethods, $statuses, $currencies);
+            return $this->traitGetInvoiceFields(
+                $clients,
+                $suppliers,
+                $paymentMethods,
+                $statuses,
+                $currencies,
+            );
         } catch (\Throwable $e) {
             // Minimal fallback for non-Laravel context (plain PHPUnit)
             if (empty($currencies)) {
-                $currencies = [ 'CZK' => 'CZK' ];
+                $currencies = ['CZK' => 'CZK'];
             }
+
             return [
-                [ 'name' => 'invoice_logo', 'label' => 'Invoice Logo', 'type' => 'file', 'accept' => 'image/*' ],
-                [ 'name' => 'template', 'label' => 'Template', 'type' => 'hidden', 'default' => 'default' ],
-                [ 'name' => 'invoice_vs', 'label' => 'Variable Symbol', 'type' => 'text', 'required' => true ],
-                [ 'name' => 'payment_status_id', 'label' => 'Status', 'type' => 'select', 'options' => $statuses, 'required' => true ],
-                [ 'name' => 'issue_date', 'label' => 'Issue Date', 'type' => 'date' ],
-                [ 'name' => 'payment_method_id', 'label' => 'Payment Method', 'type' => 'select', 'options' => $paymentMethods, 'required' => true ],
-                [ 'name' => 'due_in', 'label' => 'Due In', 'type' => 'select_from_array', 'options' => [1=>'1',3=>'3',7=>'7',14=>'14',30=>'30'] ],
-                [ 'name' => 'payment_currency', 'label' => 'Currency', 'type' => 'select_from_array', 'options' => $currencies, 'required' => true ],
+                [
+                    'name' => 'invoice_logo',
+                    'label' => 'Invoice Logo',
+                    'type' => 'file',
+                    'accept' => 'image/*',
+                ],
+                [
+                    'name' => 'template',
+                    'label' => 'Template',
+                    'type' => 'hidden',
+                    'default' => 'default',
+                ],
+                [
+                    'name' => 'invoice_vs',
+                    'label' => 'Variable Symbol',
+                    'type' => 'text',
+                    'required' => true,
+                ],
+                [
+                    'name' => 'payment_status_id',
+                    'label' => 'Status',
+                    'type' => 'select',
+                    'options' => $statuses,
+                    'required' => true,
+                ],
+                [
+                    'name' => 'issue_date',
+                    'label' => 'Issue Date',
+                    'type' => 'date',
+                ],
+                [
+                    'name' => 'payment_method_id',
+                    'label' => 'Payment Method',
+                    'type' => 'select',
+                    'options' => $paymentMethods,
+                    'required' => true,
+                ],
+                [
+                    'name' => 'due_in',
+                    'label' => 'Due In',
+                    'type' => 'select_from_array',
+                    'options' => [
+                        1 => '1',
+                        3 => '3',
+                        7 => '7',
+                        14 => '14',
+                        30 => '30',
+                    ],
+                ],
+                [
+                    'name' => 'payment_currency',
+                    'label' => 'Currency',
+                    'type' => 'select_from_array',
+                    'options' => $currencies,
+                    'required' => true,
+                ],
             ];
         }
     }

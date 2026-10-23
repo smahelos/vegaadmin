@@ -2,8 +2,9 @@
 
 namespace Tests\Feature\Models;
 
-use App\Models\PageCategory;
 use App\Models\Page;
+use App\Models\PageCategory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -43,14 +44,14 @@ class PageCategoryFeatureTest extends TestCase
         $category = PageCategory::create($categoryData);
 
         $this->assertInstanceOf(PageCategory::class, $category);
-        
+
         // Test multilingual helper methods
         $this->assertEquals('Testovací kategorie', $category->getName('cs'));
         $this->assertEquals('Test Category', $category->getName('en'));
         $this->assertEquals('testovaci-kategorie', $category->getSlug('cs'));
         $this->assertEquals('test-category', $category->getSlug('en'));
         $this->assertEquals('Popis testovací kategorie', $category->getDescription('cs'));
-        
+
         // Test fallback behavior (should return CS by default)
         $this->assertEquals('Testovací kategorie', $category->getName());
         $this->assertEquals('testovaci-kategorie', $category->getSlug());
@@ -62,15 +63,15 @@ class PageCategoryFeatureTest extends TestCase
         $category = PageCategory::factory()->create(['name' => 'Test Category']);
         $page1 = Page::factory()->create([
             'name' => 'Page 1',
-            'category_id' => $category->id
+            'category_id' => $category->id,
         ]);
         $page2 = Page::factory()->create([
             'name' => 'Page 2',
-            'category_id' => $category->id
+            'category_id' => $category->id,
         ]);
 
         $pages = $category->pages;
-        
+
         $this->assertCount(2, $pages);
         $this->assertTrue($pages->contains('name', 'Page 1'));
         $this->assertTrue($pages->contains('name', 'Page 2'));
@@ -81,12 +82,12 @@ class PageCategoryFeatureTest extends TestCase
     public function page_category_multilingual_attributes_work_correctly(): void
     {
         $category = PageCategory::factory()->create();
-        
+
         // Test that multilingual attributes are accessible as arrays via accessors
         $this->assertIsArray($category->name);
         $this->assertIsArray($category->slug);
         $this->assertIsArray($category->description);
-        
+
         // Test that helper methods return strings
         $this->assertIsString($category->getName());
         $this->assertIsString($category->getSlug());
@@ -97,16 +98,16 @@ class PageCategoryFeatureTest extends TestCase
     public function page_category_can_be_updated(): void
     {
         $category = PageCategory::factory()->create();
-        
+
         $updateData = [
             'name' => [
                 'cs' => 'Aktualizovaný název',
                 'en' => 'Updated Name',
-            ]
+            ],
         ];
-        
+
         $category->update($updateData);
-        
+
         $this->assertEquals('Aktualizovaný název', $category->fresh()->getName('cs'));
         $this->assertEquals('Updated Name', $category->fresh()->getName('en'));
     }
@@ -116,9 +117,9 @@ class PageCategoryFeatureTest extends TestCase
     {
         $category = PageCategory::factory()->create();
         $categoryId = $category->id;
-        
+
         $category->delete();
-        
+
         $this->assertDatabaseMissing('page_categories', ['id' => $categoryId]);
     }
 
@@ -126,16 +127,16 @@ class PageCategoryFeatureTest extends TestCase
     public function page_category_can_be_deactivated(): void
     {
         $category = PageCategory::factory()->create();
-        
+
         $updateData = [
             'name' => [
                 'cs' => 'Aktualizovaná kategorie',
                 'en' => 'Updated Category',
-            ]
+            ],
         ];
-        
+
         $category->update($updateData);
-        
+
         $this->assertEquals('Aktualizovaná kategorie', $category->fresh()->getName('cs'));
         $this->assertEquals('Updated Category', $category->fresh()->getName('en'));
     }
@@ -147,7 +148,7 @@ class PageCategoryFeatureTest extends TestCase
         // Protože model už automaticky negeneruje slugy - dělá to request
         $category1 = PageCategory::factory()->create();
         $category2 = PageCategory::factory()->create();
-        
+
         // Both categories should be created successfully
         $this->assertInstanceOf(PageCategory::class, $category1);
         $this->assertInstanceOf(PageCategory::class, $category2);
@@ -164,7 +165,7 @@ class PageCategoryFeatureTest extends TestCase
             'slug' => ['cs' => '', 'en' => ''],
             'description' => ['cs' => '', 'en' => ''],
         ]);
-        
+
         $this->assertInstanceOf(PageCategory::class, $category);
     }
 
@@ -178,7 +179,7 @@ class PageCategoryFeatureTest extends TestCase
                 'en' => 'Test Category',
             ],
             'slug' => [
-                'cs' => 'testovaci-kategorie', 
+                'cs' => 'testovaci-kategorie',
                 'en' => 'test-category',
             ],
             'description' => [
@@ -186,9 +187,9 @@ class PageCategoryFeatureTest extends TestCase
                 'en' => 'Category description',
             ],
         ];
-        
+
         $category = PageCategory::create($categoryData);
-        
+
         $this->assertEquals('Testovací kategorie', $category->getName('cs'));
         $this->assertEquals('Test Category', $category->getName('en'));
         $this->assertEquals('testovaci-kategorie', $category->getSlug('cs'));
@@ -200,21 +201,21 @@ class PageCategoryFeatureTest extends TestCase
     {
         $category = PageCategory::factory()->create();
 
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class, $category->pages());
+        $this->assertInstanceOf(HasMany::class, $category->pages());
     }
 
     #[Test]
     public function page_category_pages_count_attribute_returns_correct_count(): void
     {
         $category = PageCategory::factory()->create();
-        
+
         // Vytvoříme 3 stránky v kategorii
         Page::factory()->count(3)->create(['category_id' => $category->id]);
-        
+
         // Vytvoříme stránku v jiné kategorii
         $otherCategory = PageCategory::factory()->create();
         Page::factory()->create(['category_id' => $otherCategory->id]);
-        
+
         $this->assertEquals(3, $category->pages_count);
         $this->assertEquals(1, $otherCategory->pages_count);
     }
@@ -223,19 +224,19 @@ class PageCategoryFeatureTest extends TestCase
     public function page_category_published_pages_count_attribute_returns_correct_count(): void
     {
         $category = PageCategory::factory()->create();
-        
+
         // Vytvoříme 2 publikované stránky
         Page::factory()->count(2)->create([
             'category_id' => $category->id,
-            'published' => true
+            'published' => true,
         ]);
-        
+
         // Vytvoříme 1 nepublikovanou stránku
         Page::factory()->create([
             'category_id' => $category->id,
-            'published' => false
+            'published' => false,
         ]);
-        
+
         $this->assertEquals(3, $category->pages_count);
         $this->assertEquals(2, $category->published_pages_count);
     }
@@ -257,9 +258,9 @@ class PageCategoryFeatureTest extends TestCase
                 'en' => '',
             ],
         ];
-        
+
         $category = PageCategory::create($categoryData);
-        
+
         // Fallback should return CS when EN is empty
         app()->setLocale('en');
         $this->assertEquals('Česká kategorie', $category->getName());
@@ -287,9 +288,9 @@ class PageCategoryFeatureTest extends TestCase
                 'de' => 'Deutsche Beschreibung',
             ],
         ];
-        
+
         $category = PageCategory::create($categoryData);
-        
+
         // Test specific locale retrieval
         $this->assertEquals('English Category', $category->getName('en'));
         $this->assertEquals('Deutsche Kategorie', $category->getName('de'));

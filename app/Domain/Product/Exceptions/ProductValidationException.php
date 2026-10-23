@@ -4,7 +4,7 @@ namespace App\Domain\Product\Exceptions;
 
 /**
  * Domain exception thrown when product validation fails at domain level.
- * 
+ *
  * Used when:
  * - Business rules validation fails
  * - Domain constraints are violated
@@ -34,11 +34,11 @@ class ProductValidationException extends \DomainException
 
     public static function defaultProductDeletionNotAllowed(): self
     {
-        return new self("Cannot delete the default product. Please set another product as default first.");
+        return new self('Cannot delete the default product. Please set another product as default first.');
     }
 
     public static function noProductsFound(): self
     {
-        return new self("No products found for this user.");
+        return new self('No products found for this user.');
     }
 }

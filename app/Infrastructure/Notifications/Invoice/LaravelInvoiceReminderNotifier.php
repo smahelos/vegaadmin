@@ -13,8 +13,11 @@ use Illuminate\Support\Facades\Notification;
 
 class LaravelInvoiceReminderNotifier implements InvoiceReminderNotifierInterface
 {
-    public function send(InvoiceReminderType $type, InvoiceReminderPayload $payload, Recipient $recipient): void
-    {
+    public function send(
+        InvoiceReminderType $type,
+        InvoiceReminderPayload $payload,
+        Recipient $recipient,
+    ): void {
         $notification = match ($type) {
             InvoiceReminderType::UPCOMING_DUE => new InvoiceUpcomingDueReminder($payload),
             InvoiceReminderType::DUE_TODAY => new InvoiceDueReminder($payload),

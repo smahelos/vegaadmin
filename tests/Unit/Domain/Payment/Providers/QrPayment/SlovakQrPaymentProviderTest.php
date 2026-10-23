@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\Domain\Payment\Providers\QrPayment;
 
-use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 class SlovakQrPaymentProviderTest extends TestCase
 {
@@ -15,7 +15,7 @@ class SlovakQrPaymentProviderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->provider = new SlovakQrPaymentProvider();
+        $this->provider = new SlovakQrPaymentProvider;
     }
 
     #[Test]
@@ -41,7 +41,7 @@ class SlovakQrPaymentProviderTest extends TestCase
             accountNumber: '1234567890',
             bankCode: '0900',
             iban: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $this->assertTrue($this->provider->validatePaymentInfo($payload));
@@ -56,11 +56,11 @@ class SlovakQrPaymentProviderTest extends TestCase
             accountNumber: '1234567890',
             bankCode: '0900',
             iban: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $qrString = $this->provider->generateQrString($payload);
-        
+
         $this->assertStringStartsWith('SPD*1.0', $qrString);
         $this->assertStringContainsString('ACC:1234567890/0900', $qrString);
         $this->assertStringContainsString('AM:1234.56', $qrString);

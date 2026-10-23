@@ -6,9 +6,9 @@ use App\Domain\User\Events\UserDataChanged;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
-use Tests\Traits\RefreshDatabaseWithData;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\RefreshDatabaseWithData;
 
 class SupplierObserverFeatureTest extends TestCase
 {

@@ -16,7 +16,9 @@ class InvoiceNumber
     private const MAX_SEQUENCE = 999999;
 
     private string $number;
+
     private int $year;
+
     private int $sequence;
 
     public function __construct(string $number)
@@ -47,7 +49,7 @@ class InvoiceNumber
     {
         $currentYear = (int) date('Y');
 
-        if (!$lastNumber) {
+        if (! $lastNumber) {
             return self::fromYearAndSequence($currentYear, 1);
         }
 
@@ -80,7 +82,11 @@ class InvoiceNumber
         $number = trim($number);
 
         // Check format: YYYY + 4 to 6 digit sequence
-        if (!preg_match('/^(\d{4})(\d{4,6})$/', $number, $matches)) {
+        if (! preg_match(
+            '/^(\d{4})(\d{4,6})$/',
+            $number,
+            $matches,
+        )) {
             throw new InvalidArgumentException("Invalid invoice number format. Expected YYYYXXXX, got: {$number}");
         }
 

@@ -35,7 +35,12 @@ final class ClosureColumnTest extends TestCase
     public function escapes_text_and_shows_zero_count(): void
     {
         $name = '<b>Category ' . uniqid() . '</b>';
-        PageCategory::factory()->create(['name' => array_fill_keys(['cs', 'de', 'en', 'sk'], $name)]);
+        PageCategory::factory()->create(['name' => array_fill_keys([
+            'cs',
+            'de',
+            'en',
+            'sk',
+        ], $name)]);
 
         $row = $this->listRow('/admin/page-category', e($name));
 
@@ -72,7 +77,11 @@ final class ClosureColumnTest extends TestCase
     {
         $this->actingAs($this->admin, PermissionCatalog::BACKPACK);
 
-        $response = $this->postJson($route . '/search', ['draw' => 1, 'start' => 0, 'length' => 100]);
+        $response = $this->postJson($route . '/search', [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 100,
+        ]);
         $response->assertOk();
 
         $row = collect($response->json('data'))->map(fn (array $cells) => implode('', $cells))

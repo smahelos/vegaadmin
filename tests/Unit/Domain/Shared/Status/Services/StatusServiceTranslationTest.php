@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Domain\Shared\Status\Services;
 
-use Tests\TestCase;
 use App\Domain\Shared\Status\Contracts\StatusServiceInterface;
 use App\Domain\Shared\Status\ValueObjects\StatusCode;
+use Tests\TestCase;
 
 class StatusServiceTranslationTest extends TestCase
 {

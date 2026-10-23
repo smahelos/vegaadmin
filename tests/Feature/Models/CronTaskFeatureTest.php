@@ -3,6 +3,7 @@
 namespace Tests\Feature\Models;
 
 use App\Models\CronTask;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
@@ -10,7 +11,7 @@ use Tests\TestCase;
 
 /**
  * Feature tests for CronTask Model
- * 
+ *
  * Tests database operations, business logic, and model behavior requiring database interactions
  * Tests cron task creation, accessors, mutators, and cron expression generation
  */
@@ -72,11 +73,11 @@ class CronTaskFeatureTest extends TestCase
         ]);
 
         // run_at uses datetime cast
-        $this->assertInstanceOf(\Carbon\Carbon::class, $cronTask->run_at);
+        $this->assertInstanceOf(Carbon::class, $cronTask->run_at);
         $this->assertEquals('15:30:00', $cronTask->run_at->format('H:i:s'));
-        
+
         // last_run uses datetime cast
-        $this->assertInstanceOf(\Carbon\Carbon::class, $cronTask->last_run);
+        $this->assertInstanceOf(Carbon::class, $cronTask->last_run);
         $this->assertIsBool($cronTask->is_active);
         $this->assertTrue($cronTask->is_active);
         $this->assertIsInt($cronTask->day_of_week);
@@ -98,7 +99,7 @@ class CronTaskFeatureTest extends TestCase
         $this->assertIsString($weeklyTask->getFrequencyNameAttribute());
         $this->assertIsString($monthlyTask->getFrequencyNameAttribute());
         $this->assertIsString($customTask->getFrequencyNameAttribute());
-        
+
         // Test accessor via magic method
         $this->assertIsString($dailyTask->frequency_name);
     }
@@ -113,7 +114,7 @@ class CronTaskFeatureTest extends TestCase
         $this->assertIsString($mondayTask->getDayOfWeekNameAttribute());
         $this->assertIsString($fridayTask->getDayOfWeekNameAttribute());
         $this->assertNull($nullTask->getDayOfWeekNameAttribute());
-        
+
         // Test accessor via magic method
         $this->assertIsString($mondayTask->day_of_week_name);
     }
@@ -127,9 +128,9 @@ class CronTaskFeatureTest extends TestCase
         $this->assertIsString($taskWithTime->getFormattedRunAtAttribute());
         $this->assertStringContainsString('15:30', $taskWithTime->getFormattedRunAtAttribute());
         $this->assertNull($taskWithoutTime->getFormattedRunAtAttribute());
-        
+
         // Test accessor via magic method - run_at is Carbon object, formatted_run_at is string
-        $this->assertInstanceOf(\Carbon\Carbon::class, $taskWithTime->run_at);
+        $this->assertInstanceOf(Carbon::class, $taskWithTime->run_at);
         $this->assertIsString($taskWithTime->formatted_run_at);
         $this->assertEquals('15:30', $taskWithTime->formatted_run_at);
     }
@@ -142,7 +143,7 @@ class CronTaskFeatureTest extends TestCase
 
         $this->assertEquals('cache:clear', $simpleCommand->getBaseCommandAttribute());
         $this->assertEquals('queue:work', $commandWithParams->getBaseCommandAttribute());
-        
+
         // Test accessor via magic method
         $this->assertEquals('cache:clear', $simpleCommand->base_command);
     }
@@ -156,7 +157,7 @@ class CronTaskFeatureTest extends TestCase
         $this->assertEmpty($simpleCommand->getCommandParamsAttribute());
         $this->assertNotEmpty($commandWithParams->getCommandParamsAttribute());
         $this->assertStringContainsString('--queue=high,default', $commandWithParams->getCommandParamsAttribute());
-        
+
         // Test accessor via magic method
         $this->assertEmpty($simpleCommand->command_params);
     }
@@ -173,19 +174,19 @@ class CronTaskFeatureTest extends TestCase
 
         $this->assertTrue($activeTask->is_active);
         $this->assertFalse($inactiveTask->is_active);
-        
+
         $this->assertEquals('daily', $dailyTask->frequency);
         $this->assertNotNull($dailyTask->run_at);
         $this->assertNull($dailyTask->day_of_week);
-        
+
         $this->assertEquals('weekly', $weeklyTask->frequency);
         $this->assertNotNull($weeklyTask->day_of_week);
         $this->assertNull($weeklyTask->day_of_month);
-        
+
         $this->assertEquals('monthly', $monthlyTask->frequency);
         $this->assertNotNull($monthlyTask->day_of_month);
         $this->assertNull($monthlyTask->day_of_week);
-        
+
         $this->assertEquals('custom', $customTask->frequency);
         $this->assertNotNull($customTask->custom_expression);
         $this->assertNull($customTask->run_at);
@@ -218,7 +219,7 @@ class CronTaskFeatureTest extends TestCase
         $dailyTask = CronTask::factory()->daily()->create(['run_at' => '08:30:00']);
 
         $cronExpression = $dailyTask->getCronExpression();
-        
+
         $this->assertIsString($cronExpression);
         $this->assertStringContainsString('30 08 * * *', $cronExpression);
     }
@@ -232,7 +233,7 @@ class CronTaskFeatureTest extends TestCase
         ]);
 
         $cronExpression = $weeklyTask->getCronExpression();
-        
+
         $this->assertIsString($cronExpression);
         $this->assertStringContainsString('00 09 * * 1', $cronExpression);
     }
@@ -246,7 +247,7 @@ class CronTaskFeatureTest extends TestCase
         ]);
 
         $cronExpression = $monthlyTask->getCronExpression();
-        
+
         $this->assertIsString($cronExpression);
         $this->assertStringContainsString('15 10 15 * *', $cronExpression);
     }
@@ -259,7 +260,7 @@ class CronTaskFeatureTest extends TestCase
         ]);
 
         $cronExpression = $customTask->getCronExpression();
-        
+
         $this->assertEquals('0 */6 * * *', $cronExpression);
     }
 
@@ -271,9 +272,9 @@ class CronTaskFeatureTest extends TestCase
 
         $nextRunDate1 = $dailyTask->getNextRunDate();
         $nextRunDate2 = $customTask->getNextRunDate();
-        
-        $this->assertTrue($nextRunDate1 instanceof \Carbon\Carbon || $nextRunDate1 === null);
-        $this->assertTrue($nextRunDate2 instanceof \Carbon\Carbon || $nextRunDate2 === null);
+
+        $this->assertTrue($nextRunDate1 instanceof Carbon || $nextRunDate1 === null);
+        $this->assertTrue($nextRunDate2 instanceof Carbon || $nextRunDate2 === null);
     }
 
     #[Test]
@@ -282,7 +283,7 @@ class CronTaskFeatureTest extends TestCase
         $task = CronTask::factory()->withCommand('cache:clear')->create();
 
         $result = $task->simulateRun();
-        
+
         // The actual implementation may vary, but it should return something
         $this->assertTrue(is_string($result) || is_array($result) || is_null($result) || is_bool($result) || is_int($result));
     }
@@ -291,18 +292,18 @@ class CronTaskFeatureTest extends TestCase
     public function can_update_cron_task(): void
     {
         $cronTask = CronTask::factory()->create();
-        
+
         $newData = [
             'name' => 'Updated Task Name',
             'is_active' => false,
             'description' => 'Updated description',
         ];
-        
+
         $cronTask->update($newData);
-        
+
         $this->assertDatabaseHas('cron_tasks', array_merge(
             ['id' => $cronTask->id],
-            $newData
+            $newData,
         ));
     }
 
@@ -311,9 +312,9 @@ class CronTaskFeatureTest extends TestCase
     {
         $cronTask = CronTask::factory()->create();
         $cronTaskId = $cronTask->id;
-        
+
         $cronTask->delete();
-        
+
         $this->assertDatabaseMissing('cron_tasks', ['id' => $cronTaskId]);
     }
 
@@ -340,10 +341,10 @@ class CronTaskFeatureTest extends TestCase
     public function command_mutator_and_accessor_work_together(): void
     {
         $cronTask = CronTask::factory()->make();
-        
+
         // Test setting command through mutator
         $cronTask->setCommandAttribute('queue:work --timeout=60');
-        
+
         // Test that base command and params are extracted correctly
         $this->assertEquals('queue:work', $cronTask->getBaseCommandAttribute());
         $this->assertEquals('--timeout=60', $cronTask->getCommandParamsAttribute());

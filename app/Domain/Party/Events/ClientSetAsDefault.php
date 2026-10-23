@@ -2,15 +2,15 @@
 
 namespace App\Domain\Party\Events;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Party\DTO\ClientDTO;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
  * Domain event fired when a client is set as default.
- * 
+ *
  * Triggered by:
  * - InvoicePartyService::setClientDefault() when making client default
- * 
+ *
  * Used for:
  * - UI state updates
  * - User preference tracking
@@ -20,8 +20,6 @@ class ClientSetAsDefault implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -39,7 +37,7 @@ class ClientSetAsDefault implements DomainEvent
         private readonly ?ClientDTO $previousDefault = null,
         ?int $userId = null,
         private readonly array $metadata = [],
-        string $changeType = 'general'
+        string $changeType = 'general',
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
@@ -80,19 +78,19 @@ class ClientSetAsDefault implements DomainEvent
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
         return static::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

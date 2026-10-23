@@ -2,8 +2,8 @@
 
 namespace App\Domain\Shared\Events;
 
-use Ramsey\Uuid\Uuid;
 use App\Domain\Shared\Events\Contracts\DomainEvent as DomainEventContract;
+use Ramsey\Uuid\Uuid;
 
 /**
  * Base abstract class for all domain events across all domains.
@@ -17,14 +17,15 @@ use App\Domain\Shared\Events\Contracts\DomainEvent as DomainEventContract;
 abstract class DomainEvent implements DomainEventContract
 {
     private readonly string $eventId;
+
     private readonly \DateTimeImmutable $occurredAt;
 
     public function __construct(
         private readonly ?int $userId = null,
-        private readonly array $metadata = []
+        private readonly array $metadata = [],
     ) {
         $this->eventId = Uuid::uuid4()->toString();
-        $this->occurredAt = new \DateTimeImmutable();
+        $this->occurredAt = new \DateTimeImmutable;
     }
 
     /**
@@ -115,7 +116,7 @@ abstract class DomainEvent implements DomainEventContract
             $this->getDomain(),
             $this->getAggregateId(),
             $this->userId ?? 'system',
-            $this->occurredAt->format('Y-m-d H:i:s')
+            $this->occurredAt->format('Y-m-d H:i:s'),
         );
     }
 }

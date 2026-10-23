@@ -2,11 +2,11 @@
 
 namespace App\Application\Invoice\Contracts;
 
-use App\Domain\User\ValueObjects\UserId;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Application\Invoice\DTO\InvoiceFormDTO;
-use Illuminate\Support\Collection;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 /**
  * Contract for invoice form-related application services
@@ -71,7 +71,11 @@ interface InvoiceFormApplicationServiceInterface
     /**
      * Prepare data for invoice editing form (legacy compatibility)
      */
-    public function prepareEditData(int $userId, int $invoiceId, string $locale): InvoiceFormDTO;
+    public function prepareEditData(
+        int $userId,
+        int $invoiceId,
+        string $locale,
+    ): InvoiceFormDTO;
 
     /**
      * Prepare data for invoice display (legacy compatibility)

@@ -6,7 +6,6 @@ use App\Models\CronTask;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Subscription;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,11 +14,8 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class AdminDatepickerFieldTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
-
-    private User $adminUser;
-    private User $regularUser;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -31,17 +27,41 @@ class AdminDatepickerFieldTest extends TestCase
     public static function datepickerFields(): array
     {
         return [
-            'date' => ['expense', Expense::class, 'expense_date', '2026-03-15'],
-            'invoice date' => ['invoice', Invoice::class, 'issue_date', '2026-03-15'],
-            'date and time' => ['subscription', Subscription::class, 'starts_at', '2026-03-15 10:20'],
-            'time' => ['cron-task', CronTask::class, 'run_at', '10:20'],
+            'date' => [
+                'expense',
+                Expense::class,
+                'expense_date',
+                '2026-03-15',
+            ],
+            'invoice date' => [
+                'invoice',
+                Invoice::class,
+                'issue_date',
+                '2026-03-15',
+            ],
+            'date and time' => [
+                'subscription',
+                Subscription::class,
+                'starts_at',
+                '2026-03-15 10:20',
+            ],
+            'time' => [
+                'cron-task',
+                CronTask::class,
+                'run_at',
+                '10:20',
+            ],
         ];
     }
 
     #[Test]
     #[DataProvider('datepickerFields')]
-    public function edit_form_submits_the_stored_value_in_the_server_format(string $route, string $model, string $field, string $expected): void
-    {
+    public function edit_form_submits_the_stored_value_in_the_server_format(
+        string $route,
+        string $model,
+        string $field,
+        string $expected,
+    ): void {
         $this->actingAs($this->adminUser, 'backpack');
         $record = $model::factory()->create([$field => '2026-03-15 10:20:30']);
 

@@ -2,25 +2,25 @@
 
 namespace App\Models;
 
+use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 
 class Page extends Model
 {
-    use HasFactory;
     use CrudTrait;
+    use HasFactory;
     use HasFileUploads;
 
     protected $table = 'pages';
 
     protected $fillable = [
         'name',
-        'slug', 
+        'slug',
         'description',
         'content',
         'meta_title',
@@ -68,14 +68,14 @@ class Page extends Model
             }
 
             // Auto-assign published_by if published and not already set
-            if ($page->published && !$page->published_by && auth()->check()) {
+            if ($page->published && ! $page->published_by && auth()->check()) {
                 $page->published_by = auth()->id();
             }
         });
 
         static::updating(function ($page) {
             // Auto-assign published_by if published and not already set
-            if ($page->published && !$page->published_by && auth()->check()) {
+            if ($page->published && ! $page->published_by && auth()->check()) {
                 $page->published_by = auth()->id();
             }
         });
@@ -91,228 +91,207 @@ class Page extends Model
 
     /**
      * Get page name in specified language with fallback
-     * 
-     * @param string|null $locale
-     * @return string
      */
     public function getName(?string $locale = null): string
     {
         $locale = $locale ?? app()->getLocale();
         $names = $this->name ?? [];
-        
+
         // Ensure we have an array
-        if (!is_array($names)) {
+        if (! is_array($names)) {
             return (string) $names;
         }
-        
+
         // Try requested locale first
-        if (!empty($names[$locale])) {
+        if (! empty($names[$locale])) {
             return $names[$locale];
         }
-        
+
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (!empty($names[$fallbackLocale])) {
+            if (! empty($names[$fallbackLocale])) {
                 return $names[$fallbackLocale];
             }
         }
-        
+
         // Return first available or empty string
-        return !empty($names) ? reset($names) : '';
+        return ! empty($names) ? reset($names) : '';
     }
-    
+
     /**
      * Get page slug in specified language with fallback
-     * 
-     * @param string|null $locale
-     * @return string
      */
     public function getSlug(?string $locale = null): string
     {
         $locale = $locale ?? app()->getLocale();
         $slugs = $this->slug ?? [];
-        
+
         // Ensure we have an array
-        if (!is_array($slugs)) {
+        if (! is_array($slugs)) {
             return (string) $slugs;
         }
-        
+
         // Try requested locale first
-        if (!empty($slugs[$locale])) {
+        if (! empty($slugs[$locale])) {
             return $slugs[$locale];
         }
-        
+
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (!empty($slugs[$fallbackLocale])) {
+            if (! empty($slugs[$fallbackLocale])) {
                 return $slugs[$fallbackLocale];
             }
         }
-        
+
         // Return first available or empty string
-        return !empty($slugs) ? reset($slugs) : '';
+        return ! empty($slugs) ? reset($slugs) : '';
     }
-    
+
     /**
      * Get page description in specified language with fallback
-     * 
-     * @param string|null $locale
-     * @return string
      */
     public function getDescription(?string $locale = null): string
     {
         $locale = $locale ?? app()->getLocale();
         $descriptions = $this->description ?? [];
-        
+
         // Ensure we have an array
-        if (!is_array($descriptions)) {
+        if (! is_array($descriptions)) {
             return (string) $descriptions;
         }
-        
+
         // Try requested locale first
-        if (!empty($descriptions[$locale])) {
+        if (! empty($descriptions[$locale])) {
             return $descriptions[$locale];
         }
-        
+
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (!empty($descriptions[$fallbackLocale])) {
+            if (! empty($descriptions[$fallbackLocale])) {
                 return $descriptions[$fallbackLocale];
             }
         }
-        
+
         // Return first available or empty string
-        return !empty($descriptions) ? reset($descriptions) : '';
+        return ! empty($descriptions) ? reset($descriptions) : '';
     }
 
     /**
      * Get page content in specified language with fallback
-     * 
-     * @param string|null $locale
-     * @return string
      */
     public function getContent(?string $locale = null): string
     {
         $locale = $locale ?? app()->getLocale();
         $contents = $this->content ?? [];
-        
+
         // Ensure we have an array
-        if (!is_array($contents)) {
+        if (! is_array($contents)) {
             return (string) $contents;
         }
-        
+
         // Try requested locale first
-        if (!empty($contents[$locale])) {
+        if (! empty($contents[$locale])) {
             return $contents[$locale];
         }
-        
+
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (!empty($contents[$fallbackLocale])) {
+            if (! empty($contents[$fallbackLocale])) {
                 return $contents[$fallbackLocale];
             }
         }
-        
+
         // Return first available or empty string
-        return !empty($contents) ? reset($contents) : '';
+        return ! empty($contents) ? reset($contents) : '';
     }
 
     /**
      * Get meta title in specified language with fallback
-     * 
-     * @param string|null $locale
-     * @return string
      */
     public function getMetaTitle(?string $locale = null): string
     {
         $locale = $locale ?? app()->getLocale();
         $metaTitles = $this->meta_title ?? [];
-        
+
         // Ensure we have an array
-        if (!is_array($metaTitles)) {
+        if (! is_array($metaTitles)) {
             return (string) $metaTitles;
         }
-        
+
         // Try requested locale first
-        if (!empty($metaTitles[$locale])) {
+        if (! empty($metaTitles[$locale])) {
             return $metaTitles[$locale];
         }
-        
+
         // Fallback priority: cs -> en -> first available, or use name as fallback
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (!empty($metaTitles[$fallbackLocale])) {
+            if (! empty($metaTitles[$fallbackLocale])) {
                 return $metaTitles[$fallbackLocale];
             }
         }
-        
+
         // If no meta title, use page name
         return $this->getName($locale);
     }
 
     /**
      * Get meta description in specified language with fallback
-     * 
-     * @param string|null $locale
-     * @return string
      */
     public function getMetaDescription(?string $locale = null): string
     {
         $locale = $locale ?? app()->getLocale();
         $metaDescriptions = $this->meta_description ?? [];
-        
+
         // Try requested locale first
-        if (!empty($metaDescriptions[$locale])) {
+        if (! empty($metaDescriptions[$locale])) {
             return $metaDescriptions[$locale];
         }
-        
+
         // Fallback priority: cs -> en -> first available, or use description as fallback
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (!empty($metaDescriptions[$fallbackLocale])) {
+            if (! empty($metaDescriptions[$fallbackLocale])) {
                 return $metaDescriptions[$fallbackLocale];
             }
         }
-        
+
         // If no meta description, use page description
         return $this->getDescription($locale);
     }
 
     /**
      * Get meta keywords in specified language with fallback
-     * 
-     * @param string|null $locale
-     * @return string
      */
     public function getMetaKeywords(?string $locale = null): string
     {
         $locale = $locale ?? app()->getLocale();
         $metaKeywords = $this->meta_keywords ?? [];
-        
+
         // Ensure we have an array
-        if (!is_array($metaKeywords)) {
+        if (! is_array($metaKeywords)) {
             return (string) $metaKeywords;
         }
-        
+
         // Try requested locale first
-        if (!empty($metaKeywords[$locale])) {
+        if (! empty($metaKeywords[$locale])) {
             return $metaKeywords[$locale];
         }
-        
+
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (!empty($metaKeywords[$fallbackLocale])) {
+            if (! empty($metaKeywords[$fallbackLocale])) {
                 return $metaKeywords[$fallbackLocale];
             }
         }
-        
+
         // Return first available or empty string
-        return !empty($metaKeywords) ? reset($metaKeywords) : '';
+        return ! empty($metaKeywords) ? reset($metaKeywords) : '';
     }
 
     /**
@@ -344,18 +323,30 @@ class Page extends Model
      */
     public function setMainImageAttribute($value)
     {
-        $this->handleFileUpload('main_image', $value, 'pages', [
-            'disk' => 'public',
-            'createThumbnails' => true,
-            'thumbnailWidth' => 300,
-            'thumbnailHeight' => 200,
-            'thumbnailPath' => 'thumbnails',
-            'allowedFileTypes' => [
-                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-                'jpeg', 'jpg', 'png', 'gif', 'webp',
+        $this->handleFileUpload(
+            'main_image',
+            $value,
+            'pages',
+            [
+                'disk' => 'public',
+                'createThumbnails' => true,
+                'thumbnailWidth' => 300,
+                'thumbnailHeight' => 200,
+                'thumbnailPath' => 'thumbnails',
+                'allowedFileTypes' => [
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif',
+                    'image/webp',
+                    'jpeg',
+                    'jpg',
+                    'png',
+                    'gif',
+                    'webp',
+                ],
+                'maxFileSize' => 10240, // 10MB
             ],
-            'maxFileSize' => 10240, // 10MB
-        ]);
+        );
     }
 
     /**
@@ -363,19 +354,31 @@ class Page extends Model
      */
     public function setImagesAttribute($value)
     {
-        $this->handleFileUpload('images', $value, 'pages/galleries', [
-            'disk' => 'public',
-            'createThumbnails' => true,
-            'thumbnailWidth' => 200,
-            'thumbnailHeight' => 200,
-            'thumbnailPath' => 'thumbnails',
-            'allowedFileTypes' => [
-                'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-                'jpeg', 'jpg', 'png', 'gif', 'webp',
+        $this->handleFileUpload(
+            'images',
+            $value,
+            'pages/galleries',
+            [
+                'disk' => 'public',
+                'createThumbnails' => true,
+                'thumbnailWidth' => 200,
+                'thumbnailHeight' => 200,
+                'thumbnailPath' => 'thumbnails',
+                'allowedFileTypes' => [
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif',
+                    'image/webp',
+                    'jpeg',
+                    'jpg',
+                    'png',
+                    'gif',
+                    'webp',
+                ],
+                'maxFileSize' => 10240, // 10MB
+                'multiple' => true,
             ],
-            'maxFileSize' => 10240, // 10MB
-            'multiple' => true,
-        ]);
+        );
     }
 
     /**
@@ -407,7 +410,7 @@ class Page extends Model
         foreach ($this->images as $index => $image) {
             $urls[] = $this->getAttributeFileUrl('images', $index);
         }
-        
+
         return array_filter($urls);
     }
 
@@ -418,12 +421,20 @@ class Page extends Model
     {
         return $query->where('published', true)
             ->where(function ($q) {
-                $q->where('publishing_start', '<=', now())
-                  ->orWhereNull('publishing_start');
+                $q->where(
+                    'publishing_start',
+                    '<=',
+                    now(),
+                )
+                    ->orWhereNull('publishing_start');
             })
             ->where(function ($q) {
-                $q->where('publishing_end', '>=', now())
-                  ->orWhereNull('publishing_end');
+                $q->where(
+                    'publishing_end',
+                    '>=',
+                    now(),
+                )
+                    ->orWhereNull('publishing_end');
             });
     }
 
@@ -448,20 +459,20 @@ class Page extends Model
      */
     public function getIsCurrentlyPublishedAttribute(): bool
     {
-        if (!$this->published) {
+        if (! $this->published) {
             return false;
         }
 
         $now = now();
-        
+
         if ($this->publishing_start && $this->publishing_start > $now) {
             return false;
         }
-        
+
         if ($this->publishing_end && $this->publishing_end < $now) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -472,7 +483,7 @@ class Page extends Model
     {
         $breadcrumbs = [];
         $current = $this;
-        
+
         while ($current) {
             array_unshift($breadcrumbs, [
                 'name' => $current->getName(),
@@ -481,14 +492,13 @@ class Page extends Model
             ]);
             $current = $current->parent;
         }
-        
+
         return $breadcrumbs;
     }
 
     /**
      * Get URL to the receipt file
-     * 
-     * @param string $attribute
+     *
      * @return string|null
      */
     public function getFileUrl(string $attribute = 'pages', $index = null)

@@ -40,7 +40,7 @@ class DateHelperTest extends TestCase
         $returnType = $method->getReturnType();
 
         $this->assertNotNull($returnType);
-    $this->assertEquals('string', (string)$returnType);
+        $this->assertEquals('string', (string) $returnType);
     }
 
     #[Test]
@@ -57,7 +57,7 @@ class DateHelperTest extends TestCase
     {
         $reflection = new \ReflectionClass(DateHelper::class);
 
-    $this->assertEquals('App\\Infrastructure\\Shared\\Support', $reflection->getNamespaceName());
+        $this->assertEquals('App\\Infrastructure\\Shared\\Support', $reflection->getNamespaceName());
     }
 
     #[Test]
@@ -84,17 +84,5 @@ class DateHelperTest extends TestCase
 
         // Should not use any traits
         $this->assertEmpty($reflection->getTraitNames());
-    }
-
-    #[Test]
-    public function format_method_has_proper_docblock(): void
-    {
-        $reflection = new \ReflectionClass(DateHelper::class);
-        $method = $reflection->getMethod('format');
-        $docComment = $method->getDocComment();
-
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('Return date format based on current language', $docComment);
-        $this->assertStringContainsString('@return string', $docComment);
     }
 }

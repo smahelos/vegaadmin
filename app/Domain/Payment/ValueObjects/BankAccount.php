@@ -10,28 +10,36 @@ use InvalidArgumentException;
 class BankAccount
 {
     private string $iban;
+
     private ?string $bic;
+
     private ?string $accountNumber;
+
     private ?string $bankCode;
+
     private string $countryCode;
 
     public function __construct(
         string $iban,
         ?string $bic = null,
         ?string $accountNumber = null,
-        ?string $bankCode = null
+        ?string $bankCode = null,
     ) {
         // Normalize first, then validate
         $this->iban = $this->normalizeIban($iban);
         $this->validateIban($this->iban);
-        $this->countryCode = substr($this->iban, 0, 2);
-        
+        $this->countryCode = substr(
+            $this->iban,
+            0,
+            2,
+        );
+
         $this->bic = $bic ? strtoupper(trim($bic)) : null;
         $this->accountNumber = $accountNumber ? trim($accountNumber) : null;
         $this->bankCode = $bankCode ? trim($bankCode) : null;
 
         // Validate BIC if provided
-        if ($this->bic && !$this->isValidBic($this->bic)) {
+        if ($this->bic && ! $this->isValidBic($this->bic)) {
             throw new InvalidArgumentException("Invalid BIC format: {$this->bic}");
         }
     }
@@ -42,7 +50,13 @@ class BankAccount
     public static function fromCzechAccount(string $accountNumber, string $bankCode): self
     {
         $iban = self::generateCzechIban($accountNumber, $bankCode);
-        return new self($iban, null, $accountNumber, $bankCode);
+
+        return new self(
+            $iban,
+            null,
+            $accountNumber,
+            $bankCode,
+        );
     }
 
     /**
@@ -116,11 +130,45 @@ class BankAccount
     {
         // SEPA countries
         $sepaCountries = [
-            'AD', 'AT', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI',
-            'FR', 'GB', 'GI', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU',
-            'LV', 'MC', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'SM', 'VA'
+            'AD',
+            'AT',
+            'BE',
+            'BG',
+            'CH',
+            'CY',
+            'CZ',
+            'DE',
+            'DK',
+            'EE',
+            'ES',
+            'FI',
+            'FR',
+            'GB',
+            'GI',
+            'GR',
+            'HR',
+            'HU',
+            'IE',
+            'IS',
+            'IT',
+            'LI',
+            'LT',
+            'LU',
+            'LV',
+            'MC',
+            'MT',
+            'NL',
+            'NO',
+            'PL',
+            'PT',
+            'RO',
+            'SE',
+            'SI',
+            'SK',
+            'SM',
+            'VA',
         ];
-        
+
         return in_array($this->countryCode, $sepaCountries);
     }
 
@@ -146,10 +194,10 @@ class BankAccount
     private function validateIban(string $iban): void
     {
         if (strlen($iban) < 15 || strlen($iban) > 34) {
-            throw new InvalidArgumentException("Invalid IBAN length: " . strlen($iban));
+            throw new InvalidArgumentException('Invalid IBAN length: ' . strlen($iban));
         }
 
-        if (!preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/', $iban)) {
+        if (! preg_match('/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/', $iban)) {
             throw new InvalidArgumentException("Invalid IBAN format: {$iban}");
         }
 
@@ -160,8 +208,12 @@ class BankAccount
         }
 
         // Move first 4 characters to end
-        $rearrangedIban = substr($iban, 4) . substr($iban, 0, 4);
-        
+        $rearrangedIban = substr($iban, 4) . substr(
+            $iban,
+            0,
+            4,
+        );
+
         // Replace letters with numbers (A=10, B=11, ..., Z=35)
         $numericIban = '';
         for ($i = 0; $i < strlen($rearrangedIban); $i++) {
@@ -175,9 +227,9 @@ class BankAccount
 
         // Calculate mod 97
         $remainder = $this->bigMod97($numericIban);
-        
+
         if ($remainder !== 1) {
-            throw new InvalidArgumentException("Invalid IBAN checksum");
+            throw new InvalidArgumentException('Invalid IBAN checksum');
         }
     }
 
@@ -188,7 +240,12 @@ class BankAccount
     {
         // First convert to uppercase, then remove non-alphanumeric characters
         $upperIban = strtoupper($iban);
-        return preg_replace('/[^A-Z0-9]/', '', $upperIban);
+
+        return preg_replace(
+            '/[^A-Z0-9]/',
+            '',
+            $upperIban,
+        );
     }
 
     /**
@@ -209,6 +266,7 @@ class BankAccount
         for ($i = 0; $i < strlen($number); $i++) {
             $remainder = ($remainder * 10 + intval($number[$i])) % 97;
         }
+
         return $remainder;
     }
 
@@ -218,27 +276,46 @@ class BankAccount
     private static function generateCzechIban(string $accountNumber, string $bankCode): string
     {
         // Remove dashes and prefix zeros from account number
-        $cleanAccountNumber = str_replace('-', '', $accountNumber);
-        
+        $cleanAccountNumber = str_replace(
+            '-',
+            '',
+            $accountNumber,
+        );
+
         // Pad account number to 16 digits
-        $paddedAccount = str_pad($cleanAccountNumber, 16, '0', STR_PAD_LEFT);
-        
+        $paddedAccount = str_pad(
+            $cleanAccountNumber,
+            16,
+            '0',
+            STR_PAD_LEFT,
+        );
+
         // Pad bank code to 4 digits
-        $paddedBankCode = str_pad($bankCode, 4, '0', STR_PAD_LEFT);
-        
+        $paddedBankCode = str_pad(
+            $bankCode,
+            4,
+            '0',
+            STR_PAD_LEFT,
+        );
+
         // Calculate checksum using mod-97 algorithm
         // Move bank code and account to front, add CZ (1232) and 00 for checksum calculation
         $rearranged = $paddedBankCode . $paddedAccount . '123200'; // CZ = 1232, 00 for checksum
-        
+
         // Calculate mod 97
         $remainder = 0;
         for ($i = 0; $i < strlen($rearranged); $i++) {
             $remainder = ($remainder * 10 + intval($rearranged[$i])) % 97;
         }
-        
+
         $checksum = 98 - $remainder;
-        $checksumString = str_pad($checksum, 2, '0', STR_PAD_LEFT);
-        
+        $checksumString = str_pad(
+            $checksum,
+            2,
+            '0',
+            STR_PAD_LEFT,
+        );
+
         return 'CZ' . $checksumString . $paddedBankCode . $paddedAccount;
     }
 }

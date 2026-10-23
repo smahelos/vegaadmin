@@ -13,7 +13,7 @@ class RequireBackpackApiAccessTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RequireBackpackApiAccess();
+        $this->middleware = new RequireBackpackApiAccess;
     }
 
     #[Test]

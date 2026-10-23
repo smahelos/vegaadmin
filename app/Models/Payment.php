@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Payment extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'subscription_id',
         'gateway',
         'gateway_payment_id',
         'status',
         'amount',
-    'refunded_amount',
+        'refunded_amount',
         'currency',
         'payment_method',
         'gateway_data',
@@ -96,26 +97,27 @@ class Payment extends Model
     {
         $this->status = 'completed';
         $this->paid_at = now();
+
         return $this->save();
     }
 
     /**
      * Mark payment as failed
      */
-    public function markAsFailed(string $reason = null): bool
+    public function markAsFailed(?string $reason = null): bool
     {
         $this->status = 'failed';
         if ($reason) {
             $this->failure_reason = $reason;
         }
+
         return $this->save();
     }
 
     /**
      * Register a refunded amount (partial or full) updating status accordingly.
      *
-     * @param float $amount Amount refunded in this operation (>=0)
-     * @return bool
+     * @param  float  $amount  Amount refunded in this operation (>=0)
      */
     public function applyRefund(float $amount): bool
     {
@@ -129,14 +131,14 @@ class Payment extends Model
             $this->status = 'partially_refunded';
         } else {
             $this->status = 'refunded';
-            $this->refunded_amount = (string) (float)$this->amount; // clamp
+            $this->refunded_amount = (string) (float) $this->amount; // clamp
         }
+
         return $this->save();
     }
 
     /**
      * Whether payment is partially refunded.
-     * @return bool
      */
     public function isPartiallyRefunded(): bool
     {
@@ -145,7 +147,6 @@ class Payment extends Model
 
     /**
      * Whether payment is fully refunded.
-     * @return bool
      */
     public function isFullyRefunded(): bool
     {

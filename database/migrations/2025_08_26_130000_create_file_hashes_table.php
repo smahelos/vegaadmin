@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('file_hashes', function (Blueprint $table) {
@@ -15,7 +16,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('size');
             $table->unsignedInteger('ref_count')->default(1);
             $table->timestamps();
-            $table->unique(['disk','path']);
+            $table->unique(['disk', 'path']);
         });
     }
 

@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Infrastructure\Notifications;
 
-use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder;
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -39,16 +39,16 @@ class InvoiceDueReminderTest extends TestCase
     {
         $reflection = new \ReflectionClass(InvoiceDueReminder::class);
         $constructor = $reflection->getConstructor();
-        
+
         $this->assertNotNull($constructor);
         $this->assertCount(1, $constructor->getParameters());
-        
-    $params = $constructor->getParameters();
-    $this->assertEquals('payload', $params[0]->getName());
-    $type = $params[0]->getType();
-    $this->assertNotNull($type);
-    $this->assertInstanceOf(\ReflectionNamedType::class, $type);
-    $this->assertEquals(InvoiceReminderPayload::class, $type->getName());
+
+        $params = $constructor->getParameters();
+        $this->assertEquals('payload', $params[0]->getName());
+        $type = $params[0]->getType();
+        $this->assertNotNull($type);
+        $this->assertInstanceOf(\ReflectionNamedType::class, $type);
+        $this->assertEquals(InvoiceReminderPayload::class, $type->getName());
     }
 
     #[Test]
@@ -56,10 +56,10 @@ class InvoiceDueReminderTest extends TestCase
     {
         $reflection = new \ReflectionClass(InvoiceDueReminder::class);
         $method = $reflection->getMethod('via');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertCount(1, $method->getParameters());
-        
+
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
         if ($returnType instanceof \ReflectionNamedType) {
@@ -72,10 +72,10 @@ class InvoiceDueReminderTest extends TestCase
     {
         $reflection = new \ReflectionClass(InvoiceDueReminder::class);
         $method = $reflection->getMethod('toMail');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertCount(1, $method->getParameters());
-        
+
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
         if ($returnType instanceof \ReflectionNamedType) {
@@ -87,7 +87,7 @@ class InvoiceDueReminderTest extends TestCase
     public function class_has_required_properties(): void
     {
         $reflection = new \ReflectionClass(InvoiceDueReminder::class);
-        
+
         $this->assertTrue($reflection->hasProperty('payload'));
         $payloadProperty = $reflection->getProperty('payload');
         $this->assertTrue($payloadProperty->isPrivate());

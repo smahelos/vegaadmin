@@ -2,6 +2,41 @@
 
 Known gaps between the code and the intended architecture (see `CLAUDE.md`, `docs/adr/`). Most items are unfinished steps of the DDD migration (commits `a65aaffb` 2025-09-09 and `7e999b2a` 2025-10-12 in the original Bitbucket history): the target class exists, but the code was never switched over to it. Remove an item once it is resolved.
 
+## Order of work
+
+Decided 2026-10-23: most important first (money, law, data exposure), but an item that others build on goes before them, and work that touches the same files is done together. Items not listed are picked up by the branch that touches their code.
+
+**A. Foundations**
+
+1. ~~Tooling — Pint over the whole codebase in one commit, Larastan in CI, before the large rewrites so that their diffs stay clean.~~ Done 2026-10-23 (branch `ls-tooling`): Pint and PHP_CodeSniffer over the whole codebase, Larastan at level 1, all three in CI; raising the level is "Larastan level" below.
+2. Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".
+3. "Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.
+4. "Domain events are published inside the transaction" — the issued-invoice work publishes its events on top of it.
+
+**B. Invoices**
+
+5. What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Status enum lists factory slugs and English labels".
+6. "Rename IČO and DIČ to `company_number` and `vat_number`" with "Compose `PrintableInvoiceData` from `PartyPrintData`" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
+7. "Issued invoices can be changed and deleted", with "Validate the variable symbol in QR payments" (numbering at issue is decided there).
+8. "Currency conversion of invoice items happens in the browser" (ČNB rates) with "Resilience of external calls".
+
+**C. Payments and subscription plans**
+
+9. "Permission naming" — the plans grant permissions.
+10. Payments: "Payment notification route", "GoPay is called inside the database transaction", "Typed GoPay request with real customer data", "Move refund logic into `RefundState`", "Payment adapter guard checks nothing", "UELS dashboard bulk reset fails".
+11. The subscription plans, with "Subscription screens with placeholder content".
+
+**D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
+
+12. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: image deletion, unit field; Party: duplicates, client mapper); "Move cache invalidation from observers to domain event handlers" after step 4.
+13. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
+
+**E. Before production and last**
+
+14. "`backpack_pro()` override claims a PRO licence" — a decision before production.
+15. The remaining "Party / Admin" items.
+16. "Architecture guards are migration scaffolding" with "`ddd:guard` snapshot test fails now and then in parallel runs".
+
 ## Security
 
 ### Public statistics endpoints expose all users' revenue
@@ -39,7 +74,7 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 ### Issued invoices can be changed and deleted
 - **Where:** `InvoiceCrudApplicationService` (update, delete), frontend `InvoiceController` (edit, update, set-template, delete), `Admin\InvoiceCrudController` and `Admin\InvoiceRequest`, `InvoicePrintDataBuilder` (reads the current client and supplier), `InvoicePdfRenderer`, `app/Console/Commands/DatabaseArchiveCommand.php` and `archive_policies` (36 months), `Money` (no negative amounts)
 - **Problem:** an issued invoice is a tax document kept unchanged for 10 years (§ 34 and § 35 ZDPH; corrections through a corrective tax document, § 42 and § 45 ZDPH; § 35 ZÚ; to confirm with an accountant after the 2025 amendment). Today an invoice has no draft/issued state (`draft` is a payment status), can be edited in the frontend and the admin and is deleted for good (no `deleted_at`); the admin edits `payment_amount` without the lines, so the amount can disagree with them. It stores only `client_id` and `supplier_id`, so a later change of the party changes every old invoice; the PDF is rendered again from the current template and logo on every download. `db:archive` moves invoices and items older than 36 months out of the main tables and deletes clients and suppliers by the same policy.
-- **Fix (decided 2026-10-23, own branch after `ls-invoice-item-validation`, before the ČNB rates):** a document life cycle separate from the payment status (draft → issued → cancelled by a corrective document); issuing assigns the number, stores a snapshot of the parties, bank account, lines, totals, currency, payment method, template and logo, and stores the rendered PDF with its hash, which later downloads return. The Domain refuses changes to an issued invoice; only its payment status changes. Corrections and cancellations are corrective tax documents (credit or debit note) linked to the invoice, with their own PDF; a cancellation can copy the invoice into a new draft. The admin shows the amount read-only. Invoices, corrective documents and their PDFs are kept for 10 years, also when the user account is deleted; who issued or cancelled a document and when is recorded. Open decisions: numbering at issue, a number series for corrective documents, negative `Money` or a sign by document type, existing invoices, VAT payers vs non-payers; keep or delete `InvoiceCrudApplicationService::delete()`, `getForEdit()`, `softDelete()` and `restore()`, which nothing calls (deleting drafts).
+- **Fix (decided 2026-10-23, own branch, step 7 of the order of work):** a document life cycle separate from the payment status (draft → issued → cancelled by a corrective document); issuing assigns the number, stores a snapshot of the parties, bank account, lines, totals, currency, payment method, template and logo, and stores the rendered PDF with its hash, which later downloads return. The Domain refuses changes to an issued invoice; only its payment status changes. Corrections and cancellations are corrective tax documents (credit or debit note) linked to the invoice, with their own PDF; a cancellation can copy the invoice into a new draft. The admin shows the amount read-only. Invoices, corrective documents and their PDFs are kept for 10 years, also when the user account is deleted; who issued or cancelled a document and when is recorded. Open decisions: numbering at issue, a number series for corrective documents, negative `Money` or a sign by document type, existing invoices, VAT payers vs non-payers; keep or delete `InvoiceCrudApplicationService::delete()`, `getForEdit()`, `softDelete()` and `restore()`, which nothing calls (deleting drafts).
 
 ### Modern and minimal PDFs always print "bank transfer"
 - **Where:** `app/Application/Invoice/Services/InvoicePdfRenderer.php` (`'paymentMethod' => null`), `resources/views/pdfs/templates/{modern,minimal}.blade.php`
@@ -92,6 +127,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Where:** `app/Infrastructure/Providers/Payment/GoPayGateway.php`, `app/Domain/Payment/ValueObjects/PaymentAmount.php`
 - **Problem:** `createPayment(array $paymentData)` is untyped and the amount is not checked against gateway limits. Without customer data the gateway sends a placeholder customer (`Test User`, `test@example.com`); `SubscriptionController` passes none.
 - **Fix:** a request DTO (amount as `PaymentAmount`, plan, customer, URLs) filled with the subscriber's real data. Do this with the subscription plans work.
+
+### Payment DTOs do not match the model casts
+- **Where:** `app/Domain/Payment/DTO/PaymentDTO.php`, `app/Domain/Payment/DTO/PaymentWriteData.php`, `app/Models/Payment.php`
+- **Problem:** the model casts `gateway_data` to an array, but both DTOs type it `?string`: mapping a payment that holds gateway data throws a `TypeError`. Found while adding Larastan (2026-10-23).
+- **Fix:** type the gateway data in the DTOs (a typed value or `array<string, mixed>`), with a repository test that stores and reads it back. Do this with the payments work (Order of work 10).
 
 ### Validate the variable symbol in QR payments
 - **Where:** `app/Domain/Payment/DTO/QrPaymentPayload.php`
@@ -215,11 +255,10 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 
 The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time.
 
-### Tooling
-- **Where:** project root, `.github/workflows/`
-- **Problem:** the codebase is not formatted by Pint (`pint.json` exists since 2026-10-23); there is no static analysis.
-- **Decided 2026-10-23:** syntax and formatting are checked by linters (Pint, Larastan), not by AI reviewing or rewriting code style.
-- **Fix:** format the whole codebase in one commit; install Larastan without a baseline file, start at the highest level that can be made clean, raise it as contexts are converted (target: max); run both in CI.
+### Larastan level
+- **Where:** `phpstan.neon`
+- **Problem:** Larastan runs at level 1 (2026-10-23); level 2 reports about 1000 more errors, level 6 over 4000. One level applies to the whole codebase.
+- **Fix:** raise the level once the whole codebase passes the next one: levels 2–6 while the contexts are converted (Order of work 12), 7–10 (`max`) after that, one level per branch. No baseline file and no ignore comments.
 
 ### `strict_types` and `final`
 - **Where:** all of `app/`, `tests/`, `database/` (11 of 1227 files declare `strict_types`, 11 classes are `final`); files touched by a branch keep their old shape, e.g. `app/Http/Controllers/Frontend/ProfileController.php` (no constructor promotion, untyped properties)

@@ -2,16 +2,16 @@
 
 namespace App\Domain\Party\Events;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Party\DTO\SupplierDTO;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
  * Domain event fired when a new supplier is created.
- * 
+ *
  * Triggered by:
  * - InvoicePartyService::resolveOrCreateSupplier() when creating new supplier
  * - InvoicePartyService::resolveOrCreateSupplierWithFlag() when creating new supplier
- * 
+ *
  * Used for:
  * - Usage limit recording
  * - Audit logging
@@ -22,8 +22,6 @@ class SupplierCreated implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -35,12 +33,12 @@ class SupplierCreated implements DomainEvent
 
     /** Event ID for tracking purposes */
     private readonly string $eventId;
-    
+
     public function __construct(
         private readonly SupplierDTO $supplier,
         ?int $userId = null,
         private readonly array $metadata = [],
-        string $changeType = 'general'
+        string $changeType = 'general',
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
@@ -75,23 +73,23 @@ class SupplierCreated implements DomainEvent
             'supplier_phone' => $this->supplier->phone,
             'supplier_country' => $this->supplier->country,
             'is_default' => $this->supplier->is_default,
-            'has_payment_info' => !empty($this->supplier->iban) || !empty($this->supplier->account_number),
+            'has_payment_info' => ! empty($this->supplier->iban) || ! empty($this->supplier->account_number),
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
         return static::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

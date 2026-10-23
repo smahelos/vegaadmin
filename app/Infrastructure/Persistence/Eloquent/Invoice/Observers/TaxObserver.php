@@ -2,9 +2,9 @@
 
 namespace App\Infrastructure\Persistence\Eloquent\Invoice\Observers;
 
-use App\Models\Tax;
-use App\Domain\Shared\Events\FormDataChanged;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
+use App\Domain\Shared\Events\FormDataChanged;
+use App\Models\Tax;
 
 class TaxObserver
 {
@@ -13,6 +13,7 @@ class TaxObserver
         $userId = auth()->id() ?? 0;
         app(EventPublisherInterface::class)->publish(new FormDataChanged($userId, 'taxes'));
     }
+
     public function updated(Tax $tax): void
     {
         if ($tax->isDirty(['name', 'rate'])) {
@@ -20,6 +21,7 @@ class TaxObserver
             app(EventPublisherInterface::class)->publish(new FormDataChanged($userId, 'taxes'));
         }
     }
+
     public function deleted(Tax $tax): void
     {
         $userId = auth()->id() ?? 0;

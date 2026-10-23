@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\EntityLimit;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,8 +10,6 @@ class EntityLimitRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -20,18 +19,16 @@ class EntityLimitRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
-        $entityTypes = \App\Models\EntityLimit::ENTITY_TYPES;
-        $metricTypes = array_keys(\App\Models\EntityLimit::METRIC_TYPES);
-        $periodTypes = array_keys(\App\Models\EntityLimit::PERIOD_TYPES);
-        
+        $entityTypes = EntityLimit::ENTITY_TYPES;
+        $metricTypes = array_keys(EntityLimit::METRIC_TYPES);
+        $periodTypes = array_keys(EntityLimit::PERIOD_TYPES);
+
         // Get the current entity limit ID for updates
         $id = $this->get('id') ?? $this->route('id') ?? $this->route('entity_limit');
-        
+
         return [
             'permission_name' => [
                 'required',

@@ -2,6 +2,16 @@
 
 namespace App\Providers;
 
+use App\Application\Content\Contracts\PageApplicationServiceInterface;
+use App\Application\Content\Contracts\PageReadRepositoryInterface;
+use App\Application\Content\Contracts\PageWriteRepositoryInterface;
+use App\Application\Content\Services\PageApplicationService;
+use App\Domain\Content\Contracts\PageDtoReadRepositoryInterface;
+use App\Domain\Content\Contracts\PageDtoWriteRepositoryInterface;
+use App\Domain\Content\Contracts\PageServiceInterface;
+use App\Domain\Content\Services\PageService;
+use App\Infrastructure\Persistence\Eloquent\Content\Repositories\EloquentPageDtoRepository;
+use App\Infrastructure\Persistence\Eloquent\Content\Repositories\EloquentPageRepository;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -24,8 +34,8 @@ class ContentServiceProvider extends ServiceProvider
     private function registerDomainServices(): void
     {
         $this->app->bind(
-            \App\Domain\Content\Contracts\PageServiceInterface::class,
-            \App\Domain\Content\Services\PageService::class
+            PageServiceInterface::class,
+            PageService::class,
         );
     }
 
@@ -36,23 +46,23 @@ class ContentServiceProvider extends ServiceProvider
     {
         // Content repositories
         $this->app->bind(
-            \App\Application\Content\Contracts\PageReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Content\Repositories\EloquentPageRepository::class
+            PageReadRepositoryInterface::class,
+            EloquentPageRepository::class,
         );
 
         $this->app->bind(
-            \App\Application\Content\Contracts\PageWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Content\Repositories\EloquentPageRepository::class
+            PageWriteRepositoryInterface::class,
+            EloquentPageRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Content\Contracts\PageDtoReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Content\Repositories\EloquentPageDtoRepository::class
+            PageDtoReadRepositoryInterface::class,
+            EloquentPageDtoRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Content\Contracts\PageDtoWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Content\Repositories\EloquentPageDtoRepository::class
+            PageDtoWriteRepositoryInterface::class,
+            EloquentPageDtoRepository::class,
         );
     }
 
@@ -62,8 +72,8 @@ class ContentServiceProvider extends ServiceProvider
     private function registerApplicationServices(): void
     {
         $this->app->bind(
-            \App\Application\Content\Contracts\PageApplicationServiceInterface::class,
-            \App\Application\Content\Services\PageApplicationService::class
+            PageApplicationServiceInterface::class,
+            PageApplicationService::class,
         );
     }
 }

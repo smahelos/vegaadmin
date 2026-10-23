@@ -54,7 +54,7 @@ class UniversalLimitServiceTest extends TestCase
     #[Test]
     public function entity_limit_instantiation(): void
     {
-        $limit = new EntityLimit();
+        $limit = new EntityLimit;
         $this->assertInstanceOf(EntityLimit::class, $limit);
     }
 }

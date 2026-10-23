@@ -41,18 +41,6 @@ class BankFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function trait_has_proper_docblocks(): void
-    {
-        $reflection = new \ReflectionClass($this);
-
-        // Check getBankFields method docblock
-        $method = $reflection->getMethod('getBankFields');
-        $docComment = $method->getDocComment();
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@return array', $docComment);
-    }
-
-    #[Test]
     public function trait_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(BankFormFields::class);
@@ -75,7 +63,7 @@ class BankFormFieldsTest extends TestCase
         // Should have exactly 1 method
         $this->assertCount(1, $methods);
 
-        $methodNames = array_map(fn($method) => $method->getName(), $methods);
+        $methodNames = array_map(fn ($method) => $method->getName(), $methods);
         $this->assertContains('getBankFields', $methodNames);
     }
 

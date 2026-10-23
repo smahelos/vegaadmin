@@ -25,7 +25,7 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
             'description' => 'Optimizing users table',
             'results' => ['rows_processed' => 1000],
             'started_at' => now(),
-            'completed_at' => now()->addMinutes(5)
+            'completed_at' => now()->addMinutes(5),
         ];
 
         $log = DatabaseMaintenanceLog::create($data);
@@ -35,7 +35,7 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
             'task_type' => 'optimize',
             'table_name' => 'users',
             'status' => 'pending',
-            'description' => 'Optimizing users table'
+            'description' => 'Optimizing users table',
         ]);
     }
 
@@ -48,7 +48,7 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
 
         $this->assertInstanceOf(DatabaseMaintenanceLog::class, $log);
         $this->assertDatabaseHas('database_maintenance_logs', [
-            'id' => $log->id
+            'id' => $log->id,
         ]);
     }
 
@@ -109,7 +109,7 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
 
         $log = DatabaseMaintenanceLog::factory()->create([
-            'results' => ['test' => 'value']
+            'results' => ['test' => 'value'],
         ]);
 
         $this->assertIsArray($log->results);
@@ -122,7 +122,7 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
 
         $log = DatabaseMaintenanceLog::factory()->create([
-            'started_at' => '2023-01-01 10:00:00'
+            'started_at' => '2023-01-01 10:00:00',
         ]);
 
         $this->assertInstanceOf(Carbon::class, $log->started_at);
@@ -135,7 +135,7 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         $this->skipIfOptimizationTablesNotExist(['database_maintenance_logs']);
 
         $log = DatabaseMaintenanceLog::factory()->create([
-            'completed_at' => '2023-01-01 11:00:00'
+            'completed_at' => '2023-01-01 11:00:00',
         ]);
 
         $this->assertInstanceOf(Carbon::class, $log->completed_at);
@@ -152,7 +152,7 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
 
         $log = DatabaseMaintenanceLog::factory()->create([
             'started_at' => $startedAt,
-            'completed_at' => $completedAt
+            'completed_at' => $completedAt,
         ]);
 
         $duration = $log->duration;
@@ -219,7 +219,7 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
 
         $log->update([
             'status' => 'running',
-            'started_at' => now()
+            'started_at' => now(),
         ]);
 
         $this->assertEquals('running', $log->fresh()->status);
@@ -237,7 +237,7 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         $log->delete();
 
         $this->assertDatabaseMissing('database_maintenance_logs', [
-            'id' => $logId
+            'id' => $logId,
         ]);
     }
 }

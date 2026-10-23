@@ -9,26 +9,7 @@ namespace App\Domain\Party\DTO;
 class SupplierWriteData
 {
     /**
-     * @param string|null $name
-     * @param string|null $email
-     * @param string|null $phone
-     * @param string|null $street
-     * @param string|null $city
-     * @param string|null $zip
-     * @param string|null $country
-     * @param string|null $ico
-     * @param string|null $dic
-     * @param string|null $shortcut
-     * @param string|null $description
-     * @param mixed $supplier_logo Can be string path or UploadedFile
-     * @param string|null $account_number
-     * @param string|null $bank_code
-     * @param string|null $bank_name
-     * @param string|null $iban
-     * @param string|null $swift
-     * @param string|null $has_payment_info
-     * @param int|null $user_id
-     * @param bool $is_default
+     * @param  mixed  $supplier_logo  Can be string path or UploadedFile
      */
     public function __construct(
         public readonly ?string $name = null,
@@ -89,6 +70,7 @@ class SupplierWriteData
     public function toArray(): array
     {
         $properties = get_object_vars($this);
-        return array_filter($properties, fn($value) => $value !== null);
+
+        return array_filter($properties, fn ($value) => $value !== null);
     }
 }

@@ -13,8 +13,8 @@ use Tests\TestCase;
  */
 class InvoiceEditFieldParityTest extends TestCase
 {
-    use RefreshDatabase;
     use InvoiceFormFields;
+    use RefreshDatabase;
 
     #[Test]
     public function factory_matches_trait_for_edit(): void
@@ -25,11 +25,25 @@ class InvoiceEditFieldParityTest extends TestCase
         $paymentMethods = ['3' => 'bank_transfer'];
         $statuses = ['4' => 'paid'];
 
-        $legacy = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
-        $factory = new InvoiceCreateFieldSetFactory();
-        $built = $factory->build($clients, $suppliers, $paymentMethods, $statuses)->toArray();
+        $legacy = $this->getInvoiceFields(
+            $clients,
+            $suppliers,
+            $paymentMethods,
+            $statuses,
+        );
+        $factory = new InvoiceCreateFieldSetFactory;
+        $built = $factory->build(
+            $clients,
+            $suppliers,
+            $paymentMethods,
+            $statuses,
+        )->toArray();
 
-        $this->assertCount(count($legacy), $built, 'Field count mismatch');
+        $this->assertCount(
+            count($legacy),
+            $built,
+            'Field count mismatch',
+        );
         foreach ($legacy as $i => $legacyField) {
             $this->assertSame($legacyField['name'], $built[$i]['name']);
             $this->assertSame($legacyField['type'], $built[$i]['type']);

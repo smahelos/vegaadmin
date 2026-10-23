@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -31,7 +29,7 @@ return new class extends Migration
         foreach ($frontendPermissions as $name => $description) {
             Permission::firstOrCreate(
                 ['name' => $name],
-                ['guard_name' => 'web']
+                ['guard_name' => 'web'],
             );
         }
 
@@ -47,7 +45,7 @@ return new class extends Migration
         foreach ($backpackPermissions as $name => $description) {
             Permission::firstOrCreate(
                 ['name' => $name],
-                ['guard_name' => 'backpack']
+                ['guard_name' => 'backpack'],
             );
         }
 
@@ -107,7 +105,12 @@ return new class extends Migration
         }
 
         // Remove roles
-        $roleNames = ['admin', 'backend_user', 'frontend_user', 'frontend_user_plus'];
+        $roleNames = [
+            'admin',
+            'backend_user',
+            'frontend_user',
+            'frontend_user_plus',
+        ];
         foreach ($roleNames as $roleName) {
             $role = Role::where('name', $roleName)->first();
             if ($role) {

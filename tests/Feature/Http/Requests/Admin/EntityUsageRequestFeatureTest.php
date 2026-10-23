@@ -3,21 +3,17 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\EntityUsageRequest;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
-use App\Models\EntityLimit;
-use App\Models\User;
-use Spatie\Permission\Models\Permission;
 
 class EntityUsageRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
-
-    protected $adminUser;
-    protected $regularUser;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -53,7 +49,12 @@ class EntityUsageRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $this->postJson('/admin/entity-usage-test', [])->assertStatus(422)
             ->assertJsonValidationErrors([
-                'entity_type','metric_type','period_type','period_start','period_end','current_value'
+                'entity_type',
+                'metric_type',
+                'period_type',
+                'period_start',
+                'period_end',
+                'current_value',
             ]);
     }
 
@@ -68,7 +69,11 @@ class EntityUsageRequestFeatureTest extends TestCase
             'period_type' => 'bad',
         ]);
         $this->postJson('/admin/entity-usage-test', $payload)->assertStatus(422)
-            ->assertJsonValidationErrors(['entity_type','metric_type','period_type']);
+            ->assertJsonValidationErrors([
+                'entity_type',
+                'metric_type',
+                'period_type',
+            ]);
     }
 
     #[Test]
@@ -118,6 +123,7 @@ class EntityUsageRequestFeatureTest extends TestCase
             'period_end' => now()->endOfMonth()->toDateString(),
             'current_value' => 0,
         ];
+
         return array_merge($defaults, $overrides);
     }
 }

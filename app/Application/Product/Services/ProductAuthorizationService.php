@@ -2,29 +2,28 @@
 
 namespace App\Application\Product\Services;
 
-use App\Models\User;
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
+use App\Models\User;
 
 /**
  * Centralized authorization service for Product operations.
- * 
+ *
  * Handles role and permission checking across different guards
  * to eliminate duplicated logic in ProductApplicationService.
  */
 class ProductAuthorizationService
 {
     public function __construct(
-        private readonly UserAuthorizationAdapterInterface $userAuthAdapter
-    ) {
-    }
+        private readonly UserAuthorizationAdapterInterface $userAuthAdapter,
+    ) {}
 
     /**
      * Check if user can access any products (admin or permission-based).
      */
     public function canAccessAnyProducts(int $userId): bool
     {
-        return $this->userAuthAdapter->isWebAdmin($userId) || 
-               $this->userAuthAdapter->isBackpackAdmin($userId) || 
+        return $this->userAuthAdapter->isWebAdmin($userId) ||
+               $this->userAuthAdapter->isBackpackAdmin($userId) ||
                $this->userAuthAdapter->hasBackpackViewPermission($userId, 'product');
     }
 
@@ -37,7 +36,7 @@ class ProductAuthorizationService
         if ($this->canAccessAnyProducts($userId)) {
             return true;
         }
-        
+
         // Users can only view their own products
         return $userId === $productUserId;
     }
@@ -51,7 +50,7 @@ class ProductAuthorizationService
         if ($this->canAccessAnyProducts($userId)) {
             return true;
         }
-        
+
         // Users can only update their own products
         return $userId === $productUserId;
     }
@@ -65,12 +64,12 @@ class ProductAuthorizationService
         if ($this->canAccessAnyProducts($userId)) {
             return true;
         }
-        
+
         // Frontend users can delete their own products
         if ($this->userAuthAdapter->hasFrontendUserRole($userId) && $userId === $productUserId) {
             return true;
         }
-        
+
         // Users can only delete their own products
         return $userId === $productUserId;
     }
@@ -84,8 +83,6 @@ class ProductAuthorizationService
                $this->userAuthAdapter->hasFrontendUserRole($userId) ||
                $this->userAuthAdapter->isWebAdmin($userId);
     }
-
-    
 
     /**
      * Check if user has web admin role.

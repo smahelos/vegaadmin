@@ -9,6 +9,6 @@ return [
         'not_found' => 'IČO nebylo nalezeno v ARES.',
         'api_error' => 'Chyba při komunikaci s ARES.',
         'parsing_error' => 'Nepodařilo se zpracovat odpověď z ARES.',
-        'general_error' => 'Došlo k chybě při komunikaci s ARES. Zkuste to prosím později.'
-    ]
+        'general_error' => 'Došlo k chybě při komunikaci s ARES. Zkuste to prosím později.',
+    ],
 ];

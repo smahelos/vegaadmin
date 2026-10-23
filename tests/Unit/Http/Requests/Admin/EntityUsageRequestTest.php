@@ -14,7 +14,7 @@ class EntityUsageRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new EntityUsageRequest();
+        $this->request = new EntityUsageRequest;
     }
 
     #[Test]
@@ -65,7 +65,6 @@ class EntityUsageRequestTest extends TestCase
         }
     }
 
-
     #[Test]
     public function authorize_method_exists_and_is_public(): void
     {
@@ -89,5 +88,4 @@ class EntityUsageRequestTest extends TestCase
         $method = $reflection->getMethod('attributes');
         $this->assertTrue($method->isPublic());
     }
-
 }

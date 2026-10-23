@@ -2,11 +2,11 @@
 
 namespace App\Domain\Shared\Money\Services;
 
-use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\Shared\Config\Contracts\Config;
 use App\Domain\Shared\Http\Contracts\HttpClientInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
-use App\Domain\Shared\Config\Contracts\Config;
+use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
 
 /**
  * Currency exchange service.
@@ -16,11 +16,12 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
 {
     /**
      * External API endpoint for latest exchange rates.
-     * @var string
      */
     private string $apiUrl = 'https://open.er-api.com/v6/latest';
+
     /**
      * Clock callable returning current unix timestamp (injectable for testing).
+     *
      * @var callable():int
      */
     private $clock;
@@ -30,10 +31,9 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
         private CacheServiceInterface $cacheService,
         private readonly LogInterface $logger,
         private readonly Config $config,
-        ?callable $clock = null
-    )
-    {
-        $this->clock = $clock ?? static fn(): int => time();
+        ?callable $clock = null,
+    ) {
+        $this->clock = $clock ?? static fn (): int => time();
     }
 
     /**
@@ -45,8 +45,8 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
      * Get exchange rate from one currency to another.
      * Returns 1.0 when currencies are identical, null when unavailable.
      *
-     * @param string $fromCurrency ISO 4217 source currency code
-     * @param string $toCurrency ISO 4217 target currency code
+     * @param  string  $fromCurrency  ISO 4217 source currency code
+     * @param  string  $toCurrency  ISO 4217 target currency code
      * @return float|null Exchange rate or null
      */
     public function getExchangeRate(string $fromCurrency, string $toCurrency): ?float
@@ -58,7 +58,7 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
             return 1.0;
         }
 
-        if (!$this->isValidIso($fromCurrency) || !$this->isValidIso($toCurrency)) {
+        if (! $this->isValidIso($fromCurrency) || ! $this->isValidIso($toCurrency)) {
             return null;
         }
 
@@ -66,6 +66,7 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
         if (isset($rates[$fromCurrency], $rates[$toCurrency])) {
             return $rates[$toCurrency] / $rates[$fromCurrency];
         }
+
         return null;
     }
 
@@ -73,13 +74,13 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
      * Get all exchange rates for a provided base currency code.
      * Falls back to USD when an invalid base code is supplied.
      *
-     * @param string $baseCurrency ISO 4217 code (default USD)
+     * @param  string  $baseCurrency  ISO 4217 code (default USD)
      * @return array<string,float> Associative array of currency => rate
      */
     public function getExchangeRates(string $baseCurrency = 'USD'): array
     {
         $baseCurrency = strtoupper($baseCurrency);
-        if (!$this->isValidIso($baseCurrency)) {
+        if (! $this->isValidIso($baseCurrency)) {
             $baseCurrency = 'USD';
         }
         $cacheKey = 'exchange_rates_' . $baseCurrency;
@@ -89,9 +90,15 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
         }
         $apiRates = $this->fetchApiRates($baseCurrency);
         if (is_array($apiRates)) {
-            $this->cacheService->put($cacheKey, $apiRates, self::CACHE_TTL);
+            $this->cacheService->put(
+                $cacheKey,
+                $apiRates,
+                self::CACHE_TTL,
+            );
+
             return $apiRates;
         }
+
         // Do NOT cache fallback so repeated calls can drive circuit breaker transitions.
         return $this->getFallbackRates();
     }
@@ -100,21 +107,25 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
      * Convert a monetary amount between currencies using current rates.
      * Returns null when conversion is not possible.
      *
-     * @param float $amount Amount to convert
-     * @param string $fromCurrency Source ISO 4217 code
-     * @param string $toCurrency Target ISO 4217 code
+     * @param  float  $amount  Amount to convert
+     * @param  string  $fromCurrency  Source ISO 4217 code
+     * @param  string  $toCurrency  Target ISO 4217 code
      * @return float|null Converted amount rounded to 2 decimals or null
      */
-    public function convert(float $amount, string $fromCurrency, string $toCurrency): ?float
-    {
+    public function convert(
+        float $amount,
+        string $fromCurrency,
+        string $toCurrency,
+    ): ?float {
         $rate = $this->getExchangeRate($fromCurrency, $toCurrency);
+
         return $rate === null ? null : round($amount * $rate, 2);
     }
 
     /**
      * Fetch raw rates from external API.
      *
-     * @param string $baseCurrency ISO 4217 base code
+     * @param  string  $baseCurrency  ISO 4217 base code
      * @return array<string,float>|null Rates or null on error
      */
     private function fetchApiRates(string $baseCurrency): ?array
@@ -143,20 +154,20 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
     /**
      * Validate ISO 4217 currency code format (3 uppercase letters).
      *
-     * @param string $code Currency code
+     * @param  string  $code  Currency code
      * @return bool True if valid format
      */
     private function isValidIso(string $code): bool
     {
-        return (bool)preg_match('/^[A-Z]{3}$/', $code);
+        return (bool) preg_match('/^[A-Z]{3}$/', $code);
     }
 
     /* ===================== Circuit Breaker & Retry ===================== */
 
     private function attemptFetchWithBreaker(string $baseCurrency): ?array
     {
-        $failThreshold = (int)$this->config->get('exchange.fail_threshold', 3);
-        $openTimeout = (int)$this->config->get('exchange.open_timeout_seconds', 60);
+        $failThreshold = (int) $this->config->get('exchange.fail_threshold', 3);
+        $openTimeout = (int) $this->config->get('exchange.open_timeout_seconds', 60);
 
         $stateKey = 'fx_cb_state';
         $failKey = 'fx_cb_fail_count';
@@ -166,38 +177,55 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
 
         if ($state === 'open') {
             $now = ($this->clock)();
-            $openedAt = (int)$this->cacheService->get($openedAtKey);
+            $openedAt = (int) $this->cacheService->get($openedAtKey);
             if (($now - $openedAt) < $openTimeout) {
                 // Short-circuit: do not hit external API
                 return null; // Caller will fall back
             }
             // Transition to half-open (allow single probe)
             $state = 'half_open';
-            $this->cacheService->put($stateKey, $state, $openTimeout);
+            $this->cacheService->put(
+                $stateKey,
+                $state,
+                $openTimeout,
+            );
         }
 
         $rates = $this->attemptFetchWithRetry($baseCurrency);
         if ($rates !== null) {
-            $this->recordSuccess($stateKey, $failKey, $openedAtKey);
+            $this->recordSuccess(
+                $stateKey,
+                $failKey,
+                $openedAtKey,
+            );
+
             return $rates;
         }
 
         // All attempts failed, record failure and log error for visibility
         $currentState = is_string($state) ? $state : 'closed';
-        $this->recordFailure($stateKey, $failKey, $openedAtKey, $failThreshold, $openTimeout, $currentState);
-        $this->logger->log(
-            'error', 
-            'Error fetching currency exchange rates after retries for base ' . $baseCurrency
+        $this->recordFailure(
+            $stateKey,
+            $failKey,
+            $openedAtKey,
+            $failThreshold,
+            $openTimeout,
+            $currentState,
         );
+        $this->logger->log(
+            'error',
+            'Error fetching currency exchange rates after retries for base ' . $baseCurrency,
+        );
+
         return null;
     }
 
     private function attemptFetchWithRetry(string $baseCurrency): ?array
     {
-        $attempts = (int)$this->config->get('exchange.max_retry_attempts', 3);
-        $baseDelay = (int)$this->config->get('exchange.retry_base_delay_ms', 100);
-        $jitterPct = (int)$this->config->get('exchange.retry_jitter_percent', 20);
-        $skipSleep = (bool)$this->config->get('exchange.skip_retry_sleep', false); // Use configuration flag to control whether retry sleep should be skipped (e.g., during tests)
+        $attempts = (int) $this->config->get('exchange.max_retry_attempts', 3);
+        $baseDelay = (int) $this->config->get('exchange.retry_base_delay_ms', 100);
+        $jitterPct = (int) $this->config->get('exchange.retry_jitter_percent', 20);
+        $skipSleep = (bool) $this->config->get('exchange.skip_retry_sleep', false); // Use configuration flag to control whether retry sleep should be skipped (e.g., during tests)
 
         for ($i = 1; $i <= $attempts; $i++) {
             try {
@@ -211,7 +239,7 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
                 if (is_array($response)) {
                     if (array_key_exists('success', $response)) {
                         // Wrapped response
-                        if (!empty($response['success'])) {
+                        if (! empty($response['success'])) {
                             $data = $response['data'] ?? null;
                             if (is_array($data) && isset($data['rates']) && is_array($data['rates'])) {
                                 return $data['rates'];
@@ -229,62 +257,109 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
                     }
                 }
             } catch (\Throwable $e) {
-                    // Avoid noisy warnings in tests by guarding behind config flag
-                    if ((bool)$this->config->get('exchange.log_attempt_warnings', false)) {
-                        $this->logger->log('warning', 'FX fetch attempt failed: ' . ($e->getMessage()));
-                    }
+                // Avoid noisy warnings in tests by guarding behind config flag
+                if ((bool) $this->config->get('exchange.log_attempt_warnings', false)) {
+                    $this->logger->log('warning', 'FX fetch attempt failed: ' . ($e->getMessage()));
+                }
             }
 
-            if ($i < $attempts && !$skipSleep) {
-                $delay = $this->computeRetryDelay($i, $baseDelay, $jitterPct);
+            if ($i < $attempts && ! $skipSleep) {
+                $delay = $this->computeRetryDelay(
+                    $i,
+                    $baseDelay,
+                    $jitterPct,
+                );
                 usleep($delay * 1000); // convert ms to microseconds
             }
         }
+
         return null;
     }
 
-    private function computeRetryDelay(int $attempt, int $baseDelayMs, int $jitterPercent): int
-    {
+    private function computeRetryDelay(
+        int $attempt,
+        int $baseDelayMs,
+        int $jitterPercent,
+    ): int {
         // Exponential backoff: base * 2^(attempt-1)
         $raw = $baseDelayMs * (2 ** ($attempt - 1));
         if ($jitterPercent > 0) {
-            $jitter = (int)($raw * ($jitterPercent / 100));
+            $jitter = (int) ($raw * ($jitterPercent / 100));
             $delta = random_int(-$jitter, $jitter);
             $raw += $delta;
         }
+
         return max(1, $raw);
     }
 
-    private function recordSuccess(string $stateKey, string $failKey, string $openedAtKey): void
-    {
-        $this->cacheService->put($failKey, 0, 300);
+    private function recordSuccess(
+        string $stateKey,
+        string $failKey,
+        string $openedAtKey,
+    ): void {
+        $this->cacheService->put(
+            $failKey,
+            0,
+            300,
+        );
         if ($this->cacheService->get($stateKey) !== 'closed') {
-            $this->cacheService->put($stateKey, 'closed', 300);
+            $this->cacheService->put(
+                $stateKey,
+                'closed',
+                300,
+            );
             $this->cacheService->forget($openedAtKey);
             // $this->logger->log('info', 'FX circuit reset to CLOSED.');
         }
     }
 
-    private function recordFailure(string $stateKey, string $failKey, string $openedAtKey, int $failThreshold, int $openTimeout, string $currentState): void
-    {
+    private function recordFailure(
+        string $stateKey,
+        string $failKey,
+        string $openedAtKey,
+        int $failThreshold,
+        int $openTimeout,
+        string $currentState,
+    ): void {
         // Increment failure count reliably (CacheService::increment returns bool in our adapter)
-            // Compute fail count manually because increment() returns boolean in our cache adapter
-            $previous = (int)($this->cacheService->get($failKey) ?? 0);
-            $failCount = $previous + 1;
-            $this->cacheService->put($failKey, $failCount, 300);
+        // Compute fail count manually because increment() returns boolean in our cache adapter
+        $previous = (int) ($this->cacheService->get($failKey) ?? 0);
+        $failCount = $previous + 1;
+        $this->cacheService->put(
+            $failKey,
+            $failCount,
+            300,
+        );
 
         if ($currentState === 'half_open') {
             // Immediate re-open on failure in half-open probe
-            $this->cacheService->put($stateKey, 'open', $openTimeout);
-            $this->cacheService->put($openedAtKey, ($this->clock)(), $openTimeout);
+            $this->cacheService->put(
+                $stateKey,
+                'open',
+                $openTimeout,
+            );
+            $this->cacheService->put(
+                $openedAtKey,
+                ($this->clock)(),
+                $openTimeout,
+            );
             $this->logger->log('warning', 'FX circuit re-opened after failed HALF_OPEN probe.');
+
             return;
         }
 
         if ($failCount >= $failThreshold && $this->cacheService->get($stateKey) !== 'open') {
-            $this->cacheService->put($stateKey, 'open', $openTimeout);
-            $this->cacheService->put($openedAtKey, ($this->clock)(), $openTimeout);
-            $this->logger->log('warning', 'FX circuit transitioned to OPEN after '.$failCount.' consecutive failures.');
+            $this->cacheService->put(
+                $stateKey,
+                'open',
+                $openTimeout,
+            );
+            $this->cacheService->put(
+                $openedAtKey,
+                ($this->clock)(),
+                $openTimeout,
+            );
+            $this->logger->log('warning', 'FX circuit transitioned to OPEN after ' . $failCount . ' consecutive failures.');
         }
     }
 }

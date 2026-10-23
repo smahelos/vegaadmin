@@ -3,7 +3,6 @@
 namespace App\Application\Invoice\Contracts;
 
 use App\Domain\User\ValueObjects\UserId;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 
 /**
  * Contract for invoice limit management services

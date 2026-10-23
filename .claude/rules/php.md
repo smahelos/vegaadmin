@@ -39,6 +39,13 @@ paths:
 - Catch only what you can handle, by its specific type. `\Throwable` / `\Exception` are caught only at a delivery boundary (controller, Livewire, command, queued job) to turn them into a response, and the original exception goes to the log with its context — never just `$e->getMessage()`.
 - Log messages are fixed English strings with structured context: `$this->log->error('Invoice PDF rendering failed', ['invoiceId' => $id, 'exception' => $e])`. Never log a translated string.
 
+## Readability
+
+Code is read far more often than written, and in an invoicing app a misread line costs money. Readability wins over brevity.
+
+- No nested ternaries, no clever one-liners, no chains that hide the steps. A well-named local variable or an early return beats packing logic into one expression.
+- No code without a purpose: unused parameters, variables, private methods and unreachable branches are deleted (Larastan reports most of them).
+
 ## Comments
 
 - Comments explain why, not what. No history notes ("removed X", "moved from Y", "Phase 2", "legacy compatibility") — git keeps the history.
@@ -46,5 +53,6 @@ paths:
 
 ## Formatting
 
-- Laravel Pint is the formatter, configured in `pint.json`: `docker exec BILLEX-app vendor/bin/pint --dirty` before every commit. Until the codebase has been formatted once (`docs/TECH_DEBT.md`, Tooling), Pint runs on new or fully rewritten files only; in other files you format only the lines you touch.
-- Larastan is the static analyser, raised level by level with no baseline file. Code you write passes the configured level; until Larastan is installed (`docs/TECH_DEBT.md`), write code that would pass its maximum level.
+- Formatting is the linters' job, not a reviewer's: Laravel Pint (`pint.json`) and PHP_CodeSniffer (`phpcs.xml`). Before every commit run `docker exec BILLEX-app vendor/bin/phpcbf` and then `docker exec BILLEX-app vendor/bin/pint --dirty`; CI checks both (`.github/workflows/lint.yml`).
+- A method signature, a call or an array with three or more parameters or items puts each one on its own line, with a trailing comma; one or two may share a line. A list is easier to scan, and adding an item changes one line of the diff. PHP_CodeSniffer enforces and fixes it: Slevomat's `RequireMultiLineCall` for calls, `Billex.Functions.MultiLineSignature` for methods, functions and closures, `Billex.Arrays.MultiLineArray` for arrays (destructuring stays on one line).
+- Larastan is the static analyser (`phpstan.neon`, `docker exec BILLEX-app vendor/bin/phpstan analyse --memory-limit=4G`), with no baseline file and no `@phpstan-ignore` comments. Its level is raised as contexts are converted, up to `max` (`docs/TECH_DEBT.md`); code you write passes the configured level and is written to pass `max`.

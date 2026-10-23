@@ -37,7 +37,7 @@ class ClientListLatestFeatureTest extends TestCase
     public function component_displays_user_clients_only(): void
     {
         $otherUser = User::factory()->create();
-        
+
         $userClient = Client::factory()->create(['user_id' => $this->user->id]);
         $otherUserClient = Client::factory()->create(['user_id' => $otherUser->id]);
 
@@ -56,12 +56,12 @@ class ClientListLatestFeatureTest extends TestCase
         // Create clients with different creation times
         $olderClient = Client::factory()->create([
             'user_id' => $this->user->id,
-            'created_at' => now()->subDays(2)
+            'created_at' => now()->subDays(2),
         ]);
-        
+
         $newerClient = Client::factory()->create([
             'user_id' => $this->user->id,
-            'created_at' => now()->subDay()
+            'created_at' => now()->subDay(),
         ]);
 
         $this->actingAs($this->user);
@@ -85,13 +85,13 @@ class ClientListLatestFeatureTest extends TestCase
             ->call('sortBy', 'created_at');
 
         $component->assertSet('orderBy', 'created_at')
-                  ->assertSet('orderAsc', true);
+            ->assertSet('orderAsc', true);
 
         // Call again to toggle direction
         $component->call('sortBy', 'created_at');
 
         $component->assertSet('orderBy', 'created_at')
-                  ->assertSet('orderAsc', false);
+            ->assertSet('orderAsc', false);
     }
 
     #[Test]
@@ -105,7 +105,7 @@ class ClientListLatestFeatureTest extends TestCase
             ->call('sortBy', 'name');
 
         $component->assertSet('orderBy', 'name')
-                  ->assertSet('orderAsc', true);
+            ->assertSet('orderAsc', true);
     }
 
     #[Test]
@@ -128,16 +128,16 @@ class ClientListLatestFeatureTest extends TestCase
         // Temporarily modify the auth to return an invalid user ID to trigger error
         $originalUser = auth()->user();
         auth()->logout();
-        
+
         // Force an invalid state that might cause database error
         $component = Livewire::test(ClientListLatest::class);
-        
+
         // Since we're not authenticated, it should handle gracefully
         $component->assertViewHas('hasData', false);
-        
+
         // Log back in to restore state
         $this->actingAs($originalUser);
-        
+
         // Test passes if component handles edge cases gracefully
         $this->assertTrue(true);
     }
@@ -199,12 +199,12 @@ class ClientListLatestFeatureTest extends TestCase
     {
         $clientB = Client::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Beta Client'
+            'name' => 'Beta Client',
         ]);
-        
+
         $clientA = Client::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Alpha Client'
+            'name' => 'Alpha Client',
         ]);
 
         $this->actingAs($this->user);
@@ -213,7 +213,7 @@ class ClientListLatestFeatureTest extends TestCase
             ->call('sortBy', 'name');
 
         $clients = $component->viewData('clients');
-        
+
         // Should be sorted alphabetically (asc)
         $this->assertEquals('Alpha Client', $clients->first()->name);
         $this->assertEquals('Beta Client', $clients->last()->name);
@@ -228,7 +228,7 @@ class ClientListLatestFeatureTest extends TestCase
             ->call('sortBy', 'name');
 
         $component->assertSet('orderBy', 'name')
-                  ->assertSet('orderAsc', true);
+            ->assertSet('orderAsc', true);
 
         $component->assertViewHas('hasData', false);
     }
@@ -245,6 +245,6 @@ class ClientListLatestFeatureTest extends TestCase
             ->set('orderAsc', true);
 
         $component->assertSet('orderBy', 'name')
-                  ->assertSet('orderAsc', true);
+            ->assertSet('orderAsc', true);
     }
 }

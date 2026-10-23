@@ -2,8 +2,9 @@
 
 namespace App\Application\Invoice\Contracts;
 
-use App\Models\User;
 use App\Application\Invoice\DTO\InvoiceActionResult;
+use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
+use App\Models\User;
 
 /**
  * Frontend-specific lightweight actions for invoices.
@@ -19,15 +20,24 @@ interface InvoiceFrontendActionsApplicationServiceInterface
     /**
      * Set invoice template.
      */
-    public function setTemplate(int $userId, int $invoiceId, string $template): InvoiceActionResult;
+    public function setTemplate(
+        int $userId,
+        int $invoiceId,
+        string $template,
+    ): InvoiceActionResult;
 
     /**
      * Change invoice status by slug (e.g. paid, sent, canceled).
      */
-    public function changeStatus(int $userId, int $invoiceId, string $statusSlug): InvoiceActionResult;
+    public function changeStatus(
+        int $userId,
+        int $invoiceId,
+        string $statusSlug,
+    ): InvoiceActionResult;
 
     /**
      * Get invoices limit data for user (limit, current_usage, allowed).
+     *
      * @return array{limit:int,current_usage:int,allowed:bool}
      */
     public function getLimitData(int $userId): InvoiceActionResult;
@@ -35,5 +45,9 @@ interface InvoiceFrontendActionsApplicationServiceInterface
     /**
      * Orchestrate multiple frontend actions in a single call using command object.
      */
-    public function orchestrate(int $userId, int $invoiceId, \App\Application\Invoice\DTO\OrchestratedInvoiceActions $actions): InvoiceActionResult;
+    public function orchestrate(
+        int $userId,
+        int $invoiceId,
+        OrchestratedInvoiceActions $actions,
+    ): InvoiceActionResult;
 }

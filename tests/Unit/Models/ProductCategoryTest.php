@@ -17,7 +17,7 @@ class ProductCategoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = new ProductCategory();
+        $this->model = new ProductCategory;
     }
 
     #[Test]
@@ -78,7 +78,7 @@ class ProductCategoryTest extends TestCase
     public function sluggable_configuration_is_correct(): void
     {
         $config = $this->model->sluggable();
-        
+
         $this->assertIsArray($config);
         $this->assertArrayHasKey('slug', $config);
         $this->assertArrayHasKey('source', $config['slug']);

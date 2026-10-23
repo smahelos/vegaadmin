@@ -114,5 +114,5 @@ return [
         'pricing' => 'Preise',
         'testimonials' => 'Referenzen',
         'faq' => 'Häufig gestellte Fragen',
-    ]
+    ],
 ];

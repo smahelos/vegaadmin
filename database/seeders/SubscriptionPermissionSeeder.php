@@ -15,28 +15,28 @@ class SubscriptionPermissionSeeder extends Seeder
         // Create permissions for subscription plans and subscriptions admin management
         Permission::firstOrCreate([
             'name' => 'can_create_edit_subscription_plan',
-            'guard_name' => 'backpack'
+            'guard_name' => 'backpack',
         ]);
 
         Permission::firstOrCreate([
             'name' => 'can_create_edit_subscription',
-            'guard_name' => 'backpack'
+            'guard_name' => 'backpack',
         ]);
 
         // Frontend permissions for subscription management
         Permission::firstOrCreate([
             'name' => 'frontend.can_view_subscription',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         Permission::firstOrCreate([
             'name' => 'frontend.can_create_subscription',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         Permission::firstOrCreate([
             'name' => 'frontend.can_cancel_subscription',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
     }
 }

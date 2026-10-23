@@ -2,7 +2,11 @@
 
 namespace Tests\Unit\Models;
 
+use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 use App\Models\Page;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -21,18 +25,18 @@ class PageTest extends TestCase
     #[Test]
     public function page_extends_eloquent_model(): void
     {
-        $this->assertTrue(is_subclass_of(Page::class, \Illuminate\Database\Eloquent\Model::class));
+        $this->assertTrue(is_subclass_of(Page::class, Model::class));
     }
 
     #[Test]
     public function page_uses_expected_traits(): void
     {
         $traits = class_uses_recursive(Page::class);
-        
-        $this->assertArrayHasKey(\Illuminate\Database\Eloquent\Factories\HasFactory::class, $traits);
+
+        $this->assertArrayHasKey(HasFactory::class, $traits);
         // Removed Sluggable trait from multilingual implementation
-        $this->assertArrayHasKey(\Backpack\CRUD\app\Models\Traits\CrudTrait::class, $traits);
-    $this->assertArrayHasKey(\App\Infrastructure\Shared\File\Traits\HasFileUploads::class, $traits);
+        $this->assertArrayHasKey(CrudTrait::class, $traits);
+        $this->assertArrayHasKey(HasFileUploads::class, $traits);
     }
 
     #[Test]
@@ -79,7 +83,7 @@ class PageTest extends TestCase
         $reflection = new \ReflectionClass(Page::class);
         $fillableProperty = $reflection->getProperty('fillable');
         $fillableProperty->setAccessible(true);
-        
+
         // Use reflection to get fillable without instantiating the model
         $fillableValue = $fillableProperty->getDefaultValue();
 
@@ -99,7 +103,7 @@ class PageTest extends TestCase
         $reflection = new \ReflectionClass(Page::class);
         $castsProperty = $reflection->getProperty('casts');
         $castsProperty->setAccessible(true);
-        
+
         // Use reflection to get casts without instantiating the model
         $castsValue = $castsProperty->getDefaultValue();
 

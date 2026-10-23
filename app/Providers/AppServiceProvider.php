@@ -2,16 +2,17 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Admin\UserCrudController;
 use App\View\Components\ApplicationLogo;
-use App\View\Components\NavLink;
-use App\View\Components\ResponsiveNavLink;
+use App\View\Components\CurrencySelect;
 use App\View\Components\Dropdown;
 use App\View\Components\DropdownLink;
+use App\View\Components\NavLink;
+use App\View\Components\ResponsiveNavLink;
 use App\View\Components\Select;
-use App\View\Components\CurrencySelect;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\ServiceProvider;
 
 // Context bindings and observers live in the bounded context providers (ADR D-042)
 
@@ -29,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
         // This allows us to override the default user management functionality
         $this->app->bind(
             \Backpack\PermissionManager\app\Http\Controllers\UserCrudController::class,
-            \App\Http\Controllers\Admin\UserCrudController::class
+            UserCrudController::class,
         );
     }
 

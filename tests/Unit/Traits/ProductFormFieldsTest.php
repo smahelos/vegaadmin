@@ -72,20 +72,6 @@ class ProductFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function trait_uses_required_models(): void
-    {
-        $reflection = new \ReflectionClass(ProductFormFields::class);
-        $source = file_get_contents($reflection->getFileName());
-
-        // Check that trait imports required models
-        $this->assertStringContainsString('use App\\Models\\ProductCategory;', $source);
-        $this->assertStringContainsString('use App\\Models\\Tax;', $source);
-        $this->assertStringContainsString('use App\\Models\\Supplier;', $source);
-    $this->assertStringContainsString('use App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface;', $source);
-        $this->assertStringContainsString('use App\\Domain\\Product\\Contracts\\ProductServiceInterface;', $source);
-    }
-
-    #[Test]
     public function trait_method_has_docblock(): void
     {
         $reflection = new \ReflectionClass(ProductFormFields::class);

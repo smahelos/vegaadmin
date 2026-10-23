@@ -16,11 +16,8 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class AdminListFiltersTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
-
-    private User $adminUser;
-    private User $regularUser;
+    use RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -53,7 +50,11 @@ class AdminListFiltersTest extends TestCase
         Client::factory()->create(['user_id' => $owner->id]);
         Client::factory()->create();
 
-        $this->postJson('/admin/client/search?user_id=' . $owner->id, ['draw' => 1, 'start' => 0, 'length' => 10])
+        $this->postJson('/admin/client/search?user_id=' . $owner->id, [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+        ])
             ->assertOk()
             ->assertJsonPath('recordsFiltered', 1);
     }
@@ -78,7 +79,11 @@ class AdminListFiltersTest extends TestCase
         Product::factory()->create(['is_active' => true]);
         Product::factory()->create(['is_active' => false]);
 
-        $this->postJson('/admin/product/search?is_active=1', ['draw' => 1, 'start' => 0, 'length' => 10])
+        $this->postJson('/admin/product/search?is_active=1', [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+        ])
             ->assertOk()
             ->assertJsonPath('recordsTotal', 2)
             ->assertJsonPath('recordsFiltered', 1);

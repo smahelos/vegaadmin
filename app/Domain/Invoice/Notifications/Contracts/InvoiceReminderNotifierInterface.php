@@ -11,5 +11,9 @@ interface InvoiceReminderNotifierInterface
     /**
      * Send an invoice reminder notification using the given payload and recipient.
      */
-    public function send(InvoiceReminderType $type, InvoiceReminderPayload $payload, Recipient $recipient): void;
+    public function send(
+        InvoiceReminderType $type,
+        InvoiceReminderPayload $payload,
+        Recipient $recipient,
+    ): void;
 }

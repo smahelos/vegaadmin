@@ -15,6 +15,7 @@ class PartyCreationValidator implements PartyCreationValidatorInterface
         if (empty($name) || mb_strlen($name) < 3) {
             throw new PartyCreationException('Client name missing or too short for creation.');
         }
+
         return [
             'name' => $name,
             'street' => $prefixed ? ($data['client_street'] ?? '') : ($data['street'] ?? ''),
@@ -37,6 +38,7 @@ class PartyCreationValidator implements PartyCreationValidatorInterface
         if (empty($name) || mb_strlen($name) < 3) {
             throw new PartyCreationException('Supplier name missing or too short for creation.');
         }
+
         return [
             'name' => $name,
             'street' => $data['street'] ?? '',
@@ -55,7 +57,7 @@ class PartyCreationValidator implements PartyCreationValidatorInterface
             'swift' => $data['swift'] ?? '',
             // Keep null when no logo provided; tests expect null not empty string
             'supplier_logo' => $data['supplier_logo'] ?? null,
-            'has_payment_info' => (!empty($data['account_number']) && !empty($data['bank_code'])),
+            'has_payment_info' => (! empty($data['account_number']) && ! empty($data['bank_code'])),
             'is_default' => $data['is_default'] ?? false,
             'user_id' => $userId->toInt(),
         ];

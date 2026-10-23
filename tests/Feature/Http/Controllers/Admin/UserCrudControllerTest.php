@@ -5,11 +5,10 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
-use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for Admin\UserCrudController
@@ -20,16 +19,11 @@ use PHPUnit\Framework\Attributes\Test;
  */
 class UserCrudControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesAdminTestEnvironment;
-
-    protected User $adminUser;
-    protected User $regularUser;
+    use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
 
     /**
      * Set up the test environment before each test.
      * Creates permissions, roles, and test users for admin CRUD testing.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -163,7 +157,7 @@ class UserCrudControllerTest extends TestCase
             'Expected status 200 or 302, got: ' . $response->status());
 
         // For soft deletes the row remains with deleted_at set
-        if (in_array('Illuminate\\Database\\Eloquent\\SoftDeletes', class_uses_recursive(\App\Models\User::class))) {
+        if (in_array('Illuminate\\Database\\Eloquent\\SoftDeletes', class_uses_recursive(User::class))) {
             $this->assertSoftDeleted('users', ['id' => $user->id]);
         } else {
             $this->assertDatabaseMissing('users', ['id' => $user->id]);
@@ -193,6 +187,6 @@ class UserCrudControllerTest extends TestCase
 
         $user = User::where('email', $testEmail)->first();
         $this->assertNotEquals($testPassword, $user->password);
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check($testPassword, $user->password));
+        $this->assertTrue(Hash::check($testPassword, $user->password));
     }
 }

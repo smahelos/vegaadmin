@@ -28,7 +28,11 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
     public function a_failure_while_storing_the_lines_leaves_the_invoice_and_its_lines_untouched(): void
     {
         $user = User::factory()->create();
-        $invoice = Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => 'BEFORE', 'payment_currency' => 'CZK']);
+        $invoice = Invoice::factory()->create([
+            'user_id' => $user->id,
+            'invoice_vs' => 'BEFORE',
+            'payment_currency' => 'CZK',
+        ]);
         $line = InvoiceProduct::factory()->create(['invoice_id' => $invoice->id]);
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
 
@@ -36,8 +40,18 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
             $this->app->make(InvoiceCrudApplicationServiceInterface::class)->update(
                 new UserId($user->id),
                 InvoiceId::fromInt($invoice->id),
-                ['invoice_vs' => 'AFTER', 'payment_currency' => 'CZK', 'payment_status_id' => $invoice->payment_status_id],
-                [new InvoiceProductWriteData('New line', '1', Unit::PIECES, Money::fromString('10', 'CZK'), '21')]
+                [
+                    'invoice_vs' => 'AFTER',
+                    'payment_currency' => 'CZK',
+                    'payment_status_id' => $invoice->payment_status_id,
+                ],
+                [new InvoiceProductWriteData(
+                    'New line',
+                    '1',
+                    Unit::PIECES,
+                    Money::fromString('10', 'CZK'),
+                    '21',
+                )],
             );
             $this->fail('The update did not fail');
         } catch (RuntimeException) {

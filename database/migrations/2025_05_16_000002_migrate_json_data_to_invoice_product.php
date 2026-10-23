@@ -1,7 +1,7 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use App\Models\Invoice;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -13,24 +13,24 @@ return new class extends Migration
     {
         // Procházíme všechny faktury s invoice_text
         $invoices = Invoice::whereNotNull('invoice_text')->get();
-        
+
         foreach ($invoices as $invoice) {
             try {
                 $invoiceData = json_decode($invoice->invoice_text, true);
-                
+
                 // Pokud máme platná JSON data a položky
                 if (is_array($invoiceData) && isset($invoiceData['items']) && is_array($invoiceData['items'])) {
                     foreach ($invoiceData['items'] as $item) {
                         // Zkontrolujeme, jestli je položka custom nebo existující produkt
-                        $isCustomProduct = !isset($item['product_id']) || empty($item['product_id']);
-                        
+                        $isCustomProduct = ! isset($item['product_id']) || empty($item['product_id']);
+
                         // Vypočítáme hodnoty
                         $price = $item['price'] ?? 0;
                         $quantity = $item['quantity'] ?? 1;
                         $taxRate = $item['tax_rate'] ?? 21;
                         $taxAmount = ($price * $quantity * $taxRate) / 100;
                         $totalPrice = ($price * $quantity) + $taxAmount;
-                        
+
                         // Vložíme záznam do pivotní tabulky
                         DB::table('invoice_product')->insert([
                             'invoice_id' => $invoice->id,
@@ -51,8 +51,8 @@ return new class extends Migration
                         ]);
                     }
                 }
-            } catch (\Exception $e) {
-                \Log::error('Failed to migrate invoice #' . $invoice->id . ' data: ' . $e->getMessage());
+            } catch (Exception $e) {
+                Log::error('Failed to migrate invoice #' . $invoice->id . ' data: ' . $e->getMessage());
             }
         }
     }

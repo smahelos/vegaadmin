@@ -9,14 +9,12 @@ class ExpenseRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
         // Only allow updates if the user has permission to manage expenses
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -50,10 +48,20 @@ class ExpenseRequest extends FormRequest
         ];
 
         if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
-            foreach (['expense_date','amount','currency','category_id','user_id'] as $field) {
-                $rules[$field] = str_replace('required','sometimes',$rules[$field]);
+            foreach ([
+                'expense_date',
+                'amount',
+                'currency',
+                'category_id',
+                'user_id',
+            ] as $field) {
+                $rules[$field] = str_replace(
+                    'required',
+                    'sometimes',
+                    $rules[$field],
+                );
             }
-            if (isset($rules['description']) && !str_contains($rules['description'], 'sometimes')) {
+            if (isset($rules['description']) && ! str_contains($rules['description'], 'sometimes')) {
                 $rules['description'] = 'sometimes|string';
             }
         }

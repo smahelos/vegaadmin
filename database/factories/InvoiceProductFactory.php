@@ -8,8 +8,8 @@ use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
-use App\Models\InvoiceProduct;
 use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,10 +21,18 @@ class InvoiceProductFactory extends Factory
     {
         $line = new InvoiceProductWriteData(
             name: $this->faker->words(2, true),
-            quantity: (string) $this->faker->randomFloat(3, 1, 10),
+            quantity: (string) $this->faker->randomFloat(
+                3,
+                1,
+                10,
+            ),
             unit: $this->faker->randomElement(Unit::cases()),
             price: Money::fromString((string) $this->faker->randomFloat(2, 10, 1000), Currency::CZK->value),
-            taxRate: $this->faker->randomElement(['0', '12', '21']),
+            taxRate: $this->faker->randomElement([
+                '0',
+                '12',
+                '21',
+            ]),
         );
 
         return [

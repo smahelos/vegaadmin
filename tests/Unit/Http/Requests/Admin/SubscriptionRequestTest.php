@@ -14,7 +14,7 @@ class SubscriptionRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new SubscriptionRequest();
+        $this->request = new SubscriptionRequest;
     }
 
     #[Test]
@@ -29,7 +29,7 @@ class SubscriptionRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -40,7 +40,7 @@ class SubscriptionRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -51,17 +51,16 @@ class SubscriptionRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
-
 
     #[Test]
     public function rules_returns_array_with_required_fields(): void
     {
         $rules = $this->request->rules();
-        
+
         $this->assertIsArray($rules);
         $this->assertArrayHasKey('user_id', $rules);
         $this->assertArrayHasKey('subscription_plan_id', $rules);
@@ -74,7 +73,7 @@ class SubscriptionRequestTest extends TestCase
     public function rules_contains_correct_validation_patterns(): void
     {
         $rules = $this->request->rules();
-        
+
         $this->assertStringContainsString('required', $rules['user_id']);
         $this->assertStringContainsString('required', $rules['subscription_plan_id']);
         $this->assertStringContainsString('required', $rules['status']);
@@ -92,23 +91,21 @@ class SubscriptionRequestTest extends TestCase
         // For unit tests, we just check the method exists and returns array
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertEquals('array', $method->getReturnType()->getName());
     }
-
-
 
     #[Test]
     public function date_validation_rules_are_present(): void
     {
         $rules = $this->request->rules();
-        
+
         $this->assertArrayHasKey('starts_at', $rules);
         $this->assertArrayHasKey('ends_at', $rules);
         $this->assertArrayHasKey('trial_ends_at', $rules);
         $this->assertArrayHasKey('next_billing_at', $rules);
-        
+
         $this->assertStringContainsString('nullable', $rules['starts_at']);
         $this->assertStringContainsString('date', $rules['starts_at']);
         $this->assertStringContainsString('after:starts_at', $rules['ends_at']);

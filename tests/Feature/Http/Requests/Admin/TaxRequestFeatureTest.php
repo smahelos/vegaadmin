@@ -2,18 +2,17 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\TaxRequest;
+use App\Models\EntityLimit;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
-use App\Models\EntityLimit;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 
 /**
  * Feature test for TaxRequest class.
@@ -21,10 +20,8 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
  */
 class TaxRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-    protected User $regularUser;
     private UniversalLimitService $limitService;
 
     /**
@@ -65,7 +62,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_data(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         $validData = [
             'name' => 'VAT 21%',
@@ -83,7 +80,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_missing_required_fields(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         $validator = Validator::make([], $request->rules());
 
@@ -98,7 +95,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_name_too_long(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         $invalidData = [
             'name' => str_repeat('a', 256), // Exceeds max length of 255
@@ -117,7 +114,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_rate_not_numeric(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         $invalidData = [
             'name' => 'VAT',
@@ -136,7 +133,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_rate_negative(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         $invalidData = [
             'name' => 'VAT',
@@ -155,7 +152,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_accepts_zero_rate(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         $validData = [
             'name' => 'Tax Free',
@@ -173,7 +170,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_accepts_decimal_rates(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         $validData = [
             'name' => 'Reduced VAT',
@@ -191,7 +188,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_accepts_integer_rates(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         $validData = [
             'name' => 'Standard VAT',
@@ -245,19 +242,31 @@ class TaxRequestFeatureTest extends TestCase
     {
         $this->revokeUnlimitedAccess('tax');
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type','tax')->update(['limit_value'=>1]);
+        EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 1]);
 
         $this->postJson('/test-tax', [
             'name' => 'Tax One',
             'rate' => 5,
         ])->assertStatus(200);
 
-        $this->limitService->recordUsage($this->adminUser->id,'tax','count','monthly','backpack');
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'tax',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
-        $request = new class extends TaxRequest { public function rules(): array { return []; } };
-        $request->replace(['name'=>'Tax Two','rate'=>10]);
-        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> null]);
+        $this->expectException(EntityLimitExceededException::class);
+        $request = new class extends TaxRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
+        $request->replace(['name' => 'Tax Two', 'rate' => 10]);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
         $request->authorize();
     }
@@ -266,11 +275,17 @@ class TaxRequestFeatureTest extends TestCase
     public function admin_creation_bypasses_entity_limits(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type','tax')->update(['limit_value'=>0]);
+        EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 0]);
 
-        $request = new class extends TaxRequest { public function rules(): array { return []; } };
-        $request->replace(['name'=>'Tax','rate'=>10]);
-        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> null]);
+        $request = new class extends TaxRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
+        $request->replace(['name' => 'Tax', 'rate' => 10]);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
         $this->assertTrue($request->authorize());
     }
@@ -279,12 +294,24 @@ class TaxRequestFeatureTest extends TestCase
     public function tax_update_bypasses_limit_checks(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type','tax')->update(['limit_value'=>0]);
-        $this->limitService->recordUsage($this->adminUser->id,'tax','count','monthly','backpack');
+        EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 0]);
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'tax',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
-        $request = new class extends TaxRequest { public function rules(): array { return []; } };
-        $request->replace(['name'=>'Updated Tax','rate'=>15]);
-        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> 'existing-tax']);
+        $request = new class extends TaxRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
+        $request->replace(['name' => 'Updated Tax', 'rate' => 15]);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-tax']);
         $request->setMethod('PUT');
         $this->assertTrue($request->authorize());
     }
@@ -295,7 +322,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function custom_attributes_are_defined(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
         $attributes = $request->attributes();
 
         $expectedAttributes = [
@@ -312,7 +339,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function validation_with_edge_case_values(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         // Test with very high rate
         $validData = [
@@ -339,7 +366,7 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function name_accepts_various_valid_formats(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
         $validNames = [
             'VAT',
@@ -365,9 +392,14 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function required_errors_name_the_field_label(): void
     {
-        $request = new TaxRequest();
+        $request = new TaxRequest;
 
-        $validator = Validator::make(['name' => '', 'rate' => ''], $request->rules(), $request->messages(), $request->attributes());
+        $validator = Validator::make(
+            ['name' => '', 'rate' => ''],
+            $request->rules(),
+            $request->messages(),
+            $request->attributes(),
+        );
 
         $this->assertSame(__('validation.required', ['attribute' => __('taxes.fields.name')]), $validator->errors()->first('name'));
         $this->assertSame(__('validation.required', ['attribute' => __('taxes.fields.rate')]), $validator->errors()->first('rate'));

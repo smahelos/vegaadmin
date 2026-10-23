@@ -4,6 +4,7 @@ namespace App\Infrastructure\Persistence\Eloquent\User\Mappers;
 
 use App\Domain\User\DTO\UserDTO;
 use App\Models\User;
+use Carbon\Carbon;
 
 /**
  * Maps between Eloquent User models and User DTOs.
@@ -34,9 +35,9 @@ class EloquentUserMapper
         return [
             'name' => $dto->name,
             'email' => $dto->email,
-            'email_verified_at' => $dto->email_verified_at ? \Carbon\Carbon::parse($dto->email_verified_at) : null,
-            'created_at' => $dto->created_at ? \Carbon\Carbon::parse($dto->created_at) : null,
-            'updated_at' => $dto->updated_at ? \Carbon\Carbon::parse($dto->updated_at) : null,
+            'email_verified_at' => $dto->email_verified_at ? Carbon::parse($dto->email_verified_at) : null,
+            'created_at' => $dto->created_at ? Carbon::parse($dto->created_at) : null,
+            'updated_at' => $dto->updated_at ? Carbon::parse($dto->updated_at) : null,
         ];
     }
 }
