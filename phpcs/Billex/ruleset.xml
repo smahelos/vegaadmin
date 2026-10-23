@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<ruleset name="Billex">
+    <description>Billex sniffs for layout rules that Pint cannot express.</description>
+    <autoload>./ListLayout.php</autoload>
+</ruleset>

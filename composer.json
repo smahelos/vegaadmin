@@ -31,7 +31,9 @@
         "laravel/pint": "^1.13",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "phpunit/phpunit": "^11.5.3"
+        "phpunit/phpunit": "^11.5.3",
+        "slevomat/coding-standard": "^8.31",
+        "squizlabs/php_codesniffer": "^4.0"
     },
     "autoload": {
         "files": [
@@ -76,7 +78,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
     "minimum-stability": "stable",
