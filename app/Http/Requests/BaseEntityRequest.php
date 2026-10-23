@@ -78,6 +78,11 @@ abstract class BaseEntityRequest extends FormRequest
     abstract protected function getRequiredPermission(): string;
 
     /**
+     * Entity type whose limits apply to creation (UELS), e.g. 'invoice'.
+     */
+    abstract protected function getEntityType(): string;
+
+    /**
      * Get validation rules - must be implemented by child classes
      */
     abstract public function rules(): array;

@@ -241,7 +241,7 @@ class DddGuardCommand extends Command
         if ($this->option('suppress-exit')) {
             return 0;
         }
-        if (! empty($violations)) {
+        if ($violations !== []) {
             return 1;
         }
         if ($failOnAdvisory && ! empty($advisories)) {

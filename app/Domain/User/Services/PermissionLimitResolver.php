@@ -396,7 +396,7 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
                 }
             }
 
-            if (! empty($limits)) {
+            if ($limits !== []) {
                 $result[] = [
                     'permission' => $permissionName,
                     'limits' => $limits,

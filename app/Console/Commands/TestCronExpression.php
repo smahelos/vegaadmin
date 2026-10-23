@@ -18,6 +18,8 @@ class TestCronExpression extends Command
 
     public function handle(): int
     {
+        $task = null;
+
         if ($this->argument('id')) {
             // Check existing tasks
             $task = CronTask::find($this->argument('id'));
@@ -57,7 +59,7 @@ class TestCronExpression extends Command
 
             // Simulation of task execution
             if ($this->confirm('Do yu want to simulate task run? [y/N]', false)) {
-                if ($this->argument('id')) {
+                if ($task !== null) {
                     // Run the task command
                     $this->info("Task run: {$task->command}");
                     $this->call($task->command);

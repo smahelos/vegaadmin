@@ -124,7 +124,7 @@ class CountryService implements CountryServiceInterface
                 ];
             }
         }
-        if (empty($result)) {
+        if ($result === []) {
             return $this->getFallbackCountryCodesFormatted();
         }
 
