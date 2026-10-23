@@ -256,20 +256,9 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** per `rules/frontend.md`.
 
 ### Translations
-- **Where:** `lang/*` (23 files, 2076 keys in cs), 623 `trans()` calls; `translations:check … --compare=cs` reports 15 missing keys/files in de, 13 in en, 14 in sk (e.g. `admin.database.*`, `clients.messages.limit_exceeded`); `lang/en/{auth,pagination,passwords}.php` missing in cs/de/sk; `lang/{cs,de,sk}/ddd_guard.php` translates developer-tool output; `lang/*/emails.php` calls `config()`
-- **Problem:**
-  - Texts are split by entity and by screen area at once: `admin.php` holds 878 keys in 35 sections, 14 of them mirror a context file (`admin.clients` ↔ `clients.php`, `admin.products`, `admin.invoices`, `admin.suppliers`, `admin.pages`, `admin.subscriptions`, …). The same field gets two texts (`admin.clients.street` "Ulice" vs `clients.fields.street` "Ulice a číslo").
-  - 137 keys used in code do not exist, so users see the key (e.g. `admin.products.*` 14, `general.entity_limits.*` 11, `admin.validation.*` 10, `admin.status_categories.*` 10, `admin.product_categories.*` 8 used by `ProductCategoryRequest`). About 665 keys are never referenced literally (an estimate: some keys are built dynamically).
-  - 48 form requests define `messages()`, mostly repeating Laravel's standard messages already translated in `lang/*/validation.php` ("Název je povinný" 7×).
-  - File names mix singular and plural (`subscription.php`, `tax.php` vs `suppliers.php`, `payment_methods.php`); `payment_statuses.php` beside `statuses.php`.
-- **Fix (decided 2026-10-22):**
-  - One file per bounded context or entity, read by frontend and admin alike, plural names; the same sections in each: `entity` (singular/plural), `fields` (labels, columns and validation attributes), `hints`, `placeholders`, `actions`, `messages`, `validation` (only rules the standard messages cannot express), `statuses` (enum labels). A sub-entity is a section of its parent (`products.categories.*`) or its own file when large.
-  - `admin.php` only for admin screens that are not entities (menu, dashboard, database maintenance, cache, UELS dashboard); large parts in `lang/*/admin/<area>.php` (`__('admin/database.title')`).
-  - `general.php` only for interface words (save, cancel, yes/no, created/updated, pagination, empty states). Field labels stay in the entity file even when the word repeats across entities.
-  - Requests name fields through `attributes()` from `<entity>.fields.*` and drop `messages()` that repeat the standard ones.
-  - `__()` only, all keys in all locales, developer output in plain English, no `config()` in language files (pass values as parameters).
-  - A test that every key used in code exists in cs; refine `rules/translations.md` ("a file per bounded context or screen area" lets screen-area files take over entity texts).
-  - Convert context by context with `/convert-to-standard`; fix the missing keys first, users see them.
+- **Where:** 44 `trans()` calls in `app/` and `resources/views`; 9 form requests with `messages()`; `lang/*/admin.php` sections `dashboard`, `user_activity`, `user`, `auth`, `general`; `lang/*/emails.php` calls `config()` and `date()`
+- **Problem:** the structure and every literal key are in place (`rules/translations.md`, `TranslationKeysExistTest`), but some code still uses `trans()`, some requests repeat standard messages, the admin dashboard and user activity texts sit in `admin.php` beside the menu, and the email texts compute the app name and year inside the language file. Keys that no code references were never counted after the restructuring.
+- **Fix:** `__()` on the remaining calls; drop `messages()` that repeat `lang/*/validation.php`; move the dashboard and user activity texts to `lang/*/admin/dashboard.php` (or their entity files); pass the app name and year to the email texts as parameters; delete unreferenced keys file by file. Convert with `/convert-to-standard` context by context.
 
 ### Route names and URLs
 - **Where:** `routes/web.php`, `routes/api.php`, every `route('…')` call in `app/`, `resources/views/`, `resources/js/` and `tests/`
