@@ -14,6 +14,7 @@ return [
         'failed' => 'Fehlgeschlagen',
         'cancelled' => 'Storniert',
         'refunded' => 'Erstattet',
+        'partially_refunded' => 'Teilweise erstattet',
     ],
     'gateways' => [
         'gopay' => 'GoPay',

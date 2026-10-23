@@ -14,6 +14,7 @@ return [
         'failed' => 'Failed',
         'cancelled' => 'Cancelled',
         'refunded' => 'Refunded',
+        'partially_refunded' => 'Partially refunded',
     ],
     'gateways' => [
         'gopay' => 'GoPay',

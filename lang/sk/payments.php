@@ -14,6 +14,7 @@ return [
         'failed' => 'Neúspešné',
         'cancelled' => 'Zrušené',
         'refunded' => 'Vrátené',
+        'partially_refunded' => 'Čiastočne vrátené',
     ],
     'gateways' => [
         'gopay' => 'GoPay',
