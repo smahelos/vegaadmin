@@ -2,6 +2,10 @@
 
 namespace Tests\Feature\Domain\Invoice\Services;
 
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Unit\Enums\Unit;
 use App\Domain\Invoice\Services\InvoiceService;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
@@ -40,99 +44,51 @@ class InvoiceServiceFeatureTest extends TestCase
 	// --- Save products ---
 
 	#[Test]
-	public function save_invoice_products_creates_custom_products(): void
+	public function save_invoice_products_stores_each_line_with_its_computed_amounts(): void
 	{
 		$invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-		$products = [
-			[
-				'name' => 'Custom Product 1',
-				'quantity' => 2,
-				'price' => 100.50,
-				'currency' => 'CZK',
-				'unit' => 'pieces',
-				'tax_rate' => 21,
-				'description' => 'Custom product description',
-				'is_custom_product' => true
-			],
-			[
-				'name' => 'Custom Product 2',
-				'quantity' => 1,
-				'price' => 200,
-				'currency' => 'EUR',
-				'unit' => 'hours',
-				'tax_rate' => 15,
-				'category' => 'Service'
-			]
-		];
-	$this->service->saveInvoiceProducts(InvoiceId::fromInt($invoice->id), $products);
+		$product = Product::factory()->create(['user_id' => $this->user->id]);
+
+		$this->service->saveInvoiceProducts(InvoiceId::fromInt($invoice->id), [
+			new InvoiceProductWriteData(
+				name: 'Consulting',
+				quantity: '1.5',
+				unit: Unit::HOURS,
+				price: Money::fromString('249.30', 'CZK'),
+				taxRate: '12',
+				category: 'Service',
+			),
+			new InvoiceProductWriteData(
+				name: 'Existing Product',
+				quantity: '3',
+				unit: Unit::PIECES,
+				price: Money::fromString('74.67', 'CZK'),
+				taxRate: '21',
+				productId: ProductId::fromInt($product->id),
+			),
+		]);
+
 		$this->assertDatabaseHas('invoice_products', [
 			'invoice_id' => $invoice->id,
-			'name' => 'Custom Product 1',
-			'quantity' => 2,
-			'price' => 100.50,
-			'currency' => 'CZK',
-			'unit' => 'pieces',
-			'tax_rate' => 21,
+			'name' => 'Consulting',
+			'product_id' => null,
 			'is_custom_product' => true,
-			'product_id' => null
-		]);
-		$this->assertDatabaseHas('invoice_products', [
-			'invoice_id' => $invoice->id,
-			'name' => 'Custom Product 2',
-			'quantity' => 1,
-			'price' => 200,
-			'currency' => 'EUR',
+			'quantity' => '1.500',
 			'unit' => 'hours',
-			'tax_rate' => 15,
+			'price' => '249.30',
+			'tax_rate' => '12.00',
+			'tax_amount' => '44.87',
+			'total_price' => '418.82',
 			'category' => 'Service',
-			'product_id' => null
 		]);
-		$this->assertEquals(2, InvoiceProduct::where('invoice_id', $invoice->id)->count());
-	}
-
-	#[Test]
-	public function save_invoice_products_creates_products_with_product_id(): void
-	{
-		$invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-		$product = Product::factory()->create();
-		$products = [[
-			'product_id' => $product->id,
-			'name' => 'Existing Product',
-			'quantity' => 3,
-			'price' => 50,
-			'currency' => 'CZK',
-			'unit' => 'pieces',
-			'tax_rate' => 21
-		]];
-	$this->service->saveInvoiceProducts(InvoiceId::fromInt($invoice->id), $products);
 		$this->assertDatabaseHas('invoice_products', [
 			'invoice_id' => $invoice->id,
 			'product_id' => $product->id,
-			'name' => 'Existing Product',
-			'quantity' => 3,
-			'price' => 50,
-			'is_custom_product' => false
+			'is_custom_product' => false,
+			'tax_amount' => '47.04',
+			'total_price' => '271.05',
 		]);
 	}
-
-	#[Test]
-	public function save_invoice_products_calculates_tax_and_total_correctly(): void
-	{
-		$invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-		$products = [[
-			'name' => 'Tax Test Product',
-			'quantity' => 2,
-			'price' => 100,
-			'tax_rate' => 21,
-			'currency' => 'CZK',
-			'unit' => 'pieces'
-		]];
-	$this->service->saveInvoiceProducts(InvoiceId::fromInt($invoice->id), $products);
-		$invoiceProduct = InvoiceProduct::where('invoice_id', $invoice->id)->first();
-		$this->assertEquals(42, $invoiceProduct->tax_amount); // (2*100*21)/100
-		$this->assertEquals(242, $invoiceProduct->total_price); // 2*100*(1+0.21)
-	}
-
 
 	// --- Mark as paid ---
 

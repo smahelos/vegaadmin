@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\Shared\Unit\Enums\Unit;
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class InvoiceRequest extends BaseEntityRequest
 {
@@ -14,18 +17,7 @@ class InvoiceRequest extends BaseEntityRequest
      */
     public function authorize(): bool
     {
-        // Allow guest access for the guest invoice creation endpoint
-        $route = $this->route();
-        $routeName = null;
-        if ($route) {
-            // Support both Illuminate Route and simple stdClass used in tests
-            if (is_object($route) && method_exists($route, 'getName')) {
-                $routeName = $route->getName();
-            } elseif (is_object($route) && property_exists($route, 'name')) {
-                $routeName = $route->name;
-            }
-        }
-        if ($routeName === 'frontend.invoice.store.guest') {
+        if ($this->isGuestStore()) {
             return true; // Skip parent authorization & limit checks for guest temporary invoices
         }
         return parent::authorize();
@@ -36,10 +28,8 @@ class InvoiceRequest extends BaseEntityRequest
      */
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
     {
-        $route = $this->route();
-        $routeName = (is_object($route) && method_exists($route, 'getName')) ? $route->getName() : (is_object($route) && property_exists($route, 'name') ? $route->name : null);
 
-        if ($routeName === 'frontend.invoice.store.guest') {
+        if ($this->isGuestStore()) {
             // For guest JSON endpoint, return 422 JSON response
             $response = response()->json([
                 'message' => __('invoices.messages.validation_failed'),
@@ -62,9 +52,7 @@ class InvoiceRequest extends BaseEntityRequest
      */
     public function expectsJson(): bool
     {
-        $route = $this->route();
-        $routeName = (is_object($route) && method_exists($route, 'getName')) ? $route->getName() : (is_object($route) && property_exists($route, 'name') ? $route->name : null);
-        if ($routeName === 'frontend.invoice.store.guest') {
+        if ($this->isGuestStore()) {
             return true;
         }
         return parent::expectsJson();
@@ -72,9 +60,7 @@ class InvoiceRequest extends BaseEntityRequest
 
     public function wantsJson(): bool
     {
-        $route = $this->route();
-        $routeName = (is_object($route) && method_exists($route, 'getName')) ? $route->getName() : (is_object($route) && property_exists($route, 'name') ? $route->name : null);
-        if ($routeName === 'frontend.invoice.store.guest') {
+        if ($this->isGuestStore()) {
             return true;
         }
         return parent::wantsJson();
@@ -113,7 +99,7 @@ class InvoiceRequest extends BaseEntityRequest
             'invoice_ss' => 'nullable|string|max:20',
             'payment_method_id' => 'required|exists:payment_methods,id',
             'payment_amount' => 'required|numeric|min:0',
-            'payment_currency' => 'required|string|max:3',
+            'payment_currency' => ['required', Rule::enum(Currency::class)],
             'issue_date' => 'required|date',
             'tax_point_date' => 'nullable|date',
             'due_in' => 'required|integer|min:1',
@@ -160,30 +146,64 @@ class InvoiceRequest extends BaseEntityRequest
 
             'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
 
-            'invoice-products' => ['nullable', $this->itemUnitsRule()],
+            'invoice-products' => ['required', 'array', 'min:1'],
+            'invoice-products.*' => ['array'],
+            'invoice-products.*.name' => ['required', 'string', 'max:255'],
+            'invoice-products.*.quantity' => ['required', 'numeric', 'decimal:0,3', 'gt:0', 'max:99999.999'],
+            'invoice-products.*.unit' => ['nullable', Rule::enum(Unit::class)],
+            'invoice-products.*.price' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999.99'],
+            'invoice-products.*.currency' => ['required', Rule::enum(Currency::class), 'same:payment_currency'],
+            'invoice-products.*.tax_rate' => ['required', 'numeric', $this->taxRateRule()],
+            'invoice-products.*.product_id' => $this->isGuestStore()
+                ? ['prohibited']
+                : ['nullable', 'integer', Rule::exists('products', 'id')->where('user_id', $this->user()?->getAuthIdentifier())],
+            'invoice-products.*.category' => ['nullable', 'string', 'max:255'],
+            'invoice-products.*.description' => ['nullable', 'string', 'max:255'],
         ];
 
         return $rules;
     }
 
     /**
-     * The items arrive as one JSON field; each unit must be empty or a Unit value.
+     * A line may carry only a rate the invoice form offers: 0 % or one of the VAT rates in the taxes table.
      */
-    private function itemUnitsRule(): Closure
+    private function taxRateRule(): Closure
     {
-        return function (string $attribute, mixed $value, Closure $fail): void {
-            $items = is_string($value) ? json_decode($value, true) : $value;
+        $taxes = app(TaxDtoReadRepositoryInterface::class);
+        $allowed = array_map(
+            fn (int|float|string $rate): string => $this->normalizedRate((string) $rate),
+            ['0', ...array_values($taxes->getDphRatesForDropdown())]
+        );
 
-            foreach (is_array($items) ? $items : [] as $item) {
-                $unit = is_array($item) ? ($item['unit'] ?? null) : null;
-
-                if ($unit !== null && $unit !== '' && (! is_string($unit) || Unit::tryFrom($unit) === null)) {
-                    $fail(__('invoices.validation.unit'));
-
-                    return;
-                }
+        return function (string $attribute, mixed $value, Closure $fail) use ($allowed): void {
+            if (is_numeric($value) && ! in_array($this->normalizedRate((string) $value), $allowed, true)) {
+                $fail(__('invoices.validation.tax_rate'));
             }
         };
+    }
+
+    /** "21", "21.0" and "21.00" are the same rate. */
+    private function normalizedRate(string $rate): string
+    {
+        $rate = ltrim(trim($rate), '+');
+        if (str_contains($rate, '.')) {
+            $rate = rtrim(rtrim($rate, '0'), '.');
+        }
+
+        return $rate === '' ? '0' : $rate;
+    }
+
+    private function isGuestStore(): bool
+    {
+        // Tests pass a plain object with a name property instead of an Illuminate route
+        $route = $this->route();
+        $name = match (true) {
+            is_object($route) && method_exists($route, 'getName') => $route->getName(),
+            is_object($route) && property_exists($route, 'name') => $route->name,
+            default => null,
+        };
+
+        return $name === 'frontend.invoice.store.guest';
     }
 
     /**
@@ -234,12 +254,22 @@ class InvoiceRequest extends BaseEntityRequest
             'invoice_text' => __('invoices.fields.invoice_text'),
             'invoice_logo' => __('invoices.fields.invoice_logo'),
             'template' => __('invoices.fields.template'),
+            'invoice-products' => __('invoices.fields.invoice_items'),
+            'invoice-products.*.name' => __('invoices.fields.item_name'),
+            'invoice-products.*.quantity' => __('invoices.fields.item_quantity'),
+            'invoice-products.*.unit' => __('invoices.fields.item_unit'),
+            'invoice-products.*.price' => __('invoices.fields.item_price'),
+            'invoice-products.*.currency' => __('invoices.fields.item_currency'),
+            'invoice-products.*.tax_rate' => __('invoices.fields.item_tax_rate'),
+            'invoice-products.*.product_id' => __('invoices.fields.item_product'),
+            'invoice-products.*.category' => __('invoices.fields.item_category'),
+            'invoice-products.*.description' => __('invoices.fields.item_description'),
         ];
     }
 
     /**
-     * Choosing an existing party or filling in a new one is one decision; the standard
-     * required_without message cannot say that.
+     * Choosing an existing party or filling in a new one is one decision, and an item must be
+     * in the currency of the invoice; the standard messages cannot say that.
      *
      * @return array<string, string>
      */
@@ -248,6 +278,9 @@ class InvoiceRequest extends BaseEntityRequest
         return [
             'supplier_id.required_without' => __('invoices.validation.supplier_required_without'),
             'client_id.required_without' => __('invoices.validation.client_required_without'),
+            'invoice-products.required' => __('invoices.validation.amount_positive'),
+            'invoice-products.min' => __('invoices.validation.amount_positive'),
+            'invoice-products.*.currency.same' => __('invoices.validation.item_currency'),
         ];
     }
 
@@ -286,6 +319,15 @@ class InvoiceRequest extends BaseEntityRequest
         foreach (['payment_method_id', 'supplier_id', 'client_id', 'due_in', 'payment_status_id'] as $field) {
             if (!$this->filled($field) && $this->has($field . '_fallback')) {
                 $merge[$field] = $this->input($field . '_fallback');
+            }
+        }
+
+        // The form sends the items as one JSON field; a value that is not JSON stays and fails the array rule.
+        $items = $this->input('invoice-products');
+        if (is_string($items)) {
+            $decoded = json_decode($items, true);
+            if (is_array($decoded)) {
+                $merge['invoice-products'] = $decoded;
             }
         }
 

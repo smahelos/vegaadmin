@@ -500,9 +500,12 @@ class InvoicePdfServiceFeatureTest extends TestCase
 
         $formatter = app(\App\Domain\Shared\Money\Contracts\MoneyFormatterInterface::class);
         $currency = 'EUR';
-        $paymentMoney = \App\Domain\Shared\Money\ValueObjects\Money::fromFloat(2500.75, $currency);
-        $expectedPayment = $formatter->format($paymentMoney, 'cs');
-        $this->assertEquals($expectedPayment, $captured['paymentAmountFormatted']);
+        // The amount comes from the lines (50.50 * 21 % = 10.605 rounds to 10.61), not from the typed 2500.75
+        $paymentMoney = \App\Domain\Shared\Money\ValueObjects\Money::fromString('303.11', $currency);
+        $this->assertEquals($formatter->format($paymentMoney, 'cs'), $captured['paymentAmountFormatted']);
+        $this->assertSame('250.5', $printData->subtotal->getAmount());
+        $this->assertSame('52.61', $printData->total_tax->getAmount());
+        $this->assertSame('61.11', $printData->items[1]->line_total->getAmount());
 
         foreach ($captured['invoiceProductsFormatted'] as $item) {
             $this->assertArrayHasKey('price_formatted', $item);
@@ -599,63 +602,4 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertFalse($captured['hasQrCode']);
     }
 
-    #[Test]
-    public function temporary_invoice_data_builder_handles_mixed_item_currencies(): void
-    {
-        $invoiceData = [
-            'client_name' => 'Mixed Client',
-            'name' => 'Mixed Supplier',
-            'payment_method_id' => 1,
-            'payment_status_id' => 1,
-            'payment_currency' => 'CZK', // base invoice currency
-            'invoice_vs' => '2024MIX',
-            'issue_date' => '2024-03-10',
-            'due_in' => 7,
-            'payment_amount' => 1500.00,
-            'invoice_text' => 'Mixed currencies',
-            'lang' => 'en',
-            'invoice-products' => [
-                [
-                    'name' => 'USD Item',
-                    'quantity' => 1,
-                    'unit' => 'pieces',
-                    'price' => 10,
-                    'currency' => 'USD',
-                    'tax_rate' => 0,
-                    'tax_amount' => 0,
-                    'total_price' => 10,
-                ],
-                [
-                    'name' => 'EUR Item',
-                    'quantity' => 2,
-                    'unit' => 'pieces',
-                    'price' => 5,
-                    'currency' => 'EUR',
-                    'tax_rate' => 21,
-                    'tax_amount' => (5*2*21)/100,
-                    'total_price' => (5*2) + ((5*2*21)/100),
-                ],
-            ],
-        ];
-
-        $printData = $this->tempFactory->fromArray($invoiceData);
-        $captured = null;
-        Pdf::shouldReceive('loadView')->once()->with(
-            \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) { $captured = $data; return true; })
-        )->andReturnSelf();
-        $this->renderer->render($printData, $printData->template, 'en');
-
-        $this->assertArrayHasKey('invoiceProductsFormatted', $captured);
-        $this->assertCount(2, $captured['invoiceProductsFormatted']);
-
-        // Ensure each item retained its own currency formatting (heuristic check by code or symbol)
-        $usdItem = $captured['invoiceProductsFormatted'][0];
-        $eurItem = $captured['invoiceProductsFormatted'][1];
-        $this->assertMatchesRegularExpression('/USD|\$/', $usdItem['price_formatted']);
-        $this->assertMatchesRegularExpression('/EUR|€/', $eurItem['price_formatted']);
-
-        // Subtotal formatted should use base invoice currency CZK or a generic currency pattern
-        $this->assertMatchesRegularExpression('/CZK|Kč/', $captured['subtotalFormatted']);
-    }
 }

@@ -553,6 +553,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                     <div id="invoice-items-list">
                         <!-- Place to generate items dynamicaly -->
                     </div>
+                    <x-invoice-item-errors />
                 </div>
 
                 <div class="flex justify-end">

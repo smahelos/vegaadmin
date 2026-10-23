@@ -3,14 +3,17 @@
 namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\PrintableInvoiceData;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
-use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\Shared\Unit\Enums\Unit;
+use App\Domain\Invoice\ValueObjects\InvoiceTotals;
+use App\Domain\Shared\Money\Enums\Currency;
 
 class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFactoryInterface
 {
+    public function __construct(private readonly InvoiceProductWriteDataAssembler $products) {}
+
     public function fromArray(array $invoiceData): PrintableInvoiceData
     {
         $currency = strtoupper((string)($invoiceData['payment_currency'] ?? 'CZK'));
@@ -18,36 +21,17 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
         $dueIn = isset($invoiceData['due_in']) ? (int)$invoiceData['due_in'] : null;
         $dueDate = $issue && $dueIn !== null ? $issue->modify('+' . (int)$dueIn . ' days') : null;
 
-        $productsRaw = $invoiceData['invoice-products'] ?? [];
-        if (is_string($productsRaw)) {
-            $decoded = json_decode($productsRaw, true);
-            $productsRaw = is_array($decoded) ? $decoded : [];
-        }
-        $items = [];
-        $subtotal = Money::fromFloat(0, $currency);
-        $taxTotal = Money::fromFloat(0, $currency);
-        foreach ($productsRaw as $p) {
-            $q = isset($p['quantity']) ? (float)$p['quantity'] : 1.0;
-            $itemCurrency = strtoupper((string)($p['currency'] ?? $currency));
-            $price = Money::fromFloat((float)($p['price'] ?? 0), $itemCurrency);
-            $taxRate = isset($p['tax_rate']) ? (float)$p['tax_rate'] : 0.0;
-            $taxAmount = Money::fromFloat($price->toFloat() * $q * $taxRate / 100, $itemCurrency);
-            $lineTotal = Money::fromFloat($price->toFloat() * $q + $taxAmount->toFloat(), $itemCurrency);
-            $items[] = new PrintableInvoiceItemData(
-                name: (string)($p['name'] ?? ''),
-                quantity: $q,
-                unit: Unit::fromInput($p['unit'] ?? null),
-                price: $price,
-                tax_rate: $taxRate,
-                tax_amount: $taxAmount,
-                line_total: $lineTotal,
-            );
-            if ($itemCurrency === $currency) {
-                $subtotal = $subtotal->add(Money::fromFloat($price->toFloat() * $q, $currency));
-                $taxTotal = $taxTotal->add(Money::fromFloat($taxAmount->toFloat(), $currency));
-            }
-        }
-        $grand = Money::fromFloat(($invoiceData['payment_amount'] ?? ($subtotal->toFloat() + $taxTotal->toFloat())), $currency);
+        $products = $this->products->fromValidated($invoiceData['invoice-products']);
+        $items = array_map(fn (InvoiceProductWriteData $product): PrintableInvoiceItemData => new PrintableInvoiceItemData(
+            name: $product->name,
+            quantity: (float) $product->quantity,
+            unit: $product->unit,
+            price: $product->price,
+            tax_rate: (float) $product->taxRate,
+            tax_amount: $product->taxAmount(),
+            line_total: $product->total(),
+        ), $products);
+        $totals = InvoiceTotals::fromProducts(Currency::from($currency), $products);
 
         // Use a positive sentinel ID for temporary invoices to satisfy InvoiceId validation
         return new PrintableInvoiceData(
@@ -61,9 +45,9 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
             template: $invoiceData['template'] ?? 'default',
             invoice_logo: $invoiceData['invoice_logo'] ?? null,
             items: $items,
-            subtotal: $subtotal,
-            total_tax: $taxTotal,
-            total_amount: $grand,
+            subtotal: $totals->subtotal,
+            total_tax: $totals->tax,
+            total_amount: $totals->total(),
             supplier_name: $invoiceData['name'] ?? null,
             supplier_email: $invoiceData['email'] ?? null,
             supplier_phone: $invoiceData['phone'] ?? null,

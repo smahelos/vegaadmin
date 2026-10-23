@@ -619,6 +619,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                     <div id="invoice-items-list">
                         <!-- Items will be dynamically added here -->
                     </div>
+                    <x-invoice-item-errors />
                 </div>
 
 

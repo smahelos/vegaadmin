@@ -11,22 +11,16 @@ use Illuminate\Support\Facades\Validator;
 
 class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
 {
-    public function __construct(private readonly FileUploadServiceInterface $fileUploadService) {}
+    public function __construct(
+        private readonly FileUploadServiceInterface $fileUploadService,
+        private readonly InvoiceProductWriteDataAssembler $products,
+    ) {}
 
     public function assemble(?User $user, InvoiceRequest $request, bool $guest = false): InvoiceMutationPayload
     {
         $validated = $request->validated();
 
-        // Decode products JSON (field name 'invoice-products')
-        $rawProducts = $request->input('invoice-products');
-        if (is_string($rawProducts)) {
-            $decoded = json_decode($rawProducts, true);
-            $products = is_array($decoded) ? $decoded : [];
-        } elseif (is_array($rawProducts)) {
-            $products = $rawProducts;
-        } else {
-            $products = [];
-        }
+        $products = $this->products->fromValidated($validated['invoice-products']);
 
         $payload = new InvoiceMutationPayload($validated, $products, null, locale: app()->getLocale(), guest: $guest);
 

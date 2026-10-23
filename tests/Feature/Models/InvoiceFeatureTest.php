@@ -134,59 +134,6 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function calculate_total_amount_returns_zero_for_new_invoice(): void
-    {
-        $invoice = new Invoice();
-
-        $total = $invoice->calculateTotalAmount();
-
-        $this->assertEquals(0.0, $total);
-    }
-
-    #[Test]
-    public function calculate_total_amount_sums_invoice_products(): void
-    {
-        $invoice = Invoice::factory()->create();
-
-        // Create invoice products with specific values to avoid boot() calculations
-        InvoiceProduct::create([
-            'invoice_id' => $invoice->id,
-            'product_id' => Product::factory()->create()->id,
-            'name' => 'Test Product 1',
-            'quantity' => 1,
-            'price' => 100.50,
-            'currency' => 'USD',
-            'unit' => 'pieces',
-            'is_custom_product' => false,
-            'tax_rate' => 0,
-            'tax_amount' => 0,
-            'total_price' => 0 // Will be calculated by boot method: 100.50 * 1 + 0 = 100.50
-        ]);
-
-        InvoiceProduct::create([
-            'invoice_id' => $invoice->id,
-            'product_id' => Product::factory()->create()->id,
-            'name' => 'Test Product 2',
-            'quantity' => 1,
-            'price' => 200.25,
-            'currency' => 'USD',
-            'unit' => 'pieces',
-            'is_custom_product' => false,
-            'tax_rate' => 0,
-            'tax_amount' => 0,
-            'total_price' => 0 // Will be calculated by boot method: 200.25 * 1 + 0 = 200.25
-        ]);
-
-        $total = $invoice->calculateTotalAmount();
-
-        $this->assertEquals(300.75, $total);
-
-        // Check that payment_amount was updated (as decimal, preserving precision)
-        $invoice->refresh();
-        $this->assertEquals(300.75, $invoice->payment_amount); // Decimal field preserves 300.75
-    }
-
-    #[Test]
     public function get_payment_status_name_attribute_returns_translated_name(): void
     {
         $status = Status::factory()->create(['name' => 'Paid']);
@@ -368,89 +315,6 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_subtotal_attribute_returns_zero_for_new_invoice(): void
-    {
-        $invoice = new Invoice();
-
-        $subtotal = $invoice->getSubtotalAttribute();
-
-        $this->assertEquals(0.0, $subtotal);
-    }
-
-    #[Test]
-    public function get_subtotal_attribute_calculates_from_invoice_products(): void
-    {
-        $invoice = Invoice::factory()->create();
-
-        InvoiceProduct::factory()->create([
-            'invoice_id' => $invoice->id,
-            'price' => 100.00,
-            'quantity' => 2
-        ]);
-
-        InvoiceProduct::factory()->create([
-            'invoice_id' => $invoice->id,
-            'price' => 50.00,
-            'quantity' => 3
-        ]);
-
-        $subtotal = $invoice->getSubtotalAttribute();
-
-        $this->assertEquals(350.0, $subtotal);
-    }
-
-    #[Test]
-    public function get_total_tax_attribute_returns_zero_for_new_invoice(): void
-    {
-        $invoice = new Invoice();
-
-        $totalTax = $invoice->getTotalTaxAttribute();
-
-        $this->assertEquals(0.0, $totalTax);
-    }
-
-    #[Test]
-    public function get_total_tax_attribute_sums_tax_amounts(): void
-    {
-        $invoice = Invoice::factory()->create();
-
-        // Create invoice products with specific tax amounts
-        // Boot method will calculate: tax_amount = price * quantity * tax_rate / 100
-        InvoiceProduct::create([
-            'invoice_id' => $invoice->id,
-            'product_id' => Product::factory()->create()->id,
-            'name' => 'Test Product 1',
-            'quantity' => 1,
-            'price' => 100.00,
-            'currency' => 'USD',
-            'unit' => 'pieces',
-            'is_custom_product' => false,
-            'tax_rate' => 21, // Will calculate: 100 * 1 * 21 / 100 = 21
-            'tax_amount' => 0, // Will be overwritten by boot method
-            'total_price' => 0 // Will be overwritten by boot method
-        ]);
-
-        InvoiceProduct::create([
-            'invoice_id' => $invoice->id,
-            'product_id' => Product::factory()->create()->id,
-            'name' => 'Test Product 2',
-            'quantity' => 1,
-            'price' => 50.00,
-            'currency' => 'USD',
-            'unit' => 'pieces',
-            'is_custom_product' => false,
-            'tax_rate' => 21, // Will calculate: 50 * 1 * 21 / 100 = 10.5
-            'tax_amount' => 0, // Will be overwritten by boot method
-            'total_price' => 0 // Will be overwritten by boot method
-        ]);
-
-        $totalTax = $invoice->getTotalTaxAttribute();
-
-        // Expected: 21 + 10.5 = 31.5
-        $this->assertEquals(31.5, $totalTax);
-    }
-
-    #[Test]
     public function supplier_name_accessor_returns_supplier_name(): void
     {
         $supplier = Supplier::factory()->create(['name' => 'Test Supplier']);
@@ -562,7 +426,7 @@ class InvoiceFeatureTest extends TestCase
             'payment_currency' => 'usd'
         ]);
 
-        // tax_amount computed in boot: tax_amount = price * quantity * tax_rate / 100
+        // The stored tax of each line is summed as it is
         InvoiceProduct::create([
             'invoice_id' => $invoice->id,
             'product_id' => Product::factory()->create()->id,
@@ -573,8 +437,8 @@ class InvoiceFeatureTest extends TestCase
             'unit' => 'pieces',
             'is_custom_product' => false,
             'tax_rate' => 21,
-            'tax_amount' => 0,
-            'total_price' => 0
+            'tax_amount' => '21.00',
+            'total_price' => '121.00'
         ]);
         InvoiceProduct::create([
             'invoice_id' => $invoice->id,
@@ -585,14 +449,13 @@ class InvoiceFeatureTest extends TestCase
             'currency' => 'USD',
             'unit' => 'pieces',
             'is_custom_product' => false,
-            'tax_rate' => 10, // 50 * 2 * 10% = 10
-            'tax_amount' => 0,
-            'total_price' => 0
+            'tax_rate' => 12,
+            'tax_amount' => '12.00',
+            'total_price' => '112.00'
         ]);
 
-        // Expected tax: (100 * 1 * 21%) = 21 + (50 * 2 * 10%) = 10 => 31.00
         $money = $invoice->total_tax_money;
-        $this->assertEquals('31', $money->getAmount());
+        $this->assertEquals('33', $money->getAmount());
         $this->assertEquals('USD', $money->getCurrency());
     }
 

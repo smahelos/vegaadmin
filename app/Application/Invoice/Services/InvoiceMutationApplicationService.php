@@ -6,6 +6,9 @@ use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface
 use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use Illuminate\Support\Facades\Log;
@@ -15,12 +18,14 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
 {
     public function __construct(private readonly InvoiceCrudApplicationServiceInterface $invoiceCrud) {}
 
+    /**
+     * @param array<string, mixed> $data
+     * @param list<InvoiceProductWriteData> $products
+     */
     public function create(int $userId, array $data, array $products): InvoiceActionResult
     {
         try {
-            // Merge products into data array for new CRUD service
-            $createData = array_merge($data, ['products' => $products]);
-            $invoice = $this->invoiceCrud->create($createData, new \App\Domain\User\ValueObjects\UserId($userId));
+            $invoice = $this->invoiceCrud->create(new UserId($userId), $data, $products);
             
             // Convert DTO back to Eloquent model for compatibility
             $model = $this->resolvePublishedModelByDto($invoice);
@@ -33,17 +38,14 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
         }
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @param list<InvoiceProductWriteData> $products
+     */
     public function update(int $userId, int $invoiceId, array $data, array $products): InvoiceActionResult
     {
         try {
-            // Merge products into data array for new CRUD service
-            $updateData = array_merge($data, ['products' => $products]);
-
-            $invoice = $this->invoiceCrud->update(
-                $updateData, 
-                new \App\Domain\Invoice\ValueObjects\InvoiceId($invoiceId),
-                new \App\Domain\User\ValueObjects\UserId($userId)
-            );
+            $invoice = $this->invoiceCrud->update(new UserId($userId), new InvoiceId($invoiceId), $data, $products);
             
             // Convert DTO back to Eloquent model for compatibility
             $model = $this->resolvePublishedModelByDto($invoice);

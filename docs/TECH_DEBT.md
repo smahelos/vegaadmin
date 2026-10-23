@@ -34,11 +34,6 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** the raw `$e->getMessage()` is appended to the error a user sees or returned in JSON, so SQL errors, column names, file paths and other internals reach the browser. The profile screen had the same flaw and was fixed in `ls-missing-translations`.
 - **Fix:** a complete translated message for the user, the exception only in the log with structured context (`rules/php.md`, Errors); done together with "Error handling" below by mapping context exceptions in `app/Exceptions/ExceptionHandling.php`.
 
-### Invoice items are not validated
-- **Where:** `app/Http/Requests/InvoiceRequest.php` (`invoice-products` is checked only for its units), `app/Application/Invoice/Services/InvoiceRequestAssembler.php` (decodes the JSON as it comes); the admin edits no items
-- **Problem:** the items of an invoice reach the database without validation: any price, quantity, tax rate, currency or `product_id`, possibly a product of another user (not verified). Only the unit is validated (an empty unit or a `Unit` value).
-- **Fix (decided 2026-10-23, own branch after the translations):** the request decodes the items before validation and validates each of them (`Rule::enum(Unit::class)` replacing the unit closure, numeric ranges, currency from `Currency`, `product_id` owned by the user); the assembler builds `InvoiceProductWriteData` from validated input only.
-
 ## Invoice
 
 ### Modern and minimal PDFs always print "bank transfer"
@@ -61,15 +56,15 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** the due date (`issue_date + due_in`) is computed separately in `Invoice` model accessor, `InvoicePrintDataBuilder`, `TemporaryInvoicePrintDataFactory` and Livewire list ordering; `InvoiceFormApplicationService` and `InvoiceCrudApplicationService` hardcode `now()->addDays(14)`.
 - **Fix:** Domain/Application calculations use the value object.
 
-### Inconsistent default tax rate
-- **Where:** `InvoiceCrudApplicationService::processProductsAndCalculateTotals()` vs `InvoiceProductWriteData::fromArray()`
-- **Problem:** invoice totals assume 0 % when `tax_rate` is missing, stored product rows assume 21 %. Totals and rows can disagree.
-- **Fix:** one rule in the Domain; totals computed from `InvoiceProductWriteData`.
-
 ### Currency conversion of invoice items happens in the browser
-- **Where:** `resources/js/currency-manager.js` (`getExchangeRate()`, `convertAmount()`), `resources/js/invoice-item-manager.js`, `app/Domain/Shared/Money/Services/CurrencyExchangeService.php`, `InvoiceRequestAssembler`, `InvoiceCrudApplicationService::processProductsAndCalculateTotals()`, `/api/currencies/{exchange-rate,convert}`
-- **Problem:** the invoice form converts item prices in JavaScript with floats; the server stores whatever price arrives, keeps no rate or date with the invoice and computes totals in floats. Rates come from the free ExchangeRate-API (`open.er-api.com`); when it fails, the service silently returns rates hardcoded in the class (EUR→CZK 25.29 against 24.27 on 2026-10-23), and when a rate is missing the browser uses 1:1. VAT in CZK on a foreign-currency invoice needs the ČNB rate (§ 4 odst. 5 ZDPH; to confirm with an accountant). `Money::convertTo()` exists but nothing calls it.
+- **Where:** `resources/js/currency-manager.js` (`getExchangeRate()`, `convertAmount()`), `resources/js/invoice-item-manager.js`, `app/Domain/Shared/Money/Services/CurrencyExchangeService.php`, `InvoiceRequestAssembler`, `/api/currencies/{exchange-rate,convert}`
+- **Problem:** the invoice form converts item prices in JavaScript with floats; the server checks only that every item is in the invoice currency (`InvoiceRequest`), stores the converted price as it arrives and keeps no rate or date with the invoice. The form also previews line and invoice totals in JavaScript floats; the stored amounts are computed on the server (`InvoiceTotals`). Rates come from the free ExchangeRate-API (`open.er-api.com`); when it fails, the service silently returns rates hardcoded in the class (EUR→CZK 25.29 against 24.27 on 2026-10-23), and when a rate is missing the browser uses 1:1. VAT in CZK on a foreign-currency invoice needs the ČNB rate (§ 4 odst. 5 ZDPH; to confirm with an accountant). `Money::convertTo()` exists but nothing calls it.
 - **Fix (decided 2026-10-23, own branch after the translations):** ČNB daily rates behind an exchange rate port; conversion on the server through `Money::convertTo()` when the invoice is stored; the rate, its date and source stored with the invoice and printed on it; an unavailable rate is an error shown to the user, never a fallback table or 1:1; `/api/currencies/convert` becomes the form's conversion or is deleted.
+
+### VAT rates are typed into the database by hand
+- **Where:** `taxes` table (read by `TaxDtoReadRepositoryInterface::getDphRatesForDropdown()`), `InvoiceRequest` (allowed item rates), invoice and product forms
+- **Problem:** no migration or seeder creates the VAT rates, so a fresh install offers only 0 % and accepts nothing else; the development database has 12, 21 and 25 % (25 % is not a Czech rate).
+- **Fix:** create the Czech rates as reference data in a migration (`rules/persistence.md`); decide with an accountant whether the rates depend on the supplier's country.
 
 ### Format invoice amounts through a presenter
 - **Where:** `resources/views/frontend/invoices/show.blade.php`
@@ -181,6 +176,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** events are not yet used as `.claude/rules/architecture.md` (Events) requires. Cache invalidation runs through observers → `UserDataChanged`; `AnalyticsDataChanged` is never published, so its registered handler never runs. Events `ClientDeleted`, `ClientSetAsDefault`, `SupplierDeleted`, `SupplierSetAsDefault`, `SupplierUpdated`, `ProductDeleted`, `ProductSetAsDefault`, `ProductUpdated` exist but are never published.
 - **Fix:** publish the entity events from the domain services, let `InvalidateAnalyticsCache` handle them, then remove the observers and `AnalyticsDataChanged`.
 
+### Domain events are published inside the transaction
+- **Where:** `InvoiceService::createInvoice()` (publishes `InvoiceCreated`), `InvoiceCrudApplicationService` (`TransactionBoundaryInterface`), `app/Infrastructure/Shared/Events/LaravelEventPublisher.php`
+- **Problem:** `rules/application.md` publishes events after the commit; `LaravelEventPublisher` dispatches at once, so handlers of `InvoiceCreated` run inside the transaction of the use case and their effects outside the database (cache, mail) stay when it rolls back.
+- **Fix:** the publisher defers dispatching until the surrounding transaction commits (`DB::afterCommit()` in the Infrastructure adapter), or the use case collects the events and publishes them after `transaction()` returns.
+
 ### Run tests on MySQL instead of in-memory SQLite
 - **Where:** `phpunit.xml`, `config/database.php` (`testing` connection), `tests/TestCase.php`, `tests/Traits/RefreshDatabaseWithData.php`, `.github/workflows/*`, SQLite branches in `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentAnalyticsReadRepository.php`, `app/Console/Commands/Database{Optimize,Monitor}Command.php` and 10 migrations (including `2025_07_23_054624_add_basic_foreign_keys_for_testing.php`)
 - **Problem:** the application runs on MySQL, tests on in-memory SQLite. MySQL-specific queries (`DATE_FORMAT`, `STR_TO_DATE`, …) are never tested, SQLite does not enforce strict `sql_mode` or column types, and production code and migrations carry `driver === 'sqlite'` branches that exist only for the tests. `TestCase` resets `RefreshDatabaseState` so that every test migrates all migrations again, and `RefreshDatabaseWithData` runs `migrate:fresh` + seed before every test.
@@ -233,8 +233,8 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix (decided 2026-10-20):** `final readonly class` with public readonly properties for held state (`->value`, `->amount`, `->iban`), computed values as methods without `get` (`formattedIban()`, `year()`), per `rules/php.md`.
 
 ### Business logic and broken relations in models
-- **Where:** `app/Models/Invoice.php` (totals, `syncProductsFromJson()`, due date, logging, `HasRoles`, `belongsToMany(...)` to `clients`/`suppliers`/`statuses` tables), `invoices.invoice_text` holding a JSON copy of `invoice_products`, `$guarded` in 6 models
-- **Fix:** logic into Domain, one storage for line items, `$fillable` and typed relations (`rules/persistence.md`).
+- **Where:** `app/Models/Invoice.php` (`subtotal_money` / `total_tax_money` accessors computing totals through `InvoiceTotals`, due date, logging, `HasRoles`, `belongsToMany(...)` to `clients`/`suppliers`/`statuses` tables), `$guarded` in 6 models; invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
+- **Fix:** logic into Domain, totals built by `EloquentInvoiceMapper` once Application no longer receives models, `$fillable` and typed relations (`rules/persistence.md`).
 
 ### Validation in several places
 - **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Application/*/Services/*InputValidationService.php`, `app/Domain/*/Validation/`; entity limits checked in requests, controllers and observers

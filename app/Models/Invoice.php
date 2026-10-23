@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use App\Models\InvoiceProduct;
 use Illuminate\Support\Facades\Log;
+use App\Domain\Invoice\ValueObjects\InvoiceTotals;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 
 class Invoice extends Model
@@ -171,36 +173,6 @@ class Invoice extends Model
     }
 
     /**
-     * Calculate invoice total amount
-     *
-     * @return float
-     */
-    public function calculateTotalAmount()
-    {
-        try {
-            if ($this->relationLoaded('invoiceProducts') && $this->invoiceProducts->isNotEmpty()) {
-                $total = $this->invoiceProducts->sum('total_price');
-            } else {
-                // Check if the relation is loaded
-                if (!$this->exists) {
-                    return 0.0;
-                }
-
-                $total = $this->invoiceProducts()->sum('total_price');
-            }
-
-            // Update the invoice header with amount rounded to 2 decimal places
-            $this->payment_amount = round($total, 2);
-            $this->save();
-
-            return $total;
-        } catch (\Exception $e) {
-            \Log::error('Error calculating total amount: ' . $e->getMessage());
-            return 0.0;
-        }
-    }
-
-    /**
      * Get translated payment status name
      *
      * @return string
@@ -281,52 +253,6 @@ class Invoice extends Model
         }
 
         return null;
-    }
-
-    /**
-     * Get total price without tax
-     */
-    public function getSubtotalAttribute()
-    {
-        try {
-            if (!$this->relationLoaded('invoiceProducts') || $this->invoiceProducts->isEmpty()) {
-                // Check if the relation exists
-                if (!$this->exists) {
-                    return 0.0;
-                }
-
-                return $this->invoiceProducts()->sum(\DB::raw('price * quantity')) ?: 0.0;
-            }
-
-            return $this->invoiceProducts->reduce(function($carry, $item) {
-                return $carry + (($item->price ?? 0) * ($item->quantity ?? 0));
-            }, 0.0);
-        } catch (\Exception $e) {
-            \Log::error('Error calculating subtotal: ' . $e->getMessage());
-            return 0.0;
-        }
-    }
-
-    /**
-     * Get total tax amount
-     */
-    public function getTotalTaxAttribute()
-    {
-        try {
-            if (!$this->relationLoaded('invoiceProducts') || $this->invoiceProducts->isEmpty()) {
-                // Check if the relation exists
-                if (!$this->exists) {
-                    return 0.0;
-                }
-
-                return $this->invoiceProducts()->sum('tax_amount') ?: 0.0;
-            }
-
-            return $this->invoiceProducts->sum('tax_amount') ?: 0.0;
-        } catch (\Exception $e) {
-            \Log::error('Error calculating total tax: ' . $e->getMessage());
-            return 0.0;
-        }
     }
 
     /*
@@ -446,25 +372,28 @@ class Invoice extends Model
         return Money::fromString($amount, strtoupper($currency));
     }
 
-    /**
-     * Get subtotal (without tax) as Money VO.
-     */
     public function getSubtotalMoneyAttribute(): Money
     {
-        $raw = $this->subtotal ?? 0.0; // uses accessor getSubtotalAttribute
-        $amount = (string)number_format((float)$raw, 2, '.', '');
-        $currency = $this->payment_currency ?: 'CZK';
-        return Money::fromString($amount, strtoupper($currency));
+        return $this->totals()->subtotal;
     }
 
-    /**
-     * Get total tax as Money VO.
-     */
     public function getTotalTaxMoneyAttribute(): Money
     {
-        $raw = $this->total_tax ?? 0.0; // accessor
-        $amount = (string)number_format((float)$raw, 2, '.', '');
-        $currency = $this->payment_currency ?: 'CZK';
-        return Money::fromString($amount, strtoupper($currency));
+        return $this->totals()->tax;
+    }
+
+    /** Totals from the stored lines: base recomputed through Money, VAT as stored with each line. */
+    private function totals(): InvoiceTotals
+    {
+        $totals = InvoiceTotals::zero(Currency::from(strtoupper($this->payment_currency ?: Currency::CZK->value)));
+        foreach ($this->invoiceProducts as $line) {
+            $price = Money::fromString((string) $line->price, strtoupper($line->currency));
+            $totals = $totals->withLine(
+                $price->multiplyBy((string) $line->quantity),
+                Money::fromString((string) $line->tax_amount, strtoupper($line->currency))
+            );
+        }
+
+        return $totals;
     }
 }

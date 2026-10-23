@@ -7,12 +7,10 @@ interface GuestInvoiceApplicationServiceInterface
     /**
      * Store a guest (temporary) invoice and prepare response payload.
      *
-     * @param array<string,mixed> $validatedData
-     * @param array<int,mixed>|string|null $invoiceProducts
-     * @param string|null $requestedLocale
+     * @param array<string,mixed> $validatedData validated request input, items under 'invoice-products'
      * @return array<string,mixed>
      */
-    public function storeGuestInvoice(array $validatedData, array|string|null $invoiceProducts, ?string $requestedLocale): array;
+    public function storeGuestInvoice(array $validatedData, ?string $requestedLocale): array;
 
     /**
      * Prepare data needed to render guest create invoice form.
