@@ -171,6 +171,7 @@ return [
         'expired' => 'Platnost faktury vypršela, kontaktujte prosím vystavitele pro nový odkaz.',
     ],
     'validation' => [
+        'unit' => 'Položka faktury má neplatnou měrnou jednotku.',
         'amount_required' => 'Částka je povinná',
         'amount_numeric' => 'Částka musí být číslo',
         'supplier_required_without' => 'Musíte buď vybrat existujícího dodavatele nebo zadat údaje nového dodavatele',

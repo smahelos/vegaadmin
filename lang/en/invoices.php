@@ -171,6 +171,7 @@ return [
         'expired' => 'Invoice link has expired, please contact the issuer for a new link.',
     ],
     'validation' => [
+        'unit' => 'An invoice item has an invalid unit of measure.',
         'amount_required' => 'Amount is required',
         'amount_numeric' => 'Amount must be a number',
         'supplier_required_without' => 'You must either select an existing supplier or enter details for a new supplier',

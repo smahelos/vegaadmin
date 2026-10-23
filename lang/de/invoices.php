@@ -171,6 +171,7 @@ return [
         'expired' => 'Der Link zum Herunterladen der Rechnung ist abgelaufen. Bitte kontaktieren Sie den Aussteller, um einen neuen Link zu erhalten.',
     ],
     'validation' => [
+        'unit' => 'Eine Rechnungsposition hat eine ungültige Mengeneinheit.',
         'amount_required' => 'Betrag ist erforderlich',
         'amount_numeric' => 'Betrag muss eine Zahl sein',
         'supplier_required_without' => 'Sie müssen entweder einen vorhandenen Lieferanten auswählen oder Daten für einen neuen Lieferanten eingeben',

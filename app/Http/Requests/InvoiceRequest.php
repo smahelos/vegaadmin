@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Domain\Shared\Unit\Enums\Unit;
+use Closure;
 use Illuminate\Support\Facades\Auth;
 
 class InvoiceRequest extends BaseEntityRequest
@@ -157,9 +159,31 @@ class InvoiceRequest extends BaseEntityRequest
             'invoice_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize,
 
             'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
+
+            'invoice-products' => ['nullable', $this->itemUnitsRule()],
         ];
 
         return $rules;
+    }
+
+    /**
+     * The items arrive as one JSON field; each unit must be empty or a Unit value.
+     */
+    private function itemUnitsRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            $items = is_string($value) ? json_decode($value, true) : $value;
+
+            foreach (is_array($items) ? $items : [] as $item) {
+                $unit = is_array($item) ? ($item['unit'] ?? null) : null;
+
+                if ($unit !== null && $unit !== '' && (! is_string($unit) || Unit::tryFrom($unit) === null)) {
+                    $fail(__('invoices.validation.unit'));
+
+                    return;
+                }
+            }
+        };
     }
 
     /**

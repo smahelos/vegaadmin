@@ -518,4 +518,33 @@ class InvoiceRequestFeatureTest extends TestCase
             $this->assertTrue($validator->passes(), "Validation should pass with .{$format} format");
         }
     }
+
+    #[Test]
+    public function guest_invoice_with_an_unknown_unit_is_rejected(): void
+    {
+        $items = [['name' => 'Item', 'quantity' => 1, 'price' => 100, 'unit' => 'ks']];
+
+        $response = $this->postJson(
+            route('frontend.invoice.store.guest', ['locale' => 'cs']),
+            $this->validInvoiceData + ['invoice-products' => json_encode($items)]
+        );
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.invoice-products.0', __('invoices.validation.unit'));
+    }
+
+    #[Test]
+    public function known_and_empty_units_pass_the_unit_rule(): void
+    {
+        $items = [
+            ['name' => 'Work', 'quantity' => 2, 'price' => 500, 'unit' => 'hours'],
+            ['name' => 'Item', 'quantity' => 1, 'price' => 100, 'unit' => ''],
+            ['name' => 'Other', 'quantity' => 1, 'price' => 100],
+        ];
+        $data = $this->validInvoiceData + ['invoice-products' => json_encode($items)];
+
+        $validator = Validator::make($data, (new InvoiceRequest())->rules());
+
+        $this->assertArrayNotHasKey('invoice-products', $validator->errors()->toArray());
+    }
 }

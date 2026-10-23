@@ -171,6 +171,7 @@ return [
         'expired' => 'Platnosť faktúry vypršela, kontaktujte prosím vystaviteľa pre nový odkaz.',
     ],
     'validation' => [
+        'unit' => 'Položka faktúry má neplatnú mernú jednotku.',
         'amount_required' => 'Suma je povinná',
         'amount_numeric' => 'Suma musí byť číslo',
         'supplier_required_without' => 'Musíte buď vybrať existujúceho dodávateľa alebo zadať údaje nového dodávateľa',
