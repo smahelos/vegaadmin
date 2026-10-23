@@ -133,15 +133,15 @@ class DatabaseDashboardController extends CrudController
     private function getMetricTypeLabel($metricType)
     {
         $labels = [
-            'query_time' => __('admin.database.metrics.query_time'),
-            'connection_usage' => __('admin.database.metrics.connection_usage'),
-            'memory_usage' => __('admin.database.metrics.memory_usage'),
-            'disk_usage' => __('admin.database.metrics.disk_usage'),
-            'cache_hit_rate' => __('admin.database.metrics.cache_hit_rate'),
-            'slow_queries' => __('admin.database.metrics.slow_queries'),
-            'lock_wait_time' => __('admin.database.metrics.lock_wait_time'),
-            'table_size' => __('admin.database.metrics.table_size'),
-            'index_usage' => __('admin.database.metrics.index_usage'),
+            'query_time' => __('admin/database.metrics.query_time'),
+            'connection_usage' => __('admin/database.metrics.connection_usage'),
+            'memory_usage' => __('admin/database.metrics.memory_usage'),
+            'disk_usage' => __('admin/database.metrics.disk_usage'),
+            'cache_hit_rate' => __('admin/database.metrics.cache_hit_rate'),
+            'slow_queries' => __('admin/database.metrics.slow_queries'),
+            'lock_wait_time' => __('admin/database.metrics.lock_wait_time'),
+            'table_size' => __('admin/database.metrics.table_size'),
+            'index_usage' => __('admin/database.metrics.index_usage'),
         ];
 
         return $labels[$metricType] ?? ucfirst(str_replace('_', ' ', $metricType));
@@ -166,7 +166,7 @@ class DatabaseDashboardController extends CrudController
             Log::error('Failed to get performance trends by type: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin.database.failed_to_load_trends'),
+                'message' => __('admin/database.dashboard.failed_to_load_trends'),
                 'error' => $e->getMessage()
             ]);
         }
@@ -407,7 +407,7 @@ class DatabaseDashboardController extends CrudController
         if (isset($recentMetrics['connection_usage'])) {
             $metric = $recentMetrics['connection_usage'];
             $metrics['connections'] = [
-                'name' => __('admin.database.metrics.connection_usage'),
+                'name' => __('admin/database.metrics.connection_usage'),
                 'value' => $metric->metric_value,
                 'unit' => $metric->metric_unit,
                 'status' => $metric->status,
@@ -422,7 +422,7 @@ class DatabaseDashboardController extends CrudController
         if (isset($recentMetrics['query_cache_hit_rate'])) {
             $metric = $recentMetrics['query_cache_hit_rate'];
             $metrics['query_cache'] = [
-                'name' => __('admin.database.metrics.query_cache_hit_rate'),
+                'name' => __('admin/database.metrics.query_cache_hit_rate'),
                 'value' => $metric->metric_value,
                 'unit' => $metric->metric_unit,
                 'status' => $metric->status,
@@ -437,7 +437,7 @@ class DatabaseDashboardController extends CrudController
         if (isset($recentMetrics['slow_queries_per_minute'])) {
             $metric = $recentMetrics['slow_queries_per_minute'];
             $metrics['slow_queries'] = [
-                'name' => __('admin.database.metrics.slow_queries_per_minute'),
+                'name' => __('admin/database.metrics.slow_queries_per_minute'),
                 'value' => $metric->metric_value,
                 'unit' => $metric->metric_unit,
                 'status' => $metric->status,
@@ -452,7 +452,7 @@ class DatabaseDashboardController extends CrudController
         if (isset($recentMetrics['innodb_buffer_pool_usage'])) {
             $metric = $recentMetrics['innodb_buffer_pool_usage'];
             $metrics['memory_usage'] = [
-                'name' => __('admin.database.metrics.innodb_buffer_pool_usage'),
+                'name' => __('admin/database.metrics.innodb_buffer_pool_usage'),
                 'value' => $metric->metric_value,
                 'unit' => $metric->metric_unit,
                 'status' => $metric->status,
@@ -467,7 +467,7 @@ class DatabaseDashboardController extends CrudController
         if (isset($recentMetrics['disk_usage'])) {
             $metric = $recentMetrics['disk_usage'];
             $metrics['disk_usage'] = [
-                'name' => __('admin.database.metrics.disk_usage'),
+                'name' => __('admin/database.metrics.disk_usage'),
                 'value' => $metric->metric_value,
                 'unit' => $metric->metric_unit,
                 'status' => $metric->status,
@@ -482,7 +482,7 @@ class DatabaseDashboardController extends CrudController
         if (isset($recentMetrics['lock_wait_time'])) {
             $metric = $recentMetrics['lock_wait_time'];
             $metrics['lock_waits'] = [
-                'name' => __('admin.database.metrics.lock_wait_time'),
+                'name' => __('admin/database.metrics.lock_wait_time'),
                 'value' => $metric->metric_value,
                 'unit' => $metric->metric_unit,
                 'status' => $metric->status,
@@ -639,14 +639,14 @@ class DatabaseDashboardController extends CrudController
 
             return response()->json([
                 'success' => true,
-                'message' => __('admin.database.health_check_completed'),
+                'message' => __('admin/database.dashboard.health_check_completed'),
                 'output' => $output
             ]);
         } catch (\Exception $e) {
             Log::error('Database health check failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin.database.health_check_failed'),
+                'message' => __('admin/database.dashboard.health_check_failed'),
                 'error' => $e->getMessage()
             ]);
         }
@@ -749,14 +749,14 @@ class DatabaseDashboardController extends CrudController
 
             return response()->json([
                 'success' => true,
-                'message' => __('admin.database.archive_completed'),
+                'message' => __('admin/database.dashboard.archive_completed'),
                 'output' => $output
             ]);
         } catch (\Exception $e) {
             Log::error('Database archive failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin.database.archive_failed'),
+                'message' => __('admin/database.dashboard.archive_failed'),
                 'error' => $e->getMessage()
             ]);
         }
@@ -788,7 +788,7 @@ class DatabaseDashboardController extends CrudController
                 default:
                     return response()->json([
                         'success' => false,
-                        'message' => __('admin.database.unknown_command'),
+                        'message' => __('admin/database.dashboard.unknown_command'),
                         'error' => 'Unknown command: ' . $command
                     ]);
             }
@@ -796,7 +796,7 @@ class DatabaseDashboardController extends CrudController
             Log::error('Database command failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin.database.command_failed'),
+                'message' => __('admin/database.dashboard.command_failed'),
                 'error' => $e->getMessage()
             ]);
         }
@@ -858,32 +858,32 @@ class DatabaseDashboardController extends CrudController
                 case 'old':
                     // Delete metrics older than specified days
                     $deletedCount = PerformanceMetric::where('measured_at', '<', now()->subDays($days))->delete();
-                    $message = __('admin.database.cleaned_old_metrics', ['count' => $deletedCount, 'days' => $days]);
+                    $message = __('admin/database.dashboard.cleaned_old_metrics', ['count' => $deletedCount, 'days' => $days]);
                     break;
                     
                 case 'sample':
                     // Delete only sample/generated data
                     $deletedCount = PerformanceMetric::whereJsonContains('metadata->generated', true)->delete();
-                    $message = __('admin.database.cleaned_sample_metrics', ['count' => $deletedCount]);
+                    $message = __('admin/database.dashboard.cleaned_sample_metrics', ['count' => $deletedCount]);
                     break;
                     
                 case 'duplicate':
                     // Remove duplicate metrics (keep latest per day per type)
                     $this->removeDuplicateMetrics();
-                    $message = __('admin.database.cleaned_duplicate_metrics');
+                    $message = __('admin/database.dashboard.cleaned_duplicate_metrics');
                     break;
                     
                 case 'all':
                     // Delete all metrics (use with caution)
                     $deletedCount = PerformanceMetric::count();
                     PerformanceMetric::truncate();
-                    $message = __('admin.database.cleaned_all_metrics', ['count' => $deletedCount]);
+                    $message = __('admin/database.dashboard.cleaned_all_metrics', ['count' => $deletedCount]);
                     break;
                     
                 default:
                     return response()->json([
                         'success' => false,
-                        'message' => __('admin.database.invalid_cleanup_type')
+                        'message' => __('admin/database.dashboard.invalid_cleanup_type')
                     ]);
             }
             
@@ -903,7 +903,7 @@ class DatabaseDashboardController extends CrudController
             Log::error('Failed to clean performance metrics: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin.database.cleanup_failed') . ': ' . $e->getMessage()
+                'message' => __('admin/database.dashboard.cleanup_failed') . ': ' . $e->getMessage()
             ]);
         }
     }
@@ -969,7 +969,7 @@ class DatabaseDashboardController extends CrudController
             Log::error('Failed to get metrics stats: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin.database.stats_failed') . ': ' . $e->getMessage()
+                'message' => __('admin/database.dashboard.stats_failed') . ': ' . $e->getMessage()
             ]);
         }
     }
@@ -1044,13 +1044,13 @@ class DatabaseDashboardController extends CrudController
 
             return response()->json([
                 'success' => true,
-                'message' => __('admin.database.alert_resolved_successfully')
+                'message' => __('admin/database.dashboard.alert_resolved_successfully')
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to resolve alert: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin.database.alert_resolve_failed') . ': ' . $e->getMessage()
+                'message' => __('admin/database.dashboard.alert_resolve_failed') . ': ' . $e->getMessage()
             ]);
         }
     }
@@ -1099,13 +1099,13 @@ class DatabaseDashboardController extends CrudController
             
             return response()->json([
                 'success' => true,
-                'message' => __('admin.database.sample_metrics_generated_count', ['count' => $metricsGenerated])
+                'message' => __('admin/database.dashboard.sample_metrics_generated_count', ['count' => $metricsGenerated])
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to generate sample metrics: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin.database.sample_generation_failed') . ': ' . $e->getMessage()
+                'message' => __('admin/database.dashboard.sample_generation_failed') . ': ' . $e->getMessage()
             ]);
         }
     }

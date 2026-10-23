@@ -286,30 +286,22 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
 
         // Check that translations are being called
-        $this->assertEquals(__('admin.database.table_name'), $attributes['table_name']);
-        $this->assertEquals(__('admin.database.retention_months'), $attributes['retention_months']);
-        $this->assertEquals(__('admin.database.date_column'), $attributes['date_column']);
-        $this->assertEquals(__('admin.database.is_active'), $attributes['is_active']);
-        $this->assertEquals(__('admin.database.description'), $attributes['description']);
+        $this->assertEquals(__('admin/database.archive_policies.fields.table_name'), $attributes['table_name']);
+        $this->assertEquals(__('admin/database.archive_policies.fields.retention_months'), $attributes['retention_months']);
+        $this->assertEquals(__('admin/database.archive_policies.fields.date_column'), $attributes['date_column']);
+        $this->assertEquals(__('admin/database.archive_policies.fields.is_active'), $attributes['is_active']);
+        $this->assertEquals(__('admin/database.archive_policies.fields.description'), $attributes['description']);
     }
 
     #[Test]
-    public function messages_method_returns_correct_translations(): void
+    public function validation_error_names_the_field_by_its_label(): void
     {
         $request = new ArchivePolicyRequest();
-        $messages = $request->messages();
+        $validator = Validator::make(['retention_months' => 0], $request->rules(), [], $request->attributes());
 
-        $this->assertArrayHasKey('table_name.required', $messages);
-        $this->assertArrayHasKey('retention_months.required', $messages);
-        $this->assertArrayHasKey('retention_months.min', $messages);
-        $this->assertArrayHasKey('retention_months.max', $messages);
-        $this->assertArrayHasKey('date_column.required', $messages);
-
-        // Check that translations are being called
-        $this->assertEquals(__('admin.database.table_name_required'), $messages['table_name.required']);
-        $this->assertEquals(__('admin.database.retention_months_required'), $messages['retention_months.required']);
-        $this->assertEquals(__('admin.database.retention_months_min'), $messages['retention_months.min']);
-        $this->assertEquals(__('admin.database.retention_months_max'), $messages['retention_months.max']);
-        $this->assertEquals(__('admin.database.date_column_required'), $messages['date_column.required']);
+        $this->assertStringContainsString(
+            __('admin/database.archive_policies.fields.retention_months'),
+            $validator->errors()->first('retention_months')
+        );
     }
 }

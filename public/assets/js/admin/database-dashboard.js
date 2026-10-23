@@ -112,7 +112,7 @@ function createChart(ctx, labels, data, metricLabel, unit) {
                         },
                         title: {
                             display: true,
-                            text: `${metricLabel} - ${trans('admin.database.performance_trends')}`,
+                            text: `${metricLabel} - ${trans('performance_trends')}`,
                             padding: {
                                 top: 10,
                                 bottom: 30
@@ -124,7 +124,7 @@ function createChart(ctx, labels, data, metricLabel, unit) {
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: `${trans('admin.database.value')} (${unit})`
+                                text: `${trans('value')} (${unit})`
                             },
                             grid: {
                                 display: true,
@@ -137,7 +137,7 @@ function createChart(ctx, labels, data, metricLabel, unit) {
                         x: {
                             title: {
                                 display: true,
-                                text: trans('admin.database.date')
+                                text: trans('date')
                             },
                             grid: {
                                 display: false
@@ -226,7 +226,7 @@ function showNoDataMessage(canvas) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(
-        trans('admin.database.no_chart_data'), 
+        trans('no_chart_data'), 
         canvas.width / 2, 
         canvas.height / 2
     );
@@ -295,7 +295,7 @@ function loadChartData(metricType, days) {
             console.error('Failed to load chart data:', result.message);
             showNoDataMessage(ctx);
             
-            showNotification('error', result.message || trans('admin.database.failed_to_load_chart'));
+            showNotification('error', result.message || trans('failed_to_load_chart'));
         }
     })
     .catch(error => {
@@ -303,7 +303,7 @@ function loadChartData(metricType, days) {
         console.error('Error loading chart data:', error);
         showNoDataMessage(ctx);
         
-        showNotification('error', trans('admin.database.chart_loading_error'));
+        showNotification('error', trans('chart_loading_error'));
     });
 }
 
@@ -311,7 +311,7 @@ function loadChartData(metricType, days) {
  * Generate sample metrics function
  */
 function generateSampleMetrics() {
-    if (!confirm(trans('admin.database.confirm_generate_sample'))) {
+    if (!confirm(trans('confirm_generate_sample'))) {
         return;
     }
 
@@ -319,7 +319,7 @@ function generateSampleMetrics() {
     const originalText = btn.innerHTML;
     
     btn.disabled = true;
-    btn.innerHTML = `<i class="la la-spinner la-spin"></i> ${trans('admin.database.generating')}...`;
+    btn.innerHTML = `<i class="la la-spinner la-spin"></i> ${trans('generating')}...`;
 
     fetch(getUrl('database-dashboard/generate-sample-metrics'), {
         method: 'POST',
@@ -334,19 +334,19 @@ function generateSampleMetrics() {
         btn.innerHTML = originalText;
         
         if (data.success) {
-            showNotification('success', data.message || trans('admin.database.sample_metrics_generated'));
+            showNotification('success', data.message || trans('sample_metrics_generated'));
             
             // Reload page to show new data
             setTimeout(() => location.reload(), 2000);
         } else {
-            showNotification('error', data.message || trans('admin.database.sample_generation_failed'));
+            showNotification('error', data.message || trans('sample_generation_failed'));
         }
     })
     .catch(error => {
         btn.disabled = false;
         btn.innerHTML = originalText;
         console.error('Error:', error);
-        showNotification('error', trans('admin.database.sample_generation_error'));
+        showNotification('error', trans('sample_generation_error'));
     });
 }
 
@@ -354,7 +354,7 @@ function generateSampleMetrics() {
  * Resolve alert function
  */
 function resolveAlert(alertId) {
-    if (!confirm(trans('admin.database.confirm_resolve_alert'))) {
+    if (!confirm(trans('confirm_resolve_alert'))) {
         return;
     }
 
@@ -369,17 +369,17 @@ function resolveAlert(alertId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('success', trans('admin.database.alert_resolved'));
+            showNotification('success', trans('alert_resolved'));
             
             // Reload page to update alerts
             setTimeout(() => location.reload(), 1000);
         } else {
-            showNotification('error', data.message || trans('admin.database.alert_resolve_failed'));
+            showNotification('error', data.message || trans('alert_resolve_failed'));
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('error', trans('admin.database.alert_resolve_error'));
+        showNotification('error', trans('alert_resolve_error'));
     });
 }
 
@@ -391,7 +391,7 @@ function runDatabaseCommand(command) {
     const originalText = btn.innerHTML;
     
     btn.disabled = true;
-    btn.innerHTML = `<i class="la la-spinner la-spin"></i> ${trans('admin.database.running')}...`;
+    btn.innerHTML = `<i class="la la-spinner la-spin"></i> ${trans('running')}...`;
     
     let requestData = { command: command };
     
@@ -444,9 +444,9 @@ function runDatabaseCommand(command) {
         
         // Show notification
         if (data.success) {
-            showNotification('success', data.message || trans('admin.database.command_completed'));
+            showNotification('success', data.message || trans('command_completed'));
         } else {
-            showNotification('error', data.message || trans('admin.database.command_failed'));
+            showNotification('error', data.message || trans('command_failed'));
         }
     })
     .catch(error => {
@@ -455,7 +455,7 @@ function runDatabaseCommand(command) {
         btn.innerHTML = originalText;
         
         console.error('Error:', error);
-        showNotification('error', trans('admin.database.command_error'));
+        showNotification('error', trans('command_error'));
     });
 }
 
@@ -537,10 +537,10 @@ function updateCleanupDescription() {
     const description = document.getElementById('cleanupDescription');
     
     const descriptions = {
-        'old': trans('admin.database.cleanup_old_description'),
-        'sample': trans('admin.database.cleanup_sample_description'),
-        'duplicate': trans('admin.database.cleanup_duplicate_description'),
-        'all': trans('admin.database.cleanup_all_description')
+        'old': trans('cleanup_old_description'),
+        'sample': trans('cleanup_sample_description'),
+        'duplicate': trans('cleanup_duplicate_description'),
+        'all': trans('cleanup_all_description')
     };
     
     description.textContent = descriptions[cleanupType] || descriptions['old'];
@@ -559,7 +559,7 @@ function executeCleanup() {
     
     // Confirmation for dangerous operations
     if (cleanupType === 'all') {
-        if (!confirm(trans('admin.database.confirm_cleanup_all'))) {
+        if (!confirm(trans('confirm_cleanup_all'))) {
             return;
         }
     }
@@ -568,7 +568,7 @@ function executeCleanup() {
     const originalText = btn.innerHTML;
     
     btn.disabled = true;
-    btn.innerHTML = `<i class="la la-spinner la-spin"></i> ${trans('admin.database.cleaning')}...`;
+    btn.innerHTML = `<i class="la la-spinner la-spin"></i> ${trans('cleaning')}...`;
     
     fetch(getUrl('database-dashboard/run-command'), {
         method: 'POST',
@@ -588,7 +588,7 @@ function executeCleanup() {
         btn.innerHTML = originalText;
         
         if (result.success) {
-            const message = result.message + (result.deleted_count ? ` (${result.deleted_count} ${trans('admin.database.records_deleted')})` : '');
+            const message = result.message + (result.deleted_count ? ` (${result.deleted_count} ${trans('records_deleted')})` : '');
             showNotification('success', message);
             
             // Close modal and refresh stats
@@ -599,14 +599,14 @@ function executeCleanup() {
                 location.reload();
             }, 2000);
         } else {
-            showNotification('error', result.message || trans('admin.database.cleanup_failed'));
+            showNotification('error', result.message || trans('cleanup_failed'));
         }
     })
     .catch(error => {
         btn.disabled = false;
         btn.innerHTML = originalText;
         console.error('Error during cleanup:', error);
-        showNotification('error', trans('admin.database.cleanup_error'));
+        showNotification('error', trans('cleanup_error'));
     });
 }
 

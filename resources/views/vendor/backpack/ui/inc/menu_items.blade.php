@@ -126,18 +126,18 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
 
 {{-- 6. Database Management --}}
 @if(backpack_user()->hasPermissionTo('can_configure_system', 'backpack'))
-<x-backpack::menu-dropdown title="{{ __('admin.database.database_management') }}" icon="la la-database text-danger">
-    <x-backpack::menu-dropdown-item title="{{ __('admin.database.dashboard') }}" icon="la la-tachometer-alt"
+<x-backpack::menu-dropdown title="{{ __('admin/database.menu.title') }}" icon="la la-database text-danger">
+    <x-backpack::menu-dropdown-item title="{{ __('admin/database.dashboard.title') }}" icon="la la-tachometer-alt"
         :link="backpack_url('database-dashboard')" />
-    <x-backpack::menu-dropdown-header title="{{ __('admin.database.monitoring') }}" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.database.maintenance_logs') }}" icon="la la-list"
+    <x-backpack::menu-dropdown-header title="{{ __('admin/database.menu.monitoring') }}" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin/database.maintenance_logs.entity.plural') }}" icon="la la-list"
         :link="backpack_url('database-maintenance-log')" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.database.performance_metrics') }}" icon="la la-chart-line"
+    <x-backpack::menu-dropdown-item title="{{ __('admin/database.performance_metrics.entity.plural') }}" icon="la la-chart-line"
         :link="backpack_url('performance-metric')" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.database.optimization_logs') }}" icon="la la-cogs"
+    <x-backpack::menu-dropdown-item title="{{ __('admin/database.optimization_logs.entity.plural') }}" icon="la la-cogs"
         :link="backpack_url('mysql-optimization-log')" />
-    <x-backpack::menu-dropdown-header title="{{ __('admin.database.configuration') }}" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.database.archive_policies') }}" icon="la la-archive"
+    <x-backpack::menu-dropdown-header title="{{ __('admin/database.menu.configuration') }}" />
+    <x-backpack::menu-dropdown-item title="{{ __('admin/database.archive_policies.entity.plural') }}" icon="la la-archive"
         :link="backpack_url('archive-policy')" />
 </x-backpack::menu-dropdown>
 @endif
