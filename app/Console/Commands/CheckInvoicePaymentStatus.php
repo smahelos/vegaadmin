@@ -6,7 +6,6 @@ use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Shared\Notifications\DTO\Recipient;
-use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use App\Models\Invoice;
 use App\Models\Status;
 use App\Models\StatusCategory;
@@ -16,8 +15,6 @@ use Illuminate\Support\Facades\Log;
 
 class CheckInvoicePaymentStatus extends Command
 {
-    use HasPreferredLocale;
-
     /**
      * The name and signature of the console command.
      *

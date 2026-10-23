@@ -26,11 +26,6 @@ trait HasPreferredLocale
             return $localeService->localeFromCountry((string) $this->attributes['country']);
         }
 
-        // For cases where country is in another relationship (e.g. address)
-        if (method_exists($this, 'address') && $this->address && $this->address->country) {
-            return $localeService->localeFromCountry((string) $this->address->country);
-        }
-
         // Return default language if we can't determine the country
         return config('app.fallback_locale', 'en');
     }

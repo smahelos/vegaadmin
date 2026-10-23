@@ -79,14 +79,6 @@ class CheckInvoicePaymentStatusTest extends TestCase
     }
 
     #[Test]
-    public function command_uses_has_preferred_locale_trait(): void
-    {
-        $traits = class_uses($this->command);
-
-        $this->assertContains('App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale', $traits);
-    }
-
-    #[Test]
     public function command_structure_validation(): void
     {
         $reflection = new \ReflectionClass($this->command);
