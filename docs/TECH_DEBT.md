@@ -35,9 +35,9 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Fix:** a complete translated message for the user, the exception only in the log with structured context (`rules/php.md`, Errors); done together with "Error handling" below by mapping context exceptions in `app/Exceptions/ExceptionHandling.php`.
 
 ### Invoice items are not validated
-- **Where:** `app/Http/Requests/InvoiceRequest.php`, `app/Http/Requests/Admin/InvoiceRequest.php` (no rule for `invoice-products`), `app/Application/Invoice/Services/InvoiceRequestAssembler.php` (decodes the JSON as it comes)
-- **Problem:** the items of an invoice reach the database without validation: any price, quantity, tax rate, currency or `product_id`, possibly a product of another user (not verified). An unknown unit ends in a 500 from `Unit::from()`.
-- **Fix (decided 2026-10-23, own branch after the translations):** the requests validate every item (`Rule::enum(Unit::class)`, numeric ranges, currency from `Currency`, `product_id` owned by the user) with one rule set for frontend and admin; the assembler builds `InvoiceProductWriteData` from validated input only.
+- **Where:** `app/Http/Requests/InvoiceRequest.php` (`invoice-products` is checked only for its units), `app/Application/Invoice/Services/InvoiceRequestAssembler.php` (decodes the JSON as it comes); the admin edits no items
+- **Problem:** the items of an invoice reach the database without validation: any price, quantity, tax rate, currency or `product_id`, possibly a product of another user (not verified). Only the unit is validated (an empty unit or a `Unit` value).
+- **Fix (decided 2026-10-23, own branch after the translations):** the request decodes the items before validation and validates each of them (`Rule::enum(Unit::class)` replacing the unit closure, numeric ranges, currency from `Currency`, `product_id` owned by the user); the assembler builds `InvoiceProductWriteData` from validated input only.
 
 ## Invoice
 
@@ -206,7 +206,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** add `pint.json` (excluding `data/`, `storage/`, `vendor/`, `node_modules/`) and format the whole codebase in one commit; install Larastan without a baseline file, start at the highest level that can be made clean, raise it as contexts are converted (target: max); run both in CI.
 
 ### `strict_types` and `final`
-- **Where:** all of `app/`, `tests/`, `database/` (0 files declare `strict_types`, 9 classes are `final`)
+- **Where:** all of `app/`, `tests/`, `database/` (11 of 1227 files declare `strict_types`, 11 classes are `final`); files touched by a branch keep their old shape, e.g. `app/Http/Controllers/Frontend/ProfileController.php` (no constructor promotion, untyped properties)
 - **Fix:** add `declare(strict_types=1)` and `final` (except abstract bases and Eloquent models, `rules/php.md`); the test suite catches the coercions this exposes.
 
 ### Two sets of repositories
