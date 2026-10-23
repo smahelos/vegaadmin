@@ -37,7 +37,7 @@ class UserCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\User::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/user');
-        CRUD::setEntityNameStrings('user', 'users');
+        CRUD::setEntityNameStrings(__('users.entity.singular'), __('users.entity.plural'));
 
         // Configure access using centralized service
         $userId = optional(backpack_user())->id ?? 0;
@@ -55,30 +55,22 @@ class UserCrudController extends CrudController
         $this->crud->addColumns([
             [
                 'name'  => 'name',
-                'label' => trans('backpack::permissionmanager.name'),
+                'label' => __('users.fields.name'),
                 'type'  => 'text',
             ],
             [
                 'name'  => 'email',
-                'label' => trans('backpack::permissionmanager.email'),
+                'label' => __('users.fields.email'),
                 'type'  => 'email',
             ],
             [ // n-n relationship (with pivot table)
-                'label'     => trans('backpack::permissionmanager.roles'),
+                'label'     => __('users.fields.roles'),
                 'type'      => 'select_multiple',
                 'name'      => 'roles',
                 'entity'    => 'roles',
                 'attribute' => 'name',
                 'model'     => config('permission.models.role'),
             ],
-            // [ // n-n relationship (with pivot table)
-            //     'label'     => trans('backpack::permissionmanager.extra_permissions'),
-            //     'type'      => 'select_multiple',
-            //     'name'      => 'permissions',
-            //     'entity'    => 'permissions',
-            //     'attribute' => 'name',
-            //     'model'     => config('permission.models.permission'),
-            // ],
         ]);
 
         if (backpack_pro()) {
@@ -87,7 +79,7 @@ class UserCrudController extends CrudController
                 [
                     'name'  => 'role',
                     'type'  => 'select2',
-                    'label' => trans('backpack::permissionmanager.role'),
+                    'label' => __('users.filters.role'),
                 ],
                 config('permission.models.role')::all()->pluck('name', 'id')->toArray(),
                 function ($value) {
@@ -102,7 +94,7 @@ class UserCrudController extends CrudController
                 [
                     'name'  => 'permissions',
                     'type'  => 'select2',
-                    'label' => trans('backpack::permissionmanager.extra_permissions'),
+                    'label' => __('users.filters.permission'),
                 ],
                 config('permission.models.permission')::all()->pluck('name', 'id')->toArray(),
                 function ($value) {
@@ -147,16 +139,16 @@ class UserCrudController extends CrudController
      */
     public function setupShowOperation()
     {
-        $this->crud->column('name');
-        $this->crud->column('email');
+        $this->crud->column('name')->label(__('users.fields.name'));
+        $this->crud->column('email')->label(__('users.fields.email'));
         $this->crud->column([
-            'label'             => trans('backpack::permissionmanager.user_role_permission'),
+            'label'             => __('users.fields.roles_permissions'),
             'field_unique_name' => 'user_role_permission',
             'type'              => 'checklist_dependency',
             'name'              => 'roles_permissions',
             'subfields'         => [
                 'primary' => [
-                    'label'            => trans('backpack::permissionmanager.role'),
+                    'label'            => __('users.fields.roles'),
                     'name'             => 'roles',
                     'entity'           => 'roles',
                     'entity_secondary' => 'permissions',
@@ -164,7 +156,7 @@ class UserCrudController extends CrudController
                     'model'            => config('permission.models.role'),
                 ],
                 'secondary' => [
-                    'label'            => mb_ucfirst(trans('backpack::permissionmanager.permission_singular')),
+                    'label'            => __('users.fields.permissions'),
                     'name'             => 'permissions',
                     'entity'           => 'permissions',
                     'entity_primary'   => 'roles',
@@ -173,8 +165,8 @@ class UserCrudController extends CrudController
                 ],
             ],
         ]);
-        $this->crud->column('created_at');
-        $this->crud->column('updated_at');
+        $this->crud->column('created_at')->label(__('users.fields.created_at'));
+        $this->crud->column('updated_at')->label(__('users.fields.updated_at'));
     }
 
     /**
@@ -237,32 +229,32 @@ class UserCrudController extends CrudController
         $this->crud->addFields([
             [
                 'name'  => 'name',
-                'label' => trans('backpack::permissionmanager.name'),
+                'label' => __('users.fields.name'),
                 'type'  => 'text',
             ],
             [
                 'name'  => 'email',
-                'label' => trans('backpack::permissionmanager.email'),
+                'label' => __('users.fields.email'),
                 'type'  => 'email',
             ],
             [
                 'name'  => 'password',
-                'label' => trans('backpack::permissionmanager.password'),
+                'label' => __('users.fields.password'),
                 'type'  => 'password',
             ],
             [
                 'name'  => 'password_confirmation',
-                'label' => trans('backpack::permissionmanager.password_confirmation'),
+                'label' => __('users.fields.password_confirmation'),
                 'type'  => 'password',
             ],
             [
-                'label'             => trans('backpack::permissionmanager.user_role_permission'),
+                'label'             => __('users.fields.roles_permissions'),
                 'field_unique_name' => 'user_role_permission',
                 'type'              => 'checklist_dependency',
                 'name'              => 'roles,permissions',
                 'subfields'         => [
                     'primary' => [
-                        'label'            => trans('backpack::permissionmanager.roles'),
+                        'label'            => __('users.fields.roles'),
                         'name'             => 'roles',
                         'entity'           => 'roles',
                         'entity_secondary' => 'permissions',
@@ -272,7 +264,7 @@ class UserCrudController extends CrudController
                         'number_columns'   => 3,
                     ],
                     'secondary' => [
-                        'label'          => mb_ucfirst(trans('backpack::permissionmanager.permission_plural')),
+                        'label'          => __('users.fields.permissions'),
                         'name'           => 'permissions',
                         'entity'         => 'permissions',
                         'entity_primary' => 'roles',

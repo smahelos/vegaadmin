@@ -13,6 +13,11 @@ return [
         'current_password' => 'Current password',
         'new_password' => 'New password',
         'remember_me' => 'Remember me',
+        'roles' => 'Roles',
+        'permissions' => 'Permissions',
+        'roles_permissions' => 'Roles and permissions',
+        'created_at' => 'Created',
+        'updated_at' => 'Updated',
     ],
     'hints' => [
         'password' => 'At least 8 characters long',
@@ -26,6 +31,10 @@ return [
         'current_password' => 'Enter your current password',
         'new_password' => 'Enter new password',
         'password_confirmation' => 'Enter the same password for confirmation',
+    ],
+    'filters' => [
+        'role' => 'Role',
+        'permission' => 'Permission',
     ],
     'auth' => [
         'unauthenticated' => 'Not authenticated.',

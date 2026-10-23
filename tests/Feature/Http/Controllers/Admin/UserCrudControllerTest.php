@@ -72,6 +72,20 @@ class UserCrudControllerTest extends TestCase
             'Expected status 302 or 403, got: ' . $response->status());
     }
 
+    #[Test]
+    public function user_form_shows_czech_labels(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+
+        $this->withSession(['backpack.language-switcher.locale' => 'cs'])
+            ->get('/admin/user/create')
+            ->assertOk()
+            ->assertSeeText('Jméno')
+            ->assertSeeText('Role a oprávnění')
+            ->assertSeeText('Oprávnění')
+            ->assertDontSeeText('permissionmanager.');
+    }
+
     /**
      * Test user creation process.
      *

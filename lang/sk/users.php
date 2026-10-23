@@ -13,6 +13,11 @@ return [
         'current_password' => 'Súčasné heslo',
         'new_password' => 'Nové heslo',
         'remember_me' => 'Zapamätať si ma',
+        'roles' => 'Roly',
+        'permissions' => 'Oprávnenia',
+        'roles_permissions' => 'Roly a oprávnenia',
+        'created_at' => 'Vytvorené',
+        'updated_at' => 'Aktualizované',
     ],
     'hints' => [
         'password' => 'Aspoň 8 znakov',
@@ -26,6 +31,10 @@ return [
         'current_password' => 'Zadajte súčasné heslo',
         'new_password' => 'Zadajte nové heslo',
         'password_confirmation' => 'Zadajte rovnaké heslo pre potvrdenie',
+    ],
+    'filters' => [
+        'role' => 'Rola',
+        'permission' => 'Oprávnenie',
     ],
     'auth' => [
         'unauthenticated' => 'Nie ste prihlásený.',

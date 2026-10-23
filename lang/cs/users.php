@@ -13,6 +13,11 @@ return [
         'current_password' => 'Současné heslo',
         'new_password' => 'Nové heslo',
         'remember_me' => 'Zapamatovat si mě',
+        'roles' => 'Role',
+        'permissions' => 'Oprávnění',
+        'roles_permissions' => 'Role a oprávnění',
+        'created_at' => 'Vytvořeno',
+        'updated_at' => 'Aktualizováno',
     ],
     'hints' => [
         'password' => 'Alespoň 8 znaků',
@@ -26,6 +31,10 @@ return [
         'current_password' => 'Zadejte současné heslo',
         'new_password' => 'Zadejte nové heslo',
         'password_confirmation' => 'Stejné heslo pro potvrzení',
+    ],
+    'filters' => [
+        'role' => 'Role',
+        'permission' => 'Oprávnění',
     ],
     'auth' => [
         'unauthenticated' => 'Nejste přihlášeni.',

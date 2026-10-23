@@ -13,6 +13,11 @@ return [
         'current_password' => 'Aktuelles Passwort',
         'new_password' => 'Neues Passwort',
         'remember_me' => 'Angemeldet bleiben',
+        'roles' => 'Rollen',
+        'permissions' => 'Berechtigungen',
+        'roles_permissions' => 'Rollen und Berechtigungen',
+        'created_at' => 'Erstellt',
+        'updated_at' => 'Aktualisiert',
     ],
     'hints' => [
         'password' => 'Mindestens 8 Zeichen haben',
@@ -26,6 +31,10 @@ return [
         'current_password' => 'Aktuelles Passwort eingeben',
         'new_password' => 'Neues Passwort eingeben',
         'password_confirmation' => 'Geben Sie das Passwort zur Bestätigung erneut ein',
+    ],
+    'filters' => [
+        'role' => 'Rolle',
+        'permission' => 'Berechtigung',
     ],
     'auth' => [
         'unauthenticated' => 'Nicht authentifiziert',
