@@ -7,7 +7,9 @@ use App\Models\Page;
 use App\Models\PageCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -347,5 +349,91 @@ class PageCrudControllerTest extends TestCase
         $this->assertEquals('minimalni-stranka', $createdPage->getSlug('cs'));
         $this->assertEquals($this->category->id, $createdPage->category_id);
         $this->assertFalse($createdPage->published); // Výchozí hodnota by měla být false
+    }
+
+    #[Test]
+    public function store_page_saves_an_uploaded_main_image(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->adminUser, 'backpack');
+
+        $this->post('/admin/page', [
+            'name_cs' => 'Stránka s obrázkem',
+            'slug_cs' => 'stranka-s-obrazkem-'.uniqid(),
+            'main_image' => UploadedFile::fake()->image('hero.jpg', 800, 600),
+        ])->assertSessionHasNoErrors();
+
+        $createdPage = Page::latest('id')->first();
+        $this->assertNotNull($createdPage->main_image);
+        Storage::disk('public')->assertExists($createdPage->main_image);
+    }
+
+    #[Test]
+    public function store_page_rejects_a_main_image_that_is_not_an_image(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->adminUser, 'backpack');
+        $slug = 'stranka-s-pdf-'.uniqid();
+
+        $this->post('/admin/page', [
+            'name_cs' => 'Stránka s PDF',
+            'slug_cs' => $slug,
+            'main_image' => UploadedFile::fake()->create('hero.pdf', 100, 'application/pdf'),
+        ])->assertSessionHasErrors(['main_image']);
+
+        $this->assertDatabaseMissing('pages', ['slug->cs' => $slug]);
+    }
+
+    #[Test]
+    public function store_page_rejects_a_main_image_over_10_mb(): void
+    {
+        Storage::fake('public');
+        $this->actingAs($this->adminUser, 'backpack');
+
+        $this->post('/admin/page', [
+            'name_cs' => 'Stránka s velkým obrázkem',
+            'slug_cs' => 'velky-obrazek-'.uniqid(),
+            'main_image' => UploadedFile::fake()->image('hero.jpg')->size(10241),
+        ])->assertSessionHasErrors(['main_image']);
+    }
+
+    #[Test]
+    public function store_page_rejects_fields_the_application_sets(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $slug = 'systemova-pole-'.uniqid();
+
+        $this->post('/admin/page', [
+            'name_cs' => 'Systémová pole',
+            'slug_cs' => $slug,
+            'published_by' => $this->adminUser->id,
+            'images' => ['pages/galleries/foreign.jpg'],
+            'created_at' => '2000-01-01 00:00:00',
+            'updated_at' => '2000-01-01 00:00:00',
+        ])->assertSessionHasErrors(['published_by', 'images', 'created_at', 'updated_at']);
+
+        $this->assertDatabaseMissing('pages', ['slug->cs' => $slug]);
+    }
+
+    #[Test]
+    public function update_page_stores_only_validated_input(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $page = Page::factory()->create([
+            'category_id' => $this->category->id,
+            'name' => ['cs' => 'Původní'],
+            'slug' => ['cs' => 'puvodni-'.uniqid()],
+        ]);
+
+        $this->put("/admin/page/{$page->id}", [
+            'id' => $page->id,
+            'name_cs' => 'Nový název',
+            'slug_cs' => 'novy-nazev-'.uniqid(),
+            'main_image' => 'pages/../../.env',
+        ])->assertSessionHasErrors(['main_image']);
+
+        $page->refresh();
+        $this->assertSame('Původní', $page->getName('cs'));
+        $this->assertNull($page->main_image);
     }
 }

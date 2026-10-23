@@ -305,37 +305,6 @@ class PageCrudController extends CrudController
     }
 
     /**
-     * Transform multilingual field data before storing.
-     */
-    protected function transformMultilingualData($request)
-    {
-        $locales = ['cs', 'en', 'de', 'sk'];
-        $multilingualFields = ['name', 'slug', 'description', 'content', 'meta_title', 'meta_description', 'meta_keywords'];
-        
-        $data = $request->all();
-        
-        foreach ($multilingualFields as $field) {
-            $fieldData = [];
-            
-            foreach ($locales as $locale) {
-                $key = $field . '_' . $locale;
-                if (isset($data[$key]) && !empty($data[$key])) {
-                    $fieldData[$locale] = $data[$key];
-                }
-                // Remove the original key from data
-                unset($data[$key]);
-            }
-            
-            // Add the transformed data if we have any data for this field
-            if (!empty($fieldData)) {
-                $data[$field] = $fieldData;
-            }
-        }
-        
-        return $data;
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store()
@@ -345,11 +314,8 @@ class PageCrudController extends CrudController
         // Execute the FormRequest authorization and validation logic
         $request = $this->crud->validateRequest();
         
-        // Transform multilingual data
-        $data = $this->transformMultilingualData($request);
-        
-        // Insert item in the db
-        $item = $this->crud->create($data);
+        // PageRequest has already merged the per-locale inputs; only validated input reaches the model
+        $item = $this->crud->create($request->validated());
         $this->data['entry'] = $this->crud->entry = $item;
 
         // Show a success message
@@ -368,13 +334,10 @@ class PageCrudController extends CrudController
         // Execute the FormRequest authorization and validation logic
         $request = $this->crud->validateRequest();
         
-        // Transform multilingual data
-        $data = $this->transformMultilingualData($request);
-        
-        // Update the row in the db
+        // PageRequest has already merged the per-locale inputs; only validated input reaches the model
         $item = $this->crud->update(
-            $request->get($this->crud->model->getKeyName()), 
-            $data
+            $request->get($this->crud->model->getKeyName()),
+            $request->validated()
         );
         $this->data['entry'] = $this->crud->entry = $item;
 

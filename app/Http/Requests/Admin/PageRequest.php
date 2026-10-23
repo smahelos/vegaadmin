@@ -113,9 +113,13 @@ class PageRequest extends FormRequest
             'published' => 'boolean',
             'publishing_start' => 'nullable|date',
             'publishing_end' => 'nullable|date|after:publishing_start',
-            'template' => 'nullable|string|max:100',
-            'image' => 'nullable|file|mimes:jpeg,jpg,png,webp|max:2048',
-            'tags' => 'nullable|string',
+            'main_image' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+
+            // Set by the application, never by the form
+            'images' => 'prohibited',
+            'published_by' => 'prohibited',
+            'created_at' => 'prohibited',
+            'updated_at' => 'prohibited',
         ];
 
         // Prevent circular parent reference
@@ -146,9 +150,7 @@ class PageRequest extends FormRequest
             'published' => __('admin.pages.published'),
             'publishing_start' => __('admin.pages.publishing_start'),
             'publishing_end' => __('admin.pages.publishing_end'),
-            'template' => __('admin.pages.template'),
-            'image' => __('admin.pages.image'),
-            'tags' => __('admin.pages.tags'),
+            'main_image' => __('admin.pages.main_image'),
         ];
         
         // Add attributes for each locale
@@ -190,11 +192,6 @@ class PageRequest extends FormRequest
             'publishing_start.date' => __('admin.validation.pages.publishing_start.date'),
             'publishing_end.date' => __('admin.validation.pages.publishing_end.date'),
             'publishing_end.after' => __('admin.validation.pages.publishing_end.after'),
-            'template.max' => __('admin.validation.pages.template.max'),
-            'image.file' => __('admin.validation.pages.image.file'),
-            'image.mimes' => __('admin.validation.pages.image.mimes'),
-            'image.max' => __('admin.validation.pages.image.max'),
-            'tags.string' => __('admin.validation.pages.tags.string'),
         ];
         
         // Add messages for each locale
@@ -253,14 +250,6 @@ class PageRequest extends FormRequest
             
             if (!$hasSlug) {
                 $validator->errors()->add('slug', __('admin.validation.pages.at_least_one_locale_required'));
-            }
-            
-            // Validate publish/unpublish date logic
-            $publishingStart = $this->input('publishing_start');
-            $publishingEnd = $this->input('publishing_end');
-            
-            if ($publishingStart && $publishingEnd && strtotime($publishingEnd) <= strtotime($publishingStart)) {
-                $validator->errors()->add('publishing_end', 'Publishing end date must be after publishing start date');
             }
         });
     }
