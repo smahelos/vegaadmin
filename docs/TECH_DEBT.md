@@ -137,6 +137,18 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** value object prepared for a feature that does not exist yet (no `sku` column).
 - **Fix:** use it when SKU is added, or delete it.
 
+## Entity limits
+
+### UELS dashboard bulk reset fails
+- **Where:** `app/Http/Controllers/Admin/UELSDashboardController.php::bulkResetUsage()`
+- **Problem:** the action passes a `User` model to `UniversalLimitService::resetUsage(?int $userId, …)` and ends with a `TypeError` (500). Its validation marks both checkboxes `accepted`, so resetting only anonymous usage or only users cannot be submitted at all.
+- **Fix:** pass the user id, make both options optional (at least one required), cover the action with a feature test. With the subscription plans work.
+
+### Dead reset actions and hardcoded units in the usage CRUD
+- **Where:** `app/Http/Controllers/Admin/EntityUsageCrudController.php` (`resetUsage()`, `bulkResetUsage()`, `formatBytes()`), `app/Http/Requests/Admin/EntityUsageRequest.php`, `resources/views/admin/uels-dashboard.blade.php`, `resources/js/uels-manager.js`
+- **Problem:** no route reaches the two reset actions, and the CRUD has no create or update operation, so `EntityUsageRequest` validates nothing; both still carry English flash messages. Value-based limits print a fixed `€` and sizes `KB`, the widget title in `uels-manager.js` prints the raw entity type and period slugs.
+- **Fix:** delete the unreachable actions and request, format amounts through `MoneyFormatterInterface` with the limit's currency, pass translated labels to the widget script.
+
 ## Cross-cutting
 
 ### Move cache invalidation from observers to domain event handlers
