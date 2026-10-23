@@ -44,10 +44,10 @@ final class InvoiceProductWriteDataAssembler
         );
     }
 
-    /** "+1.5", ".5" and 1.5 pass Laravel's numeric rules; Money expects "1.5" and "0.5". */
+    /** "+1.5", ".5", "5." and 1.5 pass Laravel's numeric rules; Money expects "1.5", "0.5" and "5". */
     private function decimal(int|float|string $value): string
     {
-        $decimal = ltrim(trim((string) $value), '+');
+        $decimal = rtrim(ltrim(trim((string) $value), '+'), '.');
 
         return str_starts_with($decimal, '.') ? '0' . $decimal : $decimal;
     }
