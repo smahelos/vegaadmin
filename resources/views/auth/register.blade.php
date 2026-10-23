@@ -44,7 +44,7 @@
                     @php $field = collect($userFields)->firstWhere('name', 'phone') ?? []; @endphp
                     <div class="mb-5">
                         <label for="phone" class="block text-base font-medium text-gray-900 dark:text-white mb-2">
-                            {{ $field['label'] ?? __('users.fields.phone') }} @if(isset($field['required']) &&
+                            {{ $field['label'] ?? __('suppliers.fields.phone') }} @if(isset($field['required']) &&
                             $field['required'])<span class="text-red-500">*</span>@endif
                         </label>
                         <input type="{{ $field['type'] ?? 'text' }}" name="phone" id="phone" value="{{ old('phone') }}"
@@ -133,7 +133,7 @@
                 @php $field = collect($userFields)->firstWhere('name', 'street') ?? []; @endphp
                 <div class="mb-5">
                     <label for="street" class="block text-base font-medium text-gray-900 dark:text-white mb-2">
-                        {{ $field['label'] ?? __('users.fields.street') }} @if(isset($field['required']) &&
+                        {{ $field['label'] ?? __('suppliers.fields.street') }} @if(isset($field['required']) &&
                         $field['required'])<span class="text-red-500">*</span>@endif
                     </label>
                     <input type="{{ $field['type'] ?? 'text' }}" name="street" id="street" value="{{ old('street') }}"
@@ -150,7 +150,7 @@
                     @php $field = collect($userFields)->firstWhere('name', 'city') ?? []; @endphp
                     <div class="mb-5">
                         <label for="city" class="block text-base font-medium text-gray-900 dark:text-white mb-2">
-                            {{ $field['label'] ?? __('users.fields.city') }} @if(isset($field['required']) &&
+                            {{ $field['label'] ?? __('suppliers.fields.city') }} @if(isset($field['required']) &&
                             $field['required'])<span class="text-red-500">*</span>@endif
                         </label>
                         <input type="{{ $field['type'] ?? 'text' }}" name="city" id="city" value="{{ old('city') }}"
@@ -166,7 +166,7 @@
                     @php $field = collect($userFields)->firstWhere('name', 'zip') ?? []; @endphp
                     <div class="mb-5">
                         <label for="zip" class="block text-base font-medium text-gray-900 dark:text-white mb-2">
-                            {{ $field['label'] ?? __('users.fields.zip') }} @if(isset($field['required']) &&
+                            {{ $field['label'] ?? __('suppliers.fields.zip') }} @if(isset($field['required']) &&
                             $field['required'])<span class="text-red-500">*</span>@endif
                         </label>
                         <input type="{{ $field['type'] ?? 'text' }}" name="zip" id="zip" value="{{ old('zip') }}"
@@ -181,7 +181,7 @@
                     <!-- Country -->
                     @php /* No need to assign $field for country here */ @endphp
                     <x-country-select name="country" :selected="old('country', $client->country ?? 'CZ')"
-                        required="false" label="{{ __('users.fields.country') }}" />
+                        required="false" label="{{ __('suppliers.fields.country') }}" />
 
                 </div>
 

@@ -19,7 +19,7 @@
                         </svg>
                     </div>
                     <div class="ml-3">
-                        <h3 class="text-sm font-medium text-red-800 dark:text-red-500">{{ __('users.errors.login_errors') }}</h3>
+                        <h3 class="text-sm font-medium text-red-800 dark:text-red-500">{{ __('users.messages.login_errors') }}</h3>
                         <div class="mt-2 text-sm text-red-700 dark:text-red-400">
                             <ul class="list-disc pl-5 space-y-1">
                                 @foreach ($errors->all() as $error)
@@ -40,13 +40,13 @@
                     <label for="email" class="sr-only">{{ __('users.fields.email') }}</label>
                     <input id="email" name="email" type="email" autocomplete="email" required
                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-blue-100 bg-blue-50 placeholder-gray-500 text-gray-900 rounded-t-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"
-                           placeholder="{{ __('users.fields.email_placeholder') }}" value="{{ old('email') }}">
+                           placeholder="{{ __('users.placeholders.email') }}" value="{{ old('email') }}">
                 </div>
                 <div>
                     <label for="password" class="sr-only">{{ __('users.fields.password') }}</label>
                     <input id="password" name="password" type="password" autocomplete="current-password" required
                            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-blue-100 bg-blue-50 placeholder-gray-500 text-gray-900 rounded-b-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"
-                           placeholder="{{ __('users.fields.password_placeholder') }}">
+                           placeholder="{{ __('users.placeholders.password') }}">
                 </div>
             </div>
 

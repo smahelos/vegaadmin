@@ -46,30 +46,21 @@ class RegistrationRequest extends FormRequest
     }
 
     /**
-     * Get custom error messages for validation rules
-     *
-     * @return array
+     * Registration creates the user and their default supplier, so address,
+     * company and bank fields are named like the supplier's.
      */
-    public function messages(): array
+    public function attributes(): array
     {
-        return [
-            'password.required' => __('users.validation.password_required'),
-            'street.required' => __('users.validation.street_required'),
-            'city.required' => __('users.validation.city_required'),
-            'zip.required' => __('users.validation.zip_required'),
-            'country.required' => __('users.validation.country_required'),
-            'name.required' => __('users.validation.name_required'),
-            'email.required' => __('users.validation.email_required'),
-            'email.email' => __('users.validation.email_email'),
-            'email.unique' => __('users.validation.email_unique'),
-            'password.min' => __('users.validation.password_min'),
-            'password.confirmed' => __('users.validation.password_confirmed'),
-            
-            // Bank account validation messages
-            'account_number.max' => __('suppliers.validation.account_number_format'),
-            'bank_code.required_with' => __('suppliers.validation.bank_code_required'),
-            'iban.max' => __('suppliers.validation.iban_format'),
-            'swift.required_with' => __('suppliers.validation.swift_required'),
+        $attributes = [
+            'name' => __('users.fields.name'),
+            'email' => __('users.fields.email'),
+            'password' => __('users.fields.password'),
+            'password_confirmation' => __('users.fields.password_confirmation'),
         ];
+        foreach (['street', 'city', 'zip', 'country', 'phone', 'ico', 'dic', 'description', 'account_number', 'bank_code', 'iban', 'swift', 'bank_name'] as $field) {
+            $attributes[$field] = __("suppliers.fields.$field");
+        }
+
+        return $attributes;
     }
 }

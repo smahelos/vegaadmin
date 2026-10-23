@@ -66,16 +66,6 @@ class PasswordUpdateRequestTest extends TestCase
         $this->assertEquals('array', $returnType->getName());
     }
 
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
 
     #[Test]
     public function has_required_methods(): void
@@ -85,7 +75,6 @@ class PasswordUpdateRequestTest extends TestCase
         $this->assertTrue($reflection->hasMethod('authorize'));
         $this->assertTrue($reflection->hasMethod('rules'));
         $this->assertTrue($reflection->hasMethod('attributes'));
-        $this->assertTrue($reflection->hasMethod('messages'));
     }
 
     #[Test]
@@ -96,6 +85,5 @@ class PasswordUpdateRequestTest extends TestCase
         $this->assertTrue($reflection->getMethod('authorize')->isPublic());
         $this->assertTrue($reflection->getMethod('rules')->isPublic());
         $this->assertTrue($reflection->getMethod('attributes')->isPublic());
-        $this->assertTrue($reflection->getMethod('messages')->isPublic());
     }
 }

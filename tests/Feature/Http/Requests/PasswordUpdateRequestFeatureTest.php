@@ -243,25 +243,6 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         }
     }
 
-    #[Test]
-    public function request_has_custom_validation_messages()
-    {
-        $request = new PasswordUpdateRequest();
-        $messages = $request->messages();
-
-        $expectedKeys = [
-            'current_password.required',
-            'current_password.current_password',
-            'password.required',
-            'password.min',
-            'password.confirmed',
-            'password_confirmation.required',
-        ];
-
-        foreach ($expectedKeys as $key) {
-            $this->assertArrayHasKey($key, $messages, "Should have custom message for {$key}");
-        }
-    }
 
     #[Test]
     public function validation_passes_with_same_current_and_new_password()
@@ -322,5 +303,14 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('current_password', $validator->errors()->toArray());
         $this->assertArrayHasKey('password', $validator->errors()->toArray());
         $this->assertArrayHasKey('password_confirmation', $validator->errors()->toArray());
+    }
+
+    #[Test]
+    public function new_password_errors_name_the_new_password_field(): void
+    {
+        $request = new PasswordUpdateRequest();
+        $errors = Validator::make(['password' => 'short', 'password_confirmation' => 'short'], $request->rules(), [], $request->attributes())->errors();
+
+        $this->assertStringContainsString(__('users.fields.new_password'), $errors->first('password'));
     }
 }

@@ -107,23 +107,17 @@ class RegistrationRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_duplicate_email()
     {
-        // Create existing user
         User::factory()->create(['email' => 'existing@example.com']);
 
         $invalidData = $this->validRegistrationData;
         $invalidData['email'] = 'existing@example.com';
 
         $request = new RegistrationRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $validator = Validator::make($invalidData, $request->rules(), [], $request->attributes());
 
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('email', $validator->errors()->toArray());
-        // Check if error message is translated or contains key parts
-        $errorMessage = $validator->errors()->first('email');
-        $this->assertTrue(
-            str_contains($errorMessage, 'unique') ||
-            str_contains($errorMessage, 'již používán') ||
-            str_contains($errorMessage, 'already taken')
+        $this->assertSame(
+            __('validation.unique', ['attribute' => __('users.fields.email')]),
+            $validator->errors()->first('email')
         );
     }
 
@@ -257,27 +251,13 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function request_has_custom_validation_messages()
+    public function address_and_bank_errors_use_the_supplier_labels(): void
     {
         $request = new RegistrationRequest();
-        $messages = $request->messages();
+        $data = array_merge($this->validRegistrationData, ['street' => '', 'account_number' => '123456', 'bank_code' => '']);
+        $errors = Validator::make($data, $request->rules(), [], $request->attributes())->errors();
 
-        $expectedKeys = [
-            'password.required',
-            'street.required',
-            'city.required',
-            'zip.required',
-            'country.required',
-            'name.required',
-            'email.required',
-            'email.email',
-            'email.unique',
-            'password.min',
-            'password.confirmed',
-        ];
-
-        foreach ($expectedKeys as $key) {
-            $this->assertArrayHasKey($key, $messages, "Should have custom message for {$key}");
-        }
+        $this->assertStringContainsString(__('suppliers.fields.street'), $errors->first('street'));
+        $this->assertStringContainsString(__('suppliers.fields.bank_code'), $errors->first('bank_code'));
     }
 }

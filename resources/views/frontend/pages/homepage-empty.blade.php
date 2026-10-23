@@ -36,7 +36,7 @@
                 </a>
                 <a href="{{ route('frontend.login') }}"
                     class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition duration-200">
-                    {{ __('auth.login') }}
+                    {{ __('users.actions.login') }}
                 </a>
                 @endauth
             </div>

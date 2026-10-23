@@ -49,7 +49,7 @@ class UserController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'user_id' => $id
             ]);
-            return response()->json(['error' => __('users.messages.error_loading')], 500);
+            return response()->json(['error' => __('users.messages.load_failed')], 500);
         }
     }
     

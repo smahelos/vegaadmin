@@ -53,7 +53,7 @@ class ProfileController extends Controller
             Log::error('Error loading profile: ' . $e->getMessage());
 
             return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()])
-                ->withErrors(['error' => __('users.messages.profile_error')]);
+                ->withErrors(['error' => __('users.messages.profile_load_failed')]);
         }
     }
 
@@ -87,7 +87,7 @@ class ProfileController extends Controller
 
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['error' => __('users.messages.profile_error_update') . $e->getMessage()]);
+                ->withErrors(['error' => __('users.messages.profile_update_failed') . $e->getMessage()]);
         }
     }
 
@@ -114,7 +114,7 @@ class ProfileController extends Controller
 
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['error' => __('users.messages.profile_error_password_update')]);
+                ->withErrors(['error' => __('users.messages.password_update_failed')]);
         }
     }
 }
