@@ -74,10 +74,7 @@ return [
     'published' => 'Veröffentlicht',
     'breadcrumbs' => 'Sie befinden sich hier',
     'no_pages_found' => 'Keine Seiten gefunden.',
-    'create_invoice_guest' => 'Rechnung erstellen',
     'welcome_message' => 'Willkommen auf unserer Website',
-    'homepage_empty_title' => 'Willkommen',
-    'homepage_empty_message' => 'Die Website wird gerade vorbereitet. Bitte kommen Sie später wieder.',
     'navigation' => 'Navigation',
     'gallery' => 'Galerie',
     'subpages' => 'Unterseiten',
@@ -98,6 +95,19 @@ return [
     'view_all' => 'Alle anzeigen',
     'no_pages_description' => 'Derzeit sind keine veröffentlichten Seiten verfügbar.',
     'advanced_search' => 'Erweiterte Suche',
+
+    'homepage_empty' => [
+        'title' => 'Willkommen',
+        'message' => 'Die Website wird gerade vorbereitet. Bitte kommen Sie später wieder.',
+        'create_invoice' => 'Rechnung erstellen',
+        'features_title' => 'Was wir bieten',
+        'easy_invoicing' => 'Einfache Rechnungsstellung',
+        'easy_invoicing_description' => 'Erstellen Sie eine Rechnung in wenigen Minuten, auch ohne Registrierung.',
+        'instant_download' => 'Sofortiger Download',
+        'instant_download_description' => 'Laden Sie die fertige Rechnung sofort als PDF herunter.',
+        'secure' => 'Sichere Daten',
+        'secure_description' => 'Nur Sie sehen Ihre Rechnungen, Kunden und Produkte.',
+    ],
 
     'titles' => [
         'features' => 'Funktionen',

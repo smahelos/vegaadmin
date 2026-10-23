@@ -74,10 +74,7 @@ return [
     'published' => 'Published',
     'breadcrumbs' => 'You are here',
     'no_pages_found' => 'No pages found.',
-    'create_invoice_guest' => 'Create Invoice',
     'welcome_message' => 'Welcome to our website',
-    'homepage_empty_title' => 'Welcome',
-    'homepage_empty_message' => 'The website is being prepared. Please come back later.',
     'navigation' => 'Navigation',
     'gallery' => 'Gallery',
     'subpages' => 'Subpages',
@@ -98,6 +95,19 @@ return [
     'view_all' => 'View all',
     'no_pages_description' => 'There are currently no published pages available.',
     'advanced_search' => 'Advanced search',
+
+    'homepage_empty' => [
+        'title' => 'Welcome',
+        'message' => 'The website is being prepared. Please come back later.',
+        'create_invoice' => 'Create Invoice',
+        'features_title' => 'What we offer',
+        'easy_invoicing' => 'Easy invoicing',
+        'easy_invoicing_description' => 'Create an invoice in minutes, even without signing up.',
+        'instant_download' => 'Instant download',
+        'instant_download_description' => 'Download the finished invoice as a PDF right away.',
+        'secure' => 'Secure data',
+        'secure_description' => 'Only you can see your invoices, clients and products.',
+    ],
 
     'titles' => [
         'features' => 'Features',

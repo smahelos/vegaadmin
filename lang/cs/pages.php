@@ -74,10 +74,7 @@ return [
     'published' => 'Publikováno',
     'breadcrumbs' => 'Nacházíte se zde',
     'no_pages_found' => 'Nebyly nalezeny žádné stránky.',
-    'create_invoice_guest' => 'Vytvořit fakturu',
     'welcome_message' => 'Vítejte na našich stránkách',
-    'homepage_empty_title' => 'Vítejte',
-    'homepage_empty_message' => 'Webové stránky se připravují. Přijďte prosím později.',
     'navigation' => 'Navigace',
     'gallery' => 'Galerie',
     'subpages' => 'Podstránky',
@@ -98,6 +95,19 @@ return [
     'view_all' => 'Zobrazit vše',
     'no_pages_description' => 'V současné době nejsou k dispozici žádné publikované stránky.',
     'advanced_search' => 'Pokročilé vyhledávání',
+
+    'homepage_empty' => [
+        'title' => 'Vítejte',
+        'message' => 'Webové stránky se připravují. Přijďte prosím později.',
+        'create_invoice' => 'Vytvořit fakturu',
+        'features_title' => 'Co nabízíme',
+        'easy_invoicing' => 'Snadná fakturace',
+        'easy_invoicing_description' => 'Fakturu vystavíte za pár minut, i bez registrace.',
+        'instant_download' => 'Okamžité stažení',
+        'instant_download_description' => 'Hotovou fakturu si hned stáhnete jako PDF.',
+        'secure' => 'Bezpečná data',
+        'secure_description' => 'Vaše faktury, klienty a produkty vidíte jen vy.',
+    ],
 
     'titles' => [
         'features' => 'Funkce',
