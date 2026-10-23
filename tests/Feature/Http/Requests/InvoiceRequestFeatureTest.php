@@ -197,7 +197,7 @@ class InvoiceRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing()
     {
         $requiredFields = [
-            'invoice_vs', 'payment_method_id', 'payment_amount',
+            'invoice_vs', 'payment_method_id',
             'payment_currency', 'issue_date', 'due_in', 'payment_status_id'
         ];
 
@@ -251,19 +251,6 @@ class InvoiceRequestFeatureTest extends TestCase
             $this->assertArrayHasKey($field, $validator->errors()->toArray(),
                 "Should have error for {$field} when client_id is missing");
         }
-    }
-
-    #[Test]
-    public function validation_fails_with_negative_payment_amount()
-    {
-        $invalidData = $this->validInvoiceData;
-        $invalidData['payment_amount'] = -100;
-
-        $request = new InvoiceRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('payment_amount', $validator->errors()->toArray());
     }
 
     #[Test]
@@ -663,5 +650,20 @@ class InvoiceRequestFeatureTest extends TestCase
         );
 
         $response->assertStatus(422)->assertJsonValidationErrors(['invoice-products']);
+    }
+
+    #[Test]
+    public function the_typed_payment_amount_is_neither_required_nor_kept(): void
+    {
+        $request = new InvoiceRequest();
+        foreach ([null, -100] as $amount) {
+            $data = $this->validInvoiceData;
+            $data['payment_amount'] = $amount;
+
+            $validator = Validator::make($data, $request->rules(), $request->messages());
+
+            $this->assertTrue($validator->passes());
+            $this->assertArrayNotHasKey('payment_amount', $validator->validated());
+        }
     }
 }

@@ -50,13 +50,14 @@ $attributes[] = 'type="' . $field['type'] . '"';
 $attributes[] = 'name="' . $field['name'] . '"';
 $attributes[] = 'id="' . $field['name'] . '"';
 
-// Step for numeric fields
+// The amount is the sum of the items: the script fills it in and the server computes it again
 if($field['name'] === 'payment_amount') {
-$attributes[] = 'step="1"';
+$attributes[] = 'step="0.01"';
+$attributes[] = 'readonly';
 }
 
 // Required field
-if(isset($field['required']) && $field['required'] === true) {
+if(isset($field['required']) && $field['required'] === true && $field['name'] !== 'payment_amount') {
 $attributes[] = 'required';
 }
 

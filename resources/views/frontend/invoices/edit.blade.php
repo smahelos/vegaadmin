@@ -320,7 +320,8 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                             $field['name']==='tax_point_date' )
                             value="{{ old($field['name'], $invoice->{$field['name']}->format('Y-m-d')) }}" @else
                             value="{{ old($field['name'], $invoice->{$field['name']}) }}" @endif
-                            @if(isset($field['required']) && $field['required']===true) required @endif
+                            @if($field['name']==='payment_amount') readonly
+                            @elseif(isset($field['required']) && $field['required']===true) required @endif
                             class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 {{ $fieldClasses }}">
                         @if(isset($field['hint']) && $field['hint'] !== '')
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">

@@ -42,7 +42,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $response->assertJsonStructure(['message','errors']);
         // Check a representative subset of required fields
         $response->assertJsonValidationErrors([
-            'invoice_vs','payment_method_id','payment_amount','payment_currency','issue_date','due_in','payment_status_id'
+            'invoice_vs','payment_method_id','payment_currency','issue_date','due_in','payment_status_id','invoice-products'
         ]);
     }
 

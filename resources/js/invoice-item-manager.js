@@ -446,9 +446,9 @@ export default class InvoiceItemManager {
             itemElement: itemElement.outerHTML.slice(0, 100) + '...' // Log partial HTML for debugging
         });
 
-        // Calculate price with VAT
-        const totalWithoutTax = quantity * price;
-        const totalWithTax = totalWithoutTax * (1 + (taxRate / 100));
+        // Calculate price with VAT, rounded per step like the server
+        const totalWithoutTax = Math.round(quantity * price * 100) / 100;
+        const totalWithTax = totalWithoutTax + Math.round(totalWithoutTax * taxRate) / 100;
 
         // Round to 2 decimal places
         const totalRounded = Math.round(totalWithTax * 100) / 100;
@@ -483,10 +483,12 @@ export default class InvoiceItemManager {
             const price = parseFloat(itemElement.querySelector('.item-price').value) || 0;
             const taxRate = parseFloat(itemElement.querySelector('.item-tax').value) || 0;
 
-            const itemTotal = quantity * price * (1 + (taxRate / 100));
-            total += itemTotal;
-            totalTax += itemTotal * (taxRate / 100);
-            totalWithoutTax += itemTotal - (itemTotal * (taxRate / 100));
+            // Same rule as the server (InvoiceProductWriteData): base and VAT rounded to cents per line
+            const lineBase = Math.round(quantity * price * 100) / 100;
+            const lineTax = Math.round(lineBase * taxRate) / 100;
+            total += lineBase + lineTax;
+            totalTax += lineTax;
+            totalWithoutTax += lineBase;
 
             // Check if there are non-zero prices
             if (price > 0) {
@@ -503,16 +505,11 @@ export default class InvoiceItemManager {
         // Round to 2 decimal places for total without tax
         const roundedTotalWithoutTax = Math.round(totalWithoutTax * 100) / 100;
 
-        // Set readonly for total invoice amount if there are items with non-zero price
+        // The invoice amount is always the sum of the items; the server computes it again
         if (this.paymentAmountInput) {
-            if (hasNonZeroPrices) {
-                this.paymentAmountInput.value = roundedTotal;
-                this.paymentAmountInput.readOnly = true;
-                this.paymentAmountInput.classList.add('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
-            } else {
-                this.paymentAmountInput.readOnly = false;
-                this.paymentAmountInput.classList.remove('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
-            }
+            this.paymentAmountInput.value = roundedTotal;
+            this.paymentAmountInput.readOnly = true;
+            this.paymentAmountInput.classList.add('bg-[#FDFDFC]', 'bg-gray-200', 'text-gray-500');
         }
 
         // Set readonly for total tax invoice amount if there are items with non-zero price
