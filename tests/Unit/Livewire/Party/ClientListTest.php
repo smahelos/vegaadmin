@@ -4,7 +4,6 @@ namespace Tests\Unit\Livewire\Party;
 
 use App\Livewire\Party\ClientList;
 use Livewire\Component;
-use Livewire\WithPagination;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -22,12 +21,6 @@ class ClientListTest extends TestCase
     public function component_extends_livewire_component(): void
     {
         $this->assertInstanceOf(Component::class, $this->component);
-    }
-
-    #[Test]
-    public function component_uses_with_pagination_trait(): void
-    {
-        $this->assertContains(WithPagination::class, class_uses($this->component));
     }
 
     #[Test]
@@ -120,23 +113,6 @@ class ClientListTest extends TestCase
     }
 
     #[Test]
-    public function mount_method_exists(): void
-    {
-        $this->assertTrue(method_exists($this->component, 'mount'));
-    }
-
-    #[Test]
-    public function mount_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->component);
-        $method = $reflection->getMethod('mount');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('void', $returnType->getName());
-    }
-
-    #[Test]
     public function render_method_exists(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));
@@ -160,20 +136,6 @@ class ClientListTest extends TestCase
     }
 
     #[Test]
-    public function component_uses_required_imports(): void
-    {
-        $reflection = new \ReflectionClass($this->component);
-        $fileName = $reflection->getFileName();
-        $fileContent = file_get_contents($fileName);
-        
-        $this->assertStringContainsString('use App\Models\Client;', $fileContent);
-        $this->assertStringContainsString('use Livewire\Attributes\Url;', $fileContent);
-        $this->assertStringContainsString('use Livewire\Component;', $fileContent);
-        $this->assertStringContainsString('use Livewire\WithPagination;', $fileContent);
-        $this->assertStringContainsString('use Illuminate\Support\Facades\Auth;', $fileContent);
-    }
-
-    #[Test]
     public function component_has_proper_docblock(): void
     {
         $reflection = new \ReflectionClass($this->component);
@@ -181,16 +143,6 @@ class ClientListTest extends TestCase
         
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('ClientList Livewire Component', $docComment);
-    }
-
-    #[Test]
-    public function component_has_pagination_theme_property(): void
-    {
-        $reflection = new \ReflectionClass($this->component);
-        $this->assertTrue($reflection->hasProperty('paginationTheme'));
-        
-        $property = $reflection->getProperty('paginationTheme');
-        $this->assertTrue($property->isProtected());
     }
 
     #[Test]

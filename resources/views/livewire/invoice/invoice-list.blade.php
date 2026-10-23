@@ -199,7 +199,7 @@
 
     @if($invoices instanceof \Illuminate\Pagination\LengthAwarePaginator)
     <div class="mt-4">
-        <x-pagination :paginator="$invoices" />
+        {{ $invoices->links() }}
     </div>
     @endif
     @else

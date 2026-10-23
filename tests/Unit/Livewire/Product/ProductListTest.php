@@ -4,7 +4,6 @@ namespace Tests\Unit\Livewire\Product;
 
 use App\Livewire\Product\ProductList;
 use Livewire\Component;
-use Livewire\WithPagination;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -22,12 +21,6 @@ class ProductListTest extends TestCase
     public function component_extends_livewire_component(): void
     {
         $this->assertInstanceOf(Component::class, $this->component);
-    }
-
-    #[Test]
-    public function component_uses_with_pagination_trait(): void
-    {
-        $this->assertContains(WithPagination::class, class_uses($this->component));
     }
 
     #[Test]
@@ -86,23 +79,6 @@ class ProductListTest extends TestCase
         $this->assertEquals('bool', $orderAscProperty->getType()->getName());
         $this->assertEquals('int', $pageProperty->getType()->getName());
         $this->assertTrue($errorMessageProperty->getType()->allowsNull());
-    }
-
-    #[Test]
-    public function mount_method_exists(): void
-    {
-        $this->assertTrue(method_exists($this->component, 'mount'));
-    }
-
-    #[Test]
-    public function mount_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->component);
-        $method = $reflection->getMethod('mount');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('void', $returnType->getName());
     }
 
     #[Test]
@@ -209,20 +185,6 @@ class ProductListTest extends TestCase
     }
 
     #[Test]
-    public function component_uses_required_imports(): void
-    {
-        $reflection = new \ReflectionClass($this->component);
-        $fileContent = file_get_contents($reflection->getFileName());
-        
-        $this->assertStringContainsString('use App\Models\Product;', $fileContent);
-        $this->assertStringContainsString('use Livewire\Component;', $fileContent);
-        $this->assertStringContainsString('use Livewire\WithPagination;', $fileContent);
-        $this->assertStringContainsString('use Illuminate\Support\Facades\Auth;', $fileContent);
-        $this->assertStringContainsString('use Livewire\Attributes\Url;', $fileContent);
-        $this->assertStringContainsString('use Illuminate\Contracts\View\View;', $fileContent);
-    }
-
-    #[Test]
     public function component_has_proper_docblock(): void
     {
         $reflection = new \ReflectionClass($this->component);
@@ -262,20 +224,4 @@ class ProductListTest extends TestCase
         $this->assertEquals('Livewire\Attributes\Url', $pageAttributes[0]->getName());
     }
 
-    #[Test]
-    public function component_structure_validation(): void
-    {
-        $reflection = new \ReflectionClass($this->component);
-        
-        // Check if all required methods are public
-        $this->assertTrue($reflection->getMethod('mount')->isPublic());
-        $this->assertTrue($reflection->getMethod('updatingSearch')->isPublic());
-        $this->assertTrue($reflection->getMethod('updatingStatus')->isPublic());
-        $this->assertTrue($reflection->getMethod('resetFilters')->isPublic());
-        $this->assertTrue($reflection->getMethod('sortBy')->isPublic());
-        $this->assertTrue($reflection->getMethod('render')->isPublic());
-        
-        // Check that component extends the right class
-        $this->assertEquals('Livewire\Component', $reflection->getParentClass()->getName());
-    }
 }

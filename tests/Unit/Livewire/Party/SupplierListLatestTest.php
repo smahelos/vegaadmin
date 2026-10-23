@@ -4,7 +4,6 @@ namespace Tests\Unit\Livewire\Party;
 
 use App\Livewire\Party\SupplierListLatest;
 use Livewire\Component;
-use Livewire\WithPagination;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -22,13 +21,6 @@ class SupplierListLatestTest extends TestCase
     public function component_extends_livewire_component(): void
     {
         $this->assertInstanceOf(Component::class, $this->component);
-    }
-
-    #[Test]
-    public function component_uses_with_pagination_trait(): void
-    {
-        $traits = class_uses_recursive(SupplierListLatest::class);
-        $this->assertContains(WithPagination::class, $traits);
     }
 
     #[Test]

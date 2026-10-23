@@ -172,7 +172,7 @@
     <!-- Pagination -->
     @if($products instanceof \Illuminate\Pagination\LengthAwarePaginator)
     <div class="mt-4">
-        <x-pagination :paginator="$products" />
+        {{ $products->links() }}
     </div>
     @endif
     @else

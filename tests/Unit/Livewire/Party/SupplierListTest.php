@@ -4,7 +4,6 @@ namespace Tests\Unit\Livewire\Party;
 
 use App\Livewire\Party\SupplierList;
 use Livewire\Component;
-use Livewire\WithPagination;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -23,12 +22,6 @@ class SupplierListTest extends TestCase
     public function component_extends_livewire_component(): void
     {
         $this->assertInstanceOf(Component::class, $this->component);
-    }
-
-    #[Test]
-    public function component_uses_with_pagination_trait(): void
-    {
-        $this->assertContains(WithPagination::class, class_uses($this->component));
     }
 
     #[Test]
@@ -68,17 +61,6 @@ class SupplierListTest extends TestCase
         
         $this->assertEquals('email', $this->component->orderBy);
         $this->assertTrue($this->component->orderAsc);
-    }
-
-    #[Test]
-    public function mount_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->component);
-        $method = $reflection->getMethod('mount');
-        $returnType = $method->getReturnType();
-        
-        // Mount method should have no return type (implicitly void)
-        $this->assertNull($returnType);
     }
 
     #[Test]

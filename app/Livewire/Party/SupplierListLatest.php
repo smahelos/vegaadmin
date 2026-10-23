@@ -2,19 +2,18 @@
 
 namespace App\Livewire\Party;
 
+use App\Livewire\Shared\Paginates;
 use App\Models\Supplier;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Livewire\WithPagination;
 
 class SupplierListLatest extends Component
 {
-    use WithPagination;
+    use Paginates;
 
     public bool $orderAsc = false;
     public string $orderBy = 'created_at';
     public ?string $errorMessage = null;
-    protected $paginationTheme = 'tailwind';
 
     /**
      * Sort by given field, toggle direction if same field

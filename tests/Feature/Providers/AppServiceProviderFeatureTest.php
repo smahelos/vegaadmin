@@ -60,7 +60,6 @@ class AppServiceProviderFeatureTest extends TestCase
             'dropdown-link',
             'select',
             'currency-select',
-            'pagination'
         ];
 
         foreach ($components as $component) {

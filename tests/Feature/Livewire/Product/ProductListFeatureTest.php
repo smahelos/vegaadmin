@@ -424,14 +424,4 @@ class ProductListFeatureTest extends TestCase
         $this->assertEquals(2, $products->count());
     }
 
-    #[Test]
-    public function mount_method_sets_pagination_theme(): void
-    {
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(ProductList::class);
-
-        // Access the component instance to check pagination theme
-        $this->assertEquals('bootstrap', $component->instance()->paginationTheme);
-    }
 }

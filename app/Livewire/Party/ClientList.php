@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Party;
 
+use App\Livewire\Shared\Paginates;
 use App\Models\Client;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class ClientList extends Component
 {
-    use WithPagination;
+    use Paginates;
     
     #[Url]
     public $search = '';
@@ -34,10 +34,7 @@ class ClientList extends Component
     public $page = 1;
     
     public $errorMessage = null;
-    
-    /** @var string */
-    protected $paginationTheme = 'tailwind';
-    
+
     /** Reset pagination when search term is updated */
     public function updatingSearch(): void
     {
@@ -73,12 +70,6 @@ class ClientList extends Component
         }
     }
 
-    /** Component initialization */
-    public function mount(): void
-    {
-        $this->paginationTheme = 'tailwind';
-    }
-    
     /**
      * Render the component with clients data
      *

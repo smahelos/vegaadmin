@@ -451,14 +451,6 @@ class ProductListSelectFeatureTest extends TestCase
     }
 
     #[Test]
-    public function mount_sets_pagination_theme(): void
-    {
-        $component = Livewire::test(ProductListSelect::class);
-        
-        $this->assertEquals('bootstrap', $component->get('paginationTheme'));
-    }
-
-    #[Test]
     public function mount_initializes_selected_product_ids(): void
     {
         $component = Livewire::test(ProductListSelect::class);

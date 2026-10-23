@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Invoice;
 
+use App\Livewire\Shared\Paginates;
 use App\Models\Invoice;
 use Livewire\Component;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 use Illuminate\Contracts\View\View;
@@ -17,7 +17,7 @@ use Illuminate\Contracts\View\View;
  */
 class InvoiceListRecent extends Component
 {
-    use WithPagination;
+    use Paginates;
     
     /**
      * Current sorting field
@@ -41,15 +41,7 @@ class InvoiceListRecent extends Component
      * @var string|null
      */
     public ?string $errorMessage = null;
-    
-    /**
-     * Set up component with pagination theme
-     */
-    public function mount(): void
-    {
-        $this->paginationTheme = 'bootstrap';
-    }
-    
+
     /**
      * Sort by given field, toggle direction if same field
      *

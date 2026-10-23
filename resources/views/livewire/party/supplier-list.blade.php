@@ -161,7 +161,7 @@
     <!-- Pagination -->
     @if($suppliers instanceof \Illuminate\Pagination\LengthAwarePaginator)
     <div class="mt-4">
-        <x-pagination :paginator="$suppliers" />
+        {{ $suppliers->links() }}
     </div>
     @endif
     @else

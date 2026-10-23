@@ -308,21 +308,6 @@ class SupplierListFeatureTest extends TestCase
     }
 
     #[Test]
-    public function mount_method_sets_pagination_theme(): void
-    {
-        $this->actingAs($this->user);
-        
-        $component = Livewire::test(SupplierList::class);
-        
-        // Access protected property via reflection for testing
-        $reflection = new \ReflectionClass($component->instance());
-        $property = $reflection->getProperty('paginationTheme');
-        $property->setAccessible(true);
-        
-        $this->assertEquals('tailwind', $property->getValue($component->instance()));
-    }
-
-    #[Test]
     public function component_requires_authentication(): void
     {
         // Just verify component works with authenticated user
