@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-16T16:18:31+00:00",
+    "generated_at": "2026-10-23T16:27:37+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -243,10 +243,6 @@
                     "concrete": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder"
                 },
                 {
-                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceProductSyncServiceInterface",
-                    "concrete": "App\\Domain\\Invoice\\Services\\InvoiceProductSyncService"
-                },
-                {
                     "abstract": "App\\Domain\\Invoice\\Notifications\\Contracts\\InvoiceReminderNotifierInterface",
                     "concrete": "App\\Infrastructure\\Notifications\\Invoice\\LaravelInvoiceReminderNotifier"
                 },
@@ -265,10 +261,6 @@
                 {
                     "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceDtoWriteRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceDtoRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceProductsSyncRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceProductsSyncRepository"
                 },
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\GuestInvoiceApplicationServiceInterface",
@@ -1033,22 +1025,6 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Invoice\\Contracts\\InvoiceProductSyncServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Domain\\Invoice\\Services\\InvoiceProductSyncService",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Invoice\\Contracts\\InvoiceProductsSyncRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceProductsSyncRepository",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }

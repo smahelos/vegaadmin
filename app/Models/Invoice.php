@@ -284,58 +284,6 @@ class Invoice extends Model
     }
 
     /**
-     * Sync products from invoice_text JSON data
-     */
-    public function syncProductsFromJson()
-    {
-        $productsData = [];
-        $jsonData = [];
-
-        try {
-            if (!empty($this->invoice_text)) {
-                $jsonData = json_decode($this->invoice_text, true);
-            }
-        } catch (\Exception $e) {
-            \Log::error('Error parsing invoice_text JSON: ' . $e->getMessage());
-            return;
-        }
-
-        // If items are present in the JSON data
-        // and are in the expected format, proceed with syncing
-        if (isset($jsonData['items']) && is_array($jsonData['items'])) {
-            foreach ($jsonData['items'] as $item) {
-                if (isset($item['product_id']) && !empty($item['product_id'])) {
-                    $productId = (int) $item['product_id'];
-
-                    // Get product name - try to fetch from database
-                    $product = Product::find($productId);
-                    $productName = $product ? $product->name : 'Unknown Product';
-
-                    // Prepare data for sync
-                    $productsData[$productId] = [
-                        'name' => $productName,
-                        'quantity' => (float) ($item['quantity'] ?? 1),
-                        'price' => (float) ($item['price'] ?? 0),
-                        'currency' => $this->payment_currency ?? 'CZK',
-                        'tax_rate' => (float) ($item['tax'] ?? 0),
-                        'tax_amount' => 0.00,
-                        'total_price' => 0.00,
-                        'is_custom_product' => 0
-                    ];
-                }
-            }
-        }
-
-        // Synchronizing products with pivot table
-        if (!empty($productsData)) {
-            $this->products()->sync($productsData);
-        } else {
-            // Clear all products if no valid items found
-            $this->products()->sync([]);
-        }
-    }
-
-    /**
      * Get total price without tax
      */
     public function getSubtotalAttribute()
