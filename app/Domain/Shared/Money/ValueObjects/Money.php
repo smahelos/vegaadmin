@@ -463,7 +463,7 @@ class Money
         }
         $rateStr = rtrim(rtrim(number_format($rate, 8, '.', ''), '0'), '.');
         if ($rateStr === '') { $rateStr = '0'; }
-        if ($rateStr === '0') { throw new InvalidArgumentException('Invalid exchange rate format'); }
+        if ($rateStr === '0' && !$this->equals(new self('0', $this->currency))) { throw new InvalidArgumentException('Invalid exchange rate format'); }
 
         return new self($this->multiplyAndRound($rateStr, $scale, $strategy), $targetCurrency);
     }
