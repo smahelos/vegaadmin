@@ -50,7 +50,7 @@ class ProfileController extends Controller
 
             return view('frontend.profile.edit', compact('user', 'userFields', 'passwordFields'));
         } catch (\Exception $e) {
-            Log::error('Error loading profile: ' . $e->getMessage());
+            Log::error('Profile loading failed', ['userId' => Auth::id(), 'exception' => $e]);
 
             return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()])
                 ->withErrors(['error' => __('users.messages.profile_load_failed')]);
@@ -65,11 +65,6 @@ class ProfileController extends Controller
      */
     public function update(UserRequest $request)
     {
-        Log::info('ProfileController::update called', [
-            'user_id' => Auth::id(),
-            'request_data' => $request->all()
-        ]);
-
         try {
             // Get authenticated user
             $user = $this->userService->findUserById(Auth::id());
@@ -83,11 +78,11 @@ class ProfileController extends Controller
             return redirect()->route('frontend.profile.edit', ['locale' => app()->getLocale()])
                 ->with('success', __('users.messages.profile_updated'));
         } catch (\Exception $e) {
-            Log::error('Error updating profile: ' . $e->getMessage() . ' | Stack trace: ' . $e->getTraceAsString());
+            Log::error('Profile update failed', ['userId' => Auth::id(), 'exception' => $e]);
 
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['error' => __('users.messages.profile_update_failed') . $e->getMessage()]);
+                ->withErrors(['error' => __('users.messages.profile_update_failed')]);
         }
     }
 
@@ -110,7 +105,7 @@ class ProfileController extends Controller
             return redirect()->route('frontend.profile.edit', ['locale' => $request->input('locale', app()->getLocale())])
                 ->with('success', __('users.messages.password_updated'));
         } catch (\Exception $e) {
-            Log::error('Error changing password: ' . $e->getMessage());
+            Log::error('Password change failed', ['userId' => Auth::id(), 'exception' => $e]);
 
             return redirect()->back()
                 ->withInput()

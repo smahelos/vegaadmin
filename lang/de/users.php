@@ -70,10 +70,10 @@ return [
     ],
     'messages' => [
         'profile_updated' => 'Profil wurde erfolgreich aktualisiert.',
-        'profile_update_failed' => 'Fehler bei der Aktualisierung des Profils: ',
-        'profile_load_failed' => 'Fehler beim Laden des Profils: ',
+        'profile_update_failed' => 'Das Profil konnte nicht gespeichert werden.',
+        'profile_load_failed' => 'Das Profil konnte nicht geladen werden.',
         'password_updated' => 'Ihr Passwort wurde geändert.',
-        'password_update_failed' => 'Das Passwort konnte nicht geändert werden: ',
+        'password_update_failed' => 'Das Passwort konnte nicht geändert werden.',
         'not_found' => 'Benutzer nicht gefunden.',
         'load_failed' => 'Fehler beim Laden des Benutzers.',
         'login_errors' => 'Bei der Anmeldung sind Fehler aufgetreten:',
