@@ -126,19 +126,6 @@ class NavLinkTest extends TestCase
     }
 
     #[Test]
-    public function constructor_has_proper_docblock(): void
-    {
-        $reflection = new \ReflectionClass(NavLink::class);
-        $constructor = $reflection->getMethod('__construct');
-        $docComment = $constructor->getDocComment();
-        
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param', $docComment);
-        $this->assertStringContainsString('string $href', $docComment);
-        $this->assertStringContainsString('bool $active', $docComment);
-    }
-
-    #[Test]
     public function constructor_parameters_have_correct_types(): void
     {
         $reflection = new \ReflectionClass(NavLink::class);

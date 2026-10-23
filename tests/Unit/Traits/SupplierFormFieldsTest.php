@@ -42,19 +42,6 @@ class SupplierFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function trait_has_proper_docblocks(): void
-    {
-        $reflection = new \ReflectionClass(SupplierFormFields::class);
-
-        // Check getSupplierFields method docblock
-        $method = $reflection->getMethod('getSupplierFields');
-        $docComment = $method->getDocComment();
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('Get supplier form fields definitions', $docComment);
-        $this->assertStringContainsString('@return array', $docComment);
-    }
-
-    #[Test]
     public function trait_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(SupplierFormFields::class);

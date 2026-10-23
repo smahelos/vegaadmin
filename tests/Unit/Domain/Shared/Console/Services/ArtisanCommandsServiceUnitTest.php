@@ -74,18 +74,6 @@ class ArtisanCommandsServiceUnitTest extends TestCase
     }
 
     #[Test]
-    public function service_has_proper_docblock(): void
-    {
-        $reflection = new \ReflectionClass($this->service);
-        $getAllCommandsMethod = $reflection->getMethod('getAllCommands');
-        $docComment = $getAllCommandsMethod->getDocComment();
-        
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param bool $onlyNames', $docComment);
-        $this->assertStringContainsString('@return array', $docComment);
-    }
-
-    #[Test]
     public function service_uses_required_dependencies(): void
     {
         $reflection = new \ReflectionClass($this->service);

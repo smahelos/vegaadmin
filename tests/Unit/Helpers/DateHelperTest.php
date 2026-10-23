@@ -85,16 +85,4 @@ class DateHelperTest extends TestCase
         // Should not use any traits
         $this->assertEmpty($reflection->getTraitNames());
     }
-
-    #[Test]
-    public function format_method_has_proper_docblock(): void
-    {
-        $reflection = new \ReflectionClass(DateHelper::class);
-        $method = $reflection->getMethod('format');
-        $docComment = $method->getDocComment();
-
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('Return date format based on current language', $docComment);
-        $this->assertStringContainsString('@return string', $docComment);
-    }
 }

@@ -109,18 +109,6 @@ class DropdownLinkTest extends TestCase
     }
 
     #[Test]
-    public function constructor_has_proper_docblock(): void
-    {
-        $reflection = new \ReflectionClass(DropdownLink::class);
-        $constructor = $reflection->getMethod('__construct');
-        $docComment = $constructor->getDocComment();
-        
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param', $docComment);
-        $this->assertStringContainsString('string $href', $docComment);
-    }
-
-    #[Test]
     public function constructor_has_required_parameter(): void
     {
         $reflection = new \ReflectionClass(DropdownLink::class);

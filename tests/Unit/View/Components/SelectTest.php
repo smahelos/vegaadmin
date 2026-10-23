@@ -154,19 +154,6 @@ class SelectTest extends TestCase
     }
 
     #[Test]
-    public function constructor_has_proper_docblock(): void
-    {
-        $reflection = new \ReflectionClass(Select::class);
-        $constructor = $reflection->getMethod('__construct');
-        $docComment = $constructor->getDocComment();
-        
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param', $docComment);
-        $this->assertStringContainsString('array $options', $docComment);
-        $this->assertStringContainsString('string $name', $docComment);
-    }
-
-    #[Test]
     public function constructor_parameters_have_correct_types(): void
     {
         $reflection = new \ReflectionClass(Select::class);

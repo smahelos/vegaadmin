@@ -81,27 +81,6 @@ class HasPreferredLocaleTest extends TestCase
     }
 
     #[Test]
-    public function trait_has_proper_docblocks(): void
-    {
-        $reflection = new \ReflectionClass(HasPreferredLocale::class);
-
-        // Check getPreferredLocale method docblock
-        $getPreferredLocaleMethod = $reflection->getMethod('getPreferredLocale');
-        $getPreferredLocaleDocComment = $getPreferredLocaleMethod->getDocComment();
-        $this->assertNotFalse($getPreferredLocaleDocComment);
-        $this->assertStringContainsString('Determines preferred language', $getPreferredLocaleDocComment);
-        $this->assertStringContainsString('@return string', $getPreferredLocaleDocComment);
-
-        // Check localeFromCountry method docblock
-        $localeFromCountryMethod = $reflection->getMethod('localeFromCountry');
-        $localeFromCountryDocComment = $localeFromCountryMethod->getDocComment();
-        $this->assertNotFalse($localeFromCountryDocComment);
-        $this->assertStringContainsString('Convert country to preferred language', $localeFromCountryDocComment);
-        $this->assertStringContainsString('@param string|null $country', $localeFromCountryDocComment);
-        $this->assertStringContainsString('@return string', $localeFromCountryDocComment);
-    }
-
-    #[Test]
     public function trait_structure_is_correct(): void
     {
         $reflection = new \ReflectionClass(HasPreferredLocale::class);

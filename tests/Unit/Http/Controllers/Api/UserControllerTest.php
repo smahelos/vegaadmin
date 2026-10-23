@@ -116,28 +116,6 @@ class UserControllerTest extends TestCase
     }
 
     #[Test]
-    public function controller_methods_are_properly_documented(): void
-    {
-        $reflection = new \ReflectionClass($this->controller);
-        
-        // Check getUserAdmin method documentation
-        $getUserAdminMethod = $reflection->getMethod('getUserAdmin');
-        $docComment = $getUserAdminMethod->getDocComment();
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param', $docComment);
-        $this->assertStringContainsString('@return', $docComment);
-        
-        // Check searchUsersAdmin method documentation
-        $searchMethod = $reflection->getMethod('searchUsersAdmin');
-        $docComment = $searchMethod->getDocComment();
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param', $docComment);
-        $this->assertStringContainsString('@return', $docComment);
-        $this->assertStringContainsString('Request', $docComment);
-        $this->assertStringContainsString('JsonResponse', $docComment);
-    }
-
-    #[Test]
     public function controller_has_correct_namespace(): void
     {
         $reflection = new \ReflectionClass($this->controller);

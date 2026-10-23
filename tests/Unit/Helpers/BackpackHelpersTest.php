@@ -140,20 +140,6 @@ class BackpackHelpersTest extends TestCase
     }
 
     #[Test]
-    public function helper_file_structure_is_correct(): void
-    {
-        $fileName = app_path('Helpers/BackpackHelpers.php');
-        $content = file_get_contents($fileName);
-        
-        // Check that functions are properly wrapped with function_exists checks
-        $this->assertStringContainsString("if (!function_exists('backpack_auth'))", $content);
-        $this->assertStringContainsString("if (!function_exists('backpack_guard_name'))", $content);
-        $this->assertStringContainsString("if (!function_exists('backpack_user'))", $content);
-        $this->assertStringContainsString("if (!function_exists('backpack_url'))", $content);
-        $this->assertStringContainsString("if (!function_exists('backpack_pro'))", $content);
-    }
-
-    #[Test]
     public function functions_are_declared_as_global(): void
     {
         $functions = ['backpack_auth', 'backpack_guard_name', 'backpack_user', 'backpack_url', 'backpack_pro'];

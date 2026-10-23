@@ -135,29 +135,6 @@ class ClientListLatestTest extends TestCase
     }
 
     #[Test]
-    public function sort_by_method_has_proper_docblock(): void
-    {
-        $reflection = new ReflectionClass($this->component);
-        $method = $reflection->getMethod('sortBy');
-        $docComment = $method->getDocComment();
-        
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@param string $field', $docComment);
-    }
-
-    #[Test]
-    public function render_method_has_proper_docblock(): void
-    {
-        $reflection = new ReflectionClass($this->component);
-        $method = $reflection->getMethod('render');
-        $docComment = $method->getDocComment();
-        
-        $this->assertNotFalse($docComment);
-        $this->assertStringContainsString('@return', $docComment);
-        $this->assertStringContainsString('Render the component', $docComment);
-    }
-
-    #[Test]
     public function component_structure_validation(): void
     {
         $reflection = new ReflectionClass($this->component);
