@@ -6,6 +6,7 @@ use App\Domain\Payment\DTO\SubscriptionDTO;
 use App\Domain\Payment\DTO\SubscriptionPlanDTO;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 
 /**
  * Maps between Eloquent Subscription models and Subscription DTOs.
@@ -18,18 +19,13 @@ class EloquentSubscriptionMapper
      */
     public function toDto(Subscription $model): SubscriptionDTO
     {
-        $children = [];
-        if ($model->relationLoaded('subscriptionPlan')) {
-            foreach ($model->children as $child) {
-                $children[] = self::toSubscriptionPlanDTO($child);
-            }
-        }
+        $plan = $model->relationLoaded('subscriptionPlan') ? $model->subscriptionPlan : null;
 
         return SubscriptionDTO::fromArray([
             'id' => $model->getAttribute('id'),
             'user_id' => $model->getAttribute('user_id'),
             'subscription_plan_id' => $model->getAttribute('subscription_plan_id'),
-            'subscriptionPlan' => $children,
+            'subscriptionPlan' => $plan === null ? null : self::subscriptionPlanData($plan),
             'status' => $model->getAttribute('status'),
             'starts_at' => $model->getAttribute('starts_at')?->toDateTimeString(),
             'ends_at' => $model->getAttribute('ends_at')?->toDateTimeString(),
@@ -64,27 +60,27 @@ class EloquentSubscriptionMapper
     }
 
     /**
-     * Convert Eloquent SubscriptionPlan model to SubscriptionPlanDTO.
+     * The plan's data in the shape SubscriptionPlanDTO::fromArray() reads.
+     *
+     * @return array<string, mixed>
      */
-    private static function toSubscriptionPlanDTO($model): ?SubscriptionPlanDTO
+    private static function subscriptionPlanData(SubscriptionPlan $plan): array
     {
-        if ($model === null) {
-            return null;
-        }
+        $currency = $plan->getAttribute('currency');
 
-        return SubscriptionPlanDTO::fromArray([
-            'id' => $model->getAttribute('id'),
-            'name' => $model->getAttribute('name'),
-            'description' => $model->getAttribute('description'),
-            'amount' => new Money(
-                amount: $model->getAttribute('amount'),
-                currency: $model->getAttribute('currency'),
+        return [
+            'id' => $plan->getAttribute('id'),
+            'name' => $plan->getAttribute('name'),
+            'description' => $plan->getAttribute('description'),
+            'amount' => Money::fromString(
+                (string) $plan->getAttribute('price'),
+                $currency,
             ),
-            'currency' => $model->getAttribute('currency'),
-            'billing_period' => $model->getAttribute('billing_period'),
-            'billing_interval' => $model->getAttribute('billing_interval'),
-            'is_active' => (bool) $model->getAttribute('is_active'),
-            'created_at' => $model->getAttribute('created_at')?->toDateTimeString(),
-        ]);
+            'currency' => $currency,
+            'billing_period' => $plan->getAttribute('billing_period'),
+            'billing_interval' => $plan->getAttribute('billing_interval'),
+            'is_active' => (bool) $plan->getAttribute('is_active'),
+            'created_at' => $plan->getAttribute('created_at')?->toDateTimeString(),
+        ];
     }
 }

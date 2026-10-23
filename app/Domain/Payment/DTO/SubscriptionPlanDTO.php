@@ -8,7 +8,7 @@ class SubscriptionPlanDTO
 {
     public function __construct(
         public readonly int $id,
-        public readonly int $name,
+        public readonly string $name,
         public readonly ?string $description,
         public readonly Money $amount,
         public readonly ?string $currency,
@@ -23,7 +23,7 @@ class SubscriptionPlanDTO
     {
         return new self(
             id: (int) $data['id'],
-            name: (int) $data['name'],
+            name: (string) $data['name'],
             description: $data['description'] ?? null,
             amount: $data['amount'] ?? null,
             currency: $data['currency'] ?? null,

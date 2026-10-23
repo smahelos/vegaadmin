@@ -23,8 +23,7 @@ class EloquentPaymentWriteRepository implements PaymentWriteRepositoryInterface
             $model->save();
         }
 
-        // Load relations to keep consistency with read DTOs (e.g., category)
-        return $model->load(['children']);
+        return $model;
     }
 
     /**
