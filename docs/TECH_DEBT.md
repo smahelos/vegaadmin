@@ -2,6 +2,41 @@
 
 Known gaps between the code and the intended architecture (see `CLAUDE.md`, `docs/adr/`). Most items are unfinished steps of the DDD migration (commits `a65aaffb` 2025-09-09 and `7e999b2a` 2025-10-12 in the original Bitbucket history): the target class exists, but the code was never switched over to it. Remove an item once it is resolved.
 
+## Order of work
+
+Decided 2026-10-23: most important first (money, law, data exposure), but an item that others build on goes before them, and work that touches the same files is done together. Items not listed are picked up by the branch that touches their code.
+
+**A. Foundations**
+
+1. Tooling — Pint over the whole codebase in one commit, Larastan in CI, before the large rewrites so that their diffs stay clean.
+2. Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".
+3. "Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.
+4. "Domain events are published inside the transaction" — the issued-invoice work publishes its events on top of it.
+
+**B. Invoices**
+
+5. What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Status enum lists factory slugs and English labels".
+6. "Rename IČO and DIČ to `company_number` and `vat_number`" with "Compose `PrintableInvoiceData` from `PartyPrintData`" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
+7. "Issued invoices can be changed and deleted", with "Validate the variable symbol in QR payments" (numbering at issue is decided there).
+8. "Currency conversion of invoice items happens in the browser" (ČNB rates) with "Resilience of external calls".
+
+**C. Payments and subscription plans**
+
+9. "Permission naming" — the plans grant permissions.
+10. Payments: "Payment notification route", "GoPay is called inside the database transaction", "Typed GoPay request with real customer data", "Move refund logic into `RefundState`", "Payment adapter guard checks nothing", "UELS dashboard bulk reset fails".
+11. The subscription plans, with "Subscription screens with placeholder content".
+
+**D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
+
+12. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: image deletion, unit field; Party: duplicates, client mapper); "Move cache invalidation from observers to domain event handlers" after step 4.
+13. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
+
+**E. Before production and last**
+
+14. "`backpack_pro()` override claims a PRO licence" — a decision before production.
+15. The remaining "Party / Admin" items.
+16. "Architecture guards are migration scaffolding" with "`ddd:guard` snapshot test fails now and then in parallel runs".
+
 ## Security
 
 ### Public statistics endpoints expose all users' revenue
@@ -39,7 +74,7 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 ### Issued invoices can be changed and deleted
 - **Where:** `InvoiceCrudApplicationService` (update, delete), frontend `InvoiceController` (edit, update, set-template, delete), `Admin\InvoiceCrudController` and `Admin\InvoiceRequest`, `InvoicePrintDataBuilder` (reads the current client and supplier), `InvoicePdfRenderer`, `app/Console/Commands/DatabaseArchiveCommand.php` and `archive_policies` (36 months), `Money` (no negative amounts)
 - **Problem:** an issued invoice is a tax document kept unchanged for 10 years (§ 34 and § 35 ZDPH; corrections through a corrective tax document, § 42 and § 45 ZDPH; § 35 ZÚ; to confirm with an accountant after the 2025 amendment). Today an invoice has no draft/issued state (`draft` is a payment status), can be edited in the frontend and the admin and is deleted for good (no `deleted_at`); the admin edits `payment_amount` without the lines, so the amount can disagree with them. It stores only `client_id` and `supplier_id`, so a later change of the party changes every old invoice; the PDF is rendered again from the current template and logo on every download. `db:archive` moves invoices and items older than 36 months out of the main tables and deletes clients and suppliers by the same policy.
-- **Fix (decided 2026-10-23, own branch after `ls-invoice-item-validation`, before the ČNB rates):** a document life cycle separate from the payment status (draft → issued → cancelled by a corrective document); issuing assigns the number, stores a snapshot of the parties, bank account, lines, totals, currency, payment method, template and logo, and stores the rendered PDF with its hash, which later downloads return. The Domain refuses changes to an issued invoice; only its payment status changes. Corrections and cancellations are corrective tax documents (credit or debit note) linked to the invoice, with their own PDF; a cancellation can copy the invoice into a new draft. The admin shows the amount read-only. Invoices, corrective documents and their PDFs are kept for 10 years, also when the user account is deleted; who issued or cancelled a document and when is recorded. Open decisions: numbering at issue, a number series for corrective documents, negative `Money` or a sign by document type, existing invoices, VAT payers vs non-payers; keep or delete `InvoiceCrudApplicationService::delete()`, `getForEdit()`, `softDelete()` and `restore()`, which nothing calls (deleting drafts).
+- **Fix (decided 2026-10-23, own branch, step 7 of the order of work):** a document life cycle separate from the payment status (draft → issued → cancelled by a corrective document); issuing assigns the number, stores a snapshot of the parties, bank account, lines, totals, currency, payment method, template and logo, and stores the rendered PDF with its hash, which later downloads return. The Domain refuses changes to an issued invoice; only its payment status changes. Corrections and cancellations are corrective tax documents (credit or debit note) linked to the invoice, with their own PDF; a cancellation can copy the invoice into a new draft. The admin shows the amount read-only. Invoices, corrective documents and their PDFs are kept for 10 years, also when the user account is deleted; who issued or cancelled a document and when is recorded. Open decisions: numbering at issue, a number series for corrective documents, negative `Money` or a sign by document type, existing invoices, VAT payers vs non-payers; keep or delete `InvoiceCrudApplicationService::delete()`, `getForEdit()`, `softDelete()` and `restore()`, which nothing calls (deleting drafts).
 
 ### Modern and minimal PDFs always print "bank transfer"
 - **Where:** `app/Application/Invoice/Services/InvoicePdfRenderer.php` (`'paymentMethod' => null`), `resources/views/pdfs/templates/{modern,minimal}.blade.php`
