@@ -31,8 +31,8 @@ class PageCrudController extends CrudController
         CRUD::setModel(Page::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/page');
         CRUD::setEntityNameStrings(
-            trans('admin.pages.page'),
-            trans('admin.pages.pages')
+            __('pages.entity.singular'),
+            __('pages.entity.plural')
         );
     }
 
@@ -45,66 +45,66 @@ class PageCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::column('name')
-            ->label(trans('admin.pages.name'))
+            ->label(__('pages.fields.name'))
             ->type('closure')
             ->function(function ($entry) {
                 $currentLocale = app()->getLocale();
-                return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? 'N/A';
+                return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
             });
         
         CRUD::column('slug')
-            ->label(trans('admin.pages.slug'))
+            ->label(__('pages.fields.slug'))
             ->type('closure')
             ->function(function ($entry) {
                 $currentLocale = app()->getLocale();
-                return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? 'N/A';
+                return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
             });
         
         CRUD::column('category_id')
-            ->label(trans('admin.pages.category'))
+            ->label(__('pages.fields.category_id'))
             ->type('closure')
             ->function(function ($entry) {
                 if ($entry->category) {
                     $currentLocale = app()->getLocale();
-                    return $entry->category->getName($currentLocale) ?? $entry->category->getName('cs') ?? 'N/A';
+                    return $entry->category->getName($currentLocale) ?? $entry->category->getName('cs') ?? __('general.placeholders.not_available');
                 }
-                return 'N/A';
+                return __('general.placeholders.not_available');
             });
         
         CRUD::column('parent_id')
-            ->label(trans('admin.pages.parent'))
+            ->label(__('pages.fields.parent_id'))
             ->type('closure')
             ->function(function ($entry) {
                 if ($entry->parent) {
                     $currentLocale = app()->getLocale();
-                    return $entry->parent->getName($currentLocale) ?? $entry->parent->getName('cs') ?? 'N/A';
+                    return $entry->parent->getName($currentLocale) ?? $entry->parent->getName('cs') ?? __('general.placeholders.not_available');
                 }
                 return '-';
             });
         
         CRUD::column('sort_order')
-            ->label(trans('admin.pages.sort_order'))
+            ->label(__('pages.fields.sort_order'))
             ->type('number');
         
         CRUD::column('published')
-            ->label(trans('admin.pages.published'))
+            ->label(__('pages.fields.published'))
             ->type('boolean');
         
         CRUD::column('publishing_start')
-            ->label(trans('admin.pages.publishing_start'))
+            ->label(__('pages.fields.publishing_start'))
             ->type('datetime');
         
         CRUD::column('created_at')
-            ->label(trans('admin.general.created_at'));
+            ->label(__('pages.fields.created_at'));
         
         // Add filters
         $this->crud->addFilter([
             'name'  => 'published',
             'type'  => 'simple',
-            'label' => trans('admin.pages.published')
+            'label' => __('pages.fields.published'),
         ], [
-            1 => trans('admin.pages.yes'),
-            0 => trans('admin.pages.no'),
+            1 => __('general.yes'),
+            0 => __('general.no'),
         ], function ($value) {
             $this->crud->addClause('where', 'published', $value);
         });
@@ -112,10 +112,10 @@ class PageCrudController extends CrudController
         $this->crud->addFilter([
             'name'  => 'category_id',
             'type'  => 'select2',
-            'label' => trans('admin.pages.category')
+            'label' => __('pages.fields.category_id'),
         ], PageCategory::all()->mapWithKeys(function ($category) {
             $currentLocale = app()->getLocale();
-            $name = $category->getName($currentLocale) ?? $category->getName('cs') ?? 'N/A';
+            $name = $category->getName($currentLocale) ?? $category->getName('cs') ?? __('general.placeholders.not_available');
             return [$category->id => $name];
         })->toArray(), function ($value) {
             $this->crud->addClause('where', 'category_id', $value);
@@ -135,55 +135,55 @@ class PageCrudController extends CrudController
         // Multilingual basic fields
         CRUD::addField([
             'name' => 'name',
-            'label' => trans('admin.pages.name'),
+            'label' => __('pages.fields.name'),
             'type' => 'multilingual',
-            'hint' => trans('admin.validation.pages.at_least_one_locale_required'),
+            'hint' => __('pages.hints.name'),
         ]);
         
         CRUD::addField([
             'name' => 'slug',
-            'label' => trans('admin.pages.slug'),
+            'label' => __('pages.fields.slug'),
             'type' => 'multilingual',
-            'hint' => trans('admin.pages.leave_empty_for_autogeneration'),
+            'hint' => __('pages.hints.slug'),
         ]);
         
         // Category and parent
         $currentLocale = app()->getLocale();
         
         $categoryOptions = PageCategory::all()->mapWithKeys(function ($category) use ($currentLocale) {
-            $name = $category->getName($currentLocale) ?? $category->getName('cs') ?? 'N/A';
+            $name = $category->getName($currentLocale) ?? $category->getName('cs') ?? __('general.placeholders.not_available');
             return [$category->id => $name];
         })->toArray();
         
         CRUD::field('category_id')
-            ->label(trans('admin.pages.category'))
+            ->label(__('pages.fields.category_id'))
             ->type('select_from_array')
             ->options($categoryOptions)
             ->wrapper(['class' => 'form-group col-md-6']);
         
-        $pageOptions = ['' => '- Bez nadřazené stránky -'];
+        $pageOptions = ['' => __('pages.placeholders.no_parent')];
         $pages = Page::all();
         foreach ($pages as $page) {
-            $name = $page->getName($currentLocale) ?? $page->getName('cs') ?? 'N/A';
+            $name = $page->getName($currentLocale) ?? $page->getName('cs') ?? __('general.placeholders.not_available');
             $pageOptions[$page->id] = $name;
         }
         
         CRUD::field('parent_id')
-            ->label(trans('admin.pages.parent'))
+            ->label(__('pages.fields.parent_id'))
             ->type('select_from_array')
             ->options($pageOptions)
             ->wrapper(['class' => 'form-group col-md-6']);
         
         CRUD::field('sort_order')
-            ->label(trans('admin.pages.sort_order'))
+            ->label(__('pages.fields.sort_order'))
             ->type('number')
-            ->hint(trans('admin.pages.sort_order_help'))
+            ->hint(__('pages.hints.sort_order'))
             ->wrapper(['class' => 'form-group col-md-6']);
         
         // Multilingual content fields
         CRUD::addField([
             'name' => 'description',
-            'label' => trans('admin.pages.description'),
+            'label' => __('pages.fields.description'),
             'type' => 'multilingual',
             'field_type' => 'textarea',
             'attributes' => ['rows' => 4],
@@ -191,7 +191,7 @@ class PageCrudController extends CrudController
         
         CRUD::addField([
             'name' => 'content',
-            'label' => trans('admin.pages.content'),
+            'label' => __('pages.fields.content'),
             'type' => 'multilingual',
             'field_type' => 'summernote',
             'options' => ['height' => 300],
@@ -200,13 +200,13 @@ class PageCrudController extends CrudController
         // Multilingual meta fields
         CRUD::addField([
             'name' => 'meta_title',
-            'label' => trans('admin.pages.meta_title'),
+            'label' => __('pages.fields.meta_title'),
             'type' => 'multilingual',
         ]);
         
         CRUD::addField([
             'name' => 'meta_description',
-            'label' => trans('admin.pages.meta_description'),
+            'label' => __('pages.fields.meta_description'),
             'type' => 'multilingual',
             'field_type' => 'textarea',
             'attributes' => ['rows' => 3],
@@ -214,7 +214,7 @@ class PageCrudController extends CrudController
         
         CRUD::addField([
             'name' => 'meta_keywords',
-            'label' => trans('admin.pages.meta_keywords'),
+            'label' => __('pages.fields.meta_keywords'),
             'type' => 'multilingual',
             'field_type' => 'textarea',
             'attributes' => ['rows' => 2],
@@ -223,25 +223,25 @@ class PageCrudController extends CrudController
         // Images
         CRUD::field('main_image')
             ->type('image_with_preview')
-            ->label(trans('admin.pages.main_image'))
+            ->label(__('pages.fields.main_image'))
             ->upload(true)
-            ->hint(trans('admin.pages.main_image_help'))
+            ->hint(__('pages.hints.main_image'))
             ->wrapper(['class' => 'form-group col-md-6']);
         
         // Publishing fields
         CRUD::field('published')
-            ->label(trans('admin.pages.published'))
+            ->label(__('pages.fields.published'))
             ->type('checkbox')
             ->wrapper(['class' => 'form-group col-md-3']);
         
         CRUD::field('publishing_start')
-            ->label(trans('admin.pages.publishing_start'))
+            ->label(__('pages.fields.publishing_start'))
             ->type('datepicker')
             ->datepicker_options(['timepicker' => true])
             ->wrapper(['class' => 'form-group col-md-4']);
         
         CRUD::field('publishing_end')
-            ->label(trans('admin.pages.publishing_end'))
+            ->label(__('pages.fields.publishing_end'))
             ->type('datepicker')
             ->datepicker_options(['timepicker' => true])
             ->wrapper(['class' => 'form-group col-md-4']);
@@ -271,7 +271,7 @@ class PageCrudController extends CrudController
         
         // Add more detailed columns for show view
         CRUD::column('description')
-            ->label(trans('admin.pages.description'))
+            ->label(__('pages.fields.description'))
             ->type('closure')
             ->function(function ($entry) {
                 $currentLocale = app()->getLocale();
@@ -279,7 +279,7 @@ class PageCrudController extends CrudController
             });
             
         CRUD::column('content')
-            ->label(trans('admin.pages.content'))
+            ->label(__('pages.fields.content'))
             ->type('closure')
             ->function(function ($entry) {
                 $currentLocale = app()->getLocale();
@@ -288,7 +288,7 @@ class PageCrudController extends CrudController
             });
         
         CRUD::column('meta_title')
-            ->label(trans('admin.pages.meta_title'))
+            ->label(__('pages.fields.meta_title'))
             ->type('closure')
             ->function(function ($entry) {
                 $currentLocale = app()->getLocale();
@@ -296,11 +296,11 @@ class PageCrudController extends CrudController
             });
         
         CRUD::column('created_at')
-            ->label(trans('admin.general.created_at'))
+            ->label(__('pages.fields.created_at'))
             ->type('datetime');
             
         CRUD::column('updated_at')
-            ->label(trans('admin.general.updated_at'))
+            ->label(__('pages.fields.updated_at'))
             ->type('datetime');
     }
 

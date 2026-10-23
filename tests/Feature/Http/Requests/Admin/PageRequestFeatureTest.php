@@ -184,26 +184,7 @@ class PageRequestFeatureTest extends TestCase
         $response->assertStatus(200);
     }
 
-    #[Test]
-    public function attributes_method_returns_translated_field_names(): void
-    {
-        $attributes = $this->request->attributes();
-        $this->assertIsArray($attributes);
-        $this->assertArrayHasKey('name', $attributes);
-        $this->assertArrayHasKey('slug', $attributes);
-        $this->assertArrayHasKey('published', $attributes);
-        $this->assertArrayHasKey('name.cs', $attributes);
-    }
 
-    #[Test]
-    public function messages_method_returns_translated_validation_messages(): void
-    {
-        $messages = $this->request->messages();
-        $this->assertIsArray($messages);
-        $this->assertArrayHasKey('name.required', $messages);
-        $this->assertArrayHasKey('slug.required', $messages);
-        $this->assertArrayHasKey('name.cs.string', $messages);
-    }
 
     #[Test]
     public function prepare_for_validation_transforms_multilingual_data_correctly(): void
@@ -234,5 +215,38 @@ class PageRequestFeatureTest extends TestCase
             'slug_cs' => '',
         ]);
         $response->assertStatus(422)->assertJsonValidationErrors(['name','slug']);
+    }
+
+    #[Test]
+    public function validation_error_names_the_field_and_its_locale(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $response = $this->postJson('/admin/test-page-validation', [
+            'name_cs' => str_repeat('a', 256),
+            'slug_cs' => 'valid-slug',
+        ]);
+        $response->assertStatus(422);
+        $this->assertStringContainsString(__('pages.fields.name').' (CS)', $response->json('errors')['name.cs'][0]);
+    }
+
+    #[Test]
+    public function slug_with_invalid_characters_gets_the_format_message(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $response = $this->postJson('/admin/test-page-validation', [
+            'name_cs' => 'Name',
+            'slug_cs' => 'Neplatný klíč',
+        ]);
+        $response->assertStatus(422);
+        $this->assertSame([__('pages.validation.slug_format')], $response->json('errors')['slug.cs']);
+    }
+
+    #[Test]
+    public function missing_name_in_every_locale_gets_the_locale_message(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $response = $this->postJson('/admin/test-page-validation', ['slug_cs' => 'slug']);
+        $response->assertStatus(422);
+        $this->assertContains(__('pages.validation.at_least_one_locale'), $response->json('errors')['name']);
     }
 }

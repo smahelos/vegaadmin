@@ -29,8 +29,8 @@ class PageCategoryCrudController extends CrudController
         CRUD::setModel(\App\Models\PageCategory::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/page-category');
         CRUD::setEntityNameStrings(
-            trans('admin.page_categories.page_category'),
-            trans('admin.page_categories.page_categories')
+            __('pages.categories.entity.singular'),
+            __('pages.categories.entity.plural')
         );
     }
 
@@ -43,23 +43,23 @@ class PageCategoryCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::column('name')
-            ->label(trans('admin.page_categories.name'))
+            ->label(__('pages.categories.fields.name'))
             ->type('closure')
             ->function(function ($entry) {
                 $currentLocale = app()->getLocale();
-                return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? 'N/A';
+                return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
             });
         
         CRUD::column('slug')
-            ->label(trans('admin.page_categories.slug'))
+            ->label(__('pages.categories.fields.slug'))
             ->type('closure')
             ->function(function ($entry) {
                 $currentLocale = app()->getLocale();
-                return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? 'N/A';
+                return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
             });
         
         CRUD::column('description')
-            ->label(trans('admin.page_categories.description'))
+            ->label(__('pages.categories.fields.description'))
             ->type('closure')
             ->function(function ($entry) {
                 $currentLocale = app()->getLocale();
@@ -68,7 +68,7 @@ class PageCategoryCrudController extends CrudController
             });
         
         CRUD::column('pages_count')
-            ->label(trans('admin.page_categories.pages_count'))
+            ->label(__('pages.categories.fields.pages_count'))
             ->type('closure')
             ->function(function ($entry) {
                 return $entry->pages_count;
@@ -76,7 +76,7 @@ class PageCategoryCrudController extends CrudController
             ->default('0');
         
         CRUD::column('created_at')
-            ->label(trans('admin.general.created_at'));
+            ->label(__('pages.categories.fields.created_at'));
     }
 
     /**
@@ -91,21 +91,21 @@ class PageCategoryCrudController extends CrudController
         
         CRUD::addField([
             'name' => 'name',
-            'label' => trans('admin.page_categories.name'),
+            'label' => __('pages.categories.fields.name'),
             'type' => 'multilingual',
-            'hint' => trans('admin.validation.page_categories.at_least_one_locale_required'),
+            'hint' => __('pages.categories.hints.name'),
         ]);
 
         CRUD::addField([
             'name' => 'slug',
-            'label' => trans('admin.page_categories.slug'),
+            'label' => __('pages.categories.fields.slug'),
             'type' => 'multilingual',
-            'hint' => trans('admin.page_categories.leave_empty_for_autogeneration'),
+            'hint' => __('pages.categories.hints.slug'),
         ]);
 
         CRUD::addField([
             'name' => 'description',
-            'label' => trans('admin.page_categories.description'),
+            'label' => __('pages.categories.fields.description'),
             'type' => 'multilingual',
             'field_type' => 'textarea',
             'attributes' => ['rows' => 4],
@@ -136,11 +136,11 @@ class PageCategoryCrudController extends CrudController
         
         // Add more detailed columns for show view
         CRUD::column('created_at')
-            ->label(trans('admin.general.created_at'))
+            ->label(__('pages.categories.fields.created_at'))
             ->type('datetime');
             
         CRUD::column('updated_at')
-            ->label(trans('admin.general.updated_at'))
+            ->label(__('pages.categories.fields.updated_at'))
             ->type('datetime');
     }
 

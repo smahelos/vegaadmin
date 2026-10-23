@@ -1,11 +1,67 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Stránka',
+        'plural' => 'Stránky',
+    ],
+    'fields' => [
+        'name' => 'Název',
+        'slug' => 'URL klíč',
+        'category_id' => 'Kategorie',
+        'parent_id' => 'Nadřazená stránka',
+        'sort_order' => 'Pořadí',
+        'description' => 'Popis',
+        'content' => 'Obsah',
+        'meta_title' => 'Meta title',
+        'meta_description' => 'Meta popis',
+        'meta_keywords' => 'Meta klíčová slova',
+        'main_image' => 'Hlavní obrázek',
+        'published' => 'Publikováno',
+        'publishing_start' => 'Začátek publikování',
+        'publishing_end' => 'Konec publikování',
+        'created_at' => 'Vytvořeno',
+        'updated_at' => 'Aktualizováno',
+    ],
+    'hints' => [
+        'name' => 'Vyplňte název a URL klíč alespoň v jednom jazyce.',
+        'slug' => 'Unikátní identifikátor stránky v URL. Když ho nevyplníte, vytvoří se z názvu.',
+        'sort_order' => 'Když ho nevyplníte, nastaví se na další nejvyšší hodnotu.',
+        'main_image' => 'JPG, PNG, GIF nebo WebP, nejvýše 10 MB.',
+    ],
+    'placeholders' => [
+        'no_parent' => 'Bez nadřazené stránky',
+    ],
+    'validation' => [
+        'at_least_one_locale' => 'Alespoň jeden jazyk musí mít vyplněný název a URL klíč.',
+        'slug_format' => 'URL klíč může obsahovat jen malá písmena, číslice a pomlčky.',
+    ],
+    'categories' => [
+        'entity' => [
+            'singular' => 'Kategorie stránky',
+            'plural' => 'Kategorie stránek',
+        ],
+        'fields' => [
+            'name' => 'Název',
+            'slug' => 'URL klíč',
+            'description' => 'Popis',
+            'pages_count' => 'Počet stránek',
+            'created_at' => 'Vytvořeno',
+            'updated_at' => 'Aktualizováno',
+        ],
+        'hints' => [
+            'name' => 'Vyplňte název alespoň v jednom jazyce.',
+            'slug' => 'Unikátní identifikátor kategorie v URL. Když ho nevyplníte, vytvoří se z názvu.',
+        ],
+        'validation' => [
+            'at_least_one_locale' => 'Alespoň jeden jazyk musí mít vyplněný název a URL klíč.',
+        ],
+    ],
+
     'page_not_found' => 'Stránka nenalezena',
     'category_not_found' => 'Kategorie nenalezena',
     'homepage' => 'Úvodní stránka',
     'pages' => 'Stránky',
-    'categories' => 'Kategorie',
     'search' => 'Hledat',
     'search_placeholder' => 'Hledat stránky...',
     'search_results' => 'Výsledky vyhledávání',
@@ -15,7 +71,6 @@ return [
     'related_pages' => 'Související stránky',
     'sitemap' => 'Mapa stránek',
     'all_pages' => 'Všechny stránky',
-    'category' => 'Kategorie',
     'published' => 'Publikováno',
     'breadcrumbs' => 'Nacházíte se zde',
     'no_pages_found' => 'Nebyly nalezeny žádné stránky.',

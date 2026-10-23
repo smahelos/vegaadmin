@@ -135,36 +135,17 @@ class PageRequest extends FormRequest
      */
     public function attributes(): array
     {
-        $locales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
-        $attributes = [
-            'name' => __('admin.pages.name'),
-            'slug' => __('admin.pages.slug'),
-            'category_id' => __('admin.pages.category'),
-            'description' => __('admin.pages.description'),
-            'content' => __('admin.pages.content'),
-            'meta_title' => __('admin.pages.meta_title'),
-            'meta_description' => __('admin.pages.meta_description'),
-            'meta_keywords' => __('admin.pages.meta_keywords'),
-            'parent_id' => __('admin.pages.parent'),
-            'sort_order' => __('admin.pages.sort_order'),
-            'published' => __('admin.pages.published'),
-            'publishing_start' => __('admin.pages.publishing_start'),
-            'publishing_end' => __('admin.pages.publishing_end'),
-            'main_image' => __('admin.pages.main_image'),
-        ];
-        
-        // Add attributes for each locale
-        foreach ($locales as $locale) {
-            $localeUpper = strtoupper($locale);
-            $attributes["name.$locale"] = __('admin.pages.name') . " ($localeUpper)";
-            $attributes["slug.$locale"] = __('admin.pages.slug') . " ($localeUpper)";
-            $attributes["description.$locale"] = __('admin.pages.description') . " ($localeUpper)";
-            $attributes["content.$locale"] = __('admin.pages.content') . " ($localeUpper)";
-            $attributes["meta_title.$locale"] = __('admin.pages.meta_title') . " ($localeUpper)";
-            $attributes["meta_description.$locale"] = __('admin.pages.meta_description') . " ($localeUpper)";
-            $attributes["meta_keywords.$locale"] = __('admin.pages.meta_keywords') . " ($localeUpper)";
+        $attributes = [];
+        foreach (['name', 'slug', 'category_id', 'parent_id', 'sort_order', 'description', 'content', 'meta_title', 'meta_description', 'meta_keywords', 'main_image', 'published', 'publishing_start', 'publishing_end'] as $field) {
+            $attributes[$field] = __("pages.fields.$field");
         }
-        
+
+        foreach (['name', 'slug', 'description', 'content', 'meta_title', 'meta_description', 'meta_keywords'] as $field) {
+            foreach (config('app.available_locales', ['cs', 'en', 'de', 'sk']) as $locale) {
+                $attributes["$field.$locale"] = __("pages.fields.$field").' ('.strtoupper($locale).')';
+            }
+        }
+
         return $attributes;
     }
 
@@ -173,49 +154,9 @@ class PageRequest extends FormRequest
      */
     public function messages(): array
     {
-        $locales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
-        $messages = [
-            'name.required' => __('admin.validation.pages.name.required'),
-            'name.array' => __('admin.validation.pages.name.array'),
-            'slug.required' => __('admin.validation.pages.slug.required'),
-            'slug.array' => __('admin.validation.pages.slug.array'),
-            'description.array' => __('admin.validation.pages.description.array'),
-            'content.array' => __('admin.validation.pages.content.array'),
-            'category_id.exists' => __('admin.validation.pages.category_id.exists'),
-            'meta_title.array' => __('admin.validation.pages.meta_title.array'),
-            'meta_description.array' => __('admin.validation.pages.meta_description.array'),
-            'meta_keywords.array' => __('admin.validation.pages.meta_keywords.array'),
-            'parent_id.exists' => __('admin.validation.pages.parent_id.exists'),
-            'sort_order.integer' => __('admin.validation.pages.sort_order.integer'),
-            'sort_order.min' => __('admin.validation.pages.sort_order.min'),
-            'published.boolean' => __('admin.validation.pages.published.boolean'),
-            'publishing_start.date' => __('admin.validation.pages.publishing_start.date'),
-            'publishing_end.date' => __('admin.validation.pages.publishing_end.date'),
-            'publishing_end.after' => __('admin.validation.pages.publishing_end.after'),
+        return [
+            'slug.*.regex' => __('pages.validation.slug_format'),
         ];
-        
-        // Add messages for each locale
-        foreach ($locales as $locale) {
-            $localeUpper = strtoupper($locale);
-            $messages["name.$locale.required"] = __('admin.validation.pages.name.required') . " ($localeUpper)";
-            $messages["name.$locale.string"] = __('admin.validation.pages.name.string') . " ($localeUpper)";
-            $messages["name.$locale.max"] = __('admin.validation.pages.name.max') . " ($localeUpper)";
-            $messages["slug.$locale.required"] = __('admin.validation.pages.slug.required') . " ($localeUpper)";
-            $messages["slug.$locale.string"] = __('admin.validation.pages.slug.string') . " ($localeUpper)";
-            $messages["slug.$locale.max"] = __('admin.validation.pages.slug.max') . " ($localeUpper)";
-            $messages["slug.$locale.unique"] = __('admin.validation.pages.slug.unique') . " ($localeUpper)";
-            $messages["slug.$locale.regex"] = __('admin.validation.pages.slug.regex') . " ($localeUpper)";
-            $messages["description.$locale.string"] = __('admin.validation.pages.description.string') . " ($localeUpper)";
-            $messages["content.$locale.string"] = __('admin.validation.pages.content.string') . " ($localeUpper)";
-            $messages["meta_title.$locale.string"] = __('admin.validation.pages.meta_title.string') . " ($localeUpper)";
-            $messages["meta_title.$locale.max"] = __('admin.validation.pages.meta_title.max') . " ($localeUpper)";
-            $messages["meta_description.$locale.string"] = __('admin.validation.pages.meta_description.string') . " ($localeUpper)";
-            $messages["meta_description.$locale.max"] = __('admin.validation.pages.meta_description.max') . " ($localeUpper)";
-            $messages["meta_keywords.$locale.string"] = __('admin.validation.pages.meta_keywords.string') . " ($localeUpper)";
-            $messages["meta_keywords.$locale.max"] = __('admin.validation.pages.meta_keywords.max') . " ($localeUpper)";
-        }
-        
-        return $messages;
     }
 
     /**
@@ -235,7 +176,7 @@ class PageRequest extends FormRequest
             }
             
             if (!$hasName) {
-                $validator->errors()->add('name', __('admin.validation.pages.at_least_one_locale_required'));
+                $validator->errors()->add('name', __('pages.validation.at_least_one_locale'));
             }
             
             // Ensure at least one slug translation is provided
@@ -249,7 +190,7 @@ class PageRequest extends FormRequest
             }
             
             if (!$hasSlug) {
-                $validator->errors()->add('slug', __('admin.validation.pages.at_least_one_locale_required'));
+                $validator->errors()->add('slug', __('pages.validation.at_least_one_locale'));
             }
         });
     }

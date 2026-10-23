@@ -144,9 +144,9 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
 
 {{-- 7. Content Management --}}
 @if(backpack_user()->hasPermissionTo('can_create_edit_page', 'backpack'))
-<x-backpack::menu-dropdown title="{{ __('admin.pages.content_management') }}" icon="la la-paperclip  text-success">
-    <x-backpack::menu-dropdown-item title="Page categories" icon="la la-tags" :link="backpack_url('page-category')" />
-    <x-backpack::menu-dropdown-item title="Pages" icon="la la-paragraph" :link="backpack_url('page')" />
+<x-backpack::menu-dropdown title="{{ __('admin.content.title') }}" icon="la la-paperclip  text-success">
+    <x-backpack::menu-dropdown-item title="{{ __('pages.categories.entity.plural') }}" icon="la la-tags" :link="backpack_url('page-category')" />
+    <x-backpack::menu-dropdown-item title="{{ __('pages.entity.plural') }}" icon="la la-paragraph" :link="backpack_url('page')" />
 </x-backpack::menu-dropdown>
 @endif
 

@@ -218,40 +218,7 @@ class PageCategoryRequestFeatureTest extends TestCase
         $response->assertStatus(403);
     }
 
-    #[Test]
-    public function attributes_method_returns_custom_field_names(): void
-    {
-        $request = new PageCategoryRequest();
-        $attributes = $request->attributes();
-        
-        $this->assertIsArray($attributes);
-        $this->assertArrayHasKey('name', $attributes);
-        $this->assertArrayHasKey('slug', $attributes);
-        $this->assertArrayHasKey('description', $attributes);
-        
-        // Check multilingual specific attributes
-        $this->assertArrayHasKey('name.cs', $attributes);
-        $this->assertArrayHasKey('slug.cs', $attributes);
-        $this->assertArrayHasKey('description.cs', $attributes);
-    }
 
-    #[Test]
-    public function messages_method_returns_custom_error_messages(): void
-    {
-        $request = new PageCategoryRequest();
-        $messages = $request->messages();
-        
-        $this->assertIsArray($messages);
-        $this->assertArrayHasKey('name.required', $messages);
-        $this->assertArrayHasKey('name.array', $messages);
-        $this->assertArrayHasKey('slug.required', $messages);
-        $this->assertArrayHasKey('slug.array', $messages);
-        
-        // Check multilingual specific messages
-        $this->assertArrayHasKey('name.cs.required', $messages);
-        $this->assertArrayHasKey('slug.cs.required', $messages);
-        $this->assertArrayHasKey('slug.cs.unique', $messages);
-    }
 
     #[Test]
     public function validation_rules_can_be_tested_directly(): void
@@ -292,5 +259,26 @@ class PageCategoryRequestFeatureTest extends TestCase
         
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name', 'slug']);
+    }
+
+    #[Test]
+    public function validation_error_names_the_field_and_its_locale(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $response = $this->postJson('/test-page-category', [
+            'name_cs' => str_repeat('a', 256),
+            'slug_cs' => 'category-'.uniqid(),
+        ]);
+        $response->assertStatus(422);
+        $this->assertStringContainsString(__('pages.categories.fields.name').' (CS)', $response->json('errors')['name_cs'][0]);
+    }
+
+    #[Test]
+    public function missing_name_in_every_locale_gets_the_locale_message(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $response = $this->postJson('/test-page-category', ['description_cs' => 'Popis']);
+        $response->assertStatus(422);
+        $this->assertSame([__('pages.categories.validation.at_least_one_locale')], $response->json('errors')['name']);
     }
 }

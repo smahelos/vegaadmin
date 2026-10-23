@@ -60,16 +60,6 @@ class PageCategoryRequestTest extends TestCase
         $this->assertEquals('array', $returnType->getName());
     }
 
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
 
     #[Test]
     public function authorize_method_exists_and_is_public(): void
@@ -98,14 +88,6 @@ class PageCategoryRequestTest extends TestCase
         $this->assertTrue($method->isPublic());
     }
 
-    #[Test]
-    public function messages_method_exists_and_is_public(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        
-        $this->assertTrue($method->isPublic());
-    }
 
     #[Test]
     public function rules_method_returns_array(): void
@@ -131,17 +113,6 @@ class PageCategoryRequestTest extends TestCase
         $this->assertEquals('array', $returnType->getName());
     }
 
-    #[Test]
-    public function messages_method_returns_array(): void
-    {
-        // Test structure only - don't call methods that require Laravel services
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
 
     #[Test]
     public function rules_contains_required_validation_rules(): void
@@ -175,19 +146,4 @@ class PageCategoryRequestTest extends TestCase
         $this->assertEquals('array', $returnType->getName());
     }
 
-    #[Test]
-    public function messages_contains_expected_validation_messages(): void
-    {
-        // Test that the messages method exists and has correct structure
-        $this->assertTrue(method_exists(PageCategoryRequest::class, 'messages'));
-        
-        $reflection = new \ReflectionClass(PageCategoryRequest::class);
-        $method = $reflection->getMethod('messages');
-        $this->assertTrue($method->isPublic());
-        
-        // For Unit test, we only test method existence and return type
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
 }
