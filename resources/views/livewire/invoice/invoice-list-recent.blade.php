@@ -24,7 +24,7 @@
                         </div>
                         <div class="basis-6/18 lg:basis-6/24">
                             <p class="p-3 text-{{ $invoice->status_color_class }}-800 dark:text-{{ $invoice->status_color_class }}-200">
-                                {{ $invoice->client ? $invoice->payment_status_name : __('dashboard.status.unknown_status') }}
+                                {{ $invoice->payment_status_name }}
                             </p>
                         </div>
                         <div class="basis-2/18 lg:basis-2/24 p-4 text-{{ $invoice->status_color_class }}-800 dark:text-{{ $invoice->status_color_class }}-200">

@@ -27,7 +27,7 @@
                 @auth
                 <a href="{{ route('frontend.dashboard') }}"
                     class="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-200">
-                    {{ __('navigation.dashboard') }}
+                    {{ __('general.navigation.dashboard') }}
                 </a>
                 @else
                 <a href="{{ route('frontend.invoice.create.guest') }}"

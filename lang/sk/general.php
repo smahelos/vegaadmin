@@ -28,6 +28,7 @@ return [
         'products' => 'Produkty',
         'create_invoice' => 'Vytvoriť faktúru',
         'pages' => 'Stránky',
+        'language' => 'Jazyk',
     ],
     'placeholders' => [
         'select_client' => 'Vyberte klienta alebo vytvorte nového...',

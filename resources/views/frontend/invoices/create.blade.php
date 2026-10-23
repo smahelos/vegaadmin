@@ -724,7 +724,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                     {{ __('invoices.messages.thank_you') }}
                 </h3>
                 <button type="button" class="text-gray-400 hover:text-gray-500 close-modal">
-                    <span class="sr-only">{{ __('common.actions.close') }}</span>
+                    <span class="sr-only">{{ __('invoices.actions.close') }}</span>
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />
@@ -775,7 +775,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                     {{ __('products.titles.select_product') }}
                 </h3>
                 <button type="button" class="close-modal text-gray-400 hover:text-gray-500">
-                    <span class="sr-only">{{ __('common.actions.close') }}</span>
+                    <span class="sr-only">{{ __('invoices.actions.close') }}</span>
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M6 18L18 6M6 6l12 12" />

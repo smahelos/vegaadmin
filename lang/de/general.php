@@ -28,6 +28,7 @@ return [
         'products' => 'Produkte',
         'create_invoice' => 'Rechnung erstellen',
         'pages' => 'Seiten',
+        'language' => 'Sprache',
     ],
     'placeholders' => [
         'select_client' => 'Wählen Sie einen Kunden oder erstellen Sie einen neuen...',

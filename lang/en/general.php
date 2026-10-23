@@ -28,6 +28,7 @@ return [
         'products' => 'Products',
         'create_invoice' => 'Create Invoice',
         'pages' => 'Pages',
+        'language' => 'Language',
     ],
     'placeholders' => [
         'select_client' => 'Select a client or create a new one...',

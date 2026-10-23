@@ -1,6 +1,6 @@
 <div class="pt-4 pb-4 border-t border-gray-100 dark:border-gray-700">
     <div class="px-4">
-        <div class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{{ __('Language') }}</div>
+        <div class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{{ __('general.navigation.language') }}</div>
         <div class="flex space-x-2">
             @foreach(config('app.available_locales', ['cs', 'en', 'de', 'sk']) as $locale)
             @php
