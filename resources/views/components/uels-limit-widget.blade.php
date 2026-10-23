@@ -42,14 +42,14 @@ default => 'fa-check-circle text-green-500'
         <div class="flex items-center space-x-2">
             <i class="fas {{ $iconClass }}" data-uels-icon></i>
             <h3 class="text-sm font-medium text-gray-900 dark:text-white" data-uels-title>
-                {{ __('uels.widget.title') }} - {{ $entityName }}
+                {{ __('entity_limits.widget.title') }} - {{ $entityName }}
             </h3>
         </div>
 
         @if($showModal)
         <button type="button" onclick="openUelsModal('{{ $entityType }}')"
             class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
-            title="{{ __('uels.widget.show_details') }}">
+            title="{{ __('entity_limits.widget.show_details') }}">
             <i class="fas fa-info-circle"></i>
         </button>
         @endif
@@ -58,12 +58,12 @@ default => 'fa-check-circle text-green-500'
     <div class="space-y-2">
         <!-- Usage Statistics -->
         <div class="flex justify-between text-sm">
-            <span class="text-gray-600 dark:text-gray-300">{{ __('uels.widget.usage') }}</span>
+            <span class="text-gray-600 dark:text-gray-300">{{ __('entity_limits.widget.usage') }}</span>
             <span class="{{ $textClass }} font-medium" data-uels-usage data-uels-status>
                 @if($currentUsage === 0 && $limit === 0)
-                <i class="fas fa-spinner fa-spin text-gray-400"></i> {{ __('uels.widget.loading') }}
+                <i class="fas fa-spinner fa-spin text-gray-400"></i> {{ __('entity_limits.widget.loading') }}
                 @else
-                {{ $currentUsage }} / {{ $limit === -1 ? __('uels.widget.unlimited') : $limit }}
+                {{ $currentUsage }} / {{ $limit === -1 ? __('entity_limits.widget.unlimited') : $limit }}
                 @endif
             </span>
         </div>
@@ -87,7 +87,7 @@ default => 'fa-check-circle text-green-500'
             <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-2 mt-2">
                 <p class="text-xs text-red-700 dark:text-red-300">
                     <i class="fas fa-exclamation-triangle mr-1"></i>
-                    {{ __('uels.widget.limit_exceeded') }}
+                    {{ __('entity_limits.widget.limit_exceeded') }}
                 </p>
             </div>
             @elseif($isNearLimit && $limit > 0)
@@ -95,7 +95,7 @@ default => 'fa-check-circle text-green-500'
                 class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-2 mt-2">
                 <p class="text-xs text-yellow-700 dark:text-yellow-300">
                     <i class="fas fa-exclamation-circle mr-1"></i>
-                    {{ __('uels.widget.approaching_limit') }}
+                    {{ __('entity_limits.widget.approaching_limit') }}
                 </p>
             </div>
             @endif

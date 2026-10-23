@@ -157,11 +157,11 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
         :link="backpack_url('uels-dashboard')" />
 
     <x-backpack::menu-dropdown-header title="{{ __('admin.uels.configuration') }}" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.uels.entity_limits') }}" icon="la la-cog"
+    <x-backpack::menu-dropdown-item title="{{ __('entity_limits.entity.plural') }}" icon="la la-cog"
         :link="backpack_url('entity-limit')" />
 
     <x-backpack::menu-dropdown-header title="{{ __('admin.uels.monitoring') }}" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.uels.usage_tracking') }}" icon="la la-chart-bar"
+    <x-backpack::menu-dropdown-item title="{{ __('entity_limits.usages.entity.plural') }}" icon="la la-chart-bar"
         :link="backpack_url('entity-usage')" />
 </x-backpack::menu-dropdown>
 @endif

@@ -6,6 +6,7 @@ use App\Models\EntityLimit;
 use App\Models\User;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Lang;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -161,20 +162,19 @@ class EntityLimitSystemBasicTest extends TestCase
     }
 
     #[Test]
-    public function translation_keys_exist(): void
+    public function every_entity_type_metric_and_period_has_a_label_in_every_locale(): void
     {
-        // Set locale to English for testing
-        app()->setLocale('en');
+        $keys = array_merge(
+            array_map(fn ($type) => "entity_limits.entity_types.$type.singular", EntityLimit::ENTITY_TYPES),
+            array_map(fn ($type) => "entity_limits.metric_types.$type", array_keys(EntityLimit::METRIC_TYPES)),
+            array_map(fn ($type) => "entity_limits.periods.$type", array_keys(EntityLimit::PERIOD_TYPES)),
+        );
 
-        // Test that our translation keys exist
-        $this->assertNotEmpty(__('general.entity_limits.entities.invoice'));
-        $this->assertNotEmpty(__('general.entity_limits.periods.monthly'));
-        $this->assertNotEmpty(__('general.entity_limits.limit_types.count'));
-
-        // Test Czech translations exist
-        app()->setLocale('cs');
-        $this->assertNotEmpty(__('general.entity_limits.entities.invoice'));
-        $this->assertNotEmpty(__('general.entity_limits.periods.monthly'));
+        foreach (config('app.available_locales') as $locale) {
+            foreach ($keys as $key) {
+                $this->assertTrue(Lang::has($key, $locale, false), "Missing $key in $locale");
+            }
+        }
     }
 
     #[Test]

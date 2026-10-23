@@ -40,7 +40,7 @@ class EntityUsageCrudController extends CrudController
         
         CRUD::setModel(EntityLimitUsage::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/entity-usage');
-        CRUD::setEntityNameStrings('entity usage', 'entity usages');
+        CRUD::setEntityNameStrings(__('entity_limits.usages.entity.singular'), __('entity_limits.usages.entity.plural'));
     }
 
     /**
@@ -54,7 +54,7 @@ class EntityUsageCrudController extends CrudController
         // Add filters
         CRUD::filter('user_id')
             ->type('select2')
-            ->label('User')
+            ->label(__('entity_limits.usages.fields.user_id'))
             ->values(
                 User::all()->pluck('name', 'id')->toArray(),
             )
@@ -64,34 +64,27 @@ class EntityUsageCrudController extends CrudController
 
         CRUD::filter('entity_type')
             ->type('select2')
-            ->label('Entity Type')
+            ->label(__('entity_limits.usages.fields.entity_type'))
             ->values(
-                array_combine(EntityLimit::ENTITY_TYPES, array_map('ucfirst', EntityLimit::ENTITY_TYPES))
+                collect(EntityLimit::ENTITY_TYPES)->mapWithKeys(fn ($type) => [$type => __("entity_limits.entity_types.$type.singular")])->all()
             )
             ->whenActive(function($value) {
                 CRUD::addClause('where', 'entity_type', $value);
             });
 
-        // CRUD::addFilter([
-        //     'type' => 'dropdown',
-        //     'name' => 'entity_type',
-        //     'label' => 'Entity Type',
-        // ], array_combine(\App\Models\EntityLimit::ENTITY_TYPES, array_map('ucfirst', \App\Models\EntityLimit::ENTITY_TYPES)), function($value) {
-        //     CRUD::addClause('where', 'entity_type', $value);
-        // });
 
         CRUD::filter('metric_type')
             ->type('select2')
-            ->label('Metric Type')
-            ->values(EntityLimit::METRIC_TYPES)
+            ->label(__('entity_limits.usages.fields.metric_type'))
+            ->values(collect(EntityLimit::METRIC_TYPES)->keys()->mapWithKeys(fn ($type) => [$type => __("entity_limits.metric_types.$type")])->all())
             ->whenActive(function($value) {
                 CRUD::addClause('where', 'metric_type', $value);
             });
 
         CRUD::filter('period_type')
             ->type('select2')
-            ->label('Period')
-            ->values(EntityLimit::PERIOD_TYPES)
+            ->label(__('entity_limits.usages.fields.period_type'))
+            ->values(collect(EntityLimit::PERIOD_TYPES)->keys()->mapWithKeys(fn ($type) => [$type => __("entity_limits.periods.$type")])->all())
             ->whenActive(function($value) {
                 CRUD::addClause('where', 'period_type', $value);
         });
@@ -99,7 +92,7 @@ class EntityUsageCrudController extends CrudController
         CRUD::addFilter([
             'type' => 'datepicker_range',
             'name' => 'period_start',
-            'label' => 'Period Range',
+            'label' => __('entity_limits.usages.filters.period_range'),
         ], false, function($value) {
             $dates = json_decode($value);
             CRUD::addClause('where', 'period_start', '>=', $dates->from);
@@ -108,13 +101,13 @@ class EntityUsageCrudController extends CrudController
 
         // Define columns for list view
         CRUD::column('user')
-            ->label('User')
+            ->label(__('entity_limits.usages.fields.user_id'))
             ->type('closure')
             ->function(function($entry) {
                 if ($entry->user_id) {
-                    return e($entry->user ? $entry->user->name . ' (' . $entry->user->email . ')' : __('uels.usage.unknown_user', ['id' => $entry->user_id]));
+                    return e($entry->user ? $entry->user->name . ' (' . $entry->user->email . ')' : __('entity_limits.usages.labels.unknown_user', ['id' => $entry->user_id]));
                 } else {
-                    return '<span class="text-muted">' . e(__('uels.usage.anonymous')) . '</span>';
+                    return '<span class="text-muted">' . e(__('entity_limits.usages.labels.anonymous')) . '</span>';
                 }
             })
             ->escaped(false)
@@ -126,39 +119,39 @@ class EntityUsageCrudController extends CrudController
             });
 
         CRUD::column('entity_type')
-            ->label('Entity Type')
+            ->label(__('entity_limits.usages.fields.entity_type'))
             ->type('closure')
             ->function(function($entry) {
-                return '<span class="badge text-bg-secondary">' . e(ucfirst($entry->entity_type)) . '</span>';
+                return '<span class="badge text-bg-secondary">' . e(__("entity_limits.entity_types.{$entry->entity_type}.singular")) . '</span>';
             })
             ->escaped(false);
 
         CRUD::column('metric_type')
-            ->label('Metric Type')
+            ->label(__('entity_limits.usages.fields.metric_type'))
             ->type('closure')
             ->function(function($entry) {
-                return '<span class="badge text-bg-light">' . e(ucfirst($entry->metric_type)) . '</span>';
+                return '<span class="badge text-bg-light">' . e(__("entity_limits.metric_types.{$entry->metric_type}")) . '</span>';
             })
             ->escaped(false);
 
         CRUD::column('period_type')
-            ->label('Period Type')
+            ->label(__('entity_limits.usages.fields.period_type'))
             ->type('closure')
             ->function(function($entry) {
-                return '<span class="badge text-bg-info">' . e(ucfirst($entry->period_type)) . '</span>';
+                return '<span class="badge text-bg-info">' . e(__("entity_limits.periods.{$entry->period_type}")) . '</span>';
             })
             ->escaped(false);
             
         CRUD::column('period_start')
-            ->label('Period Start')
+            ->label(__('entity_limits.usages.fields.period_start'))
             ->type('date');
 
         CRUD::column('period_end')
-            ->label('Period End')
+            ->label(__('entity_limits.usages.fields.period_end'))
             ->type('date');
             
         CRUD::column('current_value')
-            ->label('Current Value')
+            ->label(__('entity_limits.usages.fields.current_value'))
             ->type('closure')
             ->function(function($entry) {
                 if ($entry->metric_type === 'value') {
@@ -172,7 +165,7 @@ class EntityUsageCrudController extends CrudController
             ->default('0');
 
         CRUD::column('last_reset_at')
-            ->label('Last Reset')
+            ->label(__('entity_limits.usages.fields.last_reset_at'))
             ->type('datetime');
 
         // Set default order
@@ -191,11 +184,11 @@ class EntityUsageCrudController extends CrudController
         
         // Add additional details for show view
         CRUD::column('created_at')
-            ->label('Created At')
+            ->label(__('entity_limits.usages.fields.created_at'))
             ->type('datetime');
             
         CRUD::column('updated_at')
-            ->label('Updated At')
+            ->label(__('entity_limits.usages.fields.updated_at'))
             ->type('datetime');
     }
 

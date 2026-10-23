@@ -33,10 +33,7 @@ return [
         'title' => 'Entity Limits Management',
         'dashboard' => 'UELS Dashboard',
         'configuration' => 'Configuration',
-        'entity_limits' => 'Entity Limits',
-        'user_overrides' => 'User Overrides',
         'monitoring' => 'Monitoring',
-        'usage_tracking' => 'Usage Tracking',
     ],
     'system_config' => [
         'title' => 'System Configuration',

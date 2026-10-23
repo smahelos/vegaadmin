@@ -33,10 +33,7 @@ return [
         'title' => 'Správa limitov entít',
         'dashboard' => 'Dashboard UELS',
         'configuration' => 'Konfigurácia',
-        'entity_limits' => 'Limity entít',
-        'user_overrides' => 'Užívateľské prepísania',
         'monitoring' => 'Monitorovanie',
-        'usage_tracking' => 'Sledovanie využitia',
     ],
     'system_config' => [
         'title' => 'Konfigurácia systému',

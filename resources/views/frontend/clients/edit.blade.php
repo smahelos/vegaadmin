@@ -20,7 +20,7 @@
 {{-- UELS Widget --}}
 @auth
 <div class="mb-6">
-    <x-uels-limit-widget entity-type="client" limit="{{ $limitsData['limit'] }}" entity-name="{{ __('uels.entities.client') }}" :show-modal="true" />
+    <x-uels-limit-widget entity-type="client" limit="{{ $limitsData['limit'] }}" entity-name="{{ __('entity_limits.entity_types.client.singular') }}" :show-modal="true" />
 </div>
 @endauth
 

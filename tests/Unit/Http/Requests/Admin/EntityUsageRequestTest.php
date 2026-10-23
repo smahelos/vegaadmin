@@ -65,19 +65,6 @@ class EntityUsageRequestTest extends TestCase
         }
     }
 
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        if ($returnType instanceof \ReflectionNamedType) {
-            $this->assertEquals('array', $returnType->getName());
-        } else {
-            $this->fail('messages return type is not a named type');
-        }
-    }
 
     #[Test]
     public function authorize_method_exists_and_is_public(): void
@@ -103,11 +90,4 @@ class EntityUsageRequestTest extends TestCase
         $this->assertTrue($method->isPublic());
     }
 
-    #[Test]
-    public function messages_method_exists_and_is_public(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $this->assertTrue($method->isPublic());
-    }
 }

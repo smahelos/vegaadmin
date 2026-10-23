@@ -33,10 +33,7 @@ return [
         'title' => 'Entitätslimits-Verwaltung',
         'dashboard' => 'UELS Dashboard',
         'configuration' => 'Konfiguration',
-        'entity_limits' => 'Entitätslimits',
-        'user_overrides' => 'Benutzer-Überschreibungen',
         'monitoring' => 'Überwachung',
-        'usage_tracking' => 'Nutzungsverfolgung',
     ],
     'system_config' => [
         'title' => 'Systemkonfiguration',

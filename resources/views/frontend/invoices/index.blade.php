@@ -11,7 +11,7 @@
 {{-- UELS Widget --}}
 @auth
 <div class="mb-6">
-    <x-uels-limit-widget entity-type="invoice" limit="{{ $limitsData['limit'] }}" entity-name="{{ __('uels.entities.invoice') }}" :show-modal="true" />
+    <x-uels-limit-widget entity-type="invoice" limit="{{ $limitsData['limit'] }}" entity-name="{{ __('entity_limits.entity_types.invoice.singular') }}" :show-modal="true" />
 </div>
 @endauth
 
