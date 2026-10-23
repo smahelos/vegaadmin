@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\Shared\Unit\Enums\Unit;
 use App\Models\InvoiceProduct;
 use App\Models\Invoice;
 use App\Models\Product;
@@ -26,7 +27,7 @@ class InvoiceProductFactory extends Factory
             'quantity' => $quantity,
             'price' => $price,
             'currency' => $this->faker->currencyCode(),
-            'unit' => $this->faker->randomElement(['piece', 'kg', 'meter', 'hour', 'liter']),
+            'unit' => $this->faker->randomElement(Unit::cases())->value,
             'category' => $this->faker->optional()->word(),
             'description' => $this->faker->optional()->sentence(),
             'is_custom_product' => $this->faker->boolean(20), // 20% chance of being custom

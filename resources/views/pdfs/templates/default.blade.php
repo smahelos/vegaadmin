@@ -383,7 +383,7 @@ app()->setLocale($locale);
                         @php
                         $method = App\Models\PaymentMethod::find($invoice->payment_method_id);
                         @endphp
-                        {{ $method ? __('payment_methods.methods.' . $method->slug ?? 'no_method') :
+                        {{ $method?->slug ? __('payment_methods.methods.' . $method->slug) :
                         __('invoices.defaults.payment_method') }}
                         @else
                         {{ __('invoices.defaults.payment_method') }}
@@ -437,7 +437,7 @@ app()->setLocale($locale);
                     <td>{{ $item['name'] ?? '-' }}</td>
                     <td class="text-right">{{ isset($item['quantity']) ? number_format($item['quantity'], 2, ',', ' ') :
                         '-' }}</td>
-                    <td class="text-right">{{ $item['unit'] ? __('invoices.units.' . $item['unit']) : 'ks' }}</td>
+                    <td class="text-right">{{ __('invoices.units.' . $item['unit']) }}</td>
                     <td class="text-right">{{ $item['price_formatted'] ?? (isset($item['price']) ?
                         number_format($item['price'], 2, ',', ' ') . ' ' . ($item['currency'] ??
                         $invoice->payment_currency) : '-') }}</td>

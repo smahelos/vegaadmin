@@ -9,7 +9,6 @@ use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class InvoicePdfRenderer implements InvoicePdfRendererInterface
 {
@@ -34,14 +33,13 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
             $invoiceProductsFormatted[$idx] = [
                 'name' => $item->name,
                 'quantity' => $item->quantity,
-                'unit' => $item->unit,
+                'unit' => $item->unit->value,
                 'price_formatted' => $this->moneyFormatter->format($item->price, $locale),
                 'tax_rate' => $item->tax_rate,
                 'total_price_formatted' => $this->moneyFormatter->format($item->line_total, $locale),
                 'currency' => $data->currency,
             ];
         }
-        Log::error('invoiceProductsFormatted', ['data' => $invoiceProductsFormatted]);
 
         // Build lightweight stdClass invoice for compatibility with existing Blade
         $invoice = (object) [

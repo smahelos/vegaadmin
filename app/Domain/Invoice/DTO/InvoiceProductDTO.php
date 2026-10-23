@@ -3,6 +3,7 @@
 namespace App\Domain\Invoice\DTO;
 
 use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Unit\Enums\Unit;
 
 /**
  * Read DTO for Invoice line item (invoice_products).
@@ -16,7 +17,7 @@ class InvoiceProductDTO
         public readonly ?int $product_id,
         public readonly string $name,
         public readonly float $quantity,
-        public readonly ?string $unit,
+        public readonly Unit $unit,
         public readonly ?string $category,
         public readonly ?string $description,
         public readonly Money $price,
@@ -64,7 +65,7 @@ class InvoiceProductDTO
             product_id: isset($data['product_id']) ? (int)$data['product_id'] : null,
             name: (string) ($data['name'] ?? ''),
             quantity: isset($data['quantity']) ? (float)$data['quantity'] : 1.0,
-            unit: $data['unit'] ?? null,
+            unit: ($data['unit'] ?? null) instanceof Unit ? $data['unit'] : Unit::fromInput($data['unit'] ?? null),
             category: $data['category'] ?? null,
             description: $data['description'] ?? null,
             price: $price,

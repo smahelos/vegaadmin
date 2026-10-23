@@ -404,7 +404,7 @@
                                                 {{ $item['quantity'] ?? '-' }}
                                             </td>
                                             <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
-                                                {{ __('invoices.units.' . ($item['unit'] ?? '')) }}
+                                                {{ __('invoices.units.' . $item['unit']) }}
                                             </td>
                                             <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
                                                 @if(isset($item['price']) && $item['price'] > 0)

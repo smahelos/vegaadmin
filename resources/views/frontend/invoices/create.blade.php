@@ -558,15 +558,9 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                                 <label
                                     class="block col-span-2 md:col-span-2 text-base font-medium text-gray-600 dark:text-gray-400 mb-2 lg:hidden">{{
                                     __('invoices.placeholders.item_unit') }}</label>
-                                <select selected="pieces"
+                                <select
                                     class="item-unit form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
-                                    @foreach($itemUnits as $key => $unit)
-                                    @if ($key !== 'pieces')
-                                    <option value="{{ $key }}" selected>{{ $unit }}</option>
-                                    @else
-                                    <option value="{{ $key }}">{{ $unit }}</option>
-                                    @endif
-                                    @endforeach
+                                    <x-unit-options />
                                 </select>
                             </div>
                             <div class="col-span-2 md:col-span-2 lg:col-span-3">

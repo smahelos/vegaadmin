@@ -3,6 +3,7 @@
 namespace Tests\Unit\Domain\Invoice\DTO;
 
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Shared\Unit\Enums\Unit;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -34,7 +35,7 @@ class InvoiceProductWriteDataTest extends TestCase
 
         $this->assertSame(1.0, $data->quantity);
         $this->assertSame(21.0, $data->tax_rate);
-        $this->assertSame('ks', $data->unit);
+        $this->assertSame(Unit::PIECES, $data->unit);
         $this->assertSame('CZK', $data->currency);
     }
 

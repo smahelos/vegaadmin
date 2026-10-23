@@ -37,7 +37,7 @@ class ProductArrayMapper
                 'amount' => $product->price->getAmount(),
                 'currency' => $product->price->getCurrency(),
             ] : null,
-            'unit' => $product->unit,
+            'unit' => $product->unit->value,
             'category_id' => $product->category_id,
             'category_name' => $categoryName,
             'supplier_id' => $product->supplier_id,

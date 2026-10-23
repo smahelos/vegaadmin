@@ -464,7 +464,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
                 [
                     'name' => 'Item A',
                     'quantity' => 2,
-                    'unit' => 'ks',
+                    'unit' => 'pieces',
                     'price' => 100,
                     'currency' => 'EUR',
                     'tax_rate' => 21,
@@ -474,7 +474,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
                 [
                     'name' => 'Item B',
                     'quantity' => 1,
-                    'unit' => 'ks',
+                    'unit' => 'pieces',
                     'price' => 50.5,
                     'currency' => 'EUR',
                     'tax_rate' => 21,
@@ -618,7 +618,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
                 [
                     'name' => 'USD Item',
                     'quantity' => 1,
-                    'unit' => 'pcs',
+                    'unit' => 'pieces',
                     'price' => 10,
                     'currency' => 'USD',
                     'tax_rate' => 0,
@@ -628,7 +628,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
                 [
                     'name' => 'EUR Item',
                     'quantity' => 2,
-                    'unit' => 'pcs',
+                    'unit' => 'pieces',
                     'price' => 5,
                     'currency' => 'EUR',
                     'tax_rate' => 21,

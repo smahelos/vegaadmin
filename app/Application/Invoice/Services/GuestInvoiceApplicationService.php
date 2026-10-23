@@ -92,7 +92,6 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         $banksData = $this->bankService->getBanksForJs();
         // Guest context: no authenticated user ID => use 0 sentinel to start sequence at YYYY0001
         $suggestedNumber = $this->invoiceFormService->getNextInvoiceNumber(0);
-        $itemUnits = $this->invoiceFormService->getItemUnits();
         $limitsData = [ 'limit' => 0, 'current_usage' => 0, 'allowed' => false ];
         $userInfo = [ 'name' => '', 'street' => '', 'city' => '', 'zip' => '', 'country' => 'CZ', 'ico' => '', 'dic' => '', 'email' => '', 'phone' => '' ];
         $clients = $suppliers = [];
@@ -100,7 +99,7 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         $fieldSet = app(InvoiceCreateFieldSetFactory::class)->build($clients, $suppliers, $paymentMethods, $statuses);
         $fields = $fieldSet->toArray();
         
-        return compact('paymentMethods','statuses','taxRates','banks','banksData','suggestedNumber','itemUnits','limitsData','userInfo','clients','suppliers','invoiceProducts','fields');
+        return compact('paymentMethods','statuses','taxRates','banks','banksData','suggestedNumber','limitsData','userInfo','clients','suppliers','invoiceProducts','fields');
     }
 
     public function generatePdfByToken(?string $token, ?string $requestedLocale, bool $preview = false): Response
@@ -142,17 +141,5 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         Session::forget('last_guest_invoice_number');
         Session::forget('last_guest_invoice_expires');
         return true;
-    }
-
-    /**
-     * Get item units for guest invoices
-     */
-    private function getItemUnits(): array
-    {
-        return [
-            'hours' => __('invoices.units.hours'),
-            'days' => __('invoices.units.days'),
-            'pieces' => __('invoices.units.pieces'),
-        ];
     }
 }

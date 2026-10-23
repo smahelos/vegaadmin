@@ -7,6 +7,7 @@ use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\PrintableInvoiceData;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemData;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Unit\Enums\Unit;
 use App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface;
 use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
 use App\Domain\Party\ValueObjects\PartyId;
@@ -40,7 +41,7 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
             $items[] = new PrintableInvoiceItemData(
                 name: (string)($item['name'] ?? ''),
                 quantity: isset($item['quantity']) ? (float)$item['quantity'] : 1.0,
-                unit: $item['unit'] ?? null,
+                unit: ($item['unit'] ?? null) instanceof Unit ? $item['unit'] : Unit::fromInput($item['unit'] ?? null),
                 price: $price,
                 tax_rate: isset($item['tax_rate']) ? (float)$item['tax_rate'] : 0.0,
                 tax_amount: $taxAmount,

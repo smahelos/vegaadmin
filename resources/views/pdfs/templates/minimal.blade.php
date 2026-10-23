@@ -399,7 +399,7 @@ $formattedTotal = $paymentAmountFormatted ?? (isset($invoice->payment_amount) ? 
                 <tr>
                     <td>{{ $item['name'] ?? __('invoices.placeholders.unnamed_product') }}</td>
                     <td>{{ isset($item['quantity']) ? number_format($item['quantity'], 2, ',', ' ') : '0' }}</td>
-                    <td>{{ $item['unit'] ?? __('invoices.units.pieces') }}</td>
+                    <td>{{ __('invoices.units.' . $item['unit']) }}</td>
                     <td>{{ $item['price_formatted'] ?? (number_format($item['price'] ?? 0, 2, ',', ' ') . ' ' .
                         ($item['currency'] ?? $invoice->payment_currency)) }}</td>
                     <td>{{ isset($item['tax_rate']) ? number_format($item['tax_rate'], 0) : '0' }}%</td>

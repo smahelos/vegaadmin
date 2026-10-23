@@ -2,6 +2,8 @@
 
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Shared\Unit\Enums\Unit;
+
 /**
  * Immutable write data for Invoice product rows.
  */
@@ -13,7 +15,7 @@ class InvoiceProductWriteData
         public readonly float $quantity = 1.0,
         public readonly float $price = 0.0,
         public readonly string $currency = 'CZK',
-        public readonly ?string $unit = null,
+        public readonly Unit $unit = Unit::PIECES,
         public readonly ?string $category = null,
         public readonly ?string $description = null,
         public readonly float $tax_rate = 0.0,
@@ -39,7 +41,7 @@ class InvoiceProductWriteData
             quantity: $quantity,
             price: $price,
             currency: (string)($data['currency'] ?? 'CZK'),
-            unit: $data['unit'] ?? 'ks',
+            unit: Unit::fromInput($data['unit'] ?? null),
             category: $data['category'] ?? null,
             description: $data['description'] ?? null,
             tax_rate: $taxRate,
@@ -57,7 +59,7 @@ class InvoiceProductWriteData
             'quantity' => $this->quantity,
             'price' => $this->price,
             'currency' => $this->currency,
-            'unit' => $this->unit,
+            'unit' => $this->unit->value,
             'category' => $this->category,
             'description' => $this->description,
             'tax_rate' => $this->tax_rate,

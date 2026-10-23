@@ -14,6 +14,7 @@ use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Shared\Str\Contracts\Str;
+use App\Domain\Shared\Unit\Enums\Unit;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -61,7 +62,7 @@ class ProductServiceTest extends TestCase
                     slug: $writeData->slug,
                     image: is_string($writeData->image) ? $writeData->image : null,
                     price: $priceMoney,
-                    unit: $writeData->unit,
+                    unit: $writeData->unit ?? Unit::PIECES,
                     category_id: $writeData->category_id,
                     category: null,
                     supplier_id: $writeData->supplier_id,
@@ -89,7 +90,7 @@ class ProductServiceTest extends TestCase
                     slug: $writeData->slug,
                     image: is_string($writeData->image) ? $writeData->image : null,
                     price: $priceMoney,
-                    unit: $writeData->unit,
+                    unit: $writeData->unit ?? Unit::PIECES,
                     category_id: $writeData->category_id,
                     category: null,
                     supplier_id: $writeData->supplier_id,

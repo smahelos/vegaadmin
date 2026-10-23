@@ -49,7 +49,7 @@ class InvoiceServiceFeatureTest extends TestCase
 				'quantity' => 2,
 				'price' => 100.50,
 				'currency' => 'CZK',
-				'unit' => 'ks',
+				'unit' => 'pieces',
 				'tax_rate' => 21,
 				'description' => 'Custom product description',
 				'is_custom_product' => true
@@ -71,7 +71,7 @@ class InvoiceServiceFeatureTest extends TestCase
 			'quantity' => 2,
 			'price' => 100.50,
 			'currency' => 'CZK',
-			'unit' => 'ks',
+			'unit' => 'pieces',
 			'tax_rate' => 21,
 			'is_custom_product' => true,
 			'product_id' => null
@@ -125,7 +125,7 @@ class InvoiceServiceFeatureTest extends TestCase
 			'price' => 100,
 			'tax_rate' => 21,
 			'currency' => 'CZK',
-			'unit' => 'ks'
+			'unit' => 'pieces'
 		]];
 	$this->service->saveInvoiceProducts(InvoiceId::fromInt($invoice->id), $products);
 		$invoiceProduct = InvoiceProduct::where('invoice_id', $invoice->id)->first();

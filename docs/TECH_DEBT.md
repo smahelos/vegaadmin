@@ -29,6 +29,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** the route is not excluded from CSRF, so an external notification most likely ends with 419 (to verify); the whole request payload is logged.
 - **Fix:** CSRF exception, gateway-verified handling as in `rules/payments.md`, log only the payment id.
 
+### Invoice items are not validated
+- **Where:** `app/Http/Requests/InvoiceRequest.php`, `app/Http/Requests/Admin/InvoiceRequest.php` (no rule for `invoice-products`), `app/Application/Invoice/Services/InvoiceRequestAssembler.php` (decodes the JSON as it comes)
+- **Problem:** the items of an invoice reach the database without validation: any price, quantity, tax rate, currency or `product_id`, possibly a product of another user (not verified). An unknown unit ends in a 500 from `Unit::from()`.
+- **Fix (decided 2026-10-23, own branch after the translations):** the requests validate every item (`Rule::enum(Unit::class)`, numeric ranges, currency from `Currency`, `product_id` owned by the user) with one rule set for frontend and admin; the assembler builds `InvoiceProductWriteData` from validated input only.
+
 ## Invoice
 
 ### Modern and minimal PDFs always print "bank transfer"
@@ -141,6 +146,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Fix:** add `lang/vendor/backpack/sk/{base,crud}.php` with the keys of the package's `en` files, checked against the package after each Backpack upgrade; or drop Slovak from the admin locales.
 
 ## Product
+
+### Products have no unit field
+- **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php`, frontend and admin product forms and requests
+- **Problem:** `products.unit` exists and is copied into the invoice item when a product is picked, but no form sets it, so every product counts in pieces.
+- **Fix:** a unit select from `<x-unit-options />` (frontend) and the same option list in the admin, validated with `Rule::enum(Unit::class)`.
 
 ### Product SKU
 - **Where:** `app/Domain/Product/ValueObjects/ProductSku.php`

@@ -68,7 +68,7 @@ class ProductControllerFeatureTest extends TestCase
             'description' => 'Test Description',
             'price' => 99.99,
             'currency' => 'CZK',
-            'unit' => 'ks',
+            'unit' => 'pieces',
             'user_id' => $this->user->id,
         ];
 
@@ -170,7 +170,7 @@ class ProductControllerFeatureTest extends TestCase
             'description' => 'Test Description',
             'price' => 99.99,
             'currency' => 'CZK',
-            'unit' => 'ks',
+            'unit' => 'pieces',
         ];
 
         $response = $this->post(route('frontend.product.store', ['locale' => 'cs']), $productData);
@@ -208,7 +208,7 @@ class ProductControllerFeatureTest extends TestCase
             'description' => 'Test Description',
             'price' => 99.99,
             'currency' => 'CZK',
-            'unit' => 'ks',
+            'unit' => 'pieces',
         ];
 
         $response = $this->post(route('frontend.product.store', ['locale' => 'cs']), $productData);

@@ -2,6 +2,8 @@
 
 namespace App\Domain\Product\DTO;
 
+use App\Domain\Shared\Unit\Enums\Unit;
+
 class ProductDTO
 {
     /**
@@ -18,7 +20,7 @@ class ProductDTO
         public readonly ?string $slug,
         public readonly ?string $image,
     public readonly ?\App\Domain\Shared\Money\ValueObjects\Money $price,
-        public readonly ?string $unit,
+        public readonly Unit $unit,
         public readonly ?int $category_id,
         /** @var array{id:int,name:string}|null */
         public readonly ?array $category,
@@ -57,7 +59,7 @@ class ProductDTO
                         )
                         : null))
                 : null,
-            unit: $data['unit'] ?? null,
+            unit: ($data['unit'] ?? null) instanceof Unit ? $data['unit'] : Unit::fromInput($data['unit'] ?? null),
             category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
             category: isset($data['category']) && is_array($data['category']) ? $data['category'] : null,
             supplier_id: isset($data['supplier_id']) ? (int) $data['supplier_id'] : null,
