@@ -29,8 +29,8 @@ class SubscriptionPlanFeatureCrudController extends CrudController
         CRUD::setModel(\App\Models\SubscriptionPlanFeature::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/subscription-plan-feature');
         CRUD::setEntityNameStrings(
-            trans('admin.subscription_plan_features.entity_singular'),
-            trans('admin.subscription_plan_features.entity_plural')
+            __('subscriptions.features.entity.singular'),
+            __('subscriptions.features.entity.plural')
         );
 
         // Configure access using centralized service
@@ -49,32 +49,32 @@ class SubscriptionPlanFeatureCrudController extends CrudController
         CRUD::addColumns([
             [
                 'name' => 'name',
-                'label' => trans('admin.subscription_plan_features.name'),
+                'label' => __('subscriptions.features.fields.name'),
                 'type' => 'text',
             ],
             [
                 'name' => 'slug',
-                'label' => trans('admin.subscription_plan_features.slug'),
+                'label' => __('subscriptions.features.fields.slug'),
                 'type' => 'text',
             ],
             [
                 'name' => 'description',
-                'label' => trans('admin.subscription_plan_features.description'),
+                'label' => __('subscriptions.features.fields.description'),
                 'type' => 'text',
                 'limit' => 100,
             ],
             [
                 'name' => 'sort_order',
-                'label' => trans('admin.subscription_plan_features.sort_order'),
+                'label' => __('subscriptions.features.fields.sort_order'),
                 'type' => 'number',
             ],
             [
                 'name' => 'is_active',
-                'label' => trans('admin.subscription_plan_features.is_active'),
+                'label' => __('subscriptions.features.fields.is_active'),
                 'type' => 'boolean',
                 'options' => [
-                    0 => trans('admin.general.no'),
-                    1 => trans('admin.general.yes'),
+                    0 => __('general.no'),
+                    1 => __('general.yes'),
                 ],
             ],
         ]);
@@ -88,7 +88,7 @@ class SubscriptionPlanFeatureCrudController extends CrudController
             CRUD::addFilter([
                 'type' => 'simple',
                 'name' => 'is_active',
-                'label' => trans('admin.subscription_plan_features.active_only'),
+                'label' => __('subscriptions.features.filters.active_only'),
             ],
             false,
             function () {
@@ -109,43 +109,40 @@ class SubscriptionPlanFeatureCrudController extends CrudController
         CRUD::addFields([
             [
                 'name' => 'name',
-                'label' => trans('admin.subscription_plan_features.name'),
+                'label' => __('subscriptions.features.fields.name'),
                 'type' => 'text',
                 'attributes' => [
-                    'placeholder' => trans('admin.subscription_plan_features.name_placeholder'),
+                    'placeholder' => __('subscriptions.features.placeholders.name'),
                 ],
             ],
             [
                 'name' => 'slug',
-                'label' => trans('admin.subscription_plan_features.slug'),
+                'label' => __('subscriptions.features.fields.slug'),
                 'type' => 'text',
-                'attributes' => [
-                    'placeholder' => trans('admin.subscription_plan_features.slug_placeholder'),
-                ],
-                'hint' => trans('admin.subscription_plan_features.slug_placeholder'),
+                'hint' => __('subscriptions.features.hints.slug'),
             ],
             [
                 'name' => 'description',
-                'label' => trans('admin.subscription_plan_features.description'),
+                'label' => __('subscriptions.features.fields.description'),
                 'type' => 'textarea',
                 'attributes' => [
-                    'placeholder' => trans('admin.subscription_plan_features.description_placeholder'),
+                    'placeholder' => __('subscriptions.features.placeholders.description'),
                 ],
             ],
             [
                 'name' => 'sort_order',
-                'label' => trans('admin.subscription_plan_features.sort_order'),
+                'label' => __('subscriptions.features.fields.sort_order'),
                 'type' => 'number',
                 'attributes' => [
                     'min' => '0',
-                    'placeholder' => trans('admin.subscription_plan_features.sort_order_placeholder'),
+                    'placeholder' => __('subscriptions.features.placeholders.sort_order'),
                 ],
-                'hint' => trans('admin.subscription_plan_features.sort_order_hint'),
+                'hint' => __('subscriptions.features.hints.sort_order'),
                 'default' => 0,
             ],
             [
                 'name' => 'is_active',
-                'label' => trans('admin.subscription_plan_features.is_active'),
+                'label' => __('subscriptions.features.fields.is_active'),
                 'type' => 'checkbox',
                 'default' => true,
             ],
@@ -173,13 +170,13 @@ class SubscriptionPlanFeatureCrudController extends CrudController
         
         CRUD::addColumn([
             'name' => 'created_at',
-            'label' => trans('admin.general.created_at'),
+            'label' => __('subscriptions.features.fields.created_at'),
             'type' => 'datetime',
         ]);
         
         CRUD::addColumn([
             'name' => 'updated_at',
-            'label' => trans('admin.general.updated_at'),
+            'label' => __('subscriptions.features.fields.updated_at'),
             'type' => 'datetime',
         ]);
     }

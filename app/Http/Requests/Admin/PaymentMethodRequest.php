@@ -43,14 +43,6 @@ class PaymentMethodRequest extends BaseEntityRequest
         ];
     }
 
-    public function messages(): array
-    {
-        return [
-            'name.required' => __('payment_methods.validation.name_required'),
-            'slug.unique' => __('payment_methods.validation.slug_unique'),
-        ];
-    }
-
     public function prepareForValidation(): void
     {
         if (empty($this->slug) && !empty($this->name)) {

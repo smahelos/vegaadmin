@@ -156,7 +156,7 @@ class InvoiceFeatureTest extends TestCase
             'quantity' => 1,
             'price' => 100.50,
             'currency' => 'USD',
-            'unit' => 'piece',
+            'unit' => 'pieces',
             'is_custom_product' => false,
             'tax_rate' => 0,
             'tax_amount' => 0,
@@ -170,7 +170,7 @@ class InvoiceFeatureTest extends TestCase
             'quantity' => 1,
             'price' => 200.25,
             'currency' => 'USD',
-            'unit' => 'piece',
+            'unit' => 'pieces',
             'is_custom_product' => false,
             'tax_rate' => 0,
             'tax_amount' => 0,
@@ -195,6 +195,16 @@ class InvoiceFeatureTest extends TestCase
         $statusName = $invoice->getPaymentStatusNameAttribute();
 
         $this->assertEquals('Paid', $statusName);
+    }
+
+    #[Test]
+    public function payment_status_name_is_translated_by_status_slug(): void
+    {
+        $status = Status::where('slug', 'partially-paid')->first()
+            ?? Status::factory()->create(['slug' => 'partially-paid', 'name' => 'Částečně uhrazená']);
+        $invoice = Invoice::factory()->create(['payment_status_id' => $status->id]);
+
+        $this->assertSame(__('statuses.statuses.partially-paid'), $invoice->payment_status_name);
     }
 
     #[Test]
@@ -413,7 +423,7 @@ class InvoiceFeatureTest extends TestCase
             'quantity' => 1,
             'price' => 100.00,
             'currency' => 'USD',
-            'unit' => 'piece',
+            'unit' => 'pieces',
             'is_custom_product' => false,
             'tax_rate' => 21, // Will calculate: 100 * 1 * 21 / 100 = 21
             'tax_amount' => 0, // Will be overwritten by boot method
@@ -427,7 +437,7 @@ class InvoiceFeatureTest extends TestCase
             'quantity' => 1,
             'price' => 50.00,
             'currency' => 'USD',
-            'unit' => 'piece',
+            'unit' => 'pieces',
             'is_custom_product' => false,
             'tax_rate' => 21, // Will calculate: 50 * 1 * 21 / 100 = 10.5
             'tax_amount' => 0, // Will be overwritten by boot method
@@ -604,7 +614,7 @@ class InvoiceFeatureTest extends TestCase
             'quantity' => 1,
             'price' => 100.00,
             'currency' => 'USD',
-            'unit' => 'piece',
+            'unit' => 'pieces',
             'is_custom_product' => false,
             'tax_rate' => 21,
             'tax_amount' => 0,
@@ -617,7 +627,7 @@ class InvoiceFeatureTest extends TestCase
             'quantity' => 2,
             'price' => 50.00,
             'currency' => 'USD',
-            'unit' => 'piece',
+            'unit' => 'pieces',
             'is_custom_product' => false,
             'tax_rate' => 10, // 50 * 2 * 10% = 10
             'tax_amount' => 0,

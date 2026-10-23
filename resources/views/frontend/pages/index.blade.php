@@ -30,7 +30,7 @@
     {{-- Categories Section --}}
     @if($categoriesWithPages->isNotEmpty())
     <div class="mb-12">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-6">{{ __('pages.categories') }}</h2>
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6">{{ __('pages.categories.entity.plural') }}</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($categoriesWithPages as $category)
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">

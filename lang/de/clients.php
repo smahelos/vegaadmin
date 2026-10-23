@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Kunde',
+        'plural' => 'Kunden',
+    ],
     'fields' => [
         'name' => 'Name',
         'email' => 'E-Mail',
@@ -22,11 +26,22 @@ return [
         'is_default' => 'Standardkunde',
         'user_id' => 'Eigentümer',
     ],
-    'sections' => [
-        'basic_info' => 'Grundinformationen',
-        'billing_info' => 'Rechnungsinformationen',
-        'client_invoices' => 'Kundenrechnungen',
-        'delivery_address' => 'Lieferadresse',
+    'hints' => [
+        'client' => '',
+        'name' => '',
+        'email' => '',
+        'phone' => '',
+        'shortcut' => '',
+        'street' => '',
+        'city' => '',
+        'zip' => '',
+        'country' => '',
+        'ico' => 'Die Unternehmens-ID muss genau 8 Ziffern enthalten.',
+        'dic' => '',
+        'description' => '',
+    ],
+    'placeholders' => [
+        'not_specified' => 'Nicht angegeben',
     ],
     'actions' => [
         'create' => 'Kunde erstellen',
@@ -41,15 +56,6 @@ return [
         'show' => 'Kunde anzeigen',
         'invoice' => 'Rechnung erstellen',
     ],
-    'titles' => [
-        'index' => 'Kunden',
-        'create' => 'Kunden erstellen',
-        'edit' => 'Kunden bearbeiten',
-        'show' => 'Kundendetails',
-        'client' => 'Kunde',
-        'empty' => 'Sie haben noch keine Kunden',
-        'empty_message' => 'Beginnen Sie mit der Erstellung Ihres ersten Kunden.',
-    ],
     'messages' => [
         'created' => 'Kunde wurde erfolgreich erstellt.',
         'updated' => 'Kunde wurde erfolgreich aktualisiert.',
@@ -63,36 +69,22 @@ return [
         'is_default_explanation' => 'Wenn dieser Kunde als Standard festgelegt ist, wird er beim Erstellen neuer Rechnungen automatisch ausgewählt.',
         'not_found' => 'Kunde wurde nicht gefunden.',
         'no_clients' => 'Sie haben noch keine Kunden.',
+        'limit_exceeded' => 'Sie haben Ihr Kundenlimit erreicht.',
     ],
-    'validation' => [
-        'name_required' => 'Der Kundenname ist erforderlich.',
-        'email_required' => 'E-Mail-Adresse ist erforderlich.',
-        'email_valid' => 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',
-        'street_required' => 'Straßenadresse ist erforderlich.',
-        'city_required' => 'Stadt ist erforderlich.',
-        'zip_required' => 'Postleitzahl ist erforderlich.',
-        'country_required' => 'Land ist erforderlich.',
-        'ico_format' => 'Die Unternehmens-ID muss genau 8 Ziffern enthalten.',
-        'zip_format' => 'Die Postleitzahl muss im Format XXX XX oder XXXXX sein.',
-        'user_required' => 'Der Eigentümer des Kunden ist erforderlich.',
-        'user_exists' => 'Der ausgewählte Eigentümer existiert nicht.',
+    'sections' => [
+        'basic_info' => 'Grundinformationen',
+        'billing_info' => 'Rechnungsinformationen',
+        'client_invoices' => 'Kundenrechnungen',
+        'delivery_address' => 'Lieferadresse',
     ],
-    'placeholders' => [
-        'not_specified' => 'Nicht angegeben',
-    ],
-    'hints' => [
-        'client' => '',
-        'name' => '',
-        'email' => '',
-        'phone' => '',
-        'shortcut' => '',
-        'street' => '',
-        'city' => '',
-        'zip' => '',
-        'country' => '',
-        'ico' => '',
-        'dic' => '',
-        'description' => '',
+    'titles' => [
+        'index' => 'Kunden',
+        'create' => 'Kunden erstellen',
+        'edit' => 'Kunden bearbeiten',
+        'show' => 'Kundendetails',
+        'client' => 'Kunde',
+        'empty' => 'Sie haben noch keine Kunden',
+        'empty_message' => 'Beginnen Sie mit der Erstellung Ihres ersten Kunden.',
     ],
     'invoices' => [
         'no_invoices' => 'Dieser Kunde hat keine Rechnungen',

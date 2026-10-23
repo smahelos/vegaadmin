@@ -47,7 +47,7 @@ trait UserFormFields
                 'wrapper' => [
                     'class' => 'form-group col-md-6',
                 ],
-                'hint' => __('users.fields.password_hint'),
+                'hint' => __('users.hints.password'),
             ],
             [
                 'name' => 'password_confirmation',
@@ -68,7 +68,7 @@ trait UserFormFields
                 'wrapper' => [
                     'class' => 'form-group col-md-6',
                 ],
-                'hint' => __('users.fields.current_password_hint'),
+                'hint' => __('users.hints.current_password'),
             ],
         ];
         

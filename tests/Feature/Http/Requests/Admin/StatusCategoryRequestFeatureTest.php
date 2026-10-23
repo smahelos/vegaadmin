@@ -251,9 +251,9 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
 
         // Check that translations are being called
-        $this->assertEquals(trans('admin.status_categories.name'), $attributes['name']);
-        $this->assertEquals(trans('admin.status_categories.slug'), $attributes['slug']);
-        $this->assertEquals(trans('admin.status_categories.description'), $attributes['description']);
+        $this->assertEquals(__('statuses.categories.fields.name'), $attributes['name']);
+        $this->assertEquals(__('statuses.categories.fields.slug'), $attributes['slug']);
+        $this->assertEquals(__('statuses.categories.fields.description'), $attributes['description']);
     }
 
     #[Test]

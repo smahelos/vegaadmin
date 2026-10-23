@@ -302,7 +302,7 @@ class InvoiceController extends Controller
     public function batchActions(string $locale, int $id, Request $request)
     {
         $user = Auth::user();
-        if (!$user) { return back()->with('error', __('auth.failed')); }
+        if (!$user) { return back()->with('error', __('users.auth.unauthenticated')); }
         // Whitelist and basic validation
         $payload = $request->only(['template','status','mark_paid']);
         $rules = [

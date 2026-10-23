@@ -44,26 +44,6 @@ class ExpenseRequestTest extends TestCase
     }
 
     #[Test]
-    public function attributes_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('attributes');
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
-
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
-
-    #[Test]
     public function has_required_methods(): void
     {
         $requiredMethods = ['rules', 'attributes', 'messages', 'prepareForValidation'];

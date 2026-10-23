@@ -29,8 +29,8 @@ class SyncArtisanCommands extends Command
         $uncategorizedCategory = ArtisanCommandCategory::firstOrCreate(
             ['slug' => 'uncategorized'],
             [
-                'name' => __('admin.artisan_commands.uncategorized'),
-                'description' => __('admin.artisan_commands.uncategorized_description'),
+                'name' => __('artisan_commands.categories.uncategorized.name'),
+                'description' => __('artisan_commands.categories.uncategorized.description'),
                 'is_active' => true
             ]
         );

@@ -231,12 +231,12 @@
         amount: "{{ __('dashboard.charts.amount') }}",
         revenue: "{{ __('dashboard.charts.revenue') }}",
         expenses: "{{ __('dashboard.charts.expenses') }}",
-        paid: "{{ __('dashboard.status.paid') }}",
-        partiallyPaid: "{{ __('dashboard.status.partially-paid') }}",
-        pending: "{{ __('dashboard.status.pending') }}",
-        overdue: "{{ __('dashboard.status.overdue') }}",
-        draft: "{{ __('dashboard.status.draft') }}",
-        cancelled: "{{ __('dashboard.status.cancelled') }}",
+        paid: "{{ __('statuses.statuses.paid') }}",
+        partiallyPaid: "{{ __('statuses.statuses.partially-paid') }}",
+        pending: "{{ __('statuses.statuses.pending') }}",
+        overdue: "{{ __('statuses.statuses.overdue') }}",
+        draft: "{{ __('statuses.statuses.draft') }}",
+        cancelled: "{{ __('statuses.statuses.cancelled') }}",
         noData: "{{ __('dashboard.charts.no_data') }}",
     };
 

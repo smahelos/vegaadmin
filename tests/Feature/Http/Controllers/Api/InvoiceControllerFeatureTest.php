@@ -294,7 +294,6 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
         );
     }
 
-    public function getItemUnits(): array { return ['pcs','hours','kg']; }
 
     public function getNextInvoiceNumber(int $userId): string { return 'INV-0001'; }
 

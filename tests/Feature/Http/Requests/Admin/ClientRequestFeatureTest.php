@@ -350,24 +350,6 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     /**
-     * Test custom messages are correctly defined.
-     */
-    #[Test]
-    public function custom_messages_are_defined(): void
-    {
-        $request = new ClientRequest();
-        $messages = $request->messages();
-
-        $expectedMessages = [
-            'name.required' => __('clients.validation.name_required'),
-            'user_id.required' => __('clients.validation.user_required'),
-            'user_id.exists' => __('clients.validation.user_exists'),
-        ];
-
-        $this->assertEquals($expectedMessages, $messages);
-    }
-
-    /**
      * Test nullable fields work correctly.
      */
     #[Test]

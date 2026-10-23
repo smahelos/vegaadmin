@@ -56,16 +56,6 @@ class SubscriptionRequestTest extends TestCase
         $this->assertEquals('array', $returnType->getName());
     }
 
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
 
     #[Test]
     public function rules_returns_array_with_required_fields(): void
@@ -107,27 +97,7 @@ class SubscriptionRequestTest extends TestCase
         $this->assertEquals('array', $method->getReturnType()->getName());
     }
 
-    #[Test]
-    public function messages_returns_array_with_validation_messages(): void
-    {
-        // For unit tests, we just check the method exists and returns array
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('array', $method->getReturnType()->getName());
-    }
 
-    #[Test]
-    public function all_required_validation_messages_are_present(): void
-    {
-        // For unit tests, we just check the method exists and returns array
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('array', $method->getReturnType()->getName());
-    }
 
     #[Test]
     public function date_validation_rules_are_present(): void

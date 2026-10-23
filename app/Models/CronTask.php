@@ -40,10 +40,10 @@ class CronTask extends Model
     public function getFrequencyNameAttribute()
     {
         $frequencies = [
-            'daily' => __('admin.cron_tasks.frequency.daily'),
-            'weekly' => __('admin.cron_tasks.frequency.weekly'),
-            'monthly' => __('admin.cron_tasks.frequency.monthly'),
-            'custom' => __('admin.cron_tasks.frequency.custom'),
+            'daily' => __('cron_tasks.frequencies.daily'),
+            'weekly' => __('cron_tasks.frequencies.weekly'),
+            'monthly' => __('cron_tasks.frequencies.monthly'),
+            'custom' => __('cron_tasks.frequencies.custom'),
         ];
 
         return $frequencies[$this->frequency] ?? $this->frequency;
@@ -59,13 +59,13 @@ class CronTask extends Model
         }
 
         $days = [
-            0 => __('admin.cron_tasks.days.sunday'),
-            1 => __('admin.cron_tasks.days.monday'),
-            2 => __('admin.cron_tasks.days.tuesday'),
-            3 => __('admin.cron_tasks.days.wednesday'),
-            4 => __('admin.cron_tasks.days.thursday'),
-            5 => __('admin.cron_tasks.days.friday'),
-            6 => __('admin.cron_tasks.days.saturday'),
+            0 => __('cron_tasks.days.sunday'),
+            1 => __('cron_tasks.days.monday'),
+            2 => __('cron_tasks.days.tuesday'),
+            3 => __('cron_tasks.days.wednesday'),
+            4 => __('cron_tasks.days.thursday'),
+            5 => __('cron_tasks.days.friday'),
+            6 => __('cron_tasks.days.saturday'),
         ];
 
         return $days[$this->day_of_week] ?? $this->day_of_week;

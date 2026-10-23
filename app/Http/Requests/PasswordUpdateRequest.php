@@ -46,21 +46,4 @@ class PasswordUpdateRequest extends FormRequest
             'password_confirmation' => __('users.fields.password_confirmation'),
         ];
     }
-
-    /**
-     * Get custom error messages for validation rules
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return [
-            'current_password.required' => __('users.validation.password_required'), // Reuse generic password required text
-            'current_password.current_password' => __('users.messages.profile_error_update_password_current'),
-            'password.required' => __('users.validation.password_required'),
-            'password.min' => __('users.validation.password_min', ['min' => 8]),
-            'password.confirmed' => __('users.validation.password_confirmed'),
-            'password_confirmation.required' => __('users.validation.password_confirmation_required'),
-        ];
-    }
 }

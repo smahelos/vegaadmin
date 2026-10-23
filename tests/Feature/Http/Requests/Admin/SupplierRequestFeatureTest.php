@@ -495,28 +495,6 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     /**
-     * Test custom messages are correctly defined.
-     */
-    #[Test]
-    public function custom_messages_are_defined(): void
-    {
-        $messages = $this->request->messages();
-
-        $this->assertIsArray($messages);
-        $this->assertArrayHasKey('name.required', $messages);
-        $this->assertArrayHasKey('email.required', $messages);
-        $this->assertArrayHasKey('street.required', $messages);
-        $this->assertArrayHasKey('city.required', $messages);
-        $this->assertArrayHasKey('zip.required', $messages);
-        $this->assertArrayHasKey('country.required', $messages);
-        $this->assertArrayHasKey('user_id.required', $messages);
-        $this->assertArrayHasKey('account_number.max', $messages);
-        $this->assertArrayHasKey('bank_code.required_with', $messages);
-        $this->assertArrayHasKey('iban.max', $messages);
-        $this->assertArrayHasKey('swift.required_with', $messages);
-    }
-
-    /**
      * Test nullable fields work correctly.
      */
     #[Test]

@@ -5,7 +5,6 @@ namespace Tests\Unit\Livewire\Product;
 use App\Livewire\Product\ProductListSelect;
 use Illuminate\Foundation\Http\FormRequest;
 use Livewire\Component;
-use Livewire\WithPagination;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -24,12 +23,6 @@ class ProductListSelectTest extends TestCase
     public function component_extends_livewire_component(): void
     {
         $this->assertInstanceOf(Component::class, $this->component);
-    }
-
-    #[Test]
-    public function component_uses_with_pagination_trait(): void
-    {
-        $this->assertContains(WithPagination::class, class_uses($this->component));
     }
 
     #[Test]

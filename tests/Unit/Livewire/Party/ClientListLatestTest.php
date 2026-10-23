@@ -4,7 +4,6 @@ namespace Tests\Unit\Livewire\Party;
 
 use App\Livewire\Party\ClientListLatest;
 use Livewire\Component;
-use Livewire\WithPagination;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use ReflectionClass;
@@ -23,12 +22,6 @@ class ClientListLatestTest extends TestCase
     public function component_extends_livewire_component(): void
     {
         $this->assertInstanceOf(Component::class, $this->component);
-    }
-
-    #[Test]
-    public function component_uses_with_pagination_trait(): void
-    {
-        $this->assertContains(WithPagination::class, class_uses($this->component));
     }
 
     #[Test]
@@ -128,17 +121,6 @@ class ClientListLatestTest extends TestCase
     {
         $reflection = new ReflectionClass($this->component);
         $this->assertEquals('App\Livewire\Party', $reflection->getNamespaceName());
-    }
-
-    #[Test]
-    public function component_uses_required_imports(): void
-    {
-        $fileContent = file_get_contents(app_path('Livewire/Party/ClientListLatest.php'));
-
-        $this->assertStringContainsString('use App\Models\Client;', $fileContent);
-        $this->assertStringContainsString('use Livewire\Component;', $fileContent);
-        $this->assertStringContainsString('use Livewire\WithPagination;', $fileContent);
-        $this->assertStringContainsString('use Illuminate\Support\Facades\Auth;', $fileContent);
     }
 
     #[Test]

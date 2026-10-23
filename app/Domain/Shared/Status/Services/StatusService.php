@@ -89,7 +89,7 @@ class StatusService implements StatusServiceInterface
      */
     public function translateSlug(string $slug, ?string $locale = null): string
     {
-        $key = 'statuses.' . $slug;
+        $key = 'statuses.statuses.' . $slug;
         if ($this->translator->has($key, $locale)) {
             return $this->translator->trans($key, [], $locale);
         }

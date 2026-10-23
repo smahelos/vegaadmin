@@ -101,8 +101,8 @@ class RequireBackpackAccess
         if ($request->ajax() || $request->wantsJson()) {
             $statusCode = $isAuthenticated ? 403 : 401;
             $message = $isAuthenticated 
-                ? trans('backpack::base.unauthorized') 
-                : trans('backpack::base.please_login');
+                ? __('users.auth.no_admin_access')
+                : __('users.auth.unauthenticated');
             
             return response()->json([
                 'error' => $message,

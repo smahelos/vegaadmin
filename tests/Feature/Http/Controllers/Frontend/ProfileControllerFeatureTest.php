@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -9,6 +10,7 @@ use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class ProfileControllerFeatureTest extends TestCase
 {
@@ -114,5 +116,38 @@ class ProfileControllerFeatureTest extends TestCase
         ];
         $response = $this->put(route('frontend.profile.update.password', ['locale' => 'cs']), $payload);
         $response->assertSessionHasErrors(['current_password']);
+    }
+
+    #[Test]
+    public function profile_update_does_not_change_the_password(): void
+    {
+        $this->actingAs($this->user, 'web');
+        $originalHash = $this->user->fresh()->password;
+
+        $this->put(route('frontend.profile.update', ['locale' => 'cs']), [
+            'name' => 'Updated Name',
+            'email' => $this->user->email,
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ]);
+
+        $this->assertSame($originalHash, $this->user->fresh()->password);
+    }
+
+    #[Test]
+    public function failed_profile_update_does_not_show_the_exception_to_the_user(): void
+    {
+        $this->actingAs($this->user, 'web');
+        $this->mock(UserWriteRepositoryInterface::class)
+            ->shouldReceive('updateProfile')
+            ->andThrow(new RuntimeException('SQLSTATE[42S22]: Unknown column users.secret'));
+
+        $response = $this->put(route('frontend.profile.update', ['locale' => 'cs']), [
+            'name' => 'Updated Name',
+            'email' => $this->user->email,
+        ]);
+
+        $errors = $response->getSession()->get('errors')->all();
+        $this->assertSame([__('users.messages.profile_update_failed')], $errors);
     }
 }

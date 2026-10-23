@@ -27,7 +27,7 @@
 @auth
 <div class="mb-6">
     <x-uels-limit-widget entity-type="supplier" limit="{{ $limitsData['limit'] }}"
-        entity-name="{{ __('uels.entities.supplier') }}" :show-modal="true" />
+        entity-name="{{ __('entity_limits.entity_types.supplier.singular') }}" :show-modal="true" />
 </div>
 @endauth
 
@@ -220,34 +220,6 @@
                         @endif
                     </div>
 
-                    <!-- Display delivery address if different from billing -->
-                    {{-- @if($supplier->has_delivery_address)
-                    <div class="bg-white p-3 rounded-md shadow-sm">
-                        <div class="text-sm font-medium mb-2">{{ __('suppliers.sections.delivery_address') }}</div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                    __('suppliers.fields.delivery_street') }}</div>
-                                <div class="text-sm dark:text-white">{{ $supplier->delivery_street }}</div>
-                            </div>
-                            <div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                    __('suppliers.fields.delivery_city') }}</div>
-                                <div class="text-sm dark:text-white">{{ $supplier->delivery_city }}</div>
-                            </div>
-                            <div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                    __('suppliers.fields.delivery_zip') }}</div>
-                                <div class="text-sm dark:text-white">{{ $supplier->delivery_zip }}</div>
-                            </div>
-                            <div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                    __('suppliers.fields.delivery_country') }}</div>
-                                <div class="text-sm dark:text-white">{{ $supplier->delivery_country }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    @endif --}}
                 </div>
             </div>
         </div>

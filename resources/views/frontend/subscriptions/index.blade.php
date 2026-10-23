@@ -1,15 +1,15 @@
 @extends('layouts.frontend')
 
-@section('title', __('subscription.subscription_plans'))
+@section('title', __('subscriptions.plans.entity.plural'))
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="text-center mb-12">
         <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            {{ __('subscription.subscription_plans') }}
+            {{ __('subscriptions.plans.entity.plural') }}
         </h1>
         <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            {{ __('Choose the perfect plan for your business needs') }}
+            {{ __('subscriptions.labels.intro') }}
         </p>
     </div>
 
@@ -25,14 +25,14 @@
             </div>
             <div class="ml-3">
                 <h3 class="text-sm font-medium text-green-800 dark:text-green-200">
-                    {{ __('subscription.subscription_active') }}
+                    {{ __('subscriptions.messages.active') }}
                 </h3>
                 <div class="mt-2 text-sm text-green-600 dark:text-green-300">
-                    <p>{{ __('You have an active subscription:') }} <strong>{{ $userSubscription->subscriptionPlan->name
+                    <p>{{ __('subscriptions.labels.active_plan') }} <strong>{{ $userSubscription->subscriptionPlan->name
                             }}</strong></p>
                     <a href="{{ route('subscriptions.my-subscription', ['locale' => app()->getLocale()]) }}"
                         class="font-medium underline dark:text-green-300 hover:text-green-600 dark:hover:text-green-200">
-                        {{ __('subscription.my_subscription') }}
+                        {{ __('subscriptions.titles.mine') }}
                     </a>
                 </div>
             </div>
@@ -47,7 +47,7 @@
 
             @if($plan->billing_period === 'yearly')
             <div class="bg-blue-500 dark:bg-blue-800 text-white text-center py-2 text-sm font-medium">
-                {{ __('Best Value - 2 months free!') }}
+                {{ __('subscriptions.labels.best_value') }}
             </div>
             @endif
 
@@ -60,14 +60,14 @@
                         <span class="text-4xl font-bold text-gray-900 dark:text-white">{{ number_format($plan->price, 0) }}</span>
                         <span class="text-gray-600 dark:text-gray-400 ml-1">{{ $plan->currency }}</span>
                         <div class="text-sm text-gray-500 dark:text-gray-300">
-                            {{ __('subscription.billing_' . $plan->billing_period) }}
+                            {{ __('subscriptions.plans.billing_periods.' . $plan->billing_period) }}
                         </div>
                     </div>
 
                     @if($plan->hasTrialPeriod())
                     <div
                         class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-4">
-                        {{ __('subscription.trial_days', ['days' => $plan->trial_days]) }}
+                        {{ __('subscriptions.labels.trial_days', ['days' => $plan->trial_days]) }}
                     </div>
                     @endif
                 </div>
@@ -94,17 +94,17 @@
                     @if($userSubscription && $userSubscription->subscriptionPlan->id === $plan->id)
                     <button disabled
                         class="w-full bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-300 font-bold py-3 px-4 rounded-lg cursor-not-allowed">
-                        {{ __('subscription.current_plan') }}
+                        {{ __('subscriptions.titles.current_plan') }}
                     </button>
                     @elseif($userSubscription)
                     <a href="{{ route('subscriptions.show', ['plan' => $plan, 'locale' => app()->getLocale()]) }}"
                         class="w-full inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                        {{ __('subscription.upgrade_plan') }}
+                        {{ __('subscriptions.actions.upgrade') }}
                     </a>
                     @else
                     <a href="{{ route('subscriptions.show', ['plan' => $plan, 'locale' => app()->getLocale()]) }}"
                         class="w-full inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                        {{ __('subscription.choose_plan') }}
+                        {{ __('subscriptions.actions.choose_plan') }}
                     </a>
                     @endif
                 </div>
@@ -115,9 +115,9 @@
 
     <div class="text-center mt-12">
         <p class="text-gray-600">
-            {{ __('Need help choosing a plan?') }}
+            {{ __('subscriptions.titles.need_help_choosing') }}
             <a href="mailto:support@example.com" class="text-blue-600 hover:text-blue-700 font-medium">
-                {{ __('Contact our support team') }}
+                {{ __('subscriptions.actions.contact_support_team') }}
             </a>
         </p>
     </div>

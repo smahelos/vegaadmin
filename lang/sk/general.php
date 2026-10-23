@@ -1,13 +1,10 @@
 <?php
 
 return [
-    // Všeobecné preklady pre aplikáciu
     'logo_alt' => 'Vega Faktúry',
     'currency' => '€',
     'yes' => 'Áno',
     'no' => 'Nie',
-
-    // Mesiace pre formátovanie dátumov
     'months' => [
         1 => 'január',
         2 => 'február',
@@ -22,7 +19,6 @@ return [
         11 => 'november',
         12 => 'december',
     ],
-
     'navigation' => [
         'dashboard' => 'Prehľad',
         'invoices' => 'Faktúry',
@@ -32,8 +28,8 @@ return [
         'products' => 'Produkty',
         'create_invoice' => 'Vytvoriť faktúru',
         'pages' => 'Stránky',
+        'language' => 'Jazyk',
     ],
-
     'placeholders' => [
         'select_client' => 'Vyberte klienta alebo vytvorte nového...',
         'select_status' => 'Vyberte stav...',
@@ -47,17 +43,14 @@ return [
         'yes' => 'Áno',
         'no' => 'Nie',
     ],
-
     'joins' => [
         'and' => 'a',
     ],
-
     'empty' => [
         'not_specified' => 'Nešpecifikované.',
         'no_items' => 'Žiadne položky',
         'no_results' => 'Žiadne výsledky',
     ],
-
     'pagination' => [
         'navigation' => 'Navigácia',
         'shown' => 'Zobrazené',
@@ -67,7 +60,6 @@ return [
         'previous' => 'Predchádzajúca',
         'next' => 'Ďalšia',
     ],
-
     'actions' => [
         'create' => 'Vytvoriť',
         'edit' => 'Upraviť',
@@ -81,10 +73,20 @@ return [
         'print' => 'Tlačiť',
         'send' => 'Odoslať',
         'actions' => 'Akcie',
+        'remove_file' => 'Odstrániť súbor',
     ],
-
     'common' => [
         'created_at' => 'Vytvorené',
         'updated_at' => 'Aktualizované',
+    ],
+    'colors' => [
+        'green' => 'Zelená',
+        'yellow' => 'Žltá',
+        'red' => 'Červená',
+        'blue' => 'Modrá',
+        'gray' => 'Sivá',
+        'purple' => 'Fialová',
+        'indigo' => 'Indigová',
+        'pink' => 'Ružová',
     ],
 ];

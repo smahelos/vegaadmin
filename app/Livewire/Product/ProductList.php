@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Shared\Paginates;
 use App\Models\Product;
 use Livewire\Component;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 use Illuminate\Contracts\View\View;
@@ -17,7 +17,7 @@ use Illuminate\Contracts\View\View;
  */
 class ProductList extends Component
 {
-    use WithPagination;
+    use Paginates;
     
     /**
      * Search term for filtering products
@@ -65,15 +65,7 @@ class ProductList extends Component
      * @var string|null
      */
     public ?string $errorMessage = null;
-    
-    /**
-     * Set up component with pagination theme
-     */
-    public function mount(): void
-    {
-        $this->paginationTheme = 'bootstrap';
-    }
-    
+
     /**
      * Reset pagination when search term is updated
      */

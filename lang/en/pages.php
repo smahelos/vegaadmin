@@ -1,11 +1,67 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Page',
+        'plural' => 'Pages',
+    ],
+    'fields' => [
+        'name' => 'Name',
+        'slug' => 'URL key',
+        'category_id' => 'Category',
+        'parent_id' => 'Parent page',
+        'sort_order' => 'Sort order',
+        'description' => 'Description',
+        'content' => 'Content',
+        'meta_title' => 'Meta title',
+        'meta_description' => 'Meta description',
+        'meta_keywords' => 'Meta keywords',
+        'main_image' => 'Main image',
+        'published' => 'Published',
+        'publishing_start' => 'Publishing start',
+        'publishing_end' => 'Publishing end',
+        'created_at' => 'Created',
+        'updated_at' => 'Updated',
+    ],
+    'hints' => [
+        'name' => 'Fill in the name and URL key in at least one language.',
+        'slug' => 'Unique identifier of the page in URLs. Leave it empty to create it from the name.',
+        'sort_order' => 'Leave it empty to use the next highest value.',
+        'main_image' => 'JPG, PNG, GIF or WebP, up to 10 MB.',
+    ],
+    'placeholders' => [
+        'no_parent' => 'No parent page',
+    ],
+    'validation' => [
+        'at_least_one_locale' => 'At least one language must have the name and URL key filled in.',
+        'slug_format' => 'The URL key may contain only lowercase letters, digits and hyphens.',
+    ],
+    'categories' => [
+        'entity' => [
+            'singular' => 'Page category',
+            'plural' => 'Page categories',
+        ],
+        'fields' => [
+            'name' => 'Name',
+            'slug' => 'URL key',
+            'description' => 'Description',
+            'pages_count' => 'Pages count',
+            'created_at' => 'Created',
+            'updated_at' => 'Updated',
+        ],
+        'hints' => [
+            'name' => 'Fill in the name in at least one language.',
+            'slug' => 'Unique identifier of the category in URLs. Leave it empty to create it from the name.',
+        ],
+        'validation' => [
+            'at_least_one_locale' => 'At least one language must have the name and URL key filled in.',
+        ],
+    ],
+
     'page_not_found' => 'Page not found',
     'category_not_found' => 'Category not found',
     'homepage' => 'Homepage',
     'pages' => 'Pages',
-    'categories' => 'Categories',
     'search' => 'Search',
     'search_placeholder' => 'Search pages...',
     'search_results' => 'Search Results',
@@ -15,14 +71,10 @@ return [
     'related_pages' => 'Related Pages',
     'sitemap' => 'Sitemap',
     'all_pages' => 'All Pages',
-    'category' => 'Category',
     'published' => 'Published',
     'breadcrumbs' => 'You are here',
     'no_pages_found' => 'No pages found.',
-    'create_invoice_guest' => 'Create Invoice',
     'welcome_message' => 'Welcome to our website',
-    'homepage_empty_title' => 'Welcome',
-    'homepage_empty_message' => 'The website is being prepared. Please come back later.',
     'navigation' => 'Navigation',
     'gallery' => 'Gallery',
     'subpages' => 'Subpages',
@@ -43,6 +95,19 @@ return [
     'view_all' => 'View all',
     'no_pages_description' => 'There are currently no published pages available.',
     'advanced_search' => 'Advanced search',
+
+    'homepage_empty' => [
+        'title' => 'Welcome',
+        'message' => 'The website is being prepared. Please come back later.',
+        'create_invoice' => 'Create Invoice',
+        'features_title' => 'What we offer',
+        'easy_invoicing' => 'Easy invoicing',
+        'easy_invoicing_description' => 'Create an invoice in minutes, even without signing up.',
+        'instant_download' => 'Instant download',
+        'instant_download_description' => 'Download the finished invoice as a PDF right away.',
+        'secure' => 'Secure data',
+        'secure_description' => 'Only you can see your invoices, clients and products.',
+    ],
 
     'titles' => [
         'features' => 'Features',

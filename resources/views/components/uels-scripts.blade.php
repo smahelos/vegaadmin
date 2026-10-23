@@ -11,53 +11,21 @@ Provides translations and auto-initialization for UELS widgets
 @vite('resources/js/uels-manager.js')
 <script>
     // Initialize UELS translations for JavaScript
-window.UELSTranslations = {
-    modal: {
-        title: '{{ __('uels.modal.title') }}',
-        loading: '{{ __('uels.modal.loading') }}',
-        error: '{{ __('uels.modal.error') }}',
-        close: '{{ __('uels.modal.close') }}',
-        refresh: '{{ __('uels.modal.refresh') }}',
-        retry: '{{ __('uels.modal.retry') }}',
-        overview: '{{ __('uels.modal.overview') }}',
-        current_period: '{{ __('uels.modal.current_period') }}',
-        recent_activity: '{{ __('uels.modal.recent_activity') }}',
-        current_usage: '{{ __('uels.modal.current_usage') }}',
-        limit: '{{ __('uels.modal.limit_info') }}',
-        usage_percentage: '{{ __('uels.modal.usage_percentage') }}',
-        today: '{{ __('uels.modal.today') }}',
-        this_week: '{{ __('uels.modal.this_week') }}',
-        this_month: '{{ __('uels.modal.this_month') }}',
-        total: '{{ __('uels.modal.total') }}',
-        no_activity: '{{ __('uels.modal.no_activity') }}',
-        entity_created: '{{ __('uels.modal.entity_created') }}'
-    },
-    entities: {
-        clients: '{{ __('uels.entities.clients') }}',
-        client: '{{ __('uels.entities.client') }}',
-        suppliers: '{{ __('uels.entities.suppliers') }}',
-        supplier: '{{ __('uels.entities.supplier') }}',
-        products: '{{ __('uels.entities.products') }}',
-        product: '{{ __('uels.entities.product') }}',
-        invoices: '{{ __('uels.entities.invoices') }}',
-        invoice: '{{ __('uels.entities.invoice') }}'
-    },
-    status: {
-        success: '{{ __('uels.status.success') }}',
-        warning: '{{ __('uels.status.warning') }}',
-        danger: '{{ __('uels.status.danger') }}',
-        no_limit: '{{ __('uels.status.no_limit') }}'
-    },
-    widget: {
-        unlimited: '{{ __('uels.widget.unlimited') }}',
-        title: '{{ __('uels.widget.title') }}',
-        usage: '{{ __('uels.widget.usage') }}',
-        loading: '{{ __('uels.widget.loading') }}',
-        limit_exceeded: '{{ __('uels.widget.limit_exceeded') }}',
-        approaching_limit: '{{ __('uels.widget.approaching_limit') }}',
-        show_details: '{{ __('uels.widget.show_details') }}'
-    }
-};
+window.UELSTranslations = @js([
+    'modal' => __('entity_limits.modal'),
+    'entities' => collect(['client', 'supplier', 'product', 'invoice'])
+        ->mapWithKeys(fn ($type) => [
+            $type => __("entity_limits.entity_types.$type.singular"),
+            $type.'s' => __("entity_limits.entity_types.$type.plural"),
+        ]),
+    'status' => [
+        'success' => __('entity_limits.statuses.success'),
+        'warning' => __('entity_limits.statuses.warning'),
+        'danger' => __('entity_limits.statuses.danger'),
+        'no_limit' => __('entity_limits.statuses.not_allowed'),
+    ],
+    'widget' => __('entity_limits.widget'),
+]);
 
 @if($autoLoad)
 // Auto-load widget data when page loads

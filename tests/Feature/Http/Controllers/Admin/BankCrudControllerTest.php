@@ -31,8 +31,8 @@ class BankCrudControllerTest extends TestCase
         $response = $this->get('/admin/bank/create');
 
         $response->assertOk();
-        $response->assertSee(__('bank.fields.name'));
-        $response->assertSee(__('bank.hints.code'));
+        $response->assertSee(__('banks.fields.name'));
+        $response->assertSee(__('banks.hints.code'));
         // Country is a select of ISO codes defaulting to CZ, not a free text input
         $response->assertSee('<option value="CZ"', false);
     }

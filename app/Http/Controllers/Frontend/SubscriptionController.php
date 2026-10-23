@@ -69,7 +69,7 @@ class SubscriptionController extends Controller
 
         if ($existingSubscription) {
             return redirect()->route('subscriptions.index', ['locale' => $locale])
-                ->with('error', __('subscription.already_subscribed'));
+                ->with('error', __('subscriptions.messages.already_subscribed'));
         }
 
         // Create subscription
@@ -105,7 +105,7 @@ class SubscriptionController extends Controller
         $subscription->delete();
 
         return redirect()->route('subscriptions.show', ['locale' => $locale, 'plan' => $plan])
-            ->with('error', $result->error ?? __('subscription.payment_failed'));
+            ->with('error', $result->error ?? __('subscriptions.messages.payment_failed'));
     }
 
     /**
@@ -120,11 +120,11 @@ class SubscriptionController extends Controller
             $this->paymentApp->cancelSubscription($subscription);
 
             return redirect()->route('subscriptions.index', ['locale' => $locale])
-                ->with('success', __('subscription.cancelled_successfully'));
+                ->with('success', __('subscriptions.messages.cancelled'));
         }
 
         return redirect()->route('subscriptions.index', ['locale' => $locale])
-            ->with('error', __('subscription.cancellation_failed'));
+            ->with('error', __('subscriptions.messages.cancellation_failed'));
     }
 
     /**
@@ -139,7 +139,7 @@ class SubscriptionController extends Controller
 
         if (!$subscription) {
             return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-                ->with('info', __('subscription.no_active_subscription'));
+                ->with('info', __('subscriptions.messages.none_active'));
         }
 
         return view('frontend.subscriptions.my-subscription', compact('subscription'));

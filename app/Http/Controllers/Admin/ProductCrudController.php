@@ -41,8 +41,8 @@ class ProductCrudController extends CrudController
         CRUD::setModel(\App\Models\Product::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/product');
         CRUD::setEntityNameStrings(
-            trans('admin.products.product'),
-            trans('admin.products.products')
+            __('products.entity.singular'),
+            __('products.entity.plural')
         );
     }
 
@@ -55,7 +55,7 @@ class ProductCrudController extends CrudController
         CRUD::addFilter([
             'type' => 'simple',
             'name' => 'is_active',
-            'label' => trans('admin.products.active_only'),
+            'label' => __('products.filters.active_only'),
         ],
         false,
         function () {
@@ -64,7 +64,7 @@ class ProductCrudController extends CrudController
 
         CRUD::filter('user_id')
             ->type('select2')
-            ->label('User')
+            ->label(__('products.fields.user_id'))
             ->values(
                 User::all()->pluck('name', 'id')->toArray(),
             )
@@ -74,7 +74,7 @@ class ProductCrudController extends CrudController
 
         CRUD::filter('supplier_id')
             ->type('select2')
-            ->label('Supplier')
+            ->label(__('products.fields.supplier_id'))
             ->values(
                 Supplier::all()->pluck('name', 'id')->toArray(),
             )
@@ -84,32 +84,35 @@ class ProductCrudController extends CrudController
 
         CRUD::column('user_id')
             ->type('integer')
-            ->label('Owner')
+            ->label(__('products.fields.user_id'))
             ->entity('user')
             ->attribute('name')
             ->value(function($entry) {
                 return $entry->user_id ? $entry->user->name : 'N/A';
             });
 
-        CRUD::column('name');
-        CRUD::column('price');
+        CRUD::column('name')->label(__('products.fields.name'));
+        CRUD::column('price')->label(__('products.fields.price'));
         CRUD::column('supplier_id')
             ->type('select_from_array')
+            ->label(__('products.fields.supplier_id'))
             ->value(function($entry) {
                 return $entry->supplier ? $entry->supplier->name : 'N/A';
             });
         CRUD::column('category_id')
             ->type('select_from_array')
+            ->label(__('products.fields.category_id'))
             ->value(function($entry) {
                 return $entry->category ? $entry->category->name : 'N/A';
             });
         CRUD::column('tax_id')
             ->type('select_from_array')
+            ->label(__('products.fields.tax_id'))
             ->value(function($entry) {
                 return $entry->tax ? $entry->tax->name : 'N/A';
             });
-        CRUD::column('is_default')->type('boolean');
-        CRUD::column('created_at');
+        CRUD::column('is_default')->type('boolean')->label(__('products.fields.is_default'));
+        CRUD::column('created_at')->label(__('products.fields.created_at'));
         // CRUD::column('updated_at');
     }
 
@@ -120,12 +123,14 @@ class ProductCrudController extends CrudController
     {
         CRUD::setValidation(ProductRequest::class);
 
-        CRUD::field('name');
-        CRUD::field('slug')->hint(trans('admin.products.leave_empty_for_autogeneration'));
+        CRUD::field('name')->label(__('products.fields.name'));
+        CRUD::field('slug')
+            ->label(__('products.fields.slug'))
+            ->hint(__('products.hints.slug'));
 
         CRUD::field('user_id')
         ->type('hidden')
-        ->label('Owner')
+        ->label(__('products.fields.user_id'))
         ->entity('user')
         ->attribute('name')
         ->options(function ($query) {
@@ -134,7 +139,7 @@ class ProductCrudController extends CrudController
 
         CRUD::field('supplier_id')
             ->type('select')
-            ->label(trans('admin.products.supplier'))
+            ->label(__('products.fields.supplier_id'))
             ->entity('supplier')
             ->model('App\Models\Supplier')
             ->attribute('name')
@@ -142,13 +147,16 @@ class ProductCrudController extends CrudController
                 return $query->orderBy('name', 'ASC')->get();
             });
 
-        CRUD::field('price')->type('number')->attributes(['step' => '0.01']);
+        CRUD::field('price')
+            ->type('number')
+            ->label(__('products.fields.price'))
+            ->attributes(['step' => '0.01']);
         // Get taxes from the service
         $taxes = $this->taxesService->getAllTaxesForSelect();
 
         CRUD::field('tax_id')
             ->type('select_from_array')
-            ->label(trans('admin.products.tax'))
+            ->label(__('products.fields.tax_id'))
             ->entity('tax')
             ->model('App\Models\Tax')
             ->attribute('name')
@@ -159,24 +167,24 @@ class ProductCrudController extends CrudController
 
         CRUD::field('category_id')
             ->type('select_from_array')
-            ->label(trans('admin.products.category'))
+            ->label(__('products.fields.category_id'))
             ->entity('category')
             ->model('App\Models\ProductCategory')
             ->pivot(true)
             ->attribute('name')
             ->options($productCategories);
-        CRUD::field('description')->type('textarea');
-        CRUD::field('is_default')->type('checkbox');
-        CRUD::field('is_active')->type('checkbox');
+        CRUD::field('description')->type('textarea')->label(__('products.fields.description'));
+        CRUD::field('is_default')->type('checkbox')->label(__('products.fields.is_default'));
+        CRUD::field('is_active')->type('checkbox')->label(__('products.fields.is_active'));
 
         CRUD::field('image')
             ->type('image_with_preview')
-            ->label(trans('admin.products.image'))
+            ->label(__('products.fields.image'))
             ->upload(true)
             // ->disk('public')
             // ->prefix('storage/')
             // ->uploadRoute('backpack.upload')
-            ->hint(trans('admin.products.image_help'))
+            ->hint(__('products.hints.image'))
             ->wrapper([
                 'class' => 'form-group col-md-6'
             ]);

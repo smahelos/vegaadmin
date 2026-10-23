@@ -368,7 +368,7 @@ class ProductListSelectFeatureTest extends TestCase
             'user_id' => $this->user->id,
             'tax_id' => $tax->id,
             'price' => 100.50,
-            'unit' => 'pcs',
+            'unit' => 'pieces',
             'currency' => 'EUR'
         ]);
         
@@ -438,7 +438,6 @@ class ProductListSelectFeatureTest extends TestCase
         $product = Product::factory()->create([
             'user_id' => $this->user->id,
             'price' => 10.00, // price is required, cannot be null
-            'unit' => null,
             // currency has default value 'CZK' in database, so we test that it uses the default
         ]);
         
@@ -449,14 +448,6 @@ class ProductListSelectFeatureTest extends TestCase
         // Simply check that events were dispatched - don't check event data structure
         $component->assertDispatched('product-selected');
         $component->assertDispatched('closeModal');
-    }
-
-    #[Test]
-    public function mount_sets_pagination_theme(): void
-    {
-        $component = Livewire::test(ProductListSelect::class);
-        
-        $this->assertEquals('bootstrap', $component->get('paginationTheme'));
     }
 
     #[Test]

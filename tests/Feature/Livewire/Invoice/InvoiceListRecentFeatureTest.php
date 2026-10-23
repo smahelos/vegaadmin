@@ -187,17 +187,6 @@ class InvoiceListRecentFeatureTest extends TestCase
     }
 
     #[Test]
-    public function mount_method_sets_pagination_theme(): void
-    {
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class);
-
-        // Access the component instance to check pagination theme
-        $this->assertEquals('bootstrap', $component->instance()->paginationTheme);
-    }
-
-    #[Test]
     public function component_preserves_url_state(): void
     {
         $this->actingAs($this->user);

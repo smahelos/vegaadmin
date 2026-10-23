@@ -66,21 +66,11 @@ class ArchivePolicyRequestTest extends TestCase
         $this->assertEquals('array', $returnType->getName());
     }
 
-    #[Test]
-    public function messages_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->request);
-        $method = $reflection->getMethod('messages');
-        $returnType = $method->getReturnType();
-        
-        $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType->getName());
-    }
 
     #[Test]
     public function has_required_methods(): void
     {
-        $requiredMethods = ['authorize', 'rules', 'attributes', 'messages'];
+        $requiredMethods = ['authorize', 'rules', 'attributes'];
 
         foreach ($requiredMethods as $method) {
             $this->assertTrue(
@@ -94,7 +84,7 @@ class ArchivePolicyRequestTest extends TestCase
     public function all_methods_are_public(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        $methods = ['authorize', 'rules', 'attributes', 'messages'];
+        $methods = ['authorize', 'rules', 'attributes'];
         
         foreach ($methods as $methodName) {
             $method = $reflection->getMethod($methodName);

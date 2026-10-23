@@ -48,44 +48,19 @@ class EntityLimitRequest extends FormRequest
         ];
     }
 
-    /**entity_limits
+    /**
      * Get the validation attributes that apply to the request.
-     *
-     * @return array
      */
     public function attributes(): array
     {
         return [
-            'permission_name' => __('general.entity_limits.permission_name', [], app()->getLocale()) ?: 'permission name',
-            'entity_type' => __('general.entity_limits.entities.invoice', [], app()->getLocale()) ? __('general.entity_limits.entities.invoice') : 'entity type', // fallback pattern
-            'metric_type' => __('general.entity_limits.limit_types.count', [], app()->getLocale()) ?: 'metric type',
-            'period_type' => __('general.entity_limits.periods.monthly', [], app()->getLocale()) ?: 'period type',
-            'limit_value' => __('general.entity_limits.limit_value', [], app()->getLocale()) ?: 'limit value',
-            'description' => __('general.entity_limits.description', [], app()->getLocale()) ?: 'description',
-            'is_active' => __('general.entity_limits.is_active', [], app()->getLocale()) ?: 'active status',
-        ];
-    }
-
-    /**
-     * Get the validation messages that apply to the request.
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return [
-            'permission_name.required' => __('validation.required', ['attribute' => __('general.entity_limits.permission_name', [], app()->getLocale()) ?: 'permission name']),
-            'permission_name.unique' => __('validation.unique', ['attribute' => __('general.entity_limits.permission_name', [], app()->getLocale()) ?: 'permission name']),
-            'permission_name.max' => __('validation.max.string', ['attribute' => __('general.entity_limits.permission_name', [], app()->getLocale()) ?: 'permission name', 'max' => 255]),
-            'entity_type.required' => __('validation.required', ['attribute' => __('general.entity_limits.entities.invoice', [], app()->getLocale()) ?: 'entity type']),
-            'entity_type.in' => __('validation.in', ['attribute' => __('general.entity_limits.entities.invoice', [], app()->getLocale()) ?: 'entity type']),
-            'metric_type.required' => __('validation.required', ['attribute' => __('general.entity_limits.limit_types.count', [], app()->getLocale()) ?: 'metric type']),
-            'metric_type.in' => __('validation.in', ['attribute' => __('general.entity_limits.limit_types.count', [], app()->getLocale()) ?: 'metric type']),
-            'period_type.required' => __('validation.required', ['attribute' => __('general.entity_limits.periods.monthly', [], app()->getLocale()) ?: 'period type']),
-            'period_type.in' => __('validation.in', ['attribute' => __('general.entity_limits.periods.monthly', [], app()->getLocale()) ?: 'period type']),
-            'limit_value.required' => __('validation.required', ['attribute' => __('general.entity_limits.limit_value', [], app()->getLocale()) ?: 'limit value']),
-            'limit_value.min' => __('validation.min.numeric', ['attribute' => __('general.entity_limits.limit_value', [], app()->getLocale()) ?: 'limit value', 'min' => 0]),
-            'limit_value.numeric' => __('validation.numeric', ['attribute' => __('general.entity_limits.limit_value', [], app()->getLocale()) ?: 'limit value']),
+            'permission_name' => __('entity_limits.fields.permission_name'),
+            'entity_type' => __('entity_limits.fields.entity_type'),
+            'metric_type' => __('entity_limits.fields.metric_type'),
+            'period_type' => __('entity_limits.fields.period_type'),
+            'limit_value' => __('entity_limits.fields.limit_value'),
+            'description' => __('entity_limits.fields.description'),
+            'is_active' => __('entity_limits.fields.is_active'),
         ];
     }
 }

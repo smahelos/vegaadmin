@@ -48,7 +48,7 @@ class InvoiceCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\Invoice::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/invoice');
-        CRUD::setEntityNameStrings('invoice', 'invoices');
+        CRUD::setEntityNameStrings(__('invoices.entity.singular'), __('invoices.entity.plural'));
     }
 
     /**
@@ -174,7 +174,7 @@ class InvoiceCrudController extends CrudController
                     ]);
             } else if ($field['name'] === 'payment_status_id') {
                 CRUD::field('payment_status_id')
-                    ->label(trans('admin.invoices.status'))
+                    ->label(__('invoices.fields.status'))
                     ->type('relationship')
                     ->model(Status::class)
                     ->attribute('name')
@@ -436,7 +436,7 @@ class InvoiceCrudController extends CrudController
                     ]);
             } else if ($field['name'] === 'payment_status_id') {
                 CRUD::field('payment_status_id')
-                    ->label(trans('admin.invoices.status'))
+                    ->label(__('invoices.fields.status'))
                     ->type('relationship')
                     ->model(Status::class)
                     ->attribute('name')

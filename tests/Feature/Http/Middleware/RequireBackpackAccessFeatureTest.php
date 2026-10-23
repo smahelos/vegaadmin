@@ -29,9 +29,11 @@ class RequireBackpackAccessFeatureTest extends TestCase
     #[Test]
     public function unauthenticated_json_request_gets_401(): void
     {
+        app()->setLocale('cs');
         $request = Request::create('/admin/dashboard', 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/json']);
         $response = $this->middleware->handle($request, fn() => response('OK'));
         $this->assertEquals(401, $response->getStatusCode());
+        $this->assertSame('Nejste přihlášeni.', $response->getData(true)['error']);
     }
 
     #[Test]
@@ -39,9 +41,11 @@ class RequireBackpackAccessFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user, 'backpack');
+        app()->setLocale('cs');
         $request = Request::create('/admin/dashboard', 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/json']);
         $response = $this->middleware->handle($request, fn() => response('OK'));
         $this->assertEquals(403, $response->getStatusCode());
+        $this->assertSame('Přístup odepřen. Nemáte oprávnění pro přístup do administrace.', $response->getData(true)['error']);
     }
 
     #[Test]

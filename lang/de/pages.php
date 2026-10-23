@@ -1,11 +1,67 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Seite',
+        'plural' => 'Seiten',
+    ],
+    'fields' => [
+        'name' => 'Name',
+        'slug' => 'URL-Schlüssel',
+        'category_id' => 'Kategorie',
+        'parent_id' => 'Übergeordnete Seite',
+        'sort_order' => 'Sortierung',
+        'description' => 'Beschreibung',
+        'content' => 'Inhalt',
+        'meta_title' => 'Meta-Titel',
+        'meta_description' => 'Meta-Beschreibung',
+        'meta_keywords' => 'Meta-Schlüsselwörter',
+        'main_image' => 'Hauptbild',
+        'published' => 'Veröffentlicht',
+        'publishing_start' => 'Veröffentlichung Start',
+        'publishing_end' => 'Veröffentlichung Ende',
+        'created_at' => 'Erstellt',
+        'updated_at' => 'Aktualisiert',
+    ],
+    'hints' => [
+        'name' => 'Füllen Sie Name und URL-Schlüssel in mindestens einer Sprache aus.',
+        'slug' => 'Eindeutige Kennung der Seite in der URL. Leer lassen, um sie aus dem Namen zu erstellen.',
+        'sort_order' => 'Leer lassen, um den nächsthöheren Wert zu verwenden.',
+        'main_image' => 'JPG, PNG, GIF oder WebP, höchstens 10 MB.',
+    ],
+    'placeholders' => [
+        'no_parent' => 'Keine übergeordnete Seite',
+    ],
+    'validation' => [
+        'at_least_one_locale' => 'Mindestens eine Sprache muss Name und URL-Schlüssel ausgefüllt haben.',
+        'slug_format' => 'Der URL-Schlüssel darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten.',
+    ],
+    'categories' => [
+        'entity' => [
+            'singular' => 'Seitenkategorie',
+            'plural' => 'Seitenkategorien',
+        ],
+        'fields' => [
+            'name' => 'Name',
+            'slug' => 'URL-Schlüssel',
+            'description' => 'Beschreibung',
+            'pages_count' => 'Anzahl Seiten',
+            'created_at' => 'Erstellt',
+            'updated_at' => 'Aktualisiert',
+        ],
+        'hints' => [
+            'name' => 'Füllen Sie den Namen in mindestens einer Sprache aus.',
+            'slug' => 'Eindeutige Kennung der Kategorie in der URL. Leer lassen, um sie aus dem Namen zu erstellen.',
+        ],
+        'validation' => [
+            'at_least_one_locale' => 'Mindestens eine Sprache muss Name und URL-Schlüssel ausgefüllt haben.',
+        ],
+    ],
+
     'page_not_found' => 'Seite nicht gefunden',
     'category_not_found' => 'Kategorie nicht gefunden',
     'homepage' => 'Startseite',
     'pages' => 'Seiten',
-    'categories' => 'Kategorien',
     'search' => 'Suchen',
     'search_placeholder' => 'Seiten durchsuchen...',
     'search_results' => 'Suchergebnisse',
@@ -15,14 +71,10 @@ return [
     'related_pages' => 'Verwandte Seiten',
     'sitemap' => 'Sitemap',
     'all_pages' => 'Alle Seiten',
-    'category' => 'Kategorie',
     'published' => 'Veröffentlicht',
     'breadcrumbs' => 'Sie befinden sich hier',
     'no_pages_found' => 'Keine Seiten gefunden.',
-    'create_invoice_guest' => 'Rechnung erstellen',
     'welcome_message' => 'Willkommen auf unserer Website',
-    'homepage_empty_title' => 'Willkommen',
-    'homepage_empty_message' => 'Die Website wird gerade vorbereitet. Bitte kommen Sie später wieder.',
     'navigation' => 'Navigation',
     'gallery' => 'Galerie',
     'subpages' => 'Unterseiten',
@@ -43,6 +95,19 @@ return [
     'view_all' => 'Alle anzeigen',
     'no_pages_description' => 'Derzeit sind keine veröffentlichten Seiten verfügbar.',
     'advanced_search' => 'Erweiterte Suche',
+
+    'homepage_empty' => [
+        'title' => 'Willkommen',
+        'message' => 'Die Website wird gerade vorbereitet. Bitte kommen Sie später wieder.',
+        'create_invoice' => 'Rechnung erstellen',
+        'features_title' => 'Was wir bieten',
+        'easy_invoicing' => 'Einfache Rechnungsstellung',
+        'easy_invoicing_description' => 'Erstellen Sie eine Rechnung in wenigen Minuten, auch ohne Registrierung.',
+        'instant_download' => 'Sofortiger Download',
+        'instant_download_description' => 'Laden Sie die fertige Rechnung sofort als PDF herunter.',
+        'secure' => 'Sichere Daten',
+        'secure_description' => 'Nur Sie sehen Ihre Rechnungen, Kunden und Produkte.',
+    ],
 
     'titles' => [
         'features' => 'Funktionen',

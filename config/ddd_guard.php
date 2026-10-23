@@ -48,7 +48,7 @@ return [
                 // Allow only non-component infrastructural files if any appear later (kept empty for strictness)
             ],
             'allowed_directories' => [
-                'Party', 'Invoice', 'Product'
+                'Party', 'Invoice', 'Product', 'Shared'
             ],
             'mode' => 'no_new_files',
         ],

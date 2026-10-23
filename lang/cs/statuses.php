@@ -1,36 +1,52 @@
 <?php
 
 return [
-    // Existing status labels
-    'approved' => 'Schváleno',
-    'cancelled' => 'Zrušeno',
-    'cancelled-expense' => 'Zrušený výdaj',
-    'cancelled-status' => 'Zrušený status',
-    'draft' => 'Návrh',
-    'in-review' => 'V přezkoumání',
-    'overdue' => 'Po splatnosti',
-    'paid' => 'Zaplaceno',
-    'paid-expense' => 'Zaplacený výdaj',
-    'paid-status' => 'Zaplacený status',
-    'partially-paid' => 'Částečně zaplaceno',
-    'pending' => 'Čekající',
-    'pending-payment' => 'Čekající platba',
-    'rejected' => 'Zamítnuto',
-    'unpaid' => 'Nezaplaceno',
-
-    // Fields & validation used in StatusRequest tests
+    'entity' => [
+        'singular' => 'Stav',
+        'plural' => 'Stavy',
+    ],
     'fields' => [
         'name' => 'Název',
-        'slug' => 'Slug',
+        'slug' => 'Identifikátor',
         'color' => 'Barva',
         'description' => 'Popis',
         'is_active' => 'Aktivní',
-        'category' => 'Kategorie',
+        'category_id' => 'Kategorie',
     ],
-
-    'validation' => [
-        'name_required' => 'Pole název je povinné.',
-        'slug_required' => 'Pole slug je povinné.',
-        'slug_unique' => 'Slug je již použit.',
+    'statuses' => [
+        'approved' => 'Schváleno',
+        'cancelled' => 'Stornováno',
+        'cancelled-expense' => 'Zrušený výdaj',
+        'cancelled-status' => 'Zrušený status',
+        'draft' => 'Návrh',
+        'in-review' => 'V přezkoumání',
+        'overdue' => 'Po splatnosti',
+        'paid' => 'Zaplaceno',
+        'paid-expense' => 'Zaplacený výdaj',
+        'paid-status' => 'Zaplacený status',
+        'partially-paid' => 'Částečně zaplaceno',
+        'pending' => 'Čeká na zaplacení',
+        'pending-payment' => 'Čekající platba',
+        'rejected' => 'Zamítnuto',
+        'unpaid' => 'Nezaplaceno',
+    ],
+    'filters' => [
+        'category' => 'Filtrovat podle kategorie',
+    ],
+    'categories' => [
+        'entity' => [
+            'singular' => 'Kategorie stavu',
+            'plural' => 'Kategorie stavů',
+        ],
+        'fields' => [
+            'name' => 'Název',
+            'slug' => 'Identifikátor',
+            'description' => 'Popis',
+            'statuses_count' => 'Počet stavů',
+            'statuses' => 'Seznam stavů',
+        ],
+        'hints' => [
+            'slug' => 'Bude automaticky vygenerován z názvu, pokud nebude zadáno',
+        ],
     ],
 ];

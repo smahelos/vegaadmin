@@ -15,14 +15,9 @@ use Tests\TestCase;
 class PermissionCatalogCoverageTest extends TestCase
 {
     /**
-     * Checked only in request classes no route uses (frontend TaxRequest, StatusRequest,
-     * StatusCategoryRequest, SubscriptionPlanFeatureRequest) and in the non-profile branch of
-     * UserRequest, which no route reaches.
+     * Checked only in the non-profile branch of UserRequest, which no route reaches.
      */
     private const UNREACHABLE = [
-        'frontend.can_create_edit_tax',
-        'frontend.can_create_edit_status',
-        'frontend.can_create_edit_subscription_plan_feature',
         'frontend.can_create_edit_user',
     ];
 

@@ -30,7 +30,7 @@ class ArtisanCommandCategoryRequest extends FormRequest
         // For updates, ignore current record in slug uniqueness check
         if ($this->getMethod() === 'PUT' || $this->getMethod() === 'PATCH') {
             $id = $this->route('id') ?: $this->id;
-            $rules['slug'] = 'required|string|max:255|unique:page_categories,slug,' . $id;
+            $rules['slug'] = 'required|string|max:255|unique:artisan_command_categories,slug,' . $id;
         }
 
         return $rules;
@@ -42,25 +42,10 @@ class ArtisanCommandCategoryRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => __('admin.artisan_commands.fields.name'),
-            'slug' => __('admin.artisan_commands.fields.slug'),
-            'description' => __('admin.artisan_commands.fields.description'),
-            'is_active' => __('admin.artisan_commands.fields.is_active'),
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'name.required' => __('admin.artisan_commands.validation.name_required'),
-            'name.string' => __('validation.string', ['attribute' => __('admin.artisan_commands.fields.name')]),
-            'name.max' => __('validation.max.string', ['attribute' => __('admin.artisan_commands.fields.name'), 'max' => 255]),
-            'slug.required' => __('admin.artisan_commands.validation.slug_required'),
-            'slug.string' => __('validation.string', ['attribute' => __('admin.artisan_commands.fields.slug')]),
-            'slug.max' => __('validation.max.string', ['attribute' => __('admin.artisan_commands.fields.slug'), 'max' => 255]),
-            'slug.unique' => __('admin.artisan_commands.validation.slug_unique'),
-            'description.string' => __('validation.string', ['attribute' => __('admin.artisan_commands.fields.description')]),
-            'is_active.boolean' => __('validation.boolean', ['attribute' => __('admin.artisan_commands.fields.is_active')]),
+            'name' => __('artisan_commands.categories.fields.name'),
+            'slug' => __('artisan_commands.categories.fields.slug'),
+            'description' => __('artisan_commands.categories.fields.description'),
+            'is_active' => __('artisan_commands.categories.fields.is_active'),
         ];
     }
 

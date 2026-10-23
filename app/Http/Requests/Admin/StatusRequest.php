@@ -51,24 +51,10 @@ class StatusRequest extends FormRequest
         return [
             'name' => __('statuses.fields.name'),
             'slug' => __('statuses.fields.slug'),
-            'category_id' => __('statuses.fields.category'),
+            'category_id' => __('statuses.fields.category_id'),
             'color' => __('statuses.fields.color'),
             'description' => __('statuses.fields.description'),
             'is_active' => __('statuses.fields.is_active'),
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => __('statuses.validation.name_required'),
-            'slug.required' => __('statuses.validation.slug_required'),
-            'slug.unique' => __('statuses.validation.slug_unique'),
         ];
     }
 

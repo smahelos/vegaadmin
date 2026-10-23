@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Client',
+        'plural' => 'Clients',
+    ],
     'fields' => [
         'name' => 'Name',
         'email' => 'Email',
@@ -22,11 +26,22 @@ return [
         'is_default' => 'Default client',
         'user_id' => 'Owner',
     ],
-    'sections' => [
-        'basic_info' => 'Basic Information',
-        'billing_info' => 'Billing Information',
-        'client_invoices' => 'Client Invoices',
-        'delivery_address' => 'Delivery Address',
+    'hints' => [
+        'client' => '',
+        'name' => '',
+        'email' => '',
+        'phone' => '',
+        'shortcut' => '',
+        'street' => '',
+        'city' => '',
+        'zip' => '',
+        'country' => '',
+        'ico' => 'Company ID must contain exactly 8 digits.',
+        'dic' => '',
+        'description' => '',
+    ],
+    'placeholders' => [
+        'not_specified' => 'Not specified',
     ],
     'actions' => [
         'create' => 'Create Client',
@@ -41,15 +56,6 @@ return [
         'show' => 'View Client',
         'invoice' => 'Create Invoice',
     ],
-    'titles' => [
-        'index' => 'Clients',
-        'create' => 'Create Client',
-        'edit' => 'Edit Client',
-        'show' => 'Client Details',
-        'client' => 'client',
-        'empty' => 'You don\'t have any clients yet',
-        'empty_message' => 'Start by creating your first client.',
-    ],
     'messages' => [
         'created' => 'Client was successfully created.',
         'updated' => 'Client was successfully updated.',
@@ -63,36 +69,22 @@ return [
         'is_default_explanation' => 'If this client is set as default, it will be automatically selected when creating new invoices.',
         'not_found' => 'Client not found.',
         'no_clients' => 'You don\'t have any clients yet.',
+        'limit_exceeded' => 'You have reached your client limit.',
     ],
-    'validation' => [
-        'name_required' => 'Client name is required.',
-        'email_required' => 'Email address is required.',
-        'email_valid' => 'Please enter a valid email address.',
-        'street_required' => 'Street address is required.',
-        'city_required' => 'City is required.',
-        'zip_required' => 'ZIP code is required.',
-        'country_required' => 'Country is required.',
-        'ico_format' => 'Company ID must contain exactly 8 digits.',
-        'zip_format' => 'ZIP code must be in XXX XX or XXXXX format.',
-        'user_required' => 'The client owner is required.',
-        'user_exists' => 'The selected owner does not exist.',
+    'sections' => [
+        'basic_info' => 'Basic Information',
+        'billing_info' => 'Billing Information',
+        'client_invoices' => 'Client Invoices',
+        'delivery_address' => 'Delivery Address',
     ],
-    'placeholders' => [
-        'not_specified' => 'Not specified',
-    ],
-    'hints' => [
-        'client' => '',
-        'name' => '',
-        'email' => '',
-        'phone' => '',
-        'shortcut' => '',
-        'street' => '',
-        'city' => '',
-        'zip' => '',
-        'country' => '',
-        'ico' => '',
-        'dic' => '',
-        'description' => '',
+    'titles' => [
+        'index' => 'Clients',
+        'create' => 'Create Client',
+        'edit' => 'Edit Client',
+        'show' => 'Client Details',
+        'client' => 'client',
+        'empty' => 'You don\'t have any clients yet',
+        'empty_message' => 'Start by creating your first client.',
     ],
     'invoices' => [
         'no_invoices' => 'This client has no invoices',

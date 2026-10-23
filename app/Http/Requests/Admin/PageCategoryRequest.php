@@ -96,71 +96,29 @@ class PageCategoryRequest extends FormRequest
             Log::debug('No valid locale found, adding validation errors');
             $validator->errors()->add(
                 'name', 
-                __('admin.validation.page_categories.at_least_one_locale_required')
+                __('pages.categories.validation.at_least_one_locale')
             );
             $validator->errors()->add(
                 'slug', 
-                __('admin.validation.page_categories.at_least_one_locale_required')
+                __('pages.categories.validation.at_least_one_locale')
             );
         }
     }
 
     /**
      * Get the validation attributes that apply to the request.
-     *
-     * @return array
      */
     public function attributes(): array
     {
-        $locales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
-        $attributes = [
-            'name' => __('admin.page_categories.name'),
-            'slug' => __('admin.page_categories.slug'),
-            'description' => __('admin.page_categories.description'),
-        ];
-        
-        // Add attributes for each locale
-        foreach ($locales as $locale) {
-            $localeUpper = strtoupper($locale);
-            $attributes["name.$locale"] = __('admin.page_categories.name') . " ($localeUpper)";
-            $attributes["slug.$locale"] = __('admin.page_categories.slug') . " ($localeUpper)";
-            $attributes["description.$locale"] = __('admin.page_categories.description') . " ($localeUpper)";
+        $attributes = [];
+        foreach (['name', 'slug', 'description'] as $field) {
+            $attributes[$field] = __("pages.categories.fields.$field");
+            foreach (config('app.available_locales', ['cs', 'en', 'de', 'sk']) as $locale) {
+                $attributes["{$field}_{$locale}"] = __("pages.categories.fields.$field").' ('.strtoupper($locale).')';
+            }
         }
-        
-        return $attributes;
-    }
 
-    /**
-     * Get the validation messages that apply to the request.
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        $locales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
-        $messages = [
-            'name.required' => __('admin.validation.page_categories.name.required'),
-            'name.array' => __('admin.validation.page_categories.name.array'),
-            'slug.required' => __('admin.validation.page_categories.slug.required'),
-            'slug.array' => __('admin.validation.page_categories.slug.array'),
-            'description.array' => __('admin.validation.page_categories.description.array'),
-        ];
-        
-        // Add messages for each locale
-        foreach ($locales as $locale) {
-            $localeUpper = strtoupper($locale);
-            $messages["name.$locale.required"] = __('admin.validation.page_categories.name.required') . " ($localeUpper)";
-            $messages["name.$locale.string"] = __('admin.validation.page_categories.name.string') . " ($localeUpper)";
-            $messages["name.$locale.max"] = __('admin.validation.page_categories.name.max') . " ($localeUpper)";
-            $messages["slug.$locale.required"] = __('admin.validation.page_categories.slug.required') . " ($localeUpper)";
-            $messages["slug.$locale.string"] = __('admin.validation.page_categories.slug.string') . " ($localeUpper)";
-            $messages["slug.$locale.max"] = __('admin.validation.page_categories.slug.max') . " ($localeUpper)";
-            $messages["slug.$locale.unique"] = __('admin.validation.page_categories.slug.unique') . " ($localeUpper)";
-            $messages["description.$locale.string"] = __('admin.validation.page_categories.description.string') . " ($localeUpper)";
-            $messages["description.$locale.max"] = __('admin.validation.page_categories.description.max') . " ($localeUpper)";
-        }
-        
-        return $messages;
+        return $attributes;
     }
 
     /**

@@ -5,6 +5,7 @@ namespace App\Domain\Product\Validation;
 use App\Domain\Product\Exceptions\ProductValidationException;
 use App\Domain\Product\ValueObjects\ProductName;
 use App\Domain\Product\ValueObjects\ProductPrice;
+use App\Domain\Shared\Unit\Enums\Unit;
 use App\Domain\Shared\Str\Contracts\Str;
 
 /**
@@ -84,7 +85,7 @@ class ProductCreationValidator
             'slug' => $data['slug'] ?? $this->str->slug($data['name']),
             'price' => isset($data['price']) ? (float) $data['price'] : 0.0,
             'currency' => $data['currency'] ?? 'CZK',
-            'unit' => $data['unit'] ?? 'ks',
+            'unit' => Unit::fromInput($data['unit'] ?? null)->value,
             'category_id' => isset($data['category_id']) ? (int) $data['category_id'] : null,
             'supplier_id' => isset($data['supplier_id']) ? (int) $data['supplier_id'] : null,
             'tax_id' => isset($data['tax_id']) ? (int) $data['tax_id'] : null,

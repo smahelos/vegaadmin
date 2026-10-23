@@ -28,7 +28,7 @@ class ProductApplicationServiceMoneyFeatureTest extends TestCase
         $data = [
             'name' => 'Money DTO Product',
             'price_money' => ['amount' => '123.45', 'currency' => 'czk'],
-            'unit' => 'ks',
+            'unit' => 'pieces',
         ];
     $productDto = $this->productApp->createProduct($data, $user->id);
 
@@ -44,7 +44,7 @@ class ProductApplicationServiceMoneyFeatureTest extends TestCase
             'name' => 'Legacy Price Product',
             'price' => 10,
             'currency' => 'EUR',
-            'unit' => 'ks',
+            'unit' => 'pieces',
         ], $user->id);
 
     $updated = $this->productApp->updateProduct($created->id, [

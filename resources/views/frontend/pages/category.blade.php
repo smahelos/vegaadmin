@@ -1,6 +1,6 @@
 @extends('layouts.frontend')
 
-@section('title', $category->getName() . ' - ' . __('pages.category'))
+@section('title', $category->getName() . ' - ' . __('pages.categories.entity.singular'))
 
 @section('content')
 <div class="bg-white dark:bg-gray-800">

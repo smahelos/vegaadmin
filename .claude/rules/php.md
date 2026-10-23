@@ -22,11 +22,12 @@ paths:
 - Every parameter, property and return value is typed, `void` included. `mixed` only where the value is genuinely open (a cache value), never to avoid naming a type.
 - Public methods of Domain and Application return objects (DTO, value object, `Result`, enum), not associative arrays. An array is fine as a list of typed items, documented as `list<FooDTO>`.
 - Docblocks only add what the signature cannot say: array shapes (`list<...>`, `array<string, ...>`), `@throws`, a non-obvious invariant. No `@param`/`@return` that repeat the signature, no class docblocks that repeat the class name.
-- Domain values that the code compares — statuses, types, units, templates — are backed enums, never string or int literals (`InvoiceStatus::Paid`, not `'paid'`).
+- Domain values that the code compares — statuses, types, units, templates — are backed enums, never string or int literals (`InvoiceStatus::PAID`, not `'paid'`).
 
 ## Naming
 
 - English everywhere: identifiers, comments, log messages, exception messages. User-facing text is a translation key (`translations.md`).
+- Enum cases and class constants are UPPER_SNAKE_CASE (`Unit::CUBIC_METERS`, `CACHE_TTL`); enum values stay as stored (`'cubic_meters'`).
 - Properties and variables are camelCase, including DTO and value object properties (`$clientId`, not `$client_id`). snake_case belongs to DB columns, request keys and translation keys; converting between them is the mappers' and form requests' job.
 - Czech business terms get English identifiers: IČO is `companyNumber` / `company_number`, DIČ is `vatNumber` / `vat_number`, in every layer (conversion in `docs/TECH_DEBT.md`). The `Id` / `_id` suffix is reserved for entity identifiers and foreign keys.
 - Interfaces end with `Interface` and live in `Contracts/`. Data class suffixes are defined in `architecture.md` (Data classes).

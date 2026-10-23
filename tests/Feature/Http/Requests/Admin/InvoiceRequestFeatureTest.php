@@ -452,41 +452,25 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function attributes_method_returns_correct_translations(): void
+    public function every_validated_field_has_a_translated_name(): void
     {
         $request = new InvoiceRequest();
         $attributes = $request->attributes();
 
-        $this->assertArrayHasKey('client_id', $attributes);
-        $this->assertArrayHasKey('supplier_id', $attributes);
-        $this->assertArrayHasKey('invoice_vs', $attributes);
-        $this->assertArrayHasKey('payment_amount', $attributes);
-        $this->assertArrayHasKey('issue_date', $attributes);
-
-        // Check that translations are being called
-        $this->assertEquals(__('invoices.fields.client'), $attributes['client_id']);
-        $this->assertEquals(__('invoices.fields.supplier'), $attributes['supplier_id']);
-        $this->assertEquals(__('invoices.fields.invoice_number'), $attributes['invoice_vs']);
-        $this->assertEquals(__('invoices.fields.amount'), $attributes['payment_amount']);
-        $this->assertEquals(__('invoices.fields.issue_date'), $attributes['issue_date']);
+        foreach (array_keys($request->rules()) as $field) {
+            $this->assertArrayHasKey($field, $attributes);
+            $this->assertStringNotContainsString('invoices.', $attributes[$field]);
+        }
     }
 
     #[Test]
-    public function messages_method_returns_correct_translations(): void
+    public function missing_supplier_explains_the_choice(): void
     {
         $request = new InvoiceRequest();
-        $messages = $request->messages();
 
-        $this->assertArrayHasKey('supplier_id.required_without', $messages);
-        $this->assertArrayHasKey('name.required_without', $messages);
-        $this->assertArrayHasKey('client_id.required', $messages);
-        $this->assertArrayHasKey('user_id.required', $messages);
+        $errors = Validator::make([], $request->rules(), $request->messages(), $request->attributes())->errors();
 
-        // Check that translations are being called
-        $this->assertEquals(__('invoices.validation.supplier_required'), $messages['supplier_id.required_without']);
-        $this->assertEquals(__('invoices.validation.supplier_required'), $messages['name.required_without']);
-        $this->assertEquals(__('invoices.validation.client_required'), $messages['client_id.required']);
-        $this->assertEquals(__('invoices.validation.user_required'), $messages['user_id.required']);
+        $this->assertSame(__('invoices.validation.supplier_required_without'), $errors->first('supplier_id'));
     }
 
     #[Test]

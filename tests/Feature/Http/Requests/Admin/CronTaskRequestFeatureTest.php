@@ -312,17 +312,6 @@ class CronTaskRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
     }
 
-    #[Test]
-    public function messages_returns_expected_error_messages(): void
-    {
-        $request = new CronTaskRequest();
-        $messages = $request->messages();
-
-        $this->assertIsArray($messages);
-        $this->assertArrayHasKey('name.required', $messages);
-        $this->assertArrayHasKey('base_command.required', $messages);
-        $this->assertArrayHasKey('frequency.required', $messages);
-    }
 
     #[Test]
     public function http_request_with_valid_data_passes(): void
@@ -369,5 +358,43 @@ class CronTaskRequestFeatureTest extends TestCase
         ]);
 
         $response->assertStatus(403);
+    }
+
+    #[Test]
+    public function custom_frequency_without_expression_asks_for_the_expression(): void
+    {
+        $this->withoutMiddleware();
+
+        $response = $this->actingAs($this->adminUser, 'backpack')
+            ->postJson('/test-cron-task', [
+                'name' => 'Custom Task',
+                'base_command' => 'test:custom',
+                'frequency' => 'custom',
+                'is_active' => true,
+            ]);
+
+        $response->assertStatus(422);
+        $this->assertSame(
+            [__('validation.required', ['attribute' => __('cron_tasks.fields.custom_expression')])],
+            $response->json('errors.custom_expression')
+        );
+    }
+
+    #[Test]
+    public function invalid_cron_expression_gets_the_format_message(): void
+    {
+        $this->withoutMiddleware();
+
+        $response = $this->actingAs($this->adminUser, 'backpack')
+            ->postJson('/test-cron-task', [
+                'name' => 'Custom Task',
+                'base_command' => 'test:custom',
+                'frequency' => 'custom',
+                'custom_expression' => 'every minute',
+                'is_active' => true,
+            ]);
+
+        $response->assertStatus(422);
+        $this->assertSame([__('cron_tasks.validation.cron_expression')], $response->json('errors.custom_expression'));
     }
 }

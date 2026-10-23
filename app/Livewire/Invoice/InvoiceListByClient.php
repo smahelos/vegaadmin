@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Invoice;
 
+use App\Livewire\Shared\Paginates;
 use App\Models\Invoice;
 use App\Models\Client;
 use Livewire\Component;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 
@@ -17,7 +17,7 @@ use Livewire\Attributes\Url;
  */
 class InvoiceListByClient extends Component
 {
-    use WithPagination;
+    use Paginates;
     
     public int $clientId;
     
@@ -37,16 +37,13 @@ class InvoiceListByClient extends Component
     public int $page = 1;
     
     public ?string $errorMessage = null;
-    
-    protected string $paginationTheme = 'tailwind';
-    
+
     /**
      * Component initialization
      */
     public function mount(int $clientId): void
     {
         $this->clientId = $clientId;
-        $this->paginationTheme = 'tailwind';
     }
     
     /**

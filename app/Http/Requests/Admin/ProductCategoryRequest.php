@@ -50,23 +50,9 @@ class ProductCategoryRequest extends BaseEntityRequest
     public function attributes(): array
     {
         return [
-            'name' => trans('admin.product_categories.name'),
-            'slug' => trans('admin.product_categories.slug'),
-            'description' => trans('admin.product_categories.description'),
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules.
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => trans('admin.product_categories.validation.name_required'),
-            'name.min' => trans('admin.product_categories.validation.name_min'),
-            'name.max' => trans('admin.product_categories.validation.name_max'),
-            'slug.max' => trans('admin.product_categories.validation.slug_max'),
-            'slug.unique' => trans('admin.product_categories.validation.slug_unique'),
+            'name' => __('products.categories.fields.name'),
+            'slug' => __('products.categories.fields.slug'),
+            'description' => __('products.categories.fields.description'),
         ];
     }
 

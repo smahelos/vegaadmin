@@ -61,7 +61,7 @@ class PaymentMethod extends Model
         }
         
         // Create translation key based on slug
-        $translationKey = 'payment_methods.' . $this->slug;
+        $translationKey = 'payment_methods.methods.' . $this->slug;
         
         // Get translation
         $translation = __($translationKey);

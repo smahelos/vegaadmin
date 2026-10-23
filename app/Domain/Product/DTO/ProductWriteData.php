@@ -2,6 +2,7 @@
 
 namespace App\Domain\Product\DTO;
 
+use App\Domain\Shared\Unit\Enums\Unit;
 
 /**
  * Immutable write data for Product mutations.
@@ -16,7 +17,7 @@ class ProductWriteData
         public readonly mixed $image = null, // Can be string path or UploadedFile
         /** Price can be float or normalized decimal string */
         public readonly string|float|null $price = null,
-        public readonly ?string $unit = null,
+        public readonly ?Unit $unit = null,
         public readonly ?int $category_id = null,
         public readonly ?int $supplier_id = null,
         public readonly ?string $currency = null,
@@ -82,7 +83,7 @@ class ProductWriteData
             slug: $data['slug'] ?? null,
             image: $data['image'] ?? null,
             price: $normPrice,
-            unit: $data['unit'] ?? null,
+            unit: isset($data['unit']) ? Unit::fromInput($data['unit']) : null,
             category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
             supplier_id: isset($data['supplier_id']) ? (int) $data['supplier_id'] : null,
             currency: $normCurrency,
@@ -120,7 +121,7 @@ class ProductWriteData
     {
         $properties = get_object_vars($this);
         $filtered = array_filter($properties, fn($value) => $value !== null);
-        
-        return $filtered;
+
+        return array_map(fn (mixed $value): mixed => $value instanceof Unit ? $value->value : $value, $filtered);
     }
 }

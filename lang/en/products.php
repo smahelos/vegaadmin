@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Product',
+        'plural' => 'Products',
+    ],
     'fields' => [
         'name' => 'Name',
         'description' => 'Description',
@@ -13,42 +17,11 @@ return [
         'is_active' => 'Active product',
         'image' => 'Image',
         'upload_image' => 'Upload image',
-        'slug' => 'Slug',
+        'slug' => 'URL key',
         'currency' => 'Currency',
         'created_at' => 'Created at',
+        'user_id' => 'Owner',
     ],
-
-    'titles' => [
-        'invoices' => 'Invoices',
-        'index' => 'Products',
-        'create' => 'Create product',
-        'edit' => 'Edit product',
-        'show' => 'Product #',
-        'select_product' => 'Select product',
-    ],
-
-    'no_input_labels' => [
-        'current_image' => 'Current image',
-    ],
-
-    'sections' => [
-        'basic_info' => 'Basic information',
-        'detail_info' => 'Details',
-    ],
-
-    'actions' => [
-        'actions' => 'Actions',
-        'create' => 'Create product',
-        'edit' => 'Edit product',
-        'delete' => 'Delete product',
-        'view' => 'View product',
-        'cancel' => 'Cancel',
-        'save' => 'Save',
-        'confirm_delete' => 'Confirm product deletion?',
-        'back_to_list' => 'Back to list',
-        'search' => 'Search product...',
-    ],
-
     'hints' => [
         'delete' => 'Deleting a product will remove all related invoices and items.',
         'create' => 'Create a new product by filling in all required fields.',
@@ -63,11 +36,30 @@ return [
         'tax_id' => '',
         'is_default' => '',
         'is_active' => '',
-        'image' => 'Upload an image for the product (JPEG, PNG, GIF, SVG, max. 2MB)',
+        'image' => 'JPG, PNG, GIF or WebP, up to 2 MB.',
         'currency' => '',
-        'slug' => 'Slug is a unique identifier for the product used in the URL.',
+        'slug' => 'Unique identifier of the product in URLs. Leave it empty to create it from the name.',
     ],
-
+    'placeholders' => [
+        'select_category' => 'Select category',
+        'select_supplier' => 'Select supplier',
+        'select_tax' => 'Select tax',
+        'select_image' => 'Select image',
+        'select_product' => 'Select product',
+        'select_currency' => 'Select currency',
+    ],
+    'actions' => [
+        'actions' => 'Actions',
+        'create' => 'Create product',
+        'edit' => 'Edit product',
+        'delete' => 'Delete product',
+        'view' => 'View product',
+        'cancel' => 'Cancel',
+        'save' => 'Save',
+        'back_to_list' => 'Back to list',
+        'search' => 'Search product...',
+        'new' => 'New product',
+    ],
     'messages' => [
         'created' => 'Product was successfully created.',
         'updated' => 'Product was successfully updated.',
@@ -83,32 +75,27 @@ return [
         'image_deleted' => 'Image was successfully deleted.',
         'image_error' => 'Error uploading image.',
         'no_products_found' => 'No products found.',
-        'limit_exceeded' => 'You have reached the product creation limit.',
+        'limit_exceeded' => 'You have reached your product limit.',
+        'confirm_delete' => 'Do you really want to delete this product?',
+        'tax_not_loaded' => 'Unknown tax',
     ],
-
-    'validation' => [
-        'not_found' => 'Product was not found.',
-        'invalid_data' => 'Invalid data.',
-        'api_error' => 'Error communicating with API.',
-        'name_required' => 'Name is required',
-        'name_min' => 'Name must be at least :min characters',
-        'name_max' => 'Name can have maximum :max characters',
-        'price_required' => 'Price is required',
-        'price_numeric' => 'Price must be a number',
-        'price_min' => 'Price must be at least :min',
-        'user_required' => 'User is required',
-        'user_exists' => 'Selected user does not exist',
-        'tax_exists' => 'Selected tax does not exist',
-        'supplier_exists' => 'Selected supplier does not exist',
-        'category_exists' => 'Selected category does not exist',
-        'image_format' => 'Image must be JPEG, PNG, GIF or SVG',
-        'image_size' => 'Image size must not exceed :max kB',
-        'currency_required' => 'Currency is required',
-        'currency_in' => 'Selected currency is invalid',
-        'image_image' => 'Image must be an image file',
-        'slug_unique' => 'Slug must be unique',
+    'titles' => [
+        'invoices' => 'Invoices',
+        'index' => 'Products',
+        'create' => 'Create product',
+        'edit' => 'Edit product',
+        'show' => 'Product #',
+        'select_product' => 'Select product',
+        'empty' => 'You have no products yet',
+        'empty_message' => 'Start by creating your first product.',
     ],
-
+    'no_input_labels' => [
+        'current_image' => 'Current image',
+    ],
+    'sections' => [
+        'basic_info' => 'Basic information',
+        'detail_info' => 'Details',
+    ],
     'tags' => [
         'product' => 'Product',
         'invoice' => 'Invoice',
@@ -117,13 +104,23 @@ return [
         'tax' => 'Tax',
         'details' => 'Details',
     ],
-
-    'placeholders' => [
-        'select_category' => 'Select category',
-        'select_supplier' => 'Select supplier',
-        'select_tax' => 'Select tax',
-        'select_image' => 'Select image',
-        'select_product' => 'Select product',
-        'select_currency' => 'Select currency',
+    'filters' => [
+        'active_only' => 'Active Only',
+    ],
+    'categories' => [
+        'entity' => [
+            'singular' => 'Product category',
+            'plural' => 'Product categories',
+        ],
+        'fields' => [
+            'name' => 'Name',
+            'slug' => 'URL key',
+            'description' => 'Description',
+            'created_at' => 'Created',
+            'updated_at' => 'Updated',
+        ],
+        'hints' => [
+            'slug' => 'Unique identifier of the category in URLs. Leave it empty to create it from the name.',
+        ],
     ],
 ];

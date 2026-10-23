@@ -344,7 +344,7 @@ class UELSDashboardController extends CrudController
 
         return response()->json([
             'success' => true,
-            'message' => "Reset completed: {$successCount} successful, {$errorCount} failed",
+            'message' => __('entity_limits.dashboard.reset.completed', ['success' => $successCount, 'failed' => $errorCount]),
             'success_count' => $successCount,
             'error_count' => $errorCount
         ]);

@@ -32,7 +32,7 @@ class CheckSubscription
 
             // Redirect to subscription page for other protected routes
             return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-                ->with('warning', __('subscription.subscription_required'));
+                ->with('warning', __('subscriptions.messages.required'));
         }
 
         return $next($request);

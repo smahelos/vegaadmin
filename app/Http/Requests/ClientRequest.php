@@ -62,39 +62,18 @@ class ClientRequest extends BaseEntityRequest
     public function attributes(): array
     {
         return [
-            'name' => trans('clients.fields.name'),
-            'email' => trans('clients.fields.email'),
-            'phone' => trans('clients.fields.phone'),
-            'street' => trans('clients.fields.street'),
-            'city' => trans('clients.fields.city'),
-            'zip' => trans('clients.fields.zip'),
-            'country' => trans('clients.fields.country'),
-            'ico' => trans('clients.fields.ico'),
-            'dic' => trans('clients.fields.dic'),
-            'description' => trans('clients.fields.description'),
-            'shortcut' => trans('clients.fields.shortcut'),
-            'is_default' => trans('clients.fields.is_default'),
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => __('clients.validation.name_required'),
-            'email.required' => __('clients.validation.email_required'),
-            'email.email' => __('clients.validation.email_valid'),
-            'street.required' => __('clients.validation.street_required'),
-            'city.required' => __('clients.validation.city_required'),
-            'zip.required' => __('clients.validation.zip_required'),
-            'country.required' => __('clients.validation.country_required'),
-            'ico.regex' => __('clients.validation.ico_format'),
-            'zip.regex' => __('clients.validation.zip_format'),
-            'user_id.exists' => __('clients.validation.user_exists'),
+            'name' => __('clients.fields.name'),
+            'email' => __('clients.fields.email'),
+            'phone' => __('clients.fields.phone'),
+            'street' => __('clients.fields.street'),
+            'city' => __('clients.fields.city'),
+            'zip' => __('clients.fields.zip'),
+            'country' => __('clients.fields.country'),
+            'ico' => __('clients.fields.ico'),
+            'dic' => __('clients.fields.dic'),
+            'description' => __('clients.fields.description'),
+            'shortcut' => __('clients.fields.shortcut'),
+            'is_default' => __('clients.fields.is_default'),
         ];
     }
 }

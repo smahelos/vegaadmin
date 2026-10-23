@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Domain\Shared\Unit\Enums\Unit;
+use Closure;
 use Illuminate\Support\Facades\Auth;
 
 class InvoiceRequest extends BaseEntityRequest
@@ -40,7 +42,7 @@ class InvoiceRequest extends BaseEntityRequest
         if ($routeName === 'frontend.invoice.store.guest') {
             // For guest JSON endpoint, return 422 JSON response
             $response = response()->json([
-                'message' => __('validation.failed'),
+                'message' => __('invoices.messages.validation_failed'),
                 'errors' => $validator->errors()->toArray(),
             ], 422);
             throw new \Illuminate\Validation\ValidationException($validator, $response);
@@ -157,9 +159,31 @@ class InvoiceRequest extends BaseEntityRequest
             'invoice_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize,
 
             'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
+
+            'invoice-products' => ['nullable', $this->itemUnitsRule()],
         ];
 
         return $rules;
+    }
+
+    /**
+     * The items arrive as one JSON field; each unit must be empty or a Unit value.
+     */
+    private function itemUnitsRule(): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail): void {
+            $items = is_string($value) ? json_decode($value, true) : $value;
+
+            foreach (is_array($items) ? $items : [] as $item) {
+                $unit = is_array($item) ? ($item['unit'] ?? null) : null;
+
+                if ($unit !== null && $unit !== '' && (! is_string($unit) || Unit::tryFrom($unit) === null)) {
+                    $fail(__('invoices.validation.unit'));
+
+                    return;
+                }
+            }
+        };
     }
 
     /**
@@ -170,50 +194,60 @@ class InvoiceRequest extends BaseEntityRequest
     public function attributes(): array
     {
         return [
-            //
+            'invoice_vs' => __('invoices.fields.invoice_vs'),
+            'invoice_ks' => __('invoices.fields.invoice_ks'),
+            'invoice_ss' => __('invoices.fields.invoice_ss'),
+            'payment_method_id' => __('invoices.fields.payment_method_id'),
+            'payment_amount' => __('invoices.fields.payment_amount'),
+            'payment_currency' => __('invoices.fields.payment_currency'),
+            'issue_date' => __('invoices.fields.issue_date'),
+            'tax_point_date' => __('invoices.fields.tax_point_date'),
+            'due_in' => __('invoices.fields.due_in'),
+            'payment_status_id' => __('invoices.fields.status'),
+            'supplier_id' => __('invoices.fields.supplier_id'),
+            'name' => __('invoices.fields.supplier_name'),
+            'email' => __('invoices.fields.supplier_email'),
+            'phone' => __('invoices.fields.supplier_phone'),
+            'street' => __('invoices.fields.supplier_street'),
+            'city' => __('invoices.fields.supplier_city'),
+            'zip' => __('invoices.fields.supplier_zip'),
+            'country' => __('invoices.fields.supplier_country'),
+            'ico' => __('invoices.fields.supplier_ico'),
+            'dic' => __('invoices.fields.supplier_dic'),
+            'supplier_shortcut' => __('invoices.fields.supplier_shortcut'),
+            'account_number' => __('suppliers.fields.account_number'),
+            'bank_code' => __('suppliers.fields.bank_code'),
+            'bank_name' => __('suppliers.fields.bank_name'),
+            'iban' => __('suppliers.fields.iban'),
+            'swift' => __('suppliers.fields.swift'),
+            'client_id' => __('invoices.fields.client_id'),
+            'client_name' => __('invoices.fields.client_name'),
+            'client_email' => __('invoices.fields.client_email'),
+            'client_phone' => __('invoices.fields.client_phone'),
+            'client_street' => __('invoices.fields.client_street'),
+            'client_city' => __('invoices.fields.client_city'),
+            'client_zip' => __('invoices.fields.client_zip'),
+            'client_country' => __('invoices.fields.client_country'),
+            'client_ico' => __('invoices.fields.client_ico'),
+            'client_dic' => __('invoices.fields.client_dic'),
+            'client_shortcut' => __('invoices.fields.client_shortcut'),
+            'invoice_text' => __('invoices.fields.invoice_text'),
             'invoice_logo' => __('invoices.fields.invoice_logo'),
+            'template' => __('invoices.fields.template'),
         ];
     }
 
     /**
-     * Get custom error messages for validation rules
+     * Choosing an existing party or filling in a new one is one decision; the standard
+     * required_without message cannot say that.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            // Invoice basic details
-            'invoice_vs.required' => __('invoices.validation.invoice_vs_required'),
-            'due_in.required' => __('invoices.validation.due_in_required'),
-            'payment_method_id.required' => __('invoices.validation.payment_method_required'),
-            'payment_amount.required' => __('invoices.validation.amount_required'),
-            'payment_amount.numeric' => __('invoices.validation.amount_numeric'),
-            'payment_amount.min' => __('invoices.validation.amount_min'),
-            'payment_currency.required' => __('invoices.validation.currency_required'),
-            'issue_date.required' => __('invoices.validation.issue_date_required'),
-            'payment_status_id.required' => __('invoices.validation.payment_status_required'),
-            'invoice_logo.file' => __('invoices.validation.invoice_logo_file'),
-            'invoice_logo.mimes' => __('invoices.validation.invoice_logo_format'),
-            'invoice_logo.max' => __('invoices.validation.invoice_logo_size'),
-
-            // Supplier/issuer validation
             'supplier_id.required_without' => __('invoices.validation.supplier_required_without'),
-            'name.required_without' => __('invoices.validation.supplier_name_required'),
-            'name.min' => __('invoices.validation.supplier_name_min'),
-            'street.required_without' => __('invoices.validation.street_required'),
-            'city.required_without' => __('invoices.validation.city_required'),
-            'zip.required_without' => __('invoices.validation.zip_required'),
-            'country.required_without' => __('invoices.validation.country_required'),
-
-            // Client validation
             'client_id.required_without' => __('invoices.validation.client_required_without'),
-            'client_name.required_without' => __('invoices.validation.client_name_required'),
-            'client_name.min' => __('invoices.validation.client_name_min'),
-            'client_street.required_without' => __('invoices.validation.client_street_required'),
-            'client_city.required_without' => __('invoices.validation.client_city_required'),
-            'client_zip.required_without' => __('invoices.validation.client_zip_required'),
-            'client_country.required_without' => __('invoices.validation.client_country_required'),
         ];
     }
 

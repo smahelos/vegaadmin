@@ -109,34 +109,4 @@ class SupplierRequest extends BaseEntityRequest
                 ->with('error', trans('suppliers.messages.validation_failed'))
         );
     }
-
-    /**
-     * Get custom error messages for validation rules
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => __('suppliers.validation.name_required'),
-            'email.required' => __('suppliers.validation.email_required'),
-            'email.email' => __('suppliers.validation.email_valid'),
-            'phone.required' => __('suppliers.validation.phone_required'),
-            'street.required' => __('suppliers.validation.street_required'),
-            'city.required' => __('suppliers.validation.city_required'),
-            'zip.required' => __('suppliers.validation.zip_required'),
-            'country.required' => __('suppliers.validation.country_required'),
-            'ico.max' => __('suppliers.validation.ico_format'),
-            'supplier_logo.file' => __('suppliers.validation.supplier_logo_file'),
-            'supplier_logo.image' => __('suppliers.validation.supplier_logo_format'),
-            'supplier_logo.mimes' => __('suppliers.validation.supplier_logo_format'),
-            'supplier_logo.max' => __('suppliers.validation.supplier_logo_size'),
-
-            // Bank account validation messages
-            'account_number.max' => __('suppliers.validation.account_number_format'),
-            'bank_code.required_with' => __('suppliers.validation.bank_code_required'),
-            'iban.max' => __('suppliers.validation.iban_format'),
-            'swift.required_with' => __('suppliers.validation.swift_required'),
-        ];
-    }
 }

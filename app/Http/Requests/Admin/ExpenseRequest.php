@@ -65,35 +65,20 @@ class ExpenseRequest extends BaseEntityRequest
     public function attributes(): array
     {
         return [
-            'expense_date' => trans('admin.expenses.date'),
-            'amount' => trans('admin.expenses.amount'),
-            'currency' => trans('admin.expenses.currency'),
-            'supplier_id' => trans('admin.expenses.supplier'),
-            'category_id' => trans('admin.expenses.category'),
-            'payment_method_id' => trans('admin.expenses.payment_method'),
-            'reference_number' => trans('admin.expenses.reference_number'),
-            'description' => trans('admin.expenses.description'),
-            'receipt_file' => trans('admin.expenses.receipt'),
-            'tax_amount' => trans('admin.expenses.tax_amount'),
-            'status_id' => trans('admin.expenses.status'),
-            'tax_included' => trans('admin.expenses.tax_included'),
-        ];
-    }
-
-    /**
-     * Get custom error messages for validation rules.
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return [
-            'expense_date.required' => __('admin.expenses.validation.date_required'),
-            'amount.required' => __('admin.expenses.validation.amount_required'),
-            'amount.numeric' => __('admin.expenses.validation.amount_numeric'),
-            'currency.required' => __('admin.expenses.validation.currency_required'),
-            'category_id.required' => __('admin.expenses.validation.category_required'),
-            'user_id.required' => __('admin.expenses.validation.user_required'),
+            'expense_date' => __('expenses.fields.expense_date'),
+            'amount' => __('expenses.fields.amount'),
+            'currency' => __('expenses.fields.currency'),
+            'supplier_id' => __('expenses.fields.supplier_id'),
+            'category_id' => __('expenses.fields.category_id'),
+            'payment_method_id' => __('expenses.fields.payment_method_id'),
+            'reference_number' => __('expenses.fields.reference_number'),
+            'description' => __('expenses.fields.description'),
+            'attachments' => __('expenses.fields.attachments'),
+            'attachments.*' => __('expenses.fields.attachments'),
+            'tax_amount' => __('expenses.fields.tax_amount'),
+            'status_id' => __('expenses.fields.status_id'),
+            'user_id' => __('expenses.fields.user_id'),
+            'tax_included' => __('expenses.fields.tax_included'),
         ];
     }
 

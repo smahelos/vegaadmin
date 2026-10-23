@@ -22,8 +22,8 @@ class PerformanceMetricCrudController extends CrudController
         CRUD::setModel(\App\Models\PerformanceMetric::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/performance-metric');
         CRUD::setEntityNameStrings(
-            __('admin.database.performance_metric'), 
-            __('admin.database.performance_metrics')
+            __('admin/database.performance_metrics.entity.singular'), 
+            __('admin/database.performance_metrics.entity.plural')
         );
         
         // Only allow viewing and showing metrics, no create/edit/delete
@@ -36,24 +36,24 @@ class PerformanceMetricCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::column('metric_type')
-            ->label(__('admin.database.metric_type'))
+            ->label(__('admin/database.performance_metrics.fields.metric_type'))
             ->type('text');
             
         CRUD::column('table_name')
-            ->label(__('admin.database.table_name'))
+            ->label(__('admin/database.performance_metrics.fields.table_name'))
             ->type('text');
             
         CRUD::column('metric_value')
-            ->label(__('admin.database.metric_value'))
+            ->label(__('admin/database.performance_metrics.fields.metric_value'))
             ->type('number')
             ->decimals(4);
             
         CRUD::column('metric_unit')
-            ->label(__('admin.database.metric_unit'))
+            ->label(__('admin/database.performance_metrics.fields.metric_unit'))
             ->type('text');
             
         CRUD::column('metadata')
-            ->label(__('admin.database.metadata'))
+            ->label(__('admin/database.performance_metrics.fields.metadata'))
             ->type('closure')
             ->function(function($entry) {
                 if (empty($entry->metadata)) {
@@ -93,7 +93,7 @@ class PerformanceMetricCrudController extends CrudController
             ->escaped(false);
             
         CRUD::column('measured_at')
-            ->label(__('admin.database.measured_at'))
+            ->label(__('admin/database.performance_metrics.fields.measured_at'))
             ->type('datetime');
     }
 
@@ -105,11 +105,11 @@ class PerformanceMetricCrudController extends CrudController
         $this->setupListOperation();
         
         CRUD::column('query_type')
-            ->label(__('admin.database.query_type'))
+            ->label(__('admin/database.performance_metrics.fields.query_type'))
             ->type('text');
         
         CRUD::column('metadata')
-            ->label(__('admin.database.metadata'))
+            ->label(__('admin/database.performance_metrics.fields.metadata'))
             ->type('closure')
             ->function(function($entry) {
                 if (empty($entry->metadata)) {
@@ -127,7 +127,7 @@ class PerformanceMetricCrudController extends CrudController
                 $html = '<div class="metadata-display">';
                 $html .= '<table class="table table-sm table-bordered">';
                 $html .= '<thead class="table-light">';
-                $html .= '<tr><th>' . __('admin.database.metadata_key') . '</th><th>' . __('admin.database.metadata_value') . '</th></tr>';
+                $html .= '<tr><th>' . __('admin/database.performance_metrics.labels.metadata_key') . '</th><th>' . __('admin/database.performance_metrics.labels.metadata_value') . '</th></tr>';
                 $html .= '</thead>';
                 $html .= '<tbody>';
                 
@@ -150,11 +150,11 @@ class PerformanceMetricCrudController extends CrudController
             ->escaped(false);
             
         CRUD::column('created_at')
-            ->label(__('admin.database.created_at'))
+            ->label(__('admin/database.performance_metrics.fields.created_at'))
             ->type('datetime');
             
         CRUD::column('updated_at')
-            ->label(__('admin.database.updated_at'))
+            ->label(__('admin/database.performance_metrics.fields.updated_at'))
             ->type('datetime');
     }
     
@@ -169,12 +169,12 @@ class PerformanceMetricCrudController extends CrudController
         
         // Special cases for common metrics
         $specialCases = [
-            'Size Before Mb' => __('admin.database.size_before_mb'),
-            'Size After Mb' => __('admin.database.size_after_mb'),
-            'Execution Time Ms' => __('admin.database.execution_time_ms'),
-            'Memory Usage Mb' => __('admin.database.memory_usage_mb'),
-            'Rows Affected' => __('admin.database.rows_affected'),
-            'Query Count' => __('admin.database.query_count'),
+            'Size Before Mb' => __('admin/database.performance_metrics.fields.size_before_mb'),
+            'Size After Mb' => __('admin/database.performance_metrics.fields.size_after_mb'),
+            'Execution Time Ms' => __('admin/database.performance_metrics.fields.execution_time_ms'),
+            'Memory Usage Mb' => __('admin/database.performance_metrics.fields.memory_usage_mb'),
+            'Rows Affected' => __('admin/database.performance_metrics.fields.rows_affected'),
+            'Query Count' => __('admin/database.performance_metrics.fields.query_count'),
         ];
         
         return $specialCases[$formatted] ?? $formatted;

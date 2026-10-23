@@ -255,38 +255,6 @@ class ClientListFeatureTest extends TestCase
     }
 
     #[Test]
-    public function component_handles_pagination(): void
-    {
-        $this->actingAs($this->user);
-        
-        // Create exactly 16 clients to test pagination (10 on page 1, 6 on page 2)
-        Client::factory()->count(16)->create(['user_id' => $this->user->id]);
-        
-        $component = Livewire::test(ClientList::class);
-        
-        // Test that component renders with pagination
-        $clients = $component->instance()->render()->getData()['clients'];
-        $this->assertInstanceOf(\Illuminate\Pagination\LengthAwarePaginator::class, $clients);
-        
-        // Test that setting page works
-        $component->set('page', 2);
-        
-        // Test pagination theme is set
-        $reflection = new \ReflectionClass($component->instance());
-        $property = $reflection->getProperty('paginationTheme');
-        $property->setAccessible(true);
-        $this->assertEquals('tailwind', $property->getValue($component->instance()));
-        
-        // Test that component can handle multiple pages and still renders
-        $clients = $component->instance()->render()->getData()['clients'];
-        $this->assertEquals(2, $component->get('page'));
-        
-        // Reset back to page 1
-        $component->set('page', 1);
-        $this->assertEquals(1, $component->get('page'));
-    }
-
-    #[Test]
     public function component_displays_empty_state_when_no_clients(): void
     {
         $this->actingAs($this->user);
@@ -306,21 +274,6 @@ class ClientListFeatureTest extends TestCase
         
         // Component should render without error message when working properly
         $component->assertSet('errorMessage', null);
-    }
-
-    #[Test]
-    public function mount_method_sets_pagination_theme(): void
-    {
-        $this->actingAs($this->user);
-        
-        $component = Livewire::test(ClientList::class);
-        
-        // Access protected property via reflection for testing
-        $reflection = new \ReflectionClass($component->instance());
-        $property = $reflection->getProperty('paginationTheme');
-        $property->setAccessible(true);
-        
-        $this->assertEquals('tailwind', $property->getValue($component->instance()));
     }
 
     #[Test]

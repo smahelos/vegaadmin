@@ -52,7 +52,7 @@ class CountryController extends Controller
         $country = $this->countryService->getCountry($code);
 
         if (!$country) {
-            return response()->json(['error' => __('Country not found')], 404);
+            abort(404, 'Country not found');
         }
 
         return response()->json($country);

@@ -79,7 +79,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         
         // Add additional preparation logic here
         $formData['selectOptions'] = $this->getSelectOptions($userId);
-        $formData['itemUnits'] = $this->getItemUnits();
         
         return $formData;
     }
@@ -271,9 +270,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         // Client info prefill
         $clientInfo = $this->buildClientInfo($selectedClient);
 
-        // Item units
-        $itemUnits = $this->getItemUnits();
-
         // Limits data
         $limitsData = $this->getInvoicesLimit($userId);
 
@@ -298,7 +294,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             'defaultSupplier' => $defaultSupplier,
             'userInfo' => $userInfo,
             'clientInfo' => $clientInfo,
-            'itemUnits' => $itemUnits,
             'limitsData' => $limitsData,
             'userLoggedIn' => true,
         ]);
@@ -344,7 +339,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         $taxRates = $this->taxRepository->getDphRatesForDropdown();
         $banks = $this->bankService->getBanksForDropdown();
         $banksData = $this->bankService->getBanksForJs();
-        $itemUnits = $this->getItemUnits();
         // Prefill existing invoice products for edit UI
         $invoiceProducts = $this->productReadRepository->allForInvoice($invoiceId);
         $limitsData = $this->getInvoicesLimit($userId);
@@ -367,7 +361,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             'taxRates' => $taxRates,
             'banks' => $banks,
             'banksData' => $banksData,
-            'itemUnits' => $itemUnits,
             'invoiceProducts' => $invoiceProducts,
             'limitsData' => $limitsData,
             'user' => $user,
@@ -432,18 +425,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function getNextInvoiceNumber(int $userId): string
     {
         return $this->generateNextInvoiceNumber($userId);
-    }
-
-    /**
-     * Get item units for invoice items (legacy compatibility)
-     */
-    public function getItemUnits(): array
-    {
-        return [
-            'hours' => __('invoices.units.hours'),
-            'days' => __('invoices.units.days'),
-            'pieces' => __('invoices.units.pieces'),
-        ];
     }
 
     /**

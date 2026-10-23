@@ -16,7 +16,7 @@
 @auth
 <div class="mb-6">
     <x-uels-limit-widget entity-type="product" :limit="$limitsData['limit']"
-        entity-name="{{ __('uels.entities.product') }}" :show-modal="true" />
+        entity-name="{{ __('entity_limits.entity_types.product.singular') }}" :show-modal="true" />
 </div>
 @endauth
 

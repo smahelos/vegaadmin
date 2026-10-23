@@ -1,13 +1,10 @@
 <?php
 
 return [
-    // General translations for the application
     'logo_alt' => 'Vega Invoices',
     'currency' => '$',
     'yes' => 'Yes',
     'no' => 'No',
-
-    // Months for date formatting
     'months' => [
         1 => 'January',
         2 => 'February',
@@ -22,7 +19,6 @@ return [
         11 => 'November',
         12 => 'December',
     ],
-
     'navigation' => [
         'dashboard' => 'Dashboard',
         'invoices' => 'Invoices',
@@ -32,8 +28,8 @@ return [
         'products' => 'Products',
         'create_invoice' => 'Create Invoice',
         'pages' => 'Pages',
+        'language' => 'Language',
     ],
-
     'placeholders' => [
         'select_client' => 'Select a client or create a new one...',
         'select_status' => 'Select status...',
@@ -47,17 +43,14 @@ return [
         'yes' => 'Yes',
         'no' => 'No',
     ],
-
     'joins' => [
         'and' => 'and',
     ],
-
     'empty' => [
         'not_specified' => 'Not specified.',
         'no_items' => 'No items',
         'no_results' => 'No results',
     ],
-
     'pagination' => [
         'navigation' => 'Navigation',
         'shown' => 'Showing',
@@ -67,7 +60,6 @@ return [
         'previous' => 'Previous',
         'next' => 'Next',
     ],
-
     'actions' => [
         'create' => 'Create',
         'edit' => 'Edit',
@@ -81,51 +73,20 @@ return [
         'print' => 'Print',
         'send' => 'Send',
         'actions' => 'Actions',
+        'remove_file' => 'Remove File',
     ],
-
     'common' => [
         'created_at' => 'Created At',
         'updated_at' => 'Updated At',
     ],
-
-    // Entity Limits System
-    'entity_limits' => [
-        'permission_name' => 'Permission Name',
-        'limit_value' => 'Limit Value',
-        'description' => 'Description',
-        'is_active' => 'Active Status',
-    'user_id' => 'User',
-    'entity_type' => 'Entity Type',
-    'metric_type' => 'Metric Type',
-    'period_type' => 'Period Type',
-    'period_start' => 'Period Start',
-    'period_end' => 'Period End',
-    'current_value' => 'Current Value',
-        'exceeded' => [
-            'title' => 'Limit Exceeded',
-            'message' => 'You have reached your limit for :entity_type. Maximum allowed: :max_count per :period_type.',
-            'current_usage' => 'Current usage: :current_count',
-            'period_info' => 'Period: :period_start to :period_end',
-            'contact_admin' => 'Please contact your administrator to increase your limit.',
-        ],
-        'entities' => [
-            'invoice' => 'invoices',
-            'client' => 'clients',
-            'supplier' => 'suppliers',
-            'product' => 'products',
-            'expense' => 'expenses',
-        ],
-        'periods' => [
-            'daily' => 'day',
-            'weekly' => 'week',
-            'monthly' => 'month',
-            'yearly' => 'year',
-            'lifetime' => 'lifetime',
-        ],
-        'limit_types' => [
-            'count' => 'count',
-            'value' => 'value',
-            'size' => 'size',
-        ],
+    'colors' => [
+        'green' => 'Green',
+        'yellow' => 'Yellow',
+        'red' => 'Red',
+        'blue' => 'Blue',
+        'gray' => 'Gray',
+        'purple' => 'Purple',
+        'indigo' => 'Indigo',
+        'pink' => 'Pink',
     ],
 ];

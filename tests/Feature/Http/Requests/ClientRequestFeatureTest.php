@@ -257,35 +257,20 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function custom_error_messages_are_displayed()
+    public function required_errors_name_the_field_label(): void
     {
-        $requiredFieldsWithMessages = [
-            'name' => 'clients.validation.name_required',
-            'email' => 'clients.validation.email_required',
-            'street' => 'clients.validation.street_required',
-            'city' => 'clients.validation.city_required',
-            'zip' => 'clients.validation.zip_required',
-            'country' => 'clients.validation.country_required',
-        ];
+        $request = new ClientRequest();
 
-        foreach ($requiredFieldsWithMessages as $field => $expectedMessageKey) {
+        foreach (['name', 'email', 'street', 'city', 'zip', 'country'] as $field) {
             $invalidData = $this->validClientData;
             unset($invalidData[$field]);
 
-            $request = new ClientRequest();
-            $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+            $validator = Validator::make($invalidData, $request->rules(), $request->messages(), $request->attributes());
 
-            $this->assertTrue($validator->fails());
-            $errors = $validator->errors();
-
-            // Check that the error message contains the expected translation key content
-            $fieldErrors = $errors->get($field);
-            $this->assertNotEmpty($fieldErrors);
-
-            // The actual message will be translated, but we can verify it's not the default Laravel message
-            $errorMessage = $fieldErrors[0];
-            $this->assertNotEquals("The {$field} field is required.", $errorMessage,
-                "Should use custom message, not default Laravel message");
+            $this->assertSame(
+                __('validation.required', ['attribute' => __("clients.fields.{$field}")]),
+                $validator->errors()->first($field)
+            );
         }
     }
 

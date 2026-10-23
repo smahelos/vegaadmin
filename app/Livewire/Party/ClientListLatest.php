@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Party;
 
+use App\Livewire\Shared\Paginates;
 use App\Models\Client;
 use Livewire\Component;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class ClientListLatest extends Component
 {   
-    use WithPagination;
+    use Paginates;
     
     public bool $orderAsc = false;
     

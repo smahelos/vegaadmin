@@ -7,6 +7,7 @@ use App\Domain\Invoice\DTO\PrintableInvoiceData;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Unit\Enums\Unit;
 
 class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFactoryInterface
 {
@@ -35,7 +36,7 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
             $items[] = new PrintableInvoiceItemData(
                 name: (string)($p['name'] ?? ''),
                 quantity: $q,
-                unit: $p['unit'] ?? null,
+                unit: Unit::fromInput($p['unit'] ?? null),
                 price: $price,
                 tax_rate: $taxRate,
                 tax_amount: $taxAmount,

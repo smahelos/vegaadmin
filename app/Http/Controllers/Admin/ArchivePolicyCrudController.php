@@ -25,8 +25,8 @@ class ArchivePolicyCrudController extends CrudController
         CRUD::setModel(\App\Models\ArchivePolicy::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/archive-policy');
         CRUD::setEntityNameStrings(
-            __('admin.database.archive_policy'), 
-            __('admin.database.archive_policies')
+            __('admin/database.archive_policies.entity.singular'), 
+            __('admin/database.archive_policies.entity.plural')
         );
     }
 
@@ -36,24 +36,24 @@ class ArchivePolicyCrudController extends CrudController
     protected function setupListOperation()
     {   
         CRUD::column('table_name')
-            ->label(__('admin.database.table_name'))
+            ->label(__('admin/database.archive_policies.fields.table_name'))
             ->type('text');
             
         CRUD::column('retention_months')
-            ->label(__('admin.database.retention_months'))
+            ->label(__('admin/database.archive_policies.fields.retention_months'))
             ->type('number')
             ->suffix(' months');
             
         CRUD::column('date_column')
-            ->label(__('admin.database.date_column'))
+            ->label(__('admin/database.archive_policies.fields.date_column'))
             ->type('text');
             
         CRUD::column('is_active')
-            ->label(__('admin.database.is_active'))
+            ->label(__('admin/database.archive_policies.fields.is_active'))
             ->type('boolean');
             
         CRUD::column('created_at')
-            ->label(__('admin.database.created_at'))
+            ->label(__('admin/database.archive_policies.fields.created_at'))
             ->type('datetime');
     }
 
@@ -69,44 +69,44 @@ class ArchivePolicyCrudController extends CrudController
             'name' => 'archive_policy_form_description',
             'type' => 'custom_html',
             'value' => '<div class="alert alert-info mb-4">
-                            <h6 class="alert-heading"><i class="la la-info-circle"></i> ' . __('admin.database.archive_policy_form_title') . '</h6>
-                            <p class="mb-2">' . __('admin.database.archive_policy_form_description') . '</p>
+                            <h6 class="alert-heading"><i class="la la-info-circle"></i> ' . __('admin/database.archive_policies.form_help.title') . '</h6>
+                            <p class="mb-2">' . __('admin/database.archive_policies.form_help.description') . '</p>
                             <hr>
                             <ul class="mb-0">
-                                <li><strong>' . __('admin.database.table_name') . ':</strong> ' . __('admin.database.table_name_detailed_hint') . '</li>
-                                <li><strong>' . __('admin.database.retention_months') . ':</strong> ' . __('admin.database.retention_months_detailed_hint') . '</li>
-                                <li><strong>' . __('admin.database.date_column') . ':</strong> ' . __('admin.database.date_column_detailed_hint') . '</li>
-                                <li><strong>' . __('admin.database.is_active') . ':</strong> ' . __('admin.database.is_active_detailed_hint') . '</li>
-                                <li><strong>' . __('admin.database.description') . ':</strong> ' . __('admin.database.description_detailed_hint') . '</li>
+                                <li><strong>' . __('admin/database.archive_policies.fields.table_name') . ':</strong> ' . __('admin/database.archive_policies.form_help.table_name') . '</li>
+                                <li><strong>' . __('admin/database.archive_policies.fields.retention_months') . ':</strong> ' . __('admin/database.archive_policies.form_help.retention_months') . '</li>
+                                <li><strong>' . __('admin/database.archive_policies.fields.date_column') . ':</strong> ' . __('admin/database.archive_policies.form_help.date_column') . '</li>
+                                <li><strong>' . __('admin/database.archive_policies.fields.is_active') . ':</strong> ' . __('admin/database.archive_policies.form_help.is_active') . '</li>
+                                <li><strong>' . __('admin/database.archive_policies.fields.description') . ':</strong> ' . __('admin/database.archive_policies.form_help.description') . '</li>
                             </ul>
                         </div>'
         ]);
 
         CRUD::field('table_name')
-            ->label(__('admin.database.table_name'))
+            ->label(__('admin/database.archive_policies.fields.table_name'))
             ->type('text')
-            ->hint(__('admin.database.table_name_hint'));
+            ->hint(__('admin/database.archive_policies.hints.table_name'));
             
         CRUD::field('retention_months')
-            ->label(__('admin.database.retention_months'))
+            ->label(__('admin/database.archive_policies.fields.retention_months'))
             ->type('number')
             ->attributes(['min' => 1, 'max' => 120])
-            ->hint(__('admin.database.retention_months_hint'));
+            ->hint(__('admin/database.archive_policies.hints.retention_months'));
             
         CRUD::field('date_column')
-            ->label(__('admin.database.date_column'))
+            ->label(__('admin/database.archive_policies.fields.date_column'))
             ->type('text')
-            ->hint(__('admin.database.date_column_hint'));
+            ->hint(__('admin/database.archive_policies.hints.date_column'));
             
         CRUD::field('is_active')
-            ->label(__('admin.database.is_active'))
+            ->label(__('admin/database.archive_policies.fields.is_active'))
             ->type('boolean')
             ->default(true);
             
         CRUD::field('description')
-            ->label(__('admin.database.description'))
+            ->label(__('admin/database.archive_policies.fields.description'))
             ->type('textarea')
-            ->hint(__('admin.database.description_hint'));
+            ->hint(__('admin/database.archive_policies.hints.description'));
     }
 
     /**
@@ -125,7 +125,7 @@ class ArchivePolicyCrudController extends CrudController
         $this->setupListOperation();
         
         CRUD::column('description')
-            ->label(__('admin.database.description'))
+            ->label(__('admin/database.archive_policies.fields.description'))
             ->type('textarea');
     }
 }

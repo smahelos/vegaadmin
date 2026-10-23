@@ -51,26 +51,12 @@ class BankRequest extends BaseEntityRequest
     public function attributes(): array
     {
         return [
-            'name' => trans('admin.banks.name'),
-            'code' => trans('admin.banks.code'),
-            'swift' => trans('admin.banks.swift'),
-            'country' => trans('admin.banks.country'),
-            'active' => trans('admin.banks.is_active'),
-            'description' => trans('admin.banks.description'),
-        ];
-    }
-
-    /**
-     * Custom validation messages.
-     */
-    public function messages(): array
-    {
-        return [
-            'name.required' => trans('bank.validation.name'),
-            'code.required' => trans('bank.validation.code'),
-            'code.unique' => trans('bank.validation.code_unique'),
-            'country.required' => trans('bank.validation.country'),
-            'country.size' => trans('bank.validation.country_size'),
+            'name' => __('banks.fields.name'),
+            'code' => __('banks.fields.code'),
+            'swift' => __('banks.fields.swift'),
+            'country' => __('banks.fields.country'),
+            'active' => __('banks.fields.active'),
+            'description' => __('banks.fields.description'),
         ];
     }
 

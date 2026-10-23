@@ -34,7 +34,7 @@ class FileUploadContextLimitsFeatureTest extends TestCase
         $file = UploadedFile::fake()->create('logo.png', 2600, 'image/png'); // 600 KB exceeds 2048 KB
 
         $this->expectException(\Illuminate\Validation\ValidationException::class);
-        $this->expectExceptionMessage('Soubor překračuje maximální velikost pro :attribute.');
+        $this->expectExceptionMessage(__('validation.file_upload.size_exceeded', ['attribute' => ':attribute']));
 
         $this->service->handleFileUpload(
             $this->normalize($file),
@@ -70,7 +70,7 @@ class FileUploadContextLimitsFeatureTest extends TestCase
     {
         $pdf = UploadedFile::fake()->create('doc.pdf', 100, 'application/pdf');
         $this->expectException(\Illuminate\Validation\ValidationException::class);
-        $this->expectExceptionMessage('Tento typ souboru není pro :attribute povolen.');
+        $this->expectExceptionMessage(__('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']));
         $this->service->handleFileUpload(
             $this->normalize($pdf),
             'invoice_logo',

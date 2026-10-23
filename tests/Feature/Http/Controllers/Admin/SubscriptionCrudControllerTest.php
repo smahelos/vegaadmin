@@ -335,6 +335,6 @@ class SubscriptionCrudControllerTest extends TestCase
         // If the page loads successfully, the model is correctly set
         // We can verify by checking the response contains subscription-related content
         $response->assertStatus(200);
-        $response->assertSee(trans('admin.subscriptions.entity_plural'));
+        $response->assertSee(__('subscriptions.entity.plural'));
     }
 }

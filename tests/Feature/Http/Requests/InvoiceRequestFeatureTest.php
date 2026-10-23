@@ -433,26 +433,18 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function request_has_custom_validation_messages()
+    public function missing_party_errors_name_which_party(): void
     {
         $request = new InvoiceRequest();
-        $messages = $request->messages();
+        $data = $this->validInvoiceData;
+        unset($data['supplier_id'], $data['name'], $data['client_id'], $data['client_name'], $data['street'], $data['client_street']);
 
-        $expectedKeys = [
-            'invoice_vs.required',
-            'payment_method_id.required',
-            'payment_amount.required',
-            'payment_amount.numeric',
-            'payment_amount.min',
-            'supplier_id.required_without',
-            'name.required_without',
-            'client_id.required_without',
-            'client_name.required_without',
-        ];
+        $errors = Validator::make($data, $request->rules(), $request->messages(), $request->attributes())->errors();
 
-        foreach ($expectedKeys as $key) {
-            $this->assertArrayHasKey($key, $messages, "Should have custom message for {$key}");
-        }
+        $this->assertSame(__('invoices.validation.supplier_required_without'), $errors->first('supplier_id'));
+        $this->assertSame(__('invoices.validation.client_required_without'), $errors->first('client_id'));
+        $this->assertStringContainsString(__('invoices.fields.supplier_street'), $errors->first('street'));
+        $this->assertStringContainsString(__('invoices.fields.client_street'), $errors->first('client_street'));
     }
 
     #[Test]
@@ -525,5 +517,34 @@ class InvoiceRequestFeatureTest extends TestCase
 
             $this->assertTrue($validator->passes(), "Validation should pass with .{$format} format");
         }
+    }
+
+    #[Test]
+    public function guest_invoice_with_an_unknown_unit_is_rejected(): void
+    {
+        $items = [['name' => 'Item', 'quantity' => 1, 'price' => 100, 'unit' => 'ks']];
+
+        $response = $this->postJson(
+            route('frontend.invoice.store.guest', ['locale' => 'cs']),
+            $this->validInvoiceData + ['invoice-products' => json_encode($items)]
+        );
+
+        $response->assertStatus(422)
+            ->assertJsonPath('errors.invoice-products.0', __('invoices.validation.unit'));
+    }
+
+    #[Test]
+    public function known_and_empty_units_pass_the_unit_rule(): void
+    {
+        $items = [
+            ['name' => 'Work', 'quantity' => 2, 'price' => 500, 'unit' => 'hours'],
+            ['name' => 'Item', 'quantity' => 1, 'price' => 100, 'unit' => ''],
+            ['name' => 'Other', 'quantity' => 1, 'price' => 100],
+        ];
+        $data = $this->validInvoiceData + ['invoice-products' => json_encode($items)];
+
+        $validator = Validator::make($data, (new InvoiceRequest())->rules());
+
+        $this->assertArrayNotHasKey('invoice-products', $validator->errors()->toArray());
     }
 }

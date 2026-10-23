@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\Shared\Unit\Enums\Unit;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Tax;
@@ -30,7 +31,7 @@ class ProductFactory extends Factory
             'slug' => Str::slug($name) . '-' . $this->faker->unique()->numberBetween(1000, 9999),
             'user_id' => User::factory(),
             'price' => $this->faker->randomFloat(2, 1, 1000),
-            'unit' => $this->faker->randomElement(['ks', 'kg', 'l', 'm', 'm²', 'm³', 'bal', 'hod']),
+            'unit' => $this->faker->randomElement(Unit::cases())->value,
             'currency' => $this->faker->randomElement(['CZK', 'EUR', 'USD']),
             'tax_id' => Tax::factory(),
             'category_id' => ProductCategory::factory(),

@@ -2,15 +2,15 @@
 
 namespace App\Livewire\Party;
 
+use App\Livewire\Shared\Paginates;
 use App\Models\Supplier;
 use Livewire\Component;
-use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 
 class SupplierList extends Component
 {
-    use WithPagination;
+    use Paginates;
     
     #[Url]
     public $search = '';
@@ -25,14 +25,7 @@ class SupplierList extends Component
     public $page = 1;
     
     public $errorMessage = null;
-    
-    protected $paginationTheme = 'tailwind';
-    
-    public function mount()
-    {
-        $this->paginationTheme = 'tailwind';
-    }
-    
+
     public function updatingSearch()
     {
         $this->resetPage();

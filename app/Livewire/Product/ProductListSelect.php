@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Shared\Paginates;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Product;
 use App\Models\Tax;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +18,7 @@ use Illuminate\Contracts\View\View;
  */
 class ProductListSelect extends Component
 {
-    use WithPagination;
+    use Paginates;
 
     /**
      * Search term for filtering products
@@ -80,7 +80,6 @@ class ProductListSelect extends Component
      */
     public function mount(): void
     {
-        $this->paginationTheme = 'bootstrap';
         $this->selectedProductIds = [];
     }
     

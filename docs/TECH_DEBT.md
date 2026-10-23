@@ -10,7 +10,7 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Fix:** move the routes behind `api.require.frontend`, scope every query by the user passed in from Application (no `Auth::id()` in the repository).
 
 ### State changes over GET
-- **Where:** `routes/web.php` (`client/{id}/set-default`, `supplier/{id}/set-default`, `invoices/delete/{token}`), `routes/backpack/custom.php` (`cron-task/{id}/run`)
+- **Where:** `routes/web.php` (`client/{id}/set-default`, `supplier/{id}/set-default`, `invoices/delete/{token}`), `routes/backpack/custom.php` (`cron-task/{id}/run`, `cache/clear*` linked from the admin menu)
 - **Problem:** GET requests change state without CSRF protection; a link or prefetch triggers them.
 - **Fix:** `POST`/`PUT`/`DELETE` routes with forms (`rules/http.md`, Routes).
 
@@ -29,7 +29,27 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** the route is not excluded from CSRF, so an external notification most likely ends with 419 (to verify); the whole request payload is logged.
 - **Fix:** CSRF exception, gateway-verified handling as in `rules/payments.md`, log only the payment id.
 
+### Exception messages shown to users
+- **Where:** `app/Http/Controllers/Frontend/{ProductController,SupplierController,InvoiceController}.php` (flash messages and JSON `error`), `app/Http/Controllers/Api/{UserController,InvoiceController}.php` (JSON `error`), `app/Http/Controllers/Admin/CacheManagementController.php` (admin alert)
+- **Problem:** the raw `$e->getMessage()` is appended to the error a user sees or returned in JSON, so SQL errors, column names, file paths and other internals reach the browser. The profile screen had the same flaw and was fixed in `ls-missing-translations`.
+- **Fix:** a complete translated message for the user, the exception only in the log with structured context (`rules/php.md`, Errors); done together with "Error handling" below by mapping context exceptions in `app/Exceptions/ExceptionHandling.php`.
+
+### Invoice items are not validated
+- **Where:** `app/Http/Requests/InvoiceRequest.php` (`invoice-products` is checked only for its units), `app/Application/Invoice/Services/InvoiceRequestAssembler.php` (decodes the JSON as it comes); the admin edits no items
+- **Problem:** the items of an invoice reach the database without validation: any price, quantity, tax rate, currency or `product_id`, possibly a product of another user (not verified). Only the unit is validated (an empty unit or a `Unit` value).
+- **Fix (decided 2026-10-23, own branch after the translations):** the request decodes the items before validation and validates each of them (`Rule::enum(Unit::class)` replacing the unit closure, numeric ranges, currency from `Currency`, `product_id` owned by the user); the assembler builds `InvoiceProductWriteData` from validated input only.
+
 ## Invoice
+
+### Modern and minimal PDFs always print "bank transfer"
+- **Where:** `app/Application/Invoice/Services/InvoicePdfRenderer.php` (`'paymentMethod' => null`), `resources/views/pdfs/templates/{modern,minimal}.blade.php`
+- **Problem:** the renderer never passes the invoice's payment method, so these two templates print the fallback "Bankovní převod" on every invoice, cash and card included. The default template looks the method up itself. An invoice is a legal document.
+- **Fix:** pass the payment method label in the print data (`PrintableInvoiceData`) and let all templates print it; extend the PDF snapshot test with a non-transfer method.
+
+### Status enum lists factory slugs and English labels
+- **Where:** `app/Domain/Shared/Status/ValueObjects/StatusCode.php`, `StatusService::translateSlug()`, `App\Models\Status::getTranslatedNameAttribute()`
+- **Problem:** the enum holds slugs that only test factories create (`paid-status`, `pending-payment`, `cancelled-status`) and `unpaid`, which no status row has; `StatusService` refuses to start when a database lacks any enum slug. `label()` returns hardcoded English. The model accessor translates the slug itself instead of going through `translateSlug()`.
+- **Fix:** keep only the system statuses in the enum (seeded by a migration), labels from `statuses.statuses.<slug>`, one resolver used by the model, the invoice mapper and the dashboard.
 
 ### Compose `PrintableInvoiceData` from `PartyPrintData`
 - **Where:** `app/Domain/Invoice/DTO/PrintableInvoiceData.php`, `app/Domain/Party/DTO/PartyPrintData.php`
@@ -45,6 +65,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Where:** `InvoiceCrudApplicationService::processProductsAndCalculateTotals()` vs `InvoiceProductWriteData::fromArray()`
 - **Problem:** invoice totals assume 0 % when `tax_rate` is missing, stored product rows assume 21 %. Totals and rows can disagree.
 - **Fix:** one rule in the Domain; totals computed from `InvoiceProductWriteData`.
+
+### Currency conversion of invoice items happens in the browser
+- **Where:** `resources/js/currency-manager.js` (`getExchangeRate()`, `convertAmount()`), `resources/js/invoice-item-manager.js`, `app/Domain/Shared/Money/Services/CurrencyExchangeService.php`, `InvoiceRequestAssembler`, `InvoiceCrudApplicationService::processProductsAndCalculateTotals()`, `/api/currencies/{exchange-rate,convert}`
+- **Problem:** the invoice form converts item prices in JavaScript with floats; the server stores whatever price arrives, keeps no rate or date with the invoice and computes totals in floats. Rates come from the free ExchangeRate-API (`open.er-api.com`); when it fails, the service silently returns rates hardcoded in the class (EUR→CZK 25.29 against 24.27 on 2026-10-23), and when a rate is missing the browser uses 1:1. VAT in CZK on a foreign-currency invoice needs the ČNB rate (§ 4 odst. 5 ZDPH; to confirm with an accountant). `Money::convertTo()` exists but nothing calls it.
+- **Fix (decided 2026-10-23, own branch after the translations):** ČNB daily rates behind an exchange rate port; conversion on the server through `Money::convertTo()` when the invoice is stored; the rate, its date and source stored with the invoice and printed on it; an unavailable rate is an error shown to the user, never a fallback table or 1:1; `/api/currencies/convert` becomes the form's conversion or is deleted.
 
 ### Format invoice amounts through a presenter
 - **Where:** `resources/views/frontend/invoices/show.blade.php`
@@ -73,22 +98,37 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** IBAN is validated with a simplified regex (no mod-97 checksum); QR providers format accounts themselves.
 - **Fix:** validate and convert through the value object. It is stricter, so check existing supplier data first.
 
+### Payment method request does not match the table
+- **Where:** `app/Http/Requests/Admin/PaymentMethodRequest.php`, table `payment_methods`
+- **Problem:** the request validates `description` and `is_active`, which the table does not have, and leaves `country`, `currency` and `icon` unvalidated although the admin form edits them.
+- **Fix:** validate the columns the form sends (`country` as an ISO code, `currency` through the `Currency` enum) and drop the rules for missing columns.
+
 ### Payment adapter guard checks nothing
 - **Where:** `app/Console/Commands/PaymentAdapterGuardCommand.php`, `app/Domain/Payment/Services/GatewayRegistry.php`
 - **Problem:** `php artisan payment:adapter-guard` reports "No gateways registered" in the console, so the CI step passes without validating any gateway.
 - **Fix:** register the gateways (GoPay) where the guard can see them, or let the guard resolve the registry the same way the application does.
 
+### Subscription screens with placeholder content
+- **Where:** `resources/views/frontend/subscriptions/{index,show}.blade.php`, `app/Http/Controllers/Admin/SubscriptionCrudController.php`
+- **Problem:** the checkout asks to agree to the terms of service and the privacy policy, but both links point to `#`. Every yearly plan carries a fixed "2 months free" badge, whatever its price. The admin list prints every amount with a "CZK" suffix, also for EUR and USD subscriptions.
+- **Fix:** link real terms and privacy pages (Content), compute the saving from the monthly and yearly prices or drop the badge, format amounts with the subscription's currency through `MoneyFormatterInterface`. Do this with the subscription plans work.
+
 ## Party / Admin
 
-### Admin bank CRUD validates with the frontend request
-- **Where:** `app/Http/Controllers/Admin/BankCrudController.php`
-- **Problem:** uses `App\Http\Requests\BankRequest` (only `auth()->check()`) instead of `App\Http\Requests\Admin\BankRequest`.
-- **Fix:** switch to the admin request; resolve together with the entity limit rules for admins.
+### Inactive banks are still offered
+- **Where:** `banks.active`, `app/Infrastructure/Persistence/Eloquent/Payment/Repositories/EloquentBankRepository.php` (`getAllBanks()`)
+- **Problem:** the admin can mark a bank inactive, but the bank list for supplier forms filters only by country, so the flag changes nothing.
+- **Fix:** list only active banks for the supplier forms (the admin list keeps all), or drop the column.
 
-### Unused frontend form requests with nonexistent permissions
-- **Where:** `app/Http/Requests/{TaxRequest,StatusRequest,StatusCategoryRequest,SubscriptionPlanFeatureRequest}.php`, non-profile branch of `app/Http/Requests/UserRequest.php`
-- **Problem:** no route uses these requests (the admin uses the `Admin\` variants); they check `frontend.can_create_edit_{tax,status,subscription_plan_feature,user}`, which are not in `PermissionCatalog`. `PermissionCatalogCoverageTest` allowlists them as unreachable.
-- **Fix:** delete the unused requests and the unreachable branch, then drop the allowlist.
+### Expense detail has no attachment links
+- **Where:** `app/Http/Controllers/Admin/ExpenseCrudController.php` (`setupShowOperation()`)
+- **Problem:** the detail reuses the list column, which prints attachment file names joined by commas and cut to 50 characters, with no way to open a file. A renderer with links was present only as commented-out code since the first commit (2025-05-28) and was removed.
+- **Fix:** a show column listing each attachment as a link (file names escaped, URLs from the storage disk, not concatenated paths), with an HTTP test of the detail page.
+
+### Unreachable branch of the frontend user request
+- **Where:** non-profile branch of `app/Http/Requests/UserRequest.php`
+- **Problem:** no route reaches it; it checks `frontend.can_create_edit_user`, which is not in `PermissionCatalog`. `PermissionCatalogCoverageTest` allowlists it as unreachable.
+- **Fix:** delete the branch, then drop the allowlist.
 
 ### Admin list columns build display text by hand
 - **Where:** `app/Http/Controllers/Admin/{EntityUsage,EntityLimit,PerformanceMetric,DatabaseMaintenanceLog}CrudController.php`; badge accessors in `app/Models/{ArchivePolicy,DatabaseHealthAlert,DatabaseHealthMetric,DatabaseMaintenanceLog,MysqlOptimizationLog}.php`; hardcoded labels also in the `Client`, `Supplier`, `Product`, `Invoice`, `Status`, `Subscription` and `ExpenseCategory` CRUD controllers
@@ -105,12 +145,34 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Problem:** the override lifts Backpack's PRO gates, which Billex's own filters need (`CrudFilter` refuses to work without PRO). Outside the `local` environment, Backpack sends usage stats to backpackforlaravel.com on about 1 in 100 admin requests, including `BACKPACK_PRO_VERSION => backpack_pro()`, so production would report a PRO licence it does not have. PRO-only operations (`FetchOperation`, `InlineCreateOperation`, `CloneOperation`, `BulkDeleteOperation`) would fail with a missing class instead of a clear error.
 - **Fix:** decide before production: buy a PRO licence, or keep the gates closed and make the filters work without the override (e.g. own filter classes that do not extend `CrudFilter`'s PRO check).
 
+### Admin interface has no Slovak texts
+- **Where:** `vendor/backpack/crud/src/resources/lang` (no `sk`), admin locales in `config/backpack/crud.php` (`cs`, `de`, `sk`)
+- **Problem:** the admin offers Slovak, but Backpack itself ships no Slovak texts, so buttons, pagination, filters and messages of every admin screen stay English in `sk`. Only the role and permission screens are covered, by `lang/vendor/backpack/sk/permissionmanager.php`.
+- **Fix:** add `lang/vendor/backpack/sk/{base,crud}.php` with the keys of the package's `en` files, checked against the package after each Backpack upgrade; or drop Slovak from the admin locales.
+
 ## Product
+
+### Products have no unit field
+- **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php`, frontend and admin product forms and requests
+- **Problem:** `products.unit` exists and is copied into the invoice item when a product is picked, but no form sets it, so every product counts in pieces.
+- **Fix:** a unit select from `<x-unit-options />` (frontend) and the same option list in the admin, validated with `Rule::enum(Unit::class)`.
 
 ### Product SKU
 - **Where:** `app/Domain/Product/ValueObjects/ProductSku.php`
 - **Problem:** value object prepared for a feature that does not exist yet (no `sku` column).
 - **Fix:** use it when SKU is added, or delete it.
+
+## Entity limits
+
+### UELS dashboard bulk reset fails
+- **Where:** `app/Http/Controllers/Admin/UELSDashboardController.php::bulkResetUsage()`
+- **Problem:** the action passes a `User` model to `UniversalLimitService::resetUsage(?int $userId, …)` and ends with a `TypeError` (500). Its validation marks both checkboxes `accepted`, so resetting only anonymous usage or only users cannot be submitted at all.
+- **Fix:** pass the user id, make both options optional (at least one required), cover the action with a feature test. With the subscription plans work.
+
+### Dead reset actions and hardcoded units in the usage CRUD
+- **Where:** `app/Http/Controllers/Admin/EntityUsageCrudController.php` (`resetUsage()`, `bulkResetUsage()`, `formatBytes()`), `app/Http/Requests/Admin/EntityUsageRequest.php`, `resources/views/admin/uels-dashboard.blade.php`, `resources/js/uels-manager.js`
+- **Problem:** no route reaches the two reset actions, and the CRUD has no create or update operation, so `EntityUsageRequest` validates nothing; both still carry English flash messages. Value-based limits print a fixed `€` and sizes `KB`, the widget title in `uels-manager.js` prints the raw entity type and period slugs.
+- **Fix:** delete the unreachable actions and request, format amounts through `MoneyFormatterInterface` with the limit's currency, pass translated labels to the widget script.
 
 ## Cross-cutting
 
@@ -123,6 +185,11 @@ Known gaps between the code and the intended architecture (see `CLAUDE.md`, `doc
 - **Where:** `phpunit.xml`, `config/database.php` (`testing` connection), `tests/TestCase.php`, `tests/Traits/RefreshDatabaseWithData.php`, `.github/workflows/*`, SQLite branches in `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentAnalyticsReadRepository.php`, `app/Console/Commands/Database{Optimize,Monitor}Command.php` and 10 migrations (including `2025_07_23_054624_add_basic_foreign_keys_for_testing.php`)
 - **Problem:** the application runs on MySQL, tests on in-memory SQLite. MySQL-specific queries (`DATE_FORMAT`, `STR_TO_DATE`, …) are never tested, SQLite does not enforce strict `sql_mode` or column types, and production code and migrations carry `driver === 'sqlite'` branches that exist only for the tests. `TestCase` resets `RefreshDatabaseState` so that every test migrates all migrations again, and `RefreshDatabaseWithData` runs `migrate:fresh` + seed before every test.
 - **Fix (decided 2026-10-20):** tests run only on MySQL — a separate test database in the existing MySQL container, next to the local development database, and a MySQL service in CI. Squash the migrations into a clean MySQL schema first (no production yet). Migrate and seed once, one transaction per test (`RefreshDatabase`); remove the `TestCase` reset, `RefreshDatabaseWithData` and every SQLite branch; fix tests that rely on fixed IDs or row order. The test user needs `CREATE DATABASE` for `--parallel` (`<database>_test_N`).
+
+### `ddd:guard` snapshot test fails now and then in parallel runs
+- **Where:** `tests/Feature/Console/DddGuardDiJsonSnapshotTest.php`
+- **Problem:** in `php artisan test --parallel` the `Artisan::call('ddd:guard', …)` call occasionally throws (seen 2026-10-22); the test passes alone and in the next full runs.
+- **Fix:** find what the command shares with other parallel processes (scanned files, cache, output buffer) and isolate it, or drop the test together with the guards (Architecture guards are migration scaffolding).
 
 ### Resilience of external calls
 - **Where:** `app/Http/Controllers/Api/AresLookupController.php`, `app/Infrastructure/Shared/Http/Services/HttpClientService.php`, `app/Domain/Analytics/Services/BaseAnalyticsExternalService.php`, `config/analytics.php`
@@ -139,7 +206,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** add `pint.json` (excluding `data/`, `storage/`, `vendor/`, `node_modules/`) and format the whole codebase in one commit; install Larastan without a baseline file, start at the highest level that can be made clean, raise it as contexts are converted (target: max); run both in CI.
 
 ### `strict_types` and `final`
-- **Where:** all of `app/`, `tests/`, `database/` (0 files declare `strict_types`, 9 classes are `final`)
+- **Where:** all of `app/`, `tests/`, `database/` (11 of 1227 files declare `strict_types`, 11 classes are `final`); files touched by a branch keep their old shape, e.g. `app/Http/Controllers/Frontend/ProfileController.php` (no constructor promotion, untyped properties)
 - **Fix:** add `declare(strict_types=1)` and `final` (except abstract bases and Eloquent models, `rules/php.md`); the test suite catches the coercions this exposes.
 
 ### Two sets of repositories
@@ -194,20 +261,9 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** per `rules/frontend.md`.
 
 ### Translations
-- **Where:** `lang/*` (23 files, 2076 keys in cs), 623 `trans()` calls; `translations:check … --compare=cs` reports 15 missing keys/files in de, 13 in en, 14 in sk (e.g. `admin.database.*`, `clients.messages.limit_exceeded`); `lang/en/{auth,pagination,passwords}.php` missing in cs/de/sk; `lang/{cs,de,sk}/ddd_guard.php` translates developer-tool output; `lang/*/emails.php` calls `config()`
-- **Problem:**
-  - Texts are split by entity and by screen area at once: `admin.php` holds 878 keys in 35 sections, 14 of them mirror a context file (`admin.clients` ↔ `clients.php`, `admin.products`, `admin.invoices`, `admin.suppliers`, `admin.pages`, `admin.subscriptions`, …). The same field gets two texts (`admin.clients.street` "Ulice" vs `clients.fields.street` "Ulice a číslo").
-  - 137 keys used in code do not exist, so users see the key (e.g. `admin.products.*` 14, `general.entity_limits.*` 11, `admin.validation.*` 10, `admin.status_categories.*` 10, `admin.product_categories.*` 8 used by `ProductCategoryRequest`). About 665 keys are never referenced literally (an estimate: some keys are built dynamically).
-  - 48 form requests define `messages()`, mostly repeating Laravel's standard messages already translated in `lang/*/validation.php` ("Název je povinný" 7×).
-  - File names mix singular and plural (`subscription.php`, `tax.php` vs `suppliers.php`, `payment_methods.php`); `payment_statuses.php` beside `statuses.php`.
-- **Fix (decided 2026-10-22):**
-  - One file per bounded context or entity, read by frontend and admin alike, plural names; the same sections in each: `entity` (singular/plural), `fields` (labels, columns and validation attributes), `hints`, `placeholders`, `actions`, `messages`, `validation` (only rules the standard messages cannot express), `statuses` (enum labels). A sub-entity is a section of its parent (`products.categories.*`) or its own file when large.
-  - `admin.php` only for admin screens that are not entities (menu, dashboard, database maintenance, cache, UELS dashboard); large parts in `lang/*/admin/<area>.php` (`__('admin/database.title')`).
-  - `general.php` only for interface words (save, cancel, yes/no, created/updated, pagination, empty states). Field labels stay in the entity file even when the word repeats across entities.
-  - Requests name fields through `attributes()` from `<entity>.fields.*` and drop `messages()` that repeat the standard ones.
-  - `__()` only, all keys in all locales, developer output in plain English, no `config()` in language files (pass values as parameters).
-  - A test that every key used in code exists in cs; refine `rules/translations.md` ("a file per bounded context or screen area" lets screen-area files take over entity texts).
-  - Convert context by context with `/convert-to-standard`; fix the missing keys first, users see them.
+- **Where:** 44 `trans()` calls in `app/` and `resources/views`; 9 form requests with `messages()`; `lang/*/admin.php` sections `dashboard`, `user_activity`, `user`, `auth`, `general`; `lang/*/emails.php` calls `config()` and `date()`
+- **Problem:** the structure and every literal key are in place (`rules/translations.md`, `TranslationKeysExistTest`), but some code still uses `trans()`, some requests repeat standard messages, the admin dashboard and user activity texts sit in `admin.php` beside the menu, and the email texts compute the app name and year inside the language file. Keys that no code references were never counted after the restructuring.
+- **Fix:** `__()` on the remaining calls; drop `messages()` that repeat `lang/*/validation.php`; move the dashboard and user activity texts to `lang/*/admin/dashboard.php` (or their entity files); pass the app name and year to the email texts as parameters; delete unreferenced keys file by file. Convert with `/convert-to-standard` context by context.
 
 ### Route names and URLs
 - **Where:** `routes/web.php`, `routes/api.php`, every `route('…')` call in `app/`, `resources/views/`, `resources/js/` and `tests/`

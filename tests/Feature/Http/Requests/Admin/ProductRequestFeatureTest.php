@@ -549,52 +549,14 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function attributes_method_returns_correct_translations(): void
+    public function every_validated_field_has_a_translated_name(): void
     {
         $request = new ProductRequest();
         $attributes = $request->attributes();
 
-        $this->assertArrayHasKey('name', $attributes);
-        $this->assertArrayHasKey('slug', $attributes);
-        $this->assertArrayHasKey('description', $attributes);
-        $this->assertArrayHasKey('price', $attributes);
-        $this->assertArrayHasKey('tax_id', $attributes);
-        $this->assertArrayHasKey('supplier_id', $attributes);
-        $this->assertArrayHasKey('category_id', $attributes);
-        $this->assertArrayHasKey('image', $attributes);
-        $this->assertArrayHasKey('is_default', $attributes);
-        $this->assertArrayHasKey('is_active', $attributes);
-
-        // Basic sanity: values are non-empty strings
-        foreach ($attributes as $val) {
-            $this->assertIsString($val);
-            $this->assertNotSame('', $val);
-        }
-    }
-
-    #[Test]
-    public function messages_method_returns_correct_translations(): void
-    {
-        $request = new ProductRequest();
-        $messages = $request->messages();
-
-        $this->assertArrayHasKey('name.required', $messages);
-        $this->assertArrayHasKey('name.min', $messages);
-        $this->assertArrayHasKey('name.max', $messages);
-        $this->assertArrayHasKey('price.required', $messages);
-        $this->assertArrayHasKey('price.numeric', $messages);
-        $this->assertArrayHasKey('price.min', $messages);
-        $this->assertArrayHasKey('user_id.required', $messages);
-        $this->assertArrayHasKey('user_id.exists', $messages);
-        $this->assertArrayHasKey('tax_id.exists', $messages);
-        $this->assertArrayHasKey('supplier_id.exists', $messages);
-        $this->assertArrayHasKey('category_id.exists', $messages);
-        $this->assertArrayHasKey('image.image', $messages);
-        $this->assertArrayHasKey('image.max', $messages);
-
-        // Basic sanity: all message values are strings
-        foreach ($messages as $val) {
-            $this->assertIsString($val);
+        foreach (array_keys($request->rules()) as $field) {
+            $this->assertArrayHasKey($field, $attributes);
+            $this->assertStringNotContainsString('products.', $attributes[$field]);
         }
     }
 }

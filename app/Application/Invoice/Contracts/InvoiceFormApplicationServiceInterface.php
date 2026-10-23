@@ -79,11 +79,6 @@ interface InvoiceFormApplicationServiceInterface
     public function prepareShowData(int $userId, int $invoiceId): InvoiceFormDTO;
 
     /**
-     * Get item units for invoice items (legacy compatibility)
-     */
-    public function getItemUnits(): array;
-
-    /**
      * Get next invoice number for user (legacy compatibility)
      */
     public function getNextInvoiceNumber(int $userId): string;

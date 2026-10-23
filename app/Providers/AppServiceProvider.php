@@ -12,7 +12,6 @@ use App\View\Components\Dropdown;
 use App\View\Components\DropdownLink;
 use App\View\Components\Select;
 use App\View\Components\CurrencySelect;
-use App\View\Components\Pagination;
 
 // Context bindings and observers live in the bounded context providers (ADR D-042)
 
@@ -44,10 +43,6 @@ class AppServiceProvider extends ServiceProvider
             return Auth::check() && function_exists('backpack_user') && backpack_user() !== null;
         });
 
-        // Set default pagination views
-        \Illuminate\Pagination\Paginator::defaultView('components.pagination');
-        \Illuminate\Pagination\Paginator::defaultSimpleView('components.simple-pagination');
-
         // Register custom Blade components
         Blade::component('application-logo', ApplicationLogo::class);
         Blade::component('nav-link', NavLink::class);
@@ -56,6 +51,5 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('dropdown-link', DropdownLink::class);
         Blade::component('select', Select::class);
         Blade::component('currency-select', CurrencySelect::class);
-        Blade::component('pagination', Pagination::class);
     }
 }
