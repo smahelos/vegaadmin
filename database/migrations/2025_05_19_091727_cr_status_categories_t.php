@@ -22,8 +22,8 @@ return new class extends Migration
         // Add category_id column to statuses table
         Schema::table('statuses', function (Blueprint $table) {
             $table->foreignId('category_id')->nullable()->after('type')
-                  ->constrained('status_categories')
-                  ->nullOnDelete();
+                ->constrained('status_categories')
+                ->nullOnDelete();
         });
     }
 
@@ -35,7 +35,7 @@ return new class extends Migration
         Schema::table('statuses', function (Blueprint $table) {
             $table->dropConstrainedForeignId('category_id');
         });
-        
+
         Schema::dropIfExists('status_categories');
     }
 };

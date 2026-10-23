@@ -3,8 +3,8 @@
 namespace App\Infrastructure\Persistence\Eloquent\User\Repositories;
 
 use App\Domain\User\Contracts\EntityLimitRepositoryInterface;
-use Illuminate\Support\Facades\DB;
 use App\Models\EntityLimit;
+use Illuminate\Support\Facades\DB;
 
 class EntityLimitRepository implements EntityLimitRepositoryInterface
 {
@@ -15,7 +15,13 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
         }
 
         $rows = DB::table('entity_limits')
-            ->select('permission_name', 'entity_type', 'metric_type', 'period_type', 'limit_value')
+            ->select(
+                'permission_name',
+                'entity_type',
+                'metric_type',
+                'period_type',
+                'limit_value',
+            )
             ->whereIn('permission_name', $permissionNames)
             ->where('is_active', 1)
             ->get();
@@ -37,7 +43,7 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
             ->whereNotNull('permission_name')
             ->distinct();
 
-        if (!$includeInactive) {
+        if (! $includeInactive) {
             $query->where('is_active', 1);
         }
 
@@ -48,14 +54,20 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
         array $permissionNames,
         string $entityType,
         string $metricType,
-        string $periodType
+        string $periodType,
     ): array {
         if (empty($permissionNames)) {
             return [];
         }
 
         $rows = DB::table('entity_limits')
-            ->select('permission_name', 'entity_type', 'metric_type', 'period_type', 'limit_value')
+            ->select(
+                'permission_name',
+                'entity_type',
+                'metric_type',
+                'period_type',
+                'limit_value',
+            )
             ->whereIn('permission_name', $permissionNames)
             ->where('entity_type', $entityType)
             ->where('metric_type', $metricType)
@@ -74,7 +86,6 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
 
     /**
      * Get all defined entity types.
-     * @return array
      */
     public function getAllEntityTypes(): array
     {
@@ -83,7 +94,6 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
 
     /**
      * Get all defined entity types.
-     * @return array
      */
     public function getAllMetricTypes(): array
     {
@@ -92,7 +102,6 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
 
     /**
      * Get all defined entity types.
-     * @return array
      */
     public function getAllPeriodTypes(): array
     {

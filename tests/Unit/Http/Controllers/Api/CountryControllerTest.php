@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\CountryController;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
+use App\Http\Controllers\Api\CountryController;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
@@ -11,12 +11,13 @@ use Tests\TestCase;
 class CountryControllerTest extends TestCase
 {
     private CountryController $controller;
+
     private FakeCountryService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new FakeCountryService();
+        $this->service = new FakeCountryService;
         $this->controller = new CountryController($this->service);
     }
 
@@ -29,7 +30,11 @@ class CountryControllerTest extends TestCase
     #[Test]
     public function get_countries_returns_service_data(): void
     {
-        $this->service->countriesForSelect = [ 'CZ' => ['code'=>'CZ','name'=>'Czech Republic','flag'=>'🇨🇿'] ];
+        $this->service->countriesForSelect = ['CZ' => [
+            'code' => 'CZ',
+            'name' => 'Czech Republic',
+            'flag' => '🇨🇿',
+        ]];
         $resp = $this->controller->getCountries();
         $this->assertEquals(200, $resp->status());
         $this->assertArrayHasKey('CZ', $resp->getData(true));
@@ -48,7 +53,11 @@ class CountryControllerTest extends TestCase
     #[Test]
     public function get_country_found(): void
     {
-        $this->service->countryByCode = ['cca2'=>'CZ','name'=>['common'=>'Czech Republic'],'flag'=>'🇨🇿'];
+        $this->service->countryByCode = [
+            'cca2' => 'CZ',
+            'name' => ['common' => 'Czech Republic'],
+            'flag' => '🇨🇿',
+        ];
         $resp = $this->controller->getCountry('CZ');
         $this->assertEquals(200, $resp->status());
         $this->assertEquals('CZ', $resp->getData(true)['cca2']);
@@ -67,10 +76,23 @@ class CountryControllerTest extends TestCase
 class FakeCountryService implements CountryApplicationServiceInterface
 {
     public array $all = [];
+
     public array $countriesForSelect = [];
+
     public ?array $countryByCode = null;
 
-    public function getCountries(): array { return $this->all; }
-    public function getCountryCodesForSelect(): array { return []; }
-    public function getCountry(string $code): ?array { return $this->countryByCode; }
+    public function getCountries(): array
+    {
+        return $this->all;
+    }
+
+    public function getCountryCodesForSelect(): array
+    {
+        return [];
+    }
+
+    public function getCountry(string $code): ?array
+    {
+        return $this->countryByCode;
+    }
 }

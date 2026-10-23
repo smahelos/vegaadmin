@@ -9,12 +9,12 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for Admin\StatusCategoryRequest - CRITICAL RULE: Only pure business logic, no Laravel dependencies
- * 
+ *
  * According to Unit Test Isolation rule, this class tests only:
  * - Class structure and inheritance
  * - Method signatures and return types
  * - Class introspection without executing Laravel-dependent methods
- * 
+ *
  * Authorization and validation business logic has been moved to Feature tests.
  */
 class StatusCategoryRequestTest extends TestCase
@@ -24,7 +24,7 @@ class StatusCategoryRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new StatusCategoryRequest();
+        $this->request = new StatusCategoryRequest;
     }
 
     #[Test]
@@ -39,7 +39,7 @@ class StatusCategoryRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -50,7 +50,7 @@ class StatusCategoryRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -61,7 +61,7 @@ class StatusCategoryRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -69,12 +69,17 @@ class StatusCategoryRequestTest extends TestCase
     #[Test]
     public function has_required_methods(): void
     {
-        $requiredMethods = ['authorize', 'rules', 'attributes', 'messages'];
+        $requiredMethods = [
+            'authorize',
+            'rules',
+            'attributes',
+            'messages',
+        ];
 
         foreach ($requiredMethods as $method) {
             $this->assertTrue(
                 method_exists($this->request, $method),
-                "Method {$method} does not exist in Admin\StatusCategoryRequest class"
+                "Method {$method} does not exist in Admin\StatusCategoryRequest class",
             );
         }
     }
@@ -83,8 +88,13 @@ class StatusCategoryRequestTest extends TestCase
     public function all_methods_are_public(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        $methods = ['authorize', 'rules', 'attributes', 'messages'];
-        
+        $methods = [
+            'authorize',
+            'rules',
+            'attributes',
+            'messages',
+        ];
+
         foreach ($methods as $methodName) {
             $method = $reflection->getMethod($methodName);
             $this->assertTrue($method->isPublic(), "Method {$methodName} should be public");

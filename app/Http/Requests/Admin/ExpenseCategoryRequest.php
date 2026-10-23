@@ -9,8 +9,6 @@ class ExpenseCategoryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -27,7 +25,7 @@ class ExpenseCategoryRequest extends FormRequest
     {
         // Determine current ID (if updating) using route parameter; fall back to NULL for create.
         $id = $this->route('id');
-        if (!$id && $this->has('id')) {
+        if (! $id && $this->has('id')) {
             $id = $this->get('id');
         }
         $id = $id ?: 'NULL';

@@ -2,17 +2,22 @@
 
 namespace App\Providers;
 
-use App\Domain\Shared\Events\DomainEventDispatcher;
-use App\Domain\Party\Events\Handlers\UsageRecordingHandler as PartyUsageRecordingHandler;
-use App\Domain\Product\Events\Handlers\UsageRecordingHandler as ProductUsageRecordingHandler;
-use App\Domain\Invoice\Events\Handlers\UsageRecordingHandler as InvoiceUsageRecordingHandler;
+use App\Domain\Analytics\Events\AnalyticsDataChanged;
 use App\Domain\Analytics\Events\Handlers\InvalidateAnalyticsCache;
-use Illuminate\Support\ServiceProvider;
+use App\Domain\Invoice\Events\Handlers\UsageRecordingHandler as InvoiceUsageRecordingHandler;
+use App\Domain\Invoice\Events\InvoiceCreated;
+use App\Domain\Party\Events\ClientCreated;
+use App\Domain\Party\Events\Handlers\UsageRecordingHandler as PartyUsageRecordingHandler;
+use App\Domain\Party\Events\SupplierCreated;
+use App\Domain\Product\Events\Handlers\UsageRecordingHandler as ProductUsageRecordingHandler;
+use App\Domain\Product\Events\ProductCreated;
+use App\Domain\Shared\Events\DomainEventDispatcher;
 use App\Domain\Shared\Log\Contracts\LogInterface;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * Service Provider for Domain Events system.
- * 
+ *
  * Registers all event handlers with the DomainEventDispatcher
  * to ensure proper event handling throughout the application.
  */
@@ -43,34 +48,34 @@ class DomainEventsServiceProvider extends ServiceProvider
         // Usage Recording Handler - handles client/supplier creation usage tracking
         $dispatcher->register(
             [
-                \App\Domain\Party\Events\ClientCreated::class,
-                \App\Domain\Party\Events\SupplierCreated::class,
+                ClientCreated::class,
+                SupplierCreated::class,
             ],
-            app(PartyUsageRecordingHandler::class)
+            app(PartyUsageRecordingHandler::class),
         );
 
         // Usage Recording Handler - handles product creation usage tracking
         $dispatcher->register(
             [
-                \App\Domain\Product\Events\ProductCreated::class,
+                ProductCreated::class,
             ],
-            app(ProductUsageRecordingHandler::class)
+            app(ProductUsageRecordingHandler::class),
         );
 
         // Usage Recording Handler - handles invoice creation usage tracking
         $dispatcher->register(
             [
-                \App\Domain\Invoice\Events\InvoiceCreated::class,
+                InvoiceCreated::class,
             ],
-            app(InvoiceUsageRecordingHandler::class)
+            app(InvoiceUsageRecordingHandler::class),
         );
 
         // Analytics Cache Invalidation Handler - handles analytics data changes
         $dispatcher->register(
             [
-                \App\Domain\Analytics\Events\AnalyticsDataChanged::class,
+                AnalyticsDataChanged::class,
             ],
-            app(InvalidateAnalyticsCache::class)
+            app(InvalidateAnalyticsCache::class),
         );
 
         // Future event handlers can be registered here as the system grows

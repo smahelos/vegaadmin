@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::table('products', function (Blueprint $table) {
             // Add currency column with default value CZK
             $table->string('currency', 3)->default('CZK')->after('price');
-            
+
             // Check if is_active column doesn't exist yet
-            if (!Schema::hasColumn('products', 'is_active')) {
+            if (! Schema::hasColumn('products', 'is_active')) {
                 $table->boolean('is_active')->default(true)->after('is_default');
             }
         });
@@ -29,7 +29,7 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             $table->dropColumn('currency');
-            
+
             // Only drop is_active if it exists
             if (Schema::hasColumn('products', 'is_active')) {
                 $table->dropColumn('is_active');

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Controller;
 use App\Application\Analytics\Contracts\DashboardApplicationServiceInterface;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
@@ -18,8 +18,6 @@ class DashboardController extends Controller
 
     /**
      * Constructor
-     *
-     * @param DashboardApplicationServiceInterface $dashboardService
      */
     public function __construct(DashboardApplicationServiceInterface $dashboardService)
     {
@@ -29,7 +27,7 @@ class DashboardController extends Controller
     /**
      * Show the application dashboard with user statistics
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function index()
     {
@@ -42,7 +40,7 @@ class DashboardController extends Controller
             'suppliersCount' => $dashboardData['statistics_formatted']['suppliers_count'],
             'totalAmount' => $dashboardData['statistics_formatted']['total_amount'],
             'monthlyStats' => $dashboardData['monthly_stats'],
-            'clients' => $dashboardData['clients']
+            'clients' => $dashboardData['clients'],
         ]);
     }
 }

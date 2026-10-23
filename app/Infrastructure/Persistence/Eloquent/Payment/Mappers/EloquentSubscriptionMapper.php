@@ -24,6 +24,7 @@ class EloquentSubscriptionMapper
                 $children[] = self::toSubscriptionPlanDTO($child);
             }
         }
+
         return SubscriptionDTO::fromArray([
             'id' => $model->getAttribute('id'),
             'user_id' => $model->getAttribute('user_id'),
@@ -77,7 +78,7 @@ class EloquentSubscriptionMapper
             'description' => $model->getAttribute('description'),
             'amount' => new Money(
                 amount: $model->getAttribute('amount'),
-                currency: $model->getAttribute('currency')
+                currency: $model->getAttribute('currency'),
             ),
             'currency' => $model->getAttribute('currency'),
             'billing_period' => $model->getAttribute('billing_period'),

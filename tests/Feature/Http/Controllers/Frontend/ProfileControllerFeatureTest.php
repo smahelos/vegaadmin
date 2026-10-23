@@ -5,17 +5,17 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use Illuminate\Support\Facades\Hash;
-use RuntimeException;
 
 class ProfileControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesFrontendTestEnvironment;
+    use RefreshDatabase;
 
     private User $user;
 
@@ -24,7 +24,7 @@ class ProfileControllerFeatureTest extends TestCase
         parent::setUp();
         $this->setUpFrontendTestEnvironment();
         // Ensure user has necessary permission (frontend.can_create_edit_user) for UserRequest authorize
-        $perm = Permission::where('name','frontend.can_create_edit_user')->where('guard_name','web')->first();
+        $perm = Permission::where('name', 'frontend.can_create_edit_user')->where('guard_name', 'web')->first();
         if ($perm) {
             $this->user->givePermissionTo($perm);
         }
@@ -44,7 +44,11 @@ class ProfileControllerFeatureTest extends TestCase
         $response = $this->get(route('frontend.profile.edit', ['locale' => 'cs']));
         $response->assertStatus(200);
         $response->assertViewIs('frontend.profile.edit');
-        $response->assertViewHasAll(['user','userFields','passwordFields']);
+        $response->assertViewHasAll([
+            'user',
+            'userFields',
+            'passwordFields',
+        ]);
     }
 
     #[Test]
@@ -60,12 +64,12 @@ class ProfileControllerFeatureTest extends TestCase
             'country' => 'CZ',
         ];
         $response = $this->put(route('frontend.profile.update', ['locale' => 'cs']), $payload);
-        
+
         // Debug: check for errors
-        if($response->getSession()->has('errors')) {
+        if ($response->getSession()->has('errors')) {
             dump('Session errors:', $response->getSession()->get('errors')->all());
         }
-        
+
         $response->assertRedirect(route('frontend.profile.edit', ['locale' => 'cs']));
         $response->assertSessionHas('success');
         $this->assertDatabaseHas('users', ['id' => $this->user->id, 'name' => 'Updated Name']);
@@ -77,11 +81,11 @@ class ProfileControllerFeatureTest extends TestCase
         $this->actingAs($this->user);
         $payload = [
             'name' => '',
-            'email' => 'bad-email'
+            'email' => 'bad-email',
         ];
         $response = $this->put(route('frontend.profile.update', ['locale' => 'cs']), $payload);
         // Profile form obsahuje len name a email fields, address fields nie sú required
-        $response->assertSessionHasErrors(['name','email']);
+        $response->assertSessionHasErrors(['name', 'email']);
     }
 
     #[Test]
@@ -95,7 +99,7 @@ class ProfileControllerFeatureTest extends TestCase
         $payload = [
             'current_password' => $currentPassword,
             'password' => 'NewPassw0rd!',
-            'password_confirmation' => 'NewPassw0rd!'
+            'password_confirmation' => 'NewPassw0rd!',
         ];
         $response = $this->put(route('frontend.profile.update.password', ['locale' => 'cs']), $payload);
         $response->assertRedirect(route('frontend.profile.edit', ['locale' => 'cs']));
@@ -112,7 +116,7 @@ class ProfileControllerFeatureTest extends TestCase
         $payload = [
             'current_password' => 'WrongPass',
             'password' => 'AnotherPass123',
-            'password_confirmation' => 'AnotherPass123'
+            'password_confirmation' => 'AnotherPass123',
         ];
         $response = $this->put(route('frontend.profile.update.password', ['locale' => 'cs']), $payload);
         $response->assertSessionHasErrors(['current_password']);

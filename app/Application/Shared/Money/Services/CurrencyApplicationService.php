@@ -11,8 +11,7 @@ class CurrencyApplicationService implements CurrencyApplicationServiceInterface
     public function __construct(
         private readonly CurrencyServiceInterface $currencyService,
         private readonly CurrencyExchangeServiceInterface $exchangeService,
-    ) {
-    }
+    ) {}
 
     public function getCommonCurrencies(): array
     {
@@ -29,8 +28,15 @@ class CurrencyApplicationService implements CurrencyApplicationServiceInterface
         return $this->exchangeService->getExchangeRate($from, $to);
     }
 
-    public function convert(float $amount, string $from, string $to): ?float
-    {
-        return $this->exchangeService->convert($amount, $from, $to);
+    public function convert(
+        float $amount,
+        string $from,
+        string $to,
+    ): ?float {
+        return $this->exchangeService->convert(
+            $amount,
+            $from,
+            $to,
+        );
     }
 }

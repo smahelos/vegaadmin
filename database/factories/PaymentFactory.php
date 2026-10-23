@@ -7,7 +7,7 @@ use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Payment>
+ * @extends Factory<Payment>
  */
 class PaymentFactory extends Factory
 {
@@ -23,16 +23,35 @@ class PaymentFactory extends Factory
      */
     public function definition(): array
     {
-        $status = $this->faker->randomElement(['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded']);
-        $gateways = ['gopay', 'paypal', 'stripe'];
-        $methods = ['card', 'bank_transfer', 'paypal'];
-        
+        $status = $this->faker->randomElement([
+            'pending',
+            'processing',
+            'completed',
+            'failed',
+            'cancelled',
+            'refunded',
+        ]);
+        $gateways = [
+            'gopay',
+            'paypal',
+            'stripe',
+        ];
+        $methods = [
+            'card',
+            'bank_transfer',
+            'paypal',
+        ];
+
         return [
             'subscription_id' => Subscription::factory(),
             'gateway' => $this->faker->randomElement($gateways),
             'gateway_payment_id' => 'GP' . $this->faker->numerify('#########'),
             'status' => $status,
-            'amount' => $this->faker->randomFloat(2, 9.99, 199.99),
+            'amount' => $this->faker->randomFloat(
+                2,
+                9.99,
+                199.99,
+            ),
             'currency' => 'EUR',
             'payment_method' => $this->faker->randomElement($methods),
             'gateway_data' => [

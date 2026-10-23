@@ -4,9 +4,11 @@ namespace Tests\Feature\Models;
 
 use App\Models\Status;
 use App\Models\StatusCategory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -24,7 +26,7 @@ class StatusFeatureTest extends TestCase
         $this->assertNotEmpty($status->slug);
         $this->assertNotNull($status->category_id);
         $this->assertIsBool($status->is_active);
-        
+
         $this->assertDatabaseHas('statuses', [
             'id' => $status->id,
             'name' => $status->name,
@@ -60,7 +62,7 @@ class StatusFeatureTest extends TestCase
     public function can_create_status_through_database(): void
     {
         $category = StatusCategory::factory()->create();
-        
+
         $statusData = [
             'name' => 'Test Status',
             'slug' => 'test-status',
@@ -121,7 +123,7 @@ class StatusFeatureTest extends TestCase
         Status::factory()->create(['slug' => 'unique-slug']);
 
         $this->expectException(QueryException::class);
-        
+
         Status::factory()->create(['slug' => 'unique-slug']);
     }
 
@@ -145,7 +147,7 @@ class StatusFeatureTest extends TestCase
     {
         $category1 = StatusCategory::factory()->create();
         $category2 = StatusCategory::factory()->create();
-        
+
         $status1 = Status::factory()->create(['category_id' => $category1->id]);
         $status2 = Status::factory()->create(['category_id' => $category1->id]);
         $status3 = Status::factory()->create(['category_id' => $category2->id]);
@@ -177,15 +179,15 @@ class StatusFeatureTest extends TestCase
         $status = Status::factory()->create();
 
         $invoicesRelation = $status->invoices();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class, $invoicesRelation);
+
+        $this->assertInstanceOf(HasMany::class, $invoicesRelation);
     }
 
     #[Test]
     public function can_perform_bulk_operations(): void
     {
         $category = StatusCategory::factory()->create();
-        
+
         Status::factory()->count(5)->create(['category_id' => $category->id, 'is_active' => true]);
 
         Status::where('category_id', $category->id)->update(['is_active' => false]);
@@ -203,7 +205,11 @@ class StatusFeatureTest extends TestCase
 
         $statusesOrderedByName = Status::orderBy('name')->pluck('name')->toArray();
 
-        $expectedOrder = ['Alpha Status', 'Beta Status', 'Zebra Status'];
+        $expectedOrder = [
+            'Alpha Status',
+            'Beta Status',
+            'Zebra Status',
+        ];
         $this->assertEquals($expectedOrder, $statusesOrderedByName);
     }
 
@@ -211,21 +217,21 @@ class StatusFeatureTest extends TestCase
     public function can_search_statuses_by_name(): void
     {
         $category = StatusCategory::factory()->create();
-        
+
         Status::create([
             'name' => 'Payment Due',
             'slug' => 'payment-due',
             'category_id' => $category->id,
             'is_active' => true,
         ]);
-        
+
         Status::create([
             'name' => 'Pending Payment',
             'slug' => 'pending-payment-test',
             'category_id' => $category->id,
             'is_active' => true,
         ]);
-        
+
         Status::create([
             'name' => 'Cancelled Status',
             'slug' => 'cancelled-status-test',
@@ -262,15 +268,15 @@ class StatusFeatureTest extends TestCase
 
         $this->assertNotNull($status->created_at);
         $this->assertNotNull($status->updated_at);
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $status->created_at);
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $status->updated_at);
+        $this->assertInstanceOf(Carbon::class, $status->created_at);
+        $this->assertInstanceOf(Carbon::class, $status->updated_at);
     }
 
     #[Test]
     public function can_create_status_with_minimal_data(): void
     {
         $category = StatusCategory::factory()->create();
-        
+
         $status = Status::create([
             'name' => 'Minimal Status',
             'slug' => 'minimal-status',
@@ -292,13 +298,13 @@ class StatusFeatureTest extends TestCase
     public function is_active_cast_to_boolean(): void
     {
         $status = Status::factory()->create(['is_active' => 1]);
-        
+
         $this->assertIsBool($status->is_active);
         $this->assertTrue($status->is_active);
-        
+
         $status->update(['is_active' => 0]);
         $status->refresh();
-        
+
         $this->assertIsBool($status->is_active);
         $this->assertFalse($status->is_active);
     }

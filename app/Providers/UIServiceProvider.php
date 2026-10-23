@@ -2,17 +2,16 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 /**
  * UI Service Provider for Presentation Layer.
- * 
+ *
  * Handles all UI-related concerns including:
  * - Locale and language switching
  * - Blade directives
@@ -46,16 +45,26 @@ class UIServiceProvider extends ServiceProvider
         try {
             // Set default language for all URLs
             $locale = Session::get('locale', config('app.locale'));
-            
+
             // Verify that locale is valid
-            if (!in_array($locale, config('app.available_locales', ['cs', 'en', 'de', 'sk']))) {
+            if (! in_array($locale, config('app.available_locales', [
+                'cs',
+                'en',
+                'de',
+                'sk',
+            ]))) {
                 $locale = config('app.fallback_locale', 'cs');
             }
-            
+
             URL::defaults(['lang' => $locale]);
-    
+
             // Share available languages with views
-            View::share('availableLocales', config('app.available_locales', ['cs', 'en', 'de', 'sk']));
+            View::share('availableLocales', config('app.available_locales', [
+                'cs',
+                'en',
+                'de',
+                'sk',
+            ]));
             View::share('currentLocale', $locale);
         } catch (\Exception $e) {
             // Log errors but continue execution

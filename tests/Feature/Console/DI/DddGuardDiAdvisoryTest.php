@@ -3,13 +3,15 @@
 namespace Tests\Feature\Console\DI;
 
 use Illuminate\Support\Facades\File;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class DddGuardDiAdvisoryTest extends TestCase
 {
     private string $tempControllerDir;
+
     private string $tempControllerFile;
+
     private string $processId;
 
     protected function setUp(): void
@@ -19,13 +21,17 @@ class DddGuardDiAdvisoryTest extends TestCase
         // Use process ID to avoid conflicts in parallel test execution
         $this->processId = (string) getmypid();
         $this->tempControllerDir = base_path("app/Http/Controllers/Temp_{$this->processId}");
-        if (!is_dir($this->tempControllerDir)) {
-            mkdir($this->tempControllerDir, 0755, true);
+        if (! is_dir($this->tempControllerDir)) {
+            mkdir(
+                $this->tempControllerDir,
+                0755,
+                true,
+            );
         }
-        $this->tempControllerFile = $this->tempControllerDir.'/TempAdvisoryController.php';
+        $this->tempControllerFile = $this->tempControllerDir . '/TempAdvisoryController.php';
 
         $serviceFqcn = 'App\\Domain\\User\\Services\\UniversalLimitService';
-    $code = <<<'PHP'
+        $code = <<<'PHP'
 <?php
 namespace App\\Http\\Controllers\\Temp_{$this->processId};
 
@@ -42,9 +48,13 @@ class TempAdvisoryController
     }
 }
 PHP;
-    // Replace placeholder with actual FQCN to ensure valid PHP "use" import
-    $code = str_replace('REPLACE_FQCN', $serviceFqcn, $code);
-    file_put_contents($this->tempControllerFile, $code);
+        // Replace placeholder with actual FQCN to ensure valid PHP "use" import
+        $code = str_replace(
+            'REPLACE_FQCN',
+            $serviceFqcn,
+            $code,
+        );
+        file_put_contents($this->tempControllerFile, $code);
     }
 
     protected function tearDown(): void
@@ -56,13 +66,13 @@ PHP;
         if (is_dir($this->tempControllerDir)) {
             @rmdir($this->tempControllerDir);
         }
-        
+
         // Clean up process-specific JSON report file
         $reportPath = storage_path("app/ddd_guard_report_{$this->processId}.json");
         if (file_exists($reportPath)) {
             @unlink($reportPath);
         }
-        
+
         parent::tearDown();
     }
 
@@ -77,21 +87,21 @@ PHP;
         // We'll execute the command class directly to capture output, or simpler: read the report file if configured.
         // Use process-specific report file to avoid conflicts in parallel test execution
         $reportPath = storage_path("app/ddd_guard_report_{$this->processId}.json");
-        
+
         // Override the config for this process
         config(['ddd_guard.json_report_path' => $reportPath]);
-        
+
         // Re-run command with updated config
         $this->artisan('ddd:guard', ['--di' => true, '--format' => 'json'])
             ->assertExitCode(1);
-            
+
         $this->assertFileExists($reportPath, 'JSON report file not generated');
         $json = json_decode(file_get_contents($reportPath), true);
         $this->assertIsArray($json);
-    $this->assertArrayHasKey('violations', $json);
-    $this->assertNotEmpty($json['violations'], 'Expected at least one violation');
-    $foundConcrete = collect($json['violations'])->contains(fn($v) => ($v['type'] ?? null) === 'di_concrete_import');
-    $this->assertTrue($foundConcrete, 'Expected at least one di_concrete_import violation in report');
+        $this->assertArrayHasKey('violations', $json);
+        $this->assertNotEmpty($json['violations'], 'Expected at least one violation');
+        $foundConcrete = collect($json['violations'])->contains(fn ($v) => ($v['type'] ?? null) === 'di_concrete_import');
+        $this->assertTrue($foundConcrete, 'Expected at least one di_concrete_import violation in report');
     }
 
     #[Test]
@@ -100,8 +110,12 @@ PHP;
         // Use process-specific report file to avoid conflicts in parallel test execution
         $reportPath = storage_path("app/ddd_guard_report_{$this->processId}.json");
         config(['ddd_guard.json_report_path' => $reportPath]);
-        
-        $this->artisan('ddd:guard', ['--di' => true, '--format' => 'json', '--fail-on-advisory' => true])
+
+        $this->artisan('ddd:guard', [
+            '--di' => true,
+            '--format' => 'json',
+            '--fail-on-advisory' => true,
+        ])
             ->assertExitCode(1); // Advisories should trigger failure with flag
     }
 
@@ -109,7 +123,7 @@ PHP;
     public function di_scan_reports_hard_violation_when_interface_exists(): void
     {
         // Arrange: create a controller that imports UniversalLimitService (interface now exists => violation)
-        $controllerFile = $this->tempControllerDir.'/TempViolationController.php';
+        $controllerFile = $this->tempControllerDir . '/TempViolationController.php';
         $code = <<<'PHP'
 <?php
 namespace App\Http\Controllers\Temp;
@@ -126,7 +140,7 @@ PHP;
         // Use process-specific report file to avoid conflicts in parallel test execution
         $reportPath = storage_path("app/ddd_guard_report_{$this->processId}.json");
         config(['ddd_guard.json_report_path' => $reportPath]);
-        
+
         $this->artisan('ddd:guard', ['--di' => true, '--format' => 'json'])
             ->assertExitCode(1); // Hard violation should fail build now that interface exists
 
@@ -134,7 +148,7 @@ PHP;
         $json = json_decode(file_get_contents($reportPath), true);
         $this->assertIsArray($json);
         $this->assertArrayHasKey('violations', $json);
-        $found = collect($json['violations'])->contains(fn($v) => ($v['type'] ?? null) === 'di_concrete_import');
+        $found = collect($json['violations'])->contains(fn ($v) => ($v['type'] ?? null) === 'di_concrete_import');
         $this->assertTrue($found, 'Expected di_concrete_import violation once interface exists');
 
         @unlink($controllerFile);

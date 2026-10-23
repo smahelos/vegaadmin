@@ -12,7 +12,7 @@ interface ClientWriteRepositoryInterface
     public function create(array $data): Client;
 
     public function unsetOthersDefault(int $currentId, int $userId): void;
-    
+
     public function findByIdForUser(int $id, int $userId): ?Client;
 
     /** Update client by ID with provided attributes */

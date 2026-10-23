@@ -2,11 +2,12 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
-use Throwable;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class ExceptionHandling
 {
@@ -21,6 +22,7 @@ class ExceptionHandling
                 return redirect()->route('frontend.invoices', ['locale' => app()->getLocale()])
                     ->with('error', __('invoices.messages.not_found'));
             }
+
             return null;
         });
 
@@ -29,6 +31,7 @@ class ExceptionHandling
             // JSON first: standardized payload with translated message
             if ($request->expectsJson()) {
                 $translated = __($e->getMessageKey(), $e->getContext());
+
                 return response()->json([
                     'message' => $translated,
                     'message_key' => $e->getMessageKey(),
@@ -43,6 +46,7 @@ class ExceptionHandling
             if (self::isSupplierRoute($request)) {
                 return back()->withInput()->with('error', __('suppliers.messages.limit_exceeded'));
             }
+
             // Generic redirect with translated key from exception
             return back()->withInput()->with('error', __($e->getMessageKey(), $e->getContext()));
         });
@@ -57,9 +61,11 @@ class ExceptionHandling
                         'code' => 401,
                     ], 401);
                 }
+
                 // Let guests be redirected to the correct localized login page
                 return redirect()->guest(route('frontend.login', ['locale' => app()->getLocale()]));
             }
+
             return null;
         });
 
@@ -70,15 +76,17 @@ class ExceptionHandling
                     return null; // handled above
                 }
                 // Let Laravel handle validation exceptions to preserve session error bag
-                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                if ($e instanceof ValidationException) {
                     return null;
                 }
                 // Skip handling for guest JSON store route (correct route name with dots)
                 if ($request->routeIs('frontend.invoice.storeGuest') || $request->routeIs('frontend.invoice.store.guest')) {
                     return null; // controller JSON handling
                 }
+
                 return redirect()->back()->with('error', __('invoices.messages.update_error'));
             }
+
             return null;
         });
     }
@@ -86,14 +94,20 @@ class ExceptionHandling
     private static function isInvoiceRoute($request): bool
     {
         $routeName = $request->route()?->getName();
-        if (!$routeName) { return false; }
+        if (! $routeName) {
+            return false;
+        }
+
         return str_starts_with($routeName, 'frontend.invoice') || $routeName === 'frontend.invoices';
     }
 
     private static function isSupplierRoute($request): bool
     {
         $routeName = $request->route()?->getName();
-        if (!$routeName) { return false; }
+        if (! $routeName) {
+            return false;
+        }
+
         return str_starts_with($routeName, 'frontend.supplier') || $routeName === 'frontend.suppliers';
     }
 }

@@ -14,7 +14,7 @@ class InvoiceListRecentTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->component = new InvoiceListRecent();
+        $this->component = new InvoiceListRecent;
     }
 
     #[Test]
@@ -27,15 +27,15 @@ class InvoiceListRecentTest extends TestCase
     public function component_has_correct_public_properties(): void
     {
         $reflection = new \ReflectionClass($this->component);
-        
+
         $this->assertTrue($reflection->hasProperty('orderBy'));
         $this->assertTrue($reflection->hasProperty('orderAsc'));
         $this->assertTrue($reflection->hasProperty('errorMessage'));
-        
+
         $orderByProperty = $reflection->getProperty('orderBy');
         $orderAscProperty = $reflection->getProperty('orderAsc');
         $errorMessageProperty = $reflection->getProperty('errorMessage');
-        
+
         $this->assertTrue($orderByProperty->isPublic());
         $this->assertTrue($orderAscProperty->isPublic());
         $this->assertTrue($errorMessageProperty->isPublic());
@@ -53,11 +53,11 @@ class InvoiceListRecentTest extends TestCase
     public function component_has_correct_property_types(): void
     {
         $reflection = new \ReflectionClass($this->component);
-        
+
         $orderByProperty = $reflection->getProperty('orderBy');
         $orderAscProperty = $reflection->getProperty('orderAsc');
         $errorMessageProperty = $reflection->getProperty('errorMessage');
-        
+
         $this->assertEquals('string', $orderByProperty->getType()->getName());
         $this->assertEquals('bool', $orderAscProperty->getType()->getName());
         $this->assertTrue($errorMessageProperty->getType()->allowsNull());
@@ -75,7 +75,7 @@ class InvoiceListRecentTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -86,7 +86,7 @@ class InvoiceListRecentTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('field', $parameters[0]->getName());
         $this->assertEquals('string', $parameters[0]->getType()->getName());
@@ -104,7 +104,7 @@ class InvoiceListRecentTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\Contracts\View\View', $returnType->getName());
     }
@@ -120,7 +120,7 @@ class InvoiceListRecentTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->component);
         $docComment = $reflection->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('InvoiceListRecent Livewire Component', $docComment);
     }
@@ -129,18 +129,17 @@ class InvoiceListRecentTest extends TestCase
     public function component_has_url_attributes(): void
     {
         $reflection = new \ReflectionClass($this->component);
-        
+
         $orderByProperty = $reflection->getProperty('orderBy');
         $orderAscProperty = $reflection->getProperty('orderAsc');
-        
+
         $orderByAttributes = $orderByProperty->getAttributes();
         $orderAscAttributes = $orderAscProperty->getAttributes();
-        
+
         $this->assertCount(1, $orderByAttributes);
         $this->assertCount(1, $orderAscAttributes);
-        
+
         $this->assertEquals('Livewire\Attributes\Url', $orderByAttributes[0]->getName());
         $this->assertEquals('Livewire\Attributes\Url', $orderAscAttributes[0]->getName());
     }
-
 }

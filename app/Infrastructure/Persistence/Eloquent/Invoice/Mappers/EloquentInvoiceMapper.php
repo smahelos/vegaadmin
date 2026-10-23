@@ -28,7 +28,9 @@ class EloquentInvoiceMapper
         // Include items using computed accessor; repository will eager-load relation to avoid N+1
         // This returns an array shape like: [ ['name'=>..., 'quantity'=>..., 'price'=>..., 'currency'=>..., 'tax_rate'=>..., 'tax_amount'=>..., 'total_price'=>...], ... ]
         $items = $model->getAttribute('invoice_products_data') ?? $model->invoice_products_data ?? [];
-        if (!is_array($items)) { $items = []; }
+        if (! is_array($items)) {
+            $items = [];
+        }
 
         return InvoiceDTO::fromArray([
             'id' => InvoiceId::fromInt((int) $model->getAttribute('id')),
@@ -64,38 +66,75 @@ class EloquentInvoiceMapper
     {
         $attrs = [];
 
-        if ($data->user_id !== null) { $attrs['user_id'] = (int)$data->user_id; }
-        if ($data->client_id !== null) { $attrs['client_id'] = (int)$data->client_id; }
-        if ($data->supplier_id !== null) { $attrs['supplier_id'] = (int)$data->supplier_id; }
+        if ($data->user_id !== null) {
+            $attrs['user_id'] = (int) $data->user_id;
+        }
+        if ($data->client_id !== null) {
+            $attrs['client_id'] = (int) $data->client_id;
+        }
+        if ($data->supplier_id !== null) {
+            $attrs['supplier_id'] = (int) $data->supplier_id;
+        }
 
-        if ($data->number !== null) { $attrs['invoice_vs'] = $data->number; }
-        if ($data->payment_reference !== null) { $attrs['invoice_ss'] = $data->payment_reference; }
-        if ($data->constant_code !== null) { $attrs['invoice_ks'] = $data->constant_code; }
+        if ($data->number !== null) {
+            $attrs['invoice_vs'] = $data->number;
+        }
+        if ($data->payment_reference !== null) {
+            $attrs['invoice_ss'] = $data->payment_reference;
+        }
+        if ($data->constant_code !== null) {
+            $attrs['invoice_ks'] = $data->constant_code;
+        }
 
-        if ($data->issue_date !== null) { $attrs['issue_date'] = $data->issue_date; }
-        if ($data->tax_point_date !== null) { $attrs['tax_point_date'] = $data->tax_point_date; }
-        if ($data->due_in !== null) { $attrs['due_in'] = (int)$data->due_in; }
+        if ($data->issue_date !== null) {
+            $attrs['issue_date'] = $data->issue_date;
+        }
+        if ($data->tax_point_date !== null) {
+            $attrs['tax_point_date'] = $data->tax_point_date;
+        }
+        if ($data->due_in !== null) {
+            $attrs['due_in'] = (int) $data->due_in;
+        }
 
-        if ($data->template !== null) { $attrs['template'] = $data->template; }
-        if ($data->note !== null) { $attrs['invoice_text'] = $data->note; }
-        if ($data->logo !== null) { $attrs['invoice_logo'] = $data->logo; }
-        if ($data->status !== null) { $attrs['payment_status_id'] = (int)$data->status; }
+        if ($data->template !== null) {
+            $attrs['template'] = $data->template;
+        }
+        if ($data->note !== null) {
+            $attrs['invoice_text'] = $data->note;
+        }
+        if ($data->logo !== null) {
+            $attrs['invoice_logo'] = $data->logo;
+        }
+        if ($data->status !== null) {
+            $attrs['payment_status_id'] = (int) $data->status;
+        }
 
-        if ($data->payment_method_id !== null) { $attrs['payment_method_id'] = (int)$data->payment_method_id; }
+        if ($data->payment_method_id !== null) {
+            $attrs['payment_method_id'] = (int) $data->payment_method_id;
+        }
 
         // Currency may come from total_amount Money or explicit currency
         if ($data->currency !== null) {
             $attrs['payment_currency'] = strtoupper($data->currency);
         }
         if ($data->total_amount !== null) {
-            $attrs['payment_amount'] = number_format((float)$data->total_amount->getAmount(), 2, '.', '');
+            $attrs['payment_amount'] = number_format(
+                (float) $data->total_amount->getAmount(),
+                2,
+                '.',
+                '',
+            );
             $attrs['payment_currency'] = $data->total_amount->getCurrency();
         }
         // We do not persist subtotal/total_tax directly; they are derived from products
 
         // Timestamps can be optionally overridden
-        if ($data->created_at !== null) { $attrs['created_at'] = $data->created_at; }
-        if ($data->updated_at !== null) { $attrs['updated_at'] = $data->updated_at; }
+        if ($data->created_at !== null) {
+            $attrs['created_at'] = $data->created_at;
+        }
+        if ($data->updated_at !== null) {
+            $attrs['updated_at'] = $data->updated_at;
+        }
 
         return $attrs;
     }

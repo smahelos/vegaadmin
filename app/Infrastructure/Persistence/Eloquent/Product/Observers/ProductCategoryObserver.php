@@ -2,9 +2,9 @@
 
 namespace App\Infrastructure\Persistence\Eloquent\Product\Observers;
 
-use App\Models\ProductCategory;
-use App\Domain\Shared\Events\FormDataChanged;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
+use App\Domain\Shared\Events\FormDataChanged;
+use App\Models\ProductCategory;
 
 class ProductCategoryObserver
 {

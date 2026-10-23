@@ -16,20 +16,33 @@ class GdImageProcessor implements ImageProcessorInterface
 
     public function __construct(?ImageManager $manager = null)
     {
-        $this->manager = $manager ?? new ImageManager(new GdDriver());
+        $this->manager = $manager ?? new ImageManager(new GdDriver);
     }
 
-    public function createThumbnail(string $source, string $target, int $width, int $height, int $quality = 85): bool
-    {
+    public function createThumbnail(
+        string $source,
+        string $target,
+        int $width,
+        int $height,
+        int $quality = 85,
+    ): bool {
         try {
             $dir = \dirname($target);
-            if (!is_dir($dir)) { mkdir($dir, 0755, true); }
+            if (! is_dir($dir)) {
+                mkdir(
+                    $dir,
+                    0755,
+                    true,
+                );
+            }
             $image = $this->manager->read($source);
             $image->resize($width, $height);
             $image->save($target, $quality);
+
             return true;
         } catch (\Throwable $e) {
             Log::error('ImageProcessor thumbnail error: ' . $e->getMessage());
+
             return false;
         }
     }

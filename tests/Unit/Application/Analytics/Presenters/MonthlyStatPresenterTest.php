@@ -4,8 +4,8 @@ namespace Tests\Unit\Application\Analytics\Presenters;
 
 use App\Application\Analytics\Presenters\MonthlyStatPresenter;
 use App\Domain\Analytics\DTO\MonthlyStatDTO;
-use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -16,11 +16,25 @@ class MonthlyStatPresenterTest extends TestCase
     {
         $dto = new MonthlyStatDTO('2025-08', Money::fromString('99.99', 'EUR'));
 
-        $formatter = new class implements MoneyFormatterInterface {
-            public function format(Money $money, ?string $locale = null, ?int $minFraction = null, ?int $maxFraction = null): string
-            { return 'f:' . $money->toFloat() . ':' . $money->getCurrency(); }
-            public function formatWithCode(Money $money, ?string $locale = null, ?int $minFraction = null, ?int $maxFraction = null): string
-            { return 'wc:' . $money->toFloat() . ':' . $money->getCurrency() . ':' . ($locale ?? ''); }
+        $formatter = new class implements MoneyFormatterInterface
+        {
+            public function format(
+                Money $money,
+                ?string $locale = null,
+                ?int $minFraction = null,
+                ?int $maxFraction = null,
+            ): string {
+                return 'f:' . $money->toFloat() . ':' . $money->getCurrency();
+            }
+
+            public function formatWithCode(
+                Money $money,
+                ?string $locale = null,
+                ?int $minFraction = null,
+                ?int $maxFraction = null,
+            ): string {
+                return 'wc:' . $money->toFloat() . ':' . $money->getCurrency() . ':' . ($locale ?? '');
+            }
         };
 
         $presenter = new MonthlyStatPresenter($formatter);

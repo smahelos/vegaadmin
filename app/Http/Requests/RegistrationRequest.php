@@ -8,8 +8,6 @@ class RegistrationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -18,8 +16,6 @@ class RegistrationRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -34,14 +30,40 @@ class RegistrationRequest extends FormRequest
             'phone' => 'nullable|string|max:50',
             'ico' => 'nullable|string|max:20',
             'dic' => 'nullable|string|max:30',
-            'description' => ['nullable', 'string', 'max:1000'],
+            'description' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
 
             // Bank account details
-            'account_number' => ['nullable', 'string', 'max:50'],
-            'bank_code' => ['nullable', 'required_with:account_number', 'string', 'max:10'],
-            'iban' => ['nullable', 'string', 'max:50'],
-            'swift' => ['nullable', 'required_with:iban', 'string', 'max:20'],
-            'bank_name' => ['nullable', 'string', 'max:255'],
+            'account_number' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+            'bank_code' => [
+                'nullable',
+                'required_with:account_number',
+                'string',
+                'max:10',
+            ],
+            'iban' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+            'swift' => [
+                'nullable',
+                'required_with:iban',
+                'string',
+                'max:20',
+            ],
+            'bank_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
         ];
     }
 
@@ -57,7 +79,21 @@ class RegistrationRequest extends FormRequest
             'password' => __('users.fields.password'),
             'password_confirmation' => __('users.fields.password_confirmation'),
         ];
-        foreach (['street', 'city', 'zip', 'country', 'phone', 'ico', 'dic', 'description', 'account_number', 'bank_code', 'iban', 'swift', 'bank_name'] as $field) {
+        foreach ([
+            'street',
+            'city',
+            'zip',
+            'country',
+            'phone',
+            'ico',
+            'dic',
+            'description',
+            'account_number',
+            'bank_code',
+            'iban',
+            'swift',
+            'bank_name',
+        ] as $field) {
             $attributes[$field] = __("suppliers.fields.$field");
         }
 

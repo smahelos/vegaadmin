@@ -2,15 +2,15 @@
 
 namespace App\Domain\Product\Events;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Product\DTO\ProductDTO;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
  * Domain event fired when a new product is created.
- * 
+ *
  * Triggered by:
  * - ProductService::createProduct() when creating new product
- * 
+ *
  * Used for:
  * - Usage limit recording
  * - Audit logging
@@ -21,8 +21,6 @@ class ProductCreated implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -34,12 +32,12 @@ class ProductCreated implements DomainEvent
 
     /** Event ID for tracking purposes */
     private readonly string $eventId;
-    
+
     public function __construct(
         private readonly ProductDTO $product,
         ?int $userId = null,
         private readonly array $metadata = [],
-        string $changeType = 'general'
+        string $changeType = 'general',
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
@@ -76,23 +74,23 @@ class ProductCreated implements DomainEvent
             'product_tax_id' => $this->product->tax_id,
             'is_default' => $this->product->is_default,
             'is_active' => $this->product->is_active,
-            'has_image' => !empty($this->product->image),
+            'has_image' => ! empty($this->product->image),
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
         return static::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

@@ -2,30 +2,59 @@
 
 namespace Tests\Unit\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Frontend\PaymentController;
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
 use App\Application\Payment\DTO\RefundResultDTO;
-use App\Models\Subscription;
+use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\Frontend\PaymentController;
 use App\Models\Payment;
+use App\Models\Subscription;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PaymentControllerTest extends TestCase
 {
     private PaymentController $controller;
+
     private PaymentApplicationServiceInterface $fakeAppService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fakeAppService = new class implements PaymentApplicationServiceInterface {
-            public function initiateSubscription(Subscription $subscription, string $gateway, array $data = []): SubscriptionPaymentResultDTO { return SubscriptionPaymentResultDTO::fromArray(['success' => true]); }
-            public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO { return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'completed']); }
-            public function verify(Payment $payment): SubscriptionPaymentResultDTO { return SubscriptionPaymentResultDTO::fromArray(['success' => true]); }
-            public function refund(Payment $payment, ?float $amount = null): RefundResultDTO { return RefundResultDTO::fromArray(['success' => true]); }
-            public function getAvailableGateways(): array { return ['gopay' => ['name' => 'GoPay']]; }
-            public function cancelSubscription(Subscription $subscription): bool { return true; }
+        $this->fakeAppService = new class implements PaymentApplicationServiceInterface
+        {
+            public function initiateSubscription(
+                Subscription $subscription,
+                string $gateway,
+                array $data = [],
+            ): SubscriptionPaymentResultDTO {
+                return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
+            }
+
+            public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
+            {
+                return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'completed']);
+            }
+
+            public function verify(Payment $payment): SubscriptionPaymentResultDTO
+            {
+                return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
+            }
+
+            public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
+            {
+                return RefundResultDTO::fromArray(['success' => true]);
+            }
+
+            public function getAvailableGateways(): array
+            {
+                return ['gopay' => ['name' => 'GoPay']];
+            }
+
+            public function cancelSubscription(Subscription $subscription): bool
+            {
+                return true;
+            }
         };
         $this->controller = new PaymentController($this->fakeAppService);
     }
@@ -77,7 +106,7 @@ class PaymentControllerTest extends TestCase
     #[Test]
     public function controller_inherits_base(): void
     {
-        $this->assertInstanceOf(\App\Http\Controllers\Controller::class, $this->controller);
+        $this->assertInstanceOf(Controller::class, $this->controller);
     }
 
     #[Test]

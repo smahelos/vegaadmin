@@ -27,7 +27,7 @@ class DomainServiceProviderBindingsTest extends TestCase
     private array $skip = [
         'App\\Domain\\Payment\\Contracts\\PaymentGatewayInterface',
         'App\\Domain\\Payment\\Contracts\\QrPaymentProviderInterface',
-    // Removed legacy duplicates in Invoice domain (now only Party domain repositories exist)
+        // Removed legacy duplicates in Invoice domain (now only Party domain repositories exist)
     ];
 
     #[Test]
@@ -47,42 +47,56 @@ class DomainServiceProviderBindingsTest extends TestCase
         foreach ($paths as $path) {
             $fqcn = $this->fqcnFromPath($path);
 
-            if (in_array($fqcn, $this->skip, true)) {
+            if (in_array(
+                $fqcn,
+                $this->skip,
+                true,
+            )) {
                 continue; // intentionally unmanaged binding
             }
 
             // Assert container has explicit binding (bound()). If not, mark missing.
-            if (!app()->bound($fqcn)) {
+            if (! app()->bound($fqcn)) {
                 $missingBindings[] = $fqcn;
+
                 continue; // do not attempt resolution
             }
 
             // Attempt to resolve & ensure instance implements interface
             try {
                 $instance = app()->make($fqcn);
-                if (!$instance instanceof $fqcn) {
-                    $resolutionErrors[] = $fqcn.' resolved to '.get_debug_type($instance).' which does not implement it';
+                if (! $instance instanceof $fqcn) {
+                    $resolutionErrors[] = $fqcn . ' resolved to ' . get_debug_type($instance) . ' which does not implement it';
                 }
             } catch (\Throwable $e) {
-                $resolutionErrors[] = $fqcn.' threw: '.$e->getMessage();
+                $resolutionErrors[] = $fqcn . ' threw: ' . $e->getMessage();
             }
         }
 
         $messages = [];
         if ($missingBindings) {
-            $messages[] = 'Missing bindings: '.implode(', ', $missingBindings);
+            $messages[] = 'Missing bindings: ' . implode(', ', $missingBindings);
         }
         if ($resolutionErrors) {
-            $messages[] = 'Resolution errors: '.implode(', ', $resolutionErrors);
+            $messages[] = 'Resolution errors: ' . implode(', ', $resolutionErrors);
         }
 
-        $this->assertEmpty($messages, "All interfaces should be bound & resolvable.\n".implode("\n", $messages));
+        $this->assertEmpty($messages, "All interfaces should be bound & resolvable.\n" . implode("\n", $messages));
     }
 
     private function fqcnFromPath(string $path): string
     {
-        $relative = Str::after($path, app_path().DIRECTORY_SEPARATOR);
-        $withoutPhp = Str::replaceLast('.php', '', $relative);
-        return 'App\\'.str_replace(DIRECTORY_SEPARATOR, '\\', $withoutPhp);
+        $relative = Str::after($path, app_path() . DIRECTORY_SEPARATOR);
+        $withoutPhp = Str::replaceLast(
+            '.php',
+            '',
+            $relative,
+        );
+
+        return 'App\\' . str_replace(
+            DIRECTORY_SEPARATOR,
+            '\\',
+            $withoutPhp,
+        );
     }
 }

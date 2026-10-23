@@ -14,7 +14,7 @@ class SubscriptionPlanFeatureRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new SubscriptionPlanFeatureRequest();
+        $this->request = new SubscriptionPlanFeatureRequest;
     }
 
     #[Test]
@@ -29,7 +29,7 @@ class SubscriptionPlanFeatureRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -40,7 +40,7 @@ class SubscriptionPlanFeatureRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -51,17 +51,16 @@ class SubscriptionPlanFeatureRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
-
 
     #[Test]
     public function rules_returns_array_with_required_fields(): void
     {
         $rules = $this->request->rules();
-        
+
         $this->assertIsArray($rules);
         $this->assertArrayHasKey('name', $rules);
         $this->assertArrayHasKey('slug', $rules);
@@ -73,17 +72,17 @@ class SubscriptionPlanFeatureRequestTest extends TestCase
     public function rules_contains_correct_validation_patterns(): void
     {
         $rules = $this->request->rules();
-        
+
         $this->assertStringContainsString('required', $rules['name']);
         $this->assertStringContainsString('string', $rules['name']);
         $this->assertStringContainsString('max:255', $rules['name']);
-        
+
         $this->assertStringContainsString('required', $rules['slug']);
         $this->assertStringContainsString('string', $rules['slug']);
         $this->assertStringContainsString('unique:subscription_plan_features,slug', $rules['slug']);
-        
+
         $this->assertStringContainsString('boolean', $rules['is_active']);
-        
+
         $this->assertStringContainsString('integer', $rules['sort_order']);
         $this->assertStringContainsString('min:0', $rules['sort_order']);
     }
@@ -92,7 +91,7 @@ class SubscriptionPlanFeatureRequestTest extends TestCase
     public function attributes_returns_array_with_expected_keys(): void
     {
         $attributes = $this->request->attributes();
-        
+
         $this->assertIsArray($attributes);
         $this->assertArrayHasKey('name', $attributes);
         $this->assertArrayHasKey('description', $attributes);
@@ -100,6 +99,4 @@ class SubscriptionPlanFeatureRequestTest extends TestCase
         $this->assertArrayHasKey('is_active', $attributes);
         $this->assertArrayHasKey('sort_order', $attributes);
     }
-
-
 }

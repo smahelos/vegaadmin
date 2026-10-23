@@ -9,12 +9,12 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for PasswordUpdateRequest - CRITICAL RULE: Only pure business logic, no Laravel dependencies
- * 
+ *
  * According to Unit Test Isolation rule, this class tests only:
  * - Class structure and inheritance
  * - Method signatures and return types
  * - Class introspection without executing Laravel-dependent methods
- * 
+ *
  * Authorization and validation business logic has been moved to Feature tests.
  */
 class PasswordUpdateRequestTest extends TestCase
@@ -24,7 +24,7 @@ class PasswordUpdateRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new PasswordUpdateRequest();
+        $this->request = new PasswordUpdateRequest;
     }
 
     #[Test]
@@ -39,7 +39,7 @@ class PasswordUpdateRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -50,7 +50,7 @@ class PasswordUpdateRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -61,17 +61,16 @@ class PasswordUpdateRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
-
 
     #[Test]
     public function has_required_methods(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        
+
         $this->assertTrue($reflection->hasMethod('authorize'));
         $this->assertTrue($reflection->hasMethod('rules'));
         $this->assertTrue($reflection->hasMethod('attributes'));
@@ -81,7 +80,7 @@ class PasswordUpdateRequestTest extends TestCase
     public function all_methods_are_public(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        
+
         $this->assertTrue($reflection->getMethod('authorize')->isPublic());
         $this->assertTrue($reflection->getMethod('rules')->isPublic());
         $this->assertTrue($reflection->getMethod('attributes')->isPublic());

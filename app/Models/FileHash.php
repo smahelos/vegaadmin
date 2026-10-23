@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class FileHash extends Model
 {
     protected $fillable = [
-        'disk','path','hash','size','ref_count'
+        'disk',
+        'path',
+        'hash',
+        'size',
+        'ref_count',
     ];
 }

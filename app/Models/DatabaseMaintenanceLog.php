@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class DatabaseMaintenanceLog extends Model
 {
@@ -23,7 +23,7 @@ class DatabaseMaintenanceLog extends Model
         'description',
         'results',
         'started_at',
-        'completed_at'
+        'completed_at',
     ];
 
     /**
@@ -34,7 +34,7 @@ class DatabaseMaintenanceLog extends Model
     protected $casts = [
         'results' => 'array',
         'started_at' => 'datetime',
-        'completed_at' => 'datetime'
+        'completed_at' => 'datetime',
     ];
 
     /**
@@ -42,7 +42,7 @@ class DatabaseMaintenanceLog extends Model
      */
     public function getDurationAttribute()
     {
-        if (!$this->started_at || !$this->completed_at) {
+        if (! $this->started_at || ! $this->completed_at) {
             return null;
         }
 
@@ -58,7 +58,7 @@ class DatabaseMaintenanceLog extends Model
             'pending' => '<span class="badge text-bg-secondary">Pending</span>',
             'running' => '<span class="badge text-bg-warning">Running</span>',
             'completed' => '<span class="badge text-bg-success">Completed</span>',
-            'failed' => '<span class="badge text-bg-danger">Failed</span>'
+            'failed' => '<span class="badge text-bg-danger">Failed</span>',
         ];
 
         return $badges[$this->status] ?? '<span class="badge text-bg-light">Unknown</span>';

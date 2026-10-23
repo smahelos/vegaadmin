@@ -17,7 +17,7 @@ class SubscriptionPlanFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = new SubscriptionPlanFeature();
+        $this->model = new SubscriptionPlanFeature;
     }
 
     #[Test]
@@ -62,7 +62,7 @@ class SubscriptionPlanFeatureTest extends TestCase
         ];
 
         $actualCasts = $this->model->getCasts();
-        
+
         foreach ($expectedCasts as $attribute => $expectedCast) {
             $this->assertArrayHasKey($attribute, $actualCasts);
             $this->assertEquals($expectedCast, $actualCasts[$attribute]);
@@ -81,7 +81,7 @@ class SubscriptionPlanFeatureTest extends TestCase
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('subscriptionPlans');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals(BelongsToMany::class, $returnType->getName());
     }
@@ -110,7 +110,7 @@ class SubscriptionPlanFeatureTest extends TestCase
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('isActive');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -127,7 +127,7 @@ class SubscriptionPlanFeatureTest extends TestCase
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('generateSlug');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('string', $returnType->getName());
     }

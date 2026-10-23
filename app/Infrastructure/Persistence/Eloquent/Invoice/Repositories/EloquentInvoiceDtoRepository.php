@@ -10,7 +10,6 @@ use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
-use Illuminate\Support\Collection;
 
 /**
  * Eloquent implementation of Invoice DTO repositories.
@@ -22,19 +21,20 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
 {
     public function __construct(
         private readonly EloquentInvoiceRepository $invoiceRepository,
-        private readonly EloquentInvoiceMapper $mapper
-    ) {
-    }
+        private readonly EloquentInvoiceMapper $mapper,
+    ) {}
 
     public function findByIdAny(InvoiceId $id): ?InvoiceDTO
     {
         $model = $this->invoiceRepository->findByIdAny($id->getValue());
+
         return $model ? $this->mapper->toDto($model) : null;
     }
 
     public function findByIdForUser(InvoiceId $id, UserId $userId): ?InvoiceDTO
     {
         $model = $this->invoiceRepository->findForUser($userId->toInt(), $id->getValue());
+
         return $model ? $this->mapper->toDto($model) : null;
     }
 
@@ -49,6 +49,7 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         $attrs = $this->mapper->toModelAttributes($writeData);
 
         $model = $this->invoiceRepository->create($attrs);
+
         return $this->mapper->toDto($model);
     }
 
@@ -58,6 +59,7 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         $attrs = $this->mapper->toModelAttributes($writeData);
 
         $model = $this->invoiceRepository->updateById($id->getValue(), $attrs);
+
         return $this->mapper->toDto($model);
     }
 
@@ -65,6 +67,7 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
     {
         $this->invoiceRepository->deleteById($id->getValue());
     }
+
     public function markAsPaid(InvoiceId $id, int $paidStatusId): bool
     {
         return $this->invoiceRepository->markAsPaid($id->getValue(), $paidStatusId);
@@ -95,6 +98,7 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
                 $last = $candidate;
             }
         }
+
         return $last?->getNumber();
     }
 
@@ -106,13 +110,15 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
     public function findOverdueForUser(UserId $userId): array
     {
         $models = $this->invoiceRepository->findOverdueForUser($userId->toInt());
-        return array_map(fn($m) => $this->mapper->toDto($m), $models);
+
+        return array_map(fn ($m) => $this->mapper->toDto($m), $models);
     }
 
     public function findUnpaidForUser(UserId $userId): array
     {
         $models = $this->invoiceRepository->findUnpaidForUser($userId->toInt());
-        return array_map(fn($m) => $this->mapper->toDto($m), $models);
+
+        return array_map(fn ($m) => $this->mapper->toDto($m), $models);
     }
 
     public function getUserInvoiceCount(UserId $userId): int

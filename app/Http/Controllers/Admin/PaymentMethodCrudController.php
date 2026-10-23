@@ -3,36 +3,44 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\PaymentMethodRequest;
+use App\Models\PaymentMethod;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
  * Payment method management controller
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
+ *
+ * @property-read CrudPanel $crud
  */
 class PaymentMethodCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use CreateOperation;
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation;
 
     /**
      * Configure the CrudPanel object
-     * 
+     *
      * @return void
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\PaymentMethod::class);
+        CRUD::setModel(PaymentMethod::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/payment-method');
         CRUD::setEntityNameStrings(__('payment_methods.entity.singular'), __('payment_methods.entity.plural'));
     }
 
     /**
      * Setup list view columns
-     * 
+     *
      * @return void
      */
     protected function setupListOperation()
@@ -46,7 +54,7 @@ class PaymentMethodCrudController extends CrudController
 
     /**
      * Setup create form fields
-     * 
+     *
      * @return void
      */
     protected function setupCreateOperation()
@@ -62,7 +70,7 @@ class PaymentMethodCrudController extends CrudController
 
     /**
      * Setup update form fields
-     * 
+     *
      * @return void
      */
     protected function setupUpdateOperation()

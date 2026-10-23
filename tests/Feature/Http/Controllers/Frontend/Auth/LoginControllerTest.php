@@ -4,31 +4,34 @@ namespace Tests\Feature\Http\Controllers\Frontend\Auth;
 
 use App\Http\Controllers\Frontend\Auth\LoginController;
 use App\Models\User;
+use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use Mockery;
 
 class LoginControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
     protected LoginController $controller;
+
     protected User $user;
+
     protected string $validEmail;
+
     protected string $validPassword;
 
     /**
      * Set up the test environment before each test.
      * Creates test user with unique credentials for login testing.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -41,7 +44,7 @@ class LoginControllerTest extends TestCase
         $this->validPassword = 'password123';
 
         // Create test user with valid credentials
-        if (!$this->user) {
+        if (! $this->user) {
             $this->user = User::factory()->create([
                 'email' => $this->validEmail,
                 'password' => Hash::make($this->validPassword),
@@ -56,7 +59,7 @@ class LoginControllerTest extends TestCase
         }
 
         // Initialize controller instance for testing
-        $this->controller = new LoginController();
+        $this->controller = new LoginController;
     }
 
     /**
@@ -218,15 +221,19 @@ class LoginControllerTest extends TestCase
                 'Login error: Database connection error',
                 [
                     'email' => $this->validEmail,
-                    'ip' => '127.0.0.1'
-                ]
+                    'ip' => '127.0.0.1',
+                ],
             );
 
         // Create a request
-        $request = Request::create('/login', 'POST', [
-            'email' => $this->validEmail,
-            'password' => $this->validPassword,
-        ]);
+        $request = Request::create(
+            '/login',
+            'POST',
+            [
+                'email' => $this->validEmail,
+                'password' => $this->validPassword,
+            ],
+        );
 
         $request->setLaravelSession($this->app['session.store']);
 
@@ -253,7 +260,11 @@ class LoginControllerTest extends TestCase
         $method = $reflection->getMethod('authenticated');
         $method->setAccessible(true);
 
-        $response = $method->invoke($this->controller, $request, $this->user);
+        $response = $method->invoke(
+            $this->controller,
+            $request,
+            $this->user,
+        );
 
         $this->assertEquals(302, $response->getStatusCode());
         // Check that it redirects to dashboard with locale in URL path
@@ -279,7 +290,11 @@ class LoginControllerTest extends TestCase
         $method = $reflection->getMethod('authenticated');
         $method->setAccessible(true);
 
-        $response = $method->invoke($this->controller, $request, $this->user);
+        $response = $method->invoke(
+            $this->controller,
+            $request,
+            $this->user,
+        );
 
         $this->assertStringContainsString('/cs/', $response->getTargetUrl());
     }
@@ -306,7 +321,7 @@ class LoginControllerTest extends TestCase
         $targetUrl = $response->getTargetUrl();
         $this->assertTrue(
             str_contains($targetUrl, '/en/') || str_ends_with($targetUrl, '/en'),
-            'Logout redirect URL should contain locale in path format, got: ' . $targetUrl
+            'Logout redirect URL should contain locale in path format, got: ' . $targetUrl,
         );
         $this->assertFalse(Auth::check());
     }
@@ -341,10 +356,14 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function attempt_login_with_valid_credentials()
     {
-        $request = Request::create('/login', 'POST', [
-            'email' => $this->validEmail,
-            'password' => $this->validPassword,
-        ]);
+        $request = Request::create(
+            '/login',
+            'POST',
+            [
+                'email' => $this->validEmail,
+                'password' => $this->validPassword,
+            ],
+        );
 
         // Use reflection to call protected method
         $reflection = new \ReflectionClass($this->controller);
@@ -366,10 +385,14 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function attempt_login_with_invalid_credentials()
     {
-        $request = Request::create('/login', 'POST', [
-            'email' => $this->validEmail,
-            'password' => 'wrongpassword',
-        ]);
+        $request = Request::create(
+            '/login',
+            'POST',
+            [
+                'email' => $this->validEmail,
+                'password' => 'wrongpassword',
+            ],
+        );
 
         // Use reflection to call protected method
         $reflection = new \ReflectionClass($this->controller);
@@ -390,11 +413,15 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function attempt_login_with_remember_token()
     {
-        $request = Request::create('/login', 'POST', [
-            'email' => $this->validEmail,
-            'password' => $this->validPassword,
-            'remember' => '1',
-        ]);
+        $request = Request::create(
+            '/login',
+            'POST',
+            [
+                'email' => $this->validEmail,
+                'password' => $this->validPassword,
+                'remember' => '1',
+            ],
+        );
 
         // Use reflection to call protected method
         $reflection = new \ReflectionClass($this->controller);
@@ -415,10 +442,14 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function attempt_login_without_remember_token()
     {
-        $request = Request::create('/login', 'POST', [
-            'email' => $this->validEmail,
-            'password' => $this->validPassword,
-        ]);
+        $request = Request::create(
+            '/login',
+            'POST',
+            [
+                'email' => $this->validEmail,
+                'password' => $this->validPassword,
+            ],
+        );
 
         // Use reflection to call protected method
         $reflection = new \ReflectionClass($this->controller);
@@ -448,7 +479,7 @@ class LoginControllerTest extends TestCase
 
         // The guard name includes session ID in testing environment
         $this->assertStringContainsString('web', $guard->getName());
-        $this->assertInstanceOf(\Illuminate\Contracts\Auth\StatefulGuard::class, $guard);
+        $this->assertInstanceOf(StatefulGuard::class, $guard);
     }
 
     /**
@@ -461,7 +492,7 @@ class LoginControllerTest extends TestCase
     {
         $traits = class_uses(LoginController::class);
 
-        $this->assertContains(\Illuminate\Foundation\Auth\AuthenticatesUsers::class, $traits);
+        $this->assertContains(AuthenticatesUsers::class, $traits);
     }
 
     /**
@@ -523,15 +554,19 @@ class LoginControllerTest extends TestCase
                 'Login error: Test exception',
                 [
                     'email' => $this->validEmail,
-                    'ip' => '127.0.0.1'
-                ]
+                    'ip' => '127.0.0.1',
+                ],
             );
 
         // Create a request
-        $request = Request::create('/login', 'POST', [
-            'email' => $this->validEmail,
-            'password' => $this->validPassword,
-        ]);
+        $request = Request::create(
+            '/login',
+            'POST',
+            [
+                'email' => $this->validEmail,
+                'password' => $this->validPassword,
+            ],
+        );
 
         $request->setLaravelSession($this->app['session.store']);
 
@@ -562,10 +597,14 @@ class LoginControllerTest extends TestCase
         Log::shouldReceive('error')->once();
 
         // Create a request
-        $request = Request::create('/login', 'POST', [
-            'email' => $this->validEmail,
-            'password' => $this->validPassword,
-        ]);
+        $request = Request::create(
+            '/login',
+            'POST',
+            [
+                'email' => $this->validEmail,
+                'password' => $this->validPassword,
+            ],
+        );
 
         $request->setLaravelSession($this->app['session.store']);
 
@@ -580,8 +619,6 @@ class LoginControllerTest extends TestCase
 
     /**
      * Clean up after tests.
-     *
-     * @return void
      */
     protected function tearDown(): void
     {

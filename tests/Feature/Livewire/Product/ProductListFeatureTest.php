@@ -19,7 +19,7 @@ class ProductListFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->setupTestRoutes();
         $this->user = User::factory()->create();
     }
@@ -46,7 +46,7 @@ class ProductListFeatureTest extends TestCase
         })->name('frontend.product.destroy');
 
         \Route::get('/test/product/create', function () {
-            return "create product";
+            return 'create product';
         })->name('frontend.product.create');
     }
 
@@ -82,12 +82,12 @@ class ProductListFeatureTest extends TestCase
     {
         $product1 = Product::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Awesome Product'
+            'name' => 'Awesome Product',
         ]);
-        
+
         $product2 = Product::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Different Item'
+            'name' => 'Different Item',
         ]);
 
         $this->actingAs($this->user);
@@ -106,13 +106,13 @@ class ProductListFeatureTest extends TestCase
         $product1 = Product::factory()->create([
             'user_id' => $this->user->id,
             'name' => 'Product A',
-            'description' => 'This is an awesome product with great features'
+            'description' => 'This is an awesome product with great features',
         ]);
-        
+
         $product2 = Product::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Product B', 
-            'description' => 'This is a different product'
+            'name' => 'Product B',
+            'description' => 'This is a different product',
         ]);
 
         $this->actingAs($this->user);
@@ -130,12 +130,12 @@ class ProductListFeatureTest extends TestCase
     {
         $activeProduct = Product::factory()->create([
             'user_id' => $this->user->id,
-            'is_active' => true
+            'is_active' => true,
         ]);
-        
+
         $inactiveProduct = Product::factory()->create([
             'user_id' => $this->user->id,
-            'is_active' => false
+            'is_active' => false,
         ]);
 
         $this->actingAs($this->user);
@@ -153,12 +153,12 @@ class ProductListFeatureTest extends TestCase
     {
         $activeProduct = Product::factory()->create([
             'user_id' => $this->user->id,
-            'is_active' => true
+            'is_active' => true,
         ]);
-        
+
         $inactiveProduct = Product::factory()->create([
             'user_id' => $this->user->id,
-            'is_active' => false
+            'is_active' => false,
         ]);
 
         $this->actingAs($this->user);
@@ -218,7 +218,7 @@ class ProductListFeatureTest extends TestCase
 
         $component->assertSet('orderBy', 'invoices');
         $component->assertSet('orderAsc', true);
-        
+
         // Verify that products are loaded with invoices_count
         $products = $component->viewData('products');
         $this->assertNotNull($products->first()->invoices_count);
@@ -228,44 +228,44 @@ class ProductListFeatureTest extends TestCase
     public function updating_search_resets_pagination(): void
     {
         $this->actingAs($this->user);
-        
+
         // Create 16 products to have multiple pages
         Product::factory()->count(16)->create(['user_id' => $this->user->id]);
-        
+
         $component = Livewire::test(ProductList::class);
-        
+
         // Set page to 2 manually
         $component->set('page', 2);
         $this->assertEquals(2, $component->get('page'));
-        
+
         // Update search - should trigger the updatingSearch method
         $component->set('search', 'test');
         $this->assertEquals('test', $component->get('search'));
-        
+
         // Note: The page reset behavior with URL attributes may not work in tests
         // but the search should be updated correctly and the method should be called
-    // Let's verify the component still functions after search change
-    $component->assertStatus(200);
+        // Let's verify the component still functions after search change
+        $component->assertStatus(200);
     }
 
     #[Test]
     public function updating_status_resets_pagination(): void
     {
         $this->actingAs($this->user);
-        
+
         // Create 16 products to have multiple pages
         Product::factory()->count(16)->create(['user_id' => $this->user->id]);
-        
+
         $component = Livewire::test(ProductList::class);
-        
+
         // Set page to 2 manually
         $component->set('page', 2);
         $this->assertEquals(2, $component->get('page'));
-        
+
         // Update status - should trigger the updatingStatus method which calls resetPage()
         $component->set('status', 'active');
         $this->assertEquals('active', $component->get('status'));
-        
+
         // Page should be reset to 1 after status change
         // Note: In Livewire testing, the URL attributes behavior might not reset the page automatically
         // but the status should be updated correctly
@@ -276,26 +276,26 @@ class ProductListFeatureTest extends TestCase
     public function reset_filters_clears_all_filters_and_pagination(): void
     {
         $this->actingAs($this->user);
-        
+
         // Create 16 products to have multiple pages
         Product::factory()->count(16)->create(['user_id' => $this->user->id]);
-        
+
         $component = Livewire::test(ProductList::class)
             ->set('search', 'test')
             ->set('status', 'active')
             ->set('page', 2);
-        
+
         // Verify we have filters and page set
         $this->assertEquals('test', $component->get('search'));
         $this->assertEquals('active', $component->get('status'));
-        
+
         // Call resetFilters method
         $component->call('resetFilters');
-        
+
         // Filters should be reset
         $this->assertEquals('', $component->get('search'));
         $this->assertEquals('', $component->get('status'));
-        
+
         // Note: Page reset in URL attributes may not work perfectly in tests,
         // but resetFilters method should be called successfully
     }
@@ -318,13 +318,13 @@ class ProductListFeatureTest extends TestCase
         $this->actingAs($this->user);
         $component = Livewire::test(ProductList::class);
         $component->assertStatus(200);
-        
+
         // Test behavior when not authenticated (Auth::id() returns null)
         auth()->logout();
-        
+
         $component = Livewire::test(ProductList::class);
         $products = $component->viewData('products');
-        
+
         // Should return empty collection when no user authenticated
         $this->assertEquals(0, $products->count());
     }
@@ -372,12 +372,12 @@ class ProductListFeatureTest extends TestCase
     {
         Product::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Matching Product'
+            'name' => 'Matching Product',
         ]);
-        
+
         Product::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Different Product'
+            'name' => 'Different Product',
         ]);
 
         $this->actingAs($this->user);
@@ -423,5 +423,4 @@ class ProductListFeatureTest extends TestCase
         $products = $component->viewData('products');
         $this->assertEquals(2, $products->count());
     }
-
 }

@@ -4,7 +4,6 @@ namespace Tests\Unit\View\Components;
 
 use App\View\Components\Dropdown;
 use Illuminate\View\Component;
-use Illuminate\View\View;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -15,8 +14,8 @@ class DropdownTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->component = new Dropdown();
+
+        $this->component = new Dropdown;
     }
 
     #[Test]
@@ -35,7 +34,7 @@ class DropdownTest extends TestCase
     public function render_method_exists_and_is_public(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));
-        
+
         $reflection = new \ReflectionClass(Dropdown::class);
         $method = $reflection->getMethod('render');
         $this->assertTrue($method->isPublic());
@@ -47,7 +46,7 @@ class DropdownTest extends TestCase
         $reflection = new \ReflectionClass(Dropdown::class);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\View\View', $returnType->getName());
     }
@@ -55,8 +54,8 @@ class DropdownTest extends TestCase
     #[Test]
     public function constructor_sets_default_values_correctly(): void
     {
-        $component = new Dropdown();
-        
+        $component = new Dropdown;
+
         $this->assertEquals('right', $component->align);
         $this->assertEquals(48, $component->width);
         $this->assertEquals('', $component->contentClasses);
@@ -65,8 +64,12 @@ class DropdownTest extends TestCase
     #[Test]
     public function constructor_accepts_custom_values(): void
     {
-        $component = new Dropdown('left', 64, 'custom-class');
-        
+        $component = new Dropdown(
+            'left',
+            64,
+            'custom-class',
+        );
+
         $this->assertEquals('left', $component->align);
         $this->assertEquals(64, $component->width);
         $this->assertEquals('custom-class', $component->contentClasses);
@@ -76,7 +79,7 @@ class DropdownTest extends TestCase
     public function component_has_expected_namespace(): void
     {
         $reflection = new \ReflectionClass(Dropdown::class);
-        
+
         $this->assertEquals('App\View\Components', $reflection->getNamespaceName());
     }
 
@@ -85,11 +88,15 @@ class DropdownTest extends TestCase
     {
         $reflection = new \ReflectionClass(Dropdown::class);
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-        
-        $propertyNames = array_map(fn($prop) => $prop->getName(), $properties);
-        
-        $expectedProperties = ['align', 'width', 'contentClasses'];
-        
+
+        $propertyNames = array_map(fn ($prop) => $prop->getName(), $properties);
+
+        $expectedProperties = [
+            'align',
+            'width',
+            'contentClasses',
+        ];
+
         foreach ($expectedProperties as $property) {
             $this->assertContains($property, $propertyNames);
         }
@@ -101,7 +108,7 @@ class DropdownTest extends TestCase
         $reflection = new \ReflectionClass(Dropdown::class);
         $method = $reflection->getMethod('render');
         $docComment = $method->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('Render the dropdown component', $docComment);
     }
@@ -112,7 +119,7 @@ class DropdownTest extends TestCase
         $reflection = new \ReflectionClass(Dropdown::class);
         $constructor = $reflection->getMethod('__construct');
         $docComment = $constructor->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('@param', $docComment);
     }
@@ -123,14 +130,14 @@ class DropdownTest extends TestCase
         $reflection = new \ReflectionClass(Dropdown::class);
         $constructor = $reflection->getMethod('__construct');
         $parameters = $constructor->getParameters();
-        
+
         $this->assertCount(3, $parameters);
-        
+
         // Check parameter names
         $this->assertEquals('align', $parameters[0]->getName());
         $this->assertEquals('width', $parameters[1]->getName());
         $this->assertEquals('contentClasses', $parameters[2]->getName());
-        
+
         // Check default values
         $this->assertEquals('right', $parameters[0]->getDefaultValue());
         $this->assertEquals(48, $parameters[1]->getDefaultValue());
@@ -142,7 +149,7 @@ class DropdownTest extends TestCase
     {
         $reflection = new \ReflectionClass(Dropdown::class);
         $fileContent = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('use Illuminate\View\Component;', $fileContent);
         $this->assertStringContainsString('use Illuminate\View\View;', $fileContent);
     }
@@ -154,12 +161,12 @@ class DropdownTest extends TestCase
         $alignProperty = $reflection->getProperty('align');
         $widthProperty = $reflection->getProperty('width');
         $contentClassesProperty = $reflection->getProperty('contentClasses');
-        
+
         // Check docblocks exist
         $this->assertNotFalse($alignProperty->getDocComment());
         $this->assertNotFalse($widthProperty->getDocComment());
         $this->assertNotFalse($contentClassesProperty->getDocComment());
-        
+
         // Check docblock content
         $this->assertStringContainsString('@var string', $alignProperty->getDocComment());
         $this->assertStringContainsString('@var int', $widthProperty->getDocComment());

@@ -22,13 +22,16 @@ class InvoiceRequest extends BaseEntityRequest
 
     /**
      * Get the validation rules that apply to the request
-     *
-     * @return array
      */
     public function rules(): array
     {
         return [
-            'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id', 'required_without:name'],
+            'supplier_id' => [
+                'nullable',
+                'integer',
+                'exists:suppliers,id',
+                'required_without:name',
+            ],
             'client_id' => 'required|exists:clients,id',
             'invoice_vs' => 'required|string|max:255',
             'invoice_ks' => 'nullable|string|max:255',

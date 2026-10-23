@@ -3,17 +3,17 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\ClientRequest;
+use App\Models\EntityLimit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
-use App\Models\EntityLimit;
 
 /**
  * Feature test for ClientRequest class.
@@ -21,11 +21,14 @@ use App\Models\EntityLimit;
  */
 class ClientRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $regularUser;
+
     protected UniversalLimitService $limitService;
+
     private User $clientUser;
 
     /**
@@ -66,7 +69,12 @@ class ClientRequestFeatureTest extends TestCase
      */
     private function address(): array
     {
-        return ['street' => 'Main 1', 'city' => 'Prague', 'zip' => '11000', 'country' => 'CZ'];
+        return [
+            'street' => 'Main 1',
+            'city' => 'Prague',
+            'zip' => '11000',
+            'country' => 'CZ',
+        ];
     }
 
     protected function createClientsEntityLimit(): void
@@ -99,7 +107,7 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => $this->clientUser->id,
         ];
 
-        $request = new ClientRequest();
+        $request = new ClientRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -114,7 +122,7 @@ class ClientRequestFeatureTest extends TestCase
             ...$this->address(),
         ];
 
-        $request = new ClientRequest();
+        $request = new ClientRequest;
         $validator = Validator::make($minimalData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -123,7 +131,7 @@ class ClientRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_missing_required_fields(): void
     {
-        $request = new ClientRequest();
+        $request = new ClientRequest;
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -142,7 +150,7 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => $this->clientUser->id,
         ];
 
-        $request = new ClientRequest();
+        $request = new ClientRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -158,7 +166,7 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => $this->clientUser->id,
         ];
 
-        $request = new ClientRequest();
+        $request = new ClientRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -173,7 +181,7 @@ class ClientRequestFeatureTest extends TestCase
             'user_id' => 99999, // Non-existent user
         ];
 
-        $request = new ClientRequest();
+        $request = new ClientRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -206,8 +214,15 @@ class ClientRequestFeatureTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors([
-            'name', 'shortcut', 'street', 'city', 'zip', 'country',
-            'ico', 'dic', 'phone'
+            'name',
+            'shortcut',
+            'street',
+            'city',
+            'zip',
+            'country',
+            'ico',
+            'dic',
+            'phone',
         ]);
     }
 
@@ -452,10 +467,12 @@ class ClientRequestFeatureTest extends TestCase
         $this->actingAs($this->regularUser, 'backpack');
 
         // Reduce existing limit to 1
-        $limit = \App\Models\EntityLimit::where('entity_type','client')
-            ->where('permission_name','can_create_edit_client')
+        $limit = EntityLimit::where('entity_type', 'client')
+            ->where('permission_name', 'can_create_edit_client')
             ->first();
-        if ($limit) { $limit->update(['limit_value' => 1]); }
+        if ($limit) {
+            $limit->update(['limit_value' => 1]);
+        }
 
         // First creation (should pass)
         $this->postJson('/test-client', [
@@ -465,16 +482,28 @@ class ClientRequestFeatureTest extends TestCase
         ])->assertStatus(200);
 
         // Manually record usage because authorize() only checks
-        $this->limitService->recordUsage($this->regularUser->id, 'client', 'count', 'monthly', 'backpack');
+        $this->limitService->recordUsage(
+            $this->regularUser->id,
+            'client',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
         // Second creation should exceed limit via direct authorize() check
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
-        $request = new class extends ClientRequest { public function rules(): array { return []; } };
+        $this->expectException(EntityLimitExceededException::class);
+        $request = new class extends ClientRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
         $request->replace([
             'name' => 'Client Two',
             'user_id' => $this->clientUser->id,
         ]);
-        $request->setRouteResolver(fn() => (object)['parameter'=>fn($n)=> null]);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
         $request->authorize();
     }
@@ -485,21 +514,35 @@ class ClientRequestFeatureTest extends TestCase
         $this->actingAs($this->regularUser, 'backpack');
 
         // Ensure limit is zero to simulate exceeded state
-        $limit = \App\Models\EntityLimit::where('entity_type','client')
-            ->where('permission_name','can_create_edit_client')
+        $limit = EntityLimit::where('entity_type', 'client')
+            ->where('permission_name', 'can_create_edit_client')
             ->first();
-        if ($limit) { $limit->update(['limit_value' => 0]); }
+        if ($limit) {
+            $limit->update(['limit_value' => 0]);
+        }
 
         // Record usage (not strictly needed with limit 0 but keeps pattern consistent)
-        $this->limitService->recordUsage($this->regularUser->id, 'client', 'count', 'monthly', 'backpack');
+        $this->limitService->recordUsage(
+            $this->regularUser->id,
+            'client',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
         // Simulate update request (PUT should bypass limit)
-        $request = new class extends ClientRequest { public function rules(): array { return []; } };
+        $request = new class extends ClientRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
         $request->replace([
             'name' => 'Updated Client',
             'user_id' => $this->clientUser->id,
         ]);
-        $request->setRouteResolver(fn() => (object)['parameter'=>fn($n)=> 'existing-client-id']);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-client-id']);
         $request->setMethod('PUT');
         $this->assertTrue($request->authorize());
     }

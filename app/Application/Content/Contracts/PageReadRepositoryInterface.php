@@ -2,6 +2,7 @@
 
 namespace App\Application\Content\Contracts;
 
+use App\Domain\Content\Contracts\PageDtoReadRepositoryInterface;
 use App\Models\Page;
 use App\Models\PageCategory;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,8 +17,7 @@ use Illuminate\Database\Eloquent\Collection;
  *   This interface can use Eloquent Models and Collections and is used by Application services
  *   for rendering UI (data for forms, blade templates, etc.) and NON-business logic with DB operations.
  *
- * @see \App\Domain\Content\Contracts\PageDtoReadRepositoryInterface
- *
+ * @see PageDtoReadRepositoryInterface
  */
 interface PageReadRepositoryInterface
 {
@@ -34,7 +34,11 @@ interface PageReadRepositoryInterface
     public function findPublishedById(int $id): ?Page;
 
     /** Find published page by slug in any of provided locales (skipping one optionally). */
-    public function findPublishedBySlugInLocales(string $slug, array $locales, ?string $skipLocale = null): ?Page;
+    public function findPublishedBySlugInLocales(
+        string $slug,
+        array $locales,
+        ?string $skipLocale = null,
+    ): ?Page;
 
     /** Get root navigation pages with published children ordered by sort order. */
     public function getRootNavigationPages(): Collection;
@@ -52,7 +56,11 @@ interface PageReadRepositoryInterface
     public function searchPublished(string $keyword, string $locale): Collection;
 
     /** Get related published pages by category excluding one page, limited by parameter. */
-    public function getRelatedByCategory(int $categoryId, int $excludePageId, int $limit): Collection;
+    public function getRelatedByCategory(
+        int $categoryId,
+        int $excludePageId,
+        int $limit,
+    ): Collection;
 
     /** Get all published pages with their category, ordered by sort order and name. */
     public function getAllPublishedWithCategory(): Collection;

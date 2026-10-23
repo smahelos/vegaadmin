@@ -2,19 +2,19 @@
 
 namespace App\Domain\Party\Events;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Party\DTO\ClientDTO;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
  * Domain event fired when a new client is created.
- * 
+ *
  * Triggered by:
  * - InvoicePartyService::resolveOrCreateClient() when creating new client
  * - InvoicePartyService::resolveOrCreateClientWithFlag() when creating new client
- * 
+ *
  * Used for:
  * - Usage limit recording
- * - Audit logging  
+ * - Audit logging
  * - Welcome emails
  * - Analytics tracking
  */
@@ -22,8 +22,6 @@ class ClientCreated implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -35,12 +33,12 @@ class ClientCreated implements DomainEvent
 
     /** Event ID for tracking purposes */
     private readonly string $eventId;
-    
+
     public function __construct(
         private readonly ClientDTO $client,
         ?int $userId = null,
         private readonly array $metadata = [],
-        string $changeType = 'general'
+        string $changeType = 'general',
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
@@ -78,19 +76,19 @@ class ClientCreated implements DomainEvent
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
         return static::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

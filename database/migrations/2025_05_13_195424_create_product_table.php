@@ -16,7 +16,11 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->foreignId('user_id')->constrained();
-            $table->decimal('price', 10, 2);
+            $table->decimal(
+                'price',
+                10,
+                2,
+            );
             $table->foreignId('tax_id')->nullable()->constrained();
             $table->foreignId('category_id')->nullable()->constrained('product_categories');
             $table->text('description')->nullable();

@@ -33,7 +33,11 @@ class AppServiceProviderGuardTest extends TestCase
         // Simplistic heuristic: no binding of */Domain/*/Contracts/* except allowed content override.
         // Match occurrences like \App\Domain\Xxx\Contracts\SomethingInterface::class inside bind calls
         $pattern = '/\\\\App\\\\Domain\\\\[A-Za-z0-9_\\\\]+\\\\Contracts\\\\[A-Za-z0-9_]+Interface::class/';
-        preg_match_all($pattern, $contents, $matches);
+        preg_match_all(
+            $pattern,
+            $contents,
+            $matches,
+        );
 
         $violations = [];
         foreach ($matches[0] as $match) {
@@ -44,11 +48,11 @@ class AppServiceProviderGuardTest extends TestCase
                     break;
                 }
             }
-            if (!$whitelisted) {
+            if (! $whitelisted) {
                 $violations[] = $match;
             }
         }
 
-        $this->assertEmpty($violations, 'AppServiceProvider should not contain domain contract bindings. Found: '.implode(', ', $violations));
+        $this->assertEmpty($violations, 'AppServiceProvider should not contain domain contract bindings. Found: ' . implode(', ', $violations));
     }
 }

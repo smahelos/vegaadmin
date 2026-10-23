@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\Frontend\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\RegistrationRequest;
-use App\Models\User;
-use App\Models\Supplier;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use App\Infrastructure\Forms\User\UserFormFields;
+use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 use App\Application\Payment\Contracts\BankApplicationServiceInterface;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
 use App\Application\Shared\Geography\Contracts\LocaleApplicationServiceInterface;
-use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 use App\Application\User\Contracts\UELSApplicationServiceInterface;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\RegistrationRequest;
+use App\Infrastructure\Forms\User\UserFormFields;
+use App\Models\Supplier;
+use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
 class RegisterController extends Controller
@@ -46,10 +46,10 @@ class RegisterController extends Controller
     protected $localeService;
 
     /**
-    * Party service facade instance
-    *
-    * @var PartyApplicationServiceInterface
-    */
+     * Party service facade instance
+     *
+     * @var PartyApplicationServiceInterface
+     */
     protected $partyService;
 
     /**
@@ -61,19 +61,13 @@ class RegisterController extends Controller
 
     /**
      * Constructor
-     *
-     * @param BankApplicationServiceInterface $bankService
-     * @param CountryApplicationServiceInterface $countryService
-     * @param LocaleApplicationServiceInterface $localeService
-     * @param PartyApplicationServiceInterface $partyService
-     * @param UELSApplicationServiceInterface $uelsService
      */
     public function __construct(
         BankApplicationServiceInterface $bankService,
         CountryApplicationServiceInterface $countryService,
         LocaleApplicationServiceInterface $localeService,
         PartyApplicationServiceInterface $partyService,
-        UELSApplicationServiceInterface $uelsService
+        UELSApplicationServiceInterface $uelsService,
     ) {
         $this->bankService = $bankService;
         $this->countryService = $countryService;
@@ -85,7 +79,7 @@ class RegisterController extends Controller
     /**
      * Show registration form with user fields
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function showRegistrationForm()
     {
@@ -106,15 +100,14 @@ class RegisterController extends Controller
             'passwordFields' => $passwordFields,
             'banks' => $banks,
             'banksData' => $banksData,
-            'countries' => $countries
+            'countries' => $countries,
         ]);
     }
 
     /**
      * Register a new user with related supplier
      *
-     * @param RegistrationRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function register(RegistrationRequest $request)
     {
@@ -151,7 +144,7 @@ class RegisterController extends Controller
                 'iban' => $request->iban,
                 'swift' => $request->swift,
                 'bank_name' => $request->bank_name,
-                'has_payment_info' => (!empty($request->account_number) && !empty($request->bank_code)),
+                'has_payment_info' => (! empty($request->account_number) && ! empty($request->bank_code)),
             ];
 
             $supplier = $this->partyService->resolveOrCreateSupplierWithFlag($user->id, $supplierData);
@@ -170,7 +163,7 @@ class RegisterController extends Controller
             Log::error('Registration error: ' . $e->getMessage(), [
                 'email' => $validatedData['email'] ?? 'unknown',
                 'ip' => $request->ip(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             // If error occurs, try to delete partially created user to avoid data inconsistency

@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\SubscriptionPlan;
+use App\Models\SubscriptionPlanFeature;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SubscriptionPlan>
+ * @extends Factory<SubscriptionPlan>
  */
 class SubscriptionPlanFactory extends Factory
 {
@@ -22,13 +23,21 @@ class SubscriptionPlanFactory extends Factory
      */
     public function definition(): array
     {
-        $plans = ['Basic', 'Professional', 'Enterprise'];
+        $plans = [
+            'Basic',
+            'Professional',
+            'Enterprise',
+        ];
         $periods = ['monthly', 'yearly'];
-        
+
         return [
             'name' => $this->faker->randomElement($plans) . ' Plan',
             'description' => $this->faker->sentence(10),
-            'price' => $this->faker->randomFloat(2, 9.99, 199.99),
+            'price' => $this->faker->randomFloat(
+                2,
+                9.99,
+                199.99,
+            ),
             'currency' => 'EUR',
             'billing_period' => $this->faker->randomElement($periods),
             'billing_interval' => 1,
@@ -87,7 +96,7 @@ class SubscriptionPlanFactory extends Factory
         return $this->afterCreating(function (SubscriptionPlan $plan) {
             // Create 2-4 random features and attach them to the plan
             $featureCount = $this->faker->numberBetween(2, 4);
-            $features = \App\Models\SubscriptionPlanFeature::factory($featureCount)->create();
+            $features = SubscriptionPlanFeature::factory($featureCount)->create();
             $plan->features()->attach($features);
         });
     }

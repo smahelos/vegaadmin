@@ -36,7 +36,7 @@ final class InvoiceObserverFeatureTest extends TestCase
 
         Event::assertDispatched(
             UserDataChanged::class,
-            fn (UserDataChanged $event): bool => $event->userId === (int) $invoice->user_id
+            fn (UserDataChanged $event): bool => $event->userId === (int) $invoice->user_id,
         );
     }
 

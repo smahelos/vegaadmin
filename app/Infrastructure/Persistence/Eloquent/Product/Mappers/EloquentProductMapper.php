@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Persistence\Eloquent\Product\Mappers;
 
 use App\Domain\Product\DTO\ProductDTO;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\Product;
 
 /**
@@ -17,7 +18,11 @@ class EloquentProductMapper
     public function toDto(Product $model): ProductDTO
     {
         $tax = ($model->relationLoaded('tax') && $model->tax)
-            ? ['id' => $model->tax->getAttribute('id'), 'name' => $model->tax->getAttribute('name'), 'rate' => $model->tax->getAttribute('rate')]
+            ? [
+                'id' => $model->tax->getAttribute('id'),
+                'name' => $model->tax->getAttribute('name'),
+                'rate' => $model->tax->getAttribute('rate'),
+            ]
             : null;
         $category = ($model->relationLoaded('category') && $model->category)
             ? ['id' => $model->category->getAttribute('id'), 'name' => $model->category->getAttribute('name')]
@@ -29,7 +34,7 @@ class EloquentProductMapper
         $currency = $model->getAttribute('currency') ?: 'CZK';
         $priceRaw = $model->getAttribute('price');
         $priceMoney = $priceRaw !== null
-            ? \App\Domain\Shared\Money\ValueObjects\Money::fromFloat((float)$priceRaw, strtoupper($currency))
+            ? Money::fromFloat((float) $priceRaw, strtoupper($currency))
             : null;
 
         return ProductDTO::fromArray([
@@ -58,12 +63,12 @@ class EloquentProductMapper
 
     /**
      * Convert array of Eloquent Product models to ProductDTO array.
-     * 
-     * @param Product[] $products
+     *
+     * @param  Product[]  $products
      * @return ProductDTO[]
      */
     public function toDtoArray(array $products): array
     {
-        return array_map(fn(Product $product) => $this->toDto($product), $products);
+        return array_map(fn (Product $product) => $this->toDto($product), $products);
     }
 }

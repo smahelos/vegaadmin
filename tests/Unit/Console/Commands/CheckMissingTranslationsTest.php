@@ -14,7 +14,7 @@ class CheckMissingTranslationsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->command = new CheckMissingTranslations();
+        $this->command = new CheckMissingTranslations;
     }
 
     #[Test]
@@ -29,9 +29,9 @@ class CheckMissingTranslationsTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $signatureProperty = $reflection->getProperty('signature');
         $signatureProperty->setAccessible(true);
-        
+
         $signature = $signatureProperty->getValue($this->command);
-        
+
         $this->assertIsString($signature);
         $this->assertStringContainsString('translations:check', $signature);
         $this->assertStringContainsString('locale=en', $signature);
@@ -44,9 +44,9 @@ class CheckMissingTranslationsTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $descriptionProperty = $reflection->getProperty('description');
         $descriptionProperty->setAccessible(true);
-        
+
         $description = $descriptionProperty->getValue($this->command);
-        
+
         $this->assertIsString($description);
         $this->assertStringContainsString('missing translations', $description);
         $this->assertStringContainsString('locale', $description);
@@ -56,10 +56,10 @@ class CheckMissingTranslationsTest extends TestCase
     public function command_has_handle_method(): void
     {
         $this->assertTrue(method_exists($this->command, 'handle'));
-        
+
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('handle');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -69,7 +69,7 @@ class CheckMissingTranslationsTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('handle');
         $returnType = $method->getReturnType();
-        
+
         // handle() method should return int for console commands
         $this->assertNotNull($returnType);
         $this->assertEquals('int', $returnType->getName());
@@ -79,16 +79,16 @@ class CheckMissingTranslationsTest extends TestCase
     public function command_structure_validation(): void
     {
         $reflection = new \ReflectionClass($this->command);
-        
+
         // Check that class is properly structured
         $this->assertTrue($reflection->hasProperty('signature'));
         $this->assertTrue($reflection->hasProperty('description'));
         $this->assertTrue($reflection->hasMethod('handle'));
-        
+
         // Check properties are protected
         $signatureProperty = $reflection->getProperty('signature');
         $descriptionProperty = $reflection->getProperty('description');
-        
+
         $this->assertTrue($signatureProperty->isProtected());
         $this->assertTrue($descriptionProperty->isProtected());
     }
@@ -98,7 +98,7 @@ class CheckMissingTranslationsTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->command);
         $docComment = $reflection->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('checking missing translations', $docComment);
     }
@@ -109,7 +109,7 @@ class CheckMissingTranslationsTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('handle');
         $docComment = $method->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('@return int', $docComment);
     }

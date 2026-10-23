@@ -2,15 +2,14 @@
 
 namespace Tests\Unit\Domain\Payment\Services;
 
-use App\Domain\Payment\Services\SubscriptionPaymentService;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
+use App\Domain\Payment\Services\SubscriptionPaymentService;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 class SubscriptionPaymentServiceTest extends TestCase
 {
-
     #[Test]
     public function class_implements_interface(): void
     {
@@ -22,7 +21,7 @@ class SubscriptionPaymentServiceTest extends TestCase
     #[Test]
     public function class_namespace_and_structure(): void
     {
-    $r = new ReflectionClass(SubscriptionPaymentService::class);
+        $r = new ReflectionClass(SubscriptionPaymentService::class);
         $this->assertEquals('App\\Domain\\Payment\\Services', $r->getNamespaceName());
         $this->assertTrue($r->isInstantiable());
         $this->assertFalse($r->isAbstract());
@@ -31,7 +30,7 @@ class SubscriptionPaymentServiceTest extends TestCase
     #[Test]
     public function public_method_signatures(): void
     {
-    $r = new ReflectionClass(SubscriptionPaymentService::class);
+        $r = new ReflectionClass(SubscriptionPaymentService::class);
         $expected = [
             'processSubscriptionPayment' => 3,
             'handlePaymentCallback' => 2,
@@ -48,7 +47,11 @@ class SubscriptionPaymentServiceTest extends TestCase
             $this->assertTrue($r->hasMethod($method), "Missing method $method");
             $m = $r->getMethod($method);
             $this->assertTrue($m->isPublic(), "$method should be public");
-            $this->assertCount($paramCount, $m->getParameters(), "$method parameter count mismatch");
+            $this->assertCount(
+                $paramCount,
+                $m->getParameters(),
+                "$method parameter count mismatch",
+            );
             $this->assertNotNull($m->getReturnType(), "$method missing return type");
         }
     }
@@ -72,7 +75,7 @@ class SubscriptionPaymentServiceTest extends TestCase
         $r = new ReflectionClass(SubscriptionPaymentService::class);
         $public = array_filter(
             $r->getMethods(\ReflectionMethod::IS_PUBLIC),
-            fn($m) => $m->getDeclaringClass()->getName() === SubscriptionPaymentService::class && $m->getName() !== '__construct'
+            fn ($m) => $m->getDeclaringClass()->getName() === SubscriptionPaymentService::class && $m->getName() !== '__construct',
         );
         // Current explicitly defined public methods (excluding constructor)
         $expected = [
@@ -88,7 +91,11 @@ class SubscriptionPaymentServiceTest extends TestCase
             'refundSubscriptionPayment',
             'inspectPayment',
         ];
-        $this->assertCount(count($expected), $public, 'Unexpected number of declared public methods');
-        $this->assertEqualsCanonicalizing($expected, array_map(fn($m) => $m->getName(), $public));
+        $this->assertCount(
+            count($expected),
+            $public,
+            'Unexpected number of declared public methods',
+        );
+        $this->assertEqualsCanonicalizing($expected, array_map(fn ($m) => $m->getName(), $public));
     }
 }

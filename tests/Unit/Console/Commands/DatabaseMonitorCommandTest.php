@@ -14,7 +14,7 @@ class DatabaseMonitorCommandTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->command = new DatabaseMonitorCommand();
+        $this->command = new DatabaseMonitorCommand;
     }
 
     #[Test]
@@ -29,9 +29,9 @@ class DatabaseMonitorCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $signatureProperty = $reflection->getProperty('signature');
         $signatureProperty->setAccessible(true);
-        
+
         $signature = $signatureProperty->getValue($this->command);
-        
+
         $this->assertIsString($signature);
         $this->assertStringContainsString('db:monitor', $signature);
     }
@@ -42,9 +42,9 @@ class DatabaseMonitorCommandTest extends TestCase
         $reflection = new \ReflectionClass($this->command);
         $descriptionProperty = $reflection->getProperty('description');
         $descriptionProperty->setAccessible(true);
-        
+
         $description = $descriptionProperty->getValue($this->command);
-        
+
         $this->assertIsString($description);
         $this->assertStringContainsString('database', $description);
         $this->assertStringContainsString('Monitor', $description);
@@ -54,10 +54,10 @@ class DatabaseMonitorCommandTest extends TestCase
     public function command_has_handle_method(): void
     {
         $this->assertTrue(method_exists($this->command, 'handle'));
-        
+
         $reflection = new \ReflectionClass($this->command);
         $method = $reflection->getMethod('handle');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -65,7 +65,7 @@ class DatabaseMonitorCommandTest extends TestCase
     public function command_structure_validation(): void
     {
         $reflection = new \ReflectionClass($this->command);
-        
+
         $this->assertTrue($reflection->hasProperty('signature'));
         $this->assertTrue($reflection->hasProperty('description'));
         $this->assertTrue($reflection->hasMethod('handle'));

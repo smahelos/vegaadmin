@@ -18,6 +18,7 @@ class Tax extends Model
     */
 
     protected $table = 'taxes';
+
     // protected $primaryKey = 'id';
     // public $timestamps = false;
     protected $guarded = ['id'];

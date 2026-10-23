@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class CurrencyControllerFeatureTest extends TestCase
 {
@@ -27,9 +27,13 @@ class CurrencyControllerFeatureTest extends TestCase
     #[Test]
     public function it_returns_all_currencies(): void
     {
-        Http::fake([ 'open.er-api.com/*' => Http::response([
-            'rates' => [ 'USD' => 1, 'CZK' => 22.0, 'EUR' => 0.9 ]
-        ], 200) ]);
+        Http::fake(['open.er-api.com/*' => Http::response([
+            'rates' => [
+                'USD' => 1,
+                'CZK' => 22.0,
+                'EUR' => 0.9,
+            ],
+        ], 200)]);
         Cache::forget('currencies_all');
         $resp = $this->getJson(route('api.currencies.all'));
         $resp->assertOk();
@@ -43,7 +47,11 @@ class CurrencyControllerFeatureTest extends TestCase
     {
         Http::fake(); // cause service to fallback to deterministic exchange service or internal handling
         $resp = $this->getJson(route('api.exchange-rate', ['from' => 'USD', 'to' => 'USD']));
-        $resp->assertOk()->assertJson(['from' => 'USD', 'to' => 'USD', 'rate' => 1.0]);
+        $resp->assertOk()->assertJson([
+            'from' => 'USD',
+            'to' => 'USD',
+            'rate' => 1.0,
+        ]);
     }
 
     #[Test]
@@ -57,7 +65,11 @@ class CurrencyControllerFeatureTest extends TestCase
     public function it_converts_currency_amount(): void
     {
         Http::fake();
-        $resp = $this->getJson(route('api.convert-currency', ['amount' => 100, 'from' => 'USD', 'to' => 'USD']));
+        $resp = $this->getJson(route('api.convert-currency', [
+            'amount' => 100,
+            'from' => 'USD',
+            'to' => 'USD',
+        ]));
         $resp->assertOk();
         // Amount may be int or float depending on service implementation
         $this->assertEquals(100.0, $resp->json('original.amount'));
@@ -67,7 +79,11 @@ class CurrencyControllerFeatureTest extends TestCase
     #[Test]
     public function it_validates_convert_currency_params(): void
     {
-        $resp = $this->getJson(route('api.convert-currency', ['amount' => 100, 'from' => 'US', 'to' => 'EUR']));
+        $resp = $this->getJson(route('api.convert-currency', [
+            'amount' => 100,
+            'from' => 'US',
+            'to' => 'EUR',
+        ]));
         $resp->assertStatus(422);
     }
 }

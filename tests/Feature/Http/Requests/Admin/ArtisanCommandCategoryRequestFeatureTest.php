@@ -14,9 +14,10 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class ArtisanCommandCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
 
     protected User $adminUser;
+
     protected User $regularUser;
 
     protected function setUp(): void
@@ -36,7 +37,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'is_active' => true,
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -47,7 +48,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     {
         $invalidData = [];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -63,7 +64,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'slug' => 'test-category',
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -78,7 +79,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'slug' => str_repeat('a', 256),
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -95,7 +96,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'slug' => 'existing-slug',
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -112,7 +113,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'slug' => 'existing-slug',
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $request->merge(['id' => $category->id]);
 
         $validator = Validator::make($validData, $request->rules());
@@ -126,7 +127,11 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         ArtisanCommandCategory::factory()->create(['slug' => 'taken-slug']);
         $category = ArtisanCommandCategory::factory()->create(['slug' => 'own-slug']);
 
-        $request = ArtisanCommandCategoryRequest::create('/', 'PUT', ['id' => $category->id]);
+        $request = ArtisanCommandCategoryRequest::create(
+            '/',
+            'PUT',
+            ['id' => $category->id],
+        );
         $validator = Validator::make(['name' => 'Updated Category', 'slug' => 'taken-slug'], $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -141,7 +146,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'slug' => 'minimal-category',
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -156,7 +161,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'description' => null,
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -171,7 +176,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'is_active' => 'invalid',
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -193,7 +198,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'is_active' => false,
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
 
         $validator1 = Validator::make($validData1, $request->rules());
         $validator2 = Validator::make($validData2, $request->rules());
@@ -209,21 +214,21 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $this->setUpAdminTestEnvironment();
         $this->actingAs($this->adminUser, 'backpack');
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $this->assertTrue($request->authorize());
     }
 
     #[Test]
     public function authorization_fails_when_not_authenticated()
     {
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $this->assertFalse($request->authorize());
     }
 
     #[Test]
     public function request_has_custom_attributes()
     {
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $attributes = $request->attributes();
 
         $this->assertIsArray($attributes);
@@ -241,7 +246,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'slug' => 'simple-category',
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -256,7 +261,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             'description' => 'Description with special chars !@#$%',
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -270,7 +275,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
             // slug intentionally omitted
         ];
 
-        $request = new ArtisanCommandCategoryRequest();
+        $request = new ArtisanCommandCategoryRequest;
         // Simulate prepareForValidation call
         $reflection = new \ReflectionClass($request);
         $method = $reflection->getMethod('prepareForValidation');

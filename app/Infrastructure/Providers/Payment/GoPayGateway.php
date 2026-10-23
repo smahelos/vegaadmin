@@ -35,10 +35,10 @@ class GoPayGateway implements PaymentGatewayInterface
     public function createPayment(array $paymentData): array
     {
         try {
-            $amount = (float)($paymentData['amount'] ?? 0.0);
-            $currency = (string)($paymentData['currency'] ?? 'CZK');
-            $planName = (string)($paymentData['plan_name'] ?? 'Plan');
-            $orderNumber = (string)($paymentData['order_number'] ?? ($this->generateOrderNumberFromPayload($paymentData)));
+            $amount = (float) ($paymentData['amount'] ?? 0.0);
+            $currency = (string) ($paymentData['currency'] ?? 'CZK');
+            $planName = (string) ($paymentData['plan_name'] ?? 'Plan');
+            $orderNumber = (string) ($paymentData['order_number'] ?? ($this->generateOrderNumberFromPayload($paymentData)));
             $contact = $paymentData['customer_data']['contact'] ?? [
                 'first_name' => $paymentData['customer_data']['first_name'] ?? 'Test',
                 'last_name' => $paymentData['customer_data']['last_name'] ?? 'User',
@@ -56,7 +56,7 @@ class GoPayGateway implements PaymentGatewayInterface
                         'name' => $planName,
                         'amount' => (int) round($amount * 100),
                         'count' => 1,
-                    ]
+                    ],
                 ],
                 'return_url' => $paymentData['return_url'] ?? route('payment.return'),
                 'notify_url' => $paymentData['notify_url'] ?? route('payment.notify'),
@@ -79,6 +79,7 @@ class GoPayGateway implements PaymentGatewayInterface
 
             if ($response->hasSucceed()) {
                 $json = $response->json;
+
                 return [
                     'success' => true,
                     'payment_id' => $json['id'],
@@ -118,8 +119,8 @@ class GoPayGateway implements PaymentGatewayInterface
     {
         try {
             $paymentId = $data['id'] ?? null;
-            
-            if (!$paymentId) {
+
+            if (! $paymentId) {
                 return [
                     'success' => false,
                     'error' => 'Missing payment ID',
@@ -151,7 +152,7 @@ class GoPayGateway implements PaymentGatewayInterface
 
             if ($response->hasSucceed()) {
                 $paymentData = $response->json;
-                
+
                 return [
                     'success' => true,
                     'status' => $this->mapGoPayStatus($paymentData['state']),
@@ -186,6 +187,7 @@ class GoPayGateway implements PaymentGatewayInterface
     {
         try {
             $response = $this->gopay->voidAuthorization($paymentId);
+
             return $response->hasSucceed();
 
         } catch (\Exception $e) {
@@ -201,11 +203,11 @@ class GoPayGateway implements PaymentGatewayInterface
     /**
      * Refund payment
      */
-    public function refundPayment(string $paymentId, float $amount = null): array
+    public function refundPayment(string $paymentId, ?float $amount = null): array
     {
         try {
             $refundData = [];
-            
+
             if ($amount !== null) {
                 $refundData['amount'] = (int) ($amount * 100);
             }
@@ -245,7 +247,7 @@ class GoPayGateway implements PaymentGatewayInterface
     public function getPaymentStatus(string $paymentId): string
     {
         $result = $this->verifyPayment($paymentId);
-        
+
         if ($result['success']) {
             return $result['status'];
         }
@@ -270,9 +272,9 @@ class GoPayGateway implements PaymentGatewayInterface
     public function isAvailable(): bool
     {
         return config('services.gopay.enabled', false) &&
-               !empty(config('services.gopay.goid')) &&
-               !empty(config('services.gopay.client_id')) &&
-               !empty(config('services.gopay.client_secret'));
+               ! empty(config('services.gopay.goid')) &&
+               ! empty(config('services.gopay.client_id')) &&
+               ! empty(config('services.gopay.client_secret'));
     }
 
     /**

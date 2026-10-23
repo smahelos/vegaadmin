@@ -16,8 +16,6 @@ final class FormDataChanged implements DomainEvent
 
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -31,27 +29,26 @@ final class FormDataChanged implements DomainEvent
         int $userId,
         string $changeType = 'general',
         private readonly array $metadata = [],
-    )
-    {
+    ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
         $this->occurredOn = new \DateTimeImmutable('now');
         $this->eventId = uniqid('user_', true);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
-        return static::class;
+        return self::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getPayload(): array
     {
         return [
@@ -61,13 +58,13 @@ final class FormDataChanged implements DomainEvent
         ];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getMetadata(): array
     {
         return $this->metadata;

@@ -2,24 +2,21 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Application\Party\Contracts\PartyApplicationServiceInterface as InvoicePartyServiceInterface;
+use App\Application\Payment\Contracts\BankApplicationServiceInterface as BankServiceInterface;
+use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface as CountryServiceInterface;
+use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Http\Controllers\Frontend\SupplierController;
-use App\Http\Requests\SupplierRequest;
 use App\Models\EntityLimit;
+use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
-use App\Models\Invoice;
-use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface as CountryServiceInterface;
-use App\Application\Payment\Contracts\BankApplicationServiceInterface as BankServiceInterface;
-use App\Application\Party\Contracts\PartyApplicationServiceInterface as InvoicePartyServiceInterface;
-use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
@@ -32,19 +29,20 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class SupplierControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected string $validEmail;
+
     protected array $validSupplierData;
+
     protected string $defaultLocale = 'cs';
 
     /**
      * Helper method to generate routes with locale parameter
      *
-     * @param string $routeName
-     * @param mixed $parameters
-     * @return string
+     * @param  mixed  $parameters
      */
     private function localizedRoute(string $routeName, $parameters = []): string
     {
@@ -65,8 +63,6 @@ class SupplierControllerFeatureTest extends TestCase
     /**
      * Set up the test environment.
      * Creates permissions, roles, test user, and valid test data for supplier operations.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -76,8 +72,8 @@ class SupplierControllerFeatureTest extends TestCase
 
         // Give user specific permission for supplier operations
         $permission = Permission::where('name', 'frontend.can_create_edit_supplier')
-                               ->where('guard_name', 'web')
-                               ->first();
+            ->where('guard_name', 'web')
+            ->first();
         $this->user->givePermissionTo($permission);
 
         // Create entity limit for suppliers
@@ -136,6 +132,7 @@ class SupplierControllerFeatureTest extends TestCase
         $user = User::factory()->create($attributes);
         $frontendRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
         $user->assignRole($frontendRole);
+
         return $user;
     }
 
@@ -215,7 +212,12 @@ class SupplierControllerFeatureTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         $limitService = app(UniversalLimitService::class);
-        $initial = $limitService->checkLimit($this->user->id, 'supplier', 'count', 'monthly');
+        $initial = $limitService->checkLimit(
+            $this->user->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
         $initialUsage = $initial['current_usage'] ?? 0;
 
         $data = $this->validSupplierData;
@@ -226,9 +228,18 @@ class SupplierControllerFeatureTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
-        $after = $limitService->checkLimit($this->user->id, 'supplier', 'count', 'monthly');
+        $after = $limitService->checkLimit(
+            $this->user->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
         $afterUsage = $after['current_usage'] ?? 0;
-        $this->assertEquals($initialUsage + 1, $afterUsage, 'Usage should increment by one for new supplier');
+        $this->assertEquals(
+            $initialUsage + 1,
+            $afterUsage,
+            'Usage should increment by one for new supplier',
+        );
     }
 
     #[Test]
@@ -238,7 +249,12 @@ class SupplierControllerFeatureTest extends TestCase
         $existing = Supplier::factory()->create(['user_id' => $this->user->id]);
 
         $limitService = app(UniversalLimitService::class);
-        $initial = $limitService->checkLimit($this->user->id, 'supplier', 'count', 'monthly');
+        $initial = $limitService->checkLimit(
+            $this->user->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
         $initialUsage = $initial['current_usage'] ?? 0;
 
         $payload = $this->validSupplierData;
@@ -249,9 +265,18 @@ class SupplierControllerFeatureTest extends TestCase
         $response = $this->post(route('frontend.supplier.store', ['locale' => 'cs']), $payload);
         $response->assertRedirect();
 
-        $after = $limitService->checkLimit($this->user->id, 'supplier', 'count', 'monthly');
+        $after = $limitService->checkLimit(
+            $this->user->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
         $afterUsage = $after['current_usage'] ?? 0;
-        $this->assertEquals($initialUsage, $afterUsage, 'Usage should remain when reusing supplier');
+        $this->assertEquals(
+            $initialUsage,
+            $afterUsage,
+            'Usage should remain when reusing supplier',
+        );
     }
 
     /**
@@ -424,7 +449,13 @@ class SupplierControllerFeatureTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.suppliers.edit');
-        $response->assertViewHasAll(['supplier', 'fields', 'banks', 'banksData', 'countries']);
+        $response->assertViewHasAll([
+            'supplier',
+            'fields',
+            'banks',
+            'banksData',
+            'countries',
+        ]);
     }
 
     /**
@@ -712,7 +743,7 @@ class SupplierControllerFeatureTest extends TestCase
             app(BankServiceInterface::class),
             app(CountryServiceInterface::class),
             app(InvoicePartyServiceInterface::class),
-            app(UELSService::class)
+            app(UELSService::class),
         );
 
         $this->assertTrue(method_exists($controller, 'getSupplierFields'));
@@ -777,7 +808,7 @@ class SupplierControllerFeatureTest extends TestCase
 
         // Set supplier limit to 1 for testing
         EntityLimit::where([
-            'entity_type' => 'supplier'
+            'entity_type' => 'supplier',
         ])->update(['limit_value' => 1]);
 
         // First supplier creation - should succeed

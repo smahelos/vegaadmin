@@ -3,36 +3,37 @@
 namespace App\Application\User\Services;
 
 use App\Application\User\Contracts\UserApplicationServiceInterface;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\User\Contracts\UserServiceInterface;
-use App\Domain\User\ValueObjects\UserPassword;
 use App\Domain\User\DTO\UserDTO;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\User\ValueObjects\UserPassword;
+use App\Infrastructure\Persistence\Eloquent\User\Adapters\PaginatorAdapter;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use App\Domain\Shared\Pagination\DTO\PageRequest;
-use App\Domain\Shared\Pagination\DTO\PaginatedResult;
-use App\Infrastructure\Persistence\Eloquent\User\Adapters\PaginatorAdapter;
 
 class UserApplicationService implements UserApplicationServiceInterface
 {
     public function __construct(
         private readonly UserServiceInterface $userService,
-    ) {
-    }
+    ) {}
 
     public function findUserById(int $userId): ?UserDTO
     {
         return $this->userService->findUserById($userId);
     }
 
-    public function getAllUsers():Collection
+    public function getAllUsers(): Collection
     {
         return collect($this->userService->getAllUsers());
     }
 
-    public function searchUsers(?string $term, int $perPage = 10, int $page = 1): LengthAwarePaginator
-    {
+    public function searchUsers(
+        ?string $term,
+        int $perPage = 10,
+        int $page = 1,
+    ): LengthAwarePaginator {
         $result = $this->userService->searchUsers($term, new PageRequest($page, $perPage));
+
         // Convert domain pagination result to Laravel paginator for controllers/UI
         return PaginatorAdapter::toLengthAwarePaginator($result);
     }

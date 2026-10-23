@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\BankRequest;
 use App\Models\Bank;
 use App\Models\EntityLimit;
@@ -12,13 +14,13 @@ use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 
 class BankRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     protected User $adminUser;
+
     private UniversalLimitService $limitService;
 
     protected function setUp(): void
@@ -40,14 +42,16 @@ class BankRequestFeatureTest extends TestCase
 
         Route::post('/test-bank', function (BankRequest $request) {
             $data = $request->validated();
-            $bank = \App\Models\Bank::create($data);
+            $bank = Bank::create($data);
+
             return response()->json(['success' => true, 'id' => $bank->id]);
         })->middleware('web');
 
         Route::put('/test-bank/{id}', function (BankRequest $request, $id) {
             $data = $request->validated();
-            $bank = \App\Models\Bank::findOrFail($id);
+            $bank = Bank::findOrFail($id);
             $bank->update($data);
+
             return response()->json(['success' => true, 'id' => $bank->id]);
         })->middleware('web');
     }
@@ -55,7 +59,7 @@ class BankRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_data(): void
     {
-        $request = new BankRequest();
+        $request = new BankRequest;
         $data = [
             'name' => 'Test Bank',
             'code' => '1234',
@@ -69,7 +73,7 @@ class BankRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_required_fields_missing(): void
     {
-        $request = new BankRequest();
+        $request = new BankRequest;
         $validator = Validator::make([], $request->rules());
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
@@ -81,7 +85,7 @@ class BankRequestFeatureTest extends TestCase
     public function code_must_be_unique(): void
     {
         Bank::factory()->create(['code' => 'EXIST']);
-        $request = new BankRequest();
+        $request = new BankRequest;
         $validator = Validator::make([
             'name' => 'Another',
             'code' => 'EXIST',
@@ -95,7 +99,7 @@ class BankRequestFeatureTest extends TestCase
     public function update_allows_same_code(): void
     {
         $bank = Bank::factory()->create(['code' => 'KEEP']);
-        $request = new BankRequest();
+        $request = new BankRequest;
         $request->merge(['id' => $bank->id]);
         $validator = Validator::make([
             'name' => 'Updated',
@@ -149,12 +153,28 @@ class BankRequestFeatureTest extends TestCase
             'country' => 'CZ',
         ])->assertStatus(200);
         // Record usage manually
-        $this->limitService->recordUsage($this->adminUser->id, 'bank', 'count', 'monthly', 'backpack');
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'bank',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
-        $request = new class extends BankRequest { public function rules(): array { return []; } };
-        $request->replace(['name' => 'Second', 'code' => 'LIM02', 'country' => 'CZ']);
-        $request->setRouteResolver(fn () => (object)['parameter' => fn ($n) => null]);
+        $this->expectException(EntityLimitExceededException::class);
+        $request = new class extends BankRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
+        $request->replace([
+            'name' => 'Second',
+            'code' => 'LIM02',
+            'country' => 'CZ',
+        ]);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
         $this->assertFalse($request->authorize()); // Exception expected before false
     }
@@ -165,11 +185,23 @@ class BankRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         EntityLimit::where('entity_type', 'bank')->update(['limit_value' => 0]);
         // Simulate that usage already at limit
-        $this->limitService->recordUsage($this->adminUser->id, 'bank', 'count', 'monthly', 'backpack');
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'bank',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
-        $request = new class extends BankRequest { public function rules(): array { return []; } };
+        $request = new class extends BankRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
         $request->replace(['name' => 'Updated']);
-        $request->setRouteResolver(fn () => (object)['parameter' => fn ($n) => 99]);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 99]);
         $request->setMethod('PUT');
         $this->assertTrue($request->authorize());
     }
@@ -177,23 +209,30 @@ class BankRequestFeatureTest extends TestCase
     #[Test]
     public function accepts_various_boolean_active_values(): void
     {
-        $values = [true, false, 1, 0, '1', '0'];
-        $base = new BankRequest();
+        $values = [
+            true,
+            false,
+            1,
+            0,
+            '1',
+            '0',
+        ];
+        $base = new BankRequest;
         foreach ($values as $idx => $val) {
             $validator = Validator::make([
-                'name' => 'Bank '. $idx,
-                'code' => 'B'. $idx . 'X'. $idx,
+                'name' => 'Bank ' . $idx,
+                'code' => 'B' . $idx . 'X' . $idx,
                 'country' => 'cz', // lowercase to test normalization
                 'active' => $val,
             ], $base->rules());
-            $this->assertTrue($validator->passes(), 'Active value should pass: '. var_export($val,true));
+            $this->assertTrue($validator->passes(), 'Active value should pass: ' . var_export($val, true));
         }
     }
 
     #[Test]
     public function description_respects_max_length(): void
     {
-        $request = new BankRequest();
+        $request = new BankRequest;
         $valid = Validator::make([
             'name' => 'Desc Bank',
             'code' => 'D123',
@@ -215,7 +254,7 @@ class BankRequestFeatureTest extends TestCase
     #[Test]
     public function country_is_normalized_to_uppercase(): void
     {
-        $this->actingAs($this->adminUser,'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
         $response = $this->postJson('/test-bank', [
             'name' => 'Lower Country',
             'code' => 'LC01',

@@ -2,14 +2,13 @@
 
 namespace Tests\Feature\Domain\Content\Services;
 
+use App\Application\Content\Contracts\PageApplicationServiceInterface as PageServiceInterface;
 use App\Models\Page;
 use App\Models\PageCategory;
-use App\Application\Content\Contracts\PageApplicationServiceInterface as PageServiceInterface;
-use App\Domain\Content\DTO\PageDTO;
-use Illuminate\Support\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class PageServiceFeatureTest extends TestCase
 {
@@ -20,7 +19,7 @@ class PageServiceFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-    $this->pageService = app(PageServiceInterface::class);
+        $this->pageService = app(PageServiceInterface::class);
     }
 
     #[Test]
@@ -33,7 +32,7 @@ class PageServiceFeatureTest extends TestCase
         $page = Page::factory()->published()->create([
             'slug' => ['cs' => 'stranka', 'en' => 'page'],
         ]);
-        
+
         // Should return first published page when no homepage exists
         $homepage = $this->pageService->getHomepage();
         $this->assertNotNull($homepage);
@@ -48,7 +47,7 @@ class PageServiceFeatureTest extends TestCase
         $homepage = $this->pageService->getHomepage();
         $this->assertNotNull($homepage);
         $this->assertEquals($homePage->id, $homepage->id);
-        
+
         // Should respect locale
         $homepage = $this->pageService->getHomepage('en');
         $this->assertNotNull($homepage);
@@ -70,7 +69,7 @@ class PageServiceFeatureTest extends TestCase
         $this->assertNotNull($foundPage);
         $this->assertEquals($page->id, $foundPage->id);
 
-        $foundPage = $this->pageService->getPageBySlug((string)$page->id);
+        $foundPage = $this->pageService->getPageBySlug((string) $page->id);
         $this->assertNotNull($foundPage);
         $this->assertEquals($page->id, $foundPage->id);
 
@@ -81,7 +80,11 @@ class PageServiceFeatureTest extends TestCase
     public function it_can_get_page_by_cross_language_slug()
     {
         $page = Page::factory()->published()->create([
-            'slug' => ['cs' => 'sablony', 'en' => 'templates', 'de' => 'vorlagen'],
+            'slug' => [
+                'cs' => 'sablony',
+                'en' => 'templates',
+                'de' => 'vorlagen',
+            ],
         ]);
 
         $foundPage = $this->pageService->getPageBySlug('sablony', 'cs');
@@ -106,13 +109,13 @@ class PageServiceFeatureTest extends TestCase
         Page::factory()->published()->withParent($rootPage1)->create();
         Page::factory()->draft()->root()->create();
 
-    $navigationPages = $this->pageService->getPagesForNavigation();
-        
-    $this->assertInstanceOf(Collection::class, $navigationPages);
-    $this->assertCount(2, $navigationPages);
-    $this->assertTrue($navigationPages->pluck('id')->contains($rootPage1->id));
-    $this->assertTrue($navigationPages->pluck('id')->contains($rootPage2->id));
-    $firstPage = $navigationPages->firstWhere('id', $rootPage1->id);
+        $navigationPages = $this->pageService->getPagesForNavigation();
+
+        $this->assertInstanceOf(Collection::class, $navigationPages);
+        $this->assertCount(2, $navigationPages);
+        $this->assertTrue($navigationPages->pluck('id')->contains($rootPage1->id));
+        $this->assertTrue($navigationPages->pluck('id')->contains($rootPage2->id));
+        $firstPage = $navigationPages->firstWhere('id', $rootPage1->id);
         $this->assertCount(2, $firstPage->children);
     }
 
@@ -124,13 +127,13 @@ class PageServiceFeatureTest extends TestCase
         $page2 = Page::factory()->published()->inCategory($category)->create();
         $otherCategory = PageCategory::factory()->create();
         Page::factory()->published()->inCategory($otherCategory)->create();
-        
-    $categoryPages = $this->pageService->getPagesByCategory($category->id);
-        
-    $this->assertInstanceOf(Collection::class, $categoryPages);
-    $this->assertCount(2, $categoryPages);
-    $this->assertTrue($categoryPages->pluck('id')->contains($page1->id));
-    $this->assertTrue($categoryPages->pluck('id')->contains($page2->id));
+
+        $categoryPages = $this->pageService->getPagesByCategory($category->id);
+
+        $this->assertInstanceOf(Collection::class, $categoryPages);
+        $this->assertCount(2, $categoryPages);
+        $this->assertTrue($categoryPages->pluck('id')->contains($page1->id));
+        $this->assertTrue($categoryPages->pluck('id')->contains($page2->id));
     }
 
     #[Test]
@@ -144,16 +147,16 @@ class PageServiceFeatureTest extends TestCase
             'name' => ['cs' => 'Jiná stránka', 'en' => 'Another page'],
             'content' => ['cs' => 'Toto je jiný obsah', 'en' => 'This is different content'],
         ]);
-        
-    $searchResults = $this->pageService->searchPages('testovací', 'cs');
-    $this->assertCount(1, $searchResults);
-    $this->assertTrue($searchResults->pluck('id')->contains($page1->id));
-    $this->assertFalse($searchResults->pluck('id')->contains($page2->id));
-        
-    $searchResults = $this->pageService->searchPages('test', 'en');
-    $this->assertCount(1, $searchResults);
-    $this->assertTrue($searchResults->pluck('id')->contains($page1->id));
-        
+
+        $searchResults = $this->pageService->searchPages('testovací', 'cs');
+        $this->assertCount(1, $searchResults);
+        $this->assertTrue($searchResults->pluck('id')->contains($page1->id));
+        $this->assertFalse($searchResults->pluck('id')->contains($page2->id));
+
+        $searchResults = $this->pageService->searchPages('test', 'en');
+        $this->assertCount(1, $searchResults);
+        $this->assertTrue($searchResults->pluck('id')->contains($page1->id));
+
         $searchResults = $this->pageService->searchPages('obsah', 'cs');
         $this->assertCount(2, $searchResults);
     }
@@ -173,7 +176,7 @@ class PageServiceFeatureTest extends TestCase
             'name' => ['cs' => 'Koncová stránka', 'en' => 'Leaf page'],
             'slug' => ['cs' => 'koncova', 'en' => 'leaf'],
         ]);
-    $breadcrumbs = $this->pageService->getBreadcrumbs($this->pageService->getPageBySlug((string)$leafPage->id));
+        $breadcrumbs = $this->pageService->getBreadcrumbs($this->pageService->getPageBySlug((string) $leafPage->id));
         $this->assertIsArray($breadcrumbs);
         $this->assertGreaterThanOrEqual(2, count($breadcrumbs));
         $this->assertEquals($rootPage->getName(), $breadcrumbs[0]['name']);
@@ -190,19 +193,19 @@ class PageServiceFeatureTest extends TestCase
         $relatedPage3 = Page::factory()->published()->inCategory($category)->create();
         $otherCategory = PageCategory::factory()->create();
         Page::factory()->published()->inCategory($otherCategory)->create();
-    $relatedPages = $this->pageService->getRelatedPages($this->pageService->getPageBySlug((string)$mainPage->id));
-    $this->assertInstanceOf(Collection::class, $relatedPages);
-    $this->assertCount(3, $relatedPages);
-    $this->assertFalse($relatedPages->pluck('id')->contains($mainPage->id));
-    $limitedRelatedPages = $this->pageService->getRelatedPages($this->pageService->getPageBySlug((string)$mainPage->id), 2);
+        $relatedPages = $this->pageService->getRelatedPages($this->pageService->getPageBySlug((string) $mainPage->id));
+        $this->assertInstanceOf(Collection::class, $relatedPages);
+        $this->assertCount(3, $relatedPages);
+        $this->assertFalse($relatedPages->pluck('id')->contains($mainPage->id));
+        $limitedRelatedPages = $this->pageService->getRelatedPages($this->pageService->getPageBySlug((string) $mainPage->id), 2);
         $this->assertCount(2, $limitedRelatedPages);
     }
 
     #[Test]
     public function it_returns_empty_collection_for_page_without_category()
     {
-    $page = Page::factory()->published()->create(['category_id' => null]);
-    $relatedPages = $this->pageService->getRelatedPages($this->pageService->getPageBySlug((string)$page->id));
+        $page = Page::factory()->published()->create(['category_id' => null]);
+        $relatedPages = $this->pageService->getRelatedPages($this->pageService->getPageBySlug((string) $page->id));
         $this->assertInstanceOf(Collection::class, $relatedPages);
         $this->assertTrue($relatedPages->isEmpty());
     }

@@ -14,7 +14,10 @@ class EloquentPaymentReadRepository implements PaymentReadRepositoryInterface
 
     public function findByGatewayPaymentId(?string $gatewayPaymentId): ?Payment
     {
-        if (!$gatewayPaymentId) return null;
+        if (! $gatewayPaymentId) {
+            return null;
+        }
+
         return Payment::where('gateway_payment_id', $gatewayPaymentId)->first();
     }
 

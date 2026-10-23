@@ -13,11 +13,11 @@ class RequireBackpackAccessTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RequireBackpackAccess();
+        $this->middleware = new RequireBackpackAccess;
     }
 
     #[Test]
-    public function respondToUnauthorizedRequest_method_exists(): void
+    public function respond_to_unauthorized_request_method_exists(): void
     {
         $ref = new \ReflectionClass($this->middleware);
         $this->assertTrue($ref->hasMethod('handle'));

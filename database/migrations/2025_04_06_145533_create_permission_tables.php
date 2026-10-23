@@ -18,10 +18,10 @@ return new class extends Migration
         $pivotPermission = $columnNames['permission_pivot_key'] ?? 'permission_id';
 
         if (empty($tableNames)) {
-            throw new \Exception('Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.');
+            throw new Exception('Error: config/permission.php not loaded. Run [php artisan config:clear] and try again.');
         }
         if ($teams && empty($columnNames['team_foreign_key'] ?? null)) {
-            throw new \Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
+            throw new Exception('Error: team_foreign_key on config/permission.php not loaded. Run [php artisan config:clear] and try again.');
         }
 
         Schema::create($tableNames['permissions'], static function (Blueprint $table) {
@@ -45,7 +45,11 @@ return new class extends Migration
             $table->string('guard_name'); // For MyISAM use string('guard_name', 25);
             $table->timestamps();
             if ($teams || config('permission.testing')) {
-                $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
+                $table->unique([
+                    $columnNames['team_foreign_key'],
+                    'name',
+                    'guard_name',
+                ]);
             } else {
                 $table->unique(['name', 'guard_name']);
             }
@@ -66,10 +70,19 @@ return new class extends Migration
                 $table->unsignedBigInteger($columnNames['team_foreign_key']);
                 $table->index($columnNames['team_foreign_key'], 'model_has_permissions_team_foreign_key_index');
 
-                $table->primary([$columnNames['team_foreign_key'], $pivotPermission, $columnNames['model_morph_key'], 'model_type'],
+                $table->primary([
+                    $columnNames['team_foreign_key'],
+                    $pivotPermission,
+                    $columnNames['model_morph_key'],
+                    'model_type',
+                ],
                     'model_has_permissions_permission_model_type_primary');
             } else {
-                $table->primary([$pivotPermission, $columnNames['model_morph_key'], 'model_type'],
+                $table->primary([
+                    $pivotPermission,
+                    $columnNames['model_morph_key'],
+                    'model_type',
+                ],
                     'model_has_permissions_permission_model_type_primary');
             }
 
@@ -90,10 +103,19 @@ return new class extends Migration
                 $table->unsignedBigInteger($columnNames['team_foreign_key']);
                 $table->index($columnNames['team_foreign_key'], 'model_has_roles_team_foreign_key_index');
 
-                $table->primary([$columnNames['team_foreign_key'], $pivotRole, $columnNames['model_morph_key'], 'model_type'],
+                $table->primary([
+                    $columnNames['team_foreign_key'],
+                    $pivotRole,
+                    $columnNames['model_morph_key'],
+                    'model_type',
+                ],
                     'model_has_roles_role_model_type_primary');
             } else {
-                $table->primary([$pivotRole, $columnNames['model_morph_key'], 'model_type'],
+                $table->primary([
+                    $pivotRole,
+                    $columnNames['model_morph_key'],
+                    'model_type',
+                ],
                     'model_has_roles_role_model_type_primary');
             }
         });
@@ -131,7 +153,7 @@ return new class extends Migration
         $tableNames = config('permission.table_names');
 
         if (empty($tableNames)) {
-            throw new \Exception('Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.');
+            throw new Exception('Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.');
         }
 
         Schema::drop($tableNames['role_has_permissions']);

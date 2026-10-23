@@ -3,13 +3,13 @@
 namespace App\Application\Product\Contracts;
 
 use App\Domain\Product\DTO\ProductDTO;
-use Illuminate\Support\Collection;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 
 interface ProductApplicationServiceInterface
 {
-    
     /**
      * Get form data needed for product create/edit screens.
      */
@@ -23,7 +23,11 @@ interface ProductApplicationServiceInterface
     /**
      * Update product.
      */
-    public function updateProduct(int $productId, array $data, int $userId): ProductDTO;
+    public function updateProduct(
+        int $productId,
+        array $data,
+        int $userId,
+    ): ProductDTO;
 
     /**
      * Delete the given product.
@@ -58,7 +62,7 @@ interface ProductApplicationServiceInterface
     /**
      * Handle product image upload and processing.
      */
-    public function handleProductImage(\Illuminate\Http\UploadedFile|string|null $image, ?string $oldImage = null): ?string;
+    public function handleProductImage(UploadedFile|string|null $image, ?string $oldImage = null): ?string;
 
     /**
      * Generate slug from name

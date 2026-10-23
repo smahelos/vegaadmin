@@ -2,9 +2,13 @@
 
 namespace Tests\Unit\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Frontend\PageController;
 use App\Application\Content\Contracts\PageApplicationServiceInterface;
+use App\Http\Controllers\Frontend\PageController;
 use App\Models\Page;
+use App\Models\PageCategory;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -17,20 +21,65 @@ class PageControllerTest extends TestCase
     {
         parent::setUp();
         // Simple stub implementing only methods used
-        $this->pageAppServiceStub = new class implements PageApplicationServiceInterface {
-            public function getHomepage(?string $locale = null): ?Page { return null; }
-            public function getPageBySlug(string $slug, ?string $locale = null): ?Page { return null; }
-            public function getPagesForNavigation(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPagesByCategory(int $categoryId): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPageContentById(int $pageId): ?Page { return null; }
-            public function getCategoriesWithPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function searchPages(string $keyword, ?string $locale = null): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getBreadcrumbs(Page $page): array { return []; }
-            public function getRelatedPages(Page $page, int $limit = 5): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getAllPublishedPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getCategoryBySlug(string $slug, ?string $locale = null): ?\App\Models\PageCategory { return null; }
+        $this->pageAppServiceStub = new class implements PageApplicationServiceInterface
+        {
+            public function getHomepage(?string $locale = null): ?Page
+            {
+                return null;
+            }
+
+            public function getPageBySlug(string $slug, ?string $locale = null): ?Page
+            {
+                return null;
+            }
+
+            public function getPagesForNavigation(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPagesByCategory(int $categoryId): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPageContentById(int $pageId): ?Page
+            {
+                return null;
+            }
+
+            public function getCategoriesWithPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function searchPages(string $keyword, ?string $locale = null): Collection
+            {
+                return new Collection;
+            }
+
+            public function getBreadcrumbs(Page $page): array
+            {
+                return [];
+            }
+
+            public function getRelatedPages(Page $page, int $limit = 5): Collection
+            {
+                return new Collection;
+            }
+
+            public function getAllPublishedPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getCategoryBySlug(string $slug, ?string $locale = null): ?PageCategory
+            {
+                return null;
+            }
         };
     }
+
     #[Test]
     public function constructor_has_one_parameter(): void
     {
@@ -45,18 +94,62 @@ class PageControllerTest extends TestCase
     #[Test]
     public function homepage_returns_empty_view_when_no_page(): void
     {
-        $service = new class implements PageApplicationServiceInterface {
-            public function getHomepage(?string $locale = null): ?Page { return null; }
-            public function getPageBySlug(string $slug, ?string $locale = null): ?Page { return null; }
-            public function getPagesForNavigation(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPagesByCategory(int $categoryId): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPageContentById(int $pageId): ?Page { return null; }
-            public function getCategoriesWithPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function searchPages(string $keyword, ?string $locale = null): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getBreadcrumbs(Page $page): array { return []; }
-            public function getRelatedPages(Page $page, int $limit = 5): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getAllPublishedPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getCategoryBySlug(string $slug, ?string $locale = null): ?\App\Models\PageCategory { return null; }
+        $service = new class implements PageApplicationServiceInterface
+        {
+            public function getHomepage(?string $locale = null): ?Page
+            {
+                return null;
+            }
+
+            public function getPageBySlug(string $slug, ?string $locale = null): ?Page
+            {
+                return null;
+            }
+
+            public function getPagesForNavigation(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPagesByCategory(int $categoryId): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPageContentById(int $pageId): ?Page
+            {
+                return null;
+            }
+
+            public function getCategoriesWithPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function searchPages(string $keyword, ?string $locale = null): Collection
+            {
+                return new Collection;
+            }
+
+            public function getBreadcrumbs(Page $page): array
+            {
+                return [];
+            }
+
+            public function getRelatedPages(Page $page, int $limit = 5): Collection
+            {
+                return new Collection;
+            }
+
+            public function getAllPublishedPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getCategoryBySlug(string $slug, ?string $locale = null): ?PageCategory
+            {
+                return null;
+            }
         };
         $controller = new PageController($service);
         $view = $controller->homepage();
@@ -79,47 +172,137 @@ class PageControllerTest extends TestCase
     #[Test]
     public function show_redirects_when_slug_mismatch(): void
     {
-        $page = new Page();
+        $page = new Page;
         $page->slug = ['cs' => 'spravny', 'en' => 'correct'];
-        $service = new class($page) implements PageApplicationServiceInterface {
+        $service = new class($page) implements PageApplicationServiceInterface
+        {
             public function __construct(private Page $page) {}
-            public function getHomepage(?string $locale = null): ?Page { return null; }
-            public function getPageBySlug(string $slug, ?string $locale = null): ?Page { return $this->page; }
-            public function getPagesForNavigation(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPagesByCategory(int $categoryId): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPageContentById(int $pageId): ?Page { return null; }
-            public function getCategoriesWithPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function searchPages(string $keyword, ?string $locale = null): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getBreadcrumbs(Page $page): array { return []; }
-            public function getRelatedPages(Page $page, int $limit = 5): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getAllPublishedPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getCategoryBySlug(string $slug, ?string $locale = null): ?\App\Models\PageCategory { return null; }
+
+            public function getHomepage(?string $locale = null): ?Page
+            {
+                return null;
+            }
+
+            public function getPageBySlug(string $slug, ?string $locale = null): ?Page
+            {
+                return $this->page;
+            }
+
+            public function getPagesForNavigation(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPagesByCategory(int $categoryId): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPageContentById(int $pageId): ?Page
+            {
+                return null;
+            }
+
+            public function getCategoriesWithPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function searchPages(string $keyword, ?string $locale = null): Collection
+            {
+                return new Collection;
+            }
+
+            public function getBreadcrumbs(Page $page): array
+            {
+                return [];
+            }
+
+            public function getRelatedPages(Page $page, int $limit = 5): Collection
+            {
+                return new Collection;
+            }
+
+            public function getAllPublishedPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getCategoryBySlug(string $slug, ?string $locale = null): ?PageCategory
+            {
+                return null;
+            }
         };
         $controller = new PageController($service);
         // Simulate mismatch: request slug 'neco' but localized is 'spravny'
         $response = $controller->show('cs', 'neco');
-        $this->assertInstanceOf(\Illuminate\Http\RedirectResponse::class, $response);
+        $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertStringEndsWith('/cs/pages/spravny', $response->getTargetUrl());
     }
 
     #[Test]
     public function show_returns_view_when_slug_matches(): void
     {
-        $page = new Page();
+        $page = new Page;
         $page->slug = ['cs' => 'shoda'];
-        $service = new class($page) implements PageApplicationServiceInterface {
+        $service = new class($page) implements PageApplicationServiceInterface
+        {
             public function __construct(private Page $page) {}
-            public function getHomepage(?string $locale = null): ?Page { return null; }
-            public function getPageBySlug(string $slug, ?string $locale = null): ?Page { return $this->page; }
-            public function getPagesForNavigation(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPagesByCategory(int $categoryId): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPageContentById(int $pageId): ?Page { return null; }
-            public function getCategoriesWithPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function searchPages(string $keyword, ?string $locale = null): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getBreadcrumbs(Page $page): array { return [['name' => 'root', 'slug' => 'root']]; }
-            public function getRelatedPages(Page $page, int $limit = 5): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getAllPublishedPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getCategoryBySlug(string $slug, ?string $locale = null): ?\App\Models\PageCategory { return null; }
+
+            public function getHomepage(?string $locale = null): ?Page
+            {
+                return null;
+            }
+
+            public function getPageBySlug(string $slug, ?string $locale = null): ?Page
+            {
+                return $this->page;
+            }
+
+            public function getPagesForNavigation(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPagesByCategory(int $categoryId): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPageContentById(int $pageId): ?Page
+            {
+                return null;
+            }
+
+            public function getCategoriesWithPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function searchPages(string $keyword, ?string $locale = null): Collection
+            {
+                return new Collection;
+            }
+
+            public function getBreadcrumbs(Page $page): array
+            {
+                return [['name' => 'root', 'slug' => 'root']];
+            }
+
+            public function getRelatedPages(Page $page, int $limit = 5): Collection
+            {
+                return new Collection;
+            }
+
+            public function getAllPublishedPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getCategoryBySlug(string $slug, ?string $locale = null): ?PageCategory
+            {
+                return null;
+            }
         };
         $controller = new PageController($service);
         $viewOrRedirect = $controller->show('cs', 'shoda');
@@ -136,7 +319,7 @@ class PageControllerTest extends TestCase
     public function search_returns_empty_collection_when_keyword_too_short(): void
     {
         $controller = new PageController($this->pageAppServiceStub);
-        $request = new \Illuminate\Http\Request(['q' => 'ab']);
+        $request = new Request(['q' => 'ab']);
         $view = $controller->search($request, 'cs');
         $this->assertEquals('frontend.pages.search', $view->name());
         $this->assertCount(0, $view->getData()['pages']);
@@ -145,24 +328,69 @@ class PageControllerTest extends TestCase
     #[Test]
     public function search_returns_results_when_keyword_long_enough(): void
     {
-        $page = new Page();
+        $page = new Page;
         $page->slug = ['cs' => 'test'];
-        $service = new class($page) implements PageApplicationServiceInterface {
+        $service = new class($page) implements PageApplicationServiceInterface
+        {
             public function __construct(private Page $p) {}
-            public function getHomepage(?string $locale = null): ?Page { return null; }
-            public function getPageBySlug(string $slug, ?string $locale = null): ?Page { return null; }
-            public function getPagesForNavigation(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPagesByCategory(int $categoryId): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getPageContentById(int $pageId): ?Page { return null; }
-            public function getCategoriesWithPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function searchPages(string $keyword, ?string $locale = null): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection([$this->p]); }
-            public function getBreadcrumbs(Page $page): array { return []; }
-            public function getRelatedPages(Page $page, int $limit = 5): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getAllPublishedPages(): \Illuminate\Database\Eloquent\Collection { return new \Illuminate\Database\Eloquent\Collection(); }
-            public function getCategoryBySlug(string $slug, ?string $locale = null): ?\App\Models\PageCategory { return null; }
+
+            public function getHomepage(?string $locale = null): ?Page
+            {
+                return null;
+            }
+
+            public function getPageBySlug(string $slug, ?string $locale = null): ?Page
+            {
+                return null;
+            }
+
+            public function getPagesForNavigation(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPagesByCategory(int $categoryId): Collection
+            {
+                return new Collection;
+            }
+
+            public function getPageContentById(int $pageId): ?Page
+            {
+                return null;
+            }
+
+            public function getCategoriesWithPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function searchPages(string $keyword, ?string $locale = null): Collection
+            {
+                return new Collection([$this->p]);
+            }
+
+            public function getBreadcrumbs(Page $page): array
+            {
+                return [];
+            }
+
+            public function getRelatedPages(Page $page, int $limit = 5): Collection
+            {
+                return new Collection;
+            }
+
+            public function getAllPublishedPages(): Collection
+            {
+                return new Collection;
+            }
+
+            public function getCategoryBySlug(string $slug, ?string $locale = null): ?PageCategory
+            {
+                return null;
+            }
         };
         $controller = new PageController($service);
-        $request = new \Illuminate\Http\Request(['q' => 'abcd']);
+        $request = new Request(['q' => 'abcd']);
         $view = $controller->search($request, 'cs');
         $this->assertEquals('frontend.pages.search', $view->name());
         $this->assertCount(1, $view->getData()['pages']);

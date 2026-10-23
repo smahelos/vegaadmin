@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class CountryControllerFeatureTest extends TestCase
 {
@@ -23,7 +23,11 @@ class CountryControllerFeatureTest extends TestCase
         $data = $response->json();
         $this->assertIsArray($data);
         $this->assertArrayHasKey('CZ', $data); // fallback list present
-        $this->assertEquals(['code','name','flag'], array_keys($data['CZ']));
+        $this->assertEquals([
+            'code',
+            'name',
+            'flag',
+        ], array_keys($data['CZ']));
     }
 
     #[Test]
@@ -31,8 +35,12 @@ class CountryControllerFeatureTest extends TestCase
     {
         Http::fake([
             'restcountries.com/*' => Http::response([
-                [ 'cca2' => 'CZ', 'name' => ['common' => 'Czech Republic'], 'flag' => '\u{1F1E8}\u{1F1FF}' ]
-            ], 200)
+                [
+                    'cca2' => 'CZ',
+                    'name' => ['common' => 'Czech Republic'],
+                    'flag' => '\u{1F1E8}\u{1F1FF}',
+                ],
+            ], 200),
         ]);
         Cache::forget('country_CZ');
 
@@ -44,7 +52,7 @@ class CountryControllerFeatureTest extends TestCase
     #[Test]
     public function it_returns_404_for_unknown_country_code(): void
     {
-        Http::fake([ 'restcountries.com/*' => Http::response([], 404) ]);
+        Http::fake(['restcountries.com/*' => Http::response([], 404)]);
         Cache::forget('country_XX');
         $resp = $this->getJson(route('api.country', ['code' => 'XX']));
         $resp->assertStatus(404)->assertJson(['message' => 'Country not found']);

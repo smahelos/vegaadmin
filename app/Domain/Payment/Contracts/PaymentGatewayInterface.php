@@ -30,7 +30,7 @@ interface PaymentGatewayInterface
     /**
      * Refund payment
      */
-    public function refundPayment(string $paymentId, float $amount = null): array;
+    public function refundPayment(string $paymentId, ?float $amount = null): array;
 
     /**
      * Get payment status

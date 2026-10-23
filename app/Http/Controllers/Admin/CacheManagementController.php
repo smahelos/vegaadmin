@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Prologue\Alerts\Facades\Alert;
@@ -80,7 +79,7 @@ class CacheManagementController extends Controller
             Artisan::call('config:clear');
             Artisan::call('view:clear');
             Artisan::call('route:clear');
-            
+
             Alert::success(__('admin.cache.all_cleared_success'))->flash();
         } catch (\Exception $e) {
             Alert::error(__('admin.cache.all_cleared_error', ['error' => $e->getMessage()]))->flash();

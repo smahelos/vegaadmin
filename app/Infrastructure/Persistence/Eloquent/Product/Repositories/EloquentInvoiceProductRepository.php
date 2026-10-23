@@ -15,7 +15,7 @@ class EloquentInvoiceProductRepository implements InvoiceProductReadRepositoryIn
 
     public function allForInvoice(int $invoiceId): array
     {
-        return InvoiceProduct::where('invoice_id',$invoiceId)
+        return InvoiceProduct::where('invoice_id', $invoiceId)
             ->with(relations: ['product'])
             ->get()
             ->toArray();

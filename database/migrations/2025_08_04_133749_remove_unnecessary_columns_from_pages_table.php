@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,17 +13,22 @@ return new class extends Migration
     {
         Schema::table('pages', function (Blueprint $table) {
             // Check which columns exist before dropping them
-            $columnsToCheck = ['featured', 'show_in_menu', 'show_in_footer', 'page_data'];
+            $columnsToCheck = [
+                'featured',
+                'show_in_menu',
+                'show_in_footer',
+                'page_data',
+            ];
             $existingColumns = [];
-            
+
             foreach ($columnsToCheck as $column) {
                 if (Schema::hasColumn('pages', $column)) {
                     $existingColumns[] = $column;
                 }
             }
-            
+
             // Drop only existing columns
-            if (!empty($existingColumns)) {
+            if (! empty($existingColumns)) {
                 $table->dropColumn($existingColumns);
             }
         });

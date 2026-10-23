@@ -2,20 +2,18 @@
 
 namespace Tests\Feature\Traits;
 
+use App\Infrastructure\Forms\Invoice\InvoiceFormFields;
 use App\Models\Client;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
-use App\Domain\Shared\Geography\Services\CountryService;
-use App\Infrastructure\Forms\Invoice\InvoiceFormFields;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class InvoiceFormFieldsFeatureTest extends TestCase
 {
-    use RefreshDatabase, InvoiceFormFields;
+    use InvoiceFormFields, RefreshDatabase;
 
     #[Test]
     public function get_invoice_fields_integrates_with_country_service(): void
@@ -52,7 +50,13 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $currencies = ['EUR' => 'EUR', 'USD' => 'USD'];
 
         // Act
-        $result = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses, $currencies);
+        $result = $this->getInvoiceFields(
+            $clients,
+            $suppliers,
+            $paymentMethods,
+            $statuses,
+            $currencies,
+        );
 
         // Assert
         $this->assertIsArray($result);
@@ -231,7 +235,7 @@ class InvoiceFormFieldsFeatureTest extends TestCase
             [1 => 'Supplier 1'],
             [1 => 'Cash'],
             [1 => 'Paid'],
-            ['EUR' => 'EUR']
+            ['EUR' => 'EUR'],
         ];
 
         // Act

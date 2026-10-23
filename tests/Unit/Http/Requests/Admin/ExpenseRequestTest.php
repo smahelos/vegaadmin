@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Http\Requests\Admin;
 
-use App\Http\Requests\Admin\ExpenseRequest;
 use App\Http\Requests\Admin\BaseEntityRequest;
+use App\Http\Requests\Admin\ExpenseRequest;
 use Illuminate\Foundation\Http\FormRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +18,7 @@ class ExpenseRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new ExpenseRequest();
+        $this->request = new ExpenseRequest;
     }
 
     #[Test]
@@ -46,7 +46,12 @@ class ExpenseRequestTest extends TestCase
     #[Test]
     public function has_required_methods(): void
     {
-        $requiredMethods = ['rules', 'attributes', 'messages', 'prepareForValidation'];
+        $requiredMethods = [
+            'rules',
+            'attributes',
+            'messages',
+            'prepareForValidation',
+        ];
         foreach ($requiredMethods as $method) {
             $this->assertTrue(method_exists($this->request, $method), "Method {$method} does not exist in Admin\\ExpenseRequest class");
         }
@@ -56,7 +61,12 @@ class ExpenseRequestTest extends TestCase
     public function all_public_methods_are_public(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        $methods = ['rules', 'attributes', 'messages', 'prepareForValidation'];
+        $methods = [
+            'rules',
+            'attributes',
+            'messages',
+            'prepareForValidation',
+        ];
         foreach ($methods as $methodName) {
             $method = $reflection->getMethod($methodName);
             $this->assertTrue($method->isPublic(), "Method {$methodName} should be public");

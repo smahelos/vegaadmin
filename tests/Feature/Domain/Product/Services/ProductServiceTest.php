@@ -4,10 +4,10 @@ namespace Tests\Feature\Domain\Product\Services;
 
 use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Domain\Product\DTO\ProductDTO;
-use App\Models\Product;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\User\ValueObjects\UserId;
+use App\Models\Product;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -18,12 +18,13 @@ class ProductServiceTest extends TestCase
     use RefreshDatabaseWithData;
 
     private ProductServiceInterface $productService;
+
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->productService = $this->app->make(ProductServiceInterface::class);
         $this->user = User::factory()->create();
     }
@@ -34,7 +35,7 @@ class ProductServiceTest extends TestCase
         $productData = new ProductWriteData(
             name: 'Test Product',
             price: 99.99,
-            description: 'Test description'
+            description: 'Test description',
         );
 
         $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
@@ -51,7 +52,7 @@ class ProductServiceTest extends TestCase
     {
         $productData = new ProductWriteData(
             name: 'First Product',
-            price: 50.00
+            price: 50.00,
         );
 
         $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
@@ -67,7 +68,7 @@ class ProductServiceTest extends TestCase
 
         $productData = new ProductWriteData(
             name: 'Second Product',
-            price: 75.00
+            price: 75.00,
         );
 
         $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
@@ -81,7 +82,7 @@ class ProductServiceTest extends TestCase
     {
         $productData = new ProductWriteData(
             name: 'Test Product Name',
-            price: 25.00
+            price: 25.00,
         );
 
         $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
@@ -95,7 +96,7 @@ class ProductServiceTest extends TestCase
         $productData = new ProductWriteData(
             name: 'Test Product',
             slug: 'custom-slug',
-            price: 25.00
+            price: 25.00,
         );
 
         $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
@@ -111,7 +112,7 @@ class ProductServiceTest extends TestCase
         $updateData = new ProductWriteData(
             name: 'Updated Product',
             price: 149.99,
-            is_active: 1
+            is_active: 1,
         );
 
         $updatedProduct = $this->productService->updateProduct(ProductId::fromInt($product->id), $updateData);
@@ -129,7 +130,7 @@ class ProductServiceTest extends TestCase
         $updateData = new ProductWriteData(
             name: 'Test Product',
             is_default: true,
-            is_active: false
+            is_active: false,
         );
 
         $updatedProduct = $this->productService->updateProduct(ProductId::fromInt($product->id), $updateData);

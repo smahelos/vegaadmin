@@ -17,7 +17,7 @@ class DropdownLink extends Component
     /**
      * Create a new component instance
      *
-     * @param string $href   Link target URL
+     * @param  string  $href  Link target URL
      */
     public function __construct($href)
     {
@@ -30,7 +30,7 @@ class DropdownLink extends Component
     public function render(): View
     {
         return view('components.dropdown-link', [
-            'href' => $this->href
+            'href' => $this->href,
         ]);
     }
 }

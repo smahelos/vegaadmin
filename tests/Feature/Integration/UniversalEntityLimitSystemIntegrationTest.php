@@ -4,26 +4,28 @@ namespace Tests\Feature\Integration;
 
 use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Domain\User\ValueObjects\UserId;
+use App\Http\Requests\BaseEntityRequest;
 use App\Http\Requests\ClientRequest;
 use App\Http\Requests\InvoiceRequest;
 use App\Http\Requests\SupplierRequest;
 use App\Models\EntityLimit;
-use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class UniversalEntityLimitSystemIntegrationTest extends TestCase
 {
-    use RefreshDatabase, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $user;
+
     private UniversalLimitService $limitService;
 
     protected function setUp(): void
@@ -32,9 +34,13 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
 
         // Set up frontend test environment with roles and permissions
         $this->setUpFrontendTestEnvironment();
-        
+
         // Give frontend permissions to user (instead of backpack permissions)
-        $permissions = ['frontend.can_create_edit_invoice', 'frontend.can_create_edit_client', 'frontend.can_create_edit_supplier'];
+        $permissions = [
+            'frontend.can_create_edit_invoice',
+            'frontend.can_create_edit_client',
+            'frontend.can_create_edit_supplier',
+        ];
         foreach ($permissions as $permissionName) {
             $permission = Permission::where('name', $permissionName)
                 ->where('guard_name', 'web')
@@ -64,37 +70,53 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         ]);
 
         // First client request should be allowed
-        $request1 = new ClientRequest();
+        $request1 = new ClientRequest;
         $request1->setMethod('POST');
-        $request1->setRouteResolver(function() {
-            return (object) ['parameter' => function($name) { return null; }]; // New creation
+        $request1->setRouteResolver(function () {
+            return (object) ['parameter' => function ($name) {
+                return null;
+            }]; // New creation
         });
 
         $this->assertTrue($request1->authorize());
 
         // Record the creation
-        $this->limitService->recordUsage($this->user->id, 'client', 'count', 'monthly');
+        $this->limitService->recordUsage(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
 
         // Second client request should be allowed
-        $request2 = new ClientRequest();
+        $request2 = new ClientRequest;
         $request2->setMethod('POST');
-        $request2->setRouteResolver(function() {
-            return (object) ['parameter' => function($name) { return null; }]; // New creation
+        $request2->setRouteResolver(function () {
+            return (object) ['parameter' => function ($name) {
+                return null;
+            }]; // New creation
         });
 
         $this->assertTrue($request2->authorize());
 
         // Record the second creation
-        $this->limitService->recordUsage($this->user->id, 'client', 'count', 'monthly');
+        $this->limitService->recordUsage(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
 
         // Third client request should fail due to limit (already at limit of 2)
-        $request3 = new ClientRequest();
+        $request3 = new ClientRequest;
         $request3->setMethod('POST');
-        $request3->setRouteResolver(function() {
-            return (object) ['parameter' => function($name) { return null; }]; // New creation
+        $request3->setRouteResolver(function () {
+            return (object) ['parameter' => function ($name) {
+                return null;
+            }]; // New creation
         });
 
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
+        $this->expectException(EntityLimitExceededException::class);
         $request3->authorize();
     }
 
@@ -126,15 +148,17 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
 
         // Create one client (at limit) - ClientCreated domain event records usage
         $this->createClientViaService();
-        
-        $clientRequest = new ClientRequest();
+
+        $clientRequest = new ClientRequest;
         $clientRequest->setMethod('POST');
-        $clientRequest->setRouteResolver(function() {
-            return (object) ['parameter' => function($name) { return null; }];
+        $clientRequest->setRouteResolver(function () {
+            return (object) ['parameter' => function ($name) {
+                return null;
+            }];
         });
-        
+
         // Should not be able to create another client (at limit)
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
+        $this->expectException(EntityLimitExceededException::class);
         $clientRequest->authorize();
     }
 
@@ -152,13 +176,15 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
             ->create();
 
         // New creation should fail
-        $newRequest = new InvoiceRequest();
+        $newRequest = new InvoiceRequest;
         $newRequest->setMethod('POST');
-        $newRequest->setRouteResolver(function() {
-            return (object) ['parameter' => function($name) { return null; }]; // New creation
+        $newRequest->setRouteResolver(function () {
+            return (object) ['parameter' => function ($name) {
+                return null;
+            }]; // New creation
         });
 
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
+        $this->expectException(EntityLimitExceededException::class);
         $newRequest->authorize();
     }
 
@@ -176,10 +202,12 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
             ->create();
 
         // But update should succeed even with 0 limit
-        $updateRequest = new InvoiceRequest();
+        $updateRequest = new InvoiceRequest;
         $updateRequest->setMethod('PUT');
-        $updateRequest->setRouteResolver(function() {
-            return (object) ['parameter' => function($name) { return 'existing-invoice-id'; }]; // Update
+        $updateRequest->setRouteResolver(function () {
+            return (object) ['parameter' => function ($name) {
+                return 'existing-invoice-id';
+            }]; // Update
         });
 
         $this->assertTrue($updateRequest->authorize());
@@ -202,9 +230,11 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
             ->create();
 
         // Should succeed despite limit due to unlimited access
-        $request = new InvoiceRequest();
-        $request->setRouteResolver(function() {
-            return (object) ['parameter' => function($name) { return null; }]; // New creation
+        $request = new InvoiceRequest;
+        $request->setRouteResolver(function () {
+            return (object) ['parameter' => function ($name) {
+                return null;
+            }]; // New creation
         });
 
         $this->assertTrue($request->authorize());
@@ -216,9 +246,11 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         $this->actingAs($this->user);
 
         // No limits configured - should always allow
-        $request = new InvoiceRequest();
-        $request->setRouteResolver(function() {
-            return (object) ['parameter' => function($name) { return null; }]; // New creation
+        $request = new InvoiceRequest;
+        $request->setRouteResolver(function () {
+            return (object) ['parameter' => function ($name) {
+                return null;
+            }]; // New creation
         });
 
         $this->assertTrue($request->authorize());
@@ -230,28 +262,28 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         $this->actingAs($this->user);
 
         // Test each request type has correct entity type
-        $invoiceRequest = new InvoiceRequest();
+        $invoiceRequest = new InvoiceRequest;
         $reflection = new \ReflectionClass($invoiceRequest);
         $method = $reflection->getMethod('getEntityType');
         $method->setAccessible(true);
         $this->assertEquals('invoice', $method->invoke($invoiceRequest));
 
-        $clientRequest = new ClientRequest();
+        $clientRequest = new ClientRequest;
         $reflection = new \ReflectionClass($clientRequest);
         $method = $reflection->getMethod('getEntityType');
         $method->setAccessible(true);
         $this->assertEquals('client', $method->invoke($clientRequest));
 
-        $supplierRequest = new SupplierRequest();
+        $supplierRequest = new SupplierRequest;
         $reflection = new \ReflectionClass($supplierRequest);
         $method = $reflection->getMethod('getEntityType');
         $method->setAccessible(true);
         $this->assertEquals('supplier', $method->invoke($supplierRequest));
 
         // Test they all extend BaseEntityRequest (frontend version)
-        $this->assertInstanceOf(\App\Http\Requests\BaseEntityRequest::class, $invoiceRequest);
-        $this->assertInstanceOf(\App\Http\Requests\BaseEntityRequest::class, $clientRequest);
-        $this->assertInstanceOf(\App\Http\Requests\BaseEntityRequest::class, $supplierRequest);
+        $this->assertInstanceOf(BaseEntityRequest::class, $invoiceRequest);
+        $this->assertInstanceOf(BaseEntityRequest::class, $clientRequest);
+        $this->assertInstanceOf(BaseEntityRequest::class, $supplierRequest);
     }
 
     #[Test]
@@ -275,7 +307,12 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         $this->createClientViaService();
 
         // Check statistics
-        $stats = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', 'monthly');
+        $stats = $this->limitService->getUsageStatistics(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
 
         $this->assertNotNull($stats);
         $this->assertEquals(2, $stats['current_usage']);

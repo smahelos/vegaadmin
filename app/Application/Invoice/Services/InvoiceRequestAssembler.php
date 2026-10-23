@@ -6,8 +6,9 @@ use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
 use App\Application\Invoice\DTO\InvoiceMutationPayload;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Http\Requests\InvoiceRequest;
+use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
 use App\Models\User;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\UploadedFile;
 
 class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
 {
@@ -16,13 +17,22 @@ class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
         private readonly InvoiceProductWriteDataAssembler $products,
     ) {}
 
-    public function assemble(?User $user, InvoiceRequest $request, bool $guest = false): InvoiceMutationPayload
-    {
+    public function assemble(
+        ?User $user,
+        InvoiceRequest $request,
+        bool $guest = false,
+    ): InvoiceMutationPayload {
         $validated = $request->validated();
 
         $products = $this->products->fromValidated($validated['invoice-products']);
 
-        $payload = new InvoiceMutationPayload($validated, $products, null, locale: app()->getLocale(), guest: $guest);
+        $payload = new InvoiceMutationPayload(
+            $validated,
+            $products,
+            null,
+            locale: app()->getLocale(),
+            guest: $guest,
+        );
 
         // Handle logo upload uniformly
         if ($request->hasFile('invoice_logo')) {
@@ -38,23 +48,27 @@ class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
     /**
      * Handle invoice logo upload
      */
-    private function handleInvoiceLogoUpload(\Illuminate\Http\UploadedFile|string|null $file): ?string
+    private function handleInvoiceLogoUpload(UploadedFile|string|null $file): ?string
     {
-        if (!$file) { 
-            return null; 
+        if (! $file) {
+            return null;
         }
-        
-        $value = $file instanceof \Illuminate\Http\UploadedFile 
-            ? \App\Infrastructure\Shared\File\Factories\IncomingFileFactory::fromUploadedFile($file) 
+
+        $value = $file instanceof UploadedFile
+            ? IncomingFileFactory::fromUploadedFile($file)
             : $file;
-            
+
         return $this->fileUploadService->handleFileUpload(
             $value,
             'invoice_logo',
             'invoices/logos/' . uniqid(),
-            ['disk' => 'public', 'sanitizeFilename' => true, 'randomizeFilename' => false],
+            [
+                'disk' => 'public',
+                'sanitizeFilename' => true,
+                'randomizeFilename' => false,
+            ],
             null,
-            'invoice_logo'
+            'invoice_logo',
         );
     }
 }

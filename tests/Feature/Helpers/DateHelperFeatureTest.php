@@ -56,18 +56,27 @@ class DateHelperFeatureTest extends TestCase
     public function format_integrates_with_app_facade(): void
     {
         // Test multiple locale changes
-        $locales = ['cs', 'en', 'de', 'sk'];
+        $locales = [
+            'cs',
+            'en',
+            'de',
+            'sk',
+        ];
         $expectedFormats = [
             'cs' => 'd.m.Y',
             'en' => 'Y-m-d',
             'de' => 'd.m.Y', // Fallback to default
-            'sk' => 'd.m.Y'  // Fallback to default
+            'sk' => 'd.m.Y',  // Fallback to default
         ];
 
         foreach ($locales as $locale) {
             App::setLocale($locale);
             $format = DateHelper::format();
-            $this->assertEquals($expectedFormats[$locale], $format, "Failed for locale: {$locale}");
+            $this->assertEquals(
+                $expectedFormats[$locale],
+                $format,
+                "Failed for locale: {$locale}",
+            );
         }
     }
 
@@ -114,7 +123,11 @@ class DateHelperFeatureTest extends TestCase
     #[Test]
     public function format_returns_valid_date_formats(): void
     {
-        $testLocales = ['cs', 'en', 'unknown'];
+        $testLocales = [
+            'cs',
+            'en',
+            'unknown',
+        ];
 
         foreach ($testLocales as $locale) {
             App::setLocale($locale);
@@ -135,14 +148,18 @@ class DateHelperFeatureTest extends TestCase
         // Test the specific locales that are configured in the helper
         $supportedLocales = [
             'cs' => 'd.m.Y',
-            'en' => 'Y-m-d'
+            'en' => 'Y-m-d',
         ];
 
         foreach ($supportedLocales as $locale => $expectedFormat) {
             App::setLocale($locale);
             $format = DateHelper::format();
 
-            $this->assertEquals($expectedFormat, $format, "Locale {$locale} should return {$expectedFormat}");
+            $this->assertEquals(
+                $expectedFormat,
+                $format,
+                "Locale {$locale} should return {$expectedFormat}",
+            );
         }
     }
 
@@ -158,7 +175,11 @@ class DateHelperFeatureTest extends TestCase
 
             for ($i = 0; $i < $testRuns; $i++) {
                 $result = DateHelper::format();
-                $this->assertEquals($firstResult, $result, "Format should be consistent for locale: {$locale}");
+                $this->assertEquals(
+                    $firstResult,
+                    $result,
+                    "Format should be consistent for locale: {$locale}",
+                );
             }
         }
     }

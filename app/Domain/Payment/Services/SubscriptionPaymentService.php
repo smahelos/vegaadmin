@@ -3,16 +3,16 @@
 namespace App\Domain\Payment\Services;
 
 use App\Domain\Payment\Contracts\GatewayRegistryInterface;
-use App\Domain\Payment\Contracts\PaymentGatewayInterface;
-use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
-use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
 use App\Domain\Payment\Contracts\PaymentDtoReadRepositoryInterface;
-use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
+use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
+use App\Domain\Payment\Contracts\PaymentGatewayInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
-use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
-use App\Infrastructure\Providers\Payment\GoPayGateway;
-use App\Domain\Shared\Log\Contracts\LogInterface;
+use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
+use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Domain\Payment\DTO\PaymentWriteData;
+use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
+use App\Domain\Shared\Log\Contracts\LogInterface;
+use App\Infrastructure\Providers\Payment\GoPayGateway;
 
 /**
  * Service for handling subscription payments in Payment domain.
@@ -31,7 +31,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
 
     /* @var PaymentDtoWriteRepositoryInterface */
     private PaymentDtoWriteRepositoryInterface $paymentsWrite;
-    
+
     /* @var PaymentDtoReadRepositoryInterface */
     private PaymentDtoReadRepositoryInterface $paymentsRead;
 
@@ -52,7 +52,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
         PaymentDtoReadRepositoryInterface $paymentsRead,
         SubscriptionDtoWriteRepositoryInterface $subscriptionsWrite,
         SubscriptionDtoReadRepositoryInterface $subscriptionsRead,
-        LogInterface $logger
+        LogInterface $logger,
     ) {
         // Inject registry (allows test stubs) and register built-in gateways here.
         $this->registry = $registry;
@@ -68,18 +68,21 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     /**
      * Process subscription payment by subscription ID and provided payload.
      */
-    public function processSubscriptionPayment(int $subscriptionId, string $gateway, array $paymentData): array
-    {
+    public function processSubscriptionPayment(
+        int $subscriptionId,
+        string $gateway,
+        array $paymentData,
+    ): array {
         try {
             return $this->tx->transaction(function () use ($subscriptionId, $gateway, $paymentData) {
                 $gatewayInstance = $this->registry->get($gateway);
-                if (!$gatewayInstance) {
+                if (! $gatewayInstance) {
                     throw new \InvalidArgumentException("Unsupported gateway: {$gateway}");
                 }
 
                 // Load subscription
                 $subscription = $this->subscriptionsRead->findById($subscriptionId);
-                if (!$subscription) {
+                if (! $subscription) {
                     return [
                         'success' => false,
                         'error' => 'Subscription not found',
@@ -89,8 +92,8 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 // Create payment record
                 $payment = $this->paymentsWrite->create(new PaymentWriteData(
                     subscription_id: $subscriptionId,
-                    amount: $paymentData['amount'] ?? (float)($subscription->amount ?? 0.0),
-                    currency: $paymentData['currency'] ?? (string)($subscription->currency ?? 'CZK'),
+                    amount: $paymentData['amount'] ?? (float) ($subscription->amount ?? 0.0),
+                    currency: $paymentData['currency'] ?? (string) ($subscription->currency ?? 'CZK'),
                     gateway: $gateway,
                     status: 'pending',
                     gateway_payment_id: null,
@@ -110,14 +113,14 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                     ));
 
                     $this->logger->log(
-                        'info', 
-                        'Subscription payment initiated successfully', 
+                        'info',
+                        'Subscription payment initiated successfully',
                         [
                             'payment_id' => $payment->id,
                             'subscription_id' => $subscriptionId,
                             'gateway' => $gateway,
                             'amount' => $payment->amount,
-                        ]
+                        ],
                     );
 
                     return [
@@ -132,14 +135,14 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 }
 
                 $this->logger->log(
-                    'error', 
-                    'Subscription payment failed', 
+                    'error',
+                    'Subscription payment failed',
                     [
                         'payment_id' => $payment->id,
                         'subscription_id' => $subscriptionId,
                         'gateway' => $gateway,
                         'error' => $result['error'] ?? 'Unknown error',
-                    ]
+                    ],
                 );
 
                 return [
@@ -149,14 +152,14 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
             });
         } catch (\Exception $e) {
             $this->logger->log(
-                'error', 
-                'Subscription payment processing error', 
+                'error',
+                'Subscription payment processing error',
                 [
                     'subscription_id' => $subscriptionId,
                     'gateway' => $gateway,
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
-                ]
+                ],
             );
 
             return [
@@ -173,22 +176,22 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     {
         try {
             $gatewayInstance = $this->registry->get($gateway);
-            if (!$gatewayInstance) {
+            if (! $gatewayInstance) {
                 throw new \InvalidArgumentException("Unsupported gateway: {$gateway}");
             }
 
             // Use the contract method implemented by gateways
             $result = $gatewayInstance->processPaymentReturn($callbackData);
 
-            if (!($result['success'] ?? false)) {
+            if (! ($result['success'] ?? false)) {
                 $this->logger->log(
-                    'warning', 
-                    'Payment callback handling failed', 
+                    'warning',
+                    'Payment callback handling failed',
                     [
                         'gateway' => $gateway,
                         'error' => $result['error'] ?? 'Unknown error',
                         'callback_data' => $callbackData,
-                    ]
+                    ],
                 );
 
                 return $result;
@@ -206,16 +209,16 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 $payment = $this->paymentsRead->findByGatewayPaymentId($gatewayPaymentId);
             }
 
-            if (!$payment) {
+            if (! $payment) {
                 $this->logger->log(
                     'error',
-                    'Payment not found for callback', 
+                    'Payment not found for callback',
                     [
                         'gateway' => $gateway,
                         'payment_id' => $paymentId,
                         'gateway_payment_id' => $gatewayPaymentId,
                         'callback_data' => $callbackData,
-                    ]
+                    ],
                 );
 
                 return [
@@ -241,14 +244,14 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
             }
 
             $this->logger->log(
-                'info', 
-                'Payment callback processed successfully', 
+                'info',
+                'Payment callback processed successfully',
                 [
                     'payment_id' => $payment->id,
                     'gateway' => $gateway,
                     'old_status' => $oldStatus,
                     'new_status' => $newStatus,
-                ]
+                ],
             );
 
             return [
@@ -265,7 +268,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                     'callback_data' => $callbackData,
-                ]
+                ],
             );
 
             return [
@@ -298,14 +301,15 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     {
         // Read subscription to determine plan duration using read repository
         $subscription = $this->subscriptionsRead->findById($subscriptionId);
-        if (!$subscription) {
+        if (! $subscription) {
             $this->logger->log(
-                'error', 
-                'Subscription not found for activation', 
+                'error',
+                'Subscription not found for activation',
                 [
                     'subscription_id' => $subscriptionId,
-                ]
+                ],
             );
+
             return;
         }
         $durationDays = (int) ($subscription->subscriptionPlan->duration_days ?? 0);
@@ -319,7 +323,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 'plan' => optional($subscription->subscriptionPlan)->name,
                 'starts_at' => $subscription->starts_at,
                 'ends_at' => $subscription->ends_at,
-            ]
+            ],
         );
     }
 
@@ -334,7 +338,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
             'Subscription payment failed',
             [
                 'subscription_id' => $subscriptionId,
-            ]
+            ],
         );
         // Could implement retry logic, suspension, etc.
     }
@@ -367,7 +371,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                             [
                                 'payment_id' => $payment->id,
                                 'error' => $error,
-                            ]
+                            ],
                         );
                     }
                 } else {
@@ -385,19 +389,19 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                     [
                         'subscription_id' => $subscriptionId,
                         'cancelled_payments' => is_array($pendingPayments) ? count($pendingPayments) : (method_exists($pendingPayments, 'count') ? $pendingPayments->count() : 0),
-                    ]
+                    ],
                 );
             }
 
             return $allCancelled;
         } catch (\Exception $e) {
             $this->logger->log(
-                'error', 
-                'Subscription payment cancellation error', 
+                'error',
+                'Subscription payment cancellation error',
                 [
                     'subscription_id' => $subscriptionId,
                     'error' => $e->getMessage(),
-                ]
+                ],
             );
 
             return false;
@@ -411,21 +415,21 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     {
         try {
             $payment = $this->paymentsRead->findById($paymentId);
-            if (!$payment) {
+            if (! $payment) {
                 return [
                     'success' => false,
                     'error' => 'Payment not found',
                 ];
             }
             $gateway = $this->getGateway($payment->gateway);
-            if (!$gateway) {
+            if (! $gateway) {
                 return [
                     'success' => false,
                     'error' => 'Gateway not available',
                 ];
             }
 
-            if (!$payment->gateway_payment_id) {
+            if (! $payment->gateway_payment_id) {
                 return [
                     'success' => false,
                     'error' => 'No gateway payment ID available',
@@ -450,7 +454,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                             'payment_id' => $payment->id,
                             'old_status' => $currentStatus,
                             'new_status' => $verifiedStatus,
-                        ]
+                        ],
                     );
 
                     if ($verifiedStatus === 'completed' && $currentStatus !== 'completed' && $payment->subscription_id) {
@@ -474,7 +478,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 [
                     'payment_id' => $paymentId,
                     'error' => $e->getMessage(),
-                ]
+                ],
             );
 
             return [
@@ -499,15 +503,17 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 'supports_recurring' => $meta['recurring'] ?? $this->supportsRecurringPayments($name),
             ];
         }
+
         return $list;
     }
 
     public function supportsRecurringPayments(string $gateway): bool
     {
         $gatewayInstance = $this->getGateway($gateway);
-        if (!$gatewayInstance) {
+        if (! $gatewayInstance) {
             return false;
         }
+
         return method_exists($gatewayInstance, 'createRecurringPayment') ||
                method_exists($gatewayInstance, 'supportsRecurring');
     }
@@ -516,7 +522,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     {
         try {
             $payment = $this->paymentsRead->findById($paymentId);
-            if (!$payment) {
+            if (! $payment) {
                 throw new \RuntimeException('Payment not found');
             }
 
@@ -545,26 +551,30 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     {
         try {
             $payment = $this->paymentsRead->findById($paymentId);
-            if (!$payment) {
+            if (! $payment) {
                 return [
                     'success' => false,
                     'error' => 'Payment not found',
                 ];
             }
             $gateway = $this->getGateway($payment->gateway);
-            if (!$gateway) {
+            if (! $gateway) {
                 return [
                     'success' => false,
                     'error' => 'Gateway not available',
                 ];
             }
-            if (!$payment->gateway_payment_id) {
+            if (! $payment->gateway_payment_id) {
                 return [
                     'success' => false,
                     'error' => 'Missing gateway payment id',
                 ];
             }
-            if (!in_array($payment->status, ['completed', 'partially_refunded'], true)) {
+            if (! in_array(
+                $payment->status,
+                ['completed', 'partially_refunded'],
+                true,
+            )) {
                 return [
                     'success' => false,
                     'error' => 'Only completed (or partially refunded) payments can be refunded',
@@ -590,7 +600,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
             }
 
             $result = $gateway->refundPayment($payment->gateway_payment_id, $amount);
-            if (!($result['success'] ?? false)) {
+            if (! ($result['success'] ?? false)) {
                 return $result + ['success' => false];
             }
 
@@ -599,12 +609,12 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
 
             $this->logger->log(
                 'info',
-                'Payment refunded', 
+                'Payment refunded',
                 [
                     'payment_id' => $payment->id,
                     'amount' => $amount,
                     'gateway_payment_id' => $payment->gateway_payment_id,
-                ]
+                ],
             );
 
             return [
@@ -620,8 +630,9 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 [
                     'payment_id' => $paymentId,
                     'error' => $e->getMessage(),
-                ]
+                ],
             );
+
             return [
                 'success' => false,
                 'error' => 'Refund error: ' . $e->getMessage(),
@@ -635,7 +646,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     public function inspectPayment(int $paymentId): array
     {
         $status = $this->getPaymentStatus($paymentId);
-        if (!$status['success']) {
+        if (! $status['success']) {
             return $status;
         }
         $gateway = $this->getGateway($status['gateway']);
@@ -649,6 +660,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 $status['gateway_report_error'] = $e->getMessage();
             }
         }
+
         return $status;
     }
 }

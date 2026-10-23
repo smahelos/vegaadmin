@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -19,9 +18,10 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class ArchivePolicyRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $regularUser;
 
     /**
@@ -55,7 +55,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'description' => 'Archive policy for old invoices after 2 years',
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -71,7 +71,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             // is_active and description are optional
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($minimalData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -80,7 +80,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_missing_required_fields(): void
     {
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -98,7 +98,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'date_column' => 'created_at',
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -114,7 +114,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'date_column' => str_repeat('a', 256), // Exceeds max length of 255
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -130,7 +130,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'date_column' => 'created_at',
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -146,7 +146,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'date_column' => 'created_at',
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -162,7 +162,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'date_column' => 'created_at',
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -179,7 +179,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'description' => str_repeat('a', 1001), // Exceeds max length of 1000
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -196,7 +196,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'is_active' => false,
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -212,7 +212,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'date_column' => 'created_at',
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -241,7 +241,7 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             'description' => null,
         ];
 
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
@@ -252,31 +252,31 @@ class ArchivePolicyRequestFeatureTest extends TestCase
     {
         // Need a user with can_configure_system permission (adminUser)
         $this->actingAs($this->adminUser, 'backpack')
-             ->withoutMiddleware()
-             ->postJson('/test-archive-policy', [
-                 'table_name' => 'test_table',
-                 'retention_months' => 12,
-                 'date_column' => 'created_at',
-             ])
-             ->assertStatus(200);
+            ->withoutMiddleware()
+            ->postJson('/test-archive-policy', [
+                'table_name' => 'test_table',
+                'retention_months' => 12,
+                'date_column' => 'created_at',
+            ])
+            ->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
         $this->withoutMiddleware()
-             ->postJson('/test-archive-policy', [
-                 'table_name' => 'test_table',
-                 'retention_months' => 12,
-                 'date_column' => 'created_at',
-             ])
-             ->assertStatus(403);
+            ->postJson('/test-archive-policy', [
+                'table_name' => 'test_table',
+                'retention_months' => 12,
+                'date_column' => 'created_at',
+            ])
+            ->assertStatus(403);
     }
 
     #[Test]
     public function attributes_method_returns_correct_translations(): void
     {
-        $request = new ArchivePolicyRequest();
+        $request = new ArchivePolicyRequest;
         $attributes = $request->attributes();
 
         $this->assertArrayHasKey('table_name', $attributes);
@@ -296,12 +296,17 @@ class ArchivePolicyRequestFeatureTest extends TestCase
     #[Test]
     public function validation_error_names_the_field_by_its_label(): void
     {
-        $request = new ArchivePolicyRequest();
-        $validator = Validator::make(['retention_months' => 0], $request->rules(), [], $request->attributes());
+        $request = new ArchivePolicyRequest;
+        $validator = Validator::make(
+            ['retention_months' => 0],
+            $request->rules(),
+            [],
+            $request->attributes(),
+        );
 
         $this->assertStringContainsString(
             __('admin/database.archive_policies.fields.retention_months'),
-            $validator->errors()->first('retention_months')
+            $validator->errors()->first('retention_months'),
         );
     }
 }

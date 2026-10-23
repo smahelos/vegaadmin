@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Carbon\Carbon;
+use Cron\CronExpression;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class CronTask extends Model
 {
@@ -31,7 +32,7 @@ class CronTask extends Model
         'last_run' => 'datetime',
         'is_active' => 'boolean',
         'day_of_week' => 'integer',
-        'day_of_month' => 'integer'
+        'day_of_month' => 'integer',
     ];
 
     /**
@@ -87,8 +88,13 @@ class CronTask extends Model
         if (empty($this->command)) {
             return null;
         }
-        
-        $parts = explode(' ', trim($this->command), 2);
+
+        $parts = explode(
+            ' ',
+            trim($this->command),
+            2,
+        );
+
         return $parts[0] ?? null;
     }
 
@@ -100,8 +106,13 @@ class CronTask extends Model
         if (empty($this->command)) {
             return null;
         }
-        
-        $parts = explode(' ', trim($this->command), 2);
+
+        $parts = explode(
+            ' ',
+            trim($this->command),
+            2,
+        );
+
         return $parts[1] ?? '';
     }
 
@@ -113,6 +124,7 @@ class CronTask extends Model
         // Pokud hodnota už obsahuje mezery (kompletní příkaz), uložíme ji přímo
         if (strpos($value, ' ') !== false) {
             $this->attributes['command'] = trim($value);
+
             return;
         }
 
@@ -122,7 +134,7 @@ class CronTask extends Model
 
         // Sestavíme kompletní příkaz
         $fullCommand = $baseCommand;
-        if (!empty($params)) {
+        if (! empty($params)) {
             $fullCommand .= ' ' . trim($params);
         }
 
@@ -131,8 +143,6 @@ class CronTask extends Model
 
     /**
      * Získá CRON výraz podle nastavené frekvence.
-     *
-     * @return string
      */
     public function getCronExpression(): string
     {
@@ -140,11 +150,11 @@ class CronTask extends Model
             return $this->custom_expression ?: '* * * * *'; // Default fallback if custom_expression is null
         }
 
-        $runAt = $this->run_at ? \Carbon\Carbon::parse($this->run_at) : \Carbon\Carbon::parse('00:00');
+        $runAt = $this->run_at ? Carbon::parse($this->run_at) : Carbon::parse('00:00');
         $minute = $runAt->format('i');
         $hour = $runAt->format('H');
 
-        return match($this->frequency) {
+        return match ($this->frequency) {
             'daily' => "{$minute} {$hour} * * *",
             'weekly' => "{$minute} {$hour} * * {$this->day_of_week}",
             'monthly' => "{$minute} {$hour} {$this->day_of_month} * *",
@@ -154,23 +164,23 @@ class CronTask extends Model
 
     /**
      * Získá čas příštího spuštění.
-     *
-     * @return \Carbon\Carbon|null
      */
-    public function getNextRunDate(): ?\Carbon\Carbon
+    public function getNextRunDate(): ?Carbon
     {
         try {
             $expression = $this->getCronExpression();
-            if (!$expression) {
+            if (! $expression) {
                 return null; // Pokud není platný CRON výraz
             }
-            $cron = new \Cron\CronExpression($expression);
-            return \Carbon\Carbon::createFromFormat(
-                'Y-m-d H:i:s', 
-                $cron->getNextRunDate()->format('Y-m-d H:i:s')
+            $cron = new CronExpression($expression);
+
+            return Carbon::createFromFormat(
+                'Y-m-d H:i:s',
+                $cron->getNextRunDate()->format('Y-m-d H:i:s'),
             );
         } catch (\Exception $e) {
             \Log::error('Neplatný CRON výraz: ' . $e->getMessage());
+
             return null;
         }
     }
@@ -184,31 +194,31 @@ class CronTask extends Model
     {
         try {
             $startTime = microtime(true);
-            
+
             // Rozlišení mezi Artisan příkazem a PHP funkcí
             if (strpos($this->command, '::') !== false) {
                 // PHP funkce
-                list($class, $method) = explode('::', $this->command);
+                [$class, $method] = explode('::', $this->command);
                 $result = app($class)->$method();
             } else {
                 // Artisan příkaz
                 $result = \Artisan::call($this->command);
             }
-            
+
             $executionTime = round(microtime(true) - $startTime, 2);
-            
+
             // Aktualizace informací o posledním spuštění
             $this->last_run = now();
-            $this->last_output = "Výsledek: " . (is_string($result) ? $result : \Artisan::output()) . 
+            $this->last_output = 'Výsledek: ' . (is_string($result) ? $result : \Artisan::output()) .
                                 "\nDoba trvání: {$executionTime}s";
             $this->save();
-            
+
             return $result;
         } catch (\Exception $e) {
             $this->last_run = now();
-            $this->last_output = "Chyba: " . $e->getMessage();
+            $this->last_output = 'Chyba: ' . $e->getMessage();
             $this->save();
-            
+
             return false;
         }
     }

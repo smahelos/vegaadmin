@@ -15,6 +15,7 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
 {
     /**
      * Map of currency code => relative rate to canonical base (e.g. USD = 1.0).
+     *
      * @var array<string,float>
      */
     private array $baseRates;
@@ -23,8 +24,8 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
     private string $canonicalBase;
 
     /**
-     * @param array<string,float>|null $baseRates Optional rate table (relative to canonical base)
-     * @param string $canonicalBase Canonical base currency code (default USD)
+     * @param  array<string,float>|null  $baseRates  Optional rate table (relative to canonical base)
+     * @param  string  $canonicalBase  Canonical base currency code (default USD)
      */
     public function __construct(?array $baseRates = null, string $canonicalBase = 'USD')
     {
@@ -36,13 +37,13 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
             'GBP' => 0.7,
             'PLN' => 3.9,
         ]);
-        if (!isset($this->baseRates[$this->canonicalBase])) {
+        if (! isset($this->baseRates[$this->canonicalBase])) {
             // Ensure canonical base always present as 1.0 reference
             $this->baseRates[$this->canonicalBase] = 1.0;
         }
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getExchangeRate(string $fromCurrency, string $toCurrency): ?float
     {
         $fromCurrency = strtoupper($fromCurrency);
@@ -50,18 +51,19 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
         if ($fromCurrency === $toCurrency) {
             return 1.0;
         }
-        if (!isset($this->baseRates[$fromCurrency], $this->baseRates[$toCurrency])) {
+        if (! isset($this->baseRates[$fromCurrency], $this->baseRates[$toCurrency])) {
             return null;
         }
+
         // Cross rate derived through canonical base.
         return $this->baseRates[$toCurrency] / $this->baseRates[$fromCurrency];
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getExchangeRates(string $baseCurrency = 'USD'): array
     {
         $baseCurrency = strtoupper($baseCurrency);
-        if (!isset($this->baseRates[$baseCurrency])) {
+        if (! isset($this->baseRates[$baseCurrency])) {
             $baseCurrency = $this->canonicalBase;
         }
         $rates = [];
@@ -69,13 +71,18 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
         foreach ($this->baseRates as $code => $rate) {
             $rates[$code] = $rate / $baseRate; // normalize relative to requested base
         }
+
         return $rates;
     }
 
-    /** @inheritDoc */
-    public function convert(float $amount, string $fromCurrency, string $toCurrency): ?float
-    {
+    /** {@inheritDoc} */
+    public function convert(
+        float $amount,
+        string $fromCurrency,
+        string $toCurrency,
+    ): ?float {
         $rate = $this->getExchangeRate($fromCurrency, $toCurrency);
+
         return $rate === null ? null : round($amount * $rate, 2);
     }
 
@@ -83,7 +90,7 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
      * Sanitize incoming custom rates (uppercase codes and positive numeric values).
      * Invalid (<=0) rates are discarded to avoid division anomalies.
      *
-     * @param array<string,float> $rates
+     * @param  array<string,float>  $rates
      * @return array<string,float>
      */
     private function sanitizeRates(array $rates): array
@@ -91,10 +98,15 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
         $clean = [];
         foreach ($rates as $code => $value) {
             $uc = strtoupper($code);
-            if (!preg_match('/^[A-Z]{3}$/', $uc)) { continue; }
-            if (!is_numeric($value) || $value <= 0) { continue; }
-            $clean[$uc] = (float)$value;
+            if (! preg_match('/^[A-Z]{3}$/', $uc)) {
+                continue;
+            }
+            if (! is_numeric($value) || $value <= 0) {
+                continue;
+            }
+            $clean[$uc] = (float) $value;
         }
+
         return $clean;
     }
 }

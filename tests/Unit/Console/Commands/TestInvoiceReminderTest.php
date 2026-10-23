@@ -15,7 +15,7 @@ class TestInvoiceReminderTest extends TestCase
     {
         parent::setUp();
 
-        $this->command = new TestInvoiceReminder();
+        $this->command = new TestInvoiceReminder;
     }
 
     #[Test]

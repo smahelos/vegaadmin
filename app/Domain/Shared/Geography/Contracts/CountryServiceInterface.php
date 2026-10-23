@@ -49,7 +49,7 @@ interface CountryServiceInterface
      * Get detailed country information by ISO alpha-2 code.
      * Returns null when the country cannot be found.
      *
-     * @param string $code ISO alpha-2 country code (e.g. "CZ", "US").
+     * @param  string  $code  ISO alpha-2 country code (e.g. "CZ", "US").
      * @return array|null Array structure identical to items returned by getAllCountries() or null if not found.
      */
     public function getCountryByCode(string $code): ?array;

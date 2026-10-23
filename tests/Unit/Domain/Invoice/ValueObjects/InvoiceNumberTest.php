@@ -13,17 +13,17 @@ class InvoiceNumberTest extends TestCase
     public function creates_valid_invoice_number(): void
     {
         $invoiceNumber = new InvoiceNumber('20250001');
-        
+
         $this->assertEquals('20250001', $invoiceNumber->getNumber());
         $this->assertEquals(2025, $invoiceNumber->getYear());
         $this->assertEquals(1, $invoiceNumber->getSequence());
     }
 
-    #[Test] 
+    #[Test]
     public function creates_from_year_and_sequence(): void
     {
         $invoiceNumber = InvoiceNumber::fromYearAndSequence(2025, 123);
-        
+
         $this->assertEquals('20250123', $invoiceNumber->getNumber());
         $this->assertEquals(2025, $invoiceNumber->getYear());
         $this->assertEquals(123, $invoiceNumber->getSequence());
@@ -53,7 +53,7 @@ class InvoiceNumberTest extends TestCase
     public function generates_first_number_when_no_last_number(): void
     {
         $invoiceNumber = InvoiceNumber::generateNext();
-        
+
         $this->assertEquals((int) date('Y'), $invoiceNumber->getYear());
         $this->assertEquals(1, $invoiceNumber->getSequence());
     }
@@ -62,7 +62,7 @@ class InvoiceNumberTest extends TestCase
     public function formats_with_separator(): void
     {
         $invoiceNumber = new InvoiceNumber('20250123');
-        
+
         $this->assertEquals('2025-0123', $invoiceNumber->formatWithSeparator('-'));
         $this->assertEquals('2025/0123', $invoiceNumber->formatWithSeparator('/'));
     }
@@ -72,9 +72,9 @@ class InvoiceNumberTest extends TestCase
     {
         $currentYear = (int) date('Y');
         $invoiceNumber = InvoiceNumber::fromYearAndSequence($currentYear, 1);
-        
+
         $this->assertTrue($invoiceNumber->isFromCurrentYear());
-        
+
         $oldInvoiceNumber = InvoiceNumber::fromYearAndSequence($currentYear - 1, 1);
         $this->assertFalse($oldInvoiceNumber->isFromCurrentYear());
     }
@@ -85,7 +85,7 @@ class InvoiceNumberTest extends TestCase
         $number1 = new InvoiceNumber('20250001');
         $number2 = new InvoiceNumber('20250002');
         $number3 = new InvoiceNumber('20240999');
-        
+
         $this->assertTrue($number2->isGreaterThan($number1));
         $this->assertTrue($number1->isGreaterThan($number3));
         $this->assertFalse($number1->isGreaterThan($number2));
@@ -97,7 +97,7 @@ class InvoiceNumberTest extends TestCase
         $number1 = new InvoiceNumber('20250001');
         $number2 = new InvoiceNumber('20250001');
         $number3 = new InvoiceNumber('20250002');
-        
+
         $this->assertTrue($number1->equals($number2));
         $this->assertFalse($number1->equals($number3));
     }
@@ -106,7 +106,7 @@ class InvoiceNumberTest extends TestCase
     public function converts_to_string(): void
     {
         $invoiceNumber = new InvoiceNumber('20250123');
-        
+
         $this->assertEquals('20250123', (string) $invoiceNumber);
     }
 
@@ -115,7 +115,7 @@ class InvoiceNumberTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid invoice number format');
-        
+
         new InvoiceNumber('invalid');
     }
 
@@ -124,7 +124,7 @@ class InvoiceNumberTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid year in invoice number');
-        
+
         new InvoiceNumber('19990001');
     }
 
@@ -133,7 +133,7 @@ class InvoiceNumberTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid sequence in invoice number');
-        
+
         new InvoiceNumber('20250000');
     }
 
@@ -142,7 +142,7 @@ class InvoiceNumberTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Year must be between 2000 and 9999');
-        
+
         InvoiceNumber::fromYearAndSequence(1999, 1);
     }
 
@@ -151,7 +151,7 @@ class InvoiceNumberTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Sequence must be between 1 and 999999');
-        
+
         InvoiceNumber::fromYearAndSequence(2025, 0);
     }
 

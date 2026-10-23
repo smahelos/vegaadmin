@@ -2,6 +2,48 @@
 
 namespace App\Providers;
 
+use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoiceLimitApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
+use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
+use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
+use App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoiceWriteRepositoryInterface;
+use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
+use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
+use App\Application\Invoice\Services\GuestInvoiceApplicationService;
+use App\Application\Invoice\Services\InvoiceFrontendActionsApplicationService;
+use App\Application\Invoice\Services\InvoiceMutationApplicationService;
+use App\Application\Invoice\Services\InvoicePdfApplicationService;
+use App\Application\Invoice\Services\InvoicePdfRenderer;
+use App\Application\Invoice\Services\InvoiceRequestAssembler;
+use App\Application\Invoice\Services\Specialized\InvoiceCrudApplicationService;
+use App\Application\Invoice\Services\Specialized\InvoiceFormApplicationService;
+use App\Application\Invoice\Services\Specialized\InvoiceLimitApplicationService;
+use App\Application\Invoice\Services\Specialized\InvoiceListingApplicationService;
+use App\Application\Invoice\Services\Specialized\InvoiceStatusApplicationService;
+use App\Application\Invoice\Services\TemporaryInvoicePrintDataFactory;
+use App\Application\Invoice\Services\TemporaryInvoiceStore;
+use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
+use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
+use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
+use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
+use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
+use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
+use App\Domain\Invoice\Services\InvoiceService;
+use App\Infrastructure\Notifications\Invoice\LaravelInvoiceReminderNotifier;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\TaxObserver;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceDtoRepository;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceRepository;
+use App\Models\Invoice;
+use App\Models\Tax;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -24,13 +66,13 @@ class InvoiceServiceProvider extends ServiceProvider
     private function registerDomainServices(): void
     {
         $this->app->bind(
-            \App\Domain\Invoice\Contracts\InvoiceServiceInterface::class,
-            \App\Domain\Invoice\Services\InvoiceService::class
+            InvoiceServiceInterface::class,
+            InvoiceService::class,
         );
 
         $this->app->bind(
-            \App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface::class,
-            \App\Domain\Invoice\Services\InvoicePrintDataBuilder::class
+            InvoicePrintDataBuilderInterface::class,
+            InvoicePrintDataBuilder::class,
         );
     }
 
@@ -41,29 +83,29 @@ class InvoiceServiceProvider extends ServiceProvider
     {
         // Invoice reminders notifier
         $this->app->bind(
-            \App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface::class,
-            \App\Infrastructure\Notifications\Invoice\LaravelInvoiceReminderNotifier::class
+            InvoiceReminderNotifierInterface::class,
+            LaravelInvoiceReminderNotifier::class,
         );
 
         // Invoice repositories
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceRepository::class
+            InvoiceReadRepositoryInterface::class,
+            EloquentInvoiceRepository::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceRepository::class
+            InvoiceWriteRepositoryInterface::class,
+            EloquentInvoiceRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceDtoRepository::class
+            InvoiceDtoReadRepositoryInterface::class,
+            EloquentInvoiceDtoRepository::class,
         );
 
         $this->app->bind(
-            \App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface::class,
-            \App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceDtoRepository::class
+            InvoiceDtoWriteRepositoryInterface::class,
+            EloquentInvoiceDtoRepository::class,
         );
     }
 
@@ -74,75 +116,75 @@ class InvoiceServiceProvider extends ServiceProvider
     {
         // Invoice application services
         $this->app->bind(
-            \App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface::class,
-            \App\Application\Invoice\Services\GuestInvoiceApplicationService::class
+            GuestInvoiceApplicationServiceInterface::class,
+            GuestInvoiceApplicationService::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface::class,
-            \App\Application\Invoice\Services\InvoiceFrontendActionsApplicationService::class
+            InvoiceFrontendActionsApplicationServiceInterface::class,
+            InvoiceFrontendActionsApplicationService::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface::class,
-            \App\Application\Invoice\Services\InvoiceRequestAssembler::class
+            InvoiceRequestAssemblerInterface::class,
+            InvoiceRequestAssembler::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface::class,
-            \App\Application\Invoice\Services\InvoiceMutationApplicationService::class
+            InvoiceMutationApplicationServiceInterface::class,
+            InvoiceMutationApplicationService::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface::class,
-            \App\Application\Invoice\Services\InvoicePdfApplicationService::class
+            InvoicePdfApplicationServiceInterface::class,
+            InvoicePdfApplicationService::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoicePdfRendererInterface::class,
-            \App\Application\Invoice\Services\InvoicePdfRenderer::class
+            InvoicePdfRendererInterface::class,
+            InvoicePdfRenderer::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface::class,
-            \App\Application\Invoice\Services\TemporaryInvoiceStore::class
+            TemporaryInvoiceStoreInterface::class,
+            TemporaryInvoiceStore::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface::class,
-            \App\Application\Invoice\Services\TemporaryInvoicePrintDataFactory::class
+            TemporaryInvoicePrintDataFactoryInterface::class,
+            TemporaryInvoicePrintDataFactory::class,
         );
 
         // Specialized Invoice Application Services
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface::class,
-            \App\Application\Invoice\Services\Specialized\InvoiceFormApplicationService::class
+            InvoiceFormApplicationServiceInterface::class,
+            InvoiceFormApplicationService::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface::class,
-            \App\Application\Invoice\Services\Specialized\InvoiceCrudApplicationService::class
+            InvoiceCrudApplicationServiceInterface::class,
+            InvoiceCrudApplicationService::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface::class,
-            \App\Application\Invoice\Services\Specialized\InvoiceListingApplicationService::class
+            InvoiceListingApplicationServiceInterface::class,
+            InvoiceListingApplicationService::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface::class,
-            \App\Application\Invoice\Services\Specialized\InvoiceStatusApplicationService::class
+            InvoiceStatusApplicationServiceInterface::class,
+            InvoiceStatusApplicationService::class,
         );
 
         $this->app->bind(
-            \App\Application\Invoice\Contracts\InvoiceLimitApplicationServiceInterface::class,
-            \App\Application\Invoice\Services\Specialized\InvoiceLimitApplicationService::class
+            InvoiceLimitApplicationServiceInterface::class,
+            InvoiceLimitApplicationService::class,
         );
     }
 
     public function boot(): void
     {
-        \App\Models\Invoice::observe(\App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver::class);
-        \App\Models\Tax::observe(\App\Infrastructure\Persistence\Eloquent\Invoice\Observers\TaxObserver::class);
+        Invoice::observe(InvoiceObserver::class);
+        Tax::observe(TaxObserver::class);
     }
 }

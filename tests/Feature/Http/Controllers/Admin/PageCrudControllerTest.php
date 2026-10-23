@@ -8,23 +8,24 @@ use App\Models\PageCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-
 use Tests\Traits\CreatesAdminTestEnvironment;
+
 /**
  * Feature test for Admin PageCrudController.
  * Tests CRUD operations, authorization, and Backpack integration.
  */
 class PageCrudControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
+
     private PageCategory $category;
 
     protected function setUp(): void
@@ -38,7 +39,7 @@ class PageCrudControllerTest extends TestCase
     public function index_requires_authentication(): void
     {
         $response = $this->get('/admin/page');
-        
+
         $this->assertEquals(302, $response->getStatusCode());
     }
 
@@ -46,9 +47,9 @@ class PageCrudControllerTest extends TestCase
     public function index_works_with_authenticated_user(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $response = $this->get('/admin/page');
-        
+
         $this->assertEquals(200, $response->getStatusCode());
     }
 
@@ -56,7 +57,7 @@ class PageCrudControllerTest extends TestCase
     public function create_page_requires_authentication(): void
     {
         $response = $this->get('/admin/page/create');
-        
+
         $this->assertEquals(302, $response->getStatusCode());
     }
 
@@ -66,7 +67,7 @@ class PageCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         $response = $this->get('/admin/page/create');
-        
+
         $this->assertEquals(200, $response->getStatusCode());
     }
 
@@ -81,7 +82,7 @@ class PageCrudControllerTest extends TestCase
         ];
 
         $response = $this->post('/admin/page', $pageData);
-        
+
         $this->assertEquals(302, $response->getStatusCode());
         $this->assertDatabaseMissing('pages', ['name' => 'Test Page']);
     }
@@ -110,18 +111,18 @@ class PageCrudControllerTest extends TestCase
         ];
 
         $response = $this->post('/admin/page', $pageData);
-        
+
         $this->assertEquals(302, $response->getStatusCode());
-        
+
         // Check that the page was created with correct multilingual data
         $createdPage = Page::latest('id')->first();
-        
+
         $this->assertNotNull($createdPage);
         $this->assertEquals('Test Page CS', $createdPage->getName('cs'));
         $this->assertEquals('Test Page EN', $createdPage->getName('en'));
         $this->assertEquals('test-page-cs', $createdPage->getSlug('cs'));
         $this->assertEquals('test-page-en', $createdPage->getSlug('en'));
-        
+
         // Zkontrolujeme přímo hodnoty v polích
         $this->assertEquals('Test content CS', $createdPage->content['cs']);
         $this->assertEquals('Test content EN', $createdPage->content['en']);
@@ -133,9 +134,9 @@ class PageCrudControllerTest extends TestCase
     public function show_page_requires_authentication(): void
     {
         $page = Page::factory()->create(['category_id' => $this->category->id]);
-        
+
         $response = $this->get("/admin/page/{$page->id}/show");
-        
+
         $this->assertEquals(302, $response->getStatusCode());
     }
 
@@ -143,11 +144,11 @@ class PageCrudControllerTest extends TestCase
     public function show_page_works_with_authenticated_user(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $page = Page::factory()->create(['category_id' => $this->category->id]);
-        
+
         $response = $this->getJson("/admin/page/{$page->id}/show");
-        
+
         $response->assertOk();
     }
 
@@ -155,9 +156,9 @@ class PageCrudControllerTest extends TestCase
     public function edit_page_requires_authentication(): void
     {
         $page = Page::factory()->create(['category_id' => $this->category->id]);
-        
+
         $response = $this->get("/admin/page/{$page->id}/edit");
-        
+
         $this->assertEquals(302, $response->getStatusCode());
     }
 
@@ -167,7 +168,7 @@ class PageCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         $page = Page::factory()->create(['category_id' => $this->category->id]);
-        
+
         $response = $this->get("/admin/page/{$page->id}/edit");
 
         $this->assertEquals(200, $response->getStatusCode());
@@ -197,14 +198,14 @@ class PageCrudControllerTest extends TestCase
     public function update_page_requires_authentication(): void
     {
         $page = Page::factory()->create(['category_id' => $this->category->id]);
-        
+
         $updateData = [
             'name' => 'Updated Page',
             'content' => 'Updated content',
         ];
 
         $response = $this->put("/admin/page/{$page->id}", $updateData);
-        
+
         $this->assertEquals(302, $response->getStatusCode());
         $this->assertDatabaseMissing('pages', ['name' => 'Updated Page']);
     }
@@ -220,12 +221,12 @@ class PageCrudControllerTest extends TestCase
             'name' => ['cs' => 'Původní název CS', 'en' => 'Original title EN'],
             'slug' => ['cs' => 'puvodni-nazev-cs', 'en' => 'original-title-en'],
             'content' => ['cs' => 'Původní obsah CS', 'en' => 'Original content EN'],
-            'published' => true
+            'published' => true,
         ]);
-        
+
         // Ověření, že stránka byla vytvořena
         $this->assertDatabaseHas('pages', ['id' => $page->id]);
-        
+
         // Data pro aktualizaci
         $updateData = [
             'name_cs' => 'Aktualizovaný název CS',
@@ -241,42 +242,42 @@ class PageCrudControllerTest extends TestCase
         // Nejprve zkontrolujeme, že můžeme otevřít stránku pro úpravu
         $editResponse = $this->get("/admin/page/{$page->id}/edit");
         $editResponse->assertOk();
-        
+
         // Provedeme aktualizaci - Backpack často používá POST místo PUT pro aktualizace
         $response = $this->post("/admin/page/{$page->id}", $updateData);
-        
+
         // Může vrátit 302 (přesměrování) nebo jiný kód v závislosti na implementaci Backpack
         // Důležité je, že data byla aktualizována v databázi
-        
+
         // Aktualizujeme data z databáze
         $page->refresh(); // Načteme aktualizovaná data z databáze
-        
+
         // Upravíme data přímo v databázi, abychom ověřili funkčnost
         $page->name = [
             'cs' => 'Aktualizovaný název CS',
-            'en' => 'Updated title EN'
+            'en' => 'Updated title EN',
         ];
         $page->slug = [
             'cs' => 'aktualizovany-nazev-cs',
-            'en' => 'updated-title-en'
+            'en' => 'updated-title-en',
         ];
         $page->content = [
             'cs' => 'Aktualizovaný obsah CS',
-            'en' => 'Updated content EN'
+            'en' => 'Updated content EN',
         ];
         $page->published = false;
         $page->save();
-        
+
         // Znovu načteme data
         $updatedPage = Page::find($page->id);
         $this->assertNotNull($updatedPage);
-        
+
         // Ověříme, že multijazyčná data byla správně aktualizována
         $this->assertEquals('Aktualizovaný název CS', $updatedPage->getName('cs'));
         $this->assertEquals('Updated title EN', $updatedPage->getName('en'));
         $this->assertEquals('aktualizovany-nazev-cs', $updatedPage->getSlug('cs'));
         $this->assertEquals('updated-title-en', $updatedPage->getSlug('en'));
-        
+
         // Zkontrolujeme přímo hodnoty v polích
         $this->assertEquals('Aktualizovaný obsah CS', $updatedPage->content['cs']);
         $this->assertEquals('Updated content EN', $updatedPage->content['en']);
@@ -288,9 +289,9 @@ class PageCrudControllerTest extends TestCase
     public function delete_page_requires_authentication(): void
     {
         $page = Page::factory()->create(['category_id' => $this->category->id]);
-        
+
         $response = $this->delete("/admin/page/{$page->id}");
-        
+
         $this->assertEquals(302, $response->getStatusCode());
         $this->assertDatabaseHas('pages', ['id' => $page->id]);
     }
@@ -299,11 +300,11 @@ class PageCrudControllerTest extends TestCase
     public function delete_page_works_with_authenticated_user(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $page = Page::factory()->create(['category_id' => $this->category->id]);
-        
+
         $response = $this->delete("/admin/page/{$page->id}");
-        
+
         $response->assertOk(); // Backpack delete operations typically return 200 OK
         $this->assertDatabaseMissing('pages', ['id' => $page->id]);
     }
@@ -312,36 +313,36 @@ class PageCrudControllerTest extends TestCase
     public function store_page_validates_required_fields(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         // Data bez povinných polí
         $invalidData = [
             'category_id' => $this->category->id,
             'published' => true,
         ];
-        
+
         $response = $this->post('/admin/page', $invalidData);
-        
+
         // Ověříme, že validace selhala
         $this->assertEquals(302, $response->getStatusCode()); // Backpack přesměruje i při chybě validace
         $response->assertSessionHasErrors(['name']); // Název je povinný
     }
-    
+
     #[Test]
     public function store_page_works_with_minimal_multilingual_data(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         // Minimální data s pouze jedním jazykem
         $minimalData = [
             'name_cs' => 'Minimální stránka',
             'slug_cs' => 'minimalni-stranka',
             'category_id' => $this->category->id,
         ];
-        
+
         $response = $this->post('/admin/page', $minimalData);
-        
+
         $this->assertEquals(302, $response->getStatusCode());
-        
+
         // Ověříme, že stránka byla vytvořena s minimálními daty
         $createdPage = Page::latest('id')->first();
         $this->assertNotNull($createdPage);
@@ -359,8 +360,12 @@ class PageCrudControllerTest extends TestCase
 
         $this->post('/admin/page', [
             'name_cs' => 'Stránka s obrázkem',
-            'slug_cs' => 'stranka-s-obrazkem-'.uniqid(),
-            'main_image' => UploadedFile::fake()->image('hero.jpg', 800, 600),
+            'slug_cs' => 'stranka-s-obrazkem-' . uniqid(),
+            'main_image' => UploadedFile::fake()->image(
+                'hero.jpg',
+                800,
+                600,
+            ),
         ])->assertSessionHasNoErrors();
 
         $createdPage = Page::latest('id')->first();
@@ -373,12 +378,16 @@ class PageCrudControllerTest extends TestCase
     {
         Storage::fake('public');
         $this->actingAs($this->adminUser, 'backpack');
-        $slug = 'stranka-s-pdf-'.uniqid();
+        $slug = 'stranka-s-pdf-' . uniqid();
 
         $this->post('/admin/page', [
             'name_cs' => 'Stránka s PDF',
             'slug_cs' => $slug,
-            'main_image' => UploadedFile::fake()->create('hero.pdf', 100, 'application/pdf'),
+            'main_image' => UploadedFile::fake()->create(
+                'hero.pdf',
+                100,
+                'application/pdf',
+            ),
         ])->assertSessionHasErrors(['main_image']);
 
         $this->assertDatabaseMissing('pages', ['slug->cs' => $slug]);
@@ -392,7 +401,7 @@ class PageCrudControllerTest extends TestCase
 
         $this->post('/admin/page', [
             'name_cs' => 'Stránka s velkým obrázkem',
-            'slug_cs' => 'velky-obrazek-'.uniqid(),
+            'slug_cs' => 'velky-obrazek-' . uniqid(),
             'main_image' => UploadedFile::fake()->image('hero.jpg')->size(10241),
         ])->assertSessionHasErrors(['main_image']);
     }
@@ -401,7 +410,7 @@ class PageCrudControllerTest extends TestCase
     public function store_page_rejects_fields_the_application_sets(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $slug = 'systemova-pole-'.uniqid();
+        $slug = 'systemova-pole-' . uniqid();
 
         $this->post('/admin/page', [
             'name_cs' => 'Systémová pole',
@@ -410,7 +419,12 @@ class PageCrudControllerTest extends TestCase
             'images' => ['pages/galleries/foreign.jpg'],
             'created_at' => '2000-01-01 00:00:00',
             'updated_at' => '2000-01-01 00:00:00',
-        ])->assertSessionHasErrors(['published_by', 'images', 'created_at', 'updated_at']);
+        ])->assertSessionHasErrors([
+            'published_by',
+            'images',
+            'created_at',
+            'updated_at',
+        ]);
 
         $this->assertDatabaseMissing('pages', ['slug->cs' => $slug]);
     }
@@ -422,13 +436,13 @@ class PageCrudControllerTest extends TestCase
         $page = Page::factory()->create([
             'category_id' => $this->category->id,
             'name' => ['cs' => 'Původní'],
-            'slug' => ['cs' => 'puvodni-'.uniqid()],
+            'slug' => ['cs' => 'puvodni-' . uniqid()],
         ]);
 
         $this->put("/admin/page/{$page->id}", [
             'id' => $page->id,
             'name_cs' => 'Nový název',
-            'slug_cs' => 'novy-nazev-'.uniqid(),
+            'slug_cs' => 'novy-nazev-' . uniqid(),
             'main_image' => 'pages/../../.env',
         ])->assertSessionHasErrors(['main_image']);
 

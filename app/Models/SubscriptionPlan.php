@@ -5,14 +5,14 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SubscriptionPlan extends Model
 {
-    use HasFactory;
     use CrudTrait;
-    
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'description',
@@ -46,7 +46,7 @@ class SubscriptionPlan extends Model
     {
         return $this->belongsToMany(
             SubscriptionPlanFeature::class,
-            'subscription_plan_subscription_plan_feature'
+            'subscription_plan_subscription_plan_feature',
         );
     }
 

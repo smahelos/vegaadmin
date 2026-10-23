@@ -3,9 +3,9 @@
 namespace Tests\Unit\Domain\User\ValueObjects;
 
 use App\Domain\User\ValueObjects\UserEmail;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use InvalidArgumentException;
 
 class UserEmailTest extends TestCase
 {
@@ -13,7 +13,7 @@ class UserEmailTest extends TestCase
     public function creates_valid_email(): void
     {
         $email = UserEmail::fromString('test@example.com');
-        
+
         $this->assertInstanceOf(UserEmail::class, $email);
         $this->assertEquals('test@example.com', $email->getEmail());
     }
@@ -22,7 +22,7 @@ class UserEmailTest extends TestCase
     public function normalizes_email_to_lowercase(): void
     {
         $email = UserEmail::fromString('TEST@EXAMPLE.COM');
-        
+
         $this->assertEquals('test@example.com', $email->getEmail());
     }
 
@@ -30,7 +30,7 @@ class UserEmailTest extends TestCase
     public function trims_whitespace(): void
     {
         $email = UserEmail::fromString('  test@example.com  ');
-        
+
         $this->assertEquals('test@example.com', $email->getEmail());
     }
 
@@ -39,7 +39,7 @@ class UserEmailTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Email cannot be empty');
-        
+
         UserEmail::fromString('');
     }
 
@@ -48,7 +48,7 @@ class UserEmailTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid email format');
-        
+
         UserEmail::fromString('invalid-email');
     }
 
@@ -57,7 +57,7 @@ class UserEmailTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Email too long');
-        
+
         $longEmail = str_repeat('a', 250) . '@example.com';
         UserEmail::fromString($longEmail);
     }
@@ -67,7 +67,7 @@ class UserEmailTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Email too short');
-        
+
         UserEmail::fromString('a@b');
     }
 
@@ -76,7 +76,7 @@ class UserEmailTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Email contains invalid characters');
-        
+
         UserEmail::fromString('test<script>@example.com');
     }
 
@@ -84,7 +84,7 @@ class UserEmailTest extends TestCase
     public function extracts_domain_correctly(): void
     {
         $email = UserEmail::fromString('user@example.com');
-        
+
         $this->assertEquals('example.com', $email->getDomain());
     }
 
@@ -92,7 +92,7 @@ class UserEmailTest extends TestCase
     public function extracts_local_part_correctly(): void
     {
         $email = UserEmail::fromString('user@example.com');
-        
+
         $this->assertEquals('user', $email->getLocalPart());
     }
 
@@ -100,7 +100,7 @@ class UserEmailTest extends TestCase
     public function checks_domain_match(): void
     {
         $email = UserEmail::fromString('user@example.com');
-        
+
         $this->assertTrue($email->isFromDomain('example.com'));
         $this->assertTrue($email->isFromDomain('EXAMPLE.COM')); // Case insensitive
         $this->assertFalse($email->isFromDomain('other.com'));
@@ -112,7 +112,7 @@ class UserEmailTest extends TestCase
         $gmail = UserEmail::fromString('user@gmail.com');
         $business = UserEmail::fromString('user@company.com');
         $seznam = UserEmail::fromString('user@seznam.cz');
-        
+
         $this->assertTrue($gmail->isCommonProvider());
         $this->assertTrue($seznam->isCommonProvider());
         $this->assertFalse($business->isCommonProvider());
@@ -123,7 +123,7 @@ class UserEmailTest extends TestCase
     {
         $gmail = UserEmail::fromString('user@gmail.com');
         $business = UserEmail::fromString('user@company.com');
-        
+
         $this->assertFalse($gmail->isBusinessEmail());
         $this->assertTrue($business->isBusinessEmail());
     }
@@ -133,7 +133,7 @@ class UserEmailTest extends TestCase
     {
         $email = UserEmail::fromString('username@example.com');
         $masked = $email->getMaskedEmail();
-        
+
         $this->assertStringContainsString('us****', $masked);
         $this->assertStringContainsString('ex*****.com', $masked);
         $this->assertStringContainsString('@', $masked);
@@ -144,7 +144,7 @@ class UserEmailTest extends TestCase
     {
         $email = UserEmail::fromString('ab@cd.com');
         $masked = $email->getMaskedEmail();
-        
+
         $this->assertStringContainsString('**@cd.com', $masked);
     }
 
@@ -154,7 +154,7 @@ class UserEmailTest extends TestCase
         $email1 = UserEmail::fromString('test@example.com');
         $email2 = UserEmail::fromString('test@example.com');
         $email3 = UserEmail::fromString('other@example.com');
-        
+
         $this->assertTrue($email1->equals($email2));
         $this->assertFalse($email1->equals($email3));
     }
@@ -163,7 +163,7 @@ class UserEmailTest extends TestCase
     public function converts_to_string(): void
     {
         $email = UserEmail::fromString('test@example.com');
-        
+
         $this->assertEquals('test@example.com', (string) $email);
     }
 
@@ -171,7 +171,7 @@ class UserEmailTest extends TestCase
     public function json_serializes_correctly(): void
     {
         $email = UserEmail::fromString('test@example.com');
-        
+
         $this->assertEquals('test@example.com', $email->jsonSerialize());
         $this->assertEquals('"test@example.com"', json_encode($email));
     }
@@ -183,7 +183,7 @@ class UserEmailTest extends TestCase
             'user.name+tag@example.com',
             'user_name@example-domain.com',
             'user123@sub.example.com',
-            'first.last@example.co.uk'
+            'first.last@example.co.uk',
         ];
 
         foreach ($complexEmails as $emailString) {

@@ -35,7 +35,14 @@ class AuthenticateFeatureTest extends TestCase
     #[Test]
     public function json_request_returns_null_path(): void
     {
-        $request = Request::create('/admin/dashboard', 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/json']);
+        $request = Request::create(
+            '/admin/dashboard',
+            'GET',
+            [],
+            [],
+            [],
+            ['HTTP_ACCEPT' => 'application/json'],
+        );
         $middleware = (new \ReflectionClass(Authenticate::class))->newInstanceWithoutConstructor();
         $method = (new \ReflectionClass($middleware))->getMethod('redirectTo');
         $method->setAccessible(true);

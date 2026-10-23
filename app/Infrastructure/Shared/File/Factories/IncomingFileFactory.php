@@ -23,7 +23,9 @@ class IncomingFileFactory
             // If reported size seems like KB (small) but file exists, multiply to approximate bytes
             if ($path && is_file($path) && $size > 0 && $size < 4096) {
                 $real = (int) @filesize($path);
-                if ($real > 0) { $size = $real; }
+                if ($real > 0) {
+                    $size = $real;
+                }
             }
         }
 
@@ -32,7 +34,7 @@ class IncomingFileFactory
             $extension,
             $mime,
             $size,
-            $path
+            $path,
         );
     }
 }

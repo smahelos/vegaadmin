@@ -4,14 +4,12 @@ namespace App\Domain\Product\Contracts;
 
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 
-
 interface InvoiceProductDtoReadRepositoryInterface
 {
     /**
      * Find all products for a specific invoice
      *
-     * @param int $invoiceId
-     * @return array
+     * @param  int  $invoiceId
      */
     public function allForInvoice(InvoiceId $invoiceId): array;
 

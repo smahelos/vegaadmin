@@ -2,10 +2,11 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
 
 class ProductRequest extends FormRequest
@@ -24,7 +25,7 @@ class ProductRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Generate slug from name if not provided
-        if (!$this->filled('slug') && $this->filled('name')) {
+        if (! $this->filled('slug') && $this->filled('name')) {
             $this->merge([
                 'slug' => Str::slug($this->name),
             ]);
@@ -40,7 +41,7 @@ class ProductRequest extends FormRequest
         $id = $this->route('id') ?: $this->id;
 
         // Get max file size from config
-        $maxFileSize = \Illuminate\Support\Facades\Config::get('file_upload.contexts.product_image.max_kb', 2048);
+        $maxFileSize = Config::get('file_upload.contexts.product_image.max_kb', 2048);
 
         $rules = [
             'name' => 'required|string|min:2|max:255',
@@ -87,8 +88,7 @@ class ProductRequest extends FormRequest
     /**
      * Handle a failed validation attempt.
      *
-     * @param \Illuminate\Contracts\Validation\Validator $validator
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     protected function failedValidation(Validator $validator)
     {
@@ -96,7 +96,7 @@ class ProductRequest extends FormRequest
             redirect()->back()
                 ->withErrors($validator->errors())
                 ->withInput()
-                ->with('error', trans('products.messages.validation_failed'))
+                ->with('error', trans('products.messages.validation_failed')),
         );
     }
 }

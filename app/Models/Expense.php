@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
+use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
+use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
+use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Infrastructure\Shared\File\Traits\HasFileUploads;
-use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
-use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 class Expense extends Model
 {
@@ -35,7 +34,7 @@ class Expense extends Model
         'attachments',
         'tax_amount',
         'tax_included',
-        'status_id'
+        'status_id',
     ];
 
     /**
@@ -102,7 +101,7 @@ class Expense extends Model
     /**
      * Handle multiple files upload for attachments
      *
-     * @param mixed $value
+     * @param  mixed  $value
      * @return void
      */
     public function setAttachmentsAttribute($value)
@@ -115,7 +114,7 @@ class Expense extends Model
             $removed = json_decode(request()->input('attachments_removed'), true) ?? [];
             foreach ($removed as $file) {
                 $fileUploadService->deleteFile($file, 'public');
-                $current = array_values(array_filter($current, fn($f) => $f !== $file));
+                $current = array_values(array_filter($current, fn ($f) => $f !== $file));
             }
         }
 
@@ -134,9 +133,11 @@ class Expense extends Model
                         'createThumbnails' => false,
                     ],
                     null,
-                    'attachment'
+                    'attachment',
                 );
-                if ($stored) { $current[] = $stored; }
+                if ($stored) {
+                    $current[] = $stored;
+                }
             }
         }
 
@@ -150,7 +151,6 @@ class Expense extends Model
     /**
      * Get URL to the receipt file
      *
-     * @param string $attribute
      * @return string|null
      */
     public function getFileUrl(string $attribute = 'attachments', $index = null)

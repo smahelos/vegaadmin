@@ -2,11 +2,11 @@
 
 namespace App\Infrastructure\Forms\Invoice;
 
+use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
 use App\Models\Client;
-use App\Models\Supplier;
 use App\Models\PaymentMethod;
 use App\Models\Status;
-use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
+use App\Models\Supplier;
 use Illuminate\Support\Facades\App;
 
 trait InvoiceFormFields
@@ -14,18 +14,22 @@ trait InvoiceFormFields
     /**
      * Get invoice form field definitions
      *
-     * @param array $clients Client options for dropdowns
-     * @param array $suppliers Supplier options for dropdowns
-     * @param array $paymentMethods Payment method options for dropdowns
-     * @param array $statuses Status options for dropdowns
-     * @param array $currencies Currency options for dropdowns
-     * @return array
+     * @param  array  $clients  Client options for dropdowns
+     * @param  array  $suppliers  Supplier options for dropdowns
+     * @param  array  $paymentMethods  Payment method options for dropdowns
+     * @param  array  $statuses  Status options for dropdowns
+     * @param  array  $currencies  Currency options for dropdowns
      */
-    protected function getInvoiceFields(array $clients = [], array $suppliers = [], array $paymentMethods = [], array $statuses = [], array $currencies = []): array
-    {
+    protected function getInvoiceFields(
+        array $clients = [],
+        array $suppliers = [],
+        array $paymentMethods = [],
+        array $statuses = [],
+        array $currencies = [],
+    ): array {
         // Get country codes from CountryService
         $countries = App::make(CountryServiceInterface::class)->getCountryCodesForSelect();
-        
+
         // Default currencies if not provided
         if (empty($currencies)) {
             $currencies = [
@@ -34,6 +38,7 @@ trait InvoiceFormFields
                 'USD' => 'USD',
             ];
         }
+
         return [
             // INVOICE data
             // we want to have Supplier logo at first place
@@ -112,11 +117,11 @@ trait InvoiceFormFields
                 'label' => __('invoices.fields.due_in'),
                 'type' => 'select_from_array',
                 'options' => [
-                    1 => '1 ' . __('invoices.units.days'), 
-                    3 => '3 ' . __('invoices.units.days'), 
-                    7 => '7 ' . __('invoices.units.days'), 
-                    14 => '14 ' . __('invoices.units.days'), 
-                    30 => '30 ' . __('invoices.units.days')
+                    1 => '1 ' . __('invoices.units.days'),
+                    3 => '3 ' . __('invoices.units.days'),
+                    7 => '7 ' . __('invoices.units.days'),
+                    14 => '14 ' . __('invoices.units.days'),
+                    30 => '30 ' . __('invoices.units.days'),
                 ],
                 'hint' => __('invoices.hints.due_in'),
                 'required' => true,

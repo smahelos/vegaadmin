@@ -45,7 +45,7 @@ class PaymentMethodRequest extends BaseEntityRequest
 
     public function prepareForValidation(): void
     {
-        if (empty($this->slug) && !empty($this->name)) {
+        if (empty($this->slug) && ! empty($this->name)) {
             $this->merge([
                 'slug' => Str::slug($this->name),
             ]);

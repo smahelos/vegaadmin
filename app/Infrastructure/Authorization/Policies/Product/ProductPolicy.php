@@ -31,7 +31,7 @@ class ProductPolicy
         if ($user->hasRole('admin')) {
             return true;
         }
-        
+
         // Users can only view their own products
         return $user->id === $product->user_id;
     }
@@ -55,7 +55,7 @@ class ProductPolicy
         if ($user->hasRole('admin')) {
             return true;
         }
-        
+
         // Users can only update their own products
         return $user->id === $product->user_id;
     }
@@ -69,12 +69,12 @@ class ProductPolicy
         if ($user->hasRole('admin')) {
             return true;
         }
-        
+
         // Frontend users can delete their own products
         if ($user->hasRole('frontend_user') && $user->id === $product->user_id) {
             return true;
         }
-        
+
         // Users can only delete their own products
         return $user->id === $product->user_id;
     }

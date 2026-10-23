@@ -34,7 +34,11 @@ class ClientTest extends TestCase
         ];
 
         foreach ($expectedTraits as $trait) {
-            $this->assertContains($trait, $traits, "Client model should use {$trait} trait");
+            $this->assertContains(
+                $trait,
+                $traits,
+                "Client model should use {$trait} trait",
+            );
         }
     }
 

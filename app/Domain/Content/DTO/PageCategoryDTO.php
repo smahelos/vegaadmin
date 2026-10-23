@@ -2,7 +2,6 @@
 
 namespace App\Domain\Content\DTO;
 
-
 class PageCategoryDTO
 {
     public function __construct(

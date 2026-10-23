@@ -31,12 +31,15 @@ class Dropdown extends Component
     /**
      * Create a new component instance
      *
-     * @param string $align          Menu alignment (right, left)
-     * @param int    $width          Menu width in pixels
-     * @param string $contentClasses Additional CSS classes for content 
+     * @param  string  $align  Menu alignment (right, left)
+     * @param  int  $width  Menu width in pixels
+     * @param  string  $contentClasses  Additional CSS classes for content
      */
-    public function __construct($align = 'right', $width = 48, $contentClasses = '')
-    {
+    public function __construct(
+        $align = 'right',
+        $width = 48,
+        $contentClasses = '',
+    ) {
         $this->align = $align;
         $this->width = $width;
         $this->contentClasses = $contentClasses;

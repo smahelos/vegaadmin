@@ -14,7 +14,7 @@ class EntityLimitRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new EntityLimitRequest();
+        $this->request = new EntityLimitRequest;
     }
 
     #[Test]
@@ -30,7 +30,7 @@ class EntityLimitRequestTest extends TestCase
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
 
-    $this->assertNotNull($returnType);
+        $this->assertNotNull($returnType);
         if ($returnType instanceof \ReflectionNamedType) {
             $this->assertEquals('bool', $returnType->getName());
         } else {
@@ -45,7 +45,7 @@ class EntityLimitRequestTest extends TestCase
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
 
-    $this->assertNotNull($returnType);
+        $this->assertNotNull($returnType);
         if ($returnType instanceof \ReflectionNamedType) {
             $this->assertEquals('array', $returnType->getName());
         } else {
@@ -60,14 +60,13 @@ class EntityLimitRequestTest extends TestCase
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
 
-    $this->assertNotNull($returnType);
+        $this->assertNotNull($returnType);
         if ($returnType instanceof \ReflectionNamedType) {
             $this->assertEquals('array', $returnType->getName());
         } else {
             $this->fail('attributes return type is not a named type');
         }
     }
-
 
     #[Test]
     public function authorize_method_exists_and_is_public(): void
@@ -95,5 +94,4 @@ class EntityLimitRequestTest extends TestCase
 
         $this->assertTrue($method->isPublic());
     }
-
 }

@@ -31,9 +31,10 @@ class DddLegacyReportCommand extends Command
 
     public function handle(): int
     {
-        $commentRatio = (float)$this->option('max-comment-ratio');
+        $commentRatio = (float) $this->option('max-comment-ratio');
         if ($commentRatio <= 0 || $commentRatio > 1) {
             $this->error('Invalid --max-comment-ratio (must be in (0,1]).');
+
             return 1;
         }
 
@@ -54,20 +55,32 @@ class DddLegacyReportCommand extends Command
         $strict = $this->option('strict');
 
         if ($isJson) {
-            $json = json_encode($payload, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+            $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             $this->line($json);
             if ($this->option('write-baseline')) {
                 $outDir = base_path('architecture/baselines');
-                if (!is_dir($outDir)) { @mkdir($outDir, 0777, true); }
-                file_put_contents($outDir.'/legacy_report_latest.json', $json);
+                if (! is_dir($outDir)) {
+                    @mkdir(
+                        $outDir,
+                        0777,
+                        true,
+                    );
+                }
+                file_put_contents($outDir . '/legacy_report_latest.json', $json);
                 $this->info('Legacy report baseline written to architecture/baselines/legacy_report_latest.json');
             }
         } else {
             $this->renderHuman($payload);
             if ($this->option('write-baseline')) {
                 $outDir = base_path('architecture/baselines');
-                if (!is_dir($outDir)) { @mkdir($outDir, 0777, true); }
-                file_put_contents($outDir.'/legacy_report_latest.json', json_encode($payload, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
+                if (! is_dir($outDir)) {
+                    @mkdir(
+                        $outDir,
+                        0777,
+                        true,
+                    );
+                }
+                file_put_contents($outDir . '/legacy_report_latest.json', json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
                 $this->info('Legacy report baseline written to architecture/baselines/legacy_report_latest.json');
             }
         }
@@ -76,6 +89,7 @@ class DddLegacyReportCommand extends Command
         if ($strict && $hasFindings) {
             return 2; // distinct non-zero for easier CI rule
         }
+
         return 0;
     }
 
@@ -100,7 +114,11 @@ class DddLegacyReportCommand extends Command
             ];
             foreach ($this->files->files($legacyServices) as $file) {
                 $name = $file->getFilename();
-                if (!in_array($name, $allow, true)) {
+                if (! in_array(
+                    $name,
+                    $allow,
+                    true,
+                )) {
                     $residuals[] = [
                         'type' => 'legacy_service_file',
                         'path' => $file->getPathname(),
@@ -150,23 +168,36 @@ class DddLegacyReportCommand extends Command
     {
         $neutralized = [];
         $testRoot = base_path('tests');
-        if (!is_dir($testRoot)) {
+        if (! is_dir($testRoot)) {
             return $neutralized;
         }
 
         $phpFiles = collect($this->files->allFiles($testRoot))
-            ->filter(fn($f) => str_ends_with($f->getFilename(), 'Test.php'));
+            ->filter(fn ($f) => str_ends_with($f->getFilename(), 'Test.php'));
 
         foreach ($phpFiles as $file) {
             $contents = $file->getContents();
             $lines = preg_split('/\r?\n/', $contents);
-            if (!$lines) { continue; }
-            $total = 0; $commentOrEmpty = 0; $assertions = 0;
+            if (! $lines) {
+                continue;
+            }
+            $total = 0;
+            $commentOrEmpty = 0;
+            $assertions = 0;
             foreach ($lines as $line) {
                 $trim = trim($line);
-                if ($trim === '') { $commentOrEmpty++; $total++; continue; }
+                if ($trim === '') {
+                    $commentOrEmpty++;
+                    $total++;
+
+                    continue;
+                }
                 if (str_starts_with($trim, '//') || str_starts_with($trim, '/*') || str_starts_with($trim, '*')) {
-                    $commentOrEmpty++; $total++; continue; }
+                    $commentOrEmpty++;
+                    $total++;
+
+                    continue;
+                }
                 $total++;
                 if (preg_match('/->assert|assertEquals|assertTrue|assertFalse|assertSame|assertCount|expect\(/', $trim)) {
                     $assertions++;
@@ -181,13 +212,14 @@ class DddLegacyReportCommand extends Command
                 ];
             }
         }
+
         return $neutralized;
     }
 
     private function renderHuman(array $payload): void
     {
-        $this->info('DDD Legacy Report @ '.$payload['timestamp']);
-        $this->line('Residuals: '.$payload['counts']['residuals'].' | Neutralized tests: '.$payload['counts']['neutralized_tests']);
+        $this->info('DDD Legacy Report @ ' . $payload['timestamp']);
+        $this->line('Residuals: ' . $payload['counts']['residuals'] . ' | Neutralized tests: ' . $payload['counts']['neutralized_tests']);
         if ($payload['counts']['residuals'] > 0) {
             $this->warn('--- Residuals ---');
             foreach ($payload['residuals'] as $r) {

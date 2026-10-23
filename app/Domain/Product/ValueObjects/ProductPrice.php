@@ -11,7 +11,6 @@ class ProductPrice
     /**
      * Constructor
      *
-     * @param float $value
      * @throws InvalidArgumentException
      */
     public function __construct(float $value)
@@ -26,8 +25,6 @@ class ProductPrice
 
     /**
      * Get the value
-     *
-     * @return float
      */
     public function getValue(): float
     {
@@ -36,18 +33,19 @@ class ProductPrice
 
     /**
      * Get formatted price
-     *
-     * @return string
      */
     public function getFormatted(): string
     {
-        return number_format($this->value, 2, '.', '');
+        return number_format(
+            $this->value,
+            2,
+            '.',
+            '',
+        );
     }
 
     /**
      * Convert to string
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -56,9 +54,6 @@ class ProductPrice
 
     /**
      * Create from float
-     *
-     * @param float $value
-     * @return self
      */
     public static function fromFloat(float $value): self
     {
@@ -67,21 +62,16 @@ class ProductPrice
 
     /**
      * Create from string
-     *
-     * @param string $value
-     * @return self
      */
     public static function fromString(string $value): self
     {
         $numericValue = (float) $value;
+
         return new self($numericValue);
     }
 
     /**
      * Check if equals to another ProductPrice
-     *
-     * @param ProductPrice $other
-     * @return bool
      */
     public function equals(ProductPrice $other): bool
     {
@@ -90,8 +80,6 @@ class ProductPrice
 
     /**
      * Check if price is zero
-     *
-     * @return bool
      */
     public function isZero(): bool
     {
@@ -100,9 +88,6 @@ class ProductPrice
 
     /**
      * Add another price
-     *
-     * @param ProductPrice $other
-     * @return self
      */
     public function add(ProductPrice $other): self
     {
@@ -111,9 +96,6 @@ class ProductPrice
 
     /**
      * Subtract another price
-     *
-     * @param ProductPrice $other
-     * @return self
      */
     public function subtract(ProductPrice $other): self
     {
@@ -122,9 +104,6 @@ class ProductPrice
 
     /**
      * Multiply by quantity
-     *
-     * @param float $multiplier
-     * @return self
      */
     public function multiply(float $multiplier): self
     {

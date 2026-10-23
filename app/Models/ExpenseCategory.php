@@ -21,7 +21,7 @@ class ExpenseCategory extends Model
         'slug',
         'description',
         'color',
-        'is_active'
+        'is_active',
     ];
 
     /**

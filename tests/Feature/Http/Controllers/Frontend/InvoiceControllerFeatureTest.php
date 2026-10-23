@@ -2,29 +2,32 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Models\Invoice;
-use App\Models\User;
+use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
+use App\Application\Invoice\DTO\InvoiceActionResult;
+use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\Client;
-use App\Models\Supplier;
+use App\Models\EntityLimit;
+use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
-use App\Models\EntityLimit;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Models\StatusCategory;
+use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 
 class InvoiceControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase;
 
     private User $user;
+
     private Invoice $invoice;
+
     private UniversalLimitService $limitService;
 
     protected function setUp(): void
@@ -32,11 +35,11 @@ class InvoiceControllerFeatureTest extends TestCase
         parent::setUp();
 
         $this->setUpFrontendTestEnvironment();
-        
+
         // Give user specific invoice permission
         $permission = Permission::where('name', 'frontend.can_create_edit_invoice')
-                               ->where('guard_name', 'web')
-                               ->first();
+            ->where('guard_name', 'web')
+            ->first();
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
@@ -44,7 +47,7 @@ class InvoiceControllerFeatureTest extends TestCase
         // Create test invoice
         $this->invoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'template' => 'default'
+            'template' => 'default',
         ]);
 
         $this->createInvoiceEntityLimit();
@@ -72,22 +75,22 @@ class InvoiceControllerFeatureTest extends TestCase
     public function set_template_updates_invoice_template_successfully(): void
     {
         $this->actingAs($this->user, 'web');
-        
+
         $response = $this->putJson(route('frontend.invoice.set-template', [
             'locale' => 'en',
             'id' => $this->invoice->id,
-            'template' => 'modern'
+            'template' => 'modern',
         ]), [
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
-        
+
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        
+
         // Verify database was updated
         $this->assertDatabaseHas('invoices', [
             'id' => $this->invoice->id,
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
     }
 
@@ -95,22 +98,22 @@ class InvoiceControllerFeatureTest extends TestCase
     public function set_template_uses_request_template_over_route_parameter(): void
     {
         $this->actingAs($this->user, 'web');
-        
+
         $response = $this->putJson(route('frontend.invoice.set-template', [
             'locale' => 'en',
             'id' => $this->invoice->id,
-            'template' => 'minimal'
+            'template' => 'minimal',
         ]), [
-            'template' => 'modern'  // Request parameter should take precedence
+            'template' => 'modern',  // Request parameter should take precedence
         ]);
-        
+
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        
+
         // Verify request parameter was used
         $this->assertDatabaseHas('invoices', [
             'id' => $this->invoice->id,
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
     }
 
@@ -118,20 +121,20 @@ class InvoiceControllerFeatureTest extends TestCase
     public function set_template_defaults_to_default_template(): void
     {
         $this->actingAs($this->user, 'web');
-        
+
         $response = $this->putJson(route('frontend.invoice.set-template', [
             'locale' => 'en',
             'id' => $this->invoice->id,
-            'template' => 'default'
+            'template' => 'default',
         ]));
-        
+
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        
+
         // Verify default template was set
         $this->assertDatabaseHas('invoices', [
             'id' => $this->invoice->id,
-            'template' => 'default'
+            'template' => 'default',
         ]);
     }
 
@@ -141,11 +144,11 @@ class InvoiceControllerFeatureTest extends TestCase
         $response = $this->putJson(route('frontend.invoice.set-template', [
             'locale' => 'en',
             'id' => $this->invoice->id,
-            'template' => 'modern'
+            'template' => 'modern',
         ]), [
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
-        
+
         $response->assertStatus(401);
     }
 
@@ -153,15 +156,15 @@ class InvoiceControllerFeatureTest extends TestCase
     public function set_template_fails_for_non_existent_invoice(): void
     {
         $this->actingAs($this->user, 'web');
-        
+
         $response = $this->putJson(route('frontend.invoice.set-template', [
             'locale' => 'en',
             'id' => 99999,
-            'template' => 'modern'
+            'template' => 'modern',
         ]), [
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
-        
+
         $response->assertRedirect();
         $response->assertSessionHas('error');
     }
@@ -173,26 +176,26 @@ class InvoiceControllerFeatureTest extends TestCase
         $otherUser = User::factory()->create();
         $otherInvoice = Invoice::factory()->create([
             'user_id' => $otherUser->id,
-            'template' => 'default'
+            'template' => 'default',
         ]);
-        
+
         $this->actingAs($this->user, 'web');
-        
+
         $response = $this->putJson(route('frontend.invoice.set-template', [
             'locale' => 'en',
             'id' => $otherInvoice->id,
-            'template' => 'modern'
+            'template' => 'modern',
         ]), [
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
-        
+
         $response->assertRedirect();
         $response->assertSessionHas('error');
-        
+
         // Verify template was not changed
         $this->assertDatabaseHas('invoices', [
             'id' => $otherInvoice->id,
-            'template' => 'default'
+            'template' => 'default',
         ]);
     }
 
@@ -200,21 +203,21 @@ class InvoiceControllerFeatureTest extends TestCase
     public function set_template_handles_service_exception(): void
     {
         $this->actingAs($this->user, 'web');
-        
+
         // Mock the service to throw an exception
-        $mockService = $this->mock(\App\Domain\Invoice\Contracts\InvoiceServiceInterface::class);
+        $mockService = $this->mock(InvoiceServiceInterface::class);
         $mockService->shouldReceive('setInvoiceTemplate')
-                   ->with($this->invoice->id, 'modern')
-                   ->andThrow(new \Exception('Service error'));
-        
+            ->with($this->invoice->id, 'modern')
+            ->andThrow(new \Exception('Service error'));
+
         $response = $this->putJson(route('frontend.invoice.set-template', [
             'locale' => 'en',
             'id' => $this->invoice->id,
-            'template' => 'modern'
+            'template' => 'modern',
         ]), [
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
-        
+
         $response->assertRedirect();
         $response->assertSessionHas('error');
     }
@@ -223,24 +226,28 @@ class InvoiceControllerFeatureTest extends TestCase
     public function set_template_accepts_valid_template_names(): void
     {
         $this->actingAs($this->user, 'web');
-        
-        $validTemplates = ['default', 'modern', 'minimal'];
-        
+
+        $validTemplates = [
+            'default',
+            'modern',
+            'minimal',
+        ];
+
         foreach ($validTemplates as $template) {
             $response = $this->putJson(route('frontend.invoice.set-template', [
                 'locale' => 'en',
                 'id' => $this->invoice->id,
-                'template' => $template
+                'template' => $template,
             ]), [
-                'template' => $template
+                'template' => $template,
             ]);
-            
+
             $response->assertRedirect();
             $response->assertSessionHas('success');
-            
+
             $this->assertDatabaseHas('invoices', [
                 'id' => $this->invoice->id,
-                'template' => $template
+                'template' => $template,
             ]);
         }
     }
@@ -251,9 +258,9 @@ class InvoiceControllerFeatureTest extends TestCase
         $route = route('frontend.invoice.set-template', [
             'locale' => 'en',
             'id' => 1,
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
-        
+
         $this->assertStringContainsString('/invoice/1/set-template/modern', $route);
     }
 
@@ -261,7 +268,7 @@ class InvoiceControllerFeatureTest extends TestCase
     public function invoice_creation_records_entity_usage(): void
     {
         $this->actingAs($this->user, 'web');
-        
+
         // Create required related entities
         $client = Client::factory()->create(['user_id' => $this->user->id]);
         $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
@@ -269,7 +276,12 @@ class InvoiceControllerFeatureTest extends TestCase
         $status = Status::factory()->create();
 
         // Check initial usage
-        $initialCheck = $this->limitService->checkLimit($this->user->id, 'invoice', 'count', 'monthly');
+        $initialCheck = $this->limitService->checkLimit(
+            $this->user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
         $initialUsage = $initialCheck['current_usage'] ?? 0;
 
         $invoiceData = [
@@ -283,7 +295,14 @@ class InvoiceControllerFeatureTest extends TestCase
             'due_in' => 30,
             'payment_amount' => 100.00,
             'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([['name' => 'Service', 'quantity' => '1', 'unit' => 'pieces', 'price' => '100', 'currency' => 'CZK', 'tax_rate' => '0']]),
+            'invoice-products' => json_encode([[
+                'name' => 'Service',
+                'quantity' => '1',
+                'unit' => 'pieces',
+                'price' => '100',
+                'currency' => 'CZK',
+                'tax_rate' => '0',
+            ]]),
             'street' => 'Test Street 123',
             'city' => 'Test City',
             'zip' => '12345',
@@ -300,9 +319,14 @@ class InvoiceControllerFeatureTest extends TestCase
         $response->assertSessionHas('success');
 
         // Check usage after creation
-        $newCheck = $this->limitService->checkLimit($this->user->id, 'invoice', 'count', 'monthly');
+        $newCheck = $this->limitService->checkLimit(
+            $this->user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
         $newUsage = $newCheck['current_usage'] ?? 0;
-        
+
         $this->assertEquals($initialUsage + 1, $newUsage);
 
         // Verify invoice was created
@@ -320,7 +344,7 @@ class InvoiceControllerFeatureTest extends TestCase
         // Ensure the limit is set to 1 for this test
         // we need to set limit to 1, so update data in database
         EntityLimit::where([
-            'permission_name' => 'frontend.can_create_edit_invoice'
+            'permission_name' => 'frontend.can_create_edit_invoice',
         ])->update(['limit_value' => 1]);
 
         // Create required related entities
@@ -330,9 +354,14 @@ class InvoiceControllerFeatureTest extends TestCase
         $status = Status::factory()->create();
 
         // First invoice creation - should succeed
-        $checkBeforeFirst = $this->limitService->checkLimit($this->user->id, 'invoice', 'count', 'monthly');
+        $checkBeforeFirst = $this->limitService->checkLimit(
+            $this->user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
         $this->assertTrue($checkBeforeFirst['allowed']);
-        
+
         $invoice1 = Invoice::factory()->create([
             'user_id' => $this->user->id,
             'client_id' => $client->id,
@@ -340,14 +369,24 @@ class InvoiceControllerFeatureTest extends TestCase
             'payment_method_id' => $paymentMethod->id,
             'payment_status_id' => $status->id,
         ]);
-        $result = $this->limitService->recordUsage($this->user->id, 'invoice', 'count', 'monthly');
+        $result = $this->limitService->recordUsage(
+            $this->user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
         $this->assertTrue($result, 'recordUsage should return true when successful');
-        
+
         // Second invoice creation - should fail due to limit
-        $checkBeforeSecond = $this->limitService->checkLimit($this->user->id, 'invoice', 'count', 'monthly');
+        $checkBeforeSecond = $this->limitService->checkLimit(
+            $this->user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
         $this->assertFalse($checkBeforeSecond['allowed']);
         $this->assertEquals('limit_exceeded', $checkBeforeSecond['reason']);
-        
+
         // Verify first invoice was created
         $this->assertDatabaseHas('invoices', [
             'id' => $invoice1->id,
@@ -369,7 +408,11 @@ class InvoiceControllerFeatureTest extends TestCase
     public function download_invoice_preview_streams_pdf(): void
     {
         $this->actingAs($this->user, 'web');
-        $response = $this->get(route('frontend.invoice.download', ['locale' => 'en', 'id' => $this->invoice->id, 'preview' => 1]));
+        $response = $this->get(route('frontend.invoice.download', [
+            'locale' => 'en',
+            'id' => $this->invoice->id,
+            'preview' => 1,
+        ]));
         // We cannot easily assert PDF stream content, but we assert headers
         $response->assertOk();
         $this->assertTrue(str_contains(strtolower($response->headers->get('content-type') ?? ''), 'pdf'));
@@ -381,10 +424,10 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->actingAs($this->user, 'web');
         // Ensure a 'paid' status exists with slug 'paid'
         $paidStatus = Status::firstOrCreate([
-            'slug' => 'paid'
+            'slug' => 'paid',
         ], [
             'name' => 'paid',
-            'category_id' => \App\Models\StatusCategory::factory()->create()->id,
+            'category_id' => StatusCategory::factory()->create()->id,
             'color' => 'bg-green-100 text-green-800',
             'description' => 'Paid status',
             'is_active' => true,
@@ -400,11 +443,13 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
         $this->put(route('frontend.invoice.set-template', [
-            'locale' => 'en', 'id' => $this->invoice->id, 'template' => 'modern'
+            'locale' => 'en',
+            'id' => $this->invoice->id,
+            'template' => 'modern',
         ]), ['template' => 'modern']);
         $this->assertDatabaseHas('invoices', [
             'id' => $this->invoice->id,
-            'template' => 'modern'
+            'template' => 'modern',
         ]);
     }
 
@@ -422,13 +467,21 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
         // Mock PDF application service (controller uses InvoicePdfApplicationServiceInterface->generate())
-        $pdfMock = $this->mock(\App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface::class);
+        $pdfMock = $this->mock(InvoicePdfApplicationServiceInterface::class);
         $pdfMock->shouldReceive('generate')
             ->once()
-            ->andReturn(\App\Application\Invoice\DTO\InvoiceActionResult::success(
-                response: response('PDF CONTENT', 200, ['Content-Type' => 'application/pdf'])
+            ->andReturn(InvoiceActionResult::success(
+                response: response(
+                    'PDF CONTENT',
+                    200,
+                    ['Content-Type' => 'application/pdf'],
+                ),
             ));
-        $response = $this->get(route('frontend.invoice.download', ['locale' => 'en', 'id' => $this->invoice->id, 'preview' => 1]));
+        $response = $this->get(route('frontend.invoice.download', [
+            'locale' => 'en',
+            'id' => $this->invoice->id,
+            'preview' => 1,
+        ]));
         $response->assertStatus(200);
         $this->assertEquals('application/pdf', $response->headers->get('Content-Type'));
     }
@@ -438,17 +491,21 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
         $filename = 'faktura-' . $this->invoice->invoice_vs . '.pdf';
-        $responseMock = response('PDF CONTENT', 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"'
-        ]);
-        $pdfMock = $this->mock(\App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface::class);
+        $responseMock = response(
+            'PDF CONTENT',
+            200,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ],
+        );
+        $pdfMock = $this->mock(InvoicePdfApplicationServiceInterface::class);
         $pdfMock->shouldReceive('generate')
             ->once()
-            ->andReturn(\App\Application\Invoice\DTO\InvoiceActionResult::success(response: $responseMock));
+            ->andReturn(InvoiceActionResult::success(response: $responseMock));
         $response = $this->get(route('frontend.invoice.download', ['locale' => 'en', 'id' => $this->invoice->id]));
         $response->assertOk();
-        $this->assertTrue(str_contains(strtolower($response->headers->get('content-disposition') ?? ''), 'attachment')); 
+        $this->assertTrue(str_contains(strtolower($response->headers->get('content-disposition') ?? ''), 'attachment'));
         $this->assertStringContainsString($this->invoice->invoice_vs, $response->headers->get('content-disposition'));
     }
 }

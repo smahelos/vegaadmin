@@ -19,7 +19,7 @@ class PerformanceMetricTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = new PerformanceMetric();
+        $this->model = new PerformanceMetric;
     }
 
     #[Test]
@@ -50,7 +50,7 @@ class PerformanceMetricTest extends TestCase
             'metric_value',
             'metric_unit',
             'metadata',
-            'measured_at'
+            'measured_at',
         ];
 
         $this->assertEquals($expectedFillable, $this->model->getFillable());
@@ -62,7 +62,7 @@ class PerformanceMetricTest extends TestCase
         $expectedCasts = [
             'metadata' => 'array',
             'measured_at' => 'datetime',
-            'metric_value' => 'decimal:4'
+            'metric_value' => 'decimal:4',
         ];
 
         foreach ($expectedCasts as $attribute => $cast) {

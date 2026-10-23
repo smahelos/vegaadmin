@@ -3,22 +3,22 @@
 namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
-use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
-use App\Domain\User\Contracts\Locale;
-use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
-use App\Domain\Payment\Contracts\BankServiceInterface;
-use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
+use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
+use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
+use App\Domain\Payment\Contracts\BankServiceInterface;
+use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\User\Contracts\Locale;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Tax;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Symfony\Component\HttpFoundation\Response;
 
 class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceInterface
@@ -36,7 +36,7 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
     ) {}
 
     /**
-     * @param array<string, mixed> $validatedData validated request input, items under 'invoice-products'
+     * @param  array<string, mixed>  $validatedData  validated request input, items under 'invoice-products'
      */
     public function storeGuestInvoice(array $validatedData, ?string $requestedLocale): array
     {
@@ -44,12 +44,12 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         $validatedData['lang'] = $locale;
 
         if (isset($validatedData['due_in'])) {
-            $validatedData['due_in'] = (int)$validatedData['due_in'];
+            $validatedData['due_in'] = (int) $validatedData['due_in'];
         }
 
         $validatedData['payment_amount'] = InvoiceTotals::fromProducts(
             Currency::from((string) $validatedData['payment_currency']),
-            $this->products->fromValidated($validatedData['invoice-products'])
+            $this->products->fromValidated($validatedData['invoice-products']),
         )->total()->getAmount();
 
         $token = $this->temporaryInvoiceStore->store($validatedData);
@@ -58,13 +58,17 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         Session::put('last_guest_invoice_number', $validatedData['invoice_vs'] ?? null);
         Session::put('last_guest_invoice_expires', now()->addMinutes(10)->timestamp);
 
-        $tempInvoice = new \stdClass();
-        foreach ($validatedData as $k => $v) { $tempInvoice->$k = $v; }
-        if (isset($tempInvoice->due_in)) { $tempInvoice->due_in = (int)$tempInvoice->due_in; }
+        $tempInvoice = new \stdClass;
+        foreach ($validatedData as $k => $v) {
+            $tempInvoice->$k = $v;
+        }
+        if (isset($tempInvoice->due_in)) {
+            $tempInvoice->due_in = (int) $tempInvoice->due_in;
+        }
 
         $qrCodeBase64 = null;
         try {
-            if (((!empty($tempInvoice->account_number) && !empty($tempInvoice->bank_code)) || !empty($tempInvoice->iban))) {
+            if (((! empty($tempInvoice->account_number) && ! empty($tempInvoice->bank_code)) || ! empty($tempInvoice->iban))) {
                 $qrPayload = $this->qrPaymentMapper->fromArray($tempInvoice);
                 $qrCodeBase64 = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
             }
@@ -78,11 +82,11 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
             'invoice_number' => $validatedData['invoice_vs'] ?? null,
             'download_url' => route('frontend.invoice.download.token', [
                 'locale' => $locale,
-                'token' => $token
+                'token' => $token,
             ]),
             'token' => $token,
             'qr_code' => $qrCodeBase64,
-            'has_qr_code' => !empty($qrCodeBase64),
+            'has_qr_code' => ! empty($qrCodeBase64),
         ];
     }
 
@@ -95,33 +99,72 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         $banksData = $this->bankService->getBanksForJs();
         // Guest context: no authenticated user ID => use 0 sentinel to start sequence at YYYY0001
         $suggestedNumber = $this->invoiceFormService->getNextInvoiceNumber(0);
-        $limitsData = [ 'limit' => 0, 'current_usage' => 0, 'allowed' => false ];
-        $userInfo = [ 'name' => '', 'street' => '', 'city' => '', 'zip' => '', 'country' => 'CZ', 'ico' => '', 'dic' => '', 'email' => '', 'phone' => '' ];
+        $limitsData = [
+            'limit' => 0,
+            'current_usage' => 0,
+            'allowed' => false,
+        ];
+        $userInfo = [
+            'name' => '',
+            'street' => '',
+            'city' => '',
+            'zip' => '',
+            'country' => 'CZ',
+            'ico' => '',
+            'dic' => '',
+            'email' => '',
+            'phone' => '',
+        ];
         $clients = $suppliers = [];
         $invoiceProducts = [];
-        $fieldSet = app(InvoiceCreateFieldSetFactory::class)->build($clients, $suppliers, $paymentMethods, $statuses);
+        $fieldSet = app(InvoiceCreateFieldSetFactory::class)->build(
+            $clients,
+            $suppliers,
+            $paymentMethods,
+            $statuses,
+        );
         $fields = $fieldSet->toArray();
-        
-        return compact('paymentMethods','statuses','taxRates','banks','banksData','suggestedNumber','limitsData','userInfo','clients','suppliers','invoiceProducts','fields');
+
+        return compact(
+            'paymentMethods',
+            'statuses',
+            'taxRates',
+            'banks',
+            'banksData',
+            'suggestedNumber',
+            'limitsData',
+            'userInfo',
+            'clients',
+            'suppliers',
+            'invoiceProducts',
+            'fields',
+        );
     }
 
-    public function generatePdfByToken(?string $token, ?string $requestedLocale, bool $preview = false): Response
-    {
-        if (!$token) {
+    public function generatePdfByToken(
+        ?string $token,
+        ?string $requestedLocale,
+        bool $preview = false,
+    ): Response {
+        if (! $token) {
             $token = Session::get('last_guest_invoice_token');
-            if (!$token) {
+            if (! $token) {
                 abort(404, __('invoices.messages.not_found'));
             }
         }
 
         Log::info('Starting PDF generation with token: ' . substr($token, 0, 8) . '...');
         $invoiceData = $this->temporaryInvoiceStore->get($token);
-        if (!$invoiceData) {
+        if (! $invoiceData) {
             abort(404, __('invoices.messages.expired'));
         }
 
-    $printData = $this->tempPrintDataFactory->fromArray($invoiceData);
-    $pdf = $this->invoicePdfRenderer->render($printData, $printData->template ?? null, $requestedLocale);
+        $printData = $this->tempPrintDataFactory->fromArray($invoiceData);
+        $pdf = $this->invoicePdfRenderer->render(
+            $printData,
+            $printData->template ?? null,
+            $requestedLocale,
+        );
         $filename = 'faktura-' . ($invoiceData['invoice_vs'] ?? date('YmdHis')) . '.pdf';
 
         if ($preview) {
@@ -130,7 +173,12 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
 
         $locale = $this->locale->determineLocale($requestedLocale, $invoiceData['lang'] ?? null);
         $response = $pdf->download($filename);
-        return $response->cookie('locale', $locale, 60 * 24 * 30);
+
+        return $response->cookie(
+            'locale',
+            $locale,
+            60 * 24 * 30,
+        );
     }
 
     public function deleteTemporary(string $token): bool
@@ -143,6 +191,7 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         Session::forget('last_guest_invoice_token');
         Session::forget('last_guest_invoice_number');
         Session::forget('last_guest_invoice_expires');
+
         return true;
     }
 }

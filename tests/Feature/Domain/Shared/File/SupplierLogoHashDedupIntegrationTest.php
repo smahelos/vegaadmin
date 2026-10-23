@@ -2,25 +2,36 @@
 
 namespace Tests\Feature\Domain\Shared\File;
 
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Models\FileHash;
 use App\Models\Supplier;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class SupplierLogoHashDedupIntegrationTest extends TestCase
 {
     use RefreshDatabase; // Ensure migrations for users and file_hashes tables are present
+
     #[Test]
     public function supplier_logo_uses_deduplication(): void
     {
         Storage::fake('public');
-        $file1 = UploadedFile::fake()->image('logo.png', 140, 140);
+        $file1 = UploadedFile::fake()->image(
+            'logo.png',
+            140,
+            140,
+        );
         $tmpCopy = tempnam(sys_get_temp_dir(), 'dup');
         copy($file1->getRealPath(), $tmpCopy);
-        $file2 = new UploadedFile($tmpCopy, 'other.png', 'image/png', null, true);
+        $file2 = new UploadedFile(
+            $tmpCopy,
+            'other.png',
+            'image/png',
+            null,
+            true,
+        );
 
         $supplier = Supplier::factory()->create();
         $supplier->supplier_logo = $file1;

@@ -15,7 +15,7 @@ class UserActivitySummaryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = new UserActivitySummary();
+        $this->model = new UserActivitySummary;
     }
 
     #[Test]
@@ -46,7 +46,7 @@ class UserActivitySummaryTest extends TestCase
     public function primary_key_is_user_id(): void
     {
         $this->assertEquals('user_id', $this->model->getKeyName());
-        
+
         // Check protected property using reflection
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('primaryKey');
@@ -64,7 +64,7 @@ class UserActivitySummaryTest extends TestCase
             'total_suppliers' => 'integer',
             'total_products' => 'integer',
             'invoices_last_30_days' => 'integer',
-            'invoices_last_7_days' => 'integer'
+            'invoices_last_7_days' => 'integer',
         ];
 
         foreach ($expectedCasts as $attribute => $expectedCast) {
@@ -77,7 +77,7 @@ class UserActivitySummaryTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('getKeyName');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -173,7 +173,7 @@ class UserActivitySummaryTest extends TestCase
             'total_products',
             'last_invoice_date',
             'invoices_last_30_days',
-            'invoices_last_7_days'
+            'invoices_last_7_days',
         ];
 
         $this->assertEquals($expectedFillable, $this->model->getFillable());

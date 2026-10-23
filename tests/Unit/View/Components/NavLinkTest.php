@@ -15,7 +15,7 @@ class NavLinkTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->component = new NavLink('/test-url');
     }
 
@@ -35,7 +35,7 @@ class NavLinkTest extends TestCase
     public function render_method_exists_and_is_public(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));
-        
+
         $reflection = new \ReflectionClass(NavLink::class);
         $method = $reflection->getMethod('render');
         $this->assertTrue($method->isPublic());
@@ -47,7 +47,7 @@ class NavLinkTest extends TestCase
         $reflection = new \ReflectionClass(NavLink::class);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\View\View', $returnType->getName());
     }
@@ -57,7 +57,7 @@ class NavLinkTest extends TestCase
     {
         $href = '/test-url';
         $component = new NavLink($href);
-        
+
         $this->assertEquals($href, $component->href);
         $this->assertFalse($component->active); // Default should be false
     }
@@ -68,7 +68,7 @@ class NavLinkTest extends TestCase
         $href = '/custom-url';
         $active = true;
         $component = new NavLink($href, $active);
-        
+
         $this->assertEquals($href, $component->href);
         $this->assertTrue($component->active);
     }
@@ -81,9 +81,9 @@ class NavLinkTest extends TestCase
             ['/users', true],
             ['https://example.com', false],
             ['#', true],
-            ['', false]
+            ['', false],
         ];
-        
+
         foreach ($testCases as [$url, $isActive]) {
             $component = new NavLink($url, $isActive);
             $this->assertEquals($url, $component->href);
@@ -95,7 +95,7 @@ class NavLinkTest extends TestCase
     public function component_has_expected_namespace(): void
     {
         $reflection = new \ReflectionClass(NavLink::class);
-        
+
         $this->assertEquals('App\View\Components', $reflection->getNamespaceName());
     }
 
@@ -104,11 +104,11 @@ class NavLinkTest extends TestCase
     {
         $reflection = new \ReflectionClass(NavLink::class);
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-        
-        $propertyNames = array_map(fn($prop) => $prop->getName(), $properties);
-        
+
+        $propertyNames = array_map(fn ($prop) => $prop->getName(), $properties);
+
         $expectedProperties = ['href', 'active'];
-        
+
         foreach ($expectedProperties as $property) {
             $this->assertContains($property, $propertyNames);
         }
@@ -120,7 +120,7 @@ class NavLinkTest extends TestCase
         $reflection = new \ReflectionClass(NavLink::class);
         $method = $reflection->getMethod('render');
         $docComment = $method->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('Render the nav link component', $docComment);
     }
@@ -131,17 +131,17 @@ class NavLinkTest extends TestCase
         $reflection = new \ReflectionClass(NavLink::class);
         $constructor = $reflection->getMethod('__construct');
         $parameters = $constructor->getParameters();
-        
+
         $this->assertCount(2, $parameters);
-        
+
         // Check parameter names
         $this->assertEquals('href', $parameters[0]->getName());
         $this->assertEquals('active', $parameters[1]->getName());
-        
+
         // Check required vs optional
         $this->assertFalse($parameters[0]->isOptional());
         $this->assertTrue($parameters[1]->isOptional());
-        
+
         // Check default value for active parameter
         $this->assertFalse($parameters[1]->getDefaultValue());
     }
@@ -151,7 +151,7 @@ class NavLinkTest extends TestCase
     {
         $reflection = new \ReflectionClass(NavLink::class);
         $fileContent = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('use Illuminate\View\Component;', $fileContent);
         $this->assertStringContainsString('use Illuminate\View\View;', $fileContent);
     }
@@ -162,11 +162,11 @@ class NavLinkTest extends TestCase
         $reflection = new \ReflectionClass(NavLink::class);
         $hrefProperty = $reflection->getProperty('href');
         $activeProperty = $reflection->getProperty('active');
-        
+
         // Check docblocks exist
         $this->assertNotFalse($hrefProperty->getDocComment());
         $this->assertNotFalse($activeProperty->getDocComment());
-        
+
         // Check docblock content
         $this->assertStringContainsString('@var string', $hrefProperty->getDocComment());
         $this->assertStringContainsString('@var bool', $activeProperty->getDocComment());
@@ -178,7 +178,7 @@ class NavLinkTest extends TestCase
     public function render_method_returns_correct_view(): void
     {
         $reflection = new \ReflectionClass(NavLink::class);
-        
+
         // Check that the method body contains the expected view call
         $fileContent = file_get_contents($reflection->getFileName());
         $this->assertStringContainsString("view('components.nav-link'", $fileContent);

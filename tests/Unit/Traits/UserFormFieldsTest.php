@@ -100,7 +100,7 @@ class UserFormFieldsTest extends TestCase
         // Should have exactly 2 methods
         $this->assertCount(2, $methods);
 
-        $methodNames = array_map(fn($method) => $method->getName(), $methods);
+        $methodNames = array_map(fn ($method) => $method->getName(), $methods);
         $this->assertContains('getUserFields', $methodNames);
         $this->assertContains('getPasswordFields', $methodNames);
     }

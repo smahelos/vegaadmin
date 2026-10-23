@@ -29,6 +29,7 @@ class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoReadReposi
         $invoiceIdValue = $invoiceId instanceof InvoiceId ? $invoiceId->getValue() : (int) $invoiceId;
 
         $products = $this->productRepository->allForInvoice($invoiceIdValue);
+
         // productRepository returns array; map each row to DTO via model reconstruction isn't needed here
         // but we prefer mapping from model to keep consistency, so adjust repository to return models in future if needed
         // For now, convert array rows to DTO using fromArray normalization
@@ -41,11 +42,12 @@ class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoReadReposi
     public function create(InvoiceId $invoiceId, InvoiceProductWriteData $data): InvoiceProductDTO
     {
         $product = $this->productRepository->create($this->mapper->toAttributes($invoiceId, $data))->toArray();
+
         return InvoiceProductDTO::fromArray($product);
     }
 
     /**
-     * @param list<InvoiceProductWriteData> $products
+     * @param  list<InvoiceProductWriteData>  $products
      */
     public function bulkCreate(InvoiceId $invoiceId, array $products): void
     {

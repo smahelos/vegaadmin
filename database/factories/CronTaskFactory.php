@@ -4,16 +4,17 @@ namespace Database\Factories;
 
 use App\Models\CronTask;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CronTask>
+ * @extends Factory<CronTask>
  */
 class CronTaskFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\Illuminate\Database\Eloquent\Model>
+     * @var class-string<Model>
      */
     protected $model = CronTask::class;
 
@@ -35,7 +36,12 @@ class CronTaskFactory extends Factory
             'view:cache',
         ];
 
-        $frequencies = ['daily', 'weekly', 'monthly', 'custom'];
+        $frequencies = [
+            'daily',
+            'weekly',
+            'monthly',
+            'custom',
+        ];
 
         return [
             'name' => $this->faker->words(3, true) . ' Task',

@@ -47,10 +47,11 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class AdminCrudSmokeTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
 
     protected function setUp(): void
@@ -106,9 +107,18 @@ class AdminCrudSmokeTest extends TestCase
         $this->freshCrud()->get($base)->assertOk();
 
         // DataTables request of the list view; renders every column of the record
-        $this->freshCrud()->postJson($base . '/search', ['draw' => 1, 'start' => 0, 'length' => 10])
+        $this->freshCrud()->postJson($base . '/search', [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 10,
+        ])
             ->assertOk()
-            ->assertJsonStructure(['draw', 'recordsTotal', 'recordsFiltered', 'data'])
+            ->assertJsonStructure([
+                'draw',
+                'recordsTotal',
+                'recordsFiltered',
+                'data',
+            ])
             ->assertJsonPath('recordsTotal', fn ($total) => $total >= 1);
 
         if ($this->hasRoute("{$base}/create")) {
@@ -130,7 +140,11 @@ class AdminCrudSmokeTest extends TestCase
      */
     private function freshCrud(): static
     {
-        foreach (['CrudManager', 'BackpackLifecycleHooks', 'crud'] as $abstract) {
+        foreach ([
+            'CrudManager',
+            'BackpackLifecycleHooks',
+            'crud',
+        ] as $abstract) {
             $this->app->forgetInstance($abstract);
             Facade::clearResolvedInstance($abstract);
         }

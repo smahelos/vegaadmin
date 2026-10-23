@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Domain\Shared\Money\Services;
 
+use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Money\Services\CurrencyExchangeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -21,7 +22,7 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
         parent::setUp();
         // Resolve via container to inject HttpClient, Cache, Logger and Config adapters
         $this->service = app(CurrencyExchangeService::class);
-        
+
         // Clear cache before each test
         Cache::flush();
     }
@@ -36,7 +37,7 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function get_exchange_rate_returns_one_for_same_currencies(): void
     {
         $rate = $this->service->getExchangeRate('USD', 'USD');
-        
+
         $this->assertEquals(1.0, $rate);
     }
 
@@ -49,13 +50,13 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
                 'rates' => [
                     'USD' => 1.0,
                     'EUR' => 0.85,
-                    'CZK' => 21.5
-                ]
-            ], 200)
+                    'CZK' => 21.5,
+                ],
+            ], 200),
         ]);
 
         $rate = $this->service->getExchangeRate('USD', 'EUR');
-        
+
         $this->assertIsFloat($rate);
         $this->assertEquals(0.85, $rate); // EUR rate relative to USD
     }
@@ -69,17 +70,21 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
                 'rates' => [
                     'USD' => 1.0,
                     'EUR' => 0.85,
-                    'CZK' => 21.5
-                ]
-            ], 200)
+                    'CZK' => 21.5,
+                ],
+            ], 200),
         ]);
 
         $rate = $this->service->getExchangeRate('EUR', 'CZK');
-        
+
         $this->assertIsFloat($rate);
         // CZK/EUR = 21.5/0.85 ≈ 25.29
         $expectedRate = 21.5 / 0.85;
-        $this->assertEqualsWithDelta($expectedRate, $rate, 0.01);
+        $this->assertEqualsWithDelta(
+            $expectedRate,
+            $rate,
+            0.01,
+        );
     }
 
     #[Test]
@@ -90,13 +95,13 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
             'open.er-api.com/*' => Http::response([
                 'rates' => [
                     'USD' => 1.0,
-                    'EUR' => 0.85
-                ]
-            ], 200)
+                    'EUR' => 0.85,
+                ],
+            ], 200),
         ]);
 
         $rate = $this->service->getExchangeRate('USD', 'INVALID');
-        
+
         $this->assertNull($rate);
     }
 
@@ -107,17 +112,17 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
             'USD' => 1.0,
             'EUR' => 0.85,
             'CZK' => 21.5,
-            'GBP' => 0.73
+            'GBP' => 0.73,
         ];
 
         Http::fake([
             'open.er-api.com/*' => Http::response([
-                'rates' => $mockRates
-            ], 200)
+                'rates' => $mockRates,
+            ], 200),
         ]);
 
         $rates = $this->service->getExchangeRates();
-        
+
         $this->assertIsArray($rates);
         $this->assertEquals($mockRates, $rates);
     }
@@ -127,14 +132,14 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     {
         // Mock failed API response
         Http::fake([
-            'open.er-api.com/*' => Http::response([], 500)
+            'open.er-api.com/*' => Http::response([], 500),
         ]);
 
         $rates = $this->service->getExchangeRates();
-        
+
         $this->assertIsArray($rates);
         $this->assertNotEmpty($rates);
-        
+
         // Should contain fallback currencies
         $this->assertArrayHasKey('USD', $rates);
         $this->assertArrayHasKey('EUR', $rates);
@@ -148,15 +153,15 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
         // Mock API response without rates key
         Http::fake([
             'open.er-api.com/*' => Http::response([
-                'error' => 'Invalid base currency'
-            ], 200)
+                'error' => 'Invalid base currency',
+            ], 200),
         ]);
 
         $rates = $this->service->getExchangeRates();
-        
+
         $this->assertIsArray($rates);
         $this->assertNotEmpty($rates);
-        
+
         // Should return fallback data
         $this->assertArrayHasKey('USD', $rates);
         $this->assertEquals(1.0, $rates['USD']);
@@ -170,17 +175,17 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
                 'rates' => [
                     'USD' => 1.18,
                     'CZK' => 25.3,
-                    'EUR' => 1.0
-                ]
-            ], 200)
+                    'EUR' => 1.0,
+                ],
+            ], 200),
         ]);
 
         $rates = $this->service->getExchangeRates('EUR');
-        
+
         Http::assertSent(function ($request) {
             return $request->url() === 'https://open.er-api.com/v6/latest?base=EUR';
         });
-        
+
         $this->assertIsArray($rates);
         $this->assertArrayHasKey('USD', $rates);
         $this->assertArrayHasKey('CZK', $rates);
@@ -190,21 +195,21 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function get_exchange_rates_caches_result(): void
     {
         $mockRates = ['USD' => 1.0, 'EUR' => 0.85];
-        
+
         Http::fake([
             'open.er-api.com/*' => Http::response([
-                'rates' => $mockRates
-            ], 200)
+                'rates' => $mockRates,
+            ], 200),
         ]);
 
         // First call
         $rates1 = $this->service->getExchangeRates();
-        
+
         // Second call should use cache
         $rates2 = $this->service->getExchangeRates();
-        
+
         $this->assertEquals($rates1, $rates2);
-        
+
         // Verify cache was used by checking that HTTP was only called once
         Http::assertSentCount(1);
     }
@@ -213,25 +218,25 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function get_exchange_rates_logs_errors(): void
     {
         // Spy on the domain logger adapter instead of the facade, to assert log() was called
-        $mockLogger = \Mockery::mock(\App\Domain\Shared\Log\Contracts\LogInterface::class);
+        $mockLogger = \Mockery::mock(LogInterface::class);
         $mockLogger->shouldReceive('log')
             ->once()
-            ->withArgs(function(string $level, string $message) {
+            ->withArgs(function (string $level, string $message) {
                 return $level === 'error' && str_contains($message, 'Error fetching currency exchange rates');
             });
-        $this->app->instance(\App\Domain\Shared\Log\Contracts\LogInterface::class, $mockLogger);
+        $this->app->instance(LogInterface::class, $mockLogger);
         // Re-resolve service to pick up mocked logger
         $this->service = app(CurrencyExchangeService::class);
-        
+
         // Mock exception
         Http::fake([
             'open.er-api.com/*' => function () {
                 throw new \Exception('Connection timeout');
-            }
+            },
         ]);
 
         $rates = $this->service->getExchangeRates();
-        
+
         // Logger expectation verified by mock
         // Should still return fallback data
         $this->assertIsArray($rates);
@@ -247,13 +252,17 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
                 'rates' => [
                     'USD' => 1.0,
                     'EUR' => 0.85,
-                    'CZK' => 21.5
-                ]
-            ], 200)
+                    'CZK' => 21.5,
+                ],
+            ], 200),
         ]);
 
-        $result = $this->service->convert(100.0, 'USD', 'EUR');
-        
+        $result = $this->service->convert(
+            100.0,
+            'USD',
+            'EUR',
+        );
+
         $this->assertIsFloat($result);
         $this->assertEquals(85.0, $result); // 100 USD * 0.85 = 85 EUR
     }
@@ -266,13 +275,17 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
             'open.er-api.com/*' => Http::response([
                 'rates' => [
                     'USD' => 1.0,
-                    'EUR' => 0.857123
-                ]
-            ], 200)
+                    'EUR' => 0.857123,
+                ],
+            ], 200),
         ]);
 
-        $result = $this->service->convert(100.0, 'USD', 'EUR');
-        
+        $result = $this->service->convert(
+            100.0,
+            'USD',
+            'EUR',
+        );
+
         $this->assertIsFloat($result);
         $this->assertEquals(85.71, $result); // Should be rounded to 2 decimal places
     }
@@ -285,21 +298,29 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
             'open.er-api.com/*' => Http::response([
                 'rates' => [
                     'USD' => 1.0,
-                    'EUR' => 0.85
-                ]
-            ], 200)
+                    'EUR' => 0.85,
+                ],
+            ], 200),
         ]);
 
-        $result = $this->service->convert(100.0, 'USD', 'INVALID');
-        
+        $result = $this->service->convert(
+            100.0,
+            'USD',
+            'INVALID',
+        );
+
         $this->assertNull($result);
     }
 
     #[Test]
     public function convert_handles_same_currency(): void
     {
-        $result = $this->service->convert(100.0, 'USD', 'USD');
-        
+        $result = $this->service->convert(
+            100.0,
+            'USD',
+            'USD',
+        );
+
         $this->assertEquals(100.0, $result);
     }
 
@@ -310,20 +331,24 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
         Http::fake([
             'open.er-api.com/*' => function () {
                 throw new \Exception('Connection timeout');
-            }
+            },
         ]);
 
         // getExchangeRates should return fallback data
         $rates = $this->service->getExchangeRates();
         $this->assertIsArray($rates);
         $this->assertNotEmpty($rates);
-        
+
         // getExchangeRate should work with fallback data
         $rate = $this->service->getExchangeRate('USD', 'EUR');
         $this->assertIsFloat($rate);
-        
+
         // convert should work with fallback data
-        $result = $this->service->convert(100.0, 'USD', 'EUR');
+        $result = $this->service->convert(
+            100.0,
+            'USD',
+            'EUR',
+        );
         $this->assertIsFloat($result);
     }
 }

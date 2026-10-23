@@ -23,7 +23,7 @@ class InvoiceControllerTest extends TestCase
         $reflection = new \ReflectionClass(InvoiceController::class);
         $constructor = $reflection->getConstructor();
         $parameters = $constructor->getParameters();
-        
+
         $expectedTypes = [
             'App\\Application\\Invoice\\Contracts\\InvoiceFormApplicationServiceInterface',
             'App\\Application\\Invoice\\Contracts\\GuestInvoiceApplicationServiceInterface',
@@ -32,7 +32,7 @@ class InvoiceControllerTest extends TestCase
             'App\\Application\\Invoice\\Contracts\\InvoiceMutationApplicationServiceInterface',
             'App\\Application\\Invoice\\Contracts\\InvoicePdfApplicationServiceInterface',
         ];
-        
+
         foreach ($parameters as $index => $parameter) {
             $type = $parameter->getType();
             $this->assertNotNull($type, "Parameter {$index} should have type");

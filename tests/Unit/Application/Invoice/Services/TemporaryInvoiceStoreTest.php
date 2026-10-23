@@ -3,7 +3,6 @@
 namespace Tests\Unit\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
-use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -13,7 +12,11 @@ class TemporaryInvoiceStoreTest extends TestCase
     public function it_stores_and_retrieves_invoice_data(): void
     {
         $store = app(TemporaryInvoiceStoreInterface::class);
-        $data = ['invoice_vs' => 'INV-UNIT', 'lang' => 'en', 'amount' => 123.45];
+        $data = [
+            'invoice_vs' => 'INV-UNIT',
+            'lang' => 'en',
+            'amount' => 123.45,
+        ];
 
         $token = $store->store($data, minutes: 5);
 

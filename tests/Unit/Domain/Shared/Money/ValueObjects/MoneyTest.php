@@ -185,7 +185,11 @@ class MoneyTest extends TestCase
     public function divide_rounding_half_up_simple(): void
     {
         $m = Money::fromString('1', 'USD');
-        $r = $m->divideRounding(2, 2, Money::ROUND_HALF_UP); // 0.50 -> normalized 0.5
+        $r = $m->divideRounding(
+            2,
+            2,
+            Money::ROUND_HALF_UP,
+        ); // 0.50 -> normalized 0.5
         $this->assertSame('0.5', $r->getAmount());
     }
 
@@ -193,7 +197,11 @@ class MoneyTest extends TestCase
     public function divide_rounding_half_up_tie_rounds_up(): void
     {
         $m = Money::fromString('1', 'USD'); // 1 / 8 = 0.125 -> 0.13 HALF_UP
-        $r = $m->divideRounding(8, 2, Money::ROUND_HALF_UP);
+        $r = $m->divideRounding(
+            8,
+            2,
+            Money::ROUND_HALF_UP,
+        );
         $this->assertSame('0.13', $r->getAmount());
     }
 
@@ -201,7 +209,11 @@ class MoneyTest extends TestCase
     public function divide_rounding_bankers_tie_even_stays(): void
     {
         $m = Money::fromString('1', 'USD'); // 1 / 8 = 0.125 -> 0.12 BANKERS (2 is even)
-        $r = $m->divideRounding(8, 2, Money::ROUND_BANKERS);
+        $r = $m->divideRounding(
+            8,
+            2,
+            Money::ROUND_BANKERS,
+        );
         $this->assertSame('0.12', $r->getAmount());
     }
 
@@ -209,7 +221,11 @@ class MoneyTest extends TestCase
     public function divide_rounding_bankers_tie_odd_rounds_up(): void
     {
         $m = Money::fromString('135', 'USD'); // 135 / 1000 = 0.135 -> 0.14 (3 odd)
-        $r = $m->divideRounding(1000, 2, Money::ROUND_BANKERS);
+        $r = $m->divideRounding(
+            1000,
+            2,
+            Money::ROUND_BANKERS,
+        );
         $this->assertSame('0.14', $r->getAmount());
     }
 
@@ -217,8 +233,16 @@ class MoneyTest extends TestCase
     public function divide_rounding_scale_zero_half_up_vs_bankers_even(): void
     {
         $m = Money::fromString('5', 'USD'); // 5 / 2 = 2.5
-        $halfUp = $m->divideRounding(2, 0, Money::ROUND_HALF_UP); // -> 3
-        $bankers = $m->divideRounding(2, 0, Money::ROUND_BANKERS); // 2 even -> 2
+        $halfUp = $m->divideRounding(
+            2,
+            0,
+            Money::ROUND_HALF_UP,
+        ); // -> 3
+        $bankers = $m->divideRounding(
+            2,
+            0,
+            Money::ROUND_BANKERS,
+        ); // 2 even -> 2
         $this->assertSame('3', $halfUp->getAmount());
         $this->assertSame('2', $bankers->getAmount());
     }
@@ -227,7 +251,11 @@ class MoneyTest extends TestCase
     public function divide_rounding_scale_zero_bankers_odd_rounds_up(): void
     {
         $m = Money::fromString('15', 'USD'); // 15 / 2 = 7.5 (7 odd)->8
-        $bankers = $m->divideRounding(2, 0, Money::ROUND_BANKERS);
+        $bankers = $m->divideRounding(
+            2,
+            0,
+            Money::ROUND_BANKERS,
+        );
         $this->assertSame('8', $bankers->getAmount());
     }
 
@@ -235,8 +263,16 @@ class MoneyTest extends TestCase
     public function divide_rounding_exact_half_with_leading_zeros(): void
     {
         $m = Money::fromString('1', 'USD'); // 1 / 200 = 0.005 -> HALF_UP 0.01, BANKERS 0
-        $halfUp = $m->divideRounding(200, 2, Money::ROUND_HALF_UP);
-        $bankers = $m->divideRounding(200, 2, Money::ROUND_BANKERS);
+        $halfUp = $m->divideRounding(
+            200,
+            2,
+            Money::ROUND_HALF_UP,
+        );
+        $bankers = $m->divideRounding(
+            200,
+            2,
+            Money::ROUND_BANKERS,
+        );
         $this->assertSame('0.01', $halfUp->getAmount());
         $this->assertSame('0', $bankers->getAmount());
     }
@@ -269,7 +305,12 @@ class MoneyTest extends TestCase
     #[Test]
     public function multiply_by_rejects_a_negative_or_malformed_factor(): void
     {
-        foreach (['-1', '1,5', '', '1e3'] as $factor) {
+        foreach ([
+            '-1',
+            '1,5',
+            '',
+            '1e3',
+        ] as $factor) {
             try {
                 Money::fromString('10', 'CZK')->multiplyBy($factor);
                 $this->fail('Accepted factor ' . $factor);

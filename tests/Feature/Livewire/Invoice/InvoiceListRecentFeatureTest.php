@@ -5,9 +5,9 @@ namespace Tests\Feature\Livewire\Invoice;
 use App\Livewire\Invoice\InvoiceListRecent;
 use App\Models\Client;
 use App\Models\Invoice;
-use App\Models\User;
 use App\Models\PaymentMethod;
 use App\Models\Status;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -44,12 +44,12 @@ class InvoiceListRecentFeatureTest extends TestCase
 
         $userInvoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id
+            'client_id' => $client->id,
         ]);
 
         $otherUserInvoice = Invoice::factory()->create([
             'user_id' => $otherUser->id,
-            'client_id' => $otherClient->id
+            'client_id' => $otherClient->id,
         ]);
 
         $this->actingAs($this->user);
@@ -67,7 +67,7 @@ class InvoiceListRecentFeatureTest extends TestCase
         $client = Client::factory()->create(['user_id' => $this->user->id]);
         Invoice::factory()->count(3)->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id
+            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);
@@ -88,7 +88,7 @@ class InvoiceListRecentFeatureTest extends TestCase
         $client = Client::factory()->create(['user_id' => $this->user->id]);
         Invoice::factory()->count(3)->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id
+            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);
@@ -121,13 +121,13 @@ class InvoiceListRecentFeatureTest extends TestCase
         $this->actingAs($this->user);
         $component = Livewire::test(InvoiceListRecent::class);
         $component->assertStatus(200);
-        
+
         // Test behavior when not authenticated (Auth::id() returns null)
         auth()->logout();
-        
+
         $component = Livewire::test(InvoiceListRecent::class);
         $invoices = $component->viewData('invoices');
-        
+
         // Should return empty collection when no user authenticated
         $this->assertEquals(0, $invoices->count());
     }
@@ -148,7 +148,7 @@ class InvoiceListRecentFeatureTest extends TestCase
         $client = Client::factory()->create(['user_id' => $this->user->id]);
         Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id
+            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);
@@ -166,12 +166,12 @@ class InvoiceListRecentFeatureTest extends TestCase
         $client = Client::factory()->create(['user_id' => $this->user->id]);
         $paymentMethod = PaymentMethod::factory()->create();
         $paymentStatus = Status::factory()->create();
-        
+
         Invoice::factory()->create([
             'user_id' => $this->user->id,
             'client_id' => $client->id,
             'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $paymentStatus->id
+            'payment_status_id' => $paymentStatus->id,
         ]);
 
         $this->actingAs($this->user);
@@ -203,17 +203,17 @@ class InvoiceListRecentFeatureTest extends TestCase
     public function component_defaults_to_descending_created_at_order(): void
     {
         $client = Client::factory()->create(['user_id' => $this->user->id]);
-        
+
         $oldInvoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
             'client_id' => $client->id,
-            'created_at' => now()->subDays(2)
+            'created_at' => now()->subDays(2),
         ]);
-        
+
         $newInvoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
             'client_id' => $client->id,
-            'created_at' => now()->subDay()
+            'created_at' => now()->subDay(),
         ]);
 
         $this->actingAs($this->user);
@@ -229,11 +229,11 @@ class InvoiceListRecentFeatureTest extends TestCase
     public function component_limits_to_5_invoices_per_page(): void
     {
         $client = Client::factory()->create(['user_id' => $this->user->id]);
-        
+
         // Create 7 invoices
         Invoice::factory()->count(7)->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id
+            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);

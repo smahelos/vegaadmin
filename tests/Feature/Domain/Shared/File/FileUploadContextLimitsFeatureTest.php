@@ -2,17 +2,19 @@
 
 namespace Tests\Feature\Domain\Shared\File;
 
+use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
+use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
+use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\Test;
-use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
+use Tests\TestCase;
 
 class FileUploadContextLimitsFeatureTest extends TestCase
 {
     use RefreshDatabase;
+
     private FileUploadServiceInterface $service;
 
     protected function setUp(): void
@@ -31,18 +33,22 @@ class FileUploadContextLimitsFeatureTest extends TestCase
     public function invoice_logo_context_enforces_stricter_size_limit(): void
     {
         // invoice_logo max_kb = 2048 (config)
-        $file = UploadedFile::fake()->create('logo.png', 2600, 'image/png'); // 600 KB exceeds 2048 KB
+        $file = UploadedFile::fake()->create(
+            'logo.png',
+            2600,
+            'image/png',
+        ); // 600 KB exceeds 2048 KB
 
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(__('validation.file_upload.size_exceeded', ['attribute' => ':attribute']));
 
         $this->service->handleFileUpload(
             $this->normalize($file),
             'invoice_logo',
             'logos',
-            [ 'disk' => 'public' ],
+            ['disk' => 'public'],
             null,
-            'invoice_logo'
+            'invoice_logo',
         );
     }
 
@@ -50,15 +56,23 @@ class FileUploadContextLimitsFeatureTest extends TestCase
     public function attachment_context_allows_larger_size(): void
     {
         // attachment max_kb = 20480 (20 MB)
-        $file = UploadedFile::fake()->create('big.pdf', 15000, 'application/pdf'); // 15 MB
+        $file = UploadedFile::fake()->create(
+            'big.pdf',
+            15000,
+            'application/pdf',
+        ); // 15 MB
 
         $path = $this->service->handleFileUpload(
             $this->normalize($file),
             'attachments',
             'attachments',
-            [ 'disk' => 'public', 'randomizeFilename' => false, 'sanitizeFilename' => true ],
+            [
+                'disk' => 'public',
+                'randomizeFilename' => false,
+                'sanitizeFilename' => true,
+            ],
             null,
-            'attachment'
+            'attachment',
         );
 
         $this->assertNotNull($path);
@@ -68,16 +82,20 @@ class FileUploadContextLimitsFeatureTest extends TestCase
     #[Test]
     public function invoice_logo_allows_only_images(): void
     {
-        $pdf = UploadedFile::fake()->create('doc.pdf', 100, 'application/pdf');
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $pdf = UploadedFile::fake()->create(
+            'doc.pdf',
+            100,
+            'application/pdf',
+        );
+        $this->expectException(ValidationException::class);
         $this->expectExceptionMessage(__('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']));
         $this->service->handleFileUpload(
             $this->normalize($pdf),
             'invoice_logo',
             'logos',
-            [ 'disk' => 'public' ],
+            ['disk' => 'public'],
             null,
-            'invoice_logo'
+            'invoice_logo',
         );
     }
 }

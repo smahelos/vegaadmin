@@ -19,12 +19,13 @@ class RequireBackpackApiAccess
     public function handle(Request $request, Closure $next): Response
     {
         // Only check backpack guard - never mix with web
-        if (!backpack_auth()->check()) {
+        if (! backpack_auth()->check()) {
             Log::warning('Backpack authentication failed', [
                 'path' => $request->path(),
                 'backpack_check' => backpack_auth()->check(),
                 'laravel_auth_check' => auth()->check(),
             ]);
+
             return $this->unauthorized($request);
         }
 
@@ -35,13 +36,13 @@ class RequireBackpackApiAccess
             'path' => $request->path(),
             'has_admin_role' => $user->hasRole('admin'),
             'all_permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
-            'permissions_with_guard' => $user->getAllPermissions()->map(function($p) {
+            'permissions_with_guard' => $user->getAllPermissions()->map(function ($p) {
                 return $p->name . ' (' . $p->guard_name . ')';
             })->toArray(),
         ]);
 
         // Check if user has backpack API access permission
-        if (!$user->hasPermissionTo('backpack.api.access', 'backpack')) {
+        if (! $user->hasPermissionTo('backpack.api.access', 'backpack')) {
             Log::warning('Backpack user lacks API access permission', [
                 'user_id' => $user->id,
                 'email' => $user->email,
@@ -49,6 +50,7 @@ class RequireBackpackApiAccess
                 'checked_permission' => 'backpack.api.access',
                 'checked_guard' => 'backpack',
             ]);
+
             return $this->forbidden($request);
         }
 
@@ -63,7 +65,7 @@ class RequireBackpackApiAccess
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'error' => __('backpack::base.unauthorized'),
-                'code' => 401
+                'code' => 401,
             ], 401);
         }
 
@@ -78,9 +80,10 @@ class RequireBackpackApiAccess
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'error' => __('backpack::crud.unauthorized_access'),
-                'code' => 403
+                'code' => 403,
             ], 403);
         }
+
         // Redirect to dashboard URL (backpack_url already returns full path)
         return redirect(backpack_url('dashboard'))->with('error', __('backpack::crud.unauthorized_access'));
     }

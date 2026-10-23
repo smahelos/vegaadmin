@@ -40,6 +40,7 @@ class EloquentPaymentMethodRepository
     {
         $paymentMethod = PaymentMethod::findOrFail($id);
         $paymentMethod->update($data);
+
         return $paymentMethod->fresh();
     }
 

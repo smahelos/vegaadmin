@@ -3,18 +3,16 @@
 namespace App\Infrastructure\Persistence\Eloquent\Shared\Status\Repositories;
 
 use App\Domain\Shared\Status\Contracts\StatusCategoryDtoRepositoryInterface;
-use App\Infrastructure\Persistence\Eloquent\Shared\Status\Mappers\EloquentStatusCategoryMapper;
 use App\Domain\Shared\Status\DTO\StatusCategoryDTO;
 use App\Domain\Shared\Status\ValueObjects\StatusCategoryId;
-use App\Models\Statuscategory;
+use App\Infrastructure\Persistence\Eloquent\Shared\Status\Mappers\EloquentStatusCategoryMapper;
 
 class EloquentStatusCategoryDtoRepository implements StatusCategoryDtoRepositoryInterface
 {
     public function __construct(
         private readonly EloquentStatusCategoryRepository $statusCategoryRepository,
-        private readonly EloquentStatusCategoryMapper $mapper
-    ) {
-    }
+        private readonly EloquentStatusCategoryMapper $mapper,
+    ) {}
 
     public function findIdBySlug(string $slug): ?int
     {

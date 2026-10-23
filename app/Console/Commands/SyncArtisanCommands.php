@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
-use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use Illuminate\Console\Command;
 
 class SyncArtisanCommands extends Command
 {
     protected $signature = 'artisan:sync-commands';
+
     protected $description = 'Synchronize artisan commands with the database';
 
     protected $commandsService;
@@ -31,8 +32,8 @@ class SyncArtisanCommands extends Command
             [
                 'name' => __('artisan_commands.categories.uncategorized.name'),
                 'description' => __('artisan_commands.categories.uncategorized.description'),
-                'is_active' => true
-            ]
+                'is_active' => true,
+            ],
         );
 
         // Find new commands that are not in the database

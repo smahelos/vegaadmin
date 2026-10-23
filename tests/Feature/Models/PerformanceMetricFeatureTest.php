@@ -25,7 +25,7 @@ class PerformanceMetricFeatureTest extends TestCase
             'metric_value' => 123.45,
             'metric_unit' => 'ms',
             'metadata' => ['server_id' => 1],
-            'measured_at' => now()
+            'measured_at' => now(),
         ];
 
         $metric = PerformanceMetric::create($data);
@@ -35,7 +35,7 @@ class PerformanceMetricFeatureTest extends TestCase
             'metric_type' => 'query_time',
             'table_name' => 'users',
             'query_type' => 'SELECT',
-            'metric_unit' => 'ms'
+            'metric_unit' => 'ms',
         ]);
     }
 
@@ -48,7 +48,7 @@ class PerformanceMetricFeatureTest extends TestCase
 
         $this->assertInstanceOf(PerformanceMetric::class, $metric);
         $this->assertDatabaseHas('performance_metrics', [
-            'id' => $metric->id
+            'id' => $metric->id,
         ]);
     }
 
@@ -162,7 +162,7 @@ class PerformanceMetricFeatureTest extends TestCase
         $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create([
-            'metadata' => ['test' => 'value', 'number' => 123]
+            'metadata' => ['test' => 'value', 'number' => 123],
         ]);
 
         $this->assertIsArray($metric->metadata);
@@ -175,7 +175,7 @@ class PerformanceMetricFeatureTest extends TestCase
         $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create([
-            'measured_at' => '2023-01-01 10:00:00'
+            'measured_at' => '2023-01-01 10:00:00',
         ]);
 
         $this->assertInstanceOf(Carbon::class, $metric->measured_at);
@@ -188,7 +188,7 @@ class PerformanceMetricFeatureTest extends TestCase
         $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create([
-            'metric_value' => 123.456789
+            'metric_value' => 123.456789,
         ]);
 
         // Check that the value is rounded to 4 decimal places
@@ -202,7 +202,7 @@ class PerformanceMetricFeatureTest extends TestCase
 
         $metric = PerformanceMetric::factory()->create([
             'metric_value' => 123.45,
-            'metric_unit' => 'ms'
+            'metric_unit' => 'ms',
         ]);
 
         $this->assertEquals('123.45 ms', $metric->formatted_value);
@@ -214,7 +214,7 @@ class PerformanceMetricFeatureTest extends TestCase
         $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create([
-            'metric_type' => 'query_execution_time'
+            'metric_type' => 'query_execution_time',
         ]);
 
         $this->assertEquals('Query execution time', $metric->metric_type_formatted);
@@ -232,7 +232,7 @@ class PerformanceMetricFeatureTest extends TestCase
         $queryTimeMetrics = PerformanceMetric::ofType('query_time')->get();
 
         $this->assertCount(2, $queryTimeMetrics);
-        $this->assertTrue($queryTimeMetrics->every(fn($metric) => $metric->metric_type === 'query_time'));
+        $this->assertTrue($queryTimeMetrics->every(fn ($metric) => $metric->metric_type === 'query_time'));
     }
 
     #[Test]
@@ -247,7 +247,7 @@ class PerformanceMetricFeatureTest extends TestCase
         $userMetrics = PerformanceMetric::forTable('users')->get();
 
         $this->assertCount(2, $userMetrics);
-        $this->assertTrue($userMetrics->every(fn($metric) => $metric->table_name === 'users'));
+        $this->assertTrue($userMetrics->every(fn ($metric) => $metric->table_name === 'users'));
     }
 
     #[Test]
@@ -261,7 +261,7 @@ class PerformanceMetricFeatureTest extends TestCase
         $recentMetrics = PerformanceMetric::recent()->get();
 
         $this->assertCount(2, $recentMetrics);
-        $this->assertTrue($recentMetrics->every(fn($metric) => $metric->measured_at >= now()->subDays(30)));
+        $this->assertTrue($recentMetrics->every(fn ($metric) => $metric->measured_at >= now()->subDays(30)));
     }
 
     #[Test]
@@ -291,10 +291,9 @@ class PerformanceMetricFeatureTest extends TestCase
         $metrics = PerformanceMetric::ofType('query_time')->forTable('users')->recent()->get();
 
         $this->assertCount(2, $metrics);
-        $this->assertTrue($metrics->every(fn($metric) =>
-            $metric->metric_type === 'query_time' &&
+        $this->assertTrue($metrics->every(fn ($metric) => $metric->metric_type === 'query_time' &&
             $metric->table_name === 'users' &&
-            $metric->measured_at >= now()->subDays(30)
+            $metric->measured_at >= now()->subDays(30),
         ));
     }
 
@@ -323,7 +322,7 @@ class PerformanceMetricFeatureTest extends TestCase
 
         $metric->update([
             'metric_value' => 999.99,
-            'metric_unit' => 'seconds'
+            'metric_unit' => 'seconds',
         ]);
 
         $this->assertEquals(999.99, $metric->fresh()->metric_value);
@@ -341,7 +340,7 @@ class PerformanceMetricFeatureTest extends TestCase
         $metric->delete();
 
         $this->assertDatabaseMissing('performance_metrics', [
-            'id' => $metricId
+            'id' => $metricId,
         ]);
     }
 }

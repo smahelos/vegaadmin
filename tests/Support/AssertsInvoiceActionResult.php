@@ -12,11 +12,19 @@ trait AssertsInvoiceActionResult
 {
     protected function assertInvoiceSuccess(InvoiceActionResult $result, ?string $message = null): void
     {
-        $this->assertEquals(InvoiceActionStatus::SUCCESS, $result->status, ($message ?? 'Expected success').($result->error ? ' Error: '.$result->error->getMessage() : ''));
+        $this->assertEquals(
+            InvoiceActionStatus::SUCCESS,
+            $result->status,
+            ($message ?? 'Expected success') . ($result->error ? ' Error: ' . $result->error->getMessage() : ''),
+        );
     }
 
     protected function assertInvoiceFailure(InvoiceActionResult $result, ?string $message = null): void
     {
-        $this->assertEquals(InvoiceActionStatus::FAILURE, $result->status, ($message ?? 'Expected failure'));
+        $this->assertEquals(
+            InvoiceActionStatus::FAILURE,
+            $result->status,
+            ($message ?? 'Expected failure'),
+        );
     }
 }

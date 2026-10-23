@@ -2,59 +2,58 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
-use App\Models\User;
-use App\Domain\User\Contracts\UserServiceInterface;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
+use App\Domain\User\Contracts\UserServiceInterface;
+use App\Domain\User\DTO\UserDTO;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use PHPUnit\Framework\Attributes\Test;
-use App\Domain\User\DTO\UserDTO;
 
 /**
  * Feature tests for Api\UserController
- * 
+ *
  * Tests all API endpoints: getUserAdmin($id), getUsersAdmin(), searchUsersAdmin()
  * Tests authentication scenarios, authorization (admin vs regular user access), error handling
  * Tests JSON responses, HTTP status codes, and security boundaries
  */
 class UserControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
     protected User $adminUser;
+
     protected User $backendAdminUser;
+
     protected User $unauthorizedAdmin;
+
     protected User $testUser1;
+
     protected User $testUser2;
+
     protected User $testUser3;
+
     protected InMemoryUserServiceStub $userServiceStub;
 
     /**
      * Set up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->setUpFrontendTestEnvironment();
-        
+
         // Create test users with proper roles
         $this->createTestUsers();
 
         // Create single stub instance and register it so controller uses predictable data set
-        $this->userServiceStub = new InMemoryUserServiceStub();
+        $this->userServiceStub = new InMemoryUserServiceStub;
         $models = [
             $this->backendAdminUser,
             $this->unauthorizedAdmin,
@@ -106,7 +105,7 @@ class UserControllerFeatureTest extends TestCase
                 'name',
                 'email',
                 'created_at',
-                'updated_at'
+                'updated_at',
             ])
             ->assertJson([
                 'id' => $this->testUser1->id,
@@ -124,7 +123,7 @@ class UserControllerFeatureTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJson([
-                'error' => __('users.auth.unauthorized')
+                'error' => __('users.auth.unauthorized'),
             ]);
     }
 
@@ -136,7 +135,7 @@ class UserControllerFeatureTest extends TestCase
 
         $response->assertStatus(401)
             ->assertJson([
-                'error' => __('users.auth.unauthenticated')
+                'error' => __('users.auth.unauthenticated'),
             ]);
     }
 
@@ -151,7 +150,7 @@ class UserControllerFeatureTest extends TestCase
 
         $response->assertStatus(404)
             ->assertJson([
-                'error' => __('users.messages.not_found')
+                'error' => __('users.messages.not_found'),
             ]);
     }
 
@@ -192,8 +191,6 @@ class UserControllerFeatureTest extends TestCase
 
         $response->assertStatus(401);
     }
-
-    
 
     // ========================================================================
     // Tests for searchUsersAdmin() endpoint
@@ -322,26 +319,26 @@ class UserControllerFeatureTest extends TestCase
         // Test 1: Laravel route binding protects against malicious IDs
         // Malicious ID that doesn't match numeric pattern should return 404 (route not found)
         $maliciousId = "1'; DROP TABLE users; --";
-        
+
         $response = $this->actingAs($this->backendAdminUser, 'backpack')
             ->withoutMiddleware()
             ->getJson("/api/admin/user/{$maliciousId}");
 
-    // After casting inside controller malicious string becomes int; just assert it does not crash
-    $this->assertNotEquals(500, $response->getStatusCode());
-        
+        // After casting inside controller malicious string becomes int; just assert it does not crash
+        $this->assertNotEquals(500, $response->getStatusCode());
+
         // Test 2: Verify database integrity - users table should still exist
         $this->assertDatabaseHas('users', ['id' => $this->testUser1->id]);
-        
+
         // Test 3: Verify user count is unchanged (no deletion occurred)
         $userCountBefore = User::count();
         $this->assertGreaterThan(0, $userCountBefore);
-        
+
         // Test 4: Valid ID still works normally
         $response = $this->actingAs($this->backendAdminUser, 'backpack')
             ->withoutMiddleware()
             ->getJson("/api/admin/user/{$this->testUser1->id}");
-        
+
         $response->assertStatus(200);
         $data = $response->json();
         $this->assertEquals($this->testUser1->id, $data['id']);
@@ -362,7 +359,7 @@ class UserControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->backendAdminUser, 'backpack');
         $long = str_repeat('a', 1000);
-        $response = $this->getJson('/api/admin/user/search?q='.$long);
+        $response = $this->getJson('/api/admin/user/search?q=' . $long);
         $response->assertStatus(200)->assertJsonPath('total', 0);
     }
 
@@ -390,11 +387,11 @@ class UserControllerFeatureTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'id',
-                'name', 
+                'name',
                 'email',
                 'email_verified_at',
                 'created_at',
-                'updated_at'
+                'updated_at',
             ]);
 
         // Verify data types
@@ -413,10 +410,10 @@ class UserControllerFeatureTest extends TestCase
             ->getJson('/api/admin/user');
 
         $response->assertStatus(200);
-        
+
         $responseData = $response->json();
         $this->assertIsArray($responseData);
-        
+
         // Handle both direct array and paginated responses
         if (isset($responseData['data'])) {
             // Paginated response
@@ -425,10 +422,10 @@ class UserControllerFeatureTest extends TestCase
             // Direct array response
             $data = $responseData;
         }
-        
+
         // Response contains all users
-        $this->assertGreaterThanOrEqual(2, count($data)); 
-        
+        $this->assertGreaterThanOrEqual(2, count($data));
+
         // Verify first user structure
         $firstUser = $data[0];
         $this->assertArrayHasKey('id', $firstUser);
@@ -464,13 +461,14 @@ class UserControllerFeatureTest extends TestCase
         $response->assertStatus(404)
             ->assertJsonStructure(['error']);
     }
+
     #[Test]
     public function get_user_admin_returns_500_and_logs_when_service_throws(): void
     {
         // Expect an error log invocation with correct message and context
         Log::shouldReceive('error')
             ->once()
-            ->withArgs(function($message, $context) {
+            ->withArgs(function ($message, $context) {
                 return str_contains($message, 'UserController@getUserAdmin error')
                     && isset($context['user_id']);
             });
@@ -494,6 +492,7 @@ class UserControllerFeatureTest extends TestCase
 class InMemoryUserServiceStub implements UserServiceInterface
 {
     public array $users = [];
+
     public int $failOnId = -1;
 
     public function seedFromModels(array $models): void
@@ -520,12 +519,12 @@ class InMemoryUserServiceStub implements UserServiceInterface
         ];
         // Add extra users for pagination (15) if not already
         $base = 800000;
-        for ($i=0;$i<15;$i++) {
-            $id = $base+$i;
+        for ($i = 0; $i < 15; $i++) {
+            $id = $base + $i;
             $this->users[$id] = [
                 'id' => $id,
-                'name' => 'Paginated User '.$id,
-                'email' => 'p'.$id.'@example.com',
+                'name' => 'Paginated User ' . $id,
+                'email' => 'p' . $id . '@example.com',
                 'email_verified_at' => null,
                 'created_at' => now()->toISOString(),
                 'updated_at' => now()->toISOString(),
@@ -533,38 +532,97 @@ class InMemoryUserServiceStub implements UserServiceInterface
         }
     }
 
-    public function findUserByEmail(string $email): ?UserDTO { return null; }
-    public function updateProfile(int $userId, array $data): bool { return false; }
-    public function updatePassword(int $userId, string $password): bool { return false; }
-    public function findUserById(int $id): UserDTO {
-        if ($this->failOnId === $id) { throw new \Exception('Simulated failure'); }
-        if (!isset($this->users[$id])) { throw (new ModelNotFoundException())->setModel(User::class, [$id]); }
+    public function findUserByEmail(string $email): ?UserDTO
+    {
+        return null;
+    }
+
+    public function updateProfile(int $userId, array $data): bool
+    {
+        return false;
+    }
+
+    public function updatePassword(int $userId, string $password): bool
+    {
+        return false;
+    }
+
+    public function findUserById(int $id): UserDTO
+    {
+        if ($this->failOnId === $id) {
+            throw new \Exception('Simulated failure');
+        }
+        if (! isset($this->users[$id])) {
+            throw (new ModelNotFoundException)->setModel(User::class, [$id]);
+        }
         $data = $this->users[$id];
-        $user = new User();
-        foreach ($data as $k=>$v) { $user->setAttribute($k, $v); }
+        $user = new User;
+        foreach ($data as $k => $v) {
+            $user->setAttribute($k, $v);
+        }
         $user->exists = true;
+
         return UserDTO::fromArray($user->toArray());
     }
-    public function softDeleteUser(int $userId): bool { return false; }
-    public function restoreUser(int $userId): bool { return false; }
-    public function changeEmail(int $userId, string $newEmail): bool { return false; }
-    public function getActivitySummary(int $userId): array { return []; }
-    public function getAllUsers(): array { return array_values($this->users); }
-    public function searchUsers(?string $term, PageRequest $page): PaginatedResult {
-        $filtered = array_values(array_filter($this->users, function($u) use ($term){
-            if (!$term) return true;
-            return mb_stripos($u['name'], (string)$term) !== false;
+
+    public function softDeleteUser(int $userId): bool
+    {
+        return false;
+    }
+
+    public function restoreUser(int $userId): bool
+    {
+        return false;
+    }
+
+    public function changeEmail(int $userId, string $newEmail): bool
+    {
+        return false;
+    }
+
+    public function getActivitySummary(int $userId): array
+    {
+        return [];
+    }
+
+    public function getAllUsers(): array
+    {
+        return array_values($this->users);
+    }
+
+    public function searchUsers(?string $term, PageRequest $page): PaginatedResult
+    {
+        $filtered = array_values(array_filter($this->users, function ($u) use ($term) {
+            if (! $term) {
+                return true;
+            }
+
+            return mb_stripos($u['name'], (string) $term) !== false;
         }));
         $total = count($filtered);
         $perPage = $page->perPage();
         $currentPage = $page->page();
         $offset = max(0, ($currentPage - 1) * $perPage);
-        $pageItems = array_slice($filtered, $offset, $perPage);
+        $pageItems = array_slice(
+            $filtered,
+            $offset,
+            $perPage,
+        );
         $lastPage = (int) max(1, (int) ceil($total / max(1, $perPage)));
         $hasMore = $currentPage < $lastPage;
-        return new PaginatedResult($pageItems, $total, $perPage, $currentPage, $lastPage, $hasMore);
+
+        return new PaginatedResult(
+            $pageItems,
+            $total,
+            $perPage,
+            $currentPage,
+            $lastPage,
+            $hasMore,
+        );
     }
-    public function create(array $data): UserDTO {
+
+    public function create(array $data): UserDTO
+    {
 
         return new UserDTO(
             id: 1,
@@ -575,7 +633,19 @@ class InMemoryUserServiceStub implements UserServiceInterface
             updated_at: $data['updated_at'] ?? null,
         );
     }
-    public function findBySupplierId(int $partyId): ?UserDTO { return null; }
-    public function findByClientId(int $partyId): ?UserDTO { return null; }
-    public function updateById(int $id, array $data): bool { return false; }
+
+    public function findBySupplierId(int $partyId): ?UserDTO
+    {
+        return null;
+    }
+
+    public function findByClientId(int $partyId): ?UserDTO
+    {
+        return null;
+    }
+
+    public function updateById(int $id, array $data): bool
+    {
+        return false;
+    }
 }

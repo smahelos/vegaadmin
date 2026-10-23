@@ -2,18 +2,25 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Requests\Admin\ArtisanCommandRequest;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
+use App\Http\Requests\Admin\ArtisanCommandRequest;
+use App\Models\ArtisanCommand;
+use App\Models\ArtisanCommandCategory;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 class ArtisanCommandCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use CreateOperation;
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation;
 
     private ArtisanCommandsServiceInterface $commandsService;
 
@@ -25,7 +32,7 @@ class ArtisanCommandCrudController extends CrudController
 
     public function setup()
     {
-        CRUD::setModel(\App\Models\ArtisanCommand::class);
+        CRUD::setModel(ArtisanCommand::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/artisan-command');
         CRUD::setEntityNameStrings(__('artisan_commands.entity.singular'), __('artisan_commands.entity.plural'));
     }
@@ -67,7 +74,7 @@ class ArtisanCommandCrudController extends CrudController
             ->allows_null(false)
             ->hint(__('artisan_commands.hints.command'));
 
-        $categories = \App\Models\ArtisanCommandCategory::where('is_active', true)
+        $categories = ArtisanCommandCategory::where('is_active', true)
             ->orderBy('name')
             ->pluck('name', 'id')
             ->toArray();

@@ -11,13 +11,13 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for ArtisanCommandCategory Model - CRITICAL RULE: Only pure business logic, no Laravel dependencies
- * 
+ *
  * According to Unit Test Isolation rule, this class tests only:
  * - Class structure and inheritance
  * - Method signatures and return types
  * - Trait usage and class constants
  * - Class introspection without executing Laravel-dependent methods
- * 
+ *
  * Database relationships and model behavior have been moved to Feature tests.
  */
 class ArtisanCommandCategoryTest extends TestCase
@@ -27,7 +27,7 @@ class ArtisanCommandCategoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = new ArtisanCommandCategory();
+        $this->model = new ArtisanCommandCategory;
     }
 
     #[Test]
@@ -53,7 +53,7 @@ class ArtisanCommandCategoryTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('fillable');
-        
+
         $this->assertTrue($property->isProtected());
         $this->assertIsArray($this->model->getFillable());
     }
@@ -63,7 +63,7 @@ class ArtisanCommandCategoryTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->model);
         $property = $reflection->getProperty('casts');
-        
+
         $this->assertTrue($property->isProtected());
         $this->assertIsArray($this->model->getCasts());
     }
@@ -73,7 +73,7 @@ class ArtisanCommandCategoryTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('commands');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertCount(0, $method->getParameters());
     }
@@ -84,7 +84,7 @@ class ArtisanCommandCategoryTest extends TestCase
         $reflection = new \ReflectionClass($this->model);
         $method = $reflection->getMethod('commands');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\Database\Eloquent\Relations\HasMany', $returnType->getName());
     }
@@ -100,7 +100,7 @@ class ArtisanCommandCategoryTest extends TestCase
     public function model_has_all_required_methods(): void
     {
         $reflection = new \ReflectionClass($this->model);
-        
+
         $this->assertTrue($reflection->hasMethod('commands'));
     }
 
@@ -108,7 +108,7 @@ class ArtisanCommandCategoryTest extends TestCase
     public function model_uses_expected_traits(): void
     {
         $traits = class_uses($this->model);
-        
+
         $this->assertContains(CrudTrait::class, $traits);
         $this->assertContains(HasFactory::class, $traits);
     }
@@ -117,14 +117,14 @@ class ArtisanCommandCategoryTest extends TestCase
     public function fillable_property_contains_expected_fields(): void
     {
         $fillable = $this->model->getFillable();
-        
+
         $expectedFields = [
             'name',
             'slug',
             'description',
             'is_active',
         ];
-        
+
         foreach ($expectedFields as $field) {
             $this->assertContains($field, $fillable);
         }
@@ -134,7 +134,7 @@ class ArtisanCommandCategoryTest extends TestCase
     public function casts_property_contains_expected_casts(): void
     {
         $casts = $this->model->getCasts();
-        
+
         $this->assertArrayHasKey('is_active', $casts);
         $this->assertEquals('boolean', $casts['is_active']);
     }

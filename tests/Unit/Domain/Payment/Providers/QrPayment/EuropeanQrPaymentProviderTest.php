@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\Domain\Payment\Providers\QrPayment;
 
-use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 class EuropeanQrPaymentProviderTest extends TestCase
 {
@@ -15,7 +15,7 @@ class EuropeanQrPaymentProviderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->provider = new EuropeanQrPaymentProvider();
+        $this->provider = new EuropeanQrPaymentProvider;
     }
 
     #[Test]
@@ -41,7 +41,7 @@ class EuropeanQrPaymentProviderTest extends TestCase
             accountNumber: null,
             bankCode: null,
             iban: 'DE44500105175407324931',
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $this->assertTrue($this->provider->validatePaymentInfo($payload));
@@ -56,7 +56,7 @@ class EuropeanQrPaymentProviderTest extends TestCase
             accountNumber: '1234567890',
             bankCode: '0100',
             iban: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $this->assertFalse($this->provider->validatePaymentInfo($payload));
@@ -71,11 +71,11 @@ class EuropeanQrPaymentProviderTest extends TestCase
             accountNumber: null,
             bankCode: null,
             iban: 'DE44500105175407324931',
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $qrString = $this->provider->generateQrString($payload);
-        
+
         $this->assertStringStartsWith('BCD', $qrString);
         $this->assertStringContainsString('DE44500105175407324931', $qrString);
         $this->assertStringContainsString('EUR1234.56', $qrString);

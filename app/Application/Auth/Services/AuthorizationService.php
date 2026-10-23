@@ -8,7 +8,7 @@ use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
 class AuthorizationService implements AuthorizationServiceInterface
 {
     public function __construct(
-        private readonly UserAuthorizationAdapterInterface $adapter
+        private readonly UserAuthorizationAdapterInterface $adapter,
     ) {}
 
     public function isWebAdmin(int $userId): bool

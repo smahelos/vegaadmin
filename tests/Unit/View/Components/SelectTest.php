@@ -11,18 +11,19 @@ use PHPUnit\Framework\TestCase;
 class SelectTest extends TestCase
 {
     private Select $component;
+
     private array $testOptions;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->testOptions = [
             ['value' => '1', 'text' => 'Option 1'],
             ['value' => '2', 'text' => 'Option 2'],
-            ['value' => '3', 'text' => 'Option 3']
+            ['value' => '3', 'text' => 'Option 3'],
         ];
-        
+
         $this->component = new Select($this->testOptions, 'test_select');
     }
 
@@ -42,7 +43,7 @@ class SelectTest extends TestCase
     public function render_method_exists_and_is_public(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));
-        
+
         $reflection = new \ReflectionClass(Select::class);
         $method = $reflection->getMethod('render');
         $this->assertTrue($method->isPublic());
@@ -54,7 +55,7 @@ class SelectTest extends TestCase
         $reflection = new \ReflectionClass(Select::class);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\View\View', $returnType->getName());
     }
@@ -65,7 +66,7 @@ class SelectTest extends TestCase
         $options = [['value' => 'test', 'text' => 'Test']];
         $name = 'test_name';
         $component = new Select($options, $name);
-        
+
         $this->assertEquals($options, $component->options);
         $this->assertEquals($name, $component->name);
         $this->assertEquals($name, $component->id); // Should default to name
@@ -98,9 +99,9 @@ class SelectTest extends TestCase
             'name',
             'Custom hint',
             'yes',
-            'Select option...'
+            'Select option...',
         );
-        
+
         $this->assertEquals($options, $component->options);
         $this->assertEquals('custom_name', $component->name);
         $this->assertEquals('custom_id', $component->id);
@@ -120,7 +121,7 @@ class SelectTest extends TestCase
     public function component_has_expected_namespace(): void
     {
         $reflection = new \ReflectionClass(Select::class);
-        
+
         $this->assertEquals('App\View\Components', $reflection->getNamespaceName());
     }
 
@@ -129,14 +130,25 @@ class SelectTest extends TestCase
     {
         $reflection = new \ReflectionClass(Select::class);
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-        
-        $propertyNames = array_map(fn($prop) => $prop->getName(), $properties);
-        
+
+        $propertyNames = array_map(fn ($prop) => $prop->getName(), $properties);
+
         $expectedProperties = [
-            'options', 'name', 'id', 'selected', 'required', 'label', 'class',
-            'labelClass', 'valueField', 'textField', 'hint', 'allowsNull', 'placeholder'
+            'options',
+            'name',
+            'id',
+            'selected',
+            'required',
+            'label',
+            'class',
+            'labelClass',
+            'valueField',
+            'textField',
+            'hint',
+            'allowsNull',
+            'placeholder',
         ];
-        
+
         foreach ($expectedProperties as $property) {
             $this->assertContains($property, $propertyNames);
         }
@@ -148,7 +160,7 @@ class SelectTest extends TestCase
         $reflection = new \ReflectionClass(Select::class);
         $method = $reflection->getMethod('render');
         $docComment = $method->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('Render the select component', $docComment);
     }
@@ -159,15 +171,15 @@ class SelectTest extends TestCase
         $reflection = new \ReflectionClass(Select::class);
         $constructor = $reflection->getMethod('__construct');
         $parameters = $constructor->getParameters();
-        
+
         $this->assertCount(13, $parameters);
-        
+
         // Check first two required parameters
         $this->assertEquals('options', $parameters[0]->getName());
         $this->assertEquals('name', $parameters[1]->getName());
         $this->assertFalse($parameters[0]->isOptional());
         $this->assertFalse($parameters[1]->isOptional());
-        
+
         // Check some optional parameters
         $this->assertTrue($parameters[2]->isOptional()); // id
         $this->assertTrue($parameters[3]->isOptional()); // selected
@@ -179,7 +191,7 @@ class SelectTest extends TestCase
     {
         $reflection = new \ReflectionClass(Select::class);
         $fileContent = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('use Illuminate\View\Component;', $fileContent);
         $this->assertStringContainsString('use Illuminate\View\View;', $fileContent);
     }
@@ -188,7 +200,7 @@ class SelectTest extends TestCase
     public function component_handles_empty_options_array(): void
     {
         $component = new Select([], 'empty_select');
-        
+
         $this->assertEquals([], $component->options);
         $this->assertEquals('empty_select', $component->name);
     }
@@ -200,13 +212,24 @@ class SelectTest extends TestCase
         $keyValueOptions = ['key1' => 'Value 1', 'key2' => 'Value 2'];
         $component1 = new Select($keyValueOptions, 'test1');
         $this->assertEquals($keyValueOptions, $component1->options);
-        
+
         // Test with object-like arrays
         $objectOptions = [
             ['id' => 1, 'name' => 'First'],
-            ['id' => 2, 'name' => 'Second']
+            ['id' => 2, 'name' => 'Second'],
         ];
-        $component2 = new Select($objectOptions, 'test2', null, null, false, '', '', '', 'id', 'name');
+        $component2 = new Select(
+            $objectOptions,
+            'test2',
+            null,
+            null,
+            false,
+            '',
+            '',
+            '',
+            'id',
+            'name',
+        );
         $this->assertEquals($objectOptions, $component2->options);
         $this->assertEquals('id', $component2->valueField);
         $this->assertEquals('name', $component2->textField);
@@ -216,7 +239,7 @@ class SelectTest extends TestCase
     public function render_method_returns_correct_view(): void
     {
         $reflection = new \ReflectionClass(Select::class);
-        
+
         // Check that the method body contains the expected view call
         $fileContent = file_get_contents($reflection->getFileName());
         $this->assertStringContainsString("view('components.select')", $fileContent);
@@ -226,7 +249,7 @@ class SelectTest extends TestCase
     public function id_defaults_to_name_when_not_provided(): void
     {
         $component = new Select(['test' => 'Test'], 'field_name');
-        
+
         $this->assertEquals('field_name', $component->id);
         $this->assertEquals('field_name', $component->name);
     }
@@ -235,10 +258,10 @@ class SelectTest extends TestCase
     public function component_properties_have_correct_types(): void
     {
         $reflection = new \ReflectionClass(Select::class);
-        
+
         // Check property types in file content (since they're documented with types)
         $fileContent = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('public array $options;', $fileContent);
         $this->assertStringContainsString('public string $name;', $fileContent);
         $this->assertStringContainsString('public ?string $id;', $fileContent);

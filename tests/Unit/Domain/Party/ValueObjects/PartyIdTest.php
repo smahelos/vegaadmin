@@ -13,7 +13,7 @@ class PartyIdTest extends TestCase
     {
         $id = PartyId::fromInt(5);
         $this->assertSame(5, $id->toInt());
-        $this->assertSame('5', (string)$id);
+        $this->assertSame('5', (string) $id);
     }
 
     #[Test]

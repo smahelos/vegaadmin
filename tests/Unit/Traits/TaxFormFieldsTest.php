@@ -47,7 +47,7 @@ class TaxFormFieldsTest extends TestCase
         $reflection = new \ReflectionClass(TaxFormFields::class);
 
         // Check namespace
-    $this->assertEquals('App\\Infrastructure\\Forms\\Tax', $reflection->getNamespaceName());
+        $this->assertEquals('App\\Infrastructure\\Forms\\Tax', $reflection->getNamespaceName());
 
         // Check that it's not abstract, final, etc.
         $this->assertFalse($reflection->isAbstract());
@@ -64,7 +64,7 @@ class TaxFormFieldsTest extends TestCase
         // Should have exactly 1 method
         $this->assertCount(1, $methods);
 
-        $methodNames = array_map(fn($method) => $method->getName(), $methods);
+        $methodNames = array_map(fn ($method) => $method->getName(), $methods);
         $this->assertContains('getTaxFields', $methodNames);
     }
 

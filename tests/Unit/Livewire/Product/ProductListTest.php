@@ -14,7 +14,7 @@ class ProductListTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->component = new ProductList();
+        $this->component = new ProductList;
     }
 
     #[Test]
@@ -27,21 +27,21 @@ class ProductListTest extends TestCase
     public function component_has_correct_public_properties(): void
     {
         $reflection = new \ReflectionClass($this->component);
-        
+
         $this->assertTrue($reflection->hasProperty('search'));
         $this->assertTrue($reflection->hasProperty('status'));
         $this->assertTrue($reflection->hasProperty('orderBy'));
         $this->assertTrue($reflection->hasProperty('orderAsc'));
         $this->assertTrue($reflection->hasProperty('page'));
         $this->assertTrue($reflection->hasProperty('errorMessage'));
-        
+
         $searchProperty = $reflection->getProperty('search');
         $statusProperty = $reflection->getProperty('status');
         $orderByProperty = $reflection->getProperty('orderBy');
         $orderAscProperty = $reflection->getProperty('orderAsc');
         $pageProperty = $reflection->getProperty('page');
         $errorMessageProperty = $reflection->getProperty('errorMessage');
-        
+
         $this->assertTrue($searchProperty->isPublic());
         $this->assertTrue($statusProperty->isPublic());
         $this->assertTrue($orderByProperty->isPublic());
@@ -65,14 +65,14 @@ class ProductListTest extends TestCase
     public function component_has_correct_property_types(): void
     {
         $reflection = new \ReflectionClass($this->component);
-        
+
         $searchProperty = $reflection->getProperty('search');
         $statusProperty = $reflection->getProperty('status');
         $orderByProperty = $reflection->getProperty('orderBy');
         $orderAscProperty = $reflection->getProperty('orderAsc');
         $pageProperty = $reflection->getProperty('page');
         $errorMessageProperty = $reflection->getProperty('errorMessage');
-        
+
         $this->assertEquals('string', $searchProperty->getType()->getName());
         $this->assertEquals('string', $statusProperty->getType()->getName());
         $this->assertEquals('string', $orderByProperty->getType()->getName());
@@ -93,7 +93,7 @@ class ProductListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('updatingSearch');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -110,7 +110,7 @@ class ProductListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('updatingStatus');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -127,7 +127,7 @@ class ProductListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('resetFilters');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -144,7 +144,7 @@ class ProductListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -155,7 +155,7 @@ class ProductListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('field', $parameters[0]->getName());
         $this->assertEquals('string', $parameters[0]->getType()->getName());
@@ -173,7 +173,7 @@ class ProductListTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\Contracts\View\View', $returnType->getName());
     }
@@ -189,7 +189,7 @@ class ProductListTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->component);
         $docComment = $reflection->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('ProductList Livewire Component', $docComment);
     }
@@ -198,30 +198,29 @@ class ProductListTest extends TestCase
     public function component_has_url_attributes(): void
     {
         $reflection = new \ReflectionClass($this->component);
-        
+
         $searchProperty = $reflection->getProperty('search');
         $statusProperty = $reflection->getProperty('status');
         $orderByProperty = $reflection->getProperty('orderBy');
         $orderAscProperty = $reflection->getProperty('orderAsc');
         $pageProperty = $reflection->getProperty('page');
-        
+
         $searchAttributes = $searchProperty->getAttributes();
         $statusAttributes = $statusProperty->getAttributes();
         $orderByAttributes = $orderByProperty->getAttributes();
         $orderAscAttributes = $orderAscProperty->getAttributes();
         $pageAttributes = $pageProperty->getAttributes();
-        
+
         $this->assertCount(1, $searchAttributes);
         $this->assertCount(1, $statusAttributes);
         $this->assertCount(1, $orderByAttributes);
         $this->assertCount(1, $orderAscAttributes);
         $this->assertCount(1, $pageAttributes);
-        
+
         $this->assertEquals('Livewire\Attributes\Url', $searchAttributes[0]->getName());
         $this->assertEquals('Livewire\Attributes\Url', $statusAttributes[0]->getName());
         $this->assertEquals('Livewire\Attributes\Url', $orderByAttributes[0]->getName());
         $this->assertEquals('Livewire\Attributes\Url', $orderAscAttributes[0]->getName());
         $this->assertEquals('Livewire\Attributes\Url', $pageAttributes[0]->getName());
     }
-
 }

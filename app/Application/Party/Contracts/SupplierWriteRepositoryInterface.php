@@ -12,7 +12,7 @@ interface SupplierWriteRepositoryInterface
     public function create(array $data): Supplier;
 
     public function unsetOthersDefault(int $currentId, int $userId): void;
-    
+
     public function findByIdForUser(int $id, int $userId): ?Supplier;
 
     /** Update supplier by ID with provided attributes */

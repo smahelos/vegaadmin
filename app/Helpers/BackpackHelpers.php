@@ -1,12 +1,15 @@
 <?php
 
+use App\Models\User;
+use Illuminate\Contracts\Auth\Guard;
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Support\Facades\Auth;
 
-if (!function_exists('backpack_auth')) {
+if (! function_exists('backpack_auth')) {
     /**
      * Resolve the configured Backpack auth guard instance.
      *
-     * @return \Illuminate\Contracts\Auth\StatefulGuard|\Illuminate\Contracts\Auth\Guard Auth guard for Backpack
+     * @return StatefulGuard|Guard Auth guard for Backpack
      */
     function backpack_auth()
     {
@@ -14,7 +17,7 @@ if (!function_exists('backpack_auth')) {
     }
 }
 
-if (!function_exists('backpack_guard_name')) {
+if (! function_exists('backpack_guard_name')) {
     /**
      * Determine the guard name used for Backpack (falls back to auth default if unset).
      *
@@ -26,23 +29,23 @@ if (!function_exists('backpack_guard_name')) {
     }
 }
 
-if (!function_exists('backpack_user')) {
+if (! function_exists('backpack_user')) {
     /**
      * Retrieve the currently authenticated Backpack user model.
      *
-     * @return \App\Models\User|null Authenticated user or null
+     * @return User|null Authenticated user or null
      */
-    function backpack_user(): ?\App\Models\User
+    function backpack_user(): ?User
     {
         return backpack_auth()->user();
     }
 }
 
-if (!function_exists('backpack_url')) {
+if (! function_exists('backpack_url')) {
     /**
      * Build a URL under the Backpack route prefix.
      *
-     * @param string|null $path Optional sub-path under the Backpack prefix
+     * @param  string|null  $path  Optional sub-path under the Backpack prefix
      * @return string Absolute URL
      */
     function backpack_url(?string $path = null): string
@@ -53,16 +56,14 @@ if (!function_exists('backpack_url')) {
             return url($prefix);
         }
 
-        return url($prefix.'/'.$path);
+        return url($prefix . '/' . $path);
     }
 }
 
-if (!function_exists('backpack_pro')) {
+if (! function_exists('backpack_pro')) {
     /**
      * Indicate whether Backpack Pro (or extended feature set) is enabled.
      * Placeholder always returns true; adjust when feature gating is introduced.
-     *
-     * @return bool
      */
     function backpack_pro(): bool
     {

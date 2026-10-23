@@ -40,7 +40,7 @@ class DateHelperTest extends TestCase
         $returnType = $method->getReturnType();
 
         $this->assertNotNull($returnType);
-    $this->assertEquals('string', (string)$returnType);
+        $this->assertEquals('string', (string) $returnType);
     }
 
     #[Test]
@@ -57,7 +57,7 @@ class DateHelperTest extends TestCase
     {
         $reflection = new \ReflectionClass(DateHelper::class);
 
-    $this->assertEquals('App\\Infrastructure\\Shared\\Support', $reflection->getNamespaceName());
+        $this->assertEquals('App\\Infrastructure\\Shared\\Support', $reflection->getNamespaceName());
     }
 
     #[Test]

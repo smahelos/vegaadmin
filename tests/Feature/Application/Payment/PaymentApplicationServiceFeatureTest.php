@@ -3,11 +3,13 @@
 namespace Tests\Feature\Application\Payment;
 
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
+use App\Domain\Payment\Contracts\PaymentGatewayInterface;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
+use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
+use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
-use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -25,9 +27,15 @@ class PaymentApplicationServiceFeatureTest extends TestCase
 
         // Minimal stubs bound into container for predictable behavior.
         $this->app->bind(SubscriptionPaymentServiceInterface::class, function () {
-            return new class implements SubscriptionPaymentServiceInterface {
+            return new class implements SubscriptionPaymentServiceInterface
+            {
                 public array $state = [];
-                public function processSubscriptionPayment(int $subscriptionId, string $gateway, array $paymentData): array {
+
+                public function processSubscriptionPayment(
+                    int $subscriptionId,
+                    string $gateway,
+                    array $paymentData,
+                ): array {
                     $payment = Payment::create([
                         'subscription_id' => $subscriptionId,
                         'amount' => Subscription::find($subscriptionId)->subscriptionPlan->price,
@@ -38,46 +46,116 @@ class PaymentApplicationServiceFeatureTest extends TestCase
                         'transaction_data' => json_encode($paymentData),
                     ]);
                     $this->state['payment_id'] = $payment->id;
+
                     return [
                         'success' => true,
                         'payment_id' => $payment->id,
-                        'redirect_url' => 'https://example.test/pay/'.$payment->id,
+                        'redirect_url' => 'https://example.test/pay/' . $payment->id,
                         'status' => 'pending',
                     ];
                 }
-                public function handlePaymentCallback(string $gateway, array $callbackData): array {
+
+                public function handlePaymentCallback(string $gateway, array $callbackData): array
+                {
                     $payment = Payment::find($callbackData['order_id']);
                     if ($payment) {
                         $payment->update(['status' => 'completed']);
-                        return ['success' => true, 'payment_id' => $payment->id, 'status' => 'completed'];
+
+                        return [
+                            'success' => true,
+                            'payment_id' => $payment->id,
+                            'status' => 'completed',
+                        ];
                     }
+
                     return ['success' => false, 'error' => 'Payment not found'];
                 }
-                public function verifySubscriptionPayment(int $paymentId): array {
+
+                public function verifySubscriptionPayment(int $paymentId): array
+                {
                     $payment = Payment::find($paymentId);
+
                     return ['success' => true, 'status' => $payment->status];
                 }
-                public function refundSubscriptionPayment(int $paymentId, ?float $amount = null): array {
+
+                public function refundSubscriptionPayment(int $paymentId, ?float $amount = null): array
+                {
                     $payment = Payment::find($paymentId);
                     $amount = $amount ?? $payment->amount;
                     $payment->update(['status' => $amount < $payment->amount ? 'partially_refunded' : 'refunded']);
-                    return ['success' => true, 'payment_id' => $payment->id, 'refunded_amount' => $amount, 'currency' => $payment->currency];
+
+                    return [
+                        'success' => true,
+                        'payment_id' => $payment->id,
+                        'refunded_amount' => $amount,
+                        'currency' => $payment->currency,
+                    ];
                 }
-                public function cancelSubscriptionPayment(int $subscriptionId): bool { return true; }
-                public function getSupportedGateways(): array { return ['stub']; }
-                public function getGateway(string $gateway): ?\App\Domain\Payment\Contracts\PaymentGatewayInterface { return null; }
-                public function getAvailableGateways(): array { return [['name' => 'stub']]; }
-                public function supportsRecurringPayments(string $gateway): bool { return true; }
-                public function getPaymentStatus(int $paymentId): array { $p = Payment::find($paymentId); return ['success' => (bool)$p, 'payment_id' => $paymentId, 'status' => $p?->status]; }
-                public function inspectPayment(int $paymentId): array { return ['success' => true]; }
+
+                public function cancelSubscriptionPayment(int $subscriptionId): bool
+                {
+                    return true;
+                }
+
+                public function getSupportedGateways(): array
+                {
+                    return ['stub'];
+                }
+
+                public function getGateway(string $gateway): ?PaymentGatewayInterface
+                {
+                    return null;
+                }
+
+                public function getAvailableGateways(): array
+                {
+                    return [['name' => 'stub']];
+                }
+
+                public function supportsRecurringPayments(string $gateway): bool
+                {
+                    return true;
+                }
+
+                public function getPaymentStatus(int $paymentId): array
+                {
+                    $p = Payment::find($paymentId);
+
+                    return [
+                        'success' => (bool) $p,
+                        'payment_id' => $paymentId,
+                        'status' => $p?->status,
+                    ];
+                }
+
+                public function inspectPayment(int $paymentId): array
+                {
+                    return ['success' => true];
+                }
             };
         });
         $this->app->bind(QrPaymentServiceInterface::class, function () {
-            return new class implements QrPaymentServiceInterface {
-                public function generateQrCodeBase64($invoice): ?string { return null; }
-                public function hasRequiredPaymentInfo(\App\Domain\Payment\DTO\QrPaymentPayload $payload): bool { return false; }
-                public function generateQrStringForCountry($invoice, string $countryCode): ?string { return null; }
-                public function getSupportedCountries(): array { return []; }
+            return new class implements QrPaymentServiceInterface
+            {
+                public function generateQrCodeBase64($invoice): ?string
+                {
+                    return null;
+                }
+
+                public function hasRequiredPaymentInfo(QrPaymentPayload $payload): bool
+                {
+                    return false;
+                }
+
+                public function generateQrStringForCountry($invoice, string $countryCode): ?string
+                {
+                    return null;
+                }
+
+                public function getSupportedCountries(): array
+                {
+                    return [];
+                }
             };
         });
 
@@ -91,6 +169,7 @@ class PaymentApplicationServiceFeatureTest extends TestCase
             'price' => 100.00,
             'currency' => 'CZK',
         ]);
+
         return Subscription::create([
             'user_id' => $user->id,
             'subscription_plan_id' => $plan->id,
@@ -124,7 +203,7 @@ class PaymentApplicationServiceFeatureTest extends TestCase
         $callback = $this->appService->handleCallback('stub', ['order_id' => $paymentId]);
         $this->assertTrue($callback->success);
         $this->assertEquals('completed', $callback->status);
-        $this->assertDatabaseHas('payments', [ 'id' => $paymentId, 'status' => 'completed']);
+        $this->assertDatabaseHas('payments', ['id' => $paymentId, 'status' => 'completed']);
     }
 
     #[Test]
@@ -148,7 +227,7 @@ class PaymentApplicationServiceFeatureTest extends TestCase
         $refund = $this->appService->refund($payment, null);
         $this->assertTrue($refund->success);
         $this->assertEquals($payment->amount, $refund->refundedAmount);
-        $this->assertDatabaseHas('payments', [ 'id' => $payment->id, 'status' => 'refunded']);
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'refunded']);
     }
 
     #[Test]
@@ -161,6 +240,6 @@ class PaymentApplicationServiceFeatureTest extends TestCase
         $refund = $this->appService->refund($payment, 10.0);
         $this->assertTrue($refund->success);
         $this->assertEquals(10.0, $refund->refundedAmount);
-        $this->assertDatabaseHas('payments', [ 'id' => $payment->id, 'status' => 'partially_refunded']);
+        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'partially_refunded']);
     }
 }

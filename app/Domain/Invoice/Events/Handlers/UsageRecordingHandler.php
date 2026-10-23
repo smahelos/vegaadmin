@@ -2,17 +2,17 @@
 
 namespace App\Domain\Invoice\Events\Handlers;
 
+use App\Domain\Invoice\Events\InvoiceCreated;
 use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Shared\Events\DomainEventHandler;
-use App\Domain\Invoice\Events\InvoiceCreated;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
+use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 
 /**
  * Handler for recording entity usage when invoices are created.
- * 
+ *
  * This replaces the old Observer pattern for usage tracking.
- * 
+ *
  * Handles:
  * - InvoiceCreated: Record invoice usage
  */
@@ -20,7 +20,7 @@ class UsageRecordingHandler implements DomainEventHandler
 {
     public function __construct(
         private readonly UniversalLimitServiceInterface $limitService,
-        private readonly LogInterface $logger
+        private readonly LogInterface $logger,
     ) {}
 
     public function handle(DomainEvent $event): void
@@ -32,12 +32,12 @@ class UsageRecordingHandler implements DomainEventHandler
                 'count',
                 null, // Let service determine best period type
                 'web', // Use web guard for client/supplier creation
-                1
+                1,
             ),
-            default => true // Return true for events we don't handle
+            default => true, // Return true for events we don't handle
         };
 
-        if (!$success) {
+        if (! $success) {
             $this->logger->log(
                 'warning',
                 'Failed to record entity usage',
@@ -45,7 +45,7 @@ class UsageRecordingHandler implements DomainEventHandler
                     'event_name' => $event->getEventName(),
                     'event_id' => $event->getEventId(),
                     'payload' => $event->getPayload(),
-                ]
+                ],
             );
         }
     }

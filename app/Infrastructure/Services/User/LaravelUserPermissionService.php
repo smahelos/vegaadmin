@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Infrastructure implementation of UserPermissionServiceInterface.
- * 
+ *
  * Handles Eloquent operations and permission checking using Spatie Permission package.
  * This keeps all Framework-specific logic out of Domain layer.
  */
@@ -31,54 +31,63 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
     public function getUserPermissions(int $userId, string $guard = 'web'): array
     {
         $cacheKey = self::CACHE_PREFIX . "{$userId}_{$guard}";
-        
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($userId, $guard) {
-            $user = User::find($userId);
-            
-            if (!$user) {
-                Log::debug('UserPermissionService: User not found', [
+
+        return Cache::remember(
+            $cacheKey,
+            self::CACHE_TTL,
+            function () use ($userId, $guard) {
+                $user = User::find($userId);
+
+                if (! $user) {
+                    Log::debug('UserPermissionService: User not found', [
+                        'user_id' => $userId,
+                        'guard' => $guard,
+                    ]);
+
+                    return [];
+                }
+
+                $permissions = $user->getAllPermissions();
+                $permissionNames = $permissions->pluck('name')->unique()->values()->toArray();
+
+                Log::debug('UserPermissionService: Retrieved user permissions', [
                     'user_id' => $userId,
-                    'guard' => $guard
+                    'guard' => $guard,
+                    'permissions_count' => count($permissionNames),
                 ]);
-                return [];
-            }
 
-            $permissions = $user->getAllPermissions();
-            $permissionNames = $permissions->pluck('name')->unique()->values()->toArray();
-            
-            Log::debug('UserPermissionService: Retrieved user permissions', [
-                'user_id' => $userId,
-                'guard' => $guard,
-                'permissions_count' => count($permissionNames)
-            ]);
-
-            return $permissionNames;
-        });
+                return $permissionNames;
+            },
+        );
     }
 
     /**
      * Check if user has specific permission.
      */
-    public function hasPermission(int $userId, string $permission, string $guard = 'web'): bool
-    {
+    public function hasPermission(
+        int $userId,
+        string $permission,
+        string $guard = 'web',
+    ): bool {
         $user = User::find($userId);
-        
-        if (!$user) {
+
+        if (! $user) {
             Log::debug('UserPermissionService: User not found for permission check', [
                 'user_id' => $userId,
                 'permission' => $permission,
-                'guard' => $guard
+                'guard' => $guard,
             ]);
+
             return false;
         }
 
         $hasPermission = $user->hasPermissionTo($permission, $guard);
-        
+
         Log::debug('UserPermissionService: Permission check result', [
             'user_id' => $userId,
             'permission' => $permission,
             'guard' => $guard,
-            'has_permission' => $hasPermission
+            'has_permission' => $hasPermission,
         ]);
 
         return $hasPermission;
@@ -87,16 +96,20 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
     /**
      * Check if user has any of the given permissions.
      */
-    public function hasAnyPermission(int $userId, array $permissions, string $guard = 'web'): bool
-    {
+    public function hasAnyPermission(
+        int $userId,
+        array $permissions,
+        string $guard = 'web',
+    ): bool {
         $user = User::find($userId);
-        
-        if (!$user) {
+
+        if (! $user) {
             Log::debug('UserPermissionService: User not found for any permission check', [
                 'user_id' => $userId,
                 'permissions' => $permissions,
-                'guard' => $guard
+                'guard' => $guard,
             ]);
+
             return false;
         }
 
@@ -105,8 +118,9 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
                 Log::debug('UserPermissionService: User has required permission', [
                     'user_id' => $userId,
                     'found_permission' => $permission,
-                    'guard' => $guard
+                    'guard' => $guard,
                 ]);
+
                 return true;
             }
         }
@@ -114,7 +128,7 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
         Log::debug('UserPermissionService: User has none of the required permissions', [
             'user_id' => $userId,
             'permissions' => $permissions,
-            'guard' => $guard
+            'guard' => $guard,
         ]);
 
         return false;
@@ -126,10 +140,10 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
     public function userExists(int $userId): bool
     {
         $exists = User::where('id', $userId)->exists();
-        
+
         Log::debug('UserPermissionService: User existence check', [
             'user_id' => $userId,
-            'exists' => $exists
+            'exists' => $exists,
         ]);
 
         return $exists;
@@ -150,7 +164,7 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
         }
 
         Log::info('UserPermissionService: Cleared permission cache for user', [
-            'user_id' => $userId
+            'user_id' => $userId,
         ]);
     }
 

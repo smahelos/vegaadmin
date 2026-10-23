@@ -21,7 +21,7 @@ enum FieldType: string
      */
     public static function fromLegacy(string $value): self
     {
-        return match($value) {
+        return match ($value) {
             'number' => self::NUMBER,
             'date' => self::DATE,
             'select' => self::SELECT,

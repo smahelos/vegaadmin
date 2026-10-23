@@ -33,7 +33,11 @@ class ProductTest extends TestCase
         ];
 
         foreach ($expectedTraits as $trait) {
-            $this->assertContains($trait, $traits, "Product model should use {$trait} trait");
+            $this->assertContains(
+                $trait,
+                $traits,
+                "Product model should use {$trait} trait",
+            );
         }
     }
 
@@ -148,7 +152,13 @@ class ProductTest extends TestCase
     {
         $reflection = new \ReflectionClass(Product::class);
 
-        $relationshipMethods = ['invoices', 'user', 'supplier', 'tax', 'category'];
+        $relationshipMethods = [
+            'invoices',
+            'user',
+            'supplier',
+            'tax',
+            'category',
+        ];
 
         foreach ($relationshipMethods as $methodName) {
             $method = $reflection->getMethod($methodName);

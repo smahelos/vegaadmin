@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use App\Application\Analytics\Contracts\ApiStatisticsApplicationServiceInterface;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
 
 class StatisticsControllerFeatureTest extends TestCase
 {
@@ -16,12 +16,53 @@ class StatisticsControllerFeatureTest extends TestCase
     {
         parent::setUp();
         // Bind fake service to avoid MySQL-specific SQL (STR_TO_DATE) on SQLite
-        $this->app->bind(ApiStatisticsApplicationServiceInterface::class, fn() => new class implements ApiStatisticsApplicationServiceInterface {
-            public function monthlyRevenue($request): array { return [ ['month' => '2025-01', 'total' => 1000, 'paid' => 900] ]; }
-            public function clientRevenue($request): array { return auth()->check() ? [ ['client_id' => 1, 'client_name' => 'Acme', 'total' => 123.45] ] : []; }
-            public function invoiceStatus($request): array { return [ ['status' => 'paid', 'count' => 5] ]; }
-            public function paymentMethods($request): array { return [ ['method' => 'card', 'method_name' => 'Card', 'total' => 200, 'count' => 3] ]; }
-            public function revenueExpenses($request): array { return [ ['month' => '2025-01', 'amount' => 1000, 'type' => 'revenue'], ['month' => '2025-01', 'amount' => 300, 'type' => 'expense'] ]; }
+        $this->app->bind(ApiStatisticsApplicationServiceInterface::class, fn () => new class implements ApiStatisticsApplicationServiceInterface
+        {
+            public function monthlyRevenue($request): array
+            {
+                return [[
+                    'month' => '2025-01',
+                    'total' => 1000,
+                    'paid' => 900,
+                ]];
+            }
+
+            public function clientRevenue($request): array
+            {
+                return auth()->check() ? [[
+                    'client_id' => 1,
+                    'client_name' => 'Acme',
+                    'total' => 123.45,
+                ]] : [];
+            }
+
+            public function invoiceStatus($request): array
+            {
+                return [['status' => 'paid', 'count' => 5]];
+            }
+
+            public function paymentMethods($request): array
+            {
+                return [[
+                    'method' => 'card',
+                    'method_name' => 'Card',
+                    'total' => 200,
+                    'count' => 3,
+                ]];
+            }
+
+            public function revenueExpenses($request): array
+            {
+                return [[
+                    'month' => '2025-01',
+                    'amount' => 1000,
+                    'type' => 'revenue',
+                ], [
+                    'month' => '2025-01',
+                    'amount' => 300,
+                    'type' => 'expense',
+                ]];
+            }
         });
     }
 

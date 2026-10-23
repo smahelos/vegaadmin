@@ -2,31 +2,36 @@
 
 namespace App\Application\User\Contracts;
 
-use Illuminate\Pagination\LengthAwarePaginator;
-use App\Models\User;
-use App\Domain\User\ValueObjects\UserPassword;
 use App\Domain\User\DTO\UserDTO;
+use App\Domain\User\ValueObjects\UserPassword;
+use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 interface UserApplicationServiceInterface
 {
     /**
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws ModelNotFoundException
      */
     public function findUserById(int $id): ?UserDTO;
 
     /**
-     * @return \Illuminate\Support\Collection<int,\App\Models\User>
+     * @return Collection<int,User>
      */
     public function getAllUsers();
 
-    public function searchUsers(?string $term, int $perPage = 10, int $page = 1): LengthAwarePaginator;
+    public function searchUsers(
+        ?string $term,
+        int $perPage = 10,
+        int $page = 1,
+    ): LengthAwarePaginator;
 
     /**
      * Update user profile
      *
-     * @param User $user
-     * @param array $data
-     * @return bool
+     * @param  User  $user
+     *
      * @throws \Exception
      */
     public function updateProfile(int $userId, array $data): bool;
@@ -34,11 +39,9 @@ interface UserApplicationServiceInterface
     /**
      * Update user password
      *
-     * @param User $user
-     * @param UserPassword $password
-     * @return bool
+     * @param  User  $user
+     *
      * @throws \Exception
      */
     public function updatePassword(int $userId, UserPassword $password): bool;
 }
-

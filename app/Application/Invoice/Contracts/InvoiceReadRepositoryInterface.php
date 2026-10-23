@@ -33,13 +33,11 @@ interface InvoiceReadRepositoryInterface
 
     /**
      * Get all products for admin
-     * @return Collection
      */
     public function allForAdmin(): Collection;
 
     /**
      * Get all products for specific user
-     * @return Collection
      */
     public function allForUser(int $userId): Collection;
 

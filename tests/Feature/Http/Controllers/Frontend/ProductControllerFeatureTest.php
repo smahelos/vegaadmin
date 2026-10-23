@@ -2,23 +2,24 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\EntityLimit;
 use App\Models\Product;
 use App\Models\User;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class ProductControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesFrontendTestEnvironment;
+    use RefreshDatabase;
 
     private User $user;
+
     private UniversalLimitService $limitService;
 
     protected function setUp(): void
@@ -29,10 +30,10 @@ class ProductControllerFeatureTest extends TestCase
 
         // Create required permissions for 'web' guard
         $permission = Permission::where('name', 'frontend.can_create_edit_product')
-                               ->where('guard_name', 'web')
-                               ->first();
+            ->where('guard_name', 'web')
+            ->first();
         $this->user->givePermissionTo($permission);
-        
+
         $this->createProductEntityLimit();
 
         $this->limitService = app(UniversalLimitService::class);
@@ -60,7 +61,12 @@ class ProductControllerFeatureTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         // Check initial usage
-        $initialCheck = $this->limitService->checkLimit($this->user->id, 'product', 'count', 'monthly');
+        $initialCheck = $this->limitService->checkLimit(
+            $this->user->id,
+            'product',
+            'count',
+            'monthly',
+        );
         $initialUsage = $initialCheck['current_usage'] ?? 0;
 
         $productData = [
@@ -80,9 +86,14 @@ class ProductControllerFeatureTest extends TestCase
         $response->assertSessionHas('success');
 
         // Check usage after creation
-        $newCheck = $this->limitService->checkLimit($this->user->id, 'product', 'count', 'monthly');
+        $newCheck = $this->limitService->checkLimit(
+            $this->user->id,
+            'product',
+            'count',
+            'monthly',
+        );
         $newUsage = $newCheck['current_usage'] ?? 0;
-        
+
         $this->assertEquals($initialUsage + 1, $newUsage);
 
         // Verify product was created
@@ -100,22 +111,37 @@ class ProductControllerFeatureTest extends TestCase
         // Ensure the limit is set to 1 for this test
         // we need to set limit to 1, so update data in database
         EntityLimit::where([
-            'permission_name' => 'frontend.can_create_edit_product'
+            'permission_name' => 'frontend.can_create_edit_product',
         ])->update(['limit_value' => 1]);
 
         // First product creation - should succeed
-        $checkBeforeFirst = $this->limitService->checkLimit($this->user->id, 'product', 'count', 'monthly');
+        $checkBeforeFirst = $this->limitService->checkLimit(
+            $this->user->id,
+            'product',
+            'count',
+            'monthly',
+        );
         $this->assertTrue($checkBeforeFirst['allowed']);
-        
+
         $product1 = Product::factory()->create(['user_id' => $this->user->id]);
-        $result = $this->limitService->recordUsage($this->user->id, 'product', 'count', 'monthly');
+        $result = $this->limitService->recordUsage(
+            $this->user->id,
+            'product',
+            'count',
+            'monthly',
+        );
         $this->assertTrue($result, 'recordUsage should return true when successful');
-        
+
         // Second product creation - should fail due to limit
-        $checkBeforeSecond = $this->limitService->checkLimit($this->user->id, 'product', 'count', 'monthly');
+        $checkBeforeSecond = $this->limitService->checkLimit(
+            $this->user->id,
+            'product',
+            'count',
+            'monthly',
+        );
         $this->assertFalse($checkBeforeSecond['allowed']);
         $this->assertEquals('limit_exceeded', $checkBeforeSecond['reason']);
-        
+
         // Verify first product was created
         $this->assertDatabaseHas('products', [
             'id' => $product1->id,
@@ -200,7 +226,7 @@ class ProductControllerFeatureTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         EntityLimit::where([
-            'permission_name' => 'frontend.can_create_edit_product'
+            'permission_name' => 'frontend.can_create_edit_product',
         ])->update(['limit_value' => 0]);
 
         $productData = [
@@ -266,7 +292,7 @@ class ProductControllerFeatureTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         // Ensure user has the frontend_user role
-        if (!$this->user->hasRole('frontend_user')) {
+        if (! $this->user->hasRole('frontend_user')) {
             $this->user->assignRole('frontend_user');
         }
 
@@ -279,7 +305,7 @@ class ProductControllerFeatureTest extends TestCase
 
         $response->assertRedirect(route('frontend.products', ['locale' => 'cs']));
         $response->assertSessionHas('success');
-        
+
         // If redirect and success message worked, the controller method executed correctly
         // Check if the delete was called by verifying product model can't be found fresh from DB
         $refreshedProduct = Product::find($product->id);
@@ -316,7 +342,7 @@ class ProductControllerFeatureTest extends TestCase
         // Since we use findByIdForUser(), user trying to delete other user's product will get 404
         // This is correct behavior - product doesn't exist "for this user"
         $response->assertStatus(404);
-        
+
         // Verify product still exists (shouldn't be deleted if no ownership)
         $this->assertDatabaseHas('products', ['id' => $product->id]);
     }

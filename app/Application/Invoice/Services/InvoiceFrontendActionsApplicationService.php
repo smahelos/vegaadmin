@@ -2,17 +2,18 @@
 
 namespace App\Application\Invoice\Services;
 
-use App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceLimitApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
-use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
+use App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
+use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Status\ValueObjects\StatusId;
+use App\Domain\User\ValueObjects\UserId;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -23,26 +24,34 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
         private InvoiceLimitApplicationServiceInterface $invoiceLimit,
         private InvoiceListingApplicationServiceInterface $invoiceListing,
         private InvoiceReadRepositoryInterface $invoiceReadRepository,
-        private InvoiceServiceInterface $invoiceService
+        private InvoiceServiceInterface $invoiceService,
     ) {}
 
     public function markAsPaid(int $userId, int $invoiceId): InvoiceActionResult
     {
         // Delegate to generic status change to reduce duplication.
-        return $this->changeStatus($userId, $invoiceId, 'paid');
+        return $this->changeStatus(
+            $userId,
+            $invoiceId,
+            'paid',
+        );
     }
 
-    public function setTemplate(int $userId, int $invoiceId, string $template): InvoiceActionResult
-    {
+    public function setTemplate(
+        int $userId,
+        int $invoiceId,
+        string $template,
+    ): InvoiceActionResult {
         try {
             // Find invoice and verify ownership
             $invoice = $this->invoiceReadRepository->findForUser($userId, $invoiceId);
-            if (!$invoice) {
+            if (! $invoice) {
                 return InvoiceActionResult::failure('invoices.messages.not_found');
             }
-            
+
             // Delegate to domain service
             $ok = $this->invoiceService->setInvoiceTemplate(InvoiceId::fromInt($invoice->id), $template);
+
             return $ok
                 ? InvoiceActionResult::success('invoices.messages.template_set')
                 : InvoiceActionResult::failure('invoices.messages.update_error');
@@ -53,12 +62,16 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
                 'template' => $template,
                 'error' => $e->getMessage(),
             ]);
+
             return InvoiceActionResult::failure('invoices.messages.update_error');
         }
     }
 
-    public function changeStatus(int $userId, int $invoiceId, string $statusSlug): InvoiceActionResult
-    {
+    public function changeStatus(
+        int $userId,
+        int $invoiceId,
+        string $statusSlug,
+    ): InvoiceActionResult {
         try {
             // Convert string status to StatusId - first find status by slug
             // For now, use a simple mapping - this should be improved to use repository
@@ -67,19 +80,20 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
                 'unpaid' => 1, // assuming unpaid status has ID 1
                 'draft' => 3, // assuming draft status has ID 3
             ];
-            
-            if (!isset($statusMapping[$statusSlug])) {
+
+            if (! isset($statusMapping[$statusSlug])) {
                 return InvoiceActionResult::failure('invoices.messages.status_not_found');
             }
-            
+
             $statusId = new StatusId($statusMapping[$statusSlug]);
             $this->invoiceStatus->changeStatus(
                 new InvoiceId($invoiceId),
                 $statusId,
-                new UserId($userId)
+                new UserId($userId),
             );
-            
+
             $messageKey = $statusSlug === 'paid' ? 'invoices.messages.marked_as_paid' : 'invoices.messages.status_changed';
+
             return InvoiceActionResult::success(message: $messageKey);
         } catch (\Throwable $e) {
             Log::error('InvoiceFrontendActions changeStatus failed', [
@@ -88,6 +102,7 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
                 'status' => $statusSlug,
                 'error' => $e->getMessage(),
             ]);
+
             return InvoiceActionResult::failure('invoices.messages.update_error');
         }
     }
@@ -96,13 +111,19 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
     {
         try {
             $data = $this->invoiceLimit->getLimitInfo(new UserId($userId));
+
             return InvoiceActionResult::success(data: $data);
         } catch (\Throwable $e) {
             Log::warning('InvoiceFrontendActions getLimitData failed', [
                 'user_id' => $userId,
                 'error' => $e->getMessage(),
             ]);
-            return InvoiceActionResult::failure('invoices.messages.limits_error', data: [ 'limit' => 0, 'current_usage' => 0, 'allowed' => false ]);
+
+            return InvoiceActionResult::failure('invoices.messages.limits_error', data: [
+                'limit' => 0,
+                'current_usage' => 0,
+                'allowed' => false,
+            ]);
         }
     }
 
@@ -113,31 +134,47 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
      * To use it, you need to call this method via AJAX or standard form POST.
      * Now, there is prepared batchActions method in InvoiceController to use.
      */
-    public function orchestrate(int $userId, int $invoiceId, OrchestratedInvoiceActions $actions): InvoiceActionResult
-    {
+    public function orchestrate(
+        int $userId,
+        int $invoiceId,
+        OrchestratedInvoiceActions $actions,
+    ): InvoiceActionResult {
         $errors = [];
         $messages = [];
         // Template change
         if ($actions->template) {
-            $r = $this->setTemplate($userId, $invoiceId, $actions->template);
-            if ($r->status === \App\Application\Invoice\DTO\InvoiceActionStatus::FAILURE) {
+            $r = $this->setTemplate(
+                $userId,
+                $invoiceId,
+                $actions->template,
+            );
+            if ($r->status === InvoiceActionStatus::FAILURE) {
                 $errors['template'] = $r->message;
-            } else { $messages[] = $r->message; }
+            } else {
+                $messages[] = $r->message;
+            }
         }
         // Status (already normalized in command: mark_paid => 'paid')
         if ($actions->status) {
-            $r = $this->changeStatus($userId, $invoiceId, $actions->status);
-            if ($r->status === \App\Application\Invoice\DTO\InvoiceActionStatus::FAILURE) {
+            $r = $this->changeStatus(
+                $userId,
+                $invoiceId,
+                $actions->status,
+            );
+            if ($r->status === InvoiceActionStatus::FAILURE) {
                 $errors['status'] = $r->message;
-            } else { $messages[] = $r->message; }
+            } else {
+                $messages[] = $r->message;
+            }
         }
         if ($errors) {
             // Use first granular error key instead of generic update_error for better UX / i18n specificity.
             $primaryErrorKey = reset($errors) ?: 'invoices.messages.update_error';
-            return InvoiceActionResult::failure($primaryErrorKey, data: [ 'errors' => $errors, 'messages' => $messages ]);
+
+            return InvoiceActionResult::failure($primaryErrorKey, data: ['errors' => $errors, 'messages' => $messages]);
         }
         $invoice = null;
-        if ($actions->includeInvoice && !empty($messages)) {
+        if ($actions->includeInvoice && ! empty($messages)) {
             try {
                 // // Reuse existing read path: prepareShowData returns DTO; fetch invoice directly via API fetch for minimal overhead.
                 // $invoiceDTO = $this->invoiceListing->getById(
@@ -159,6 +196,11 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
                 ]);
             }
         }
-        return InvoiceActionResult::success(message: $messages ? $messages[0] : null, data: [ 'messages' => $messages ], invoice: $invoice);
+
+        return InvoiceActionResult::success(
+            message: $messages ? $messages[0] : null,
+            data: ['messages' => $messages],
+            invoice: $invoice,
+        );
     }
 }

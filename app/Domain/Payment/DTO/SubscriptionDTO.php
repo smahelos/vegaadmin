@@ -2,8 +2,6 @@
 
 namespace App\Domain\Payment\DTO;
 
-use App\Domain\Payment\DTO\SubscriptionPlanDTO;
-
 class SubscriptionDTO
 {
     public function __construct(
@@ -28,7 +26,7 @@ class SubscriptionDTO
         return new self(
             id: (int) $data['id'],
             user_id: (int) $data['user_id'],
-            subscription_plan_id: isset($data['subscription_plan_id']) ? (int)$data['subscription_plan_id'] : null,
+            subscription_plan_id: isset($data['subscription_plan_id']) ? (int) $data['subscription_plan_id'] : null,
             subscriptionPlan: isset($data['subscriptionPlan']) ? SubscriptionPlanDTO::fromArray($data['subscriptionPlan']) : null,
             status: $data['status'] ?? null,
             starts_at: $data['starts_at'] ?? null,

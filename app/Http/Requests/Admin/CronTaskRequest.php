@@ -29,17 +29,21 @@ class CronTaskRequest extends FormRequest
         // Add conditional rule for custom_expression
         $rules['custom_expression'] = [
             'required_if:frequency,custom',
-            function ($attribute, $value, $fail) {
+            function (
+                $attribute,
+                $value,
+                $fail,
+            ) {
                 // Validate custom cron expression only when frequency is custom
                 $frequency = $this->input('frequency');
                 if ($frequency === 'custom') {
                     // Basic 5-part cron: minute hour day-of-month month day-of-week with ranges, lists, steps
                     $pattern = '/^(\*|([0-5]?\d)([\-,\/][0-5]?\d)*) (\*|([01]?\d|2[0-3])([\-,\/][01]?\d|2[0-3])*) (\*|([1-9]|[12]\d|3[01])([\-,\/][1-9]|[12]\d|3[01])*) (\*|(1[0-2]|0?[1-9])([\-,\/](1[0-2]|0?[1-9]))*) (\*|([0-6])([\-,\/][0-6])*)$/';
-                    if (!is_string($value) || !preg_match($pattern, $value)) {
+                    if (! is_string($value) || ! preg_match($pattern, $value)) {
                         $fail(__('cron_tasks.validation.cron_expression'));
                     }
                 }
-            }
+            },
         ];
 
         return $rules;

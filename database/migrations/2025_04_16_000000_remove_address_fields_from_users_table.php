@@ -19,7 +19,7 @@ return new class extends Migration
                 'country',
                 'ico',
                 'dic',
-                'phone'
+                'phone',
             ]);
         });
     }

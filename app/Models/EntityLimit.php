@@ -5,19 +5,19 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Artisan;
 use Spatie\Permission\Models\Permission;
 
 /**
  * Entity Limit Model - Permission-based System
- * 
+ *
  * Defines limits for different entities based on permissions.
  * Each record links a permission to an entity with specific limits.
  * Real-time calculation picks the highest limit from all user permissions.
  */
 class EntityLimit extends Model
 {
-    use HasFactory, CrudTrait;
+    use CrudTrait, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -31,7 +31,7 @@ class EntityLimit extends Model
         'period_type',
         'metric_type',
         'description',
-        'is_active'
+        'is_active',
     ];
 
     /**
@@ -41,7 +41,7 @@ class EntityLimit extends Model
      */
     protected $casts = [
         'is_active' => 'boolean',
-        'limit_value' => 'integer'
+        'limit_value' => 'integer',
     ];
 
     /**
@@ -54,7 +54,7 @@ class EntityLimit extends Model
         'product',
         'expense',
         'user',
-        'page'
+        'page',
     ];
 
     /**
@@ -63,7 +63,7 @@ class EntityLimit extends Model
     public const METRIC_TYPES = [
         'count' => 'Count-based limit',
         'value' => 'Value-based limit (monetary)',
-        'size' => 'Size-based limit (file size)'
+        'size' => 'Size-based limit (file size)',
     ];
 
     /**
@@ -74,7 +74,7 @@ class EntityLimit extends Model
         'weekly' => 'Weekly',
         'monthly' => 'Monthly',
         'yearly' => 'Yearly',
-        'lifetime' => 'Lifetime'
+        'lifetime' => 'Lifetime',
     ];
 
     /**
@@ -97,11 +97,11 @@ class EntityLimit extends Model
 
         // Clear cache when EntityLimit is saved or deleted
         static::saved(function () {
-            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            Artisan::call('cache:clear');
         });
 
         static::deleted(function () {
-            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            Artisan::call('cache:clear');
         });
     }
 
@@ -120,7 +120,7 @@ class EntityLimit extends Model
         if ($this->permission_name === self::ANONYMOUS_PERMISSION) {
             return null;
         }
-        
+
         return Permission::where('name', $this->permission_name)->first();
     }
 
@@ -206,7 +206,7 @@ class EntityLimit extends Model
         if ($this->permission_name === self::ANONYMOUS_PERMISSION) {
             return 'Anonymous User Limit';
         }
-        
+
         return ucfirst(str_replace(['_', '-'], ' ', $this->permission_name));
     }
 
@@ -215,16 +215,16 @@ class EntityLimit extends Model
      */
     public function getFullDescriptionAttribute(): string
     {
-        $permission = $this->permission_name === self::ANONYMOUS_PERMISSION 
-            ? 'Anonymous users' 
+        $permission = $this->permission_name === self::ANONYMOUS_PERMISSION
+            ? 'Anonymous users'
             : "Users with '{$this->permission_name}' permission";
-            
+
         return sprintf(
             '%s can create %d %s entities per %s',
             $permission,
             $this->limit_value,
             $this->entity_type,
-            $this->period_type
+            $this->period_type,
         );
     }
 
@@ -251,10 +251,10 @@ class EntityLimit extends Model
             ->whereNotIn('name', ['backpack.access'])
             ->pluck('name')
             ->toArray();
-            
+
         // Add special anonymous permission
         $permissions[] = self::ANONYMOUS_PERMISSION;
-        
+
         return $permissions;
     }
 
@@ -267,6 +267,7 @@ class EntityLimit extends Model
         foreach (self::ENTITY_TYPES as $type) {
             $options[$type] = ucfirst($type);
         }
+
         return $options;
     }
 

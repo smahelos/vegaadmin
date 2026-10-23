@@ -3,23 +3,29 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\StatusRequest;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
-use App\Domain\Shared\Status\Contracts\StatusServiceInterface as DomainStatusServiceInterface;
 use App\Models\Status;
 use App\Models\StatusCategory;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
  * Status management controller
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
+ *
+ * @property-read CrudPanel $crud
  */
 class StatusCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use CreateOperation;
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation;
 
     /**
      * Configure the CrudPanel object
@@ -28,20 +34,24 @@ class StatusCrudController extends CrudController
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\Status::class);
+        CRUD::setModel(Status::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/status');
         CRUD::setEntityNameStrings(__('statuses.entity.singular'), __('statuses.entity.plural'));
 
         // Filter by category_id from URL
         if (request()->has('category_id')) {
-            $this->crud->addClause('where', 'category_id', request()->input('category_id'));
+            $this->crud->addClause(
+                'where',
+                'category_id',
+                request()->input('category_id'),
+            );
 
             // Get category name for a more descriptive page title
-            $category = \App\Models\StatusCategory::find(request()->input('category_id'));
+            $category = StatusCategory::find(request()->input('category_id'));
             if ($category) {
                 CRUD::setEntityNameStrings(
                     $category->name . ' ' . __('statuses.entity.singular'),
-                    $category->name . ' ' . __('statuses.entity.plural')
+                    $category->name . ' ' . __('statuses.entity.plural'),
                 );
             }
         }
@@ -66,23 +76,36 @@ class StatusCrudController extends CrudController
             'entity' => 'category',
             'model' => StatusCategory::class,
             'attribute' => 'name',
-            'wrapper'   => [
-                'href' => function ($crud, $column, $entry, $related_key) {
-                    return backpack_url('status-category/'.$entry->category_id.'/show');
+            'wrapper' => [
+                'href' => function (
+                    $crud,
+                    $column,
+                    $entry,
+                    $related_key,
+                ) {
+                    return backpack_url('status-category/' . $entry->category_id . '/show');
                 },
             ],
         ])->afterColumn('slug');
 
         // Add a filter for category
-        CRUD::addFilter([
-            'name'  => 'category_id',
-            'type'  => 'select2',
-            'label' => __('statuses.filters.category')
-        ], function() {
-            return StatusCategory::pluck('name', 'id')->toArray();
-        }, function($value) {
-            CRUD::addClause('where', 'category_id', $value);
-        });
+        CRUD::addFilter(
+            [
+                'name' => 'category_id',
+                'type' => 'select2',
+                'label' => __('statuses.filters.category'),
+            ],
+            function () {
+                return StatusCategory::pluck('name', 'id')->toArray();
+            },
+            function ($value) {
+                CRUD::addClause(
+                    'where',
+                    'category_id',
+                    $value,
+                );
+            },
+        );
 
         CRUD::column('color_preview')
             ->type('custom_html')
@@ -110,15 +133,14 @@ class StatusCrudController extends CrudController
 
         // Add field for category selection
         CRUD::addField([
-            'name'      => 'category_id',
-            'label'     => __('statuses.fields.category_id'),
-            'type'      => 'relationship',
-            'entity'    => 'category',
+            'name' => 'category_id',
+            'label' => __('statuses.fields.category_id'),
+            'type' => 'relationship',
+            'entity' => 'category',
             'attribute' => 'name',
             'required' => true,
-            'model'     => StatusCategory::class,
+            'model' => StatusCategory::class,
         ])->afterField('type');
-
 
         CRUD::addField([
             'name' => 'color',

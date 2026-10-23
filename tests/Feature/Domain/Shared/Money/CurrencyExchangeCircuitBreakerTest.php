@@ -5,8 +5,8 @@ namespace Tests\Feature\Shared\Money;
 use App\Domain\Shared\Money\Services\CurrencyExchangeService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 class CurrencyExchangeCircuitBreakerTest extends TestCase
 {
@@ -48,12 +48,20 @@ class CurrencyExchangeCircuitBreakerTest extends TestCase
     #[Test]
     public function half_open_probe_resets_circuit_on_success(): void
     {
-    // We simulate directly the HALF_OPEN state to avoid reliance on cache TTL vs synthetic clock.
-    Cache::put('fx_cb_state', 'half_open', 60);
-    Cache::put('fx_cb_fail_count', 1, 60);
+        // We simulate directly the HALF_OPEN state to avoid reliance on cache TTL vs synthetic clock.
+        Cache::put(
+            'fx_cb_state',
+            'half_open',
+            60,
+        );
+        Cache::put(
+            'fx_cb_fail_count',
+            1,
+            60,
+        );
 
         // Successful probe response
-        Http::fake(fn() => Http::response(['rates' => ['USD' => 1.0, 'CZK' => 22.2]], 200));
+        Http::fake(fn () => Http::response(['rates' => ['USD' => 1.0, 'CZK' => 22.2]], 200));
 
         $rates = $this->service->getExchangeRates('USD');
         $this->assertIsArray($rates);

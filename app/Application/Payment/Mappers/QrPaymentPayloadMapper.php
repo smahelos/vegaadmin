@@ -14,16 +14,13 @@ class QrPaymentPayloadMapper
 {
     /**
      * Convert Invoice model to QrPaymentPayload DTO
-     *
-     * @param Invoice $invoice
-     * @return QrPaymentPayload
      */
     public function fromInvoice(Invoice $invoice): QrPaymentPayload
     {
         // Get payment amount as Money value object
         $amount = Money::fromString(
             (string) $invoice->payment_amount,
-            $invoice->payment_currency ?? 'CZK'
+            $invoice->payment_currency ?? 'CZK',
         );
 
         $supplierCountry = null;
@@ -46,15 +43,14 @@ class QrPaymentPayloadMapper
      * Convert generic object/array to QrPaymentPayload DTO
      * This maintains compatibility with guest invoices and other data sources
      *
-     * @param mixed $data Invoice-like object or array
-     * @return QrPaymentPayload
+     * @param  mixed  $data  Invoice-like object or array
      */
     public function fromArray($data): QrPaymentPayload
     {
         // Safely extract properties from object or array
         $amount = $this->safeGetProperty($data, 'payment_amount') ?? 0;
         $currency = $this->safeGetProperty($data, 'payment_currency') ?? 'CZK';
-        
+
         // Create Money value object
         $money = Money::fromString((string) $amount, $currency);
 
@@ -72,8 +68,8 @@ class QrPaymentPayloadMapper
     /**
      * Safely get property from object or array without triggering errors
      *
-     * @param mixed $object Invoice object or array
-     * @param string $property Property name
+     * @param  mixed  $object  Invoice object or array
+     * @param  string  $property  Property name
      * @return mixed Property value or null
      */
     private function safeGetProperty($object, string $property): mixed
@@ -89,33 +85,33 @@ class QrPaymentPayloadMapper
             if (isset($object->supplier) && isset($object->supplier->$property) && $object->supplier->$property !== '') {
                 return $object->supplier->$property;
             }
-            
+
             // 3. Check property under supplier_PROPERTY pattern
-            $supplierProperty = "supplier_" . $property;
+            $supplierProperty = 'supplier_' . $property;
             if (isset($object->$supplierProperty) && $object->$supplierProperty !== '') {
                 return $object->$supplierProperty;
             }
         }
-        
+
         // Check array keys
         if (is_array($object)) {
             if (isset($object[$property]) && $object[$property] !== '') {
                 return $object[$property];
             }
-            
+
             // Check supplier property under supplier_PROPERTY pattern
-            $supplierProperty = "supplier_" . $property;
+            $supplierProperty = 'supplier_' . $property;
             if (isset($object[$supplierProperty]) && $object[$supplierProperty] !== '') {
                 return $object[$supplierProperty];
             }
         }
-        
+
         // Special case - return numeric values including 0
-        if ((is_object($object) && isset($object->$property) && is_numeric($object->$property)) || 
+        if ((is_object($object) && isset($object->$property) && is_numeric($object->$property)) ||
             (is_array($object) && isset($object[$property]) && is_numeric($object[$property]))) {
             return is_object($object) ? $object->$property : $object[$property];
         }
-        
+
         return null;
     }
 }

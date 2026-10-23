@@ -2,29 +2,27 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Http\Controllers\Admin\SubscriptionCrudController;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 class SubscriptionCrudControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->setUpAdminTestEnvironment();
     }
 
@@ -177,8 +175,12 @@ class SubscriptionCrudControllerTest extends TestCase
 
         // Backpack may return 200 for successful deletes or redirect
         $this->assertTrue(
-            in_array($response->getStatusCode(), [200, 201, 302]),
-            'Expected status 200, 201, or 302 but got ' . $response->getStatusCode()
+            in_array($response->getStatusCode(), [
+                200,
+                201,
+                302,
+            ]),
+            'Expected status 200, 201, or 302 but got ' . $response->getStatusCode(),
         );
 
         $this->assertDatabaseMissing('subscriptions', [
@@ -211,7 +213,12 @@ class SubscriptionCrudControllerTest extends TestCase
         $response = $this->postJson('/admin/subscription', $data);
 
         $response->assertStatus(422); // Validation error
-        $response->assertJsonValidationErrors(['user_id', 'subscription_plan_id', 'amount', 'currency']);
+        $response->assertJsonValidationErrors([
+            'user_id',
+            'subscription_plan_id',
+            'amount',
+            'currency',
+        ]);
     }
 
     #[Test]
@@ -328,10 +335,10 @@ class SubscriptionCrudControllerTest extends TestCase
     public function controller_has_correct_model(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         // Test through HTTP request to ensure middleware runs and CRUD panel is initialized
         $response = $this->get('/admin/subscription');
-        
+
         // If the page loads successfully, the model is correctly set
         // We can verify by checking the response contains subscription-related content
         $response->assertStatus(200);

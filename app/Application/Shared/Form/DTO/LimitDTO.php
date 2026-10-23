@@ -16,7 +16,8 @@ class LimitDTO
 
     /**
      * Factory from legacy array shape.
-     * @param array{limit:int,current_usage:int,allowed:bool} $data
+     *
+     * @param  array{limit:int,current_usage:int,allowed:bool}  $data
      */
     public static function fromArray(array $data): self
     {
@@ -29,6 +30,7 @@ class LimitDTO
 
     /**
      * Export to legacy array shape.
+     *
      * @return array{limit:int,current_usage:int,allowed:bool}
      */
     public function toArray(): array

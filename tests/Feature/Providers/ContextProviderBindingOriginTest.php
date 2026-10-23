@@ -31,20 +31,27 @@ class ContextProviderBindingOriginTest extends TestCase
     public function interfaces_are_bound_in_their_context_provider(): void
     {
         Artisan::call('ddd:providers:snapshot', ['--format' => 'json']);
-        $contracts = json_decode(Artisan::output(), true, 512, JSON_THROW_ON_ERROR)['snapshot']['contracts'];
+        $contracts = json_decode(
+            Artisan::output(),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        )['snapshot']['contracts'];
 
         $violations = [];
         foreach ($contracts as $contract => $meta) {
             $expected = $this->expectedProviderFor($contract);
             if ($meta['status'] === 'missing_binding') {
-                if (!isset(self::UNBOUND_CONTRACTS[$contract])) {
+                if (! isset(self::UNBOUND_CONTRACTS[$contract])) {
                     $violations[] = "$contract has no binding, expected one in $expected";
                 }
+
                 continue;
             }
             if ($meta['status'] === 'duplicate_bindings') {
                 $providers = implode(', ', array_column($meta['actual'], 'provider'));
                 $violations[] = "$contract bound in multiple providers ($providers), expected only $expected";
+
                 continue;
             }
             if ($meta['status'] === 'ok' && $meta['actual']['provider'] !== $expected) {
@@ -52,13 +59,18 @@ class ContextProviderBindingOriginTest extends TestCase
             }
         }
 
-        $this->assertSame([], $violations, "Provider origin violations:\n".implode("\n", $violations));
+        $this->assertSame(
+            [],
+            $violations,
+            "Provider origin violations:\n" . implode("\n", $violations),
+        );
     }
 
     private function expectedProviderFor(string $contract): string
     {
         // App\{Domain|Application}\<Context>\...
         $context = explode('\\', $contract)[2];
-        return 'App\\Providers\\'.$context.'ServiceProvider';
+
+        return 'App\\Providers\\' . $context . 'ServiceProvider';
     }
 }

@@ -2,47 +2,57 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Http\Requests\Admin\SubscriptionPlanRequest;
+use App\Models\SubscriptionPlan;
+use App\Models\SubscriptionPlanFeature;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Prologue\Alerts\Facades\Alert;
 
 /**
  * SubscriptionPlan CRUD controller
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
+ *
+ * @property-read CrudPanel $crud
  */
 class SubscriptionPlanCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use CreateOperation;
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation;
     // Access control is configured via CrudAccessServiceInterface in setup()
 
     /**
      * Configure the CrudPanel object and check user permissions
-     * 
+     *
      * @return void
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\SubscriptionPlan::class);
+        CRUD::setModel(SubscriptionPlan::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/subscription-plan');
         CRUD::setEntityNameStrings(
             __('subscriptions.plans.entity.singular'),
-            __('subscriptions.plans.entity.plural')
+            __('subscriptions.plans.entity.plural'),
         );
 
         // Configure access using centralized service
         $userId = optional(backpack_user())->id ?? 0;
-        app(\App\Application\User\Contracts\CrudAccessServiceInterface::class)
+        app(CrudAccessServiceInterface::class)
             ->configureCrudAccess($this->crud, (int) $userId);
     }
 
     /**
      * Setup list view columns
-     * 
+     *
      * @return void
      */
     protected function setupListOperation()
@@ -97,34 +107,46 @@ class SubscriptionPlanCrudController extends CrudController
 
         // Add filters
         if (backpack_pro()) {
-            CRUD::addFilter([
-                'type' => 'simple',
-                'name' => 'is_active',
-                'label' => __('subscriptions.plans.filters.active_only'),
-            ],
-            false,
-            function () {
-                CRUD::addClause('where', 'is_active', '1');
-            });
+            CRUD::addFilter(
+                [
+                    'type' => 'simple',
+                    'name' => 'is_active',
+                    'label' => __('subscriptions.plans.filters.active_only'),
+                ],
+                false,
+                function () {
+                    CRUD::addClause(
+                        'where',
+                        'is_active',
+                        '1',
+                    );
+                },
+            );
 
-            CRUD::addFilter([
-                'name' => 'billing_period',
-                'type' => 'select2',
-                'label' => __('subscriptions.plans.fields.billing_period'),
-            ],
-            [
-                'monthly' => __('subscriptions.plans.billing_periods.monthly'),
-                'yearly' => __('subscriptions.plans.billing_periods.yearly'),
-            ],
-            function ($value) {
-                CRUD::addClause('where', 'billing_period', $value);
-            });
+            CRUD::addFilter(
+                [
+                    'name' => 'billing_period',
+                    'type' => 'select2',
+                    'label' => __('subscriptions.plans.fields.billing_period'),
+                ],
+                [
+                    'monthly' => __('subscriptions.plans.billing_periods.monthly'),
+                    'yearly' => __('subscriptions.plans.billing_periods.yearly'),
+                ],
+                function ($value) {
+                    CRUD::addClause(
+                        'where',
+                        'billing_period',
+                        $value,
+                    );
+                },
+            );
         }
     }
 
     /**
      * Setup create and update forms
-     * 
+     *
      * @return void
      */
     protected function setupCreateOperation()
@@ -205,7 +227,7 @@ class SubscriptionPlanCrudController extends CrudController
                 'label' => __('subscriptions.plans.fields.features'),
                 'type' => 'checklist',
                 'hint' => __('subscriptions.plans.hints.features'),
-                'model' => \App\Models\SubscriptionPlanFeature::class,
+                'model' => SubscriptionPlanFeature::class,
                 'attribute' => 'name',
                 'pivot' => true,
                 'show_select_all' => true,
@@ -222,7 +244,7 @@ class SubscriptionPlanCrudController extends CrudController
 
     /**
      * Setup update operation
-     * 
+     *
      * @return void
      */
     protected function setupUpdateOperation()
@@ -232,19 +254,19 @@ class SubscriptionPlanCrudController extends CrudController
 
     /**
      * Setup show operation
-     * 
+     *
      * @return void
      */
     protected function setupShowOperation()
     {
         $this->setupListOperation();
-        
+
         CRUD::addColumn([
             'name' => 'description',
             'label' => __('subscriptions.plans.fields.description'),
             'type' => 'textarea',
         ]);
-        
+
         CRUD::addColumn([
             'name' => 'features',
             'label' => __('subscriptions.plans.fields.features'),
@@ -253,13 +275,13 @@ class SubscriptionPlanCrudController extends CrudController
             'attribute' => 'name',
             'limit' => 50,
         ]);
-        
+
         CRUD::addColumn([
             'name' => 'created_at',
             'label' => __('subscriptions.plans.fields.created_at'),
             'type' => 'datetime',
         ]);
-        
+
         CRUD::addColumn([
             'name' => 'updated_at',
             'label' => __('subscriptions.plans.fields.updated_at'),
@@ -285,7 +307,7 @@ class SubscriptionPlanCrudController extends CrudController
         $item = $this->crud->create($requestData);
 
         // Sync the features
-        if (!empty($features)) {
+        if (! empty($features)) {
             $item->features()->sync($features);
         }
 
@@ -314,7 +336,7 @@ class SubscriptionPlanCrudController extends CrudController
         // Update the subscription plan
         $item = $this->crud->update(
             $request->get($this->crud->model->getKeyName()),
-            $requestData
+            $requestData,
         );
 
         // Sync the features

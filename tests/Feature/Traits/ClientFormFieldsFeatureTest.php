@@ -18,7 +18,8 @@ class ClientFormFieldsFeatureTest extends TestCase
         parent::setUp();
 
         // Create anonymous class using the trait
-        $this->traitInstance = new class {
+        $this->traitInstance = new class
+        {
             use ClientFormFields;
 
             public function callGetClientFields(): array
@@ -29,7 +30,7 @@ class ClientFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getClientFields_returns_properly_structured_client_fields(): void
+    public function get_client_fields_returns_properly_structured_client_fields(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 
@@ -66,21 +67,31 @@ class ClientFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getClientFields_field_names_are_correct(): void
+    public function get_client_fields_field_names_are_correct(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
         $fieldNames = collect($fields)->pluck('name')->toArray();
 
         $expectedFields = [
-            'name', 'shortcut', 'email', 'phone', 'street', 'city',
-            'zip', 'country', 'ico', 'dic', 'description', 'is_default'
+            'name',
+            'shortcut',
+            'email',
+            'phone',
+            'street',
+            'city',
+            'zip',
+            'country',
+            'ico',
+            'dic',
+            'description',
+            'is_default',
         ];
 
         $this->assertEquals($expectedFields, $fieldNames);
     }
 
     #[Test]
-    public function getClientFields_required_fields_are_properly_set(): void
+    public function get_client_fields_required_fields_are_properly_set(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 
@@ -105,7 +116,7 @@ class ClientFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getClientFields_field_types_are_appropriate(): void
+    public function get_client_fields_field_types_are_appropriate(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 
@@ -126,7 +137,7 @@ class ClientFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getClientFields_uses_translation_keys(): void
+    public function get_client_fields_uses_translation_keys(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 
@@ -149,7 +160,7 @@ class ClientFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getClientFields_country_field_has_placeholder(): void
+    public function get_client_fields_country_field_has_placeholder(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 
@@ -160,7 +171,7 @@ class ClientFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getClientFields_dic_field_has_compound_hint(): void
+    public function get_client_fields_dic_field_has_compound_hint(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 
@@ -173,7 +184,7 @@ class ClientFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getClientFields_all_fields_have_required_attributes(): void
+    public function get_client_fields_all_fields_have_required_attributes(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 
@@ -190,16 +201,28 @@ class ClientFormFieldsFeatureTest extends TestCase
 
             // Check that type is a valid field type
             $this->assertIsString($field['type']);
-            $this->assertContains($field['type'], ['text', 'email', 'textarea', 'checkbox', 'select', 'number']);
+            $this->assertContains($field['type'], [
+                'text',
+                'email',
+                'textarea',
+                'checkbox',
+                'select',
+                'number',
+            ]);
         }
     }
 
     #[Test]
-    public function getClientFields_address_fields_are_all_required(): void
+    public function get_client_fields_address_fields_are_all_required(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 
-        $addressFields = ['street', 'city', 'zip', 'country'];
+        $addressFields = [
+            'street',
+            'city',
+            'zip',
+            'country',
+        ];
 
         foreach ($addressFields as $fieldName) {
             $field = collect($fields)->firstWhere('name', $fieldName);
@@ -209,21 +232,29 @@ class ClientFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getClientFields_contact_fields_are_optional(): void
+    public function get_client_fields_contact_fields_are_optional(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 
-        $contactFields = ['email', 'phone', 'shortcut'];
+        $contactFields = [
+            'email',
+            'phone',
+            'shortcut',
+        ];
 
         foreach ($contactFields as $fieldName) {
             $field = collect($fields)->firstWhere('name', $fieldName);
             $this->assertNotNull($field, "Field $fieldName should exist");
-            $this->assertArrayNotHasKey('required', $field, "Field $fieldName should not have required key or should be false");
+            $this->assertArrayNotHasKey(
+                'required',
+                $field,
+                "Field $fieldName should not have required key or should be false",
+            );
         }
     }
 
     #[Test]
-    public function getClientFields_business_fields_have_appropriate_hints(): void
+    public function get_client_fields_business_fields_have_appropriate_hints(): void
     {
         $fields = $this->traitInstance->callGetClientFields();
 

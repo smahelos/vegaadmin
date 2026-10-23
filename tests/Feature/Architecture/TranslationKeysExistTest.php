@@ -18,7 +18,12 @@ use Tests\TestCase;
  */
 final class TranslationKeysExistTest extends TestCase
 {
-    private const LOCALES = ['cs', 'de', 'en', 'sk'];
+    private const LOCALES = [
+        'cs',
+        'de',
+        'en',
+        'sk',
+    ];
 
     private const DIRECTORIES = ['app', 'resources/views'];
 
@@ -33,13 +38,21 @@ final class TranslationKeysExistTest extends TestCase
             $locales = str_contains($key, '::') ? ['cs'] : self::LOCALES;
 
             foreach ($locales as $locale) {
-                if (! Lang::has($key, $locale, false)) {
+                if (! Lang::has(
+                    $key,
+                    $locale,
+                    false,
+                )) {
                     $missing[] = "{$key} [{$locale}] in {$file}";
                 }
             }
         }
 
-        $this->assertSame([], $missing, "Missing translation keys:\n".implode("\n", $missing));
+        $this->assertSame(
+            [],
+            $missing,
+            "Missing translation keys:\n" . implode("\n", $missing),
+        );
     }
 
     /**
@@ -57,14 +70,22 @@ final class TranslationKeysExistTest extends TestCase
                     continue;
                 }
 
-                preg_match_all(self::KEY_PATTERN, (string) file_get_contents($file->getPathname()), $matches);
+                preg_match_all(
+                    self::KEY_PATTERN,
+                    (string) file_get_contents($file->getPathname()),
+                    $matches,
+                );
 
                 foreach ($matches[2] as $key) {
                     if (str_contains($key, '$') || str_contains($key, '{')) {
                         continue;
                     }
 
-                    $keys[$key] ??= str_replace(base_path().'/', '', $file->getPathname());
+                    $keys[$key] ??= str_replace(
+                        base_path() . '/',
+                        '',
+                        $file->getPathname(),
+                    );
                 }
             }
         }

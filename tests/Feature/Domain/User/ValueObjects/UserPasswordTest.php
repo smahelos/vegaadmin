@@ -2,12 +2,12 @@
 
 namespace Tests\Feature\Domain\User\ValueObjects;
 
+use App\Domain\Shared\Hash\Contracts\HashInterface;
 use App\Domain\User\ValueObjects\UserPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use App\Domain\Shared\Hash\Contracts\HashInterface;
 
 class UserPasswordTest extends TestCase
 {
@@ -17,10 +17,30 @@ class UserPasswordTest extends TestCase
     {
         parent::setUp();
         // Configure a simple hash service for the VO to use in tests
-        $hasher = new class implements HashInterface {
-            public function hash(string $value): string { return password_hash($value, PASSWORD_BCRYPT, ['cost' => 4]); }
-            public function verify(string $value, string $hash): bool { return password_verify($value, $hash); }
-            public function needsRehash(string $hash): bool { return password_needs_rehash($hash, PASSWORD_BCRYPT, ['cost' => 4]); }
+        $hasher = new class implements HashInterface
+        {
+            public function hash(string $value): string
+            {
+                return password_hash(
+                    $value,
+                    PASSWORD_BCRYPT,
+                    ['cost' => 4],
+                );
+            }
+
+            public function verify(string $value, string $hash): bool
+            {
+                return password_verify($value, $hash);
+            }
+
+            public function needsRehash(string $hash): bool
+            {
+                return password_needs_rehash(
+                    $hash,
+                    PASSWORD_BCRYPT,
+                    ['cost' => 4],
+                );
+            }
         };
         UserPassword::setHasher($hasher);
     }
@@ -29,7 +49,7 @@ class UserPasswordTest extends TestCase
     public function creates_password_from_plain_text(): void
     {
         $password = UserPassword::fromPlainText('ValidPassword123');
-        
+
         $this->assertInstanceOf(UserPassword::class, $password);
         $this->assertNotEmpty($password->getHash());
         $this->assertNotEquals('ValidPassword123', $password->getHash());
@@ -40,7 +60,7 @@ class UserPasswordTest extends TestCase
     {
         $plainPassword = 'ValidPassword123';
         $password = UserPassword::fromPlainText($plainPassword);
-        
+
         $this->assertTrue($password->verify($plainPassword));
         $this->assertFalse($password->verify('WrongPassword'));
     }
@@ -49,7 +69,7 @@ class UserPasswordTest extends TestCase
     public function checks_rehash_needs(): void
     {
         $password = UserPassword::fromPlainText('ValidPassword123');
-        
+
         // New passwords typically don't need rehashing
         $this->assertIsBool($password->needsRehash());
     }
@@ -61,9 +81,9 @@ class UserPasswordTest extends TestCase
             'Complex123!',
             'Another456@',
             'Different789#',
-            'StrongPass0$'
+            'StrongPass0$',
         ];
-        
+
         foreach ($validPasswords as $plainPassword) {
             $password = UserPassword::fromPlainText($plainPassword);
             $this->assertInstanceOf(UserPassword::class, $password);
@@ -76,7 +96,7 @@ class UserPasswordTest extends TestCase
     {
         $hash = '$2y$10$example.hash.here';
         $password = UserPassword::fromHash($hash);
-        
+
         $this->assertEquals($hash, $password->getHash());
     }
 
@@ -85,7 +105,7 @@ class UserPasswordTest extends TestCase
     {
         $password = UserPassword::fromPlainText('ValidPassword123');
         $hashString = (string) $password;
-        
+
         $this->assertIsString($hashString);
         $this->assertNotEmpty($hashString);
     }
@@ -94,7 +114,7 @@ class UserPasswordTest extends TestCase
     public function throws_exception_for_empty_plain_password(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        
+
         UserPassword::fromPlainText('');
     }
 
@@ -102,7 +122,7 @@ class UserPasswordTest extends TestCase
     public function throws_exception_for_empty_hash(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        
+
         UserPassword::fromHash('');
     }
 
@@ -154,9 +174,9 @@ class UserPasswordTest extends TestCase
         $weakPasswords = [
             'Password123',
             'Admin123',
-            'Test123'
+            'Test123',
         ];
-        
+
         foreach ($weakPasswords as $weakPassword) {
             $this->expectException(InvalidArgumentException::class);
             UserPassword::fromPlainText($weakPassword);

@@ -18,8 +18,14 @@ class Bank extends Model
     */
 
     protected $table = 'banks';
+
     protected $fillable = [
-        'name', 'code', 'swift', 'country', 'active', 'description'
+        'name',
+        'code',
+        'swift',
+        'country',
+        'active',
+        'description',
     ];
 
     protected $casts = [
@@ -37,7 +43,7 @@ class Bank extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
-    
+
     // Bank model is reference data for bank codes and information
     // Suppliers reference banks via bank_code field, not direct relationship
 

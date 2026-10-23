@@ -2,9 +2,9 @@
 
 namespace App\Domain\User\Listeners;
 
-use App\Domain\User\Events\UserDataChanged;
-use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Analytics\Contracts\DashboardServiceInterface as AnalyticsDashboardServiceInterface;
+use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\User\Events\UserDataChanged;
 
 class InvalidateUserCache
 {
@@ -24,13 +24,10 @@ class InvalidateUserCache
 
     /**
      * Create the event listener
-     *
-     * @param CacheServiceInterface $cacheService
-     * @param AnalyticsDashboardServiceInterface $dashboardService
      */
     public function __construct(
         CacheServiceInterface $cacheService,
-        AnalyticsDashboardServiceInterface $dashboardService
+        AnalyticsDashboardServiceInterface $dashboardService,
     ) {
         $this->cacheService = $cacheService;
         $this->dashboardService = $dashboardService;
@@ -38,9 +35,6 @@ class InvalidateUserCache
 
     /**
      * Handle the event
-     *
-     * @param UserDataChanged $event
-     * @return void
      */
     public function handle(UserDataChanged $event): void
     {
@@ -50,10 +44,18 @@ class InvalidateUserCache
         // Invalidate specific cache based on change type
         switch ($event->changeType) {
             case 'invoice':
-                $this->cacheService->invalidateTags(['analytics', 'analytics.user.' . $event->userId, 'analytics.monthly']);
+                $this->cacheService->invalidateTags([
+                    'analytics',
+                    'analytics.user.' . $event->userId,
+                    'analytics.monthly',
+                ]);
                 break;
             case 'client':
-                $this->cacheService->invalidateTags(['analytics', 'analytics.user.' . $event->userId, 'analytics.clients']);
+                $this->cacheService->invalidateTags([
+                    'analytics',
+                    'analytics.user.' . $event->userId,
+                    'analytics.clients',
+                ]);
                 break;
             case 'supplier':
                 $this->cacheService->invalidateTags(['analytics', 'analytics.user.' . $event->userId]);

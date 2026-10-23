@@ -11,7 +11,7 @@ interface EntityLimitRepositoryInterface
      * Get active entity limits for the given permission names.
      * Should return a collection of items with keys: permission_name, entity_type, metric_type, period_type, limit_value.
      *
-     * @param array<int,string> $permissionNames
+     * @param  array<int,string>  $permissionNames
      * @return array<int, array{
      *   permission_name:string,
      *   entity_type:string,
@@ -37,23 +37,26 @@ interface EntityLimitRepositoryInterface
         array $permissionNames,
         string $entityType,
         string $metricType,
-        string $periodType
+        string $periodType,
     ): array;
 
     /**
      * Get all defined entity types.
+     *
      * @return array<int,string>
      */
     public function getAllEntityTypes(): array;
 
     /**
      * Get all defined metric types.
+     *
      * @return array<int,string>
      */
     public function getAllMetricTypes(): array;
 
     /**
      * Get all defined period types.
+     *
      * @return array<int,string>
      */
     public function getAllPeriodTypes(): array;

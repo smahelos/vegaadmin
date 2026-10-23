@@ -2,13 +2,13 @@
 
 namespace Tests\Unit\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\SupplierController;
 use App\Application\Party\Contracts\PartyApplicationServiceInterface;
-use App\Domain\Party\DTO\SupplierDTO;
 use App\Domain\Party\DTO\ClientDTO;
-use App\Models\User;
+use App\Domain\Party\DTO\SupplierDTO;
+use App\Http\Controllers\Api\SupplierController;
 use App\Models\Client;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -16,22 +16,25 @@ use Tests\TestCase;
 class SupplierControllerTest extends TestCase
 {
     private TestableSupplierController $controller;
+
     private FakeSupplierPartyService $service;
+
     private User $backpackUser;
+
     private User $frontendUser;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new FakeSupplierPartyService();
+        $this->service = new FakeSupplierPartyService;
         $this->controller = new TestableSupplierController($this->service);
 
-        $this->backpackUser = new User();
+        $this->backpackUser = new User;
         $this->backpackUser->id = 10;
         $this->backpackUser->email = 'admin@example.com';
         $this->backpackUser->name = 'Admin';
 
-        $this->frontendUser = new User();
+        $this->frontendUser = new User;
         $this->frontendUser->id = 20;
         $this->frontendUser->email = 'user@example.com';
         $this->frontendUser->name = 'User';
@@ -65,7 +68,7 @@ class SupplierControllerTest extends TestCase
         $this->service->returnSupplierUserId = $this->backpackUser->id;
         $resp = $this->controller->getSupplierAdmin(7);
         $this->assertEquals(200, $resp->status());
-        
+
         // Check that response contains expected supplier data
         $data = $resp->getData(true);
         $this->assertArrayHasKey('name', $data);
@@ -89,7 +92,7 @@ class SupplierControllerTest extends TestCase
         $this->controller->setFrontendUser($this->frontendUser);
         $this->service->returnSupplierUserId = 999; // different user
         $resp = $this->controller->getSupplier(9);
-        $this->assertContains($resp->status(), [403,404]); // depends on path taken
+        $this->assertContains($resp->status(), [403, 404]); // depends on path taken
     }
 
     #[Test]
@@ -105,8 +108,11 @@ class SupplierControllerTest extends TestCase
 class TestableSupplierController extends SupplierController
 {
     private ?User $backpackUser = null;
+
     private bool $isAdmin = false;
+
     private ?User $frontendUser = null;
+
     public function __construct(private PartyApplicationServiceInterface $svc)
     {
         parent::__construct($svc);
@@ -143,13 +149,14 @@ class TestableSupplierController extends SupplierController
     {
         try {
             $user = $this->getBackpackUser();
-            if (!$user) {
+            if (! $user) {
                 return response()->json(['error' => __('users.auth.unauthenticated')], 401);
             }
-            if (!$this->isAdmin) {
+            if (! $this->isAdmin) {
                 return response()->json(['error' => __('users.auth.unauthenticated')], 403);
             }
-            $supplier = $this->svc->findSupplier($user->id, (int)$id);
+            $supplier = $this->svc->findSupplier($user->id, (int) $id);
+
             return response()->json($supplier);
         } catch (\Exception $e) {
             return response()->json(['error' => __('suppliers.messages.not_found')], 404);
@@ -160,14 +167,32 @@ class TestableSupplierController extends SupplierController
 class FakeSupplierPartyService implements PartyApplicationServiceInterface
 {
     public bool $throwModelNotFound = false;
+
     public bool $throwGenericException = false;
+
     public int $returnClientUserId = 1;
+
     public int $returnSupplierUserId = 1;
 
-    public function clientOptions(int $userId): array { return []; }
-    public function supplierOptions(int $userId): array { return []; }
-    public function defaultClient(int $userId): ?ClientDTO { return null; }
-    public function defaultSupplier(int $userId): ?SupplierDTO { return null; }
+    public function clientOptions(int $userId): array
+    {
+        return [];
+    }
+
+    public function supplierOptions(int $userId): array
+    {
+        return [];
+    }
+
+    public function defaultClient(int $userId): ?ClientDTO
+    {
+        return null;
+    }
+
+    public function defaultSupplier(int $userId): ?SupplierDTO
+    {
+        return null;
+    }
 
     public function findClientById(int $id): Client
     {
@@ -176,11 +201,12 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
                 'id' => $id,
                 'name' => 'Default Client',
                 'email' => 'client@example.com',
-            ]
+            ],
         );
     }
 
-    public function resolveOrCreateClient(int $userId, array $data): Client {
+    public function resolveOrCreateClient(int $userId, array $data): Client
+    {
         return new Client(
             [
                 'id' => 1,
@@ -199,10 +225,12 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
                 'user_id' => $userId,
                 'is_default' => false,
                 'invoices' => [],
-            ]
+            ],
         );
     }
-    public function resolveOrCreateSupplier(int $userId, array $data): Supplier { 
+
+    public function resolveOrCreateSupplier(int $userId, array $data): Supplier
+    {
         return new Supplier(
             [
                 'id' => 1,
@@ -224,15 +252,16 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
                 'bank_name' => $data['bank_name'] ?? null,
                 'iban' => $data['iban'] ?? null,
                 'swift' => $data['swift'] ?? null,
-                'has_payment_info' => (bool)($data['has_payment_info'] ?? false),
+                'has_payment_info' => (bool) ($data['has_payment_info'] ?? false),
                 'user_id' => $userId,
                 'is_default' => false,
                 'invoices' => [],
-            ]
+            ],
         );
     }
 
-    public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array {
+    public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array
+    {
         return [
             'supplier' => new SupplierDTO(
                 id: 1,
@@ -254,16 +283,17 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
                 bank_name: $data['bank_name'] ?? null,
                 iban: $data['iban'] ?? null,
                 swift: $data['swift'] ?? null,
-                has_payment_info: (bool)($data['has_payment_info'] ?? false),
+                has_payment_info: (bool) ($data['has_payment_info'] ?? false),
                 user_id: $userId,
                 is_default: false,
                 invoices: [],
-            ), 
-            'created' => true
+            ),
+            'created' => true,
         ];
     }
-    
-    public function resolveOrCreateClientWithFlag(int $userId, array $data): array { 
+
+    public function resolveOrCreateClientWithFlag(int $userId, array $data): array
+    {
         return [
             'client' => new ClientDTO(
                 id: 1,
@@ -282,15 +312,15 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
                 user_id: $userId,
                 is_default: false,
                 invoices: [],
-            ), 
-            'created' => true
+            ),
+            'created' => true,
         ];
     }
 
     public function findClient(int $userId, int $id): Client
     {
         if ($this->throwModelNotFound) {
-            throw new ModelNotFoundException();
+            throw new ModelNotFoundException;
         }
         if ($this->throwGenericException) {
             throw new \Exception('Failure');
@@ -313,18 +343,21 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
                 'user_id' => $userId,
                 'is_default' => false,
                 'invoices' => [],
-            ]
+            ],
         );
+
         return $client;
     }
 
-    public function findSupplier(int $userId, int $id): Supplier {
+    public function findSupplier(int $userId, int $id): Supplier
+    {
         if ($this->throwModelNotFound) {
-            throw new ModelNotFoundException();
+            throw new ModelNotFoundException;
         }
         if ($this->throwGenericException) {
             throw new \Exception('Failure');
         }
+
         return new Supplier(
             [
                 'id' => $id,
@@ -350,10 +383,12 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
                 'user_id' => $this->returnSupplierUserId,
                 'is_default' => false,
                 'invoices' => [],
-            ]
+            ],
         );
     }
-    public function updateClient(int $clientId, array $data): Client {
+
+    public function updateClient(int $clientId, array $data): Client
+    {
         $data = [
             'id' => $clientId,
             'name' => $data['name'] ?? 'Default Client',
@@ -375,7 +410,9 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
 
         return new Client($data);
     }
-    public function updateSupplier(int $supplierId, array $data): Supplier {
+
+    public function updateSupplier(int $supplierId, array $data): Supplier
+    {
         $data = [
             'id' => $supplierId,
             'name' => $data['name'] ?? 'Default Supplier',
@@ -396,7 +433,7 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
             'bank_name' => $data['bank_name'] ?? null,
             'iban' => $data['iban'] ?? null,
             'swift' => $data['swift'] ?? null,
-            'has_payment_info' => (bool)($data['has_payment_info'] ?? false),
+            'has_payment_info' => (bool) ($data['has_payment_info'] ?? false),
             'user_id' => $this->returnSupplierUserId,
             'is_default' => false,
             'invoices' => [],
@@ -404,12 +441,38 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
 
         return new Supplier($data);
     }
+
     public function setSupplierDefault(int $userId, int $supplierId): void {}
+
     public function setClientDefault(int $userId, int $clientId): void {}
-    public function deleteSupplier(int $userId, int $supplierId): bool { return true; }
-    public function deleteClient(int $userId, int $clientId): bool { return true; }
-    public function listSuppliers(User $user): array { return []; }
-    public function listClients(User $user): array { return []; }
-    public function defaultSupplierOrFirst(int $userId): ?SupplierDTO { return null; }
-    public function defaultClientOrFirst(int $userId): ?ClientDTO { return null; }
+
+    public function deleteSupplier(int $userId, int $supplierId): bool
+    {
+        return true;
+    }
+
+    public function deleteClient(int $userId, int $clientId): bool
+    {
+        return true;
+    }
+
+    public function listSuppliers(User $user): array
+    {
+        return [];
+    }
+
+    public function listClients(User $user): array
+    {
+        return [];
+    }
+
+    public function defaultSupplierOrFirst(int $userId): ?SupplierDTO
+    {
+        return null;
+    }
+
+    public function defaultClientOrFirst(int $userId): ?ClientDTO
+    {
+        return null;
+    }
 }

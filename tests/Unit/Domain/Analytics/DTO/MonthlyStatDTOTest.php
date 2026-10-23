@@ -3,8 +3,8 @@
 namespace Tests\Unit\Domain\Analytics\DTO;
 
 use App\Domain\Analytics\DTO\MonthlyStatDTO;
-use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -25,7 +25,7 @@ class MonthlyStatDTOTest extends TestCase
     {
         $dto = MonthlyStatDTO::fromArray(['month' => '2025-01', 'total' => 0], 'CZK');
         $arr = $dto->toArray();
-        $this->assertSame(['month','total'], array_keys($arr));
+        $this->assertSame(['month', 'total'], array_keys($arr));
         $this->assertSame('2025-01', $arr['month']);
         $this->assertSame(0.0, $arr['total']);
     }
@@ -34,9 +34,25 @@ class MonthlyStatDTOTest extends TestCase
     public function to_formatted_array_uses_formatter(): void
     {
         $dto = MonthlyStatDTO::fromArray(['month' => '2025-09', 'total' => 5], 'CZK');
-        $fakeFormatter = new class implements MoneyFormatterInterface {
-            public function format(\App\Domain\Shared\Money\ValueObjects\Money $money, ?string $locale = null, ?int $minFraction = null, ?int $maxFraction = null): string { return 'X'; }
-            public function formatWithCode(\App\Domain\Shared\Money\ValueObjects\Money $money, ?string $locale = null, ?int $minFraction = null, ?int $maxFraction = null): string { return '5.00 CZK'; }
+        $fakeFormatter = new class implements MoneyFormatterInterface
+        {
+            public function format(
+                Money $money,
+                ?string $locale = null,
+                ?int $minFraction = null,
+                ?int $maxFraction = null,
+            ): string {
+                return 'X';
+            }
+
+            public function formatWithCode(
+                Money $money,
+                ?string $locale = null,
+                ?int $minFraction = null,
+                ?int $maxFraction = null,
+            ): string {
+                return '5.00 CZK';
+            }
         };
         $formatted = $dto->toFormattedArray($fakeFormatter);
         $this->assertSame('2025-09', $formatted['month']);

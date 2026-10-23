@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Mapper for transforming ClientDTO objects to HTTP-friendly arrays.
- * 
+ *
  * Centralizes data transformation logic to avoid duplication
  * in PartyApplicationService.
  */
@@ -42,6 +42,6 @@ class ClientArrayMapper
      */
     public function mapCollectionToArray(Collection $clients): array
     {
-        return $clients->map(fn($dto) => $this->mapToArray($dto))->toArray();
+        return $clients->map(fn ($dto) => $this->mapToArray($dto))->toArray();
     }
 }

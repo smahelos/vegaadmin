@@ -10,7 +10,6 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
@@ -22,17 +21,17 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class ExpenseCategoryRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
     protected User $adminUser;
+
     protected User $user;
+
     protected array $validExpenseCategoryData;
 
     /**
      * Set up the test environment.
      * Creates test user and valid expense category data for request testing.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -68,7 +67,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $validator = Validator::make($this->validExpenseCategoryData, $request->rules());
 
         $this->assertFalse($validator->fails());
@@ -86,11 +85,15 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
             $invalidData = $this->validExpenseCategoryData;
             unset($invalidData[$field]);
 
-            $request = new ExpenseCategoryRequest();
+            $request = new ExpenseCategoryRequest;
             $validator = Validator::make($invalidData, $request->rules());
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
-            $this->assertArrayHasKey($field, $validator->errors()->toArray(), "Should have error for missing {$field}");
+            $this->assertArrayHasKey(
+                $field,
+                $validator->errors()->toArray(),
+                "Should have error for missing {$field}",
+            );
         }
     }
 
@@ -102,7 +105,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['name'] = 'a'; // Too short (min 2)
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -117,7 +120,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['name'] = str_repeat('a', 256); // Too long (max 255)
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -135,7 +138,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['slug'] = 'existing-slug';
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -154,7 +157,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $updateData['slug'] = 'existing-slug';
         $updateData['id'] = $existingCategory->id;
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $request->merge(['id' => $existingCategory->id]);
         $validator = Validator::make($updateData, $request->rules());
 
@@ -172,7 +175,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
             'slug' => 'test-category',
         ];
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $validator = Validator::make($minimalData, $request->rules());
 
         $this->assertFalse($validator->fails());
@@ -187,7 +190,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['is_active'] = 'invalid-boolean';
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
@@ -199,17 +202,24 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $booleanValues = [true, false, 1, 0, '1', '0'];
+        $booleanValues = [
+            true,
+            false,
+            1,
+            0,
+            '1',
+            '0',
+        ];
 
         foreach ($booleanValues as $value) {
             $validData = $this->validExpenseCategoryData;
             $validData['is_active'] = $value;
             $validData['slug'] = 'test-slug-' . $value; // Make slug unique
 
-            $request = new ExpenseCategoryRequest();
+            $request = new ExpenseCategoryRequest;
             $validator = Validator::make($validData, $request->rules());
 
-            $this->assertFalse($validator->fails(), "Validation should pass for is_active value: " . json_encode($value));
+            $this->assertFalse($validator->fails(), 'Validation should pass for is_active value: ' . json_encode($value));
         }
     }
 
@@ -220,7 +230,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $userWithoutPermission = User::factory()->create();
         $this->actingAs($userWithoutPermission);
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
 
         $this->assertFalse($request->authorize());
     }
@@ -228,7 +238,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_when_not_authenticated()
     {
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
 
         $this->assertFalse($request->authorize());
     }
@@ -238,7 +248,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
 
         $this->assertTrue($request->authorize());
     }
@@ -246,13 +256,23 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function request_has_custom_attributes()
     {
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $attributes = $request->attributes();
 
-        $expectedKeys = ['name', 'slug', 'color', 'description', 'is_active'];
+        $expectedKeys = [
+            'name',
+            'slug',
+            'color',
+            'description',
+            'is_active',
+        ];
 
         foreach ($expectedKeys as $key) {
-            $this->assertArrayHasKey($key, $attributes, "Should have custom attribute for {$key}");
+            $this->assertArrayHasKey(
+                $key,
+                $attributes,
+                "Should have custom attribute for {$key}",
+            );
         }
     }
 
@@ -267,7 +287,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
             'description' => 'Test description',
         ];
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $validator = Validator::make($dataWithoutSlug, $request->rules());
 
         // Should fail because slug is required and not provided in validation rules
@@ -283,7 +303,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['color'] = str_repeat('a', 51); // Too long (max 50)
 
-        $request = new ExpenseCategoryRequest();
+        $request = new ExpenseCategoryRequest;
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());

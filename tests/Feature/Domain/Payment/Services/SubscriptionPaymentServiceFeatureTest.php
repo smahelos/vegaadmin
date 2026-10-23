@@ -8,12 +8,11 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Traits\RefreshDatabaseWithData;
 use Mockery;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use Tests\Traits\RefreshDatabaseWithData;
 
 class SubscriptionPaymentServiceFeatureTest extends TestCase
 {
@@ -24,7 +23,7 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->service = app(SubscriptionPaymentServiceInterface::class);
     }
 
@@ -60,18 +59,18 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
         $user = User::create([
             'name' => 'Test User ' . $uniqueId,
             'email' => 'test' . $uniqueId . '@example.com',
-            'password' => 'password'
+            'password' => 'password',
         ]);
-        
+
         $subscriptionPlan = SubscriptionPlan::create([
             'name' => 'Test Plan ' . $uniqueId,
             'slug' => 'test-plan-' . $uniqueId,
             'price' => 29.99,
             'currency' => 'EUR',
             'billing_period' => 'monthly',
-            'is_active' => true
+            'is_active' => true,
         ]);
-        
+
         $subscription = Subscription::create([
             'user_id' => $user->id,
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -79,13 +78,13 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
             'amount' => 29.99,
             'currency' => 'EUR',
             'starts_at' => now(),
-            'ends_at' => now()->addMonth()
+            'ends_at' => now()->addMonth(),
         ]);
-        
+
         $result = $this->service->processSubscriptionPayment(
             $subscription->id,
             'invalid_gateway',
-            ['amount' => 29.99]
+            ['amount' => 29.99],
         );
 
         $this->assertIsArray($result);
@@ -100,18 +99,18 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
         $user = User::create([
             'name' => 'Test User ' . $uniqueId,
             'email' => 'test' . $uniqueId . '@example.com',
-            'password' => 'password'
+            'password' => 'password',
         ]);
-        
+
         $subscriptionPlan = SubscriptionPlan::create([
             'name' => 'Test Plan ' . $uniqueId,
             'slug' => 'test-plan-' . $uniqueId,
             'price' => 29.99,
             'currency' => 'EUR',
             'billing_period' => 'monthly',
-            'is_active' => true
+            'is_active' => true,
         ]);
-        
+
         $subscription = Subscription::create([
             'user_id' => $user->id,
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -119,7 +118,7 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
             'amount' => 29.99,
             'currency' => 'EUR',
             'starts_at' => now(),
-            'ends_at' => now()->addMonth()
+            'ends_at' => now()->addMonth(),
         ]);
 
         $result = $this->service->cancelSubscriptionPayment($subscription->id);
@@ -135,18 +134,18 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
         $user = User::create([
             'name' => 'Test User ' . $uniqueId,
             'email' => 'test' . $uniqueId . '@example.com',
-            'password' => 'password'
+            'password' => 'password',
         ]);
-        
+
         $subscriptionPlan = SubscriptionPlan::create([
             'name' => 'Test Plan ' . $uniqueId,
             'slug' => 'test-plan-' . $uniqueId,
             'price' => 29.99,
             'currency' => 'EUR',
             'billing_period' => 'monthly',
-            'is_active' => true
+            'is_active' => true,
         ]);
-        
+
         $subscription = Subscription::create([
             'user_id' => $user->id,
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -154,16 +153,16 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
             'amount' => 29.99,
             'currency' => 'EUR',
             'starts_at' => now(),
-            'ends_at' => now()->addMonth()
+            'ends_at' => now()->addMonth(),
         ]);
-        
+
         Payment::create([
             'subscription_id' => $subscription->id,
             'status' => 'completed',
             'amount' => 29.99,
             'currency' => 'EUR',
             'gateway' => 'test',
-            'gateway_payment_id' => 'test_payment_' . $uniqueId
+            'gateway_payment_id' => 'test_payment_' . $uniqueId,
         ]);
 
         $result = $this->service->cancelSubscriptionPayment($subscription->id);
@@ -191,18 +190,18 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
         $user = User::create([
             'name' => 'Test User ' . $uniqueId,
             'email' => 'test' . $uniqueId . '@example.com',
-            'password' => 'password'
+            'password' => 'password',
         ]);
-        
+
         $subscriptionPlan = SubscriptionPlan::create([
             'name' => 'Test Plan ' . $uniqueId,
             'slug' => 'test-plan-' . $uniqueId,
             'price' => 29.99,
             'currency' => 'EUR',
             'billing_period' => 'monthly',
-            'is_active' => true
+            'is_active' => true,
         ]);
-        
+
         $subscription = Subscription::create([
             'user_id' => $user->id,
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -210,16 +209,16 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
             'amount' => 29.99,
             'currency' => 'EUR',
             'starts_at' => now(),
-            'ends_at' => now()->addMonth()
+            'ends_at' => now()->addMonth(),
         ]);
-        
+
         $payment = Payment::create([
             'subscription_id' => $subscription->id,
             'status' => 'pending',
             'gateway' => 'gopay',
             'gateway_payment_id' => 'GP' . $uniqueId,
             'amount' => 29.99,
-            'currency' => 'EUR'
+            'currency' => 'EUR',
         ]);
 
         // NOTE: This test would normally verify payment via gateway

@@ -17,7 +17,11 @@ return new class extends Migration
             $table->foreignId('supplier_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained('expense_categories')->nullOnDelete();
             $table->date('expense_date');
-            $table->decimal('amount', 15, 2);
+            $table->decimal(
+                'amount',
+                15,
+                2,
+            );
             $table->string('currency', 3)->default('CZK');
             $table->foreignId('payment_method_id')->nullable()->constrained()->nullOnDelete();
             $table->string('reference_number')->nullable();

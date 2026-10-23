@@ -10,10 +10,11 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class DatabaseDashboardControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
 
     protected function setUp(): void

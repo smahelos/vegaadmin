@@ -13,9 +13,16 @@ class LaravelLogger implements LogInterface
     /**
      * Logs via Laravel's Log facade.
      */
-    public function log(string $level, string $message, array $context = []): void
-    {
+    public function log(
+        string $level,
+        string $message,
+        array $context = [],
+    ): void {
         // Delegate to Laravel's logger, preserving context
-        LogFacade::log($level, $message, $context);
+        LogFacade::log(
+            $level,
+            $message,
+            $context,
+        );
     }
 }

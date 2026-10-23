@@ -2,11 +2,11 @@
 
 namespace App\Application\Party\Contracts;
 
-use App\Models\User;
-use App\Models\Client;
-use App\Models\Supplier;
 use App\Domain\Party\DTO\ClientDTO;
 use App\Domain\Party\DTO\SupplierDTO;
+use App\Models\Client;
+use App\Models\Supplier;
+use App\Models\User;
 
 /**
  * Application layer facade for party-related operations (clients & suppliers).
@@ -65,12 +65,14 @@ interface PartyApplicationServiceInterface
 
     /**
      * Create or resolve client and indicate if created.
+     *
      * @return array{client: Client, created: bool}
      */
     public function resolveOrCreateClientWithFlag(int $userId, array $data): array;
 
     /**
      * Create or resolve client and indicate if created.
+     *
      * @return array{client: Client, created: bool}
      */
     public function resolveOrCreateClient(int $userId, array $data): Client;
@@ -86,12 +88,14 @@ interface PartyApplicationServiceInterface
 
     /**
      * Create or resolve supplier and indicate if created.
+     *
      * @return array{supplier: Supplier, created: bool}
      */
     public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array;
 
     /**
      * Create or resolve supplier and indicate if created.
+     *
      * @return array{supplier: Supplier, created: bool}
      */
     public function resolveOrCreateSupplier(int $userId, array $data): Supplier;
@@ -107,14 +111,14 @@ interface PartyApplicationServiceInterface
 
     /**
      * Get list of clients for dropdown (id => name)
-     * @param int $userId
+     *
      * @return array<int,string>
      */
     public function clientOptions(int $userId): array;
 
     /**
      * Get list of suppliers for dropdown (id => name)
-     * @param int $userId
+     *
      * @return array<int,string>
      */
     public function supplierOptions(int $userId): array;

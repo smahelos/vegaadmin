@@ -2,15 +2,15 @@
 
 namespace App\Domain\Product\Events;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Product\DTO\ProductDTO;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
  * Domain event fired when a product is updated.
- * 
+ *
  * Triggered by:
  * - ProductService::updateProduct() when updating existing product
- * 
+ *
  * Used for:
  * - Audit logging
  * - Product change tracking
@@ -21,8 +21,6 @@ class ProductUpdated implements DomainEvent
 {
     /**
      * The type of change that occurred
-     *
-     * @var string
      */
     public readonly string $changeType;
 
@@ -40,7 +38,7 @@ class ProductUpdated implements DomainEvent
         private readonly array $previousData,
         ?int $userId = null,
         private readonly array $metadata = [],
-        string $changeType = 'general'
+        string $changeType = 'general',
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
@@ -97,34 +95,34 @@ class ProductUpdated implements DomainEvent
             'is_active' => $this->product->is_active,
             'is_default' => $this->product->is_default,
         ];
-        
+
         $changes = [];
-        
+
         foreach ($current as $key => $value) {
             if (isset($this->previousData[$key]) && $this->previousData[$key] !== $value) {
                 $changes[$key] = [
                     'from' => $this->previousData[$key],
-                    'to' => $value
+                    'to' => $value,
                 ];
             }
         }
-        
+
         return $changes;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventName(): string
     {
         return static::class;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getEventId(): string
     {
         return $this->eventId;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public function getOccurredOn(): \DateTimeImmutable
     {
         return $this->occurredOn;

@@ -17,7 +17,7 @@ class ExpenseRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new ExpenseRequest();
+        $this->request = new ExpenseRequest;
     }
 
     #[Test]
@@ -67,7 +67,12 @@ class ExpenseRequestTest extends TestCase
     public function request_has_expected_class_structure(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        foreach (['authorize','rules','attributes','messages'] as $method) {
+        foreach ([
+            'authorize',
+            'rules',
+            'attributes',
+            'messages',
+        ] as $method) {
             $this->assertTrue($reflection->hasMethod($method));
         }
         $this->assertEquals('App\\Http\\Requests', $reflection->getNamespaceName());

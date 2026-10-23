@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Models\Payment;
 use App\Models\Subscription;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -41,8 +42,8 @@ class PaymentFeatureTest extends TestCase
     public function payment_has_subscription_relationship(): void
     {
         $payment = Payment::factory()->create();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $payment->subscription());
+
+        $this->assertInstanceOf(BelongsTo::class, $payment->subscription());
         $this->assertInstanceOf(Subscription::class, $payment->subscription);
     }
 

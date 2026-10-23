@@ -9,12 +9,12 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for InvoiceRequest - CRITICAL RULE: Only pure business logic, no Laravel dependencies
- * 
+ *
  * According to Unit Test Isolation rule, this class tests only:
  * - Class structure and inheritance
  * - Method signatures and return types
  * - Class introspection without executing Laravel-dependent methods
- * 
+ *
  * Authorization and validation business logic has been moved to Feature tests.
  */
 class InvoiceRequestTest extends TestCase
@@ -24,7 +24,7 @@ class InvoiceRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new InvoiceRequest();
+        $this->request = new InvoiceRequest;
     }
 
     #[Test]
@@ -39,7 +39,7 @@ class InvoiceRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -50,7 +50,7 @@ class InvoiceRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -60,7 +60,7 @@ class InvoiceRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertCount(0, $method->getParameters());
     }
@@ -69,9 +69,9 @@ class InvoiceRequestTest extends TestCase
     public function prepare_for_validation_method_exists_and_is_protected(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        
+
         $this->assertTrue($reflection->hasMethod('prepareForValidation'));
-        
+
         $method = $reflection->getMethod('prepareForValidation');
         $this->assertTrue($method->isProtected());
         $this->assertCount(0, $method->getParameters());
@@ -81,7 +81,7 @@ class InvoiceRequestTest extends TestCase
     public function request_has_expected_class_structure(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        
+
         $this->assertEquals('App\Http\Requests', $reflection->getNamespaceName());
         $this->assertTrue($reflection->hasMethod('authorize'));
         $this->assertTrue($reflection->hasMethod('rules'));

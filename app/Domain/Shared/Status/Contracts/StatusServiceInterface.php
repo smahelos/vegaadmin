@@ -31,8 +31,6 @@ interface StatusServiceInterface
 
     /**
      * Invalidate all status related caches (categories + id/slug maps + legacy keys).
-     *
-     * @return void
      */
     public function clearStatusCaches(): void;
 

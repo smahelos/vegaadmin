@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Controller;
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -24,7 +24,7 @@ class PaymentController extends Controller
     public function return(Request $request): RedirectResponse
     {
         $gateway = $request->get('gateway', 'gopay');
-        
+
         Log::info('Payment return received', [
             'gateway' => $gateway,
             'data' => $request->all(),
@@ -42,7 +42,7 @@ class PaymentController extends Controller
                 return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
                     ->with('error', __('payments.messages.failed'));
             }
-            
+
             return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
                 ->with('info', __('payments.messages.pending'));
         }
@@ -57,7 +57,7 @@ class PaymentController extends Controller
     public function notify(Request $request): JsonResponse
     {
         $gateway = $request->get('gateway', 'gopay');
-        
+
         Log::info('Payment notification received', [
             'gateway' => $gateway,
             'data' => $request->all(),
@@ -66,9 +66,9 @@ class PaymentController extends Controller
         $result = $this->paymentApp->handleCallback($gateway, $request->all());
 
         if ($result->success) {
-                return response()->json(['status' => 'ok']);
-            }
-
-            return response()->json(['status' => 'error']);
+            return response()->json(['status' => 'ok']);
         }
+
+        return response()->json(['status' => 'error']);
+    }
 }

@@ -4,74 +4,68 @@ namespace App\Livewire\Invoice;
 
 use App\Livewire\Shared\Paginates;
 use App\Models\Invoice;
-use Livewire\Component;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
-use Illuminate\Contracts\View\View;
+use Livewire\Component;
 
 /**
  * InvoiceListRecent Livewire Component
- * 
+ *
  * Displays recent invoices with sorting functionality.
  * Shows last 5 invoices for authenticated user with pagination support.
  */
 class InvoiceListRecent extends Component
 {
     use Paginates;
-    
+
     /**
      * Current sorting field
-     *
-     * @var string
      */
     #[Url(as: 'sort')]
     public string $orderBy = 'created_at';
-    
+
     /**
      * Sort direction (true = ascending, false = descending)
-     *
-     * @var bool
      */
     #[Url(as: 'direction')]
     public bool $orderAsc = false;
-    
+
     /**
      * Error message to display to user
-     *
-     * @var string|null
      */
     public ?string $errorMessage = null;
 
     /**
      * Sort by given field, toggle direction if same field
-     *
-     * @param string $field
      */
     public function sortBy(string $field): void
     {
         if ($this->orderBy === $field) {
-            $this->orderAsc = !$this->orderAsc;
+            $this->orderAsc = ! $this->orderAsc;
         } else {
             $this->orderBy = $field;
             $this->orderAsc = true;
         }
     }
-    
+
     /**
      * Render the component with recent invoices data
-     *
-     * @return \Illuminate\Contracts\View\View
      */
     public function render(): View
     {
         try {
-            $query = Invoice::with(['client', 'paymentMethod', 'paymentStatus'])
+            $query = Invoice::with([
+                'client',
+                'paymentMethod',
+                'paymentStatus',
+            ])
                 ->where('user_id', Auth::id());
-                
+
             $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
-            
+
             $invoices = $query->paginate(5);
-            
+
             return view('livewire.invoice.invoice-list-recent', [
                 'invoices' => $invoices,
                 'hasData' => $invoices->total() > 0,
@@ -83,7 +77,7 @@ class InvoiceListRecent extends Component
             return view('livewire.invoice.invoice-list-recent', [
                 'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator
                 'hasData' => false,
-                'errorMessage' => $this->errorMessage
+                'errorMessage' => $this->errorMessage,
             ]);
         }
     }

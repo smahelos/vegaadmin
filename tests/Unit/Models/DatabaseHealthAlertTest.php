@@ -16,7 +16,7 @@ class DatabaseHealthAlertTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = new DatabaseHealthAlert();
+        $this->model = new DatabaseHealthAlert;
     }
 
     #[Test]
@@ -52,7 +52,7 @@ class DatabaseHealthAlertTest extends TestCase
             'message',
             'metric_data',
             'resolved',
-            'resolved_at'
+            'resolved_at',
         ];
 
         $this->assertEquals($expectedFillable, $this->model->getFillable());
@@ -64,7 +64,7 @@ class DatabaseHealthAlertTest extends TestCase
         $expectedCasts = [
             'metric_data' => 'array',
             'resolved' => 'boolean',
-            'resolved_at' => 'datetime'
+            'resolved_at' => 'datetime',
         ];
 
         foreach ($expectedCasts as $attribute => $expectedCast) {

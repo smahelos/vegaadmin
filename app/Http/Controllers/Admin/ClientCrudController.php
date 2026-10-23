@@ -3,26 +3,34 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\ClientRequest;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use App\Models\User;
 use App\Infrastructure\Forms\Party\ClientFormFields;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Models\Client;
+use App\Models\User;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\JsonResponse;
 
 /**
  * Client management controller
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
+ *
+ * @property-read CrudPanel $crud
  */
 class ClientCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+    use ClientFormFields;
+    use CreateOperation {
         store as traitStore;
     }
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-    use ClientFormFields; // Usage recording handled by generic observer
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation; // Usage recording handled by generic observer
 
     /**
      * Configure the CrudPanel object
@@ -31,7 +39,7 @@ class ClientCrudController extends CrudController
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\Client::class);
+        CRUD::setModel(Client::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/client');
         CRUD::setEntityNameStrings('client', 'clients');
     }
@@ -50,8 +58,12 @@ class ClientCrudController extends CrudController
             ->values(
                 User::all()->pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function($value) {
-                CRUD::addClause('where', 'user_id', $value);
+            ->whenActive(function ($value) {
+                CRUD::addClause(
+                    'where',
+                    'user_id',
+                    $value,
+                );
             });
 
         CRUD::column('user_id')
@@ -59,7 +71,7 @@ class ClientCrudController extends CrudController
             ->label('Owner')
             ->entity('user')
             ->attribute('name')
-            ->value(function($entry) {
+            ->value(function ($entry) {
                 return $entry->user_id ? $entry->user->name : 'N/A';
             });
 
@@ -82,13 +94,13 @@ class ClientCrudController extends CrudController
         CRUD::setFromDb();
 
         CRUD::field('user_id')
-        ->type('hidden')
-        ->label('Owner')
-        ->entity('user')
-        ->attribute('name')
-        ->options(function ($query) {
-            return $query->orderBy('name', 'ASC')->get();
-        });
+            ->type('hidden')
+            ->label('Owner')
+            ->entity('user')
+            ->attribute('name')
+            ->options(function ($query) {
+                return $query->orderBy('name', 'ASC')->get();
+            });
 
         CRUD::column('shortcut')->type('text');
         CRUD::column('name')->type('text')->after('shortcut');
@@ -114,7 +126,7 @@ class ClientCrudController extends CrudController
     {
         if (backpack_user()) {
             $request = $this->crud->getRequest();
-            if (!$request->has('user_id') || empty($request->input('user_id'))) {
+            if (! $request->has('user_id') || empty($request->input('user_id'))) {
                 $request->merge(['user_id' => backpack_user()->id]);
             }
         }
@@ -127,18 +139,20 @@ class ClientCrudController extends CrudController
     public function store()
     {
         $this->beforeEntityStore();
+
         return $this->traitStore();
     }
 
     /**
      * Returns client data as JSON by ID
      *
-     * @param int $id Client ID
-     * @return \Illuminate\Http\JsonResponse
+     * @param  int  $id  Client ID
+     * @return JsonResponse
      */
     public function fetch($id)
     {
-        $client = \App\Models\Client::findOrFail($id);
+        $client = Client::findOrFail($id);
+
         return response()->json($client);
     }
 

@@ -2,19 +2,19 @@
 
 namespace App\Domain\Analytics\Events\Handlers;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
-use App\Domain\Shared\Events\DomainEventHandler;
+use App\Domain\Analytics\Contracts\DashboardServiceInterface;
 use App\Domain\Analytics\Events\AnalyticsDataChanged;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
-use App\Domain\Analytics\Contracts\DashboardServiceInterface;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
+use App\Domain\Shared\Events\DomainEventHandler;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 
 /**
  * Handler for invalidating analytics cache when related data changes.
- * 
+ *
  * This ensures that analytics calculations are refreshed when underlying
  * data (invoices, clients, suppliers, etc.) is modified.
- * 
+ *
  * Handles:
  * - AnalyticsDataChanged: Invalidate relevant analytics cache based on change type
  */
@@ -23,12 +23,12 @@ class InvalidateAnalyticsCache implements DomainEventHandler
     public function __construct(
         private readonly CacheServiceInterface $cacheService,
         private readonly DashboardServiceInterface $dashboardService,
-        private readonly LogInterface $logger
+        private readonly LogInterface $logger,
     ) {}
 
     public function handle(DomainEvent $event): void
     {
-        if (!$event instanceof AnalyticsDataChanged) {
+        if (! $event instanceof AnalyticsDataChanged) {
             return;
         }
 
@@ -39,21 +39,29 @@ class InvalidateAnalyticsCache implements DomainEventHandler
             // Invalidate specific cache based on change type
             $this->invalidateCacheByType($event);
 
-            $this->logger->log('info', 'Analytics cache invalidated', [
-                'user_id' => $event->userId,
-                'change_type' => $event->changeType,
-                'entity_id' => $event->entityId,
-                'event_id' => $event->getEventId(),
-            ]);
+            $this->logger->log(
+                'info',
+                'Analytics cache invalidated',
+                [
+                    'user_id' => $event->userId,
+                    'change_type' => $event->changeType,
+                    'entity_id' => $event->entityId,
+                    'event_id' => $event->getEventId(),
+                ],
+            );
 
         } catch (\Throwable $e) {
-            $this->logger->log('error', 'Failed to invalidate analytics cache', [
-                'user_id' => $event->userId,
-                'change_type' => $event->changeType,
-                'entity_id' => $event->entityId,
-                'event_id' => $event->getEventId(),
-                'error' => $e->getMessage(),
-            ]);
+            $this->logger->log(
+                'error',
+                'Failed to invalidate analytics cache',
+                [
+                    'user_id' => $event->userId,
+                    'change_type' => $event->changeType,
+                    'entity_id' => $event->entityId,
+                    'event_id' => $event->getEventId(),
+                    'error' => $e->getMessage(),
+                ],
+            );
         }
     }
 
@@ -63,7 +71,7 @@ class InvalidateAnalyticsCache implements DomainEventHandler
     private function invalidateCacheByType(AnalyticsDataChanged $event): void
     {
         $userTag = 'analytics.user.' . $event->userId;
-        
+
         switch ($event->changeType) {
             case 'invoice':
                 // Invoice changes affect statistics, monthly stats, and potentially client totals
@@ -72,7 +80,7 @@ class InvalidateAnalyticsCache implements DomainEventHandler
                     $userTag,
                     'analytics.monthly',
                     'analytics.statistics',
-                    'analytics.clients'
+                    'analytics.clients',
                 ]);
                 break;
 
@@ -82,7 +90,7 @@ class InvalidateAnalyticsCache implements DomainEventHandler
                     'analytics',
                     $userTag,
                     'analytics.clients',
-                    'analytics.statistics'
+                    'analytics.statistics',
                 ]);
                 break;
 
@@ -91,7 +99,7 @@ class InvalidateAnalyticsCache implements DomainEventHandler
                 $this->cacheService->invalidateTags([
                     'analytics',
                     $userTag,
-                    'analytics.statistics'
+                    'analytics.statistics',
                 ]);
                 break;
 
@@ -100,7 +108,7 @@ class InvalidateAnalyticsCache implements DomainEventHandler
                 $this->cacheService->invalidateTags([
                     'analytics',
                     $userTag,
-                    'analytics.statistics'
+                    'analytics.statistics',
                 ]);
                 break;
 
@@ -109,7 +117,7 @@ class InvalidateAnalyticsCache implements DomainEventHandler
                 $this->cacheService->invalidateTags([
                     'analytics',
                     $userTag,
-                    'analytics.monthly'
+                    'analytics.monthly',
                 ]);
                 break;
 
@@ -120,7 +128,7 @@ class InvalidateAnalyticsCache implements DomainEventHandler
                     $userTag,
                     'analytics.monthly',
                     'analytics.statistics',
-                    'analytics.clients'
+                    'analytics.clients',
                 ]);
                 break;
 
@@ -128,7 +136,7 @@ class InvalidateAnalyticsCache implements DomainEventHandler
                 // Invalidate all user analytics cache for unknown change types
                 $this->cacheService->invalidateTags([
                     'analytics',
-                    $userTag
+                    $userTag,
                 ]);
                 break;
         }

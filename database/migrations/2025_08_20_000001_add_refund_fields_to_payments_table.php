@@ -9,11 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payments', function (Blueprint $table) {
-            if (!Schema::hasColumn('payments', 'refunded_amount')) {
+            if (! Schema::hasColumn('payments', 'refunded_amount')) {
                 $table->decimal('refunded_amount', 10, 2)->default(0.00)->after('amount');
             }
             // Extend enum: in SQLite enum stored as TEXT, so we cannot alter easily; we document logical new statuses.
-            if (!Schema::hasColumn('payments', 'original_status_enum_note')) {
+            if (! Schema::hasColumn('payments', 'original_status_enum_note')) {
                 $table->string('original_status_enum_note')->nullable()->comment('Documentation field: enum extended with partially_refunded');
             }
         });

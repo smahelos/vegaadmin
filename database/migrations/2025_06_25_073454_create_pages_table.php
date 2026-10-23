@@ -27,14 +27,18 @@ return new class extends Migration
             $table->dateTime('publishing_start')->nullable();
             $table->dateTime('publishing_end')->nullable();
             $table->timestamps();
-            
+
             // Indexes
             $table->index('published');
             $table->index('category_id');
             $table->index('parent_id');
             $table->index('sort_order');
             $table->index('slug');
-            $table->index(['published', 'publishing_start', 'publishing_end']);
+            $table->index([
+                'published',
+                'publishing_start',
+                'publishing_end',
+            ]);
         });
     }
 

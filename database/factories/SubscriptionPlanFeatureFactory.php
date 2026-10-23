@@ -6,7 +6,7 @@ use App\Models\SubscriptionPlanFeature;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SubscriptionPlanFeature>
+ * @extends Factory<SubscriptionPlanFeature>
  */
 class SubscriptionPlanFeatureFactory extends Factory
 {
@@ -20,7 +20,7 @@ class SubscriptionPlanFeatureFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->unique()->words(3, true);
-        
+
         return [
             'name' => $name,
             'description' => $this->faker->optional()->paragraph(),

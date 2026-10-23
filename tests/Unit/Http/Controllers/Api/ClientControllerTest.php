@@ -2,13 +2,13 @@
 
 namespace Tests\Unit\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\ClientController;
 use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 use App\Domain\Party\DTO\ClientDTO;
 use App\Domain\Party\DTO\SupplierDTO;
-use App\Models\User;
+use App\Http\Controllers\Api\ClientController;
 use App\Models\Client;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -22,8 +22,11 @@ use Tests\TestCase;
 class ClientControllerTest extends TestCase
 {
     private TestableClientController $controller;
+
     private FakeInvoicePartyService $service;
+
     private User $adminUser;
+
     private User $frontendUser;
 
     protected function setUp(): void
@@ -31,16 +34,16 @@ class ClientControllerTest extends TestCase
         parent::setUp();
 
         // Prepare stub service & controller
-        $this->service = new FakeInvoicePartyService();
+        $this->service = new FakeInvoicePartyService;
         $this->controller = new TestableClientController($this->service);
 
         // Unsaved user models (no DB interaction needed for these unit tests)
-        $this->adminUser = new User();
+        $this->adminUser = new User;
         $this->adminUser->id = 1;
         $this->adminUser->email = 'admin@example.com';
         $this->adminUser->name = 'Admin';
 
-        $this->frontendUser = new User();
+        $this->frontendUser = new User;
         $this->frontendUser->id = 2;
         $this->frontendUser->email = 'user@example.com';
         $this->frontendUser->name = 'User';
@@ -79,7 +82,7 @@ class ClientControllerTest extends TestCase
         $response = $this->controller->getClientAdmin(10);
         $json = $response->getData(true);
         $this->assertEquals(200, $response->status());
-        
+
         // Check that response contains expected client data
         $this->assertArrayHasKey('name', $json);
         $this->assertArrayHasKey('email', $json);
@@ -183,7 +186,7 @@ class ClientControllerTest extends TestCase
     public function get_default_client_success_returns_client(): void
     {
         // Mock Auth::id() to return a specific user ID
-        $this->service->mockDefaultClient = new \App\Domain\Party\DTO\ClientDTO(
+        $this->service->mockDefaultClient = new ClientDTO(
             id: 1,
             name: 'Default Client',
             email: 'default@example.com',
@@ -199,9 +202,9 @@ class ClientControllerTest extends TestCase
             created_at: null,
             user_id: 123,
             is_default: true,
-            invoices: []
+            invoices: [],
         );
-        
+
         $response = $this->controller->getDefaultClient();
         $json = $response->getData(true);
         $this->assertEquals(200, $response->status());
@@ -237,7 +240,9 @@ class ClientControllerTest extends TestCase
 class TestableClientController extends ClientController
 {
     private ?User $backpackUser = null;
+
     private ?User $frontendUser = null;
+
     /** @var array<int,string> */
     private array $backpackPermissions = [];
 
@@ -266,7 +271,11 @@ class TestableClientController extends ClientController
 
     protected function backpackUserHasPermission(string $permission): bool
     {
-        return in_array($permission, $this->backpackPermissions, true);
+        return in_array(
+            $permission,
+            $this->backpackPermissions,
+            true,
+        );
     }
 
     protected function getFrontendUser(): ?User
@@ -282,56 +291,81 @@ class TestableClientController extends ClientController
 class FakeInvoicePartyService implements PartyApplicationServiceInterface
 {
     public bool $throwModelNotFound = false;
+
     public bool $throwGenericException = false;
+
     public bool $throwGenericExceptionForDefault = false;
+
     public int $returnClientUserId = 1;
+
     public int $returnSupplierUserId = 1;
-    public ?\App\Domain\Party\DTO\ClientDTO $mockDefaultClient = null;
 
-    public function clientOptions(int $userId): array { return []; }
-    public function supplierOptions(int $userId): array { return []; }
-    public function defaultClient(int $userId): ?ClientDTO { return null; }
-    public function defaultSupplier(int $userId): ?SupplierDTO { return null; }
+    public ?ClientDTO $mockDefaultClient = null;
 
-    public function findClientById(int $id): Client {
+    public function clientOptions(int $userId): array
+    {
+        return [];
+    }
+
+    public function supplierOptions(int $userId): array
+    {
+        return [];
+    }
+
+    public function defaultClient(int $userId): ?ClientDTO
+    {
+        return null;
+    }
+
+    public function defaultSupplier(int $userId): ?SupplierDTO
+    {
+        return null;
+    }
+
+    public function findClientById(int $id): Client
+    {
         if ($this->throwModelNotFound) {
-            throw new \Illuminate\Database\Eloquent\ModelNotFoundException();
+            throw new ModelNotFoundException;
         }
         if ($this->throwGenericException) {
             throw new \Exception('Generic error in findClientById');
         }
+
         return new Client(
             [
                 'id' => $id,
                 'name' => 'Client To Find',
                 'email' => 'client_to_find@example.com',
-            ]
+            ],
         );
     }
 
-    public function resolveOrCreateClient(int $userId, array $data): Client {
+    public function resolveOrCreateClient(int $userId, array $data): Client
+    {
         return new Client(
             [
-            'id' => 1,
-            'name' => $data['name'] ?? 'Default Client',
-            'email' => $data['email'] ?? 'client@example.com',
-            'phone' => $data['phone'] ?? null,
-            'street' => $data['street'] ?? null,
-            'city' => $data['city'] ?? null,
-            'zip' => $data['zip'] ?? null,
-            'country' => $data['country'] ?? null,
-            'ico' => $data['ico'] ?? null,
-            'dic' => $data['dic'] ?? null,
-            'shortcut' => $data['shortcut'] ?? null,
-            'description' => $data['description'] ?? null,
-            'created_at' => $data['created_at'] ?? null,
-            'user_id' => $userId,
-            'is_default' => false,
-            'invoices' => [],
-            ]
+                'id' => 1,
+                'name' => $data['name'] ?? 'Default Client',
+                'email' => $data['email'] ?? 'client@example.com',
+                'phone' => $data['phone'] ?? null,
+                'street' => $data['street'] ?? null,
+                'city' => $data['city'] ?? null,
+                'zip' => $data['zip'] ?? null,
+                'country' => $data['country'] ?? null,
+                'ico' => $data['ico'] ?? null,
+                'dic' => $data['dic'] ?? null,
+                'shortcut' => $data['shortcut'] ?? null,
+                'description' => $data['description'] ?? null,
+                'created_at' => $data['created_at'] ?? null,
+                'user_id' => $userId,
+                'is_default' => false,
+                'invoices' => [],
+            ],
         );
     }
-    public function resolveOrCreateSupplier(int $userId, array $data): Supplier { 
+
+    public function resolveOrCreateSupplier(int $userId, array $data): Supplier
+    {
         return new Supplier(
             [
                 'id' => 1,
@@ -357,11 +391,12 @@ class FakeInvoicePartyService implements PartyApplicationServiceInterface
                 'user_id' => $userId,
                 'is_default' => false,
                 'invoices' => [],
-            ]
+            ],
         );
     }
 
-    public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array {
+    public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array
+    {
         return [
             'supplier' => new SupplierDTO(
                 id: 1,
@@ -387,12 +422,13 @@ class FakeInvoicePartyService implements PartyApplicationServiceInterface
                 user_id: $userId,
                 is_default: false,
                 invoices: [],
-            ), 
-            'created' => true
+            ),
+            'created' => true,
         ];
     }
-    
-    public function resolveOrCreateClientWithFlag(int $userId, array $data): array { 
+
+    public function resolveOrCreateClientWithFlag(int $userId, array $data): array
+    {
         return [
             'client' => new ClientDTO(
                 id: 1,
@@ -411,15 +447,15 @@ class FakeInvoicePartyService implements PartyApplicationServiceInterface
                 user_id: $userId,
                 is_default: false,
                 invoices: [],
-            ), 
-            'created' => true
+            ),
+            'created' => true,
         ];
     }
 
     public function findClient(int $userId, int $id): Client
     {
         if ($this->throwModelNotFound) {
-            throw new ModelNotFoundException();
+            throw new ModelNotFoundException;
         }
         if ($this->throwGenericException) {
             throw new \Exception('Failure');
@@ -442,12 +478,14 @@ class FakeInvoicePartyService implements PartyApplicationServiceInterface
                 'user_id' => $this->returnClientUserId,
                 'is_default' => false,
                 'invoices' => [],
-            ]
+            ],
         );
+
         return $client;
     }
 
-    public function findSupplier(int $userId, int $id): Supplier {
+    public function findSupplier(int $userId, int $id): Supplier
+    {
         return new Supplier(
             [
                 'id' => $id,
@@ -473,10 +511,12 @@ class FakeInvoicePartyService implements PartyApplicationServiceInterface
                 'user_id' => $userId,
                 'is_default' => false,
                 'invoices' => [],
-            ]
+            ],
         );
     }
-    public function updateClient(int $clientId, array $data): Client {
+
+    public function updateClient(int $clientId, array $data): Client
+    {
         $data = [
             'id' => $clientId,
             'name' => $data['name'] ?? 'Default Client',
@@ -498,7 +538,9 @@ class FakeInvoicePartyService implements PartyApplicationServiceInterface
 
         return new Client($data);
     }
-    public function updateSupplier(int $supplierId, array $data): Supplier {
+
+    public function updateSupplier(int $supplierId, array $data): Supplier
+    {
         $data = [
             'id' => $supplierId,
             'name' => $data['name'] ?? 'Default Supplier',
@@ -527,17 +569,42 @@ class FakeInvoicePartyService implements PartyApplicationServiceInterface
 
         return new Supplier($data);
     }
+
     public function setSupplierDefault(int $userId, int $supplierId): void {}
+
     public function setClientDefault(int $userId, int $clientId): void {}
-    public function deleteSupplier(int $userId, int $supplierId): bool { return true; }
-    public function deleteClient(int $userId, int $clientId): bool { return true; }
-    public function listSuppliers(\App\Models\User $user): array { return []; }
-    public function listClients(\App\Models\User $user): array { return []; }
-    public function defaultSupplierOrFirst(int $userId): ?SupplierDTO { return null; }
-    public function defaultClientOrFirst(int $userId): ?ClientDTO { 
+
+    public function deleteSupplier(int $userId, int $supplierId): bool
+    {
+        return true;
+    }
+
+    public function deleteClient(int $userId, int $clientId): bool
+    {
+        return true;
+    }
+
+    public function listSuppliers(User $user): array
+    {
+        return [];
+    }
+
+    public function listClients(User $user): array
+    {
+        return [];
+    }
+
+    public function defaultSupplierOrFirst(int $userId): ?SupplierDTO
+    {
+        return null;
+    }
+
+    public function defaultClientOrFirst(int $userId): ?ClientDTO
+    {
         if ($this->throwGenericExceptionForDefault) {
             throw new \Exception('Generic error in defaultClientOrFirst');
         }
-        return $this->mockDefaultClient; 
+
+        return $this->mockDefaultClient;
     }
 }

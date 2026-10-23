@@ -6,7 +6,7 @@ use App\Models\PerformanceMetric;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PerformanceMetric>
+ * @extends Factory<PerformanceMetric>
  */
 class PerformanceMetricFactory extends Factory
 {
@@ -24,23 +24,56 @@ class PerformanceMetricFactory extends Factory
      */
     public function definition(): array
     {
-        $metricTypes = ['query_time', 'table_size', 'index_usage', 'connection_count', 'slow_queries'];
-        $queryTypes = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', null];
-        $tables = ['users', 'invoices', 'clients', 'products', 'expenses', null];
-        $units = ['ms', 'MB', 'GB', 'count', '%'];
+        $metricTypes = [
+            'query_time',
+            'table_size',
+            'index_usage',
+            'connection_count',
+            'slow_queries',
+        ];
+        $queryTypes = [
+            'SELECT',
+            'INSERT',
+            'UPDATE',
+            'DELETE',
+            null,
+        ];
+        $tables = [
+            'users',
+            'invoices',
+            'clients',
+            'products',
+            'expenses',
+            null,
+        ];
+        $units = [
+            'ms',
+            'MB',
+            'GB',
+            'count',
+            '%',
+        ];
 
         return [
             'metric_type' => $this->faker->randomElement($metricTypes),
             'table_name' => $this->faker->randomElement($tables),
             'query_type' => $this->faker->randomElement($queryTypes),
-            'metric_value' => $this->faker->randomFloat(4, 0, 1000),
+            'metric_value' => $this->faker->randomFloat(
+                4,
+                0,
+                1000,
+            ),
             'metric_unit' => $this->faker->randomElement($units),
             'metadata' => [
                 'server_id' => $this->faker->numberBetween(1, 5),
-                'environment' => $this->faker->randomElement(['production', 'staging', 'development']),
-                'query_hash' => $this->faker->md5()
+                'environment' => $this->faker->randomElement([
+                    'production',
+                    'staging',
+                    'development',
+                ]),
+                'query_hash' => $this->faker->md5(),
             ],
-            'measured_at' => $this->faker->dateTimeBetween('-1 month', 'now')
+            'measured_at' => $this->faker->dateTimeBetween('-1 month', 'now'),
         ];
     }
 
@@ -52,7 +85,11 @@ class PerformanceMetricFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'metric_type' => 'query_time',
             'metric_unit' => 'ms',
-            'metric_value' => $this->faker->randomFloat(2, 0.1, 5000)
+            'metric_value' => $this->faker->randomFloat(
+                2,
+                0.1,
+                5000,
+            ),
         ]);
     }
 
@@ -64,7 +101,11 @@ class PerformanceMetricFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'metric_type' => 'table_size',
             'metric_unit' => 'MB',
-            'metric_value' => $this->faker->randomFloat(2, 1, 10000)
+            'metric_value' => $this->faker->randomFloat(
+                2,
+                1,
+                10000,
+            ),
         ]);
     }
 
@@ -76,7 +117,11 @@ class PerformanceMetricFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'metric_type' => 'index_usage',
             'metric_unit' => '%',
-            'metric_value' => $this->faker->randomFloat(2, 0, 100)
+            'metric_value' => $this->faker->randomFloat(
+                2,
+                0,
+                100,
+            ),
         ]);
     }
 
@@ -88,7 +133,7 @@ class PerformanceMetricFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'metric_type' => 'slow_queries',
             'metric_unit' => 'count',
-            'metric_value' => $this->faker->numberBetween(0, 100)
+            'metric_value' => $this->faker->numberBetween(0, 100),
         ]);
     }
 
@@ -102,7 +147,7 @@ class PerformanceMetricFactory extends Factory
             'metric_unit' => 'count',
             'metric_value' => $this->faker->numberBetween(1, 300),
             'table_name' => null,
-            'query_type' => null
+            'query_type' => null,
         ]);
     }
 
@@ -112,7 +157,7 @@ class PerformanceMetricFactory extends Factory
     public function forTable(string $tableName): static
     {
         return $this->state(fn (array $attributes) => [
-            'table_name' => $tableName
+            'table_name' => $tableName,
         ]);
     }
 
@@ -122,7 +167,7 @@ class PerformanceMetricFactory extends Factory
     public function forQueryType(string $queryType): static
     {
         return $this->state(fn (array $attributes) => [
-            'query_type' => $queryType
+            'query_type' => $queryType,
         ]);
     }
 
@@ -132,7 +177,7 @@ class PerformanceMetricFactory extends Factory
     public function recent(): static
     {
         return $this->state(fn (array $attributes) => [
-            'measured_at' => $this->faker->dateTimeBetween('-7 days', 'now')
+            'measured_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
         ]);
     }
 
@@ -142,7 +187,7 @@ class PerformanceMetricFactory extends Factory
     public function old(): static
     {
         return $this->state(fn (array $attributes) => [
-            'measured_at' => $this->faker->dateTimeBetween('-6 months', '-2 months')
+            'measured_at' => $this->faker->dateTimeBetween('-6 months', '-2 months'),
         ]);
     }
 }

@@ -14,7 +14,7 @@ class SupplierListLatestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->component = new SupplierListLatest();
+        $this->component = new SupplierListLatest;
     }
 
     #[Test]
@@ -66,7 +66,7 @@ class SupplierListLatestTest extends TestCase
     public function sort_by_method_exists_and_is_public(): void
     {
         $this->assertTrue(method_exists($this->component, 'sortBy'));
-        
+
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $this->assertTrue($method->isPublic());
@@ -76,7 +76,7 @@ class SupplierListLatestTest extends TestCase
     public function render_method_exists_and_is_public(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));
-        
+
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('render');
         $this->assertTrue($method->isPublic());

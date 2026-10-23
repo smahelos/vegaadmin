@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Application\Analytics\Contracts\ApiStatisticsApplicationServiceInterface;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class StatisticsController extends Controller

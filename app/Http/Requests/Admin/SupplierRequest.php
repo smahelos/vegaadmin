@@ -22,8 +22,6 @@ class SupplierRequest extends BaseEntityRequest
 
     /**
      * Get the validation rules that apply to the request
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -60,8 +58,6 @@ class SupplierRequest extends BaseEntityRequest
 
     /**
      * Get custom attributes for validator errors
-     *
-     * @return array
      */
     public function attributes(): array
     {

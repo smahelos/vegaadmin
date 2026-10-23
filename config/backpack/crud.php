@@ -1,5 +1,11 @@
 <?php
 
+use Backpack\CRUD\app\Library\Uploaders\MultipleFiles;
+use Backpack\CRUD\app\Library\Uploaders\SingleBase64Image;
+use Backpack\CRUD\app\Library\Uploaders\SingleFile;
+use Backpack\CRUD\app\Library\Uploaders\Support\FileExtensions;
+use Backpack\CRUD\app\Library\Uploaders\Support\FileNameGenerator;
+
 /**
  * Backpack\CRUD preferences.
  */
@@ -97,7 +103,7 @@ return [
         // "hr_HR" => "Croatian (Croatia)",
         // "hr" => "Croatian",
         // "cs_CZ" => "Czech (Czech Republic)",
-        "cs" => "Czech",
+        'cs' => 'Czech',
         // "da_DK" => "Danish (Denmark)",
         // "da" => "Danish",
         // "nl_BE" => "Dutch (Belgium)",
@@ -191,7 +197,7 @@ return [
         // "de_LI" => "German (Liechtenstein)",
         // "de_LU" => "German (Luxembourg)",
         // "de_CH" => "German (Switzerland)",
-        "de" => "German",
+        'de' => 'German',
         // "el_CY" => "Greek (Cyprus)",
         // "el_GR" => "Greek (Greece)",
         // "el" => "Greek",
@@ -360,7 +366,7 @@ return [
         // "si_LK" => "Sinhala (Sri Lanka)",
         // "si" => "Sinhala",
         // "sk_SK" => "Slovak (Slovakia)",
-        "sk" => "Slovak",
+        'sk' => 'Slovak',
         // "sl_SI" => "Slovenian (Slovenia)",
         // "sl" => "Slovenian",
         // "xog_UG" => "Soga (Uganda)",
@@ -472,19 +478,19 @@ return [
     // the uploaders for the `withFiles` macro
     'uploaders' => [
         'withFiles' => [
-            'image' => \Backpack\CRUD\app\Library\Uploaders\SingleBase64Image::class,
-            'upload' => \Backpack\CRUD\app\Library\Uploaders\SingleFile::class,
-            'upload_multiple' => \Backpack\CRUD\app\Library\Uploaders\MultipleFiles::class,
+            'image' => SingleBase64Image::class,
+            'upload' => SingleFile::class,
+            'upload_multiple' => MultipleFiles::class,
         ],
     ],
 
-    'file_name_generator' => \Backpack\CRUD\app\Library\Uploaders\Support\FileNameGenerator::class,
+    'file_name_generator' => FileNameGenerator::class,
 
     // the extensions uploaded files can be stored with. Files that browsers can render as
     // active content (svg, html, xml, etc.) are not allowed by default, because they can
     // run scripts when opened. Server executable extensions (php, phar, etc.) are always
     // rejected. You can also define `allowedExtensions` per field, eg:
     // ->withFiles(['allowedExtensions' => [...FileExtensions::DEFAULT_ALLOWED, 'svg']])
-    'allowed_upload_extensions' => \Backpack\CRUD\app\Library\Uploaders\Support\FileExtensions::DEFAULT_ALLOWED,
+    'allowed_upload_extensions' => FileExtensions::DEFAULT_ALLOWED,
 
 ];

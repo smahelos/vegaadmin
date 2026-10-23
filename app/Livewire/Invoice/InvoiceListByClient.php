@@ -3,39 +3,40 @@
 namespace App\Livewire\Invoice;
 
 use App\Livewire\Shared\Paginates;
-use App\Models\Invoice;
 use App\Models\Client;
-use Livewire\Component;
+use App\Models\Invoice;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
+use Livewire\Component;
 
 /**
  * InvoiceListByClient Livewire Component
- * 
+ *
  * Displays a paginated list of invoices for a specific client.
  * Provides search, filtering by status, sorting, and pagination functionality.
  */
 class InvoiceListByClient extends Component
 {
     use Paginates;
-    
+
     public int $clientId;
-    
+
     #[Url]
     public string $search = '';
-    
+
     #[Url]
     public string $status = '';
-    
+
     #[Url(as: 'sort')]
     public string $orderBy = 'created_at';
-    
+
     #[Url(as: 'direction')]
     public bool $orderAsc = false;
-    
+
     #[Url(keep: true)]
     public int $page = 1;
-    
+
     public ?string $errorMessage = null;
 
     /**
@@ -45,7 +46,7 @@ class InvoiceListByClient extends Component
     {
         $this->clientId = $clientId;
     }
-    
+
     /**
      * Reset pagination when search term is updated
      */
@@ -53,7 +54,7 @@ class InvoiceListByClient extends Component
     {
         $this->resetPage();
     }
-    
+
     /**
      * Reset pagination when status filter is updated
      */
@@ -61,7 +62,7 @@ class InvoiceListByClient extends Component
     {
         $this->resetPage();
     }
-    
+
     /**
      * Reset all filters and pagination
      */
@@ -71,52 +72,56 @@ class InvoiceListByClient extends Component
         $this->status = '';
         $this->resetPage();
     }
-    
+
     /**
      * Sort by given field, toggle direction if same field
-     *
-     * @param string $field
      */
     public function sortBy(string $field): void
     {
         if ($this->orderBy === $field) {
-            $this->orderAsc = !$this->orderAsc;
+            $this->orderAsc = ! $this->orderAsc;
         } else {
             $this->orderBy = $field;
             $this->orderAsc = true;
         }
     }
-    
+
     /**
      * Render the component with invoices data
-     *
-     * @return \Illuminate\Contracts\View\View
      */
-    public function render(): \Illuminate\Contracts\View\View
+    public function render(): View
     {
         try {
             // Verify client belongs to authenticated user
             $client = Client::where('user_id', Auth::id())
                 ->where('id', $this->clientId)
                 ->firstOrFail();
-                
+
             $query = Invoice::with(['paymentMethod', 'paymentStatus'])
                 ->where('user_id', Auth::id())
                 ->where('client_id', $this->clientId);
-                
-            if (!empty($this->search)) {
-                $query->where(function($q) {
-                    $q->where('invoice_vs', 'like', "%{$this->search}%")
-                      ->orWhere('description', 'like', "%{$this->search}%");
+
+            if (! empty($this->search)) {
+                $query->where(function ($q) {
+                    $q->where(
+                        'invoice_vs',
+                        'like',
+                        "%{$this->search}%",
+                    )
+                        ->orWhere(
+                            'description',
+                            'like',
+                            "%{$this->search}%",
+                        );
                 });
             }
-            
-            if (!empty($this->status)) {
-                $query->whereHas('paymentStatus', function($q) {
+
+            if (! empty($this->status)) {
+                $query->whereHas('paymentStatus', function ($q) {
                     $q->where('name', $this->status);
                 });
             }
-            
+
             // Special handling for different sorting fields
             if ($this->orderBy === 'due_date') {
                 // Special handling for due_date which is calculated from issue_date + due_in
@@ -124,9 +129,9 @@ class InvoiceListByClient extends Component
             } else {
                 $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
             }
-            
+
             $invoices = $query->paginate(10);
-            
+
             return view('livewire.invoice.invoice-list-by-client', [
                 'invoices' => $invoices,
                 'client' => $client,
@@ -139,7 +144,7 @@ class InvoiceListByClient extends Component
                 'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator
                 'client' => null,
                 'hasData' => false,
-                'errorMessage' => $this->errorMessage
+                'errorMessage' => $this->errorMessage,
             ]);
         }
     }

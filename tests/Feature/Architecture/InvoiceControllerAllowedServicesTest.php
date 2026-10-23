@@ -23,10 +23,10 @@ class InvoiceControllerAllowedServicesTest extends TestCase
         'App\\Application\\Invoice\\Contracts\\InvoiceFrontendActionsApplicationServiceInterface',
         'App\\Application\\Invoice\\Contracts\\InvoiceFormApplicationServiceInterface',
         'App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface',
-    // Added interfaces currently used in Frontend InvoiceController
-    'App\\Application\\Invoice\\Contracts\\InvoiceRequestAssemblerInterface',
-    'App\\Application\\Invoice\\Contracts\\InvoiceMutationApplicationServiceInterface',
-    'App\\Application\\Invoice\\Contracts\\InvoicePdfApplicationServiceInterface',
+        // Added interfaces currently used in Frontend InvoiceController
+        'App\\Application\\Invoice\\Contracts\\InvoiceRequestAssemblerInterface',
+        'App\\Application\\Invoice\\Contracts\\InvoiceMutationApplicationServiceInterface',
+        'App\\Application\\Invoice\\Contracts\\InvoicePdfApplicationServiceInterface',
     ];
 
     /** Implementation class patterns that must NOT be imported directly */
@@ -34,7 +34,7 @@ class InvoiceControllerAllowedServicesTest extends TestCase
         '/use\\s+App\\\\Domain\\\\Invoice\\\\Services\\\\[A-Za-z0-9_]+Service;/',
         '/use\\s+App\\\\Domain\\\\Payment\\\\Services\\\\[A-Za-z0-9_]+Service;/',
         '/use\\s+App\\\\Domain\\\\User\\\\Services\\\\[A-Za-z0-9_]+Service;/',
-        '/use\\s+App\\\\Application\\\\Invoice\\\\Services\\\\[A-Za-z0-9_]+ApplicationService;/'
+        '/use\\s+App\\\\Application\\\\Invoice\\\\Services\\\\[A-Za-z0-9_]+ApplicationService;/',
     ];
 
     #[Test]
@@ -45,27 +45,39 @@ class InvoiceControllerAllowedServicesTest extends TestCase
         $code = file_get_contents($path);
 
         // Collect all use statements for App namespace
-        preg_match_all('/^use\\s+(App\\\\[^;]+);/m', $code, $matches);
+        preg_match_all(
+            '/^use\\s+(App\\\\[^;]+);/m',
+            $code,
+            $matches,
+        );
         $imports = $matches[1] ?? [];
 
         $violations = [];
         foreach ($imports as $fqcn) {
-            if (!str_starts_with($fqcn, 'App\\')) { continue; }
+            if (! str_starts_with($fqcn, 'App\\')) {
+                continue;
+            }
             // skip non-service imports (Requests, Models, Facades, DTO, Controller base, etc.)
-            if (!str_contains($fqcn, 'Contracts') && !str_contains($fqcn, 'Application\\Invoice\\Contracts')) { continue; }
-            if (!in_array($fqcn, $this->allowedInterfaces, true)) {
+            if (! str_contains($fqcn, 'Contracts') && ! str_contains($fqcn, 'Application\\Invoice\\Contracts')) {
+                continue;
+            }
+            if (! in_array(
+                $fqcn,
+                $this->allowedInterfaces,
+                true,
+            )) {
                 $violations[] = "Unexpected service contract import: $fqcn";
             }
         }
 
         foreach ($this->forbiddenConcretePatterns as $pattern) {
             if (preg_match($pattern, $code)) {
-                $violations[] = 'Forbidden concrete service import matched pattern: '.$pattern;
+                $violations[] = 'Forbidden concrete service import matched pattern: ' . $pattern;
             }
         }
 
-        if (!empty($violations)) {
-            $this->fail("InvoiceController service usage violations:\n".implode("\n", $violations));
+        if (! empty($violations)) {
+            $this->fail("InvoiceController service usage violations:\n" . implode("\n", $violations));
         }
         $this->assertTrue(true);
     }

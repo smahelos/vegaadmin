@@ -12,19 +12,19 @@ class CheckSubscription
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         // Skip middleware for guests
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return $next($request);
         }
 
         $user = Auth::user();
-        
+
         // Check if user has active subscription
-        if (!$user->hasActiveSubscription()) {
+        if (! $user->hasActiveSubscription()) {
             // Allow access to subscription pages
             if ($request->routeIs('subscriptions.*') || $request->routeIs('payment.*')) {
                 return $next($request);

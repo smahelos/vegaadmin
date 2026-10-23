@@ -13,8 +13,7 @@ interface PartyCreationValidatorInterface
      * Validate & normalize raw input for client creation (ad-hoc resolveOrCreate flow).
      * Should throw domain exception on invalid data.
      *
-     * @param UserId $userId
-     * @param array<string,mixed> $data
+     * @param  array<string,mixed>  $data
      * @return array<string,mixed> Normalized payload ready for repository create
      */
     public function validateClient(UserId $userId, array $data): array;
@@ -23,8 +22,7 @@ interface PartyCreationValidatorInterface
      * Validate & normalize raw input for supplier creation (ad-hoc resolveOrCreate flow).
      * Should throw domain exception on invalid data.
      *
-     * @param UserId $userId
-     * @param array<string,mixed> $data
+     * @param  array<string,mixed>  $data
      * @return array<string,mixed> Normalized payload ready for repository create
      */
     public function validateSupplier(UserId $userId, array $data): array;

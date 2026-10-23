@@ -20,7 +20,8 @@ class BankFormFieldsFeatureTest extends TestCase
         parent::setUp();
 
         // Create anonymous class using the trait
-        $this->traitInstance = new class {
+        $this->traitInstance = new class
+        {
             use BankFormFields;
 
             public function callGetBankFields(): array
@@ -31,7 +32,7 @@ class BankFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getBankFields_returns_properly_structured_bank_fields(): void
+    public function get_bank_fields_returns_properly_structured_bank_fields(): void
     {
         $fields = $this->traitInstance->callGetBankFields();
 
@@ -80,7 +81,7 @@ class BankFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getBankFields_integrates_with_country_service(): void
+    public function get_bank_fields_integrates_with_country_service(): void
     {
         // Mock CountryService
         $mockCountryService = $this->createMock(CountryService::class);
@@ -106,18 +107,25 @@ class BankFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getBankFields_field_names_are_correct(): void
+    public function get_bank_fields_field_names_are_correct(): void
     {
         $fields = $this->traitInstance->callGetBankFields();
         $fieldNames = collect($fields)->pluck('name')->toArray();
 
-        $expectedFields = ['name', 'code', 'swift', 'country', 'active', 'description'];
+        $expectedFields = [
+            'name',
+            'code',
+            'swift',
+            'country',
+            'active',
+            'description',
+        ];
 
         $this->assertEquals($expectedFields, $fieldNames);
     }
 
     #[Test]
-    public function getBankFields_required_fields_are_properly_set(): void
+    public function get_bank_fields_required_fields_are_properly_set(): void
     {
         $fields = $this->traitInstance->callGetBankFields();
 
@@ -133,7 +141,7 @@ class BankFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getBankFields_field_types_are_appropriate(): void
+    public function get_bank_fields_field_types_are_appropriate(): void
     {
         $fields = $this->traitInstance->callGetBankFields();
 
@@ -148,7 +156,7 @@ class BankFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function getBankFields_default_values_are_set_correctly(): void
+    public function get_bank_fields_default_values_are_set_correctly(): void
     {
         $fields = $this->traitInstance->callGetBankFields();
 

@@ -14,7 +14,7 @@ class CheckInvoicePaymentStatusTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->command = new CheckInvoicePaymentStatus();
+        $this->command = new CheckInvoicePaymentStatus;
     }
 
     #[Test]
@@ -74,7 +74,7 @@ class CheckInvoicePaymentStatusTest extends TestCase
         $this->assertTrue(
             $returnType === null ||
             $returnType->getName() === 'void' ||
-            $returnType->getName() === 'int'
+            $returnType->getName() === 'int',
         );
     }
 

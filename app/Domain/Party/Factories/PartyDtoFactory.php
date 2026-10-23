@@ -2,10 +2,8 @@
 
 namespace App\Domain\Party\Factories;
 
-use App\Domain\Party\DTO\SupplierDTO;
-use App\Domain\Party\DTO\SupplierWriteData;
-use App\Domain\Party\DTO\ClientDTO;
 use App\Domain\Party\DTO\ClientWriteData;
+use App\Domain\Party\DTO\SupplierWriteData;
 
 /**
  * Domain Factory for creating Party DTOs from raw data.

@@ -15,11 +15,14 @@ class EloquentPaymentWriteRepository implements PaymentWriteRepositoryInterface
     public function updateById(int $id, array $data): ?Payment
     {
         $model = Payment::query()->find($id);
-        if (!$model) { return null; }
-        if (!empty($data)) {
+        if (! $model) {
+            return null;
+        }
+        if (! empty($data)) {
             $model->fill($data);
             $model->save();
         }
+
         // Load relations to keep consistency with read DTOs (e.g., category)
         return $model->load(['children']);
     }
@@ -27,8 +30,7 @@ class EloquentPaymentWriteRepository implements PaymentWriteRepositoryInterface
     /**
      * Register a refunded amount (partial or full) updating status accordingly.
      *
-     * @param float $amount Amount refunded in this operation (>=0)
-     * @return bool
+     * @param  float  $amount  Amount refunded in this operation (>=0)
      */
     public function applyRefund(int $paymentId, float $amount): bool
     {
@@ -36,7 +38,7 @@ class EloquentPaymentWriteRepository implements PaymentWriteRepositoryInterface
             return false;
         }
         $payment = Payment::query()->find($paymentId);
-        if (!$payment) {
+        if (! $payment) {
             return false;
         }
         $current = (float) ($payment->refunded_amount ?? 0.0);
@@ -46,8 +48,9 @@ class EloquentPaymentWriteRepository implements PaymentWriteRepositoryInterface
             $payment->status = 'partially_refunded';
         } else {
             $payment->status = 'refunded';
-            $payment->refunded_amount = (string) (float)$payment->amount; // clamp
+            $payment->refunded_amount = (string) (float) $payment->amount; // clamp
         }
+
         return $payment->save();
     }
 }

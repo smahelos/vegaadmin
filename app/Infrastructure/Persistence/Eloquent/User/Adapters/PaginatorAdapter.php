@@ -12,8 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class PaginatorAdapter
 {
     /**
-     * @param PaginatedResult $result
-     * @param array{path?: string, query?: array<string,mixed>} $options
+     * @param  array{path?: string, query?: array<string,mixed>}  $options
      */
     public static function toLengthAwarePaginator(PaginatedResult $result, array $options = []): LengthAwarePaginator
     {
@@ -28,7 +27,7 @@ class PaginatorAdapter
             options: [
                 'path' => $path,
                 'query' => $query,
-            ]
+            ],
         );
     }
 }

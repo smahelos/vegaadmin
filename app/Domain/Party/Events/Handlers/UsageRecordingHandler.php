@@ -2,18 +2,18 @@
 
 namespace App\Domain\Party\Events\Handlers;
 
-use App\Domain\Shared\Events\Contracts\DomainEvent;
-use App\Domain\Shared\Events\DomainEventHandler;
 use App\Domain\Party\Events\ClientCreated;
 use App\Domain\Party\Events\SupplierCreated;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface;
+use App\Domain\Shared\Events\Contracts\DomainEvent;
+use App\Domain\Shared\Events\DomainEventHandler;
 use App\Domain\Shared\Log\Contracts\LogInterface;
+use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 
 /**
  * Handler for recording entity usage when clients/suppliers are created.
- * 
+ *
  * This replaces the old Observer pattern for usage tracking.
- * 
+ *
  * Handles:
  * - ClientCreated: Record client usage
  * - SupplierCreated: Record supplier usage
@@ -22,7 +22,7 @@ class UsageRecordingHandler implements DomainEventHandler
 {
     public function __construct(
         private readonly UniversalLimitServiceInterface $limitService,
-        private readonly LogInterface $logger
+        private readonly LogInterface $logger,
     ) {}
 
     public function handle(DomainEvent $event): void
@@ -34,7 +34,7 @@ class UsageRecordingHandler implements DomainEventHandler
                 'count',
                 null, // Let service determine best period type
                 'web', // Use web guard for client/supplier creation
-                1
+                1,
             ),
             SupplierCreated::class => $this->limitService->recordUsage(
                 $event->getPayload()['user_id'],
@@ -42,20 +42,20 @@ class UsageRecordingHandler implements DomainEventHandler
                 'count',
                 null, // Let service determine best period type
                 'web', // Use web guard for client/supplier creation
-                1
+                1,
             ),
-            default => true // Return true for events we don't handle
+            default => true, // Return true for events we don't handle
         };
 
-        if (!$success) {
+        if (! $success) {
             $this->logger->log(
-                'warning', 
-                'Failed to record entity usage', 
+                'warning',
+                'Failed to record entity usage',
                 [
                     'event_name' => $event->getEventName(),
                     'event_id' => $event->getEventId(),
                     'payload' => $event->getPayload(),
-                ]
+                ],
             );
         }
     }

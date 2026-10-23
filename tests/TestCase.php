@@ -2,11 +2,10 @@
 
 namespace Tests;
 
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Illuminate\Foundation\Testing\RefreshDatabaseState;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Artisan;
+use App\Http\Middleware\SetLocale;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -22,8 +21,6 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * Set up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -48,7 +45,7 @@ abstract class TestCase extends BaseTestCase
         }
 
         // Disable middleware that might cause issues during tests
-        $this->withoutMiddleware(\App\Http\Middleware\SetLocale::class);
+        $this->withoutMiddleware(SetLocale::class);
 
         // Reset Spatie\Permission cached permissions to avoid memory bloat across long test runs
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -64,8 +61,13 @@ abstract class TestCase extends BaseTestCase
 
     private function usesInMemorySqlite(): bool
     {
-        $conn = config('database.connections.'.config('database.default'));
-        return ($conn['driver'] ?? null) === 'sqlite' && in_array($conn['database'] ?? null, [':memory:', null], true);
+        $conn = config('database.connections.' . config('database.default'));
+
+        return ($conn['driver'] ?? null) === 'sqlite' && in_array(
+            $conn['database'] ?? null,
+            [':memory:', null],
+            true,
+        );
     }
 
     /**
@@ -88,7 +90,6 @@ abstract class TestCase extends BaseTestCase
     /**
      * Sign in as a Backpack user
      *
-     * @param User|null $user
      * @return $this
      */
     protected function actingAsBackpackUser(?User $user = null)
@@ -103,8 +104,6 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * Create all required permissions used in admin menu to avoid dependency issues in tests
-     *
-     * @return void
      */
     protected function createAdminMenuPermissions(): void
     {
@@ -139,21 +138,19 @@ abstract class TestCase extends BaseTestCase
             'can_create_edit_page_category',
 
             // Additional basic permissions
-            'backpack.access'
+            'backpack.access',
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate([
                 'name' => $permission,
-                'guard_name' => 'backpack'
+                'guard_name' => 'backpack',
             ]);
         }
     }
 
     /**
      * Create admin user with all permissions for testing
-     *
-     * @return User
      */
     protected function createAdminUserWithAllPermissions(): User
     {
@@ -164,7 +161,7 @@ abstract class TestCase extends BaseTestCase
         // Create admin role if it doesn't exist
         $adminRole = Role::firstOrCreate([
             'name' => 'admin',
-            'guard_name' => 'backpack'
+            'guard_name' => 'backpack',
         ]);
 
         // Give all permissions to admin role
@@ -179,9 +176,6 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * Quick setup for Backpack admin tests with all menu permissions
-     *
-     * @param User|null $user
-     * @return User
      */
     protected function setupBackpackAdminTest(?User $user = null): User
     {
@@ -193,7 +187,7 @@ abstract class TestCase extends BaseTestCase
         // Create admin role if it doesn't exist
         $adminRole = Role::firstOrCreate([
             'name' => 'admin',
-            'guard_name' => 'backpack'
+            'guard_name' => 'backpack',
         ]);
 
         // Give all permissions to admin role

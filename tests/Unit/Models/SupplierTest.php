@@ -28,7 +28,7 @@ class SupplierTest extends TestCase
         $this->assertContains('Illuminate\Database\Eloquent\Factories\HasFactory', $traits);
         $this->assertContains('Illuminate\Notifications\Notifiable', $traits);
         $this->assertContains('Backpack\CRUD\app\Models\Traits\CrudTrait', $traits);
-    $this->assertContains('App\\Infrastructure\\Shared\\Locale\\Traits\\HasPreferredLocale', $traits);
+        $this->assertContains('App\\Infrastructure\\Shared\\Locale\\Traits\\HasPreferredLocale', $traits);
     }
 
     #[Test]

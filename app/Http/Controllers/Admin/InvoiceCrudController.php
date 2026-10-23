@@ -2,42 +2,55 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
 use App\Http\Requests\Admin\InvoiceRequest;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Backpack\CRUD\app\Library\Widget;
-use App\Models\User;
 use App\Models\Client;
-use App\Models\Supplier;
+use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\StatusCategory;
+use App\Models\Supplier;
+use App\Models\User;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Backpack\CRUD\app\Library\Widget;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
-use Illuminate\Support\Facades\App;
 
 /**
  * Invoice management controller
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
+ *
+ * @property-read CrudPanel $crud
  */
 class InvoiceCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+    use CreateOperation {
         store as traitStore;
     }
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-    use InvoiceFormFields; // Usage recording handled by generic observer
+    use DeleteOperation;
+    use InvoiceFormFields;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation; // Usage recording handled by generic observer
 
     /**
      * Fields rendered with their type from InvoiceFormFields (date, select, select_from_array).
      */
-    private const PAYMENT_FIELDS = ['issue_date', 'tax_point_date', 'payment_method_id', 'due_in', 'payment_currency'];
+    private const PAYMENT_FIELDS = [
+        'issue_date',
+        'tax_point_date',
+        'payment_method_id',
+        'due_in',
+        'payment_currency',
+    ];
 
     /**
      * Configure the CrudPanel object
@@ -46,7 +59,7 @@ class InvoiceCrudController extends CrudController
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\Invoice::class);
+        CRUD::setModel(Invoice::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/invoice');
         CRUD::setEntityNameStrings(__('invoices.entity.singular'), __('invoices.entity.plural'));
     }
@@ -65,8 +78,12 @@ class InvoiceCrudController extends CrudController
             ->values(
                 User::all()->pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function($value) {
-                CRUD::addClause('where', 'user_id', $value);
+            ->whenActive(function ($value) {
+                CRUD::addClause(
+                    'where',
+                    'user_id',
+                    $value,
+                );
             });
 
         CRUD::filter('payment_status_id')
@@ -75,19 +92,37 @@ class InvoiceCrudController extends CrudController
             ->values(
                 Status::all()->pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function($value) {
-                CRUD::addClause('where', 'payment_status_id', $value);
+            ->whenActive(function ($value) {
+                CRUD::addClause(
+                    'where',
+                    'payment_status_id',
+                    $value,
+                );
             });
 
-        CRUD::addFilter([
-            'type' => 'datepicker_range',
-            'name' => 'tax_point_date',
-            'label' => __('invoices.fields.tax_point_date'),
-        ], false, function($value) {
-            $dates = json_decode($value);
-            CRUD::addClause('where', 'tax_point_date', '>=', $dates->from);
-            CRUD::addClause('where', 'tax_point_date', '<=', $dates->to);
-        });
+        CRUD::addFilter(
+            [
+                'type' => 'datepicker_range',
+                'name' => 'tax_point_date',
+                'label' => __('invoices.fields.tax_point_date'),
+            ],
+            false,
+            function ($value) {
+                $dates = json_decode($value);
+                CRUD::addClause(
+                    'where',
+                    'tax_point_date',
+                    '>=',
+                    $dates->from,
+                );
+                CRUD::addClause(
+                    'where',
+                    'tax_point_date',
+                    '<=',
+                    $dates->to,
+                );
+            },
+        );
 
         CRUD::column('invoice_vs')->label(__('invoices.fields.invoice_vs'));
         CRUD::column('payment_amount')->type('number')->label(__('invoices.fields.payment_amount'));
@@ -97,7 +132,7 @@ class InvoiceCrudController extends CrudController
         CRUD::column('payment_status')
             ->type('text')
             ->label(__('invoices.fields.status'))
-            ->value(function($entry) {
+            ->value(function ($entry) {
                 return $entry->paymentStatus?->name ?? __('general.placeholders.not_available');
             });
 
@@ -137,7 +172,7 @@ class InvoiceCrudController extends CrudController
      */
     protected function setupCreateOperation()
     {
-        CRUD::setValidation(\App\Http\Requests\Admin\InvoiceRequest::class);
+        CRUD::setValidation(InvoiceRequest::class);
 
         // Backpack saves only declared fields; store() fills the owner in
         CRUD::field('user_id')->type('hidden');
@@ -151,7 +186,12 @@ class InvoiceCrudController extends CrudController
         $statusCategoryId = StatusCategory::where('slug', 'invoice-statuses')->first()->id ?? null;
         $statuses = Status::where('category_id', $statusCategoryId)->pluck('name', 'id')->toArray();
         Log::info('InvoiceCrudController: setupCreateOperation - statuses: ' . json_encode($statuses));
-        $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
+        $fields = $this->getInvoiceFields(
+            $clients,
+            $suppliers,
+            $paymentMethods,
+            $statuses,
+        );
 
         // Add fields to CRUD form
         foreach ($fields as $field) {
@@ -162,17 +202,17 @@ class InvoiceCrudController extends CrudController
                     ->type('select2_from_array')
                     ->label($field['label'])
                     ->options(
-                        App::make(CountryServiceInterface::class)->getSimpleCountriesForSelect()
+                        App::make(CountryServiceInterface::class)->getSimpleCountriesForSelect(),
                     )
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-3 '
+                        'class' => 'form-group col-md-3 ',
                     ]);
-            } else if ($field['name'] === 'payment_status_id') {
+            } elseif ($field['name'] === 'payment_status_id') {
                 CRUD::field('payment_status_id')
                     ->label(__('invoices.fields.status'))
                     ->type('relationship')
@@ -187,61 +227,64 @@ class InvoiceCrudController extends CrudController
                     })
                     ->wrapper(['class' => 'form-group col-md-12']);
 
-            } else if (in_array($field['name'], self::PAYMENT_FIELDS, true)) {
+            } elseif (in_array(
+                $field['name'],
+                self::PAYMENT_FIELDS,
+                true,
+            )) {
                 $this->addPaymentField($field, true);
 
-            } else if (
+            } elseif (
                 $field['name'] === 'invoice_ks' ||
                 $field['name'] === 'invoice_ss'
-                ) {
-                    CRUD::field($field['name'])
+            ) {
+                CRUD::field($field['name'])
                     ->type('text')
                     ->label($field['label'])
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-6'
+                        'class' => 'form-group col-md-6',
                     ]);
 
-            } else if (
+            } elseif (
                 $field['name'] === 'payment_amount'
-                ) {
-                    CRUD::field($field['name'])
+            ) {
+                CRUD::field($field['name'])
                     ->type('text')
                     ->label($field['label'])
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-4'
+                        'class' => 'form-group col-md-4',
                     ]);
 
-
-            } else if (
+            } elseif (
                 $field['name'] === 'name' ||
                 $field['name'] === 'client_name' ||
                 $field['name'] === 'account_number' ||
                 $field['name'] === 'iban' ||
                 $field['name'] === 'swift'
-                ) {
-                    CRUD::field($field['name'])
+            ) {
+                CRUD::field($field['name'])
                     ->type('text')
                     ->label($field['label'])
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-6'
+                        'class' => 'form-group col-md-6',
                     ]);
 
-            } else if (
+            } elseif (
                 $field['name'] === 'email' ||
                 $field['name'] === 'phone' ||
                 $field['name'] === 'street' ||
@@ -262,20 +305,20 @@ class InvoiceCrudController extends CrudController
                 $field['name'] === 'client_ico' ||
                 $field['name'] === 'client_dic' ||
                 $field['name'] === 'client_zip'
-                ) {
-                    CRUD::field($field['name'])
+            ) {
+                CRUD::field($field['name'])
                     ->type('text')
                     ->label($field['label'])
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-3'
+                        'class' => 'form-group col-md-3',
                     ]);
 
-            } else if ($field['type'] === 'select_from_array') {
+            } elseif ($field['type'] === 'select_from_array') {
                 // Select from array field
                 $fieldConfig = CRUD::field($field['name'])
                     ->type('select2_from_array')
@@ -283,7 +326,7 @@ class InvoiceCrudController extends CrudController
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->options($field['options'] ?? []);
 
@@ -291,7 +334,7 @@ class InvoiceCrudController extends CrudController
                     if ($field['type'] === 'select_from_array') {
                         $fieldConfig->options($field['options']);
                     } else {
-                        $fieldConfig->options(function() use ($field) {
+                        $fieldConfig->options(function () use ($field) {
                             return $field['options'];
                         });
                     }
@@ -304,31 +347,30 @@ class InvoiceCrudController extends CrudController
                 if (isset($field['default'])) {
                     $fieldConfig->default($field['default']);
                 }
-            }
-            else if ($field['type'] === 'select' && isset($field['entity'])) {
+            } elseif ($field['type'] === 'select' && isset($field['entity'])) {
                 if ($field['name'] === 'client_id' || $field['name'] === 'supplier_id') {
                     CRUD::field('separator_' . $field['name'])
-                    ->type('custom_html')
-                    ->value('<hr class="my-4" />');
+                        ->type('custom_html')
+                        ->value('<hr class="my-4" />');
                 }
 
                 // Entity select field
                 $fieldConfig = CRUD::field($field['name'])
                     ->type('select2')
                     ->wrapper([
-                        'class' => 'form-group col-md-6'
+                        'class' => 'form-group col-md-6',
                     ])
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->label($field['label']);
 
                 if (isset($field['entity']) && isset($field['model']) && isset($field['attribute'])) {
                     $fieldConfig->entity($field['entity'])
-                            ->model($field['model'])
-                            ->attribute($field['attribute']);
+                        ->model($field['model'])
+                        ->attribute($field['attribute']);
                 }
 
                 if ($field['name'] === 'payment_status_id') {
@@ -340,7 +382,7 @@ class InvoiceCrudController extends CrudController
                 if (isset($field['required']) && $field['required']) {
                     $fieldConfig->required(true);
                 }
-            } else if ($field['type'] === 'file' && $field['name'] === 'invoice_logo') {
+            } elseif ($field['type'] === 'file' && $field['name'] === 'invoice_logo') {
                 // Special case for invoice logo upload
                 CRUD::addField([
                     'name' => 'invoice_logo',
@@ -350,20 +392,19 @@ class InvoiceCrudController extends CrudController
                     'disk' => 'public',
                     'prefix' => 'invoices/logos/',
                 ]);
-            }
-            else {
+            } else {
                 // Other field types
                 $fieldConfig = CRUD::field($field['name'])
                     ->type($field['type'])
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->label($field['label']);
 
                 if (isset($field['options']) && is_array($field['options'])) {
-                    $fieldConfig->options(function() use ($field) {
+                    $fieldConfig->options(function () use ($field) {
                         return $field['options'];
                     });
                 }
@@ -393,6 +434,7 @@ class InvoiceCrudController extends CrudController
     public function store()
     {
         $this->beforeEntityStore();
+
         return $this->traitStore();
     }
 
@@ -403,7 +445,7 @@ class InvoiceCrudController extends CrudController
      */
     protected function setupUpdateOperation()
     {
-        CRUD::setValidation(\App\Http\Requests\Admin\InvoiceRequest::class);
+        CRUD::setValidation(InvoiceRequest::class);
 
         Widget::add()->type('script')->content(asset('assets/js/admin/forms/invoice.js'));
 
@@ -413,7 +455,12 @@ class InvoiceCrudController extends CrudController
         $statusCategoryId = StatusCategory::where('slug', 'invoice-statuses')->first()->id ?? null;
         $statuses = Status::where('category_id', $statusCategoryId)->pluck('name', 'id')->toArray();
 
-        $fields = $this->getInvoiceFields($clients, $suppliers, $paymentMethods, $statuses);
+        $fields = $this->getInvoiceFields(
+            $clients,
+            $suppliers,
+            $paymentMethods,
+            $statuses,
+        );
 
         foreach ($fields as $field) {
             if ($field['name'] === 'country' || $field['name'] === 'client_country') {
@@ -423,18 +470,18 @@ class InvoiceCrudController extends CrudController
                     ->type('select2_from_array')
                     ->label($field['label'])
                     ->options(
-                        App::make(CountryServiceInterface::class)->getSimpleCountriesForSelect()
+                        App::make(CountryServiceInterface::class)->getSimpleCountriesForSelect(),
                     )
                     ->attributes(
                         [
                             'disabled' => 'disabled',
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-3 '
+                        'class' => 'form-group col-md-3 ',
                     ]);
-            } else if ($field['name'] === 'payment_status_id') {
+            } elseif ($field['name'] === 'payment_status_id') {
                 CRUD::field('payment_status_id')
                     ->label(__('invoices.fields.status'))
                     ->type('relationship')
@@ -449,77 +496,80 @@ class InvoiceCrudController extends CrudController
                     })
                     ->wrapper(['class' => 'form-group col-md-6']);
 
-            } else if (in_array($field['name'], self::PAYMENT_FIELDS, true)) {
+            } elseif (in_array(
+                $field['name'],
+                self::PAYMENT_FIELDS,
+                true,
+            )) {
                 $this->addPaymentField($field, false);
 
-            } else if (
+            } elseif (
                 $field['name'] === 'invoice_ks' ||
                 $field['name'] === 'invoice_ss'
-                ) {
-                    CRUD::field($field['name'])
+            ) {
+                CRUD::field($field['name'])
                     ->type('text')
                     ->label($field['label'])
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-6'
+                        'class' => 'form-group col-md-6',
                     ]);
 
-            } else if (
+            } elseif (
                 $field['name'] === 'payment_amount'
-                ) {
-                    CRUD::field($field['name'])
+            ) {
+                CRUD::field($field['name'])
                     ->type('text')
                     ->label($field['label'])
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-4'
+                        'class' => 'form-group col-md-4',
                     ]);
 
-
-            } else if (
+            } elseif (
                 $field['name'] === 'name' ||
                 $field['name'] === 'client_name' ||
                 $field['name'] === 'account_number' ||
                 $field['name'] === 'iban' ||
                 $field['name'] === 'swift'
-                ) {
-                    CRUD::field($field['name'])
+            ) {
+                CRUD::field($field['name'])
                     ->type('text')
                     ->label($field['label'])
                     ->attributes(
                         [
                             'disabled' => 'disabled',
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-6'
+                        'class' => 'form-group col-md-6',
                     ]);
 
-            } else if (
+            } elseif (
                 $field['name'] === 'invoice_text'
-                ) {
-                    CRUD::field($field['name'])
+            ) {
+                CRUD::field($field['name'])
                     ->type('textarea')
                     ->label($field['label'])
                     ->attributes(
                         [
                             'class' => 'form-control',
-                        ]
+                        ],
                     )
                     ->wrapper([
-                        'class' => 'form-group col-md-12'
+                        'class' => 'form-group col-md-12',
                     ]);
 
-            } else if (
+            } elseif (
                 $field['name'] === 'email' ||
                 $field['name'] === 'phone' ||
                 $field['name'] === 'street' ||
@@ -540,35 +590,35 @@ class InvoiceCrudController extends CrudController
                 $field['name'] === 'client_ico' ||
                 $field['name'] === 'client_dic' ||
                 $field['name'] === 'client_zip'
-                ) {
-                    CRUD::field($field['name'])
-                        ->type('text')
-                        ->label($field['label'])
-                        ->attributes(
-                            [
-                                'disabled' => 'disabled',
-                                'class' => 'form-control',
-                            ]
-                        )
-                        ->wrapper([
-                            'class' => 'form-group col-md-3'
-                        ]);
+            ) {
+                CRUD::field($field['name'])
+                    ->type('text')
+                    ->label($field['label'])
+                    ->attributes(
+                        [
+                            'disabled' => 'disabled',
+                            'class' => 'form-control',
+                        ],
+                    )
+                    ->wrapper([
+                        'class' => 'form-group col-md-3',
+                    ]);
 
-            } else if ($field['type'] === 'select_from_array') {
+            } elseif ($field['type'] === 'select_from_array') {
                 $fieldConfig = CRUD::field($field['name'])
                     ->type('select2_from_array')
                     ->label($field['label'])
                     ->options($field['options'] ?? []);
 
-                    if (isset($field['options']) && is_array($field['options'])) {
-                        if ($field['type'] === 'select_from_array') {
-                            $fieldConfig->options($field['options']);
-                        } else {
-                            $fieldConfig->options(function() use ($field) {
-                                return $field['options'];
-                            });
-                        }
+                if (isset($field['options']) && is_array($field['options'])) {
+                    if ($field['type'] === 'select_from_array') {
+                        $fieldConfig->options($field['options']);
+                    } else {
+                        $fieldConfig->options(function () use ($field) {
+                            return $field['options'];
+                        });
                     }
+                }
 
                 if (isset($field['required']) && $field['required']) {
                     $fieldConfig->required(true);
@@ -577,25 +627,24 @@ class InvoiceCrudController extends CrudController
                 if (isset($field['default'])) {
                     $fieldConfig->default($field['default']);
                 }
-            }
-            else if ($field['type'] === 'select' && isset($field['entity'])) {
+            } elseif ($field['type'] === 'select' && isset($field['entity'])) {
                 if ($field['name'] === 'client_id' || $field['name'] === 'supplier_id') {
                     CRUD::field('separator_' . $field['name'])
-                    ->type('custom_html')
-                    ->value('<hr class="my-4" />');
+                        ->type('custom_html')
+                        ->value('<hr class="my-4" />');
                 }
 
                 $fieldConfig = CRUD::field($field['name'])
                     ->type('select2')
                     ->wrapper([
-                        'class' => 'form-group col-md-6'
+                        'class' => 'form-group col-md-6',
                     ])
                     ->label($field['label']);
 
                 if (isset($field['entity']) && isset($field['model']) && isset($field['attribute'])) {
                     $fieldConfig->entity($field['entity'])
-                            ->model($field['model'])
-                            ->attribute($field['attribute']);
+                        ->model($field['model'])
+                        ->attribute($field['attribute']);
                 }
 
                 if ($field['name'] === 'payment_status_id') {
@@ -607,7 +656,7 @@ class InvoiceCrudController extends CrudController
                 if (isset($field['required']) && $field['required']) {
                     $fieldConfig->required(true);
                 }
-            } else if ($field['type'] === 'file' && $field['name'] === 'invoice_logo') {
+            } elseif ($field['type'] === 'file' && $field['name'] === 'invoice_logo') {
                 // Special case for invoice logo upload
                 CRUD::addField([
                     'name' => 'invoice_logo',
@@ -623,7 +672,7 @@ class InvoiceCrudController extends CrudController
                     ->label($field['label']);
 
                 if (isset($field['options']) && is_array($field['options'])) {
-                    $fieldConfig->options(function() use ($field) {
+                    $fieldConfig->options(function () use ($field) {
                         return $field['options'];
                     });
                 }

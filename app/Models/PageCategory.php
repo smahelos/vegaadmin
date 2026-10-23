@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class PageCategory extends Model
 {
-    use HasFactory, CrudTrait;
+    use CrudTrait, HasFactory;
 
     protected $fillable = [
         'name',
@@ -20,7 +20,7 @@ class PageCategory extends Model
 
     protected $casts = [
         'name' => 'array',
-        'slug' => 'array', 
+        'slug' => 'array',
         'description' => 'array',
     ];
 
@@ -30,11 +30,11 @@ class PageCategory extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function ($model) {
             $model->generateSlugForAllLocales();
         });
-        
+
         static::updating(function ($model) {
             $model->generateSlugForAllLocales();
         });
@@ -45,17 +45,22 @@ class PageCategory extends Model
      */
     protected function generateSlugForAllLocales()
     {
-        $locales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+        $locales = config('app.available_locales', [
+            'cs',
+            'en',
+            'de',
+            'sk',
+        ]);
         $slugs = is_array($this->slug) ? $this->slug : [];
         $names = is_array($this->name) ? $this->name : [];
-        
+
         foreach ($locales as $locale) {
             // Only generate slug if name is provided for this locale and slug is empty
-            if (!empty($names[$locale]) && empty($slugs[$locale])) {
+            if (! empty($names[$locale]) && empty($slugs[$locale])) {
                 $slugs[$locale] = Str::slug($names[$locale]);
             }
         }
-        
+
         $this->slug = $slugs;
     }
 
@@ -65,24 +70,29 @@ class PageCategory extends Model
     public function getName(?string $locale = null): ?string
     {
         $locale = $locale ?? app()->getLocale();
-        
-        if (!is_array($this->name)) {
+
+        if (! is_array($this->name)) {
             return (string) $this->name;
         }
-        
+
         // Try requested locale first
-        if (!empty($this->name[$locale])) {
+        if (! empty($this->name[$locale])) {
             return $this->name[$locale];
         }
-        
+
         // Fallback to available locales in order
-        $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+        $availableLocales = config('app.available_locales', [
+            'cs',
+            'en',
+            'de',
+            'sk',
+        ]);
         foreach ($availableLocales as $fallbackLocale) {
-            if (!empty($this->name[$fallbackLocale])) {
+            if (! empty($this->name[$fallbackLocale])) {
                 return $this->name[$fallbackLocale];
             }
         }
-        
+
         return null;
     }
 
@@ -92,24 +102,29 @@ class PageCategory extends Model
     public function getSlug(?string $locale = null): ?string
     {
         $locale = $locale ?? app()->getLocale();
-        
-        if (!is_array($this->slug)) {
+
+        if (! is_array($this->slug)) {
             return (string) $this->slug;
         }
-        
+
         // Try requested locale first
-        if (!empty($this->slug[$locale])) {
+        if (! empty($this->slug[$locale])) {
             return $this->slug[$locale];
         }
-        
+
         // Fallback to available locales in order
-        $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+        $availableLocales = config('app.available_locales', [
+            'cs',
+            'en',
+            'de',
+            'sk',
+        ]);
         foreach ($availableLocales as $fallbackLocale) {
-            if (!empty($this->slug[$fallbackLocale])) {
+            if (! empty($this->slug[$fallbackLocale])) {
                 return $this->slug[$fallbackLocale];
             }
         }
-        
+
         return null;
     }
 
@@ -119,24 +134,29 @@ class PageCategory extends Model
     public function getDescription(?string $locale = null): ?string
     {
         $locale = $locale ?? app()->getLocale();
-        
-        if (!is_array($this->description)) {
+
+        if (! is_array($this->description)) {
             return $this->description ? (string) $this->description : null;
         }
-        
+
         // Try requested locale first
-        if (!empty($this->description[$locale])) {
+        if (! empty($this->description[$locale])) {
             return $this->description[$locale];
         }
-        
+
         // Fallback to available locales in order
-        $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+        $availableLocales = config('app.available_locales', [
+            'cs',
+            'en',
+            'de',
+            'sk',
+        ]);
         foreach ($availableLocales as $fallbackLocale) {
-            if (!empty($this->description[$fallbackLocale])) {
+            if (! empty($this->description[$fallbackLocale])) {
                 return $this->description[$fallbackLocale];
             }
         }
-        
+
         return null;
     }
 

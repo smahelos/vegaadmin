@@ -21,14 +21,13 @@ class ProductFormDataService implements ProductFormDataServiceInterface
     private const FORM_DATA_CACHE_TTL = 21600;
 
     public function __construct(
-        private readonly CacheServiceInterface $cacheService
-    ) {
-    }
+        private readonly CacheServiceInterface $cacheService,
+    ) {}
 
     public function getFormData(): array
     {
         $cacheKey = $this->cacheService->globalKey('product_form_data');
-        
+
         return $this->cacheService->remember(
             $cacheKey,
             function () {
@@ -41,7 +40,7 @@ class ProductFormDataService implements ProductFormDataServiceInterface
                     ->toArray();
 
                 // Format tax rates with percentage sign
-                foreach($taxRates as $key => $value) {
+                foreach ($taxRates as $key => $value) {
                     $taxRates[$key] = $value . '%';
                 }
 
@@ -52,7 +51,7 @@ class ProductFormDataService implements ProductFormDataServiceInterface
                 ];
             },
             self::FORM_DATA_CACHE_TTL,
-            ['form_data', 'products']
+            ['form_data', 'products'],
         );
     }
 
@@ -60,56 +59,71 @@ class ProductFormDataService implements ProductFormDataServiceInterface
     {
         $cacheKey = 'product_categories';
 
-        return $this->cacheService->remember($cacheKey, function () {
-            $query = ProductCategory::query();
-            
-            $categories = $query->orderBy('name')->get();
-            
-            $result = [];
-            foreach ($categories as $category) {
-                $result[$category->id] = $category->name;
-            }
-            
-            return $result;
-        }, 60 * 5, ['form_data', 'products']);
+        return $this->cacheService->remember(
+            $cacheKey,
+            function () {
+                $query = ProductCategory::query();
+
+                $categories = $query->orderBy('name')->get();
+
+                $result = [];
+                foreach ($categories as $category) {
+                    $result[$category->id] = $category->name;
+                }
+
+                return $result;
+            },
+            60 * 5,
+            ['form_data', 'products'],
+        );
     }
 
     public function getAllSuppliers(): array
     {
         $cacheKey = 'product_suppliers';
 
-        return $this->cacheService->remember($cacheKey, function () {
-            $query = Supplier::query();
-            $query->where('user_id', Auth::id());
+        return $this->cacheService->remember(
+            $cacheKey,
+            function () {
+                $query = Supplier::query();
+                $query->where('user_id', Auth::id());
 
-            $suppliers = $query->orderBy('name')->get();
+                $suppliers = $query->orderBy('name')->get();
 
-            $result = [];
-            foreach ($suppliers as $supplier) {
-                $result[$supplier->id] = $supplier->name;
-            }
-            
-            return $result;
-        }, 60 * 5, ['form_data', 'products']);
+                $result = [];
+                foreach ($suppliers as $supplier) {
+                    $result[$supplier->id] = $supplier->name;
+                }
+
+                return $result;
+            },
+            60 * 5,
+            ['form_data', 'products'],
+        );
     }
 
     public function getAllSuppliersForUser(int $userId): array
     {
         $cacheKey = "product_suppliers:{$userId}";
 
-        return $this->cacheService->remember($cacheKey, function () use ($userId) {
-            $query = Supplier::query();
-            $query->where('user_id', $userId);
+        return $this->cacheService->remember(
+            $cacheKey,
+            function () use ($userId) {
+                $query = Supplier::query();
+                $query->where('user_id', $userId);
 
-            $suppliers = $query->orderBy('name')->get();
+                $suppliers = $query->orderBy('name')->get();
 
-            $result = [];
-            foreach ($suppliers as $supplier) {
-                $result[$supplier->id] = $supplier->name;
-            }
-            
-            return $result;
-        }, 60 * 5, ['form_data', 'products']);
+                $result = [];
+                foreach ($suppliers as $supplier) {
+                    $result[$supplier->id] = $supplier->name;
+                }
+
+                return $result;
+            },
+            60 * 5,
+            ['form_data', 'products'],
+        );
     }
 
     public function invalidateFormDataCache(): bool
@@ -118,14 +132,14 @@ class ProductFormDataService implements ProductFormDataServiceInterface
     }
 
     public function clearCategoriesCache(): void
-    {   
+    {
         // Delete cache for all categories
         $categories = ProductCategory::pluck('slug')->toArray();
         foreach ($categories as $slug) {
             $this->cacheService->forget("products_by_category:{$slug}:0");
             $this->cacheService->forget("products_by_category:{$slug}:1");
         }
-        
+
         $this->cacheService->forget('product_categories');
     }
 }

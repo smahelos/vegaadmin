@@ -15,23 +15,42 @@ class MoneyFormatter implements MoneyFormatterInterface
 {
     public function __construct(
         private readonly Locale $locale,
-    )
-    {
-    }
+    ) {}
 
     /** Default min fraction digits when not specified. */
     private const DEFAULT_MIN_FRACTION = 2;
+
     /** Default max fraction digits when not specified. */
     private const DEFAULT_MAX_FRACTION = 2;
 
-    public function format(Money $money, ?string $locale = null, ?int $minFraction = null, ?int $maxFraction = null): string
-    {
-        return $this->formatInternal($money, $locale, $minFraction, $maxFraction, false);
+    public function format(
+        Money $money,
+        ?string $locale = null,
+        ?int $minFraction = null,
+        ?int $maxFraction = null,
+    ): string {
+        return $this->formatInternal(
+            $money,
+            $locale,
+            $minFraction,
+            $maxFraction,
+            false,
+        );
     }
 
-    public function formatWithCode(Money $money, ?string $locale = null, ?int $minFraction = null, ?int $maxFraction = null): string
-    {
-        return $this->formatInternal($money, $locale, $minFraction, $maxFraction, true);
+    public function formatWithCode(
+        Money $money,
+        ?string $locale = null,
+        ?int $minFraction = null,
+        ?int $maxFraction = null,
+    ): string {
+        return $this->formatInternal(
+            $money,
+            $locale,
+            $minFraction,
+            $maxFraction,
+            true,
+        );
     }
 
     /**
@@ -43,8 +62,13 @@ class MoneyFormatter implements MoneyFormatterInterface
      *  - V ostatních případech použít kód (CZK, USD, ...) + mezera: "CZK 48,00".
      *  - Metoda formatWithCode() vždy použije kód (před číslem) bez ohledu na dostupnost symbolu.
      */
-    private function formatInternal(Money $money, ?string $locale, ?int $minFraction, ?int $maxFraction, bool $forceCode): string
-    {
+    private function formatInternal(
+        Money $money,
+        ?string $locale,
+        ?int $minFraction,
+        ?int $maxFraction,
+        bool $forceCode,
+    ): string {
         $locale = $locale ?: $this->locale->getLocale();
         $min = $minFraction ?? self::DEFAULT_MIN_FRACTION;
         $max = $maxFraction ?? self::DEFAULT_MAX_FRACTION;
@@ -64,13 +88,17 @@ class MoneyFormatter implements MoneyFormatterInterface
         $displayMax = min($max, max($scale, $min));
 
         // Format numeric part locale-aware (WITHOUT currency) using intl if possible
-        $numberFormatted = $this->formatNumberPortion($money->toFloat(), $locale, $displayMax);
+        $numberFormatted = $this->formatNumberPortion(
+            $money->toFloat(),
+            $locale,
+            $displayMax,
+        );
 
         // Decide currency token (symbol or code)
         $currencyToken = $currency; // default to code
         $useSymbol = false;
 
-        if (!$forceCode) {
+        if (! $forceCode) {
             $symbol = $this->getIntlCurrencySymbol($currency, $locale);
             // Accept symbol if it is a single UTF-8 grapheme (length <= 3 bytes) and differs from code
             if ($symbol && $symbol !== $currency && $this->isShortSymbol($symbol)) {
@@ -92,6 +120,7 @@ class MoneyFormatter implements MoneyFormatterInterface
             // Symbol directly before amount without space: €1 234,56
             return $sign . $currencyToken . $numberFormatted;
         }
+
         // Code with space: CZK 1 234,56
         return $sign . $currencyToken . ' ' . $numberFormatted;
     }
@@ -99,8 +128,11 @@ class MoneyFormatter implements MoneyFormatterInterface
     /**
      * Format just the numeric portion with locale separators.
      */
-    private function formatNumberPortion(float $value, string $locale, int $fractionDigits): string
-    {
+    private function formatNumberPortion(
+        float $value,
+        string $locale,
+        int $fractionDigits,
+    ): string {
         if (class_exists(\NumberFormatter::class)) {
             $nf = new \NumberFormatter($locale, \NumberFormatter::DECIMAL);
             $nf->setAttribute(\NumberFormatter::FRACTION_DIGITS, $fractionDigits);
@@ -112,7 +144,13 @@ class MoneyFormatter implements MoneyFormatterInterface
         // Fallback simple rules
         $decimalSep = str_starts_with($locale, 'cs') ? ',' : '.';
         $thousandSep = str_starts_with($locale, 'cs') ? ' ' : ',';
-        return number_format($value, $fractionDigits, $decimalSep, $thousandSep);
+
+        return number_format(
+            $value,
+            $fractionDigits,
+            $decimalSep,
+            $thousandSep,
+        );
     }
 
     /**
@@ -120,7 +158,7 @@ class MoneyFormatter implements MoneyFormatterInterface
      */
     private function getIntlCurrencySymbol(string $currency, string $locale): ?string
     {
-        if (!class_exists(\NumberFormatter::class)) {
+        if (! class_exists(\NumberFormatter::class)) {
             return null;
         }
         try {
@@ -128,6 +166,7 @@ class MoneyFormatter implements MoneyFormatterInterface
             // format a dummy value to force internal symbol resolution
             $formatter->formatCurrency(1, $currency);
             $symbol = $formatter->getSymbol(\NumberFormatter::CURRENCY_SYMBOL);
+
             return $symbol ?: null;
         } catch (\Throwable $e) {
             return null;
@@ -141,6 +180,7 @@ class MoneyFormatter implements MoneyFormatterInterface
     {
         // Trim whitespace / NBSP
         $trimmed = trim(str_replace(["\u{00A0}", "\u{202F}"], ' ', $symbol));
+
         // If after trimming length (mb_strlen) <= 2 treat as short symbol
         return mb_strlen($trimmed, 'UTF-8') <= 2;
     }
@@ -148,18 +188,29 @@ class MoneyFormatter implements MoneyFormatterInterface
     /**
      * Legacy fallback formatting (kept for reference, now unused directly in main path).
      */
-    private function fallbackFormat(Money $money, string $locale, int $fractionDigits, bool $forceCode): string
-    {
+    private function fallbackFormat(
+        Money $money,
+        string $locale,
+        int $fractionDigits,
+        bool $forceCode,
+    ): string {
         $decimalSep = str_starts_with($locale, 'cs') ? ',' : '.';
         $thousandSep = str_starts_with($locale, 'cs') ? ' ' : ',';
         $currency = strtoupper($money->getCurrency());
         $numeric = $money->toFloat();
-        $formatted = number_format($numeric, $fractionDigits, $decimalSep, $thousandSep);
+        $formatted = number_format(
+            $numeric,
+            $fractionDigits,
+            $decimalSep,
+            $thousandSep,
+        );
         // Always prefix code in fallback; symbol detection not available
         if ($numeric < 0) {
             $formatted = ltrim($formatted, '-');
+
             return '-' . $currency . ' ' . $formatted;
         }
+
         return $currency . ' ' . $formatted;
     }
 }

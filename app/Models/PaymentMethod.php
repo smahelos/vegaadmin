@@ -10,8 +10,8 @@ use Spatie\Permission\Traits\HasRoles;
 class PaymentMethod extends Model
 {
     use CrudTrait;
-    use HasRoles;
     use HasFactory;
+    use HasRoles;
 
     /*
     |--------------------------------------------------------------------------
@@ -19,6 +19,7 @@ class PaymentMethod extends Model
     |--------------------------------------------------------------------------
     */
     protected $table = 'payment_methods';
+
     protected $guarded = ['id'];
 
     /*
@@ -34,7 +35,6 @@ class PaymentMethod extends Model
         return $this->belongsToMany('App\Models\Invoice', 'invoices');
     }
 
-
     /**
      * Get the expenses in this payment method.
      */
@@ -42,7 +42,7 @@ class PaymentMethod extends Model
     {
         return $this->hasMany(Expense::class, 'payment_method_id');
     }
-    
+
     /*
     |--------------------------------------------------------------------------
     | FUNCTIONS
@@ -50,7 +50,7 @@ class PaymentMethod extends Model
     */
     /**
      * Get translated name of payment method
-     * 
+     *
      * @return string
      */
     public function getTranslatedNameAttribute()
@@ -59,13 +59,13 @@ class PaymentMethod extends Model
         if (empty($this->slug)) {
             return $this->name ?? __('invoices.placeholders.not_available');
         }
-        
+
         // Create translation key based on slug
         $translationKey = 'payment_methods.methods.' . $this->slug;
-        
+
         // Get translation
         $translation = __($translationKey);
-        
+
         // If translation doesn't exist (returns original key), use original name
         return ($translation === $translationKey) ? $this->name : $translation;
     }

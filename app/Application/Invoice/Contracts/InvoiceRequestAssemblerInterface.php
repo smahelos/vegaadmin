@@ -11,5 +11,9 @@ use App\Models\User;
  */
 interface InvoiceRequestAssemblerInterface
 {
-    public function assemble(?User $user, InvoiceRequest $request, bool $guest = false): InvoiceMutationPayload;
+    public function assemble(
+        ?User $user,
+        InvoiceRequest $request,
+        bool $guest = false,
+    ): InvoiceMutationPayload;
 }

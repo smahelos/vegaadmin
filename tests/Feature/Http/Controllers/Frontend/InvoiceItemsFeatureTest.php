@@ -46,7 +46,11 @@ final class InvoiceItemsFeatureTest extends TestCase
             'is_active' => true,
         ]);
         foreach (['12.00', '21.00'] as $rate) {
-            Tax::factory()->create(['name' => 'DPH ' . $rate . ' ' . uniqid(), 'slug' => 'dph', 'rate' => $rate]);
+            Tax::factory()->create([
+                'name' => 'DPH ' . $rate . ' ' . uniqid(),
+                'slug' => 'dph',
+                'rate' => $rate,
+            ]);
         }
         $this->actingAs($this->user, 'web');
     }
@@ -55,8 +59,16 @@ final class InvoiceItemsFeatureTest extends TestCase
     public function a_stored_invoice_amounts_to_the_sum_of_its_lines_in_cents(): void
     {
         $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $this->invoiceData([
-            $this->item(['quantity' => '1.5', 'price' => '249.30', 'tax_rate' => '12']),
-            $this->item(['quantity' => '3', 'price' => '74.67', 'tax_rate' => '21.00']),
+            $this->item([
+                'quantity' => '1.5',
+                'price' => '249.30',
+                'tax_rate' => '12',
+            ]),
+            $this->item([
+                'quantity' => '3',
+                'price' => '74.67',
+                'tax_rate' => '21.00',
+            ]),
         ], number: 'INV-ITEMS-1'));
 
         $response->assertSessionHas('success');
@@ -65,7 +77,7 @@ final class InvoiceItemsFeatureTest extends TestCase
         $this->assertSame('689.87', $invoice->fresh()->payment_amount);
         $this->assertSame(
             ['1.500', '3.000'],
-            InvoiceProduct::where('invoice_id', $invoice->id)->orderBy('id')->pluck('quantity')->all()
+            InvoiceProduct::where('invoice_id', $invoice->id)->orderBy('id')->pluck('quantity')->all(),
         );
     }
 
@@ -79,7 +91,11 @@ final class InvoiceItemsFeatureTest extends TestCase
 
         $response = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
-            $this->invoiceData([$this->item(['quantity' => '2', 'price' => '0.50', 'tax_rate' => '21'])], number: 'INV-ITEMS-2')
+            $this->invoiceData([$this->item([
+                'quantity' => '2',
+                'price' => '0.50',
+                'tax_rate' => '21',
+            ])], number: 'INV-ITEMS-2'),
         );
 
         $response->assertSessionHasNoErrors();

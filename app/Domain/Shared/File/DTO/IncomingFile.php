@@ -13,7 +13,6 @@ class IncomingFile
         public readonly string $extension,
         public readonly string $mime,
         public readonly int $sizeBytes,
-        public readonly string $path
-    ) {
-    }
+        public readonly string $path,
+    ) {}
 }

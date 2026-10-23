@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -14,7 +14,7 @@ return new class extends Migration
     {
         // Check if we're running on SQLite (for testing) or MySQL (for production)
         $driver = DB::connection()->getDriverName();
-        
+
         if ($driver === 'sqlite') {
             // SQLite doesn't support REGEXP, so we'll use a different approach
             // For testing, we'll just set all due_in values to 14 if they're not numeric
@@ -24,7 +24,7 @@ return new class extends Migration
             DB::statement('UPDATE invoices SET due_in = CAST(due_in AS UNSIGNED) WHERE due_in REGEXP \'^[0-9]+$\'');
             DB::statement('UPDATE invoices SET due_in = 14 WHERE due_in NOT REGEXP \'^[0-9]+$\' OR due_in IS NULL');
         }
-        
+
         // Change column type to integer
         Schema::table('invoices', function (Blueprint $table) {
             $table->integer('due_in')->change();

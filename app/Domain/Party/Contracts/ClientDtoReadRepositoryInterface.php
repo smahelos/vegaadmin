@@ -15,15 +15,15 @@ interface ClientDtoReadRepositoryInterface
     public function getClientsForDropdown(int $userId): array;
 
     public function getDefaultClient(int $userId): ?ClientDTO;
-    
+
     public function findById(PartyId $id): ?ClientDTO;
-    
+
     /** Find by id without scoping to current user (admin/ownership checks handled at higher layer) */
     public function findByIdAny(PartyId $id): ?ClientDTO;
 
     /** Find by id scoped to a specific user */
     public function findByIdForUser(PartyId $id, UserId $userId): ?ClientDTO;
-    
+
     /** @return array<int, ClientDTO> */
     public function allForAdmin(): array;
 

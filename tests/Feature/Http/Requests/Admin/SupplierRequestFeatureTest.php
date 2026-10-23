@@ -2,18 +2,18 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\SupplierRequest;
-use App\Models\User;
 use App\Models\EntityLimit;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
-use PHPUnit\Framework\Attributes\Test;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 
 /**
  * Feature test for SupplierRequest class.
@@ -21,12 +21,16 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
  */
 class SupplierRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $regularUser;
+
     protected UniversalLimitService $limitService;
+
     private User $supplierUser;
+
     private SupplierRequest $request;
 
     /**
@@ -40,7 +44,7 @@ class SupplierRequestFeatureTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         $this->supplierUser = User::factory()->create();
-        $this->request = new SupplierRequest();
+        $this->request = new SupplierRequest;
 
         // Initialize limit service
         $this->limitService = app(UniversalLimitService::class);
@@ -354,7 +358,7 @@ class SupplierRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $request = new SupplierRequest();
+        $request = new SupplierRequest;
         $this->assertTrue($request->authorize());
     }
 
@@ -364,7 +368,7 @@ class SupplierRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_when_not_authenticated(): void
     {
-        $request = new SupplierRequest();
+        $request = new SupplierRequest;
         $this->assertFalse($request->authorize());
     }
 
@@ -423,11 +427,23 @@ class SupplierRequestFeatureTest extends TestCase
         ])->assertStatus(200);
 
         // Manually record usage because authorize() only checks limits
-        $this->limitService->recordUsage($this->adminUser->id, 'supplier', 'count', 'monthly', 'backpack');
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'supplier',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
         // Second creation should exceed limit via direct authorize() check
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
-        $request = new class extends SupplierRequest { public function rules(): array { return []; } };
+        $this->expectException(EntityLimitExceededException::class);
+        $request = new class extends SupplierRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
         $request->replace([
             'name' => 'Supplier Two',
             'email' => 'two@supplier.com',
@@ -438,7 +454,7 @@ class SupplierRequestFeatureTest extends TestCase
             'country' => 'CZ',
             'user_id' => $this->supplierUser->id,
         ]);
-        $request->setRouteResolver(fn() => (object)['parameter' => fn($n) => null]);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
         $request->authorize();
     }
@@ -461,10 +477,22 @@ class SupplierRequestFeatureTest extends TestCase
         ]);
 
         // Record usage to simulate prior creations
-        $this->limitService->recordUsage($this->adminUser->id, 'supplier', 'count', 'monthly', 'backpack');
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'supplier',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
         // Simulate update request (PUT should bypass limit)
-        $request = new class extends SupplierRequest { public function rules(): array { return []; } };
+        $request = new class extends SupplierRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
         $request->replace([
             'name' => 'Updated Supplier',
             'email' => 'updated@supplier.com',
@@ -475,7 +503,7 @@ class SupplierRequestFeatureTest extends TestCase
             'country' => 'CZ',
             'user_id' => $this->supplierUser->id,
         ]);
-        $request->setRouteResolver(fn() => (object)['parameter' => fn($n) => 'existing-supplier-id']);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-supplier-id']);
         $request->setMethod('PUT');
         $this->assertTrue($request->authorize());
     }

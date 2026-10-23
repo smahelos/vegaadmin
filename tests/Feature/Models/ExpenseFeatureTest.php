@@ -8,6 +8,7 @@ use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
@@ -86,7 +87,7 @@ class ExpenseFeatureTest extends TestCase
             'attachments' => ['file1.pdf', 'file2.jpg'],
         ]);
 
-        $this->assertInstanceOf(\Carbon\Carbon::class, $expense->expense_date);
+        $this->assertInstanceOf(Carbon::class, $expense->expense_date);
         $this->assertIsString($expense->amount); // Decimal cast returns string
         $this->assertEquals('123.45', $expense->amount);
         $this->assertIsString($expense->tax_amount);
@@ -196,7 +197,7 @@ class ExpenseFeatureTest extends TestCase
         $this->assertTrue(
             is_null($expense->attachments) ||
             is_array($expense->attachments) ||
-            is_string($expense->attachments)
+            is_string($expense->attachments),
         );
     }
 
@@ -227,7 +228,7 @@ class ExpenseFeatureTest extends TestCase
 
         $this->assertDatabaseHas('expenses', array_merge(
             ['id' => $expense->id],
-            $newData
+            $newData,
         ));
     }
 

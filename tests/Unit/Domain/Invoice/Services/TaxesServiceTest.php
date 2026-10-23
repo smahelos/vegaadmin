@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Domain\Shared\Tax\Services;
 
-use App\Domain\Shared\Tax\Services\TaxService;
-use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
-use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
+use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
+use App\Domain\Shared\Tax\Services\TaxService;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -16,11 +16,11 @@ class TaxesServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Mock dependencies since TaxService requires constructor injection
         $cacheService = $this->createMock(CacheServiceInterface::class);
         $taxDtoReadRepository = $this->createMock(TaxDtoReadRepositoryInterface::class);
-        
+
         $this->service = new TaxService($cacheService, $taxDtoReadRepository);
     }
 
@@ -57,7 +57,7 @@ class TaxesServiceTest extends TestCase
         $returnType = $method->getReturnType();
 
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType);
+        $this->assertEquals('array', $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string) $returnType);
     }
 
     #[Test]
@@ -68,7 +68,7 @@ class TaxesServiceTest extends TestCase
         $returnType = $method->getReturnType();
 
         $this->assertNotNull($returnType);
-        $this->assertEquals('array', $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType);
+        $this->assertEquals('array', $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string) $returnType);
     }
 
     #[Test]
@@ -79,7 +79,7 @@ class TaxesServiceTest extends TestCase
         $returnType = $method->getReturnType();
 
         $this->assertNotNull($returnType);
-        $this->assertEquals('void', $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string)$returnType);
+        $this->assertEquals('void', $returnType instanceof \ReflectionNamedType ? $returnType->getName() : (string) $returnType);
     }
 
     #[Test]

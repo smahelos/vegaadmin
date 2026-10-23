@@ -2,30 +2,32 @@
 
 namespace Tests\Unit\Domain\User\Services;
 
-use Tests\TestCase;
-use App\Domain\User\Services\LocaleService;
-use App\Domain\User\Contracts\Locale;
 use App\Domain\Shared\Session\Contracts\SessionInterface;
-use Mockery\MockInterface;
+use App\Domain\User\Contracts\Locale;
+use App\Domain\User\Services\LocaleService;
 use Mockery;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
+use Tests\TestCase;
 
 class LocaleServiceTest extends TestCase
 {
     protected LocaleService $service;
+
     /** @var MockInterface */
     protected $mockSession;
+
     /** @var MockInterface */
     protected $mockLocale;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
-    $this->mockSession = Mockery::mock(SessionInterface::class);
-    $this->mockLocale = Mockery::mock(Locale::class);
-        
+
+        $this->mockSession = Mockery::mock(SessionInterface::class);
+        $this->mockLocale = Mockery::mock(Locale::class);
+
         $this->service = new LocaleService($this->mockSession, $this->mockLocale);
     }
 
@@ -34,7 +36,11 @@ class LocaleServiceTest extends TestCase
     {
         $this->mockLocale->shouldReceive('getAvailableLocales')
             ->once()
-            ->andReturn(['cs', 'en', 'de']);
+            ->andReturn([
+                'cs',
+                'en',
+                'de',
+            ]);
 
         $locales = $this->service->getAvailableLocales();
         $this->assertIsArray($locales);
@@ -129,7 +135,7 @@ class LocaleServiceTest extends TestCase
         $this->service->setLocale('xx');
         $this->assertTrue(true);
     }
-    
+
     #[Test]
     public function service_can_be_instantiated(): void
     {
@@ -140,15 +146,15 @@ class LocaleServiceTest extends TestCase
     public function get_available_locales_method_exists(): void
     {
         $this->assertTrue(method_exists($this->service, 'getAvailableLocales'));
-        
+
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('getAvailableLocales');
-    $returnType = $method->getReturnType();
-        
-    $this->assertNotNull($returnType);
-    $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-    $this->assertEquals('array', $returnType->getName());
-        
+        $returnType = $method->getReturnType();
+
+        $this->assertNotNull($returnType);
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('array', $returnType->getName());
+
         // Check that method has no parameters
         $parameters = $method->getParameters();
         $this->assertCount(0, $parameters);
@@ -158,28 +164,28 @@ class LocaleServiceTest extends TestCase
     public function determine_locale_method_exists(): void
     {
         $this->assertTrue(method_exists($this->service, 'determineLocale'));
-        
+
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('determineLocale');
-    $returnType = $method->getReturnType();
-        
-    $this->assertNotNull($returnType);
-    $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-    $this->assertEquals('string', $returnType->getName());
-        
+        $returnType = $method->getReturnType();
+
+        $this->assertNotNull($returnType);
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('string', $returnType->getName());
+
         // Check parameters
         $parameters = $method->getParameters();
         $this->assertCount(2, $parameters);
         $this->assertEquals('requestLocale', $parameters[0]->getName());
         $this->assertEquals('dataLocale', $parameters[1]->getName());
-        
-    $this->assertTrue($parameters[0]->getType()->allowsNull());
-    $this->assertInstanceOf(\ReflectionNamedType::class, $parameters[0]->getType());
-    $this->assertEquals('string', $parameters[0]->getType()->getName());
-    $this->assertTrue($parameters[1]->getType()->allowsNull());
-    $this->assertInstanceOf(\ReflectionNamedType::class, $parameters[1]->getType());
-    $this->assertEquals('string', $parameters[1]->getType()->getName());
-        
+
+        $this->assertTrue($parameters[0]->getType()->allowsNull());
+        $this->assertInstanceOf(\ReflectionNamedType::class, $parameters[0]->getType());
+        $this->assertEquals('string', $parameters[0]->getType()->getName());
+        $this->assertTrue($parameters[1]->getType()->allowsNull());
+        $this->assertInstanceOf(\ReflectionNamedType::class, $parameters[1]->getType());
+        $this->assertEquals('string', $parameters[1]->getType()->getName());
+
         // Check default values
         $this->assertTrue($parameters[0]->isDefaultValueAvailable());
         $this->assertNull($parameters[0]->getDefaultValue());
@@ -191,21 +197,21 @@ class LocaleServiceTest extends TestCase
     public function set_locale_method_exists(): void
     {
         $this->assertTrue(method_exists($this->service, 'setLocale'));
-        
+
         $reflection = new ReflectionClass($this->service);
         $method = $reflection->getMethod('setLocale');
-    $returnType = $method->getReturnType();
-        
-    $this->assertNotNull($returnType);
-    $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-    $this->assertEquals('void', $returnType->getName());
-        
+        $returnType = $method->getReturnType();
+
+        $this->assertNotNull($returnType);
+        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
+        $this->assertEquals('void', $returnType->getName());
+
         // Check parameters
         $parameters = $method->getParameters();
         $this->assertCount(1, $parameters);
         $this->assertEquals('locale', $parameters[0]->getName());
-    $this->assertInstanceOf(\ReflectionNamedType::class, $parameters[0]->getType());
-    $this->assertEquals('string', $parameters[0]->getType()->getName());
+        $this->assertInstanceOf(\ReflectionNamedType::class, $parameters[0]->getType());
+        $this->assertEquals('string', $parameters[0]->getType()->getName());
     }
 
     #[Test]
@@ -223,13 +229,13 @@ class LocaleServiceTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
-        
+
         foreach ($methods as $method) {
-            if ($method->getName() !== '__construct' && 
+            if ($method->getName() !== '__construct' &&
                 $method->getDeclaringClass()->getName() === LocaleService::class) {
                 $this->assertNotNull(
                     $method->getReturnType(),
-                    "Method {$method->getName()} should have a return type"
+                    "Method {$method->getName()} should have a return type",
                 );
             }
         }
@@ -240,13 +246,13 @@ class LocaleServiceTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $publicMethods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
-        
+
         // Filter out inherited methods and constructor
         $customPublicMethods = array_filter($publicMethods, function ($method) {
             return $method->getDeclaringClass()->getName() === LocaleService::class
                 && $method->getName() !== '__construct';
         });
-        
+
         // getAvailableLocales, determineLocale, localeFromCountry, setLocale
         $this->assertCount(7, $customPublicMethods);
     }
@@ -256,14 +262,14 @@ class LocaleServiceTest extends TestCase
     {
         $reflection = new ReflectionClass($this->service);
         $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
-        
+
         foreach ($methods as $method) {
-            if ($method->getName() !== '__construct' && 
+            if ($method->getName() !== '__construct' &&
                 $method->getDeclaringClass()->getName() === LocaleService::class) {
                 foreach ($method->getParameters() as $parameter) {
                     $this->assertNotNull(
                         $parameter->getType(),
-                        "Parameter {$parameter->getName()} in method {$method->getName()} should have a type"
+                        "Parameter {$parameter->getName()} in method {$method->getName()} should have a type",
                     );
                 }
             }

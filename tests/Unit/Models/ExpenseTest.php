@@ -28,11 +28,15 @@ class ExpenseTest extends TestCase
         $expectedTraits = [
             'Illuminate\Database\Eloquent\Factories\HasFactory',
             'Backpack\CRUD\app\Models\Traits\CrudTrait',
-                'App\Infrastructure\Shared\File\Traits\HasFileUploads',
+            'App\Infrastructure\Shared\File\Traits\HasFileUploads',
         ];
 
         foreach ($expectedTraits as $trait) {
-            $this->assertContains($trait, $traits, "Expense model should use {$trait} trait");
+            $this->assertContains(
+                $trait,
+                $traits,
+                "Expense model should use {$trait} trait",
+            );
         }
     }
 
@@ -104,7 +108,14 @@ class ExpenseTest extends TestCase
     {
         $reflection = new \ReflectionClass(Expense::class);
 
-        $relationshipMethods = ['supplier', 'user', 'tax', 'status', 'category', 'paymentMethod'];
+        $relationshipMethods = [
+            'supplier',
+            'user',
+            'tax',
+            'status',
+            'category',
+            'paymentMethod',
+        ];
 
         foreach ($relationshipMethods as $methodName) {
             $method = $reflection->getMethod($methodName);

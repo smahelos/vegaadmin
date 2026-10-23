@@ -5,14 +5,12 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\PasswordUpdateRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for PasswordUpdateRequest
@@ -22,17 +20,17 @@ use PHPUnit\Framework\Attributes\Test;
  */
 class PasswordUpdateRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected array $validPasswordData;
+
     protected string $currentPassword = 'current-password-123';
 
     /**
      * Set up the test environment.
      * Creates test user and valid password data for request testing.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -41,7 +39,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         // Set up frontend test environment with roles and permissions
         $this->setUpFrontendTestEnvironment();
 
-        if (!$this->user) {
+        if (! $this->user) {
             // Create test user with known password
             $this->user = User::factory()->create([
                 'password' => Hash::make($this->currentPassword),
@@ -72,8 +70,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($this->validPasswordData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $this->validPasswordData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
@@ -84,17 +86,29 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $requiredFields = ['current_password', 'password', 'password_confirmation'];
+        $requiredFields = [
+            'current_password',
+            'password',
+            'password_confirmation',
+        ];
 
         foreach ($requiredFields as $field) {
             $invalidData = $this->validPasswordData;
             unset($invalidData[$field]);
 
-            $request = new PasswordUpdateRequest();
-            $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+            $request = new PasswordUpdateRequest;
+            $validator = Validator::make(
+                $invalidData,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
-            $this->assertArrayHasKey($field, $validator->errors()->toArray(), "Should have error for missing {$field}");
+            $this->assertArrayHasKey(
+                $field,
+                $validator->errors()->toArray(),
+                "Should have error for missing {$field}",
+            );
         }
     }
 
@@ -106,8 +120,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $invalidData = $this->validPasswordData;
         $invalidData['current_password'] = 'wrong-password';
 
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('current_password', $validator->errors()->toArray());
@@ -122,8 +140,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $invalidData['password'] = '123'; // Too short (min 8)
         $invalidData['password_confirmation'] = '123';
 
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('password', $validator->errors()->toArray());
@@ -138,8 +160,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $invalidData['password'] = 'new-password-123';
         $invalidData['password_confirmation'] = 'different-password-123';
 
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('password', $validator->errors()->toArray());
@@ -154,8 +180,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $invalidData['password'] = 'new-password-123';
         unset($invalidData['password_confirmation']);
 
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('password_confirmation', $validator->errors()->toArray());
@@ -170,8 +200,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $validData['password'] = '12345678'; // Exactly 8 characters (minimum)
         $validData['password_confirmation'] = '12345678';
 
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($validData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $validData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
@@ -194,8 +228,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
             $validData['password'] = $password;
             $validData['password_confirmation'] = $password;
 
-            $request = new PasswordUpdateRequest();
-            $validator = Validator::make($validData, $request->rules(), $request->messages());
+            $request = new PasswordUpdateRequest;
+            $validator = Validator::make(
+                $validData,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertFalse($validator->fails(), "Validation should pass for complex password: {$password}");
         }
@@ -206,7 +244,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $request = new PasswordUpdateRequest();
+        $request = new PasswordUpdateRequest;
 
         $this->assertTrue($request->authorize());
     }
@@ -214,7 +252,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_when_not_authenticated()
     {
-        $request = new PasswordUpdateRequest();
+        $request = new PasswordUpdateRequest;
 
         $this->assertFalse($request->authorize());
     }
@@ -223,8 +261,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_fails_when_not_authenticated_for_current_password_check()
     {
         // Don't authenticate user
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($this->validPasswordData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $this->validPasswordData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('current_password', $validator->errors()->toArray());
@@ -233,16 +275,23 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     #[Test]
     public function request_has_custom_attributes()
     {
-        $request = new PasswordUpdateRequest();
+        $request = new PasswordUpdateRequest;
         $attributes = $request->attributes();
 
-        $expectedKeys = ['current_password', 'password', 'password_confirmation'];
+        $expectedKeys = [
+            'current_password',
+            'password',
+            'password_confirmation',
+        ];
 
         foreach ($expectedKeys as $key) {
-            $this->assertArrayHasKey($key, $attributes, "Should have custom attribute for {$key}");
+            $this->assertArrayHasKey(
+                $key,
+                $attributes,
+                "Should have custom attribute for {$key}",
+            );
         }
     }
-
 
     #[Test]
     public function validation_passes_with_same_current_and_new_password()
@@ -256,8 +305,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
             'password_confirmation' => $this->currentPassword,
         ];
 
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($validData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $validData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
@@ -276,8 +329,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         $invalidData = $this->validPasswordData;
         $invalidData['current_password'] = 'other-user-password'; // Try to use other user's password
 
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('current_password', $validator->errors()->toArray());
@@ -294,8 +351,12 @@ class PasswordUpdateRequestFeatureTest extends TestCase
             'password_confirmation' => '',
         ];
 
-        $request = new PasswordUpdateRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new PasswordUpdateRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
 
@@ -308,8 +369,13 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     #[Test]
     public function new_password_errors_name_the_new_password_field(): void
     {
-        $request = new PasswordUpdateRequest();
-        $errors = Validator::make(['password' => 'short', 'password_confirmation' => 'short'], $request->rules(), [], $request->attributes())->errors();
+        $request = new PasswordUpdateRequest;
+        $errors = Validator::make(
+            ['password' => 'short', 'password_confirmation' => 'short'],
+            $request->rules(),
+            [],
+            $request->attributes(),
+        )->errors();
 
         $this->assertStringContainsString(__('users.fields.new_password'), $errors->first('password'));
     }

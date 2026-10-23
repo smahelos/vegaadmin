@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -14,7 +14,7 @@ return new class extends Migration
     public function up(): void
     {
         // Only run in testing environment with SQLite
-        if (!app()->environment('testing') || DB::connection()->getDriverName() !== 'sqlite') {
+        if (! app()->environment('testing') || DB::connection()->getDriverName() !== 'sqlite') {
             return;
         }
 
@@ -27,7 +27,11 @@ return new class extends Migration
 
         // Change payment_amount to decimal for proper currency handling in testing
         Schema::table('invoices', function (Blueprint $table) {
-            $table->decimal('payment_amount', 10, 2)->change();
+            $table->decimal(
+                'payment_amount',
+                10,
+                2,
+            )->change();
         });
     }
 
@@ -37,7 +41,7 @@ return new class extends Migration
     public function down(): void
     {
         // Only run in testing environment with SQLite
-        if (!app()->environment('testing') || DB::connection()->getDriverName() !== 'sqlite') {
+        if (! app()->environment('testing') || DB::connection()->getDriverName() !== 'sqlite') {
             return;
         }
 

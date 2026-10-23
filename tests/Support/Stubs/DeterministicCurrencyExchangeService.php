@@ -25,9 +25,10 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
         if ($fromCurrency === $toCurrency) {
             return 1.0;
         }
-        if (!isset($this->baseRates[$fromCurrency], $this->baseRates[$toCurrency])) {
+        if (! isset($this->baseRates[$fromCurrency], $this->baseRates[$toCurrency])) {
             return null;
         }
+
         // Interpret table as relative to USD then derive cross rate.
         return $this->baseRates[$toCurrency] / $this->baseRates[$fromCurrency];
     }
@@ -35,19 +36,24 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
     public function getExchangeRates(string $baseCurrency = 'USD'): array
     {
         $baseCurrency = strtoupper($baseCurrency);
-        if (!isset($this->baseRates[$baseCurrency])) {
+        if (! isset($this->baseRates[$baseCurrency])) {
             $baseCurrency = 'USD';
         }
         $rates = [];
         foreach ($this->baseRates as $code => $rate) {
             $rates[$code] = $rate / $this->baseRates[$baseCurrency];
         }
+
         return $rates;
     }
 
-    public function convert(float $amount, string $fromCurrency, string $toCurrency): ?float
-    {
+    public function convert(
+        float $amount,
+        string $fromCurrency,
+        string $toCurrency,
+    ): ?float {
         $rate = $this->getExchangeRate($fromCurrency, $toCurrency);
+
         return $rate === null ? null : round($amount * $rate, 2);
     }
 }

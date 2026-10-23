@@ -1,18 +1,19 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Frontend\DashboardController;
-use App\Http\Controllers\Frontend\InvoiceController;
+use App\Http\Controllers\Frontend\Auth\LoginController;
+use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\ClientController;
-use App\Http\Controllers\Frontend\SupplierController;
-use App\Http\Controllers\Frontend\ProfileController;
-use App\Http\Controllers\Frontend\ProductController;
+use App\Http\Controllers\Frontend\DashboardController;
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\InvoiceController;
 use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\PaymentController;
+use App\Http\Controllers\Frontend\ProductController;
+use App\Http\Controllers\Frontend\ProfileController;
 use App\Http\Controllers\Frontend\SubscriptionController;
-use App\Http\Controllers\Frontend\Auth\RegisterController;
-use App\Http\Controllers\Frontend\Auth\LoginController;
+use App\Http\Controllers\Frontend\SupplierController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Auth;
 // Root redirect to default locale
 Route::get('/', function () {
     $defaultLocale = config('app.locale', 'cs');
+
     return redirect("/{$defaultLocale}");
 })->name('root');
 
@@ -115,10 +117,9 @@ Route::middleware([
             Route::post('/login', [LoginController::class, 'login']);
 
             // Test route for HomeController (used only in automated tests to verify behavior)
-            Route::get('/test-home-controller', [\App\Http\Controllers\Frontend\HomeController::class, 'index'])
+            Route::get('/test-home-controller', [HomeController::class, 'index'])
                 ->name('frontend.home.test');
         });
-
 
         // Public routes (for guests)
         Route::get('/', [PageController::class, 'homepage'])->name('home');

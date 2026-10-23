@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Mapper for transforming SupplierDTO objects to HTTP-friendly arrays.
- * 
+ *
  * Centralizes data transformation logic to avoid duplication
  * in PartyApplicationService.
  */
@@ -49,6 +49,6 @@ class SupplierArrayMapper
      */
     public function mapCollectionToArray(Collection $suppliers): array
     {
-        return $suppliers->map(fn($dto) => $this->mapToArray($dto))->toArray();
+        return $suppliers->map(fn ($dto) => $this->mapToArray($dto))->toArray();
     }
 }

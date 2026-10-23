@@ -2,7 +2,7 @@
 
 namespace App\Domain\Content\DTO;
 
-class   PageDTO
+class PageDTO
 {
     public function __construct(
         public readonly int $id,

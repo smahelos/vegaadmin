@@ -70,8 +70,6 @@ class ProductRequest extends BaseEntityRequest
 
     /**
      * Prepare the data for validation.
-     *
-     * @return void
      */
     public function prepareForValidation(): void
     {

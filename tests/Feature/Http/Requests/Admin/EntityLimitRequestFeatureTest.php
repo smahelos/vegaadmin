@@ -12,9 +12,10 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class EntityLimitRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     protected $adminUser;
+
     protected $regularUser;
 
     protected function setUp(): void
@@ -26,7 +27,7 @@ class EntityLimitRequestFeatureTest extends TestCase
 
         // Define a temporary route using the request for testing (bypassing Backpack CRUD stack)
         Route::post('/admin/entity-limit-test', function (EntityLimitRequest $request) {
-                return response()->json(['success' => true]);
+            return response()->json(['success' => true]);
         })->middleware('web');
     }
 
@@ -63,7 +64,11 @@ class EntityLimitRequestFeatureTest extends TestCase
         $response = $this->postJson('/admin/entity-limit-test', []);
         $response->assertStatus(422);
         $response->assertJsonValidationErrors([
-            'permission_name', 'entity_type', 'metric_type', 'period_type', 'limit_value'
+            'permission_name',
+            'entity_type',
+            'metric_type',
+            'period_type',
+            'limit_value',
         ]);
     }
 

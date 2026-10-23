@@ -1,9 +1,9 @@
 <?php
+
 namespace Tests\Support\Fakes\Payment;
 
-use Illuminate\Support\Facades\Log;
 use App\Domain\Payment\Contracts\PaymentGatewayInterface;
-use App\Models\Subscription;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Simple fake gateway used for behavior tests to simulate success / failure without external API calls.
@@ -12,11 +12,16 @@ class FakePaymentGateway implements PaymentGatewayInterface
 {
     /** @var array<int, array<string,mixed>> */
     public array $createdPayments = [];
+
     /** @var array<string, string> */
     public array $statuses = [];
+
     public bool $shouldFailCreate = false;
+
     public bool $shouldFailReturn = false;
+
     public bool $shouldFailVerify = false;
+
     public array $lastReturnData = [];
 
     public function createPayment(array $paymentData): array
@@ -55,7 +60,7 @@ class FakePaymentGateway implements PaymentGatewayInterface
             ];
         }
         $paymentId = $data['payment_id'] ?? $data['id'] ?? null;
-        if (!$paymentId) {
+        if (! $paymentId) {
             return [
                 'success' => false,
                 'error' => 'missing-payment-id',
@@ -64,6 +69,7 @@ class FakePaymentGateway implements PaymentGatewayInterface
         $status = $data['status'] ?? 'completed';
         $this->statuses[$paymentId] = $status;
         $this->lastReturnData = $data;
+
         return [
             'success' => true,
             'payment_id' => $paymentId,
@@ -81,6 +87,7 @@ class FakePaymentGateway implements PaymentGatewayInterface
             ];
         }
         $status = $this->statuses[$paymentId] ?? 'unknown';
+
         return [
             'success' => true,
             'status' => $status,
@@ -89,19 +96,20 @@ class FakePaymentGateway implements PaymentGatewayInterface
 
     public function cancelPayment(string $paymentId): bool
     {
-        if (!isset($this->statuses[$paymentId])) {
+        if (! isset($this->statuses[$paymentId])) {
             return false;
         }
         $this->statuses[$paymentId] = 'cancelled';
+
         return true;
     }
 
-    public function refundPayment(string $paymentId, float $amount = null): array
+    public function refundPayment(string $paymentId, ?float $amount = null): array
     {
         // Debug: vypiš aktuální stav payments a statusů
         Log::info('[FakePaymentGateway] createdPayments', $this->createdPayments);
         Log::info('[FakePaymentGateway] statuses', $this->statuses);
-        
+
         // Simulate partial vs full refunds; assume original amount from createdPayments record
         $original = null;
         foreach ($this->createdPayments as $rec) {
@@ -111,7 +119,7 @@ class FakePaymentGateway implements PaymentGatewayInterface
             }
         }
         if ($original === null) {
-            Log::warning('[FakePaymentGateway] refundPayment: paymentId '.$paymentId.' not found in createdPayments', [
+            Log::warning('[FakePaymentGateway] refundPayment: paymentId ' . $paymentId . ' not found in createdPayments', [
                 'createdPayments' => $this->createdPayments,
                 'statuses' => $this->statuses,
             ]);
@@ -133,6 +141,7 @@ class FakePaymentGateway implements PaymentGatewayInterface
             $this->statuses[$paymentId] = 'refunded';
             $this->statuses[$key] = $original; // clamp
         }
+
         return [
             'success' => true,
             'amount' => $amount,

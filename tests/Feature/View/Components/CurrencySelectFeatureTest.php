@@ -75,7 +75,7 @@ class CurrencySelectFeatureTest extends TestCase
             'Select Currency',
             'form-select',
             'label-class',
-            'Choose your currency'
+            'Choose your currency',
         );
 
         $this->assertEquals('currency2', $component2->name);
@@ -134,15 +134,30 @@ class CurrencySelectFeatureTest extends TestCase
         $currencyService = app(CurrencyService::class);
 
         // Test with null selected (should default to CZK)
-        $component1 = new CurrencySelect($currencyService, 'currency1', null, null);
+        $component1 = new CurrencySelect(
+            $currencyService,
+            'currency1',
+            null,
+            null,
+        );
         $this->assertEquals('CZK', $component1->selected);
 
         // Test with custom selected value
-        $component2 = new CurrencySelect($currencyService, 'currency2', null, 'USD');
+        $component2 = new CurrencySelect(
+            $currencyService,
+            'currency2',
+            null,
+            'USD',
+        );
         $this->assertEquals('USD', $component2->selected);
 
         // Test with empty string selected (should use empty string)
-        $component3 = new CurrencySelect($currencyService, 'currency3', null, '');
+        $component3 = new CurrencySelect(
+            $currencyService,
+            'currency3',
+            null,
+            '',
+        );
         $this->assertEquals('', $component3->selected);
     }
 
@@ -156,11 +171,23 @@ class CurrencySelectFeatureTest extends TestCase
         $this->assertFalse($component1->required);
 
         // Test required = true
-        $component2 = new CurrencySelect($currencyService, 'currency2', null, null, true);
+        $component2 = new CurrencySelect(
+            $currencyService,
+            'currency2',
+            null,
+            null,
+            true,
+        );
         $this->assertTrue($component2->required);
 
         // Test required = false explicitly
-        $component3 = new CurrencySelect($currencyService, 'currency3', null, null, false);
+        $component3 = new CurrencySelect(
+            $currencyService,
+            'currency3',
+            null,
+            null,
+            false,
+        );
         $this->assertFalse($component3->required);
     }
 
@@ -186,8 +213,18 @@ class CurrencySelectFeatureTest extends TestCase
     {
         $currencyService = app(CurrencyService::class);
 
-        $component1 = new CurrencySelect($currencyService, 'currency', 'id1', 'EUR');
-        $component2 = new CurrencySelect($currencyService, 'currency', 'id2', 'EUR');
+        $component1 = new CurrencySelect(
+            $currencyService,
+            'currency',
+            'id1',
+            'EUR',
+        );
+        $component2 = new CurrencySelect(
+            $currencyService,
+            'currency',
+            'id2',
+            'EUR',
+        );
 
         $view1 = $component1->render();
         $view2 = $component2->render();

@@ -13,10 +13,11 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class StatusCategoryCrudControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
 
     protected function setUp(): void
@@ -38,9 +39,17 @@ class StatusCategoryCrudControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee(__('statuses.categories.fields.statuses'));
-        $response->assertSeeInOrder(['<th>' . __('statuses.fields.slug') . '</th>', $status->name, $status->slug], false);
+        $response->assertSeeInOrder([
+            '<th>' . __('statuses.fields.slug') . '</th>',
+            $status->name,
+            $status->slug,
+        ], false);
         $response->assertDontSee($otherStatus->name);
-        $response->assertSeeInOrder([__('statuses.categories.fields.statuses_count'), '<span>', '1'], false);
+        $response->assertSeeInOrder([
+            __('statuses.categories.fields.statuses_count'),
+            '<span>',
+            '1',
+        ], false);
         $response->assertSee(__('admin.general.created_at'));
     }
 
@@ -53,7 +62,11 @@ class StatusCategoryCrudControllerTest extends TestCase
         StatusCategory::factory()->create();
 
         DB::enableQueryLog();
-        $response = $this->postJson('/admin/status-category/search', ['draw' => 1, 'start' => 0, 'length' => 100]);
+        $response = $this->postJson('/admin/status-category/search', [
+            'draw' => 1,
+            'start' => 0,
+            'length' => 100,
+        ]);
         $statusQueries = array_filter(DB::getQueryLog(), fn ($query) => str_starts_with($query['query'], 'select * from "statuses"'));
 
         $response->assertOk();

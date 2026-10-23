@@ -20,7 +20,11 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
     {
         Notification::fake();
 
-        $recipient = new Recipient(name: 'John Doe', email: 'john@example.com', preferredLocale: 'cs');
+        $recipient = new Recipient(
+            name: 'John Doe',
+            email: 'john@example.com',
+            preferredLocale: 'cs',
+        );
         $payload = new InvoiceReminderPayload(
             invoiceNumber: 'INV-1001',
             dueDate: new \DateTimeImmutable('2025-10-10'),
@@ -31,20 +35,33 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
 
         /** @var InvoiceReminderNotifierInterface $notifier */
         $notifier = app(InvoiceReminderNotifierInterface::class);
-        $notifier->send(InvoiceReminderType::UPCOMING_DUE, $payload, $recipient);
+        $notifier->send(
+            InvoiceReminderType::UPCOMING_DUE,
+            $payload,
+            $recipient,
+        );
 
         Notification::assertSentOnDemand(
             InfraUpcoming::class,
-            function ($notification, $channels, $notifiable) use ($recipient) {
+            function (
+                $notification,
+                $channels,
+                $notifiable,
+            ) use ($recipient) {
                 // correct channel and email route
-                $routeOk = in_array('mail', $channels, true) && ($notifiable->routes['mail'] ?? null) === $recipient->email;
+                $routeOk = in_array(
+                    'mail',
+                    $channels,
+                    true,
+                ) && ($notifiable->routes['mail'] ?? null) === $recipient->email;
                 // locale is set on notification instance
                 $ref = new \ReflectionClass($notification);
                 $prop = $ref->getParentClass()->getProperty('locale'); // property on base Notification
                 $prop->setAccessible(true);
                 $locale = $prop->getValue($notification);
+
                 return $routeOk && $locale === 'cs';
-            }
+            },
         );
     }
 
@@ -53,7 +70,11 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
     {
         Notification::fake();
 
-        $recipient = new Recipient(name: 'Jane Doe', email: 'jane@example.com', preferredLocale: 'en');
+        $recipient = new Recipient(
+            name: 'Jane Doe',
+            email: 'jane@example.com',
+            preferredLocale: 'en',
+        );
         $payload = new InvoiceReminderPayload(
             invoiceNumber: 'INV-1002',
             dueDate: new \DateTimeImmutable('2025-10-07'),
@@ -62,18 +83,31 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
         );
 
         $notifier = app(InvoiceReminderNotifierInterface::class);
-        $notifier->send(InvoiceReminderType::DUE_TODAY, $payload, $recipient);
+        $notifier->send(
+            InvoiceReminderType::DUE_TODAY,
+            $payload,
+            $recipient,
+        );
 
         Notification::assertSentOnDemand(
             InfraDue::class,
-            function ($notification, $channels, $notifiable) use ($recipient) {
-                $routeOk = in_array('mail', $channels, true) && ($notifiable->routes['mail'] ?? null) === $recipient->email;
+            function (
+                $notification,
+                $channels,
+                $notifiable,
+            ) use ($recipient) {
+                $routeOk = in_array(
+                    'mail',
+                    $channels,
+                    true,
+                ) && ($notifiable->routes['mail'] ?? null) === $recipient->email;
                 $ref = new \ReflectionClass($notification);
                 $prop = $ref->getParentClass()->getProperty('locale');
                 $prop->setAccessible(true);
                 $locale = $prop->getValue($notification);
+
                 return $routeOk && $locale === 'en';
-            }
+            },
         );
     }
 
@@ -82,7 +116,11 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
     {
         Notification::fake();
 
-        $recipient = new Recipient(name: 'Max Mustermann', email: 'max@example.com', preferredLocale: 'de');
+        $recipient = new Recipient(
+            name: 'Max Mustermann',
+            email: 'max@example.com',
+            preferredLocale: 'de',
+        );
         $payload = new InvoiceReminderPayload(
             invoiceNumber: 'INV-1003',
             dueDate: new \DateTimeImmutable('2025-09-30'),
@@ -92,18 +130,31 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
         );
 
         $notifier = app(InvoiceReminderNotifierInterface::class);
-        $notifier->send(InvoiceReminderType::OVERDUE, $payload, $recipient);
+        $notifier->send(
+            InvoiceReminderType::OVERDUE,
+            $payload,
+            $recipient,
+        );
 
         Notification::assertSentOnDemand(
             InfraOverdue::class,
-            function ($notification, $channels, $notifiable) use ($recipient) {
-                $routeOk = in_array('mail', $channels, true) && ($notifiable->routes['mail'] ?? null) === $recipient->email;
+            function (
+                $notification,
+                $channels,
+                $notifiable,
+            ) use ($recipient) {
+                $routeOk = in_array(
+                    'mail',
+                    $channels,
+                    true,
+                ) && ($notifiable->routes['mail'] ?? null) === $recipient->email;
                 $ref = new \ReflectionClass($notification);
                 $prop = $ref->getParentClass()->getProperty('locale');
                 $prop->setAccessible(true);
                 $locale = $prop->getValue($notification);
+
                 return $routeOk && $locale === 'de';
-            }
+            },
         );
     }
 }

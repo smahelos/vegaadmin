@@ -3,8 +3,8 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
 use App\Application\Payment\DTO\RefundResultDTO;
+use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
 use App\Http\Controllers\Frontend\SubscriptionController;
 use App\Models\Payment;
 use App\Models\Subscription;
@@ -19,8 +19,8 @@ use Tests\Traits\WithSyntheticPaymentAppService;
 
 class SubscriptionControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesFrontendTestEnvironment;
+    use RefreshDatabase;
     use WithSyntheticPaymentAppService;
 
     protected User $user;
@@ -28,13 +28,13 @@ class SubscriptionControllerFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->setUpFrontendTestEnvironment();
-        
+
         // Give user specific subscription permission
         $permission = Permission::where('name', 'frontend.can_create_subscription')
-                               ->where('guard_name', 'web')
-                               ->first();
+            ->where('guard_name', 'web')
+            ->first();
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
@@ -45,11 +45,11 @@ class SubscriptionControllerFeatureTest extends TestCase
     {
         $activePlan = SubscriptionPlan::factory()->create([
             'is_active' => true,
-            'name' => 'Active Test Plan'
+            'name' => 'Active Test Plan',
         ]);
         $inactivePlan = SubscriptionPlan::factory()->create([
             'is_active' => false,
-            'name' => 'Inactive Test Plan'
+            'name' => 'Inactive Test Plan',
         ]);
 
         $this->actingAs($this->user);
@@ -68,7 +68,7 @@ class SubscriptionControllerFeatureTest extends TestCase
     {
         $subscription = Subscription::factory()->create([
             'user_id' => $this->user->id,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $this->actingAs($this->user);
@@ -86,11 +86,11 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-    $this->bindSyntheticPaymentAppService();
+        $this->bindSyntheticPaymentAppService();
 
         $response = $this->get(route('subscriptions.show', [
-            'locale' => 'en', 
-            'plan' => $plan->id
+            'locale' => 'en',
+            'plan' => $plan->id,
         ]));
 
         $response->assertStatus(200);
@@ -106,7 +106,7 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $response = $this->post(route('subscriptions.subscribe', [
             'locale' => 'en',
-            'plan' => $plan->id
+            'plan' => $plan->id,
         ]));
 
         $response->assertRedirect(route('login'));
@@ -117,20 +117,49 @@ class SubscriptionControllerFeatureTest extends TestCase
     {
         // Override the default mock with success result
         $this->app->singleton(PaymentApplicationServiceInterface::class, function () {
-            return new class implements PaymentApplicationServiceInterface {
-                public function initiateSubscription(Subscription $subscription, string $gateway, array $data = []): SubscriptionPaymentResultDTO { 
+            return new class implements PaymentApplicationServiceInterface
+            {
+                public function initiateSubscription(
+                    Subscription $subscription,
+                    string $gateway,
+                    array $data = [],
+                ): SubscriptionPaymentResultDTO {
                     return SubscriptionPaymentResultDTO::fromArray([
                         'success' => true,
                         'payment_id' => 123,
                         'status' => 'pending',
-                        'redirect_url' => 'https://stub-gateway.test/pay/123'
-                    ]); 
+                        'redirect_url' => 'https://stub-gateway.test/pay/123',
+                    ]);
                 }
-                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO { return SubscriptionPaymentResultDTO::fromArray(['success' => false]); }
-                public function verify(Payment $payment): SubscriptionPaymentResultDTO { return SubscriptionPaymentResultDTO::fromArray(['success' => false]); }
-                public function refund(Payment $payment, ?float $amount = null): RefundResultDTO { return RefundResultDTO::fromArray(['success' => false]); }
-                public function getAvailableGateways(): array { return ['gopay' => ['name' => 'GoPay', 'supported_currencies' => ['CZK'], 'supports_recurring' => false]]; }
-                public function cancelSubscription(Subscription $subscription): bool { return false; }
+
+                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
+                {
+                    return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
+                }
+
+                public function verify(Payment $payment): SubscriptionPaymentResultDTO
+                {
+                    return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
+                }
+
+                public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
+                {
+                    return RefundResultDTO::fromArray(['success' => false]);
+                }
+
+                public function getAvailableGateways(): array
+                {
+                    return ['gopay' => [
+                        'name' => 'GoPay',
+                        'supported_currencies' => ['CZK'],
+                        'supports_recurring' => false,
+                    ]];
+                }
+
+                public function cancelSubscription(Subscription $subscription): bool
+                {
+                    return false;
+                }
             };
         });
 
@@ -140,9 +169,9 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $response = $this->post(route('subscriptions.subscribe', [
             'locale' => 'en',
-            'plan' => $plan->id
+            'plan' => $plan->id,
         ]), [
-            'gateway' => 'gopay'
+            'gateway' => 'gopay',
         ]);
 
         $response->assertRedirect();
@@ -156,16 +185,16 @@ class SubscriptionControllerFeatureTest extends TestCase
         $plan = SubscriptionPlan::factory()->create();
         $existingSubscription = Subscription::factory()->create([
             'user_id' => $this->user->id,
-            'status' => 'active'
+            'status' => 'active',
         ]);
-        
+
         $this->actingAs($this->user);
 
         $response = $this->post(route('subscriptions.subscribe', [
             'locale' => 'en',
-            'plan' => $plan->id
+            'plan' => $plan->id,
         ]), [
-            'gateway' => 'gopay'
+            'gateway' => 'gopay',
         ]);
 
         $response->assertRedirect();
@@ -179,7 +208,7 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $response = $this->delete(route('subscriptions.cancel', [
             'locale' => 'en',
-            'subscription' => $subscription->id
+            'subscription' => $subscription->id,
         ]));
 
         $response->assertRedirect(route('login'));
@@ -190,9 +219,9 @@ class SubscriptionControllerFeatureTest extends TestCase
     {
         $subscription = Subscription::factory()->create([
             'user_id' => $this->user->id,
-            'status' => 'active'
+            'status' => 'active',
         ]);
-        
+
         // Give user permission to cancel their own subscription
         $this->user->givePermissionTo('frontend.can_cancel_subscription');
 
@@ -200,7 +229,7 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $response = $this->delete(route('subscriptions.cancel', [
             'locale' => 'en',
-            'subscription' => $subscription->id
+            'subscription' => $subscription->id,
         ]));
 
         $response->assertRedirect();
@@ -213,14 +242,14 @@ class SubscriptionControllerFeatureTest extends TestCase
         $otherUser = User::factory()->create();
         $subscription = Subscription::factory()->create([
             'user_id' => $otherUser->id,
-            'status' => 'active'
+            'status' => 'active',
         ]);
-        
+
         $this->actingAs($this->user);
 
         $response = $this->delete(route('subscriptions.cancel', [
             'locale' => 'en',
-            'subscription' => $subscription->id
+            'subscription' => $subscription->id,
         ]));
 
         $response->assertForbidden();
@@ -231,9 +260,9 @@ class SubscriptionControllerFeatureTest extends TestCase
     public function controller_uses_authorization(): void
     {
         $reflection = new \ReflectionClass(SubscriptionController::class);
-        
+
         $this->assertTrue($reflection->hasMethod('cancel'));
-        
+
         // Check if controller uses AuthorizesRequests trait
         $traits = $reflection->getTraitNames();
         $this->assertContains('Illuminate\Foundation\Auth\Access\AuthorizesRequests', $traits);

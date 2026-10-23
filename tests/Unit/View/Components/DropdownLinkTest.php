@@ -15,7 +15,7 @@ class DropdownLinkTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->component = new DropdownLink('/test-url');
     }
 
@@ -35,7 +35,7 @@ class DropdownLinkTest extends TestCase
     public function render_method_exists_and_is_public(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));
-        
+
         $reflection = new \ReflectionClass(DropdownLink::class);
         $method = $reflection->getMethod('render');
         $this->assertTrue($method->isPublic());
@@ -47,7 +47,7 @@ class DropdownLinkTest extends TestCase
         $reflection = new \ReflectionClass(DropdownLink::class);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\View\View', $returnType->getName());
     }
@@ -57,7 +57,7 @@ class DropdownLinkTest extends TestCase
     {
         $href = '/custom-url';
         $component = new DropdownLink($href);
-        
+
         $this->assertEquals($href, $component->href);
     }
 
@@ -69,9 +69,9 @@ class DropdownLinkTest extends TestCase
             'https://example.com',
             '#',
             'mailto:test@example.com',
-            'javascript:void(0)'
+            'javascript:void(0)',
         ];
-        
+
         foreach ($testUrls as $url) {
             $component = new DropdownLink($url);
             $this->assertEquals($url, $component->href);
@@ -82,7 +82,7 @@ class DropdownLinkTest extends TestCase
     public function component_has_expected_namespace(): void
     {
         $reflection = new \ReflectionClass(DropdownLink::class);
-        
+
         $this->assertEquals('App\View\Components', $reflection->getNamespaceName());
     }
 
@@ -91,9 +91,9 @@ class DropdownLinkTest extends TestCase
     {
         $reflection = new \ReflectionClass(DropdownLink::class);
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-        
-        $propertyNames = array_map(fn($prop) => $prop->getName(), $properties);
-        
+
+        $propertyNames = array_map(fn ($prop) => $prop->getName(), $properties);
+
         $this->assertContains('href', $propertyNames);
     }
 
@@ -103,7 +103,7 @@ class DropdownLinkTest extends TestCase
         $reflection = new \ReflectionClass(DropdownLink::class);
         $method = $reflection->getMethod('render');
         $docComment = $method->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('Render the dropdown link component', $docComment);
     }
@@ -114,7 +114,7 @@ class DropdownLinkTest extends TestCase
         $reflection = new \ReflectionClass(DropdownLink::class);
         $constructor = $reflection->getMethod('__construct');
         $parameters = $constructor->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('href', $parameters[0]->getName());
         $this->assertFalse($parameters[0]->isOptional());
@@ -125,7 +125,7 @@ class DropdownLinkTest extends TestCase
     {
         $reflection = new \ReflectionClass(DropdownLink::class);
         $fileContent = file_get_contents($reflection->getFileName());
-        
+
         $this->assertStringContainsString('use Illuminate\View\Component;', $fileContent);
         $this->assertStringContainsString('use Illuminate\View\View;', $fileContent);
     }
@@ -135,7 +135,7 @@ class DropdownLinkTest extends TestCase
     {
         $reflection = new \ReflectionClass(DropdownLink::class);
         $hrefProperty = $reflection->getProperty('href');
-        
+
         $this->assertNotFalse($hrefProperty->getDocComment());
         $this->assertStringContainsString('@var string', $hrefProperty->getDocComment());
         $this->assertStringContainsString('Link target URL', $hrefProperty->getDocComment());
@@ -146,7 +146,7 @@ class DropdownLinkTest extends TestCase
     {
         $reflection = new \ReflectionClass(DropdownLink::class);
         $method = $reflection->getMethod('render');
-        
+
         // Check that the method body contains the expected view call
         $fileContent = file_get_contents($reflection->getFileName());
         $this->assertStringContainsString("view('components.dropdown-link'", $fileContent);

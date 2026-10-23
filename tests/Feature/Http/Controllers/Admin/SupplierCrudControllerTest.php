@@ -2,22 +2,24 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Models\Supplier;
-use App\Models\EntityLimit;
-use App\Models\User;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Models\EntityLimit;
+use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-
 use Tests\Traits\CreatesAdminTestEnvironment;
+
 class SupplierCrudControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
+
     private UniversalLimitService $limitService;
 
     protected function setUp(): void
@@ -42,20 +44,40 @@ class SupplierCrudControllerTest extends TestCase
         ]);
 
         // Check initial usage
-        $initialCheck = $this->limitService->checkLimit($this->adminUser->id, 'supplier', 'count', 'monthly');
+        $initialCheck = $this->limitService->checkLimit(
+            $this->adminUser->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
         $initialUsage = $initialCheck['current_usage'] ?? 0;
-        
+
         // Simulate supplier creation by directly calling recordUsage
         $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $result = $this->limitService->recordUsage($this->adminUser->id, 'supplier', 'count', 'monthly', 'backpack');
+        $result = $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'supplier',
+            'count',
+            'monthly',
+            'backpack',
+        );
         $this->assertTrue($result, 'recordUsage should return true when successful');
-        
+
         // Check new usage
-        $newCheck = $this->limitService->checkLimit($this->adminUser->id, 'supplier', 'count', 'monthly');
+        $newCheck = $this->limitService->checkLimit(
+            $this->adminUser->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
         $newUsage = $newCheck['current_usage'] ?? 0;
-        
-        $this->assertEquals($initialUsage + 1, $newUsage, 'Usage should increase by 1 after recording');
-        
+
+        $this->assertEquals(
+            $initialUsage + 1,
+            $newUsage,
+            'Usage should increase by 1 after recording',
+        );
+
         // Verify supplier was created
         $this->assertDatabaseHas('suppliers', [
             'id' => $supplier->id,
@@ -77,17 +99,33 @@ class SupplierCrudControllerTest extends TestCase
         ]);
 
         // First supplier creation - should succeed
-        $checkBeforeFirst = $this->limitService->checkLimit($this->adminUser->id, 'supplier', 'count', 'monthly');
+        $checkBeforeFirst = $this->limitService->checkLimit(
+            $this->adminUser->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
         $this->assertTrue($checkBeforeFirst['allowed']);
 
         $supplier1 = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $this->limitService->recordUsage($this->adminUser->id, 'supplier', 'count', 'monthly', 'backpack');
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'supplier',
+            'count',
+            'monthly',
+            'backpack',
+        );
 
         // Second supplier creation - should fail due to limit
-        $checkBeforeSecond = $this->limitService->checkLimit($this->adminUser->id, 'supplier', 'count', 'monthly');
+        $checkBeforeSecond = $this->limitService->checkLimit(
+            $this->adminUser->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
         $this->assertFalse($checkBeforeSecond['allowed']);
         $this->assertEquals('limit_exceeded', $checkBeforeSecond['reason']);
-        
+
         // Verify first supplier was created
         $this->assertDatabaseHas('suppliers', [
             'id' => $supplier1->id,

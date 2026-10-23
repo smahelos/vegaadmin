@@ -12,7 +12,7 @@ class SubscriptionRequest extends FormRequest
     public function authorize(): bool
     {
         // Only allow logged in users with proper permissions
-        return backpack_auth()->check() && 
+        return backpack_auth()->check() &&
                backpack_user()->hasPermissionTo('can_create_edit_subscription', 'backpack');
     }
 

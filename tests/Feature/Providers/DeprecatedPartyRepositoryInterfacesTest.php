@@ -19,12 +19,13 @@ class DeprecatedPartyRepositoryInterfacesTest extends TestCase
     private const EXPECT_DEPRECATED_EXISTS = false; // flip to false after removal window
 
     private const CLIENT_PATH = 'app/Domain/Party/Contracts/ClientRepositoryInterface.php';
+
     private const SUPPLIER_PATH = 'app/Domain/Party/Contracts/SupplierRepositoryInterface.php';
 
     #[Test]
     public function deprecated_interfaces_presence_and_annotation_aligned_with_plan(): void
     {
-        $fs = new Filesystem();
+        $fs = new Filesystem;
 
         $clientExists = $fs->exists(base_path(self::CLIENT_PATH));
         $supplierExists = $fs->exists(base_path(self::SUPPLIER_PATH));
@@ -36,8 +37,16 @@ class DeprecatedPartyRepositoryInterfacesTest extends TestCase
             $client = $fs->get(base_path(self::CLIENT_PATH));
             $supplier = $fs->get(base_path(self::SUPPLIER_PATH));
 
-            $this->assertStringContainsString('@deprecated', $client, 'ClientRepositoryInterface must be annotated @deprecated.');
-            $this->assertStringContainsString('@deprecated', $supplier, 'SupplierRepositoryInterface must be annotated @deprecated.');
+            $this->assertStringContainsString(
+                '@deprecated',
+                $client,
+                'ClientRepositoryInterface must be annotated @deprecated.',
+            );
+            $this->assertStringContainsString(
+                '@deprecated',
+                $supplier,
+                'SupplierRepositoryInterface must be annotated @deprecated.',
+            );
         } else {
             $this->assertFalse($clientExists, 'ClientRepositoryInterface should have been removed after deprecation window.');
             $this->assertFalse($supplierExists, 'SupplierRepositoryInterface should have been removed after deprecation window.');

@@ -3,11 +3,12 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Tax;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Illuminate\Database\QueryException;
 
 class TaxFeatureTest extends TestCase
 {
@@ -118,7 +119,7 @@ class TaxFeatureTest extends TestCase
     public function name_is_required(): void
     {
         $this->expectException(QueryException::class);
-        
+
         Tax::factory()->create(['name' => null]);
     }
 
@@ -126,7 +127,7 @@ class TaxFeatureTest extends TestCase
     public function rate_is_required(): void
     {
         $this->expectException(QueryException::class);
-        
+
         Tax::factory()->create(['rate' => null]);
     }
 
@@ -152,7 +153,11 @@ class TaxFeatureTest extends TestCase
 
         $taxesOrderedByName = Tax::orderBy('name')->pluck('name')->toArray();
 
-        $expectedOrder = ['Alpha Tax', 'Beta Tax', 'Zebra Tax'];
+        $expectedOrder = [
+            'Alpha Tax',
+            'Beta Tax',
+            'Zebra Tax',
+        ];
         $this->assertEquals($expectedOrder, $taxesOrderedByName);
     }
 
@@ -165,7 +170,11 @@ class TaxFeatureTest extends TestCase
 
         $taxesOrderedByRate = Tax::orderBy('rate')->pluck('name')->toArray();
 
-        $expectedOrder = ['Low Tax', 'Medium Tax', 'High Tax'];
+        $expectedOrder = [
+            'Low Tax',
+            'Medium Tax',
+            'High Tax',
+        ];
         $this->assertEquals($expectedOrder, $taxesOrderedByRate);
     }
 
@@ -191,7 +200,11 @@ class TaxFeatureTest extends TestCase
         Tax::factory()->count(3)->create(['rate' => 21.00]);
 
         $zeroRateTaxes = Tax::where('rate', 0)->get();
-        $nonZeroTaxes = Tax::where('rate', '>', 0)->get();
+        $nonZeroTaxes = Tax::where(
+            'rate',
+            '>',
+            0,
+        )->get();
 
         $this->assertCount(2, $zeroRateTaxes);
         $this->assertCount(3, $nonZeroTaxes);
@@ -213,9 +226,9 @@ class TaxFeatureTest extends TestCase
     public function rate_formatted_attribute_works_with_database(): void
     {
         $tax = Tax::factory()->create(['rate' => 21.50]);
-        
+
         $tax->refresh();
-        
+
         $this->assertEquals('21.50%', $tax->rate_formatted);
     }
 
@@ -226,8 +239,8 @@ class TaxFeatureTest extends TestCase
 
         $this->assertNotNull($tax->created_at);
         $this->assertNotNull($tax->updated_at);
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $tax->created_at);
-        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $tax->updated_at);
+        $this->assertInstanceOf(Carbon::class, $tax->created_at);
+        $this->assertInstanceOf(Carbon::class, $tax->updated_at);
     }
 
     #[Test]
@@ -252,9 +265,9 @@ class TaxFeatureTest extends TestCase
     public function rate_is_stored_as_decimal(): void
     {
         $tax = Tax::factory()->create(['rate' => 21.55]);
-        
+
         $tax->refresh();
-        
+
         $this->assertIsNumeric($tax->rate);
         $this->assertEquals(21.55, (float) $tax->rate);
     }

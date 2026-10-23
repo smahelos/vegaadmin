@@ -2,20 +2,17 @@
 
 namespace App\Models;
 
+use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Cviebrock\EloquentSluggable\Sluggable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Illuminate\Http\UploadedFile;
-use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 
 class Product extends Model
 {
-    use HasFactory, Sluggable, CrudTrait, HasFileUploads;
+    use CrudTrait, HasFactory, HasFileUploads, Sluggable;
 
     protected $fillable = [
         'name',
@@ -39,7 +36,6 @@ class Product extends Model
         'is_active' => 'boolean',
     ];
 
-
     /**
      * Boot method for the model
      * Sets all other products of the user to is_default = false
@@ -53,7 +49,11 @@ class Product extends Model
             // If this product is set as default, unset default status for other products
             if ($model->is_default) {
                 self::where('user_id', $model->user_id)
-                    ->where('id', '!=', $model->id)
+                    ->where(
+                        'id',
+                        '!=',
+                        $model->id,
+                    )
                     ->update(['is_default' => false]);
             }
         });
@@ -66,11 +66,10 @@ class Product extends Model
     {
         return [
             'slug' => [
-                'source' => 'name'
-            ]
+                'source' => 'name',
+            ],
         ];
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -83,20 +82,20 @@ class Product extends Model
     public function invoices()
     {
         return $this->belongsToMany(Invoice::class, 'invoice_products')
-                    ->withPivot([
-                        'name',
-                        'quantity',
-                        'price',
-                        'currency',
-                        'unit',
-                        'category',
-                        'description',
-                        'is_custom_product',
-                        'tax_rate',
-                        'tax_amount',
-                        'total_price'
-                    ])
-                    ->withTimestamps();
+            ->withPivot([
+                'name',
+                'quantity',
+                'price',
+                'currency',
+                'unit',
+                'category',
+                'description',
+                'is_custom_product',
+                'tax_rate',
+                'tax_amount',
+                'total_price',
+            ])
+            ->withTimestamps();
     }
 
     /**
@@ -114,7 +113,6 @@ class Product extends Model
     {
         return $this->belongsTo(Supplier::class);
     }
-
 
     /**
      * Get the tax applied to the product.
@@ -143,8 +141,7 @@ class Product extends Model
     /**
      * Handle image upload, replacement and deletion
      *
-     * @param mixed $value
-     * @return void
+     * @param  mixed  $value
      */
     public function setImageAttribute($value): void
     {
@@ -158,14 +155,13 @@ class Product extends Model
                 'sanitizeFilename' => true,
                 'randomizeFilename' => false,
             ],
-            'product_image'
+            'product_image',
         );
     }
 
     /**
      * Get URL to the image file
      *
-     * @param string $attribute
      * @return string|null
      */
     public function getFileUrl(string $attribute = 'image', $index = null)
@@ -180,9 +176,10 @@ class Product extends Model
      */
     public function getImageThumbUrl()
     {
-        if (!empty($this->image)) {
+        if (! empty($this->image)) {
             return Storage::disk('public')->path($this->image);
         }
+
         return null;
     }
 }

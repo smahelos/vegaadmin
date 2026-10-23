@@ -2,25 +2,19 @@
 
 namespace Tests\Unit\Domain\Invoice\Services;
 
-use App\Application\Invoice\Services\InvoicePdfApplicationService;
-use App\Application\Invoice\DTO\InvoiceActionResult;
-use App\Application\Invoice\DTO\InvoiceActionStatus;
-use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
-use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
-use App\Domain\User\ValueObjects\UserId;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
-use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\Invoice\DTO\InvoiceDTO;
-use App\Models\Invoice;
-use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
-
-use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
-use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
 use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
+use App\Application\Invoice\DTO\InvoiceActionResult;
+use App\Application\Invoice\DTO\InvoiceActionStatus;
+use App\Application\Invoice\Services\InvoicePdfApplicationService;
+use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
+use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
+use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
+use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\User\Contracts\Locale;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 /**
  * Unit test focusing on error handling in InvoicePdfApplicationService.
@@ -29,7 +23,7 @@ use App\Domain\User\Contracts\Locale;
 class InvoicePdfServiceQrErrorTest extends TestCase
 {
     #[Test]
-    public function generateForUser_handles_model_not_found_exception(): void
+    public function generate_for_user_handles_model_not_found_exception(): void
     {
         // Mock repository that throws ModelNotFoundException
         $invoiceDtoReadRepository = $this->createMock(InvoiceDtoReadRepositoryInterface::class);
@@ -46,7 +40,12 @@ class InvoicePdfServiceQrErrorTest extends TestCase
             $this->createMock(TemporaryInvoiceStoreInterface::class),
         );
 
-        $result = $service->generateForUser(1, 123, 'cs', false);
+        $result = $service->generateForUser(
+            1,
+            123,
+            'cs',
+            false,
+        );
 
         $this->assertInstanceOf(InvoiceActionResult::class, $result);
         $this->assertEquals(InvoiceActionStatus::FAILURE, $result->status);
@@ -55,11 +54,11 @@ class InvoicePdfServiceQrErrorTest extends TestCase
     }
 
     #[Test]
-    public function generateForUser_handles_general_exception(): void
+    public function generate_for_user_handles_general_exception(): void
     {
         // Mock repository that returns DTO but other service throws exception
-        $invoiceDto = $this->createMock(\App\Domain\Invoice\DTO\InvoiceDTO::class);
-        
+        $invoiceDto = $this->createMock(InvoiceDTO::class);
+
         $invoiceDtoReadRepository = $this->createMock(InvoiceDtoReadRepositoryInterface::class);
         $invoiceDtoReadRepository->method('findByIdForUser')
             ->willReturn($invoiceDto);
@@ -79,7 +78,12 @@ class InvoicePdfServiceQrErrorTest extends TestCase
             $this->createMock(TemporaryInvoiceStoreInterface::class),
         );
 
-        $result = $service->generateForUser(1, 123, 'cs', false);
+        $result = $service->generateForUser(
+            1,
+            123,
+            'cs',
+            false,
+        );
 
         $this->assertInstanceOf(InvoiceActionResult::class, $result);
         $this->assertEquals(InvoiceActionStatus::FAILURE, $result->status);
@@ -88,7 +92,7 @@ class InvoicePdfServiceQrErrorTest extends TestCase
     }
 
     #[Test]
-    public function generateForGuestByToken_handles_missing_token(): void
+    public function generate_for_guest_by_token_handles_missing_token(): void
     {
         $service = new InvoicePdfApplicationService(
             $this->createMock(InvoiceServiceInterface::class),
@@ -100,7 +104,11 @@ class InvoicePdfServiceQrErrorTest extends TestCase
             $this->createMock(TemporaryInvoiceStoreInterface::class),
         );
 
-        $result = $service->generateForGuestByToken(null, 'cs', false);
+        $result = $service->generateForGuestByToken(
+            null,
+            'cs',
+            false,
+        );
 
         $this->assertInstanceOf(InvoiceActionResult::class, $result);
         $this->assertEquals(InvoiceActionStatus::FAILURE, $result->status);
@@ -109,7 +117,7 @@ class InvoicePdfServiceQrErrorTest extends TestCase
     }
 
     #[Test]
-    public function generateForGuestByToken_handles_expired_token(): void
+    public function generate_for_guest_by_token_handles_expired_token(): void
     {
         // Mock store that returns null (expired/missing token)
         $temporaryInvoiceStore = $this->createMock(TemporaryInvoiceStoreInterface::class);
@@ -126,7 +134,11 @@ class InvoicePdfServiceQrErrorTest extends TestCase
             $temporaryInvoiceStore,
         );
 
-        $result = $service->generateForGuestByToken('test-token', 'cs', false);
+        $result = $service->generateForGuestByToken(
+            'test-token',
+            'cs',
+            false,
+        );
 
         $this->assertInstanceOf(InvoiceActionResult::class, $result);
         $this->assertEquals(InvoiceActionStatus::FAILURE, $result->status);
@@ -135,7 +147,7 @@ class InvoicePdfServiceQrErrorTest extends TestCase
     }
 
     #[Test]
-    public function generateForGuestByToken_handles_general_exception(): void
+    public function generate_for_guest_by_token_handles_general_exception(): void
     {
         // Mock store that returns data but factory throws exception
         $temporaryInvoiceStore = $this->createMock(TemporaryInvoiceStoreInterface::class);
@@ -156,7 +168,11 @@ class InvoicePdfServiceQrErrorTest extends TestCase
             $temporaryInvoiceStore,
         );
 
-        $result = $service->generateForGuestByToken('test-token', 'cs', false);
+        $result = $service->generateForGuestByToken(
+            'test-token',
+            'cs',
+            false,
+        );
 
         $this->assertInstanceOf(InvoiceActionResult::class, $result);
         $this->assertEquals(InvoiceActionStatus::FAILURE, $result->status);

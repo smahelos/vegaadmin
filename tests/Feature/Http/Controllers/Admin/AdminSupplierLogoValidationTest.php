@@ -3,63 +3,66 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\SupplierRequest;
+use App\Models\EntityLimit;
 use App\Models\Supplier;
 use App\Models\User;
-use App\Models\EntityLimit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 class AdminSupplierLogoValidationTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Set up admin test environment with proper permissions
         $this->setUpAdminTestEnvironment();
-        
+
         Storage::fake('public');
-        
+
         // Create test routes for admin supplier operations
         Route::post('/admin/supplier-test', function (SupplierRequest $request) {
             try {
                 // Check backpack authentication and permissions
-                if (!backpack_auth()->check()) {
+                if (! backpack_auth()->check()) {
                     return response()->json(['error' => 'Unauthenticated'], 401);
                 }
-                
-                if (!backpack_auth()->user()->can('can_create_edit_supplier')) {
+
+                if (! backpack_auth()->user()->can('can_create_edit_supplier')) {
                     return response()->json(['error' => 'Unauthorized'], 403);
                 }
-                
+
                 $validatedData = $request->validated();
-                
+
                 // Debug
                 logger('Validated data for supplier:', $validatedData);
-                
+
                 // Handle file upload if provided
                 if ($request->hasFile('supplier_logo')) {
                     $file = $request->file('supplier_logo');
                     $filename = time() . '_' . $file->getClientOriginalName();
-                    $path = $file->storeAs('suppliers/logos', $filename, 'public');
+                    $path = $file->storeAs(
+                        'suppliers/logos',
+                        $filename,
+                        'public',
+                    );
                     $validatedData['supplier_logo'] = $path;
                 }
-                
+
                 $supplier = Supplier::create($validatedData);
                 logger('Created supplier:', ['supplier' => $supplier, 'exists' => $supplier->exists]);
-                
+
                 // Only redirect on successful creation
                 if ($supplier && $supplier->exists) {
                     return response()->json(['success' => true, 'supplier' => $supplier]);
@@ -72,12 +75,16 @@ class AdminSupplierLogoValidationTest extends TestCase
         })->middleware('web');
     }
 
-    #[Test] 
+    #[Test]
     public function admin_can_create_supplier_with_logo_validation(): void
     {
-        $logo = UploadedFile::fake()->image('admin_supplier_logo.jpg', 200, 200);
+        $logo = UploadedFile::fake()->image(
+            'admin_supplier_logo.jpg',
+            200,
+            200,
+        );
         $testUser = User::factory()->create(['id' => intval(uniqid())]);
-        
+
         // Create entity limit for suppliers
         EntityLimit::factory()->create([
             'entity_type' => 'supplier',
@@ -119,7 +126,7 @@ class AdminSupplierLogoValidationTest extends TestCase
     {
         $invalidFile = UploadedFile::fake()->create('admin_document.pdf', 1000);
         $testUser = User::factory()->create();
-        
+
         // Create entity limit for suppliers
         EntityLimit::factory()->create([
             'entity_type' => 'supplier',
@@ -129,7 +136,7 @@ class AdminSupplierLogoValidationTest extends TestCase
             'permission_name' => 'can_create_edit_supplier',
             'is_active' => true,
         ]);
-        
+
         $supplierData = [
             'name' => 'Admin Invalid File Test',
             'email' => 'admin-invalid@supplier.com',
@@ -143,7 +150,7 @@ class AdminSupplierLogoValidationTest extends TestCase
         ];
 
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $response = $this->postJson('/admin/supplier-test', $supplierData);
 
         $response->assertStatus(422);
@@ -155,7 +162,7 @@ class AdminSupplierLogoValidationTest extends TestCase
     {
         $largeLogo = UploadedFile::fake()->image('admin_large_logo.jpg')->size(3000); // 3MB
         $testUser = User::factory()->create();
-        
+
         // Create entity limit for suppliers
         EntityLimit::factory()->create([
             'entity_type' => 'supplier',
@@ -165,7 +172,7 @@ class AdminSupplierLogoValidationTest extends TestCase
             'permission_name' => 'can_create_edit_supplier',
             'is_active' => true,
         ]);
-        
+
         $supplierData = [
             'name' => 'Admin Large File Test',
             'email' => 'admin-large@supplier.com',
@@ -179,7 +186,7 @@ class AdminSupplierLogoValidationTest extends TestCase
         ];
 
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         $response = $this->postJson('/admin/supplier-test', $supplierData);
 
         $response->assertStatus(422);
@@ -192,7 +199,7 @@ class AdminSupplierLogoValidationTest extends TestCase
         $unauthorizedUser = User::factory()->create();
         $logo = UploadedFile::fake()->image('unauthorized_logo.jpg');
         $testUser = User::factory()->create();
-        
+
         // Create entity limit for suppliers
         EntityLimit::factory()->create([
             'entity_type' => 'supplier',
@@ -202,7 +209,7 @@ class AdminSupplierLogoValidationTest extends TestCase
             'permission_name' => 'can_create_edit_supplier',
             'is_active' => true,
         ]);
-        
+
         $supplierData = [
             'name' => 'Unauthorized Test',
             'email' => 'unauthorized@supplier.com',
@@ -216,7 +223,7 @@ class AdminSupplierLogoValidationTest extends TestCase
         ];
 
         $this->actingAs($unauthorizedUser, 'backpack');
-        
+
         $response = $this->postJson('/admin/supplier-test', $supplierData);
 
         $response->assertStatus(403);

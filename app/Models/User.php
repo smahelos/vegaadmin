@@ -2,21 +2,21 @@
 
 namespace App\Models;
 
+use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 
 class User extends Authenticatable
 {
     use CrudTrait;
-    use HasRoles;
     use HasFactory, Notifiable;
     use HasPreferredLocale;
+    use HasRoles;
     use SoftDeletes;
 
     /*

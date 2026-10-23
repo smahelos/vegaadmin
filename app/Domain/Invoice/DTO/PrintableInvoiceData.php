@@ -11,7 +11,7 @@ use App\Domain\Shared\Money\ValueObjects\Money;
 class PrintableInvoiceData
 {
     /**
-     * @param array<int, PrintableInvoiceItemData> $items
+     * @param  array<int, PrintableInvoiceItemData>  $items
      */
     public function __construct(
         public readonly InvoiceId $id,

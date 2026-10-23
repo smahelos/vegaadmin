@@ -16,5 +16,9 @@ interface TranslatorInterface
     /**
      * Translate a key using provided replacements and locale.
      */
-    public function trans(string $key, array $replace = [], ?string $locale = null): string;
+    public function trans(
+        string $key,
+        array $replace = [],
+        ?string $locale = null,
+    ): string;
 }

@@ -25,7 +25,14 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
     public function interface_defines_methods(): void
     {
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
-        foreach (['processSubscriptionPayment','handlePaymentCallback','cancelSubscriptionPayment','verifySubscriptionPayment','getAvailableGateways','supportsRecurringPayments'] as $method) {
+        foreach ([
+            'processSubscriptionPayment',
+            'handlePaymentCallback',
+            'cancelSubscriptionPayment',
+            'verifySubscriptionPayment',
+            'getAvailableGateways',
+            'supportsRecurringPayments',
+        ] as $method) {
             $this->assertTrue($reflection->hasMethod($method), "Missing method {$method}");
         }
     }
@@ -37,9 +44,9 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
         $parameters = $method->getParameters();
         $this->assertCount(2, $parameters);
         $this->assertEquals('gateway', $parameters[0]->getName());
-        $this->assertEquals('string', (string)$parameters[0]->getType());
+        $this->assertEquals('string', (string) $parameters[0]->getType());
         $this->assertEquals('callbackData', $parameters[1]->getName());
-        $this->assertEquals('array', (string)$parameters[1]->getType());
+        $this->assertEquals('array', (string) $parameters[1]->getType());
     }
 
     #[Test]
@@ -47,7 +54,7 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
         $this->assertTrue($reflection->hasMethod('processSubscriptionPayment'));
-        
+
         $method = $reflection->getMethod('processSubscriptionPayment');
         $this->assertTrue($method->isAbstract());
         $this->assertTrue($method->isPublic());
@@ -58,7 +65,7 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
         $this->assertTrue($reflection->hasMethod('cancelSubscriptionPayment'));
-        
+
         $method = $reflection->getMethod('cancelSubscriptionPayment');
         $this->assertTrue($method->isAbstract());
         $this->assertTrue($method->isPublic());
@@ -69,7 +76,7 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
         $this->assertTrue($reflection->hasMethod('verifySubscriptionPayment'));
-        
+
         $method = $reflection->getMethod('verifySubscriptionPayment');
         $this->assertTrue($method->isAbstract());
         $this->assertTrue($method->isPublic());
@@ -80,7 +87,7 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
         $this->assertTrue($reflection->hasMethod('getAvailableGateways'));
-        
+
         $method = $reflection->getMethod('getAvailableGateways');
         $this->assertTrue($method->isAbstract());
         $this->assertTrue($method->isPublic());
@@ -91,7 +98,7 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
     {
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
         $this->assertTrue($reflection->hasMethod('handlePaymentCallback'));
-        
+
         $method = $reflection->getMethod('handlePaymentCallback');
         $this->assertTrue($method->isAbstract());
         $this->assertTrue($method->isPublic());
@@ -103,7 +110,7 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
         $method = $reflection->getMethod('processSubscriptionPayment');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(3, $parameters);
         $this->assertEquals('subscriptionId', $parameters[0]->getName());
         $this->assertEquals('gateway', $parameters[1]->getName());
@@ -118,7 +125,7 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
         $method = $reflection->getMethod('cancelSubscriptionPayment');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('subscriptionId', $parameters[0]->getName());
     }
@@ -129,7 +136,7 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
         $method = $reflection->getMethod('verifySubscriptionPayment');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $this->assertEquals('paymentId', $parameters[0]->getName());
     }
@@ -140,7 +147,7 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
         $method = $reflection->getMethod('getAvailableGateways');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(0, $parameters);
     }
 
@@ -148,23 +155,23 @@ class SubscriptionPaymentServiceInterfaceTest extends TestCase
     public function methods_have_correct_return_types(): void
     {
         $reflection = new \ReflectionClass(SubscriptionPaymentServiceInterface::class);
-        
+
         // processSubscriptionPayment should return array
         $processMethod = $reflection->getMethod('processSubscriptionPayment');
         $this->assertEquals('array', $processMethod->getReturnType()->getName());
-        
+
         // cancelSubscriptionPayment should return bool
         $cancelMethod = $reflection->getMethod('cancelSubscriptionPayment');
         $this->assertEquals('bool', $cancelMethod->getReturnType()->getName());
-        
+
         // verifySubscriptionPayment should return array
         $verifyMethod = $reflection->getMethod('verifySubscriptionPayment');
         $this->assertEquals('array', $verifyMethod->getReturnType()->getName());
-        
+
         // getAvailableGateways should return array
         $gatewaysMethod = $reflection->getMethod('getAvailableGateways');
         $this->assertEquals('array', $gatewaysMethod->getReturnType()->getName());
-        
+
         // handlePaymentCallback should return array
         $callbackMethod = $reflection->getMethod('handlePaymentCallback');
         $this->assertEquals('array', $callbackMethod->getReturnType()->getName());

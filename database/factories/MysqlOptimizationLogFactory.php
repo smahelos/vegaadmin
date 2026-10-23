@@ -6,7 +6,7 @@ use App\Models\MysqlOptimizationLog;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\MysqlOptimizationLog>
+ * @extends Factory<MysqlOptimizationLog>
  */
 class MysqlOptimizationLogFactory extends Factory
 {
@@ -32,18 +32,40 @@ class MysqlOptimizationLogFactory extends Factory
             'key_buffer_size',
             'sort_buffer_size',
             'read_buffer_size',
-            'table_open_cache'
+            'table_open_cache',
         ];
 
-        $priorities = ['high', 'medium', 'low'];
+        $priorities = [
+            'high',
+            'medium',
+            'low',
+        ];
 
         return [
             'setting_name' => $this->faker->randomElement($settings),
-            'current_value' => $this->faker->randomElement(['128M', '256M', '512M', '1G', '2G', '100', '200', '300']),
-            'recommended_value' => $this->faker->randomElement(['256M', '512M', '1G', '2G', '4G', '150', '300', '500']),
+            'current_value' => $this->faker->randomElement([
+                '128M',
+                '256M',
+                '512M',
+                '1G',
+                '2G',
+                '100',
+                '200',
+                '300',
+            ]),
+            'recommended_value' => $this->faker->randomElement([
+                '256M',
+                '512M',
+                '1G',
+                '2G',
+                '4G',
+                '150',
+                '300',
+                '500',
+            ]),
             'description' => $this->faker->sentence(),
             'priority' => $this->faker->randomElement($priorities),
-            'applied' => $this->faker->boolean(30) // 30% chance of being applied
+            'applied' => $this->faker->boolean(30), // 30% chance of being applied
         ];
     }
 
@@ -53,7 +75,7 @@ class MysqlOptimizationLogFactory extends Factory
     public function highPriority(): static
     {
         return $this->state(fn (array $attributes) => [
-            'priority' => 'high'
+            'priority' => 'high',
         ]);
     }
 
@@ -63,7 +85,7 @@ class MysqlOptimizationLogFactory extends Factory
     public function mediumPriority(): static
     {
         return $this->state(fn (array $attributes) => [
-            'priority' => 'medium'
+            'priority' => 'medium',
         ]);
     }
 
@@ -73,7 +95,7 @@ class MysqlOptimizationLogFactory extends Factory
     public function lowPriority(): static
     {
         return $this->state(fn (array $attributes) => [
-            'priority' => 'low'
+            'priority' => 'low',
         ]);
     }
 
@@ -83,7 +105,7 @@ class MysqlOptimizationLogFactory extends Factory
     public function applied(): static
     {
         return $this->state(fn (array $attributes) => [
-            'applied' => true
+            'applied' => true,
         ]);
     }
 
@@ -93,7 +115,7 @@ class MysqlOptimizationLogFactory extends Factory
     public function unapplied(): static
     {
         return $this->state(fn (array $attributes) => [
-            'applied' => false
+            'applied' => false,
         ]);
     }
 
@@ -107,7 +129,7 @@ class MysqlOptimizationLogFactory extends Factory
             'current_value' => '128M',
             'recommended_value' => '1G',
             'description' => 'InnoDB buffer pool size should be increased for better performance',
-            'priority' => 'high'
+            'priority' => 'high',
         ]);
     }
 
@@ -121,7 +143,7 @@ class MysqlOptimizationLogFactory extends Factory
             'current_value' => '151',
             'recommended_value' => '300',
             'description' => 'Maximum connections should be increased to handle more concurrent users',
-            'priority' => 'medium'
+            'priority' => 'medium',
         ]);
     }
 }

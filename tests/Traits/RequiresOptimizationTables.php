@@ -11,12 +11,12 @@ trait RequiresOptimizationTables
      */
     protected array $optimizationTables = [
         'performance_metrics',
-        'database_health_metrics', 
+        'database_health_metrics',
         'user_activity_summary',
         'mysql_optimization_logs',
         'archive_policies',
         'database_maintenance_logs',
-        'database_health_alerts'
+        'database_health_alerts',
     ];
 
     /**
@@ -25,27 +25,28 @@ trait RequiresOptimizationTables
     protected function hasOptimizationTables(): bool
     {
         foreach ($this->optimizationTables as $table) {
-            if (!Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 return false;
             }
         }
+
         return true;
     }
 
     /**
      * Skip test if optimization tables don't exist
-     * 
-     * @param string|array $requiredTables Optional specific tables to check
+     *
+     * @param  string|array  $requiredTables  Optional specific tables to check
      */
     protected function skipIfOptimizationTablesNotExist($requiredTables = null): void
     {
         $tablesToCheck = $requiredTables ? (array) $requiredTables : $this->optimizationTables;
-        
+
         foreach ($tablesToCheck as $table) {
-            if (!Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 $this->markTestSkipped(
                     "Test skipped: Optimization table '{$table}' not available in testing environment. " .
-                    "This test requires MySQL optimization tables which are only created in production environment."
+                    'This test requires MySQL optimization tables which are only created in production environment.',
                 );
             }
         }
@@ -56,9 +57,9 @@ trait RequiresOptimizationTables
      */
     protected function skipIfTableNotExists(string $table): void
     {
-        if (!Schema::hasTable($table)) {
+        if (! Schema::hasTable($table)) {
             $this->markTestSkipped(
-                "Test skipped: Table '{$table}' not available in testing environment."
+                "Test skipped: Table '{$table}' not available in testing environment.",
             );
         }
     }
@@ -68,6 +69,6 @@ trait RequiresOptimizationTables
      */
     protected function isOptimizationTablesSkipped(): bool
     {
-        return app()->environment('testing') && !$this->hasOptimizationTables();
+        return app()->environment('testing') && ! $this->hasOptimizationTables();
     }
 }

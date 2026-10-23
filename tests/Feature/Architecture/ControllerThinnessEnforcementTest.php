@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Architecture;
 
-use Illuminate\Filesystem\Filesystem;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -23,7 +22,12 @@ class ControllerThinnessEnforcementTest extends TestCase
         parent::setUp();
         $path = base_path('architecture/baselines/controller_thinness_baseline.json');
         $this->assertFileExists($path, 'Committed controller thinness baseline missing. Generate with: php artisan ddd:controller-thinness:baseline --save and copy storage/app/metrics/controller_thinness_baseline.json to architecture/baselines.');
-        $json = json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+        $json = json_decode(
+            file_get_contents($path),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
         $this->baseline = $json['controllers'];
     }
 
@@ -35,17 +39,18 @@ class ControllerThinnessEnforcementTest extends TestCase
 
         $violations = [];
         foreach ($current as $controller => $metrics) {
-            if (!isset($this->baseline[$controller])) {
+            if (! isset($this->baseline[$controller])) {
                 // New controller: allow but ensure starting point has no direct DB usage beyond acceptable
                 if ($metrics['eloquent_static_calls'] > 0 || $metrics['db_facade_calls'] > 0) {
                     $violations[] = "$controller: new controller introduces direct DB usage (eloquent_static_calls={$metrics['eloquent_static_calls']}, db_facade_calls={$metrics['db_facade_calls']})";
                 }
+
                 continue;
             }
             $base = $this->baseline[$controller];
 
             // LOC tolerance
-            $locLimit = min((int)ceil($base['loc'] * 1.15), $base['loc'] + 30);
+            $locLimit = min((int) ceil($base['loc'] * 1.15), $base['loc'] + 30);
             if ($metrics['loc'] > $locLimit) {
                 $violations[] = "$controller: LOC {$metrics['loc']} exceeds limit $locLimit (baseline {$base['loc']})";
             }
@@ -63,8 +68,8 @@ class ControllerThinnessEnforcementTest extends TestCase
             }
         }
 
-        if (!empty($violations)) {
-            $this->fail("Controller thinness regressions detected:\n".implode("\n", $violations));
+        if (! empty($violations)) {
+            $this->fail("Controller thinness regressions detected:\n" . implode("\n", $violations));
         }
         $this->assertTrue(true); // Passed
     }
@@ -75,33 +80,63 @@ class ControllerThinnessEnforcementTest extends TestCase
         $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
         $files = [];
         foreach ($rii as $file) {
-            if ($file->isDir()) continue;
-            if ($file->getExtension() !== 'php') continue;
+            if ($file->isDir()) {
+                continue;
+            }
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
             $files[] = $file->getPathname();
         }
         $result = [];
         foreach ($files as $file) {
             $content = file_get_contents($file);
-            $rel = str_replace(app_path().'/', '', $file);
+            $rel = str_replace(
+                app_path() . '/',
+                '',
+                $file,
+            );
             $result[$rel] = $this->analyzeContent($content);
         }
+
         return $result;
     }
 
     private function analyzeContent(string $content): array
     {
-        $lines = array_values(array_filter(array_map('rtrim', explode("\n", $content)), fn($l)=>$l !== ''));
+        $lines = array_values(array_filter(array_map('rtrim', explode("\n", $content)), fn ($l) => $l !== ''));
         $loc = count($lines);
         $eloquentStatic = 0;
-        $methods = ['where','create','find','all','first','update','delete','pluck','paginate','orderBy','count','sum','avg','min','max'];
+        $methods = [
+            'where',
+            'create',
+            'find',
+            'all',
+            'first',
+            'update',
+            'delete',
+            'pluck',
+            'paginate',
+            'orderBy',
+            'count',
+            'sum',
+            'avg',
+            'min',
+            'max',
+        ];
         foreach ($methods as $m) {
-            if (preg_match_all('/App\\\\Models\\\\[A-Za-z0-9_]+::'.$m.'\s*\(/', $content, $mm)) {
+            if (preg_match_all(
+                '/App\\\\Models\\\\[A-Za-z0-9_]+::' . $m . '\s*\(/',
+                $content,
+                $mm,
+            )) {
                 $eloquentStatic += count($mm[0]);
             }
         }
         $newModel = preg_match_all('/new\s+App\\\\Models\\\\[A-Za-z0-9_]+\s*\(/', $content, $mm) ? count($mm[0]) : 0;
         $dbFacade = preg_match_all('/DB::[A-Za-z_]+\s*\(/', $content, $mm) ? count($mm[0]) : 0;
         $publicMethods = preg_match_all('/public\s+function\s+(?!__construct)([A-Za-z0-9_]+)\s*\(/', $content, $mm) ? count($mm[0]) : 0;
+
         return [
             'loc' => $loc,
             'eloquent_static_calls' => $eloquentStatic,

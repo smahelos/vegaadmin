@@ -26,7 +26,7 @@ class InvoiceProductFeatureTest extends TestCase
             'name' => 'Test Product',
             'quantity' => 2,
             'price' => 100.00,
-            'tax_rate' => 21.00
+            'tax_rate' => 21.00,
         ]);
 
         $this->assertDatabaseHas('invoice_products', [
@@ -36,7 +36,7 @@ class InvoiceProductFeatureTest extends TestCase
             'name' => 'Test Product',
             'quantity' => 2,
             'price' => 100.00,
-            'tax_rate' => 21.00
+            'tax_rate' => 21.00,
         ]);
     }
 
@@ -66,7 +66,7 @@ class InvoiceProductFeatureTest extends TestCase
     public function can_create_custom_product_without_product_relation(): void
     {
         $invoice = Invoice::factory()->create();
-        
+
         $invoiceProduct = InvoiceProduct::factory()->create([
             'invoice_id' => $invoice->id,
             'product_id' => null,
@@ -74,7 +74,7 @@ class InvoiceProductFeatureTest extends TestCase
             'is_custom_product' => true,
             'price' => 150.00,
             'quantity' => 1,
-            'tax_rate' => 0.00
+            'tax_rate' => 0.00,
         ]);
 
         $this->assertTrue($invoiceProduct->is_custom_product);

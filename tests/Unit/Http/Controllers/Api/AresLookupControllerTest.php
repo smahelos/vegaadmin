@@ -15,7 +15,7 @@ class AresLookupControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->controller = new AresLookupController();
+        $this->controller = new AresLookupController;
     }
 
     #[Test]
@@ -38,7 +38,11 @@ class AresLookupControllerTest extends TestCase
     #[Test]
     public function invalid_ico_returns_error(): void
     {
-        $request = Request::create('/api/ares-lookup', 'GET', ['ico' => '123']);
+        $request = Request::create(
+            '/api/ares-lookup',
+            'GET',
+            ['ico' => '123'],
+        );
         $response = $this->controller->lookup($request);
         $json = $response->getData(true);
         $this->assertFalse($json['success']);
@@ -51,10 +55,14 @@ class AresLookupControllerTest extends TestCase
         Http::fake([
             'https://ares.gov.cz/*' => Http::response([
                 'zaznamy' => [],
-                'popis' => 'Nenalezeno'
-            ], 200)
+                'popis' => 'Nenalezeno',
+            ], 200),
         ]);
-        $request = Request::create('/api/ares-lookup', 'GET', ['ico' => '12345678']);
+        $request = Request::create(
+            '/api/ares-lookup',
+            'GET',
+            ['ico' => '12345678'],
+        );
         $response = $this->controller->lookup($request);
         $json = $response->getData(true);
         $this->assertFalse($json['success']);
@@ -65,9 +73,13 @@ class AresLookupControllerTest extends TestCase
     public function api_error_propagated(): void
     {
         Http::fake([
-            'https://ares.gov.cz/*' => Http::response(['popis' => 'Chyba'], 500)
+            'https://ares.gov.cz/*' => Http::response(['popis' => 'Chyba'], 500),
         ]);
-        $request = Request::create('/api/ares-lookup', 'GET', ['ico' => '12345678']);
+        $request = Request::create(
+            '/api/ares-lookup',
+            'GET',
+            ['ico' => '12345678'],
+        );
         $response = $this->controller->lookup($request);
         $json = $response->getData(true);
         $this->assertFalse($json['success']);
@@ -87,20 +99,24 @@ class AresLookupControllerTest extends TestCase
                         'nazevObce' => 'Brno',
                         'nazevCastiObce' => 'Brno-stred',
                         'psc' => '60200',
-                        'kodStatu' => 'CZ'
-                    ]
-                ]]
-            ], 200)
+                        'kodStatu' => 'CZ',
+                    ],
+                ]],
+            ], 200),
         ]);
         $ico = '87654321';
-        $request = Request::create('/api/ares-lookup', 'GET', ['ico' => $ico]);
+        $request = Request::create(
+            '/api/ares-lookup',
+            'GET',
+            ['ico' => $ico],
+        );
         $response = $this->controller->lookup($request);
         $json = $response->getData(true);
         $this->assertTrue($json['success']);
         $this->assertEquals('Demo Company s.r.o.', $json['data']['name']);
         $this->assertEquals('Nova 77', $json['data']['street']);
         $this->assertEquals('602 00', $json['data']['zip']);
-        $this->assertEquals('CZ'.$ico, $json['data']['dic']);
+        $this->assertEquals('CZ' . $ico, $json['data']['dic']);
         $this->assertEquals('Brno, Brno-stred', $json['data']['city']);
     }
 
@@ -108,9 +124,15 @@ class AresLookupControllerTest extends TestCase
     public function exception_returns_general_error(): void
     {
         Http::fake([
-            'https://ares.gov.cz/*' => function () { throw new \Exception('Failure'); }
+            'https://ares.gov.cz/*' => function () {
+                throw new \Exception('Failure');
+            },
         ]);
-        $request = Request::create('/api/ares-lookup', 'GET', ['ico' => '12345678']);
+        $request = Request::create(
+            '/api/ares-lookup',
+            'GET',
+            ['ico' => '12345678'],
+        );
         $response = $this->controller->lookup($request);
         $json = $response->getData(true);
         $this->assertFalse($json['success']);

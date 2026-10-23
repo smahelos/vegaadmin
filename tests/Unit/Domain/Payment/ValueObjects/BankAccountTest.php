@@ -14,7 +14,7 @@ class BankAccountTest extends TestCase
     {
         $iban = 'CZ6508000000192000145399';
         $account = new BankAccount($iban);
-        
+
         $this->assertEquals($iban, $account->getIban());
         $this->assertEquals('CZ', $account->getCountryCode());
         $this->assertTrue($account->isCzech());
@@ -26,7 +26,7 @@ class BankAccountTest extends TestCase
     {
         $iban = 'CZ6508000000192000145399';
         $account = BankAccount::fromIban($iban);
-        
+
         $this->assertEquals($iban, $account->getIban());
     }
 
@@ -36,9 +36,9 @@ class BankAccountTest extends TestCase
         // Use a simple account that doesn't require complex IBAN generation
         $accountNumber = '2000145399';
         $bankCode = '0800';
-        
+
         $account = BankAccount::fromCzechAccount($accountNumber, $bankCode);
-        
+
         $this->assertTrue($account->isCzech());
         $this->assertEquals($accountNumber, $account->getAccountNumber());
         $this->assertEquals($bankCode, $account->getBankCode());
@@ -53,10 +53,10 @@ class BankAccountTest extends TestCase
         $validIban = 'CZ6508000000192000145399';
         $ibanWithSpaces = 'CZ65 0800 0000 1920 0014 5399';
         $ibanLowercase = 'cz6508000000192000145399';
-        
+
         $account1 = new BankAccount($ibanWithSpaces);
         $account2 = new BankAccount($ibanLowercase);
-        
+
         $this->assertEquals($validIban, $account1->getIban());
         $this->assertEquals($validIban, $account2->getIban());
     }
@@ -66,9 +66,9 @@ class BankAccountTest extends TestCase
     {
         $iban = 'CZ6508000000192000145399';
         $account = new BankAccount($iban);
-        
+
         $formatted = $account->getFormattedIban();
-        
+
         $this->assertEquals('CZ65 0800 0000 1920 0014 5399', $formatted);
     }
 
@@ -77,9 +77,9 @@ class BankAccountTest extends TestCase
     {
         $iban = 'CZ6508000000192000145399';
         $bic = 'GIBACZPX';
-        
+
         $account = new BankAccount($iban, $bic);
-        
+
         $this->assertEquals($bic, $account->getBic());
     }
 
@@ -90,9 +90,14 @@ class BankAccountTest extends TestCase
         $bic = 'GIBACZPX';
         $accountNumber = '192000145399';
         $bankCode = '0800';
-        
-        $account = new BankAccount($iban, $bic, $accountNumber, $bankCode);
-        
+
+        $account = new BankAccount(
+            $iban,
+            $bic,
+            $accountNumber,
+            $bankCode,
+        );
+
         $this->assertEquals($bic, $account->getBic());
         $this->assertEquals($accountNumber, $account->getAccountNumber());
         $this->assertEquals($bankCode, $account->getBankCode());
@@ -104,10 +109,10 @@ class BankAccountTest extends TestCase
         $czechIban = 'CZ6508000000192000145399';
         $germanIban = 'DE89370400440532013000';
         $usIban = 'US123456789012345678'; // Invalid, but for testing
-        
+
         $czechAccount = BankAccount::fromIban($czechIban);
         $germanAccount = BankAccount::fromIban($germanIban);
-        
+
         $this->assertTrue($czechAccount->isSepa());
         $this->assertTrue($germanAccount->isSepa());
         $this->assertEquals('CZ', $czechAccount->getCountryCode());
@@ -119,11 +124,11 @@ class BankAccountTest extends TestCase
     {
         $validIban = 'CZ6508000000192000145399';
         $differentIban = 'CZ9455000000001011038930'; // Different valid Czech IBAN
-        
+
         $account1 = new BankAccount($validIban);
         $account2 = new BankAccount($validIban);
         $account3 = new BankAccount($differentIban);
-        
+
         $this->assertTrue($account1->equals($account2));
         $this->assertFalse($account1->equals($account3));
     }
@@ -133,7 +138,7 @@ class BankAccountTest extends TestCase
     {
         $iban = 'CZ6508000000192000145399';
         $account = new BankAccount($iban);
-        
+
         $this->assertEquals('CZ65 0800 0000 1920 0014 5399', (string) $account);
     }
 
@@ -142,7 +147,7 @@ class BankAccountTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid IBAN length');
-        
+
         new BankAccount('CZ123'); // Too short
     }
 
@@ -151,7 +156,7 @@ class BankAccountTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid IBAN format');
-        
+
         new BankAccount('1234567890123456789012'); // No country code
     }
 
@@ -160,7 +165,7 @@ class BankAccountTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid IBAN checksum');
-        
+
         // Use a German IBAN with invalid checksum (not Czech to avoid skipping)
         new BankAccount('DE89370400440532013001'); // Changed last digit to make invalid
     }
@@ -170,7 +175,7 @@ class BankAccountTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid BIC format');
-        
+
         $iban = 'CZ6508000000192000145399';
         new BankAccount($iban, 'INVALID'); // Invalid BIC format
     }
@@ -184,7 +189,7 @@ class BankAccountTest extends TestCase
             'FR1420041010050500013M02606', // France
             'GB29NWBK60161331926819',   // United Kingdom
         ];
-        
+
         foreach ($validIbans as $iban) {
             $account = new BankAccount($iban);
             $this->assertNotEmpty($account->getIban());
@@ -197,9 +202,9 @@ class BankAccountTest extends TestCase
         // Test that Czech IBAN generation doesn't crash and creates valid format
         $accountNumber = '123456789';
         $bankCode = '0100';
-        
+
         $account = BankAccount::fromCzechAccount($accountNumber, $bankCode);
-        
+
         // The generated IBAN should have correct format
         $this->assertStringStartsWith('CZ', $account->getIban());
         $this->assertEquals(24, strlen($account->getIban())); // Czech IBAN length
@@ -211,9 +216,9 @@ class BankAccountTest extends TestCase
     {
         $iban = 'CZ6508000000192000145399';
         $lowercaseBic = 'gibaczpx';
-        
+
         $account = new BankAccount($iban, $lowercaseBic);
-        
+
         $this->assertEquals('GIBACZPX', $account->getBic());
     }
 
@@ -221,12 +226,12 @@ class BankAccountTest extends TestCase
     public function validates_bic_formats(): void
     {
         $iban = 'CZ6508000000192000145399';
-        
+
         $validBics = [
             'GIBACZPX',     // 8 characters
             'GIBACZPXXXX',  // 11 characters
         ];
-        
+
         foreach ($validBics as $bic) {
             $account = new BankAccount($iban, $bic);
             $this->assertEquals($bic, $account->getBic());
@@ -238,7 +243,7 @@ class BankAccountTest extends TestCase
     {
         $iban = 'CZ6508000000192000145399';
         $account = new BankAccount($iban);
-        
+
         $this->assertNull($account->getBic());
         $this->assertNull($account->getAccountNumber());
         $this->assertNull($account->getBankCode());

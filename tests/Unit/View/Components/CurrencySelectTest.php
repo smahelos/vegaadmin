@@ -5,7 +5,6 @@ namespace Tests\Unit\View\Components;
 use App\Domain\Shared\Money\Contracts\CurrencyServiceInterface;
 use App\View\Components\CurrencySelect;
 use Illuminate\View\Component;
-use Illuminate\View\View;
 use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 class CurrencySelectTest extends TestCase
 {
     private CurrencySelect $component;
+
     /** @var MockInterface&CurrencyService */
     private MockInterface $mockCurrencyService;
 
@@ -23,11 +23,11 @@ class CurrencySelectTest extends TestCase
 
         // Mock CurrencyService using Mockery 1.6 best practices
         // @phpstan-ignore-next-line
-    $mockService = Mockery::mock(CurrencyServiceInterface::class);
+        $mockService = Mockery::mock(CurrencyServiceInterface::class);
         $currencies = [
             'CZK' => 'Czech Koruna',
             'EUR' => 'Euro',
-            'USD' => 'US Dollar'
+            'USD' => 'US Dollar',
         ];
         // @phpstan-ignore-next-line
         $mockService
@@ -40,7 +40,7 @@ class CurrencySelectTest extends TestCase
 
         $this->component = new CurrencySelect(
             $this->mockCurrencyService,
-            'currency'
+            'currency',
         );
     }
 
@@ -80,7 +80,7 @@ class CurrencySelectTest extends TestCase
         $returnType = $method->getReturnType();
 
         $this->assertNotNull($returnType);
-    $this->assertStringContainsString('Illuminate\\View\\View', (string)$returnType);
+        $this->assertStringContainsString('Illuminate\\View\\View', (string) $returnType);
     }
 
     #[Test]
@@ -128,7 +128,7 @@ class CurrencySelectTest extends TestCase
             'Custom Label',
             'custom-class',
             'custom-label-class',
-            'Custom hint'
+            'Custom hint',
         );
 
         $this->assertEquals('custom_name', $component->name);
@@ -147,7 +147,7 @@ class CurrencySelectTest extends TestCase
         $expectedCurrencies = [
             'CZK' => 'Czech Koruna',
             'EUR' => 'Euro',
-            'USD' => 'US Dollar'
+            'USD' => 'US Dollar',
         ];
 
         $this->assertEquals($expectedCurrencies, $this->component->currencies);
@@ -159,11 +159,18 @@ class CurrencySelectTest extends TestCase
         $reflection = new \ReflectionClass(CurrencySelect::class);
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
 
-        $propertyNames = array_map(fn($prop) => $prop->getName(), $properties);
+        $propertyNames = array_map(fn ($prop) => $prop->getName(), $properties);
 
         $expectedProperties = [
-            'currencies', 'name', 'id', 'selected', 'required',
-            'label', 'class', 'labelClass', 'hint'
+            'currencies',
+            'name',
+            'id',
+            'selected',
+            'required',
+            'label',
+            'class',
+            'labelClass',
+            'hint',
         ];
 
         foreach ($expectedProperties as $property) {
@@ -191,7 +198,7 @@ class CurrencySelectTest extends TestCase
 
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('@param', $docComment);
-    $this->assertStringContainsString('CurrencyServiceInterface', $docComment);
+        $this->assertStringContainsString('CurrencyServiceInterface', $docComment);
     }
 
     #[Test]
@@ -200,7 +207,7 @@ class CurrencySelectTest extends TestCase
         $reflection = new \ReflectionClass(CurrencySelect::class);
         $fileContent = file_get_contents($reflection->getFileName());
 
-    $this->assertStringContainsString('use App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface;', $fileContent);
+        $this->assertStringContainsString('use App\\Domain\\Shared\\Money\\Contracts\\CurrencyServiceInterface;', $fileContent);
         $this->assertStringContainsString('use Illuminate\View\Component;', $fileContent);
         $this->assertStringContainsString('use Illuminate\View\View;', $fileContent);
     }

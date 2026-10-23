@@ -3,27 +3,34 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
-use App\Models\Invoice;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\User\ValueObjects\UserId;
+use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Feature tests for Api\\InvoiceController (getInvoice + query form, getInvoices)
  */
 class InvoiceControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesFrontendTestEnvironment;
+    use CreatesFrontendTestEnvironment, RefreshDatabase;
 
     protected User $backendAdminUser;
+
     protected User $frontendUser; // alias to trait-created user
+
     protected User $user; // declared to align with trait dynamic assignment
+
     protected InMemoryInvoiceServiceStub $stub;
 
     protected function setUp(): void
@@ -35,7 +42,7 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->frontendUser = $this->user;
 
         // Prepare invoices dataset
-        $this->stub = new InMemoryInvoiceServiceStub();
+        $this->stub = new InMemoryInvoiceServiceStub;
         $this->stub->seed($this->backendAdminUser, $this->frontendUser);
         app()->instance(InvoiceListingApplicationServiceInterface::class, $this->stub);
     }
@@ -48,7 +55,7 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $invoice = $this->stub->invoices[1]; // owned by regular user
         $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->getJson('/api/admin/invoice/'.$invoice->id);
+            ->getJson('/api/admin/invoice/' . $invoice->id);
         $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
     }
 
@@ -57,7 +64,7 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $invoice = $this->stub->invoices[0]; // owned by frontend user
         $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/'.$invoice->id);
+            ->getJson('/api/invoice/' . $invoice->id);
         $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
     }
 
@@ -66,7 +73,7 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $foreign = $this->stub->invoices[2]; // owned by admin
         $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/'.$foreign->id);
+            ->getJson('/api/invoice/' . $foreign->id);
         $response->assertStatus(403)->assertJson(['error' => __('users.auth.unauthorized')]);
     }
 
@@ -82,7 +89,7 @@ class InvoiceControllerFeatureTest extends TestCase
     public function get_invoice_returns_401_when_unauthenticated(): void
     {
         $invoice = $this->stub->invoices[0];
-        $response = $this->getJson('/api/invoice/'.$invoice->id);
+        $response = $this->getJson('/api/invoice/' . $invoice->id);
         $response->assertStatus(401)->assertJson(['error' => __('users.auth.unauthenticated')]);
     }
 
@@ -102,7 +109,7 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $invoice = $this->stub->invoices[0];
         $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice?q='.$invoice->id);
+            ->getJson('/api/invoice?q=' . $invoice->id);
         $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
     }
 
@@ -124,7 +131,7 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function logs_error_and_returns_404_when_service_throws(): void
     {
-        Log::shouldReceive('error')->once()->withArgs(function($msg,$ctx){
+        Log::shouldReceive('error')->once()->withArgs(function ($msg, $ctx) {
             return str_contains($msg, 'API error: Invoice not found') && isset($ctx['invoice_id']);
         });
         $this->stub->failOnId = 123456; // configure stub
@@ -141,87 +148,119 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
 {
     /** @var Invoice[] */
     public array $invoices = [];
+
     public int $failOnId = -1;
 
     public function seed(User $admin, User $user): void
     {
         // invoice owned by user
-        $this->invoices[] = $this->makeInvoice(1, $user->id, 100);
-        $this->invoices[] = $this->makeInvoice(2, $user->id, 200);
+        $this->invoices[] = $this->makeInvoice(
+            1,
+            $user->id,
+            100,
+        );
+        $this->invoices[] = $this->makeInvoice(
+            2,
+            $user->id,
+            200,
+        );
         // invoice owned by admin
-        $this->invoices[] = $this->makeInvoice(3, $admin->id, 300);
+        $this->invoices[] = $this->makeInvoice(
+            3,
+            $admin->id,
+            300,
+        );
     }
 
-    private function makeInvoice(int $id, int $userId, int $amount): Invoice
-    {
-        $invoice = new Invoice();
+    private function makeInvoice(
+        int $id,
+        int $userId,
+        int $amount,
+    ): Invoice {
+        $invoice = new Invoice;
         $invoice->setAttribute('id', $id);
         $invoice->setAttribute('user_id', $userId);
         $invoice->setAttribute('amount', $amount);
         $invoice->exists = true;
+
         return $invoice;
     }
 
-    public function getAll(\App\Domain\User\ValueObjects\UserId $userId): \Illuminate\Support\Collection
+    public function getAll(UserId $userId): Collection
     {
         $result = [];
         foreach ($this->invoices as $inv) {
-            if ((int)$inv->user_id === $userId->toInt()) {
+            if ((int) $inv->user_id === $userId->toInt()) {
                 $result[] = $this->convertToDto($inv);
             }
         }
+
         return collect($result);
     }
 
-    public function getAllWithFilters(\App\Domain\User\ValueObjects\UserId $userId, array $filters = []): \Illuminate\Support\Collection
+    public function getAllWithFilters(UserId $userId, array $filters = []): Collection
     {
         return $this->getAll($userId);
     }
 
-    public function getByCriteria(\App\Domain\User\ValueObjects\UserId $userId, array $criteria): \Illuminate\Support\Collection
+    public function getByCriteria(UserId $userId, array $criteria): Collection
     {
         return $this->getAll($userId);
     }
 
-    public function getByDateRange(\App\Domain\User\ValueObjects\UserId $userId, \DateTime $from, \DateTime $to): \Illuminate\Support\Collection
-    {
+    public function getByDateRange(
+        UserId $userId,
+        \DateTime $from,
+        \DateTime $to,
+    ): Collection {
         return $this->getAll($userId);
     }
 
-    public function getById(\App\Domain\Invoice\ValueObjects\InvoiceId $invoiceId, \App\Domain\User\ValueObjects\UserId $userId): \App\Domain\Invoice\DTO\InvoiceDTO
+    public function getById(InvoiceId $invoiceId, UserId $userId): InvoiceDTO
     {
         if ($this->failOnId === $invoiceId->getValue()) {
             throw new \Exception('Simulated failure');
         }
         foreach ($this->invoices as $inv) {
-            if ((int)$inv->id === $invoiceId->getValue()) {
+            if ((int) $inv->id === $invoiceId->getValue()) {
                 return $this->convertToDto($inv);
             }
         }
         throw new \Exception('Not found');
     }
 
-    public function getRecent(\App\Domain\User\ValueObjects\UserId $userId, int $limit = 10): \Illuminate\Support\Collection
+    public function getRecent(UserId $userId, int $limit = 10): Collection
     {
         return $this->getAll($userId)->take($limit);
     }
 
-    public function getWithSearch(\App\Domain\User\ValueObjects\UserId $userId, array $searchParams = [], int $perPage = 15): \Illuminate\Pagination\LengthAwarePaginator
-    {
+    public function getWithSearch(
+        UserId $userId,
+        array $searchParams = [],
+        int $perPage = 15,
+    ): LengthAwarePaginator {
         $items = $this->getAll($userId);
-        return new \Illuminate\Pagination\LengthAwarePaginator($items, $items->count(), $perPage);
+
+        return new LengthAwarePaginator(
+            $items,
+            $items->count(),
+            $perPage,
+        );
     }
 
-    public function search(\App\Domain\User\ValueObjects\UserId $userId, string $query, array $fields = []): \Illuminate\Support\Collection
-    {
+    public function search(
+        UserId $userId,
+        string $query,
+        array $fields = [],
+    ): Collection {
         return $this->getAll($userId);
     }
 
     private function convertToDto(Invoice $inv): InvoiceDTO
     {
         return new InvoiceDTO(
-            id: \App\Domain\Invoice\ValueObjects\InvoiceId::fromInt((int)$inv->id),
-            user_id: (int)$inv->user_id,
+            id: InvoiceId::fromInt((int) $inv->id),
+            user_id: (int) $inv->user_id,
             client_id: null,
             supplier_id: null,
             number: null,
@@ -230,9 +269,9 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
             issue_date: null,
             tax_point_date: null,
             due_in: null,
-            subtotal: Money::fromFloat((float)$inv->amount, 'CZK'),
+            subtotal: Money::fromFloat((float) $inv->amount, 'CZK'),
             total_tax: Money::fromFloat(0.0, 'CZK'),
-            total_amount: Money::fromFloat((float)$inv->amount, 'CZK'),
+            total_amount: Money::fromFloat((float) $inv->amount, 'CZK'),
             payment_method_id: null,
             invoice_text: null,
             currency: 'CZK',
@@ -241,7 +280,7 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
             created_at: null,
             updated_at: null,
             logo: null,
-            status: null
+            status: null,
         );
     }
 
@@ -249,25 +288,56 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
     public function fetchInvoiceForApi(int $userId, int $invoiceId): InvoiceDTO
     {
         return $this->getById(
-            \App\Domain\Invoice\ValueObjects\InvoiceId::fromInt($invoiceId),
-            \App\Domain\User\ValueObjects\UserId::fromInt($userId)
+            InvoiceId::fromInt($invoiceId),
+            UserId::fromInt($userId),
         );
     }
 
     public function listInvoicesForApi(int $userId): array
     {
-        return $this->getAll(\App\Domain\User\ValueObjects\UserId::fromInt($userId))->toArray();
+        return $this->getAll(UserId::fromInt($userId))->toArray();
     }
-    public function markInvoiceAsPaid(int $userId, int $invoiceId): bool { return false; }
-    public function setInvoiceTemplate(int $userId, int $invoiceId, string $template): bool { return false; }
-    public function changeInvoiceStatus(int $userId, int $invoiceId, string $statusSlug): bool { return false; }
-    public function getInvoicesLimit(int $userId): array { return ['limit'=>0,'current_usage'=>0,'allowed'=>true]; }
-    public function handleInvoiceLogoUpload(\Illuminate\Http\UploadedFile|string|null $file): ?string { return null; }
+
+    public function markInvoiceAsPaid(int $userId, int $invoiceId): bool
+    {
+        return false;
+    }
+
+    public function setInvoiceTemplate(
+        int $userId,
+        int $invoiceId,
+        string $template,
+    ): bool {
+        return false;
+    }
+
+    public function changeInvoiceStatus(
+        int $userId,
+        int $invoiceId,
+        string $statusSlug,
+    ): bool {
+        return false;
+    }
+
+    public function getInvoicesLimit(int $userId): array
+    {
+        return [
+            'limit' => 0,
+            'current_usage' => 0,
+            'allowed' => true,
+        ];
+    }
+
+    public function handleInvoiceLogoUpload(UploadedFile|string|null $file): ?string
+    {
+        return null;
+    }
 
     public function findInvoiceForUser(int $userId, int $invoiceId): InvoiceDTO
     {
         $invoice = $this->fetchInvoiceForApi($userId, $invoiceId);
-        $data = InvoiceDTO::fromArray((array)$invoice);
+        $data = InvoiceDTO::fromArray((array) $invoice);
+
         return new InvoiceDTO(
             id: $data->id,
             user_id: $data->user_id,
@@ -290,18 +360,26 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
             created_at: $data->created_at,
             updated_at: $data->updated_at,
             logo: $data->logo,
-            status: $data->status
+            status: $data->status,
         );
     }
 
+    public function getNextInvoiceNumber(int $userId): string
+    {
+        return 'INV-0001';
+    }
 
-    public function getNextInvoiceNumber(int $userId): string { return 'INV-0001'; }
+    public function listInvoices(int $userId): array
+    {
+        return $this->listInvoicesForApi($userId);
+    }
 
-    public function listInvoices(int $userId): array { return $this->listInvoicesForApi($userId); }
+    public function listInvoicesForUser(int $userId): array
+    {
+        return $this->listInvoicesForApi($userId);
+    }
 
-    public function listInvoicesForUser(int $userId): array { return $this->listInvoicesForApi($userId); }
-
-    public function resolvePublishedModelByDto(InvoiceDTO|null $dto): Invoice|null
+    public function resolvePublishedModelByDto(?InvoiceDTO $dto): ?Invoice
     {
         if ($dto === null) {
             return null;
@@ -311,6 +389,7 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
                 return $inv;
             }
         }
+
         return null;
     }
 }

@@ -3,9 +3,8 @@
 use App\Models\CronTask;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Schedule;
-
+use Illuminate\Support\Facades\Schema;
 
 // Explicitně registrujeme základní příkaz pro kontrolu faktur
 Schedule::command('invoices:check-payment-status')
@@ -16,10 +15,10 @@ Schedule::command('invoices:check-payment-status')
 try {
     if (Schema::hasTable('cron_tasks')) {
         $cronTasks = CronTask::where('is_active', true)->get();
-        
+
         foreach ($cronTasks as $task) {
             $event = Schedule::command($task->command);
-            
+
             if ($task->frequency === 'custom' && $task->custom_expression) {
                 $event->cron($task->custom_expression);
             } else {
@@ -52,22 +51,22 @@ try {
                         $event->daily();
                 }
             }
-            
+
             // Zapisovat výstup do logů
             $event->appendOutputTo(storage_path("logs/cron-{$task->id}.log"));
-            
+
             // Aktualizovat čas posledního běhu a výstup
             $event->after(function () use ($task) {
                 $task->last_run = now();
-                $task->last_output = file_exists(storage_path("logs/cron-{$task->id}.log")) 
-                    ? file_get_contents(storage_path("logs/cron-{$task->id}.log")) 
+                $task->last_output = file_exists(storage_path("logs/cron-{$task->id}.log"))
+                    ? file_get_contents(storage_path("logs/cron-{$task->id}.log"))
                     : null;
                 $task->save();
             });
         }
     }
-} catch (\Exception $e) {
-    \Log::error("Chyba při načítání cron úloh: " . $e->getMessage());
+} catch (Exception $e) {
+    Log::error('Chyba při načítání cron úloh: ' . $e->getMessage());
 }
 
 Artisan::command('inspire', function () {

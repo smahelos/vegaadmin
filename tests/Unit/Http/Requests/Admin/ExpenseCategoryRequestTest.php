@@ -14,7 +14,7 @@ class ExpenseCategoryRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new ExpenseCategoryRequest();
+        $this->request = new ExpenseCategoryRequest;
     }
 
     #[Test]
@@ -29,7 +29,7 @@ class ExpenseCategoryRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -40,7 +40,7 @@ class ExpenseCategoryRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -50,7 +50,7 @@ class ExpenseCategoryRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
-        
+
         $this->assertTrue($method->isPublic());
     }
 
@@ -59,7 +59,7 @@ class ExpenseCategoryRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
+
         $this->assertTrue($method->isPublic());
     }
 }

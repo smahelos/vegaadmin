@@ -2,15 +2,15 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
 use App\Http\Controllers\Frontend\PaymentController;
 use App\Models\Payment;
 use App\Models\Subscription;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\JsonResponse;
 
 class PaymentControllerFeatureTest extends TestCase
 {
@@ -24,13 +24,13 @@ class PaymentControllerFeatureTest extends TestCase
             'subscription_id' => $subscription->id,
             'gateway' => 'gopay',
             'gateway_payment_id' => 'GP123456789',
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $response = $this->get(route('payment.return', [
             'gateway' => 'gopay',
             'id' => 'GP123456789',
-            'state' => 'PAID'
+            'state' => 'PAID',
         ]));
 
         // NOTE: Since we don't have valid GoPay credentials,
@@ -47,13 +47,13 @@ class PaymentControllerFeatureTest extends TestCase
             'subscription_id' => $subscription->id,
             'gateway' => 'gopay',
             'gateway_payment_id' => 'GP123456789',
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
         $response = $this->get(route('payment.return', [
             'gateway' => 'gopay',
             'id' => 'GP123456789',
-            'state' => 'CANCELED'
+            'state' => 'CANCELED',
         ]));
 
         $response->assertRedirect();
@@ -66,7 +66,7 @@ class PaymentControllerFeatureTest extends TestCase
         $response = $this->postJson(route('payment.notify'), [
             'gateway' => 'gopay',
             'id' => 'GP123456789',
-            'state' => 'PAID'
+            'state' => 'PAID',
         ]);
 
         // NOTE: Since we don't have valid GoPay credentials,
@@ -81,7 +81,7 @@ class PaymentControllerFeatureTest extends TestCase
     {
         $response = $this->postJson(route('payment.notify'), [
             'gateway' => 'gopay',
-            'payment_id' => 'GP123456789'
+            'payment_id' => 'GP123456789',
         ]);
 
         $response->assertHeader('content-type', 'application/json');
@@ -93,7 +93,7 @@ class PaymentControllerFeatureTest extends TestCase
     {
         $response = $this->get(route('payment.return', [
             'id' => 'GP123456789',
-            'state' => 'PAID'
+            'state' => 'PAID',
         ]));
 
         // Should work even without explicit gateway parameter
@@ -106,7 +106,7 @@ class PaymentControllerFeatureTest extends TestCase
         $response = $this->get(route('payment.return', [
             'gateway' => 'gopay',
             'id' => 'GP123456789',
-            'state' => 'PAID'
+            'state' => 'PAID',
         ]));
 
         // Should process the request and redirect
@@ -118,7 +118,7 @@ class PaymentControllerFeatureTest extends TestCase
     {
         $response = $this->postJson(route('payment.notify'), [
             'gateway' => 'invalid_gateway',
-            'payment_id' => 'GP123456789'
+            'payment_id' => 'GP123456789',
         ]);
 
         $response->assertStatus(200);
@@ -138,23 +138,23 @@ class PaymentControllerFeatureTest extends TestCase
         $type = $parameter->getType();
         $this->assertNotNull($type);
         // Compare using string cast for compatibility
-        $this->assertEquals(PaymentApplicationServiceInterface::class, (string)$type);
+        $this->assertEquals(PaymentApplicationServiceInterface::class, (string) $type);
     }
 
     #[Test]
     public function controller_methods_have_correct_return_types(): void
     {
         $reflection = new \ReflectionClass(PaymentController::class);
-        
+
         $method = $reflection->getMethod('return');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals(RedirectResponse::class, (string)$returnType);
-        
+        $this->assertEquals(RedirectResponse::class, (string) $returnType);
+
         $method = $reflection->getMethod('notify');
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
-        $this->assertEquals(JsonResponse::class, (string)$returnType);
+        $this->assertEquals(JsonResponse::class, (string) $returnType);
     }
 
     #[Test]
@@ -162,7 +162,7 @@ class PaymentControllerFeatureTest extends TestCase
     {
         $response = $this->postJson(route('payment.notify'), [
             'id' => 'GP123456789',
-            'state' => 'PAID'
+            'state' => 'PAID',
         ]);
 
         $response->assertStatus(200);

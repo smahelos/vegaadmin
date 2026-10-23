@@ -25,7 +25,7 @@ class AresLookupControllerFeatureTest extends TestCase
         Http::fake([
             'https://ares.gov.cz/*' => Http::response([
                 'zaznamy' => [],
-                'popis' => 'Nenalezeno'
+                'popis' => 'Nenalezeno',
             ], 200),
         ]);
 
@@ -41,7 +41,7 @@ class AresLookupControllerFeatureTest extends TestCase
     {
         Http::fake([
             'https://ares.gov.cz/*' => Http::response([
-                'popis' => 'Dočasná chyba'
+                'popis' => 'Dočasná chyba',
             ], 500),
         ]);
 
@@ -65,9 +65,9 @@ class AresLookupControllerFeatureTest extends TestCase
                         'nazevObce' => 'Praha',
                         'nazevCastiObce' => 'Vinohrady',
                         'psc' => '11000',
-                        'kodStatu' => 'CZ'
-                    ]
-                ]]
+                        'kodStatu' => 'CZ',
+                    ],
+                ]],
             ], 200),
         ]);
 
@@ -82,8 +82,8 @@ class AresLookupControllerFeatureTest extends TestCase
                     'street' => 'Hlavni 123',
                     'zip' => '110 00',
                     'dic' => 'CZ' . $ico,
-                    'country' => 'CZ'
-                ]
+                    'country' => 'CZ',
+                ],
             ])
             ->assertJsonPath('data.city', 'Praha, Vinohrady');
     }

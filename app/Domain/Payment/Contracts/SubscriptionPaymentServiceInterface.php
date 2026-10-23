@@ -2,7 +2,6 @@
 
 namespace App\Domain\Payment\Contracts;
 
-
 /**
  * Interface for subscription payment service
  */
@@ -11,7 +10,11 @@ interface SubscriptionPaymentServiceInterface
     /**
      * Process subscription payment
      */
-    public function processSubscriptionPayment(int $subscriptionId, string $gateway, array $paymentData): array;
+    public function processSubscriptionPayment(
+        int $subscriptionId,
+        string $gateway,
+        array $paymentData,
+    ): array;
 
     /**
      * Handle payment callback

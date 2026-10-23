@@ -6,11 +6,11 @@ use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\PrintableInvoiceData;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemData;
+use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
+use App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface;
+use App\Domain\Party\ValueObjects\PartyId;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
-use App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface;
-use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
-use App\Domain\Party\ValueObjects\PartyId;
 
 /**
  * Builds domain-clean printable data for invoices from InvoiceDTO.
@@ -35,22 +35,23 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         foreach ($invoice->items as $item) {
             // Accept either primitive array or already mapped money objects
             $currency = strtoupper($item['currency'] ?? ($invoice->currency ?? 'CZK'));
-            $price = $item['price'] instanceof Money ? $item['price'] : Money::fromFloat((float)($item['price'] ?? 0), $currency);
-            $taxAmount = $item['tax_amount'] instanceof Money ? $item['tax_amount'] : Money::fromFloat((float)($item['tax_amount'] ?? 0), $currency);
-            $lineTotal = $item['total_price'] instanceof Money ? $item['total_price'] : Money::fromFloat((float)($item['total_price'] ?? 0), $currency);
+            $price = $item['price'] instanceof Money ? $item['price'] : Money::fromFloat((float) ($item['price'] ?? 0), $currency);
+            $taxAmount = $item['tax_amount'] instanceof Money ? $item['tax_amount'] : Money::fromFloat((float) ($item['tax_amount'] ?? 0), $currency);
+            $lineTotal = $item['total_price'] instanceof Money ? $item['total_price'] : Money::fromFloat((float) ($item['total_price'] ?? 0), $currency);
             $items[] = new PrintableInvoiceItemData(
-                name: (string)($item['name'] ?? ''),
-                quantity: isset($item['quantity']) ? (float)$item['quantity'] : 1.0,
+                name: (string) ($item['name'] ?? ''),
+                quantity: isset($item['quantity']) ? (float) $item['quantity'] : 1.0,
                 unit: ($item['unit'] ?? null) instanceof Unit ? $item['unit'] : Unit::fromInput($item['unit'] ?? null),
                 price: $price,
-                tax_rate: isset($item['tax_rate']) ? (float)$item['tax_rate'] : 0.0,
+                tax_rate: isset($item['tax_rate']) ? (float) $item['tax_rate'] : 0.0,
                 tax_amount: $taxAmount,
                 line_total: $lineTotal,
             );
         }
 
         // Enrich party data from DTO repositories if IDs available
-        $supplier = null; $client = null;
+        $supplier = null;
+        $client = null;
         if ($invoice->supplier_id) {
             $supplier = $this->supplierRepo->findById(PartyId::fromInt($invoice->supplier_id));
         }
@@ -82,7 +83,7 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
             supplier_ico: $supplier->ico ?? null,
             supplier_dic: $supplier->dic ?? null,
             supplier_logo: $supplier->supplier_logo ?? null,
-            account_number: isset($supplier?->account_number) ? (string)$supplier->account_number : null,
+            account_number: isset($supplier?->account_number) ? (string) $supplier->account_number : null,
             bank_code: $supplier->bank_code ?? null,
             bank_name: $supplier->bank_name ?? null,
             iban: $supplier->iban ?? null,
@@ -105,13 +106,22 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
 
     private function toImmutableDate(?string $date): ?\DateTimeImmutable
     {
-        if (!$date) { return null; }
-        try { return new \DateTimeImmutable($date); } catch (\Exception) { return null; }
+        if (! $date) {
+            return null;
+        }
+        try {
+            return new \DateTimeImmutable($date);
+        } catch (\Exception) {
+            return null;
+        }
     }
 
     private function computeDueDate(?\DateTimeImmutable $issue, ?int $dueIn): ?\DateTimeImmutable
     {
-        if (!$issue || $dueIn === null) { return null; }
-        return $issue->modify('+' . (int)$dueIn . ' days');
+        if (! $issue || $dueIn === null) {
+            return null;
+        }
+
+        return $issue->modify('+' . (int) $dueIn . ' days');
     }
 }

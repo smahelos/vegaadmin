@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Application\Shared\Money\Contracts\CurrencyApplicationServiceInterface;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CurrencyController extends Controller
 {
@@ -21,35 +21,28 @@ class CurrencyController extends Controller
 
     /**
      * Get list of commonly used currencies
-     *
-     * @return JsonResponse
      */
     public function getCommonCurrencies(): JsonResponse
     {
-    return response()->json($this->currencyAppService->getCommonCurrencies());
+        return response()->json($this->currencyAppService->getCommonCurrencies());
     }
 
     /**
      * Get complete list of available currencies
-     *
-     * @return JsonResponse
      */
     public function getAllCurrencies(): JsonResponse
     {
-    return response()->json($this->currencyAppService->getAllCurrencies());
+        return response()->json($this->currencyAppService->getAllCurrencies());
     }
 
     /**
      * Get exchange rate between two currencies
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function getExchangeRate(Request $request): JsonResponse
     {
         $request->validate([
             'from' => 'required|string|size:3',
-            'to' => 'required|string|size:3'
+            'to' => 'required|string|size:3',
         ]);
 
         $from = strtoupper($request->input('from'));
@@ -64,29 +57,30 @@ class CurrencyController extends Controller
         return response()->json([
             'from' => $from,
             'to' => $to,
-            'rate' => $rate
+            'rate' => $rate,
         ]);
     }
 
     /**
      * Convert amount from one currency to another
-     *
-     * @param Request $request
-     * @return JsonResponse
      */
     public function convertCurrency(Request $request): JsonResponse
     {
         $request->validate([
             'amount' => 'required|numeric',
             'from' => 'required|string|size:3',
-            'to' => 'required|string|size:3'
+            'to' => 'required|string|size:3',
         ]);
 
         $amount = (float) $request->input('amount');
         $from = strtoupper($request->input('from'));
         $to = strtoupper($request->input('to'));
 
-        $convertedAmount = $this->currencyAppService->convert($amount, $from, $to);
+        $convertedAmount = $this->currencyAppService->convert(
+            $amount,
+            $from,
+            $to,
+        );
 
         if ($convertedAmount === null) {
             abort(404, 'Currency conversion not available');
@@ -95,13 +89,13 @@ class CurrencyController extends Controller
         return response()->json([
             'original' => [
                 'amount' => $amount,
-                'currency' => $from
+                'currency' => $from,
             ],
             'converted' => [
                 'amount' => $convertedAmount,
-                'currency' => $to
+                'currency' => $to,
             ],
-            'rate' => $this->currencyAppService->getExchangeRate($from, $to)
+            'rate' => $this->currencyAppService->getExchangeRate($from, $to),
         ]);
     }
 }

@@ -15,6 +15,7 @@ final class PartyId
         if ($id <= 0) {
             throw new \InvalidArgumentException('PartyId must be positive integer.');
         }
+
         return new self($id);
     }
 
@@ -27,9 +28,11 @@ final class PartyId
             return $value > 0 ? new self($value) : null;
         }
         if (is_string($value) && ctype_digit($value)) {
-            $int = (int)$value;
+            $int = (int) $value;
+
             return $int > 0 ? new self($int) : null;
         }
+
         return null;
     }
 
@@ -45,6 +48,6 @@ final class PartyId
 
     public function __toString(): string
     {
-        return (string)$this->id;
+        return (string) $this->id;
     }
 }

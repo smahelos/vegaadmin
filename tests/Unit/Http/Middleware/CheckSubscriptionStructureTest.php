@@ -13,7 +13,7 @@ class CheckSubscriptionStructureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new CheckSubscription();
+        $this->middleware = new CheckSubscription;
     }
 
     #[Test]

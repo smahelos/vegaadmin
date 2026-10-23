@@ -5,12 +5,10 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\RegistrationRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 /**
  * Feature tests for RegistrationRequest
@@ -27,8 +25,6 @@ class RegistrationRequestFeatureTest extends TestCase
     /**
      * Set up the test environment.
      * Creates valid registration data for request testing.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -67,8 +63,12 @@ class RegistrationRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_data()
     {
-        $request = new RegistrationRequest();
-        $validator = Validator::make($this->validRegistrationData, $request->rules(), $request->messages());
+        $request = new RegistrationRequest;
+        $validator = Validator::make(
+            $this->validRegistrationData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
@@ -77,17 +77,33 @@ class RegistrationRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_required_fields_missing()
     {
-        $requiredFields = ['name', 'email', 'password', 'street', 'city', 'zip', 'country'];
+        $requiredFields = [
+            'name',
+            'email',
+            'password',
+            'street',
+            'city',
+            'zip',
+            'country',
+        ];
 
         foreach ($requiredFields as $field) {
             $invalidData = $this->validRegistrationData;
             unset($invalidData[$field]);
 
-            $request = new RegistrationRequest();
-            $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+            $request = new RegistrationRequest;
+            $validator = Validator::make(
+                $invalidData,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
-            $this->assertArrayHasKey($field, $validator->errors()->toArray(), "Should have error for missing {$field}");
+            $this->assertArrayHasKey(
+                $field,
+                $validator->errors()->toArray(),
+                "Should have error for missing {$field}",
+            );
         }
     }
 
@@ -97,8 +113,12 @@ class RegistrationRequestFeatureTest extends TestCase
         $invalidData = $this->validRegistrationData;
         $invalidData['email'] = 'invalid-email-format';
 
-        $request = new RegistrationRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new RegistrationRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('email', $validator->errors()->toArray());
@@ -112,12 +132,17 @@ class RegistrationRequestFeatureTest extends TestCase
         $invalidData = $this->validRegistrationData;
         $invalidData['email'] = 'existing@example.com';
 
-        $request = new RegistrationRequest();
-        $validator = Validator::make($invalidData, $request->rules(), [], $request->attributes());
+        $request = new RegistrationRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            [],
+            $request->attributes(),
+        );
 
         $this->assertSame(
             __('validation.unique', ['attribute' => __('users.fields.email')]),
-            $validator->errors()->first('email')
+            $validator->errors()->first('email'),
         );
     }
 
@@ -128,8 +153,12 @@ class RegistrationRequestFeatureTest extends TestCase
         $invalidData['password'] = '123';
         $invalidData['password_confirmation'] = '123';
 
-        $request = new RegistrationRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new RegistrationRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('password', $validator->errors()->toArray());
@@ -142,8 +171,12 @@ class RegistrationRequestFeatureTest extends TestCase
         $invalidData['password'] = 'password123';
         $invalidData['password_confirmation'] = 'different123';
 
-        $request = new RegistrationRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new RegistrationRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('password', $validator->errors()->toArray());
@@ -163,8 +196,12 @@ class RegistrationRequestFeatureTest extends TestCase
             'country' => $this->faker->country,
         ];
 
-        $request = new RegistrationRequest();
-        $validator = Validator::make($minimalData, $request->rules(), $request->messages());
+        $request = new RegistrationRequest;
+        $validator = Validator::make(
+            $minimalData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
@@ -177,8 +214,12 @@ class RegistrationRequestFeatureTest extends TestCase
         $invalidData['account_number'] = '1234567890';
         unset($invalidData['bank_code']);
 
-        $request = new RegistrationRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new RegistrationRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('bank_code', $validator->errors()->toArray());
@@ -191,8 +232,12 @@ class RegistrationRequestFeatureTest extends TestCase
         $invalidData['iban'] = 'CZ1234567890123456';
         unset($invalidData['swift']);
 
-        $request = new RegistrationRequest();
-        $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+        $request = new RegistrationRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertTrue($validator->fails());
         $this->assertArrayHasKey('swift', $validator->errors()->toArray());
@@ -208,8 +253,12 @@ class RegistrationRequestFeatureTest extends TestCase
         unset($dataWithoutBank['swift']);
         unset($dataWithoutBank['bank_name']);
 
-        $request = new RegistrationRequest();
-        $validator = Validator::make($dataWithoutBank, $request->rules(), $request->messages());
+        $request = new RegistrationRequest;
+        $validator = Validator::make(
+            $dataWithoutBank,
+            $request->rules(),
+            $request->messages(),
+        );
 
         $this->assertFalse($validator->fails());
         $this->assertEmpty($validator->errors()->all());
@@ -234,18 +283,26 @@ class RegistrationRequestFeatureTest extends TestCase
             $invalidData = $this->validRegistrationData;
             $invalidData[$field] = $value;
 
-            $request = new RegistrationRequest();
-            $validator = Validator::make($invalidData, $request->rules(), $request->messages());
+            $request = new RegistrationRequest;
+            $validator = Validator::make(
+                $invalidData,
+                $request->rules(),
+                $request->messages(),
+            );
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} exceeds max length");
-            $this->assertArrayHasKey($field, $validator->errors()->toArray(), "Should have error for {$field} max length");
+            $this->assertArrayHasKey(
+                $field,
+                $validator->errors()->toArray(),
+                "Should have error for {$field} max length",
+            );
         }
     }
 
     #[Test]
     public function authorize_always_returns_true()
     {
-        $request = new RegistrationRequest();
+        $request = new RegistrationRequest;
 
         $this->assertTrue($request->authorize());
     }
@@ -253,9 +310,18 @@ class RegistrationRequestFeatureTest extends TestCase
     #[Test]
     public function address_and_bank_errors_use_the_supplier_labels(): void
     {
-        $request = new RegistrationRequest();
-        $data = array_merge($this->validRegistrationData, ['street' => '', 'account_number' => '123456', 'bank_code' => '']);
-        $errors = Validator::make($data, $request->rules(), [], $request->attributes())->errors();
+        $request = new RegistrationRequest;
+        $data = array_merge($this->validRegistrationData, [
+            'street' => '',
+            'account_number' => '123456',
+            'bank_code' => '',
+        ]);
+        $errors = Validator::make(
+            $data,
+            $request->rules(),
+            [],
+            $request->attributes(),
+        )->errors();
 
         $this->assertStringContainsString(__('suppliers.fields.street'), $errors->first('street'));
         $this->assertStringContainsString(__('suppliers.fields.bank_code'), $errors->first('bank_code'));

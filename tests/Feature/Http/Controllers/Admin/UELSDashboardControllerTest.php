@@ -11,10 +11,11 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class UELSDashboardControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
 
     protected function setUp(): void
@@ -59,5 +60,4 @@ class UELSDashboardControllerTest extends TestCase
             ->assertDontSeeText('Recent Activity')
             ->assertDontSeeText('Bulk Reset Usage');
     }
-
 }

@@ -16,7 +16,11 @@ final class InvoiceProductWriteDataTest extends TestCase
     #[Test]
     public function computes_base_tax_and_total_of_a_line_in_cents(): void
     {
-        $line = $this->line(quantity: '3', price: '74.67', taxRate: '21');
+        $line = $this->line(
+            quantity: '3',
+            price: '74.67',
+            taxRate: '21',
+        );
 
         $this->assertSame('224.01', $line->base()->getAmount());
         $this->assertSame('47.04', $line->taxAmount()->getAmount());
@@ -27,7 +31,11 @@ final class InvoiceProductWriteDataTest extends TestCase
     #[Test]
     public function keeps_a_decimal_quantity(): void
     {
-        $line = $this->line(quantity: '1.5', price: '249.30', taxRate: '12');
+        $line = $this->line(
+            quantity: '1.5',
+            price: '249.30',
+            taxRate: '12',
+        );
 
         $this->assertSame('373.95', $line->base()->getAmount());
         $this->assertSame('44.87', $line->taxAmount()->getAmount());
@@ -38,7 +46,11 @@ final class InvoiceProductWriteDataTest extends TestCase
     public function computes_the_tax_from_the_rounded_base(): void
     {
         // 0.333 * 1.00 = 0.333 -> base 0.33; 21 % of 0.33 = 0.0693 -> 0.07
-        $line = $this->line(quantity: '0.333', price: '1', taxRate: '21');
+        $line = $this->line(
+            quantity: '0.333',
+            price: '1',
+            taxRate: '21',
+        );
 
         $this->assertSame('0.33', $line->base()->getAmount());
         $this->assertSame('0.07', $line->taxAmount()->getAmount());
@@ -47,7 +59,11 @@ final class InvoiceProductWriteDataTest extends TestCase
     #[Test]
     public function a_zero_rate_line_has_no_tax(): void
     {
-        $line = $this->line(quantity: '2', price: '100', taxRate: '0');
+        $line = $this->line(
+            quantity: '2',
+            price: '100',
+            taxRate: '0',
+        );
 
         $this->assertSame('0', $line->taxAmount()->getAmount());
         $this->assertSame('200', $line->total()->getAmount());

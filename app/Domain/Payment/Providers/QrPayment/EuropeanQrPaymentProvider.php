@@ -8,6 +8,7 @@ use App\Domain\Payment\DTO\QrPaymentPayload;
 class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
 {
     public const COUNTRY_CODE = 'EU';
+
     public const SUPPORTED_CURRENCIES = ['EUR'];
 
     public function getCountryCode(): string
@@ -22,7 +23,7 @@ class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
 
     public function validatePaymentInfo(QrPaymentPayload $payload): bool
     {
-        if (!in_array($payload->amount->getCurrency(), $this->getSupportedCurrencies())) {
+        if (! in_array($payload->amount->getCurrency(), $this->getSupportedCurrencies())) {
             return false;
         }
 
@@ -41,24 +42,36 @@ class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
     public function generateQrString(QrPaymentPayload $payload): string
     {
         $qrParts = [];
-        $qrParts[] = "BCD";
-        $qrParts[] = "002";
-        $qrParts[] = "1";
-        $qrParts[] = "SCT";
-        $qrParts[] = "";
-        $qrParts[] = "";
+        $qrParts[] = 'BCD';
+        $qrParts[] = '002';
+        $qrParts[] = '1';
+        $qrParts[] = 'SCT';
+        $qrParts[] = '';
+        $qrParts[] = '';
         $qrParts[] = strtoupper(preg_replace('/\s+/', '', $payload->iban));
-        $qrParts[] = "EUR" . number_format($payload->amount->toFloat(), 2, '.', '');
-        $qrParts[] = "";
-        $qrParts[] = $payload->variableSymbol ?? "";
-        $qrParts[] = substr($payload->message ?? "", 0, 140);
+        $qrParts[] = 'EUR' . number_format(
+            $payload->amount->toFloat(),
+            2,
+            '.',
+            '',
+        );
+        $qrParts[] = '';
+        $qrParts[] = $payload->variableSymbol ?? '';
+        $qrParts[] = substr(
+            $payload->message ?? '',
+            0,
+            140,
+        );
 
         return implode("\n", $qrParts);
     }
 
-    public function formatAccountIdentifier(?string $accountNumber, ?string $bankCode, ?string $iban): ?string
-    {
-        if (!empty($iban)) {
+    public function formatAccountIdentifier(
+        ?string $accountNumber,
+        ?string $bankCode,
+        ?string $iban,
+    ): ?string {
+        if (! empty($iban)) {
             return strtoupper(preg_replace('/\s+/', '', $iban));
         }
 

@@ -24,8 +24,8 @@ class ResponsiveNavLink extends Component
     /**
      * Create a new component instance
      *
-     * @param string $href   Link target URL
-     * @param bool $active   Whether link is currently active
+     * @param  string  $href  Link target URL
+     * @param  bool  $active  Whether link is currently active
      */
     public function __construct($href, $active = false)
     {

@@ -12,18 +12,53 @@ class FileUploadContextConfig
         private readonly array $allowedExtensions,
         private readonly array $allowedMimeGroups,
         private readonly array $thumbnail, // ['enabled'=>bool, 'width'?, 'height'?, 'path'?, 'quality'?
-        private readonly bool $enableHashDeduplication = false
+        private readonly bool $enableHashDeduplication = false,
     ) {}
 
-    public function getMaxKb(): int { return $this->maxKb; }
+    public function getMaxKb(): int
+    {
+        return $this->maxKb;
+    }
+
     /** @return string[] */
-    public function getAllowedExtensions(): array { return $this->allowedExtensions; }
+    public function getAllowedExtensions(): array
+    {
+        return $this->allowedExtensions;
+    }
+
     /** @return string[] */
-    public function getAllowedMimeGroups(): array { return $this->allowedMimeGroups; }
-    public function isThumbnailEnabled(): bool { return (bool)($this->thumbnail['enabled'] ?? false); }
-    public function getThumbnailWidth(): ?int { return $this->thumbnail['width'] ?? null; }
-    public function getThumbnailHeight(): ?int { return $this->thumbnail['height'] ?? null; }
-    public function getThumbnailPath(): ?string { return $this->thumbnail['path'] ?? null; }
-    public function getThumbnailQuality(): ?int { return $this->thumbnail['quality'] ?? null; }
-    public function isHashDeduplicationEnabled(): bool { return $this->enableHashDeduplication; }
+    public function getAllowedMimeGroups(): array
+    {
+        return $this->allowedMimeGroups;
+    }
+
+    public function isThumbnailEnabled(): bool
+    {
+        return (bool) ($this->thumbnail['enabled'] ?? false);
+    }
+
+    public function getThumbnailWidth(): ?int
+    {
+        return $this->thumbnail['width'] ?? null;
+    }
+
+    public function getThumbnailHeight(): ?int
+    {
+        return $this->thumbnail['height'] ?? null;
+    }
+
+    public function getThumbnailPath(): ?string
+    {
+        return $this->thumbnail['path'] ?? null;
+    }
+
+    public function getThumbnailQuality(): ?int
+    {
+        return $this->thumbnail['quality'] ?? null;
+    }
+
+    public function isHashDeduplicationEnabled(): bool
+    {
+        return $this->enableHashDeduplication;
+    }
 }

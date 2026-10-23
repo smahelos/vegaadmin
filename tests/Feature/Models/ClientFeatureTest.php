@@ -3,19 +3,17 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Client;
-use App\Models\User;
 use App\Models\Invoice;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Database\Eloquent\Collection;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
 
 /**
  * Feature tests for Client Model
- * 
+ *
  * Tests database relationships, business logic, and model behavior requiring database interactions
  * Tests client interactions with users, invoices, and default client functionality
  */
@@ -24,13 +22,12 @@ class ClientFeatureTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected Client $client;
 
     /**
      * Set up the test environment.
      * Creates test user and client for model testing.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -38,7 +35,7 @@ class ClientFeatureTest extends TestCase
 
         // Create test user
         $this->createTestUser();
-        
+
         // Create test client
         $this->createTestClient();
     }
@@ -80,34 +77,32 @@ class ClientFeatureTest extends TestCase
         $this->assertEquals($this->user->email, $this->client->user->email);
     }
 
-    
-
     #[Test]
     public function client_has_many_invoices()
     {
         // Initially no invoices
         $this->assertInstanceOf(Collection::class, $this->client->invoices);
         $this->assertEmpty($this->client->invoices);
-        
+
         // Create invoices for the client
         $invoice1 = Invoice::factory()->create([
             'client_id' => $this->client->id,
             'payment_method_id' => null, // Avoid foreign key issues
         ]);
-        
+
         $invoice2 = Invoice::factory()->create([
             'client_id' => $this->client->id,
             'payment_method_id' => null,
         ]);
-        
+
         // Refresh the client to load relationships
         $this->client->refresh();
-        
+
         // Assert relationship works
         $this->assertCount(2, $this->client->invoices()->get());
         $this->assertTrue($this->client->invoices->contains($invoice1));
         $this->assertTrue($this->client->invoices->contains($invoice2));
-        
+
         // Assert all invoices belong to this client
         foreach ($this->client->invoices as $invoice) {
             $this->assertEquals($this->client->id, $invoice->client_id);
@@ -124,22 +119,22 @@ class ClientFeatureTest extends TestCase
             'email' => $this->faker->unique()->companyEmail,
             'is_default' => true, // Initially default
         ]);
-        
+
         $client2 = Client::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
             'is_default' => false,
         ]);
-        
+
         // Verify initial state
         $this->assertTrue($client1->fresh()->is_default);
         $this->assertFalse($client2->fresh()->is_default);
-        
+
         // Set client2 as default
         $client2->is_default = true;
         $client2->save();
-        
+
         // Verify that client1 is no longer default and client2 is default
         $this->assertFalse($client1->fresh()->is_default);
         $this->assertTrue($client2->fresh()->is_default);
@@ -153,25 +148,25 @@ class ClientFeatureTest extends TestCase
             'name' => $this->faker->name,
             'email' => $this->faker->unique()->safeEmail,
         ]);
-        
+
         $otherUserClient = Client::factory()->create([
             'user_id' => $otherUser->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
             'is_default' => true,
         ]);
-        
+
         $thisUserClient = Client::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
             'is_default' => false,
         ]);
-        
+
         // Set this user's client as default
         $thisUserClient->is_default = true;
         $thisUserClient->save();
-        
+
         // Verify that other user's default client is not affected
         $this->assertTrue($otherUserClient->fresh()->is_default);
         $this->assertTrue($thisUserClient->fresh()->is_default);
@@ -190,30 +185,30 @@ class ClientFeatureTest extends TestCase
                 'is_default' => false,
             ]);
         }
-        
+
         // Set the middle client as default
         $defaultClient = $clients[2];
         $defaultClient->is_default = true;
         $defaultClient->save();
-        
+
         // Verify only one client is default
         $defaultClients = Client::where('user_id', $this->user->id)
             ->where('is_default', true)
             ->get();
-            
+
         $this->assertCount(1, $defaultClients);
         $this->assertEquals($defaultClient->id, $defaultClients->first()->id);
-        
+
         // Set another client as default
         $newDefaultClient = $clients[4];
         $newDefaultClient->is_default = true;
         $newDefaultClient->save();
-        
+
         // Verify only the new client is default
         $defaultClients = Client::where('user_id', $this->user->id)
             ->where('is_default', true)
             ->get();
-            
+
         $this->assertCount(1, $defaultClients);
         $this->assertEquals($newDefaultClient->id, $defaultClients->first()->id);
         $this->assertFalse($defaultClient->fresh()->is_default);
@@ -224,10 +219,10 @@ class ClientFeatureTest extends TestCase
     {
         // This tests the HasPreferredLocale trait functionality
         $locale = $this->client->preferredLocale();
-        
+
         // The method should return a string (locale code)
         $this->assertIsString($locale);
-        
+
         // Should be a valid locale code (2-5 characters)
         $this->assertMatchesRegularExpression('/^[a-z]{2}(_[A-Z]{2})?$/', $locale);
     }
@@ -240,33 +235,33 @@ class ClientFeatureTest extends TestCase
             'client_id' => $this->client->id,
             'payment_method_id' => null,
         ]);
-        
+
         $invoice2 = Invoice::factory()->create([
             'client_id' => $this->client->id,
             'payment_method_id' => null,
         ]);
-        
+
         $clientId = $this->client->id;
-        
+
         // Delete the client
         $this->client->delete();
-        
+
         // Check what happens to related invoices
         // This test documents the current behavior - adjust based on business rules
         $remainingInvoice1 = Invoice::find($invoice1->id);
         $remainingInvoice2 = Invoice::find($invoice2->id);
-        
+
         // If cascade delete is NOT implemented, they should still exist but with null client_id
         // If cascade delete IS implemented, they should be null
         // Adjust assertions based on actual business requirements
         if ($remainingInvoice1) {
             $this->assertNull($remainingInvoice1->client_id);
         }
-        
+
         if ($remainingInvoice2) {
             $this->assertNull($remainingInvoice2->client_id);
         }
-    }    
+    }
 
     #[Test]
     public function client_creation_with_full_data()
@@ -285,9 +280,9 @@ class ClientFeatureTest extends TestCase
             'shortcut' => $this->faker->lexify('???'),
             'is_default' => false,
         ];
-        
+
         $client = Client::create($clientData);
-        
+
         $this->assertDatabaseHas('clients', $clientData);
         $this->assertInstanceOf(Client::class, $client);
         $this->assertEquals($clientData['name'], $client->name);
@@ -301,18 +296,18 @@ class ClientFeatureTest extends TestCase
         $originalName = $this->client->name;
         $newName = $this->faker->company;
         $newEmail = $this->faker->unique()->companyEmail;
-        
+
         $this->client->update([
             'name' => $newName,
             'email' => $newEmail,
         ]);
-        
+
         $this->client->refresh();
-        
+
         $this->assertEquals($newName, $this->client->name);
         $this->assertEquals($newEmail, $this->client->email);
         $this->assertNotEquals($originalName, $this->client->name);
-        
+
         $this->assertDatabaseHas('clients', [
             'id' => $this->client->id,
             'name' => $newName,

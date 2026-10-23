@@ -9,6 +9,6 @@ return [
         'not_found' => 'ICO was not found in ARES.',
         'api_error' => 'Error communicating with ARES.',
         'parsing_error' => 'Failed to process ARES response.',
-        'general_error' => 'An error occurred while communicating with ARES. Please try again later.'
-    ]
+        'general_error' => 'An error occurred while communicating with ARES. Please try again later.',
+    ],
 ];

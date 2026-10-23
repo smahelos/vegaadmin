@@ -7,7 +7,7 @@ use JsonSerializable;
 
 /**
  * User Email Value Object
- * 
+ *
  * Handles email validation, normalization and email-related operations
  */
 class UserEmail implements JsonSerializable
@@ -28,7 +28,7 @@ class UserEmail implements JsonSerializable
     public static function fromString(string $email): self
     {
         $email = trim($email);
-        
+
         if (empty($email)) {
             throw new InvalidArgumentException('Email cannot be empty');
         }
@@ -47,10 +47,10 @@ class UserEmail implements JsonSerializable
             throw new InvalidArgumentException("Email contains invalid characters: {$email}");
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException("Invalid email format: {$email}");
         }
-        
+
         return new self(strtolower($email));
     }
 
@@ -63,7 +63,7 @@ class UserEmail implements JsonSerializable
             throw new InvalidArgumentException('Email cannot be empty');
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException("Invalid email format: {$email}");
         }
 
@@ -111,7 +111,11 @@ class UserEmail implements JsonSerializable
      */
     public function getLocalPart(): string
     {
-        return substr($this->email, 0, strpos($this->email, '@'));
+        return substr(
+            $this->email,
+            0,
+            strpos($this->email, '@'),
+        );
     }
 
     /**
@@ -128,8 +132,14 @@ class UserEmail implements JsonSerializable
     public function isCommonProvider(): bool
     {
         $commonProviders = [
-            'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com',
-            'seznam.cz', 'centrum.cz', 'email.cz', 'post.cz'
+            'gmail.com',
+            'yahoo.com',
+            'hotmail.com',
+            'outlook.com',
+            'seznam.cz',
+            'centrum.cz',
+            'email.cz',
+            'post.cz',
         ];
 
         return in_array($this->getDomain(), $commonProviders);
@@ -140,7 +150,7 @@ class UserEmail implements JsonSerializable
      */
     public function isBusinessEmail(): bool
     {
-        return !$this->isCommonProvider();
+        return ! $this->isCommonProvider();
     }
 
     /**
@@ -150,11 +160,11 @@ class UserEmail implements JsonSerializable
     {
         $local = $this->getLocalPart();
         $domain = $this->getDomain();
-        
-        $localMasked = strlen($local) > 3 
+
+        $localMasked = strlen($local) > 3
             ? substr($local, 0, 2) . str_repeat('*', strlen($local) - 2)
             : str_repeat('*', strlen($local));
-            
+
         $domainParts = explode('.', $domain);
         if (count($domainParts) > 1) {
             $domainMasked = substr($domainParts[0], 0, 2) . str_repeat('*', max(0, strlen($domainParts[0]) - 2));
@@ -162,7 +172,7 @@ class UserEmail implements JsonSerializable
         } else {
             $domainMasked = substr($domain, 0, 2) . str_repeat('*', max(0, strlen($domain) - 2));
         }
-        
+
         return $localMasked . '@' . $domainMasked;
     }
 

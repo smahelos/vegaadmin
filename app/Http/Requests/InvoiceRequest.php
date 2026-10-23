@@ -48,7 +48,7 @@ final class InvoiceRequest extends BaseEntityRequest
             redirect()->back()
                 ->withErrors($validator->errors())
                 ->withInput()
-                ->with('error', __('invoices.messages.validation_failed'))
+                ->with('error', __('invoices.messages.validation_failed')),
         );
     }
 
@@ -110,14 +110,45 @@ final class InvoiceRequest extends BaseEntityRequest
             'payment_status_id' => 'required|exists:statuses,id',
 
             // Issuer details
-            'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id', 'required_without:name'],
-            'name' => ['nullable', 'string', 'min:3', 'max:255', 'required_without:supplier_id'],
+            'supplier_id' => [
+                'nullable',
+                'integer',
+                'exists:suppliers,id',
+                'required_without:name',
+            ],
+            'name' => [
+                'nullable',
+                'string',
+                'min:3',
+                'max:255',
+                'required_without:supplier_id',
+            ],
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
-            'street' => ['nullable', 'string', 'max:255', 'required_without:supplier_id'],
-            'city' => ['nullable', 'string', 'max:255', 'required_without:supplier_id'],
-            'zip' => ['nullable', 'string', 'max:20', 'required_without:supplier_id'],
-            'country' => ['nullable', 'string', 'max:255', 'required_without:supplier_id'],
+            'street' => [
+                'nullable',
+                'string',
+                'max:255',
+                'required_without:supplier_id',
+            ],
+            'city' => [
+                'nullable',
+                'string',
+                'max:255',
+                'required_without:supplier_id',
+            ],
+            'zip' => [
+                'nullable',
+                'string',
+                'max:20',
+                'required_without:supplier_id',
+            ],
+            'country' => [
+                'nullable',
+                'string',
+                'max:255',
+                'required_without:supplier_id',
+            ],
             'ico' => 'nullable|string|max:50',
             'dic' => 'nullable|string|max:50',
             'supplier_shortcut' => 'nullable|string|max:50',
@@ -130,14 +161,45 @@ final class InvoiceRequest extends BaseEntityRequest
             'swift' => 'nullable|string|max:11',
 
             // Client details
-            'client_id' => ['nullable', 'integer', 'exists:clients,id', 'required_without:client_name'],
-            'client_name' => ['nullable', 'string', 'min:3', 'max:255', 'required_without:client_id'],
+            'client_id' => [
+                'nullable',
+                'integer',
+                'exists:clients,id',
+                'required_without:client_name',
+            ],
+            'client_name' => [
+                'nullable',
+                'string',
+                'min:3',
+                'max:255',
+                'required_without:client_id',
+            ],
             'client_email' => 'nullable|email|max:255',
             'client_phone' => 'nullable|string|max:20',
-            'client_street' => ['nullable', 'string', 'max:255', 'required_without:client_id'],
-            'client_city' => ['nullable', 'string', 'max:255', 'required_without:client_id'],
-            'client_zip' => ['nullable', 'string', 'max:20', 'required_without:client_id'],
-            'client_country' => ['nullable', 'string', 'max:255', 'required_without:client_id'],
+            'client_street' => [
+                'nullable',
+                'string',
+                'max:255',
+                'required_without:client_id',
+            ],
+            'client_city' => [
+                'nullable',
+                'string',
+                'max:255',
+                'required_without:client_id',
+            ],
+            'client_zip' => [
+                'nullable',
+                'string',
+                'max:20',
+                'required_without:client_id',
+            ],
+            'client_country' => [
+                'nullable',
+                'string',
+                'max:255',
+                'required_without:client_id',
+            ],
             'client_ico' => 'nullable|string|max:50',
             'client_dic' => 'nullable|string|max:50',
             'client_shortcut' => 'nullable|string|max:50',
@@ -150,19 +212,59 @@ final class InvoiceRequest extends BaseEntityRequest
 
             'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
 
-            'invoice-products' => ['required', 'array', 'min:1'],
+            'invoice-products' => [
+                'required',
+                'array',
+                'min:1',
+            ],
             'invoice-products.*' => ['array'],
-            'invoice-products.*.name' => ['required', 'string', 'max:255'],
-            'invoice-products.*.quantity' => ['required', 'numeric', 'decimal:0,3', 'gt:0', 'max:99999.999'],
+            'invoice-products.*.name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+            'invoice-products.*.quantity' => [
+                'required',
+                'numeric',
+                'decimal:0,3',
+                'gt:0',
+                'max:99999.999',
+            ],
             'invoice-products.*.unit' => ['nullable', Rule::enum(Unit::class)],
-            'invoice-products.*.price' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999.99'],
-            'invoice-products.*.currency' => ['required', Rule::enum(Currency::class), 'same:payment_currency'],
-            'invoice-products.*.tax_rate' => ['required', 'numeric', $this->taxRateRule()],
+            'invoice-products.*.price' => [
+                'required',
+                'numeric',
+                'decimal:0,2',
+                'min:0',
+                'max:99999999.99',
+            ],
+            'invoice-products.*.currency' => [
+                'required',
+                Rule::enum(Currency::class),
+                'same:payment_currency',
+            ],
+            'invoice-products.*.tax_rate' => [
+                'required',
+                'numeric',
+                $this->taxRateRule(),
+            ],
             'invoice-products.*.product_id' => $this->isGuestStore()
                 ? ['prohibited']
-                : ['nullable', 'integer', Rule::exists('products', 'id')->where('user_id', $this->user()?->getAuthIdentifier())],
-            'invoice-products.*.category' => ['nullable', 'string', 'max:255'],
-            'invoice-products.*.description' => ['nullable', 'string', 'max:255'],
+                : [
+                    'nullable',
+                    'integer',
+                    Rule::exists('products', 'id')->where('user_id', $this->user()?->getAuthIdentifier()),
+                ],
+            'invoice-products.*.category' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'invoice-products.*.description' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
         ];
 
         return $rules;
@@ -176,12 +278,20 @@ final class InvoiceRequest extends BaseEntityRequest
     {
         $allowed = null;
 
-        return function (string $attribute, mixed $value, Closure $fail) use (&$allowed): void {
+        return function (
+            string $attribute,
+            mixed $value,
+            Closure $fail,
+        ) use (&$allowed): void {
             if (! is_numeric($value)) {
                 return;
             }
             $allowed ??= $this->allowedTaxRates();
-            if (! in_array($this->normalizedRate((string) $value), $allowed, true)) {
+            if (! in_array(
+                $this->normalizedRate((string) $value),
+                $allowed,
+                true,
+            )) {
                 $fail(__('invoices.validation.tax_rate', ['rates' => $this->formattedRates($allowed)]));
             }
         };
@@ -194,7 +304,7 @@ final class InvoiceRequest extends BaseEntityRequest
     {
         $rates = array_map(
             fn (int|float|string $rate): string => $this->normalizedRate((string) $rate),
-            ['0', ...array_values(app(TaxDtoReadRepositoryInterface::class)->getDphRatesForDropdown())]
+            ['0', ...array_values(app(TaxDtoReadRepositoryInterface::class)->getDphRatesForDropdown())],
         );
         $rates = array_values(array_unique($rates));
         sort($rates, SORT_NUMERIC);
@@ -208,8 +318,12 @@ final class InvoiceRequest extends BaseEntityRequest
     private function formattedRates(array $rates): string
     {
         return implode(', ', array_map(
-            fn (string $rate): string => (string) Number::percentage((float) $rate, maxPrecision: 2, locale: app()->getLocale()),
-            $rates
+            fn (string $rate): string => (string) Number::percentage(
+                (float) $rate,
+                maxPrecision: 2,
+                locale: app()->getLocale(),
+            ),
+            $rates,
         ));
     }
 
@@ -341,7 +455,13 @@ final class InvoiceRequest extends BaseEntityRequest
         }
 
         // Handle any other fallback fields
-        foreach (['payment_method_id', 'supplier_id', 'client_id', 'due_in', 'payment_status_id'] as $field) {
+        foreach ([
+            'payment_method_id',
+            'supplier_id',
+            'client_id',
+            'due_in',
+            'payment_status_id',
+        ] as $field) {
             if (! $this->filled($field) && $this->has($field . '_fallback')) {
                 $merge[$field] = $this->input($field . '_fallback');
             }

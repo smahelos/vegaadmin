@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Product>
+ * @extends Factory<Product>
  */
 class ProductFactory extends Factory
 {
@@ -25,19 +25,31 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->unique()->words(3, true);
-        
+
         return [
             'name' => $name,
             'slug' => Str::slug($name) . '-' . $this->faker->unique()->numberBetween(1000, 9999),
             'user_id' => User::factory(),
-            'price' => $this->faker->randomFloat(2, 1, 1000),
+            'price' => $this->faker->randomFloat(
+                2,
+                1,
+                1000,
+            ),
             'unit' => $this->faker->randomElement(Unit::cases())->value,
-            'currency' => $this->faker->randomElement(['CZK', 'EUR', 'USD']),
+            'currency' => $this->faker->randomElement([
+                'CZK',
+                'EUR',
+                'USD',
+            ]),
             'tax_id' => Tax::factory(),
             'category_id' => ProductCategory::factory(),
             'description' => $this->faker->paragraph(),
             'is_default' => $this->faker->boolean(10), // 10% chance of being default
-            'image' => $this->faker->optional()->imageUrl(640, 480, 'products'),
+            'image' => $this->faker->optional()->imageUrl(
+                640,
+                480,
+                'products',
+            ),
         ];
     }
 

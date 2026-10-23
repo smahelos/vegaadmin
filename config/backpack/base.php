@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Middleware\RequireBackpackAccess;
+use Backpack\CRUD\app\Http\Middleware\AuthenticateSession;
+use Backpack\CRUD\app\Http\Middleware\UseBackpackAuthGuardInsteadOfDefaultAuthGuard;
+use Backpack\LanguageSwitcher\Http\Middleware\LanguageSwitcherMiddleware;
+use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
+
 return [
 
     /*
@@ -119,11 +125,11 @@ return [
     // The classes for the middleware to check if the visitor is an admin
     // Can be a single class or an array of classes
     'middleware_class' => [
-        App\Http\Middleware\RequireBackpackAccess::class,
-        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-        \Backpack\CRUD\app\Http\Middleware\AuthenticateSession::class,
-        \Backpack\CRUD\app\Http\Middleware\UseBackpackAuthGuardInsteadOfDefaultAuthGuard::class,
-        \Backpack\LanguageSwitcher\Http\Middleware\LanguageSwitcherMiddleware::class,
+        RequireBackpackAccess::class,
+        ConvertEmptyStringsToNull::class,
+        AuthenticateSession::class,
+        UseBackpackAuthGuardInsteadOfDefaultAuthGuard::class,
+        LanguageSwitcherMiddleware::class,
     ],
 
     // Alias for that middleware

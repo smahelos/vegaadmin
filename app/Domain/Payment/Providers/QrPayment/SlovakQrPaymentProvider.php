@@ -8,6 +8,7 @@ use App\Domain\Payment\DTO\QrPaymentPayload;
 class SlovakQrPaymentProvider implements QrPaymentProviderInterface
 {
     public const COUNTRY_CODE = 'SK';
+
     public const SUPPORTED_CURRENCIES = ['EUR'];
 
     public function getCountryCode(): string
@@ -22,7 +23,7 @@ class SlovakQrPaymentProvider implements QrPaymentProviderInterface
 
     public function validatePaymentInfo(QrPaymentPayload $payload): bool
     {
-        if (!in_array($payload->amount->getCurrency(), $this->getSupportedCurrencies())) {
+        if (! in_array($payload->amount->getCurrency(), $this->getSupportedCurrencies())) {
             return false;
         }
 
@@ -40,29 +41,45 @@ class SlovakQrPaymentProvider implements QrPaymentProviderInterface
     public function generateQrString(QrPaymentPayload $payload): string
     {
         $qrParts = [];
-        $qrParts[] = "SPD*1.0";
-        $qrParts[] = "ACC:" . $this->formatAccountIdentifier($payload->accountNumber, $payload->bankCode, $payload->iban);
-        $qrParts[] = "AM:" . number_format($payload->amount->toFloat(), 2, '.', '');
-        $qrParts[] = "CC:" . $payload->amount->getCurrency();
+        $qrParts[] = 'SPD*1.0';
+        $qrParts[] = 'ACC:' . $this->formatAccountIdentifier(
+            $payload->accountNumber,
+            $payload->bankCode,
+            $payload->iban,
+        );
+        $qrParts[] = 'AM:' . number_format(
+            $payload->amount->toFloat(),
+            2,
+            '.',
+            '',
+        );
+        $qrParts[] = 'CC:' . $payload->amount->getCurrency();
 
-        if (!empty($payload->variableSymbol)) {
-            $qrParts[] = "X-VS:" . $payload->variableSymbol;
+        if (! empty($payload->variableSymbol)) {
+            $qrParts[] = 'X-VS:' . $payload->variableSymbol;
         }
 
-        if (!empty($payload->message)) {
-            $qrParts[] = "MSG:" . substr($payload->message, 0, 60);
+        if (! empty($payload->message)) {
+            $qrParts[] = 'MSG:' . substr(
+                $payload->message,
+                0,
+                60,
+            );
         }
 
         return implode('*', $qrParts);
     }
 
-    public function formatAccountIdentifier(?string $accountNumber, ?string $bankCode, ?string $iban): ?string
-    {
-        if (!empty($iban)) {
+    public function formatAccountIdentifier(
+        ?string $accountNumber,
+        ?string $bankCode,
+        ?string $iban,
+    ): ?string {
+        if (! empty($iban)) {
             return strtoupper(preg_replace('/\s+/', '', $iban));
         }
 
-        if (!empty($accountNumber) && !empty($bankCode)) {
+        if (! empty($accountNumber) && ! empty($bankCode)) {
             return $accountNumber . '/' . $bankCode;
         }
 

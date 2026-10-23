@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class DatabaseHealthAlert extends Model
 {
@@ -29,7 +29,7 @@ class DatabaseHealthAlert extends Model
         'message',
         'metric_data',
         'resolved',
-        'resolved_at'
+        'resolved_at',
     ];
 
     /**
@@ -40,7 +40,7 @@ class DatabaseHealthAlert extends Model
     protected $casts = [
         'metric_data' => 'array',
         'resolved' => 'boolean',
-        'resolved_at' => 'datetime'
+        'resolved_at' => 'datetime',
     ];
 
     /**
@@ -51,7 +51,7 @@ class DatabaseHealthAlert extends Model
         $badges = [
             'info' => '<span class="badge text-bg-info">Info</span>',
             'warning' => '<span class="badge text-bg-warning">Warning</span>',
-            'critical' => '<span class="badge text-bg-danger">Critical</span>'
+            'critical' => '<span class="badge text-bg-danger">Critical</span>',
         ];
 
         return $badges[$this->severity] ?? '<span class="badge text-bg-light">Unknown</span>';
@@ -62,7 +62,7 @@ class DatabaseHealthAlert extends Model
      */
     public function getResolvedBadgeAttribute()
     {
-        return $this->resolved 
+        return $this->resolved
             ? '<span class="badge text-bg-success">Resolved</span>'
             : '<span class="badge text-bg-secondary">Active</span>';
     }
@@ -96,7 +96,11 @@ class DatabaseHealthAlert extends Model
      */
     public function scopeRecent($query)
     {
-        return $query->where('created_at', '>=', now()->subWeek());
+        return $query->where(
+            'created_at',
+            '>=',
+            now()->subWeek(),
+        );
     }
 
     /**
@@ -106,7 +110,7 @@ class DatabaseHealthAlert extends Model
     {
         $this->update([
             'resolved' => true,
-            'resolved_at' => now()
+            'resolved_at' => now(),
         ]);
     }
 }

@@ -17,7 +17,7 @@ class SupplierFormFieldsFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->controller = new TestSupplierController();
+        $this->controller = new TestSupplierController;
     }
 
     #[Test]
@@ -41,7 +41,7 @@ class SupplierFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->controller->getSupplierFields();
 
-        $nameField = array_filter($fields, fn($field) => $field['name'] === 'name');
+        $nameField = array_filter($fields, fn ($field) => $field['name'] === 'name');
         $this->assertNotEmpty($nameField);
 
         $nameField = array_values($nameField)[0];
@@ -57,7 +57,7 @@ class SupplierFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->controller->getSupplierFields();
 
-        $emailField = array_filter($fields, fn($field) => $field['name'] === 'email');
+        $emailField = array_filter($fields, fn ($field) => $field['name'] === 'email');
         $this->assertNotEmpty($emailField);
 
         $emailField = array_values($emailField)[0];
@@ -79,12 +79,12 @@ class SupplierFormFieldsFeatureTest extends TestCase
         $this->assertContains('city', $fieldNames);
 
         // Check street field
-        $streetField = array_filter($fields, fn($field) => $field['name'] === 'street');
+        $streetField = array_filter($fields, fn ($field) => $field['name'] === 'street');
         $streetField = array_values($streetField)[0];
         $this->assertTrue($streetField['required']);
 
         // Check city field
-        $cityField = array_filter($fields, fn($field) => $field['name'] === 'city');
+        $cityField = array_filter($fields, fn ($field) => $field['name'] === 'city');
         $cityField = array_values($cityField)[0];
         $this->assertTrue($cityField['required']);
     }
@@ -100,12 +100,12 @@ class SupplierFormFieldsFeatureTest extends TestCase
         $this->assertContains('phone', $fieldNames);
 
         // Check shortcut field is optional
-        $shortcutField = array_filter($fields, fn($field) => $field['name'] === 'shortcut');
+        $shortcutField = array_filter($fields, fn ($field) => $field['name'] === 'shortcut');
         $shortcutField = array_values($shortcutField)[0];
         $this->assertArrayNotHasKey('required', $shortcutField);
 
         // Check phone field is optional
-        $phoneField = array_filter($fields, fn($field) => $field['name'] === 'phone');
+        $phoneField = array_filter($fields, fn ($field) => $field['name'] === 'phone');
         $phoneField = array_values($phoneField)[0];
         $this->assertArrayNotHasKey('required', $phoneField);
     }
@@ -149,7 +149,16 @@ class SupplierFormFieldsFeatureTest extends TestCase
             $this->assertIsString($field['hint']);
 
             // Check valid field types
-            $validTypes = ['text', 'email', 'select', 'number', 'date', 'textarea', 'checkbox', 'file'];
+            $validTypes = [
+                'text',
+                'email',
+                'select',
+                'number',
+                'date',
+                'textarea',
+                'checkbox',
+                'file',
+            ];
             $this->assertContains($field['type'], $validTypes);
         }
     }

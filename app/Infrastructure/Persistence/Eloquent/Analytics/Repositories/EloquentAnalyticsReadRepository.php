@@ -30,16 +30,25 @@ class EloquentAnalyticsReadRepository implements AnalyticsReadRepository
             : 'DATE_FORMAT(invoices.issue_date, "%Y-%m")';
 
         $rows = DB::table('invoices')
-            ->join('clients', 'invoices.client_id', '=', 'clients.id')
+            ->join(
+                'clients',
+                'invoices.client_id',
+                '=',
+                'clients.id',
+            )
             ->where('clients.user_id', $userId)
             ->whereNotNull('invoices.issue_date')
-            ->where('invoices.issue_date', '>=', now()->subMonths($months))
+            ->where(
+                'invoices.issue_date',
+                '>=',
+                now()->subMonths($months),
+            )
             ->select(DB::raw($dateExpr . ' as month'), DB::raw('SUM(invoices.payment_amount) as total'))
             ->groupBy('month')
             ->orderBy('month')
             ->get();
 
-        return $rows->map(fn ($r) => ['month' => (string)$r->month, 'total' => (float)$r->total])->all();
+        return $rows->map(fn ($r) => ['month' => (string) $r->month, 'total' => (float) $r->total])->all();
     }
 
     public function getClientsWithTotals(int $userId): array
@@ -59,10 +68,11 @@ class EloquentAnalyticsReadRepository implements AnalyticsReadRepository
                     $total = (float) $agg->total;
                 }
             }
+
             return [
-                'client_id' => (int)$c->id,
-                'client_name' => (string)$c->name,
-                'total' => (float)$total,
+                'client_id' => (int) $c->id,
+                'client_name' => (string) $c->name,
+                'total' => (float) $total,
             ];
         })->all();
     }

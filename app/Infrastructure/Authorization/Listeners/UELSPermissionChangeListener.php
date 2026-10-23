@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Authorization\Listeners;
 
 use App\Domain\User\Services\PermissionLimitResolver;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +14,7 @@ use Spatie\Permission\Events\RoleDetached;
 
 /**
  * UELS Permission Change Listener (Infrastructure)
- * 
+ *
  * Handles cache invalidation when user permissions or roles change.
  * Kept in Infrastructure to allow Laravel-specific queue interfaces.
  */
@@ -43,7 +44,7 @@ class UELSPermissionChangeListener implements ShouldQueue
         Log::info('UELS: Permission attached, cache cleared', [
             'model_id' => $event->model->id ?? null,
             'permissions' => is_array($event->permissionsOrIds) ? $event->permissionsOrIds : [$event->permissionsOrIds],
-            'model_type' => get_class($event->model)
+            'model_type' => get_class($event->model),
         ]);
     }
 
@@ -56,7 +57,7 @@ class UELSPermissionChangeListener implements ShouldQueue
         Log::info('UELS: Permission detached, cache cleared', [
             'model_id' => $event->model->id ?? null,
             'permissions' => is_array($event->permissionsOrIds) ? $event->permissionsOrIds : [$event->permissionsOrIds],
-            'model_type' => get_class($event->model)
+            'model_type' => get_class($event->model),
         ]);
     }
 
@@ -69,7 +70,7 @@ class UELSPermissionChangeListener implements ShouldQueue
         Log::info('UELS: Role attached, cache cleared', [
             'model_id' => $event->model->id ?? null,
             'roles' => is_array($event->rolesOrIds) ? $event->rolesOrIds : [$event->rolesOrIds],
-            'model_type' => get_class($event->model)
+            'model_type' => get_class($event->model),
         ]);
     }
 
@@ -82,7 +83,7 @@ class UELSPermissionChangeListener implements ShouldQueue
         Log::info('UELS: Role detached, cache cleared', [
             'model_id' => $event->model->id ?? null,
             'roles' => is_array($event->rolesOrIds) ? $event->rolesOrIds : [$event->rolesOrIds],
-            'model_type' => get_class($event->model)
+            'model_type' => get_class($event->model),
         ]);
     }
 
@@ -92,7 +93,7 @@ class UELSPermissionChangeListener implements ShouldQueue
     private function clearUserCache($event): void
     {
         // Check if the model is a User model (not Role)
-        if ($event->model instanceof \App\Models\User && $event->model->id) {
+        if ($event->model instanceof User && $event->model->id) {
             $this->resolver->clearUserCache($event->model->id);
         }
     }

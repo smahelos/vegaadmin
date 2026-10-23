@@ -15,7 +15,7 @@ class RefreshBackpackSession
     public function handle(Request $request, Closure $next): Response
     {
         // Ensure a flag exists to mark that backpack session middleware has run
-        if (!session()->has('backpack_session_state')) {
+        if (! session()->has('backpack_session_state')) {
             session(['backpack_session_state' => true]);
         }
 

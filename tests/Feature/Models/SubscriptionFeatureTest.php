@@ -2,10 +2,11 @@
 
 namespace Tests\Feature\Models;
 
-use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -37,8 +38,8 @@ class SubscriptionFeatureTest extends TestCase
     public function subscription_has_user_relationship(): void
     {
         $subscription = Subscription::factory()->create();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $subscription->user());
+
+        $this->assertInstanceOf(BelongsTo::class, $subscription->user());
         $this->assertInstanceOf(User::class, $subscription->user);
     }
 
@@ -46,8 +47,8 @@ class SubscriptionFeatureTest extends TestCase
     public function subscription_has_subscription_plan_relationship(): void
     {
         $subscription = Subscription::factory()->create();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\BelongsTo::class, $subscription->subscriptionPlan());
+
+        $this->assertInstanceOf(BelongsTo::class, $subscription->subscriptionPlan());
         $this->assertInstanceOf(SubscriptionPlan::class, $subscription->subscriptionPlan);
     }
 
@@ -55,8 +56,8 @@ class SubscriptionFeatureTest extends TestCase
     public function subscription_has_payments_relationship(): void
     {
         $subscription = Subscription::factory()->create();
-        
-        $this->assertInstanceOf(\Illuminate\Database\Eloquent\Relations\HasMany::class, $subscription->payments());
+
+        $this->assertInstanceOf(HasMany::class, $subscription->payments());
     }
 
     #[Test]
@@ -89,22 +90,22 @@ class SubscriptionFeatureTest extends TestCase
         // Test with status 'active' and future end date - should be active
         $activeSubscription = Subscription::factory()->create([
             'status' => 'active',
-            'ends_at' => now()->addDays(30)
+            'ends_at' => now()->addDays(30),
         ]);
-        
+
         // Test with status 'expired' - should not be active
         $expiredSubscription = Subscription::factory()->create(['status' => 'expired']);
 
         // Test with active status but past end date - should not be active due to date
         $expiredByDateSubscription = Subscription::factory()->create([
             'status' => 'active',
-            'ends_at' => now()->subDays(5)
+            'ends_at' => now()->subDays(5),
         ]);
 
         // Test with active status and no end date - should be active
         $activeNoEndDateSubscription = Subscription::factory()->create([
             'status' => 'active',
-            'ends_at' => null
+            'ends_at' => null,
         ]);
 
         $this->assertTrue($activeSubscription->isActive());
@@ -119,22 +120,22 @@ class SubscriptionFeatureTest extends TestCase
         // Test with status 'active' and future end date - should not be expired
         $activeSubscription = Subscription::factory()->create([
             'status' => 'active',
-            'ends_at' => now()->addDays(30)
+            'ends_at' => now()->addDays(30),
         ]);
-        
+
         // Test with status 'expired' - should be expired regardless of end date
         $expiredSubscription = Subscription::factory()->create(['status' => 'expired']);
 
         // Test with active status but past end date - should be expired due to date
         $expiredByDateSubscription = Subscription::factory()->create([
             'status' => 'active',
-            'ends_at' => now()->subDays(5)
+            'ends_at' => now()->subDays(5),
         ]);
 
         // Test with active status and no end date - should not be expired
         $activeNoEndDateSubscription = Subscription::factory()->create([
             'status' => 'active',
-            'ends_at' => null
+            'ends_at' => null,
         ]);
 
         $this->assertFalse($activeSubscription->isExpired());
@@ -183,12 +184,12 @@ class SubscriptionFeatureTest extends TestCase
     {
         $trialSubscription = Subscription::factory()->create([
             'trial_ends_at' => now()->addDays(7),
-            'status' => 'active'
+            'status' => 'active',
         ]);
-        
+
         $regularSubscription = Subscription::factory()->create([
             'trial_ends_at' => null,
-            'status' => 'active'
+            'status' => 'active',
         ]);
 
         $this->assertTrue($trialSubscription->isInTrial());

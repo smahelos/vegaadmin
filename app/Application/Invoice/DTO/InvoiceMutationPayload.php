@@ -11,8 +11,8 @@ use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 class InvoiceMutationPayload
 {
     /**
-     * @param array<string,mixed> $validated
-     * @param list<InvoiceProductWriteData> $products
+     * @param  array<string,mixed>  $validated
+     * @param  list<InvoiceProductWriteData>  $products
      */
     public function __construct(
         public array $validated,
@@ -30,6 +30,7 @@ class InvoiceMutationPayload
         if ($logoPath) {
             $clone->validated['invoice_logo'] = $logoPath;
         }
+
         return $clone;
     }
 }

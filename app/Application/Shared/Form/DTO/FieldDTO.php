@@ -31,6 +31,7 @@ class FieldDTO
 
     /**
      * Export to array preserving legacy structure for blade compatibility.
+     *
      * @return array<string,mixed>
      */
     public function toArray(): array
@@ -53,8 +54,16 @@ class FieldDTO
         ];
 
         // Remove only null-valued optional keys to keep payload lean.
-        foreach (['entity','attribute','model','accept','default'] as $maybeNull) {
-            if (!array_key_exists($maybeNull, $data)) { continue; }
+        foreach ([
+            'entity',
+            'attribute',
+            'model',
+            'accept',
+            'default',
+        ] as $maybeNull) {
+            if (! array_key_exists($maybeNull, $data)) {
+                continue;
+            }
             if ($data[$maybeNull] === null) {
                 unset($data[$maybeNull]);
             }

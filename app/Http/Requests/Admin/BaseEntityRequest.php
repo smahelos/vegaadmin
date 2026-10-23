@@ -2,13 +2,13 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Application\User\Services\EntityLimitChecker;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Base Entity Request
- * 
+ *
  * Abstract base class for admin requests that need entity limit checking
  * Provides universal limit enforcement for all admin operations
  */
@@ -19,22 +19,22 @@ abstract class BaseEntityRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        if (!backpack_auth()->check()) {
+        if (! backpack_auth()->check()) {
             return false;
         }
-        
+
         $user = backpack_auth()->user();
-        
+
         // Check basic permissions first
-        if (!$user->can($this->getRequiredPermission())) {
+        if (! $user->can($this->getRequiredPermission())) {
             return false;
         }
-        
+
         // Skip limit check for updates or if user has unlimited access
-        if (!$this->isCreatingEntity() || $this->hasUnlimitedAccess()) {
+        if (! $this->isCreatingEntity() || $this->hasUnlimitedAccess()) {
             return true;
         }
-        
+
         // Check entity limits for creation
         $checker = app(EntityLimitChecker::class);
         $limitCheck = $checker->check(
@@ -42,13 +42,13 @@ abstract class BaseEntityRequest extends FormRequest
             $this->getEntityType(),
             $this->getLimitType(),
             $this->getPeriodType(),
-            $this->getLimitValue()
+            $this->getLimitValue(),
         );
-        
-        if (!$limitCheck['allowed']) {
+
+        if (! $limitCheck['allowed']) {
             throw new EntityLimitExceededException($limitCheck);
         }
-        
+
         return true;
     }
 
@@ -100,12 +100,12 @@ abstract class BaseEntityRequest extends FormRequest
     protected function getMethodBasedRules(): array
     {
         $rules = $this->rules();
-        
+
         // For updates, make certain fields optional
         if ($this->isUpdatingEntity()) {
             return $this->makeRulesOptionalForUpdate($rules);
         }
-        
+
         return $rules;
     }
 
@@ -116,13 +116,17 @@ abstract class BaseEntityRequest extends FormRequest
     {
         foreach ($rules as $field => $rule) {
             if (is_string($rule) && str_contains($rule, 'required')) {
-                $rules[$field] = str_replace('required', 'sometimes', $rule);
+                $rules[$field] = str_replace(
+                    'required',
+                    'sometimes',
+                    $rule,
+                );
             } elseif (is_array($rule) && in_array('required', $rule)) {
                 $key = array_search('required', $rule);
                 $rules[$field][$key] = 'sometimes';
             }
         }
-        
+
         return $rules;
     }
 
@@ -134,8 +138,12 @@ abstract class BaseEntityRequest extends FormRequest
     {
         // Remove 'Request' suffix and convert to lowercase
         $className = class_basename($this);
-        $cleanName = str_replace('Request', '', $className);
-        
+        $cleanName = str_replace(
+            'Request',
+            '',
+            $className,
+        );
+
         return strtolower($cleanName);
     }
 
@@ -198,6 +206,7 @@ abstract class BaseEntityRequest extends FormRequest
     {
         $entityType = $entityType ?? $this->getEntityType();
         $permission = "can_create_{$entityType}_unlimited";
+
         return backpack_auth()->check() && backpack_auth()->user()->can($permission);
     }
 }

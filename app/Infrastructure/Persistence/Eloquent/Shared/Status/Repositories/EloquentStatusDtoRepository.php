@@ -3,18 +3,16 @@
 namespace App\Infrastructure\Persistence\Eloquent\Shared\Status\Repositories;
 
 use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
-use App\Infrastructure\Persistence\Eloquent\Shared\Status\Mappers\EloquentStatusMapper;
 use App\Domain\Shared\Status\DTO\StatusDTO;
 use App\Domain\Shared\Status\ValueObjects\StatusId;
-use App\Models\Status;
+use App\Infrastructure\Persistence\Eloquent\Shared\Status\Mappers\EloquentStatusMapper;
 
 class EloquentStatusDtoRepository implements StatusDtoRepositoryInterface
 {
     public function __construct(
         private readonly EloquentStatusRepository $statusRepository,
-        private readonly EloquentStatusMapper $mapper
-    ) {
-    }
+        private readonly EloquentStatusMapper $mapper,
+    ) {}
 
     public function findIdBySlug(string $slug): ?int
     {

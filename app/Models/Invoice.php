@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
-use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Spatie\Permission\Traits\HasRoles;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Casts\Attribute;
-use App\Models\InvoiceProduct;
-use Illuminate\Support\Facades\Log;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Traits\HasRoles;
 
 class Invoice extends Model
 {
@@ -27,7 +27,9 @@ class Invoice extends Model
     |--------------------------------------------------------------------------
     */
     protected $table = 'invoices';
+
     protected $guarded = ['id'];
+
     protected $casts = [
         'issue_date' => 'datetime:Y-m-d',
         'tax_point_date' => 'datetime:Y-m-d',
@@ -41,7 +43,7 @@ class Invoice extends Model
     const TEMPLATES = [
         'default' => 'Standard',
         'modern' => 'Modern',
-        'minimal' => 'Minimal'
+        'minimal' => 'Minimal',
     ];
 
     /*
@@ -76,8 +78,6 @@ class Invoice extends Model
 
     /**
      * Get the client associated with the invoice
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function client(): BelongsTo
     {
@@ -86,8 +86,6 @@ class Invoice extends Model
 
     /**
      * Get the supplier associated with the invoice
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function supplier(): BelongsTo
     {
@@ -97,11 +95,11 @@ class Invoice extends Model
     /**
      * Get the payment method associated with the invoice
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function paymentMethod()
     {
-        return $this->belongsTo(\App\Models\PaymentMethod::class, 'payment_method_id');
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
 
     /**
@@ -121,7 +119,7 @@ class Invoice extends Model
                 'is_custom_product',
                 'tax_rate',
                 'tax_amount',
-                'total_price'
+                'total_price',
             ])
             ->withTimestamps();
     }
@@ -147,7 +145,7 @@ class Invoice extends Model
      */
     public function paymentStatus()
     {
-        return $this->belongsTo(\App\Models\Status::class, 'payment_status_id');
+        return $this->belongsTo(Status::class, 'payment_status_id');
     }
 
     /*
@@ -158,7 +156,7 @@ class Invoice extends Model
     /**
      * Legacy alias for backward compatibility with code using paymentMethods()
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function paymentMethods()
     {
@@ -166,6 +164,7 @@ class Invoice extends Model
             return collect([$this->paymentMethod]);
         } elseif ($this->payment_method_id) {
             $paymentMethod = $this->paymentMethod()->first();
+
             return collect([$paymentMethod]);
         }
 
@@ -201,6 +200,7 @@ class Invoice extends Model
         } elseif ($this->client_id) {
             // If client is needed (lazy loading)
             $client = $this->client()->first();
+
             return $client ? $client->name : __('invoices.placeholders.unknown_client');
         }
 
@@ -214,7 +214,7 @@ class Invoice extends Model
      */
     public function getStatusColorClassAttribute()
     {
-        if (!$this->paymentStatus) {
+        if (! $this->paymentStatus) {
             return 'gray';
         }
 
@@ -240,7 +240,7 @@ class Invoice extends Model
     /**
      * Calculate due date based on issue date and due days
      *
-     * @return \Carbon\Carbon|null
+     * @return Carbon|null
      */
     public function getDueDateAttribute()
     {
@@ -280,6 +280,7 @@ class Invoice extends Model
                 } elseif ($this->supplier_id) {
                     // Lazy loading pokud je potřeba
                     $supplier = $this->supplier()->first();
+
                     return $supplier ? $supplier->name : __('invoices.placeholders.unknown_supplier');
                 }
 
@@ -290,8 +291,6 @@ class Invoice extends Model
 
     /**
      * Get all products (regular and custom) associated with this invoice
-     *
-     * @return array
      */
     public function getInvoiceProductsDataAttribute(): array
     {
@@ -301,7 +300,7 @@ class Invoice extends Model
         $invoiceProducts = $this->relationLoaded('invoiceProducts') ?
             $this->invoiceProducts : $this->invoiceProducts()->get();
 
-            Log::info('Invoice Products:', ['invoiceProducts' => $invoiceProducts->toArray()]);
+        Log::info('Invoice Products:', ['invoiceProducts' => $invoiceProducts->toArray()]);
 
         foreach ($invoiceProducts as $invoiceProduct) {
             $productData = [
@@ -319,7 +318,7 @@ class Invoice extends Model
             ];
 
             // Add product details if this is not a custom product
-            if (!$invoiceProduct->is_custom_product && $invoiceProduct->product) {
+            if (! $invoiceProduct->is_custom_product && $invoiceProduct->product) {
                 $productData['product'] = [
                     'id' => $invoiceProduct->product->id,
                     'name' => $invoiceProduct->product->name,
@@ -347,18 +346,30 @@ class Invoice extends Model
         // Allow null explicitly
         if ($value === null || $value === '') {
             $this->attributes['payment_amount'] = null;
+
             return;
         }
 
         // Normalize numeric or string inputs into a string with 2 decimals
         if (is_numeric($value) || is_string($value)) {
-            $normalized = number_format((float)$value, 2, '.', '');
+            $normalized = number_format(
+                (float) $value,
+                2,
+                '.',
+                '',
+            );
             $this->attributes['payment_amount'] = $normalized;
+
             return;
         }
 
         // Fallback: cast anything else to float safely and format
-        $normalized = number_format((float)$value, 2, '.', '');
+        $normalized = number_format(
+            (float) $value,
+            2,
+            '.',
+            '',
+        );
         $this->attributes['payment_amount'] = $normalized;
     }
 
@@ -367,8 +378,14 @@ class Invoice extends Model
      */
     public function getPaymentAmountMoneyAttribute(): Money
     {
-        $amount = $this->payment_amount !== null ? (string)number_format((float)$this->payment_amount, 2, '.', '') : '0';
+        $amount = $this->payment_amount !== null ? (string) number_format(
+            (float) $this->payment_amount,
+            2,
+            '.',
+            '',
+        ) : '0';
         $currency = $this->payment_currency ?: 'CZK';
+
         return Money::fromString($amount, strtoupper($currency));
     }
 
@@ -390,7 +407,7 @@ class Invoice extends Model
             $price = Money::fromString((string) $line->price, strtoupper($line->currency));
             $totals = $totals->withLine(
                 $price->multiplyBy((string) $line->quantity),
-                Money::fromString((string) $line->tax_amount, strtoupper($line->currency))
+                Money::fromString((string) $line->tax_amount, strtoupper($line->currency)),
             );
         }
 

@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Domain\Payment\Services;
 
-use App\Domain\Payment\Services\QrPaymentService;
-use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Contracts\QrCodeRendererInterface;
+use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -18,9 +18,14 @@ class QrPaymentServiceTest extends TestCase
     {
         parent::setUp();
         // Provide a simple stub for renderer dependency
-        $renderer = new class implements QrCodeRendererInterface {
-            public function renderDataUrl(string $qrString, int $size = 300, int $margin = 2, string $errorCorrection = 'H'): string
-            {
+        $renderer = new class implements QrCodeRendererInterface
+        {
+            public function renderDataUrl(
+                string $qrString,
+                int $size = 300,
+                int $margin = 2,
+                string $errorCorrection = 'H',
+            ): string {
                 return 'data:image/png;base64,' . base64_encode($qrString);
             }
         };
@@ -40,11 +45,15 @@ class QrPaymentServiceTest extends TestCase
         $expected = [
             'generateQrCodeBase64',
             'hasRequiredPaymentInfo',
-            'getSupportedCountries'
+            'getSupportedCountries',
         ];
         $methods = get_class_methods($this->service);
         foreach ($expected as $m) {
-            $this->assertContains($m, $methods, "Missing method $m");
+            $this->assertContains(
+                $m,
+                $methods,
+                "Missing method $m",
+            );
         }
     }
 
@@ -54,16 +63,16 @@ class QrPaymentServiceTest extends TestCase
         $r = new \ReflectionClass($this->service);
         $hasInfo = $r->getMethod('hasRequiredPaymentInfo');
         $this->assertEquals('payload', $hasInfo->getParameters()[0]->getName());
-        $this->assertEquals('App\\Domain\\Payment\\DTO\\QrPaymentPayload', (string)$hasInfo->getParameters()[0]->getType());
-        $this->assertEquals('bool', (string)$hasInfo->getReturnType());
+        $this->assertEquals('App\\Domain\\Payment\\DTO\\QrPaymentPayload', (string) $hasInfo->getParameters()[0]->getType());
+        $this->assertEquals('bool', (string) $hasInfo->getReturnType());
 
         $generateQr = $r->getMethod('generateQrCodeBase64');
         $params = $generateQr->getParameters();
         $this->assertCount(1, $params);
-        $this->assertEquals('App\\Domain\\Payment\\DTO\\QrPaymentPayload', (string)$params[0]->getType());
+        $this->assertEquals('App\\Domain\\Payment\\DTO\\QrPaymentPayload', (string) $params[0]->getType());
 
         $supported = $r->getMethod('getSupportedCountries');
-        $this->assertEquals('array', (string)$supported->getReturnType());
+        $this->assertEquals('array', (string) $supported->getReturnType());
         $this->assertCount(0, $supported->getParameters());
     }
 
@@ -73,7 +82,7 @@ class QrPaymentServiceTest extends TestCase
         $r = new \ReflectionClass($this->service);
         $public = array_filter(
             $r->getMethods(\ReflectionMethod::IS_PUBLIC),
-            fn($m) => $m->getDeclaringClass()->getName() === QrPaymentService::class && $m->getName() !== '__construct'
+            fn ($m) => $m->getDeclaringClass()->getName() === QrPaymentService::class && $m->getName() !== '__construct',
         );
         $this->assertCount(3, $public);
     }
@@ -87,13 +96,13 @@ class QrPaymentServiceTest extends TestCase
             accountNumber: '1234567890',
             bankCode: '0100',
             iban: null,
-            message: 'Test payment'
+            message: 'Test payment',
         );
 
         $result = $this->service->generateQrCodeBase64($payload);
         $this->assertIsString($result);
         $this->assertStringStartsWith('data:image/png;base64,', $result);
-        
+
         // Decode the base64 content to verify it contains the expected QR string
         $qrContent = base64_decode(substr($result, strlen('data:image/png;base64,')));
         $this->assertStringContainsString('SPD*1.0', $qrContent);
@@ -109,13 +118,13 @@ class QrPaymentServiceTest extends TestCase
             accountNumber: null,
             bankCode: null,
             iban: 'DE44500105175407324931',
-            message: 'European payment'
+            message: 'European payment',
         );
 
         $result = $this->service->generateQrCodeBase64($payload);
         $this->assertIsString($result);
         $this->assertStringStartsWith('data:image/png;base64,', $result);
-        
+
         $qrContent = base64_decode(substr($result, strlen('data:image/png;base64,')));
         $this->assertStringContainsString('BCD', $qrContent);
         $this->assertStringContainsString('DE44500105175407324931', $qrContent);
@@ -130,7 +139,7 @@ class QrPaymentServiceTest extends TestCase
             accountNumber: '1234567890',
             bankCode: '0100',
             iban: null,
-            message: null
+            message: null,
         );
 
         $result = $this->service->hasRequiredPaymentInfo($payload);
@@ -146,7 +155,7 @@ class QrPaymentServiceTest extends TestCase
             accountNumber: null,
             bankCode: null,
             iban: null,
-            message: null
+            message: null,
         );
 
         $result = $this->service->hasRequiredPaymentInfo($payload);
@@ -162,7 +171,7 @@ class QrPaymentServiceTest extends TestCase
             accountNumber: '1234567890',
             bankCode: '0100',
             iban: null,
-            message: null
+            message: null,
         );
 
         $result = $this->service->hasRequiredPaymentInfo($payload);

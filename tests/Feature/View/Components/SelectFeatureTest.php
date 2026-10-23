@@ -17,7 +17,7 @@ class SelectFeatureTest extends TestCase
         return [
             ['value' => '1', 'text' => 'Option 1'],
             ['value' => '2', 'text' => 'Option 2'],
-            ['value' => '3', 'text' => 'Option 3']
+            ['value' => '3', 'text' => 'Option 3'],
         ];
     }
 
@@ -26,9 +26,9 @@ class SelectFeatureTest extends TestCase
     {
         $options = $this->getBasicOptions();
         $component = new Select($options, 'test_select');
-        
+
         $view = $component->render();
-        
+
         $this->assertInstanceOf(View::class, $view);
     }
 
@@ -37,9 +37,9 @@ class SelectFeatureTest extends TestCase
     {
         $options = $this->getBasicOptions();
         $component = new Select($options, 'test_select');
-        
+
         $view = $component->render();
-        
+
         $this->assertEquals('components.select', $view->getName());
     }
 
@@ -48,13 +48,13 @@ class SelectFeatureTest extends TestCase
     {
         $options = $this->getBasicOptions();
         $component = new Select($options, 'test_select');
-        
+
         $view = $component->render();
-        
+
         // Verify the template file exists and view can be created
         $this->assertInstanceOf(View::class, $view);
         $this->assertEquals('components.select', $view->getName());
-        
+
         // Check that the view file exists
         $viewPath = resource_path('views/components/select.blade.php');
         $this->assertFileExists($viewPath);
@@ -67,26 +67,37 @@ class SelectFeatureTest extends TestCase
         $objectOptions = $this->getBasicOptions();
         $component1 = new Select($objectOptions, 'test1');
         $view1 = $component1->render();
-        
+
         $this->assertInstanceOf(View::class, $view1);
         $this->assertEquals($objectOptions, $component1->options);
-        
+
         // Test with key-value pairs
         $keyValueOptions = ['key1' => 'Value 1', 'key2' => 'Value 2'];
         $component2 = new Select($keyValueOptions, 'test2');
         $view2 = $component2->render();
-        
+
         $this->assertInstanceOf(View::class, $view2);
         $this->assertEquals($keyValueOptions, $component2->options);
-        
+
         // Test with custom field mappings
         $customOptions = [
             ['id' => 1, 'name' => 'First'],
-            ['id' => 2, 'name' => 'Second']
+            ['id' => 2, 'name' => 'Second'],
         ];
-        $component3 = new Select($customOptions, 'test3', null, null, false, '', '', '', 'id', 'name');
+        $component3 = new Select(
+            $customOptions,
+            'test3',
+            null,
+            null,
+            false,
+            '',
+            '',
+            '',
+            'id',
+            'name',
+        );
         $view3 = $component3->render();
-        
+
         $this->assertInstanceOf(View::class, $view3);
         $this->assertEquals($customOptions, $component3->options);
         $this->assertEquals('id', $component3->valueField);
@@ -97,7 +108,7 @@ class SelectFeatureTest extends TestCase
     public function component_handles_different_configuration_options(): void
     {
         $options = $this->getBasicOptions();
-        
+
         // Test with all custom parameters
         $component = new Select(
             $options,
@@ -112,11 +123,11 @@ class SelectFeatureTest extends TestCase
             'label',
             'Please select an option',
             'yes',
-            'Choose...'
+            'Choose...',
         );
-        
+
         $view = $component->render();
-        
+
         $this->assertInstanceOf(View::class, $view);
         $this->assertEquals($options, $component->options);
         $this->assertEquals('custom_select', $component->name);
@@ -138,9 +149,9 @@ class SelectFeatureTest extends TestCase
     {
         $options = $this->getBasicOptions();
         $component = new Select($options, 'simple_select');
-        
+
         $view = $component->render();
-        
+
         $this->assertInstanceOf(View::class, $view);
         $this->assertEquals($options, $component->options);
         $this->assertEquals('simple_select', $component->name);
@@ -163,18 +174,18 @@ class SelectFeatureTest extends TestCase
         // Test with empty options
         $component1 = new Select([], 'empty_select');
         $view1 = $component1->render();
-        
+
         $this->assertInstanceOf(View::class, $view1);
         $this->assertEquals([], $component1->options);
-        
+
         // Test with single option
         $singleOption = [['value' => 'only', 'text' => 'Only Option']];
         $component2 = new Select($singleOption, 'single_select');
         $view2 = $component2->render();
-        
+
         $this->assertInstanceOf(View::class, $view2);
         $this->assertCount(1, $component2->options);
-        
+
         // Test with many options
         $manyOptions = [];
         for ($i = 1; $i <= 100; $i++) {
@@ -182,7 +193,7 @@ class SelectFeatureTest extends TestCase
         }
         $component3 = new Select($manyOptions, 'many_select');
         $view3 = $component3->render();
-        
+
         $this->assertInstanceOf(View::class, $view3);
         $this->assertCount(100, $component3->options);
     }
@@ -191,10 +202,17 @@ class SelectFeatureTest extends TestCase
     public function component_properties_are_accessible(): void
     {
         $options = $this->getBasicOptions();
-        $component = new Select($options, 'accessible_select', 'access_id', '2', true, 'Test Label');
-        
+        $component = new Select(
+            $options,
+            'accessible_select',
+            'access_id',
+            '2',
+            true,
+            'Test Label',
+        );
+
         $view = $component->render();
-        
+
         // Test that all properties are accessible
         $this->assertIsArray($component->options);
         $this->assertIsString($component->name);
@@ -209,7 +227,7 @@ class SelectFeatureTest extends TestCase
         $this->assertIsString($component->hint);
         $this->assertIsString($component->allowsNull);
         $this->assertIsString($component->placeholder);
-        
+
         // View should render successfully
         $this->assertInstanceOf(View::class, $view);
     }
@@ -218,12 +236,22 @@ class SelectFeatureTest extends TestCase
     public function component_can_be_rendered_multiple_times_consistently(): void
     {
         $options = $this->getBasicOptions();
-        $component1 = new Select($options, 'consistent_select', null, '1');
-        $component2 = new Select($options, 'consistent_select', null, '1');
-        
+        $component1 = new Select(
+            $options,
+            'consistent_select',
+            null,
+            '1',
+        );
+        $component2 = new Select(
+            $options,
+            'consistent_select',
+            null,
+            '1',
+        );
+
         $view1 = $component1->render();
         $view2 = $component2->render();
-        
+
         $this->assertEquals($view1->getName(), $view2->getName());
         $this->assertEquals($component1->options, $component2->options);
         $this->assertEquals($component1->name, $component2->name);
@@ -234,14 +262,21 @@ class SelectFeatureTest extends TestCase
     public function component_integrates_with_laravel_view_system(): void
     {
         $options = $this->getBasicOptions();
-        $component = new Select($options, 'integration_select', 'int_id', '3', true, 'Integration Test');
-        
+        $component = new Select(
+            $options,
+            'integration_select',
+            'int_id',
+            '3',
+            true,
+            'Integration Test',
+        );
+
         // Test that the component integrates properly with Laravel's view system
         $view = $component->render();
-        
+
         $this->assertInstanceOf(View::class, $view);
         $this->assertTrue($view->getName() !== '');
-        
+
         // Test component properties are accessible
         $this->assertEquals($options, $component->options);
         $this->assertEquals('integration_select', $component->name);
@@ -255,27 +290,34 @@ class SelectFeatureTest extends TestCase
     public function component_maintains_state_consistency_through_render_cycle(): void
     {
         $originalOptions = $this->getBasicOptions();
-        $component = new Select($originalOptions, 'state_select', 'state_id', '2', true, 'State Test');
-        
+        $component = new Select(
+            $originalOptions,
+            'state_select',
+            'state_id',
+            '2',
+            true,
+            'State Test',
+        );
+
         // Get initial state
         $initialOptions = $component->options;
         $initialName = $component->name;
         $initialSelected = $component->selected;
         $initialRequired = $component->required;
-        
+
         // Render the component
         $view = $component->render();
-        
+
         // Verify state remains unchanged after rendering
         $this->assertEquals($originalOptions, $component->options);
         $this->assertEquals($initialOptions, $component->options);
         $this->assertEquals($initialName, $component->name);
         $this->assertEquals($initialSelected, $component->selected);
         $this->assertEquals($initialRequired, $component->required);
-        
+
         // Render again to ensure consistency
         $view2 = $component->render();
-        
+
         $this->assertEquals($originalOptions, $component->options);
         $this->assertEquals($initialName, $component->name);
         $this->assertEquals($initialSelected, $component->selected);
@@ -286,41 +328,56 @@ class SelectFeatureTest extends TestCase
     public function component_handles_form_integration_scenarios(): void
     {
         $options = $this->getBasicOptions();
-        
+
         // Scenario 1: Form with validation (required field)
-        $requiredComponent = new Select($options, 'required_field', null, null, true, 'Required Field', 'is-invalid');
+        $requiredComponent = new Select(
+            $options,
+            'required_field',
+            null,
+            null,
+            true,
+            'Required Field',
+            'is-invalid',
+        );
         $requiredView = $requiredComponent->render();
-        
+
         $this->assertInstanceOf(View::class, $requiredView);
         $this->assertTrue($requiredComponent->required);
         $this->assertEquals('is-invalid', $requiredComponent->class);
-        
+
         // Scenario 2: Form with preselected value
-        $preselectedComponent = new Select($options, 'preselected_field', null, '2', false, 'Preselected Field');
+        $preselectedComponent = new Select(
+            $options,
+            'preselected_field',
+            null,
+            '2',
+            false,
+            'Preselected Field',
+        );
         $preselectedView = $preselectedComponent->render();
-        
+
         $this->assertInstanceOf(View::class, $preselectedView);
         $this->assertEquals('2', $preselectedComponent->selected);
         $this->assertFalse($preselectedComponent->required);
-        
+
         // Scenario 3: Form with help text and placeholder
         $helpComponent = new Select(
-            $options, 
-            'help_field', 
-            null, 
-            null, 
-            false, 
-            'Field with Help', 
-            '', 
-            '', 
-            'value', 
-            'text', 
+            $options,
+            'help_field',
+            null,
+            null,
+            false,
+            'Field with Help',
+            '',
+            '',
+            'value',
+            'text',
             'This field helps you select an option',
             '',
-            'Please choose...'
+            'Please choose...',
         );
         $helpView = $helpComponent->render();
-        
+
         $this->assertInstanceOf(View::class, $helpView);
         $this->assertEquals('This field helps you select an option', $helpComponent->hint);
         $this->assertEquals('Please choose...', $helpComponent->placeholder);
@@ -336,16 +393,16 @@ class SelectFeatureTest extends TestCase
             ['value' => 'test"quote', 'text' => 'Test "Quote" Marks'],
             ['value' => "test'apostrophe", 'text' => "Test 'Apostrophe' Marks"],
             ['value' => 'test€symbol', 'text' => 'Test € Symbol'],
-            ['value' => 'test中文', 'text' => 'Test 中文 Unicode']
+            ['value' => 'test中文', 'text' => 'Test 中文 Unicode'],
         ];
-        
+
         $component = new Select($specialOptions, 'special_select');
         $view = $component->render();
-        
+
         $this->assertInstanceOf(View::class, $view);
         $this->assertEquals($specialOptions, $component->options);
         $this->assertCount(6, $component->options);
-        
+
         // Test special characters in other fields
         $specialComponent = new Select(
             $this->getBasicOptions(),
@@ -360,9 +417,9 @@ class SelectFeatureTest extends TestCase
             'text',
             'Hint with special chars: <>&"\'',
             '',
-            'Placeholder with € & symbols'
+            'Placeholder with € & symbols',
         );
-        
+
         $specialView = $specialComponent->render();
         $this->assertInstanceOf(View::class, $specialView);
     }
@@ -375,38 +432,80 @@ class SelectFeatureTest extends TestCase
             ['value' => 'CZ', 'text' => 'Czech Republic'],
             ['value' => 'SK', 'text' => 'Slovakia'],
             ['value' => 'DE', 'text' => 'Germany'],
-            ['value' => 'AT', 'text' => 'Austria']
+            ['value' => 'AT', 'text' => 'Austria'],
         ];
-        
-        $countryComponent = new Select($countries, 'country', null, 'CZ', true, 'Country');
+
+        $countryComponent = new Select(
+            $countries,
+            'country',
+            null,
+            'CZ',
+            true,
+            'Country',
+        );
         $countryView = $countryComponent->render();
-        
+
         $this->assertInstanceOf(View::class, $countryView);
         $this->assertEquals('CZ', $countryComponent->selected);
-        
+
         // Scenario 2: User role selection
         $roles = [
             ['value' => '1', 'text' => 'Administrator'],
             ['value' => '2', 'text' => 'Editor'],
-            ['value' => '3', 'text' => 'Viewer']
+            ['value' => '3', 'text' => 'Viewer'],
         ];
-        
-        $roleComponent = new Select($roles, 'user_role', null, null, true, 'User Role', '', '', 'value', 'text', 'Select the user role');
+
+        $roleComponent = new Select(
+            $roles,
+            'user_role',
+            null,
+            null,
+            true,
+            'User Role',
+            '',
+            '',
+            'value',
+            'text',
+            'Select the user role',
+        );
         $roleView = $roleComponent->render();
-        
+
         $this->assertInstanceOf(View::class, $roleView);
         $this->assertEquals('Select the user role', $roleComponent->hint);
-        
+
         // Scenario 3: Database records with custom field mapping
         $dbRecords = [
-            ['id' => 101, 'name' => 'Product A', 'active' => true],
-            ['id' => 102, 'name' => 'Product B', 'active' => false],
-            ['id' => 103, 'name' => 'Product C', 'active' => true]
+            [
+                'id' => 101,
+                'name' => 'Product A',
+                'active' => true,
+            ],
+            [
+                'id' => 102,
+                'name' => 'Product B',
+                'active' => false,
+            ],
+            [
+                'id' => 103,
+                'name' => 'Product C',
+                'active' => true,
+            ],
         ];
-        
-        $dbComponent = new Select($dbRecords, 'product_id', null, '102', false, 'Product', '', '', 'id', 'name');
+
+        $dbComponent = new Select(
+            $dbRecords,
+            'product_id',
+            null,
+            '102',
+            false,
+            'Product',
+            '',
+            '',
+            'id',
+            'name',
+        );
         $dbView = $dbComponent->render();
-        
+
         $this->assertInstanceOf(View::class, $dbView);
         $this->assertEquals('id', $dbComponent->valueField);
         $this->assertEquals('name', $dbComponent->textField);

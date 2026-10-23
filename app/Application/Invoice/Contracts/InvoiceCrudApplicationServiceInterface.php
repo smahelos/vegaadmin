@@ -2,10 +2,10 @@
 
 namespace App\Application\Invoice\Contracts;
 
-use App\Domain\User\ValueObjects\UserId;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\User\ValueObjects\UserId;
 
 /**
  * Contract for invoice CRUD operations
@@ -13,16 +13,25 @@ use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 interface InvoiceCrudApplicationServiceInterface
 {
     /**
-     * @param array<string, mixed> $data
-     * @param list<InvoiceProductWriteData> $products
+     * @param  array<string, mixed>  $data
+     * @param  list<InvoiceProductWriteData>  $products
      */
-    public function create(UserId $userId, array $data, array $products): InvoiceDTO;
+    public function create(
+        UserId $userId,
+        array $data,
+        array $products,
+    ): InvoiceDTO;
 
     /**
-     * @param array<string, mixed> $data
-     * @param list<InvoiceProductWriteData> $products
+     * @param  array<string, mixed>  $data
+     * @param  list<InvoiceProductWriteData>  $products
      */
-    public function update(UserId $userId, InvoiceId $invoiceId, array $data, array $products): InvoiceDTO;
+    public function update(
+        UserId $userId,
+        InvoiceId $invoiceId,
+        array $data,
+        array $products,
+    ): InvoiceDTO;
 
     /**
      * Delete invoice

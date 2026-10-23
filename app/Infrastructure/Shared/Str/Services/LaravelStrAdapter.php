@@ -12,8 +12,17 @@ class LaravelStrAdapter implements Str
     /**
      * Generate a URL-friendly slug from a string.
      */
-    public function slug(string $title, string $separator = '-', string $language = 'en', array $dictionary = ['@' => 'at']): string
-    {
-        return \Illuminate\Support\Str::slug($title, $separator, $language, $dictionary);
+    public function slug(
+        string $title,
+        string $separator = '-',
+        string $language = 'en',
+        array $dictionary = ['@' => 'at'],
+    ): string {
+        return \Illuminate\Support\Str::slug(
+            $title,
+            $separator,
+            $language,
+            $dictionary,
+        );
     }
 }

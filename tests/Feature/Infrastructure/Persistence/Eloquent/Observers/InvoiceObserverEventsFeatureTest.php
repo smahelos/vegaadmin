@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Infrastructure\Persistence\Eloquent\Observers;
 
-use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
 use App\Domain\User\Events\UserDataChanged;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

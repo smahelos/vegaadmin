@@ -19,6 +19,7 @@ class StatusCategory extends Model
     */
 
     protected $table = 'status_categories';
+
     // protected $primaryKey = 'id';
     // public $timestamps = false;
     protected $guarded = ['id'];

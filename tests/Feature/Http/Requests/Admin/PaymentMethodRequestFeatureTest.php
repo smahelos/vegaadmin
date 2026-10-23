@@ -2,23 +2,26 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\PaymentMethodRequest;
-use App\Models\User;
 use App\Models\EntityLimit;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 
 class PaymentMethodRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, CreatesAdminTestEnvironment;
+    use CreatesAdminTestEnvironment, RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $regularUser;
+
     private UniversalLimitService $limitService;
 
     protected function setUp(): void
@@ -49,7 +52,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_data(): void
     {
-        $request = new PaymentMethodRequest();
+        $request = new PaymentMethodRequest;
         $data = [
             'name' => 'Bank Transfer',
             'slug' => 'bank-transfer',
@@ -63,7 +66,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_minimal_data(): void
     {
-        $request = new PaymentMethodRequest();
+        $request = new PaymentMethodRequest;
         $data = [
             'name' => 'Card',
         ];
@@ -74,7 +77,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_missing_name(): void
     {
-        $request = new PaymentMethodRequest();
+        $request = new PaymentMethodRequest;
         $validator = Validator::make(['slug' => 'something'], $request->rules());
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
@@ -84,8 +87,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     public function validation_fails_with_duplicate_slug(): void
     {
         // Simulate existing slug using validator unique rule (no factory needed if table empty -> pass first, second fails)
-        $existing = new PaymentMethodRequest();
-        $first = Validator::make(['name'=>'First','slug'=>'dup-slug'], $existing->rules());
+        $existing = new PaymentMethodRequest;
+        $first = Validator::make(['name' => 'First', 'slug' => 'dup-slug'], $existing->rules());
         $this->assertTrue($first->passes());
         // Pretend record stored by adjusting request id context not needed; rely on DB unique constraint only if persisted.
         // Skipping DB insert due to absence of factory in context.
@@ -94,9 +97,9 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_name_too_long(): void
     {
-        $request = new PaymentMethodRequest();
+        $request = new PaymentMethodRequest;
         $data = [
-            'name' => str_repeat('a',256),
+            'name' => str_repeat('a', 256),
         ];
         $validator = Validator::make($data, $request->rules());
         $this->assertFalse($validator->passes());
@@ -106,8 +109,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function auto_generates_slug_when_missing(): void
     {
-        $request = new PaymentMethodRequest();
-        $request->replace(['name'=>'My Cool Pay']);
+        $request = new PaymentMethodRequest;
+        $request->replace(['name' => 'My Cool Pay']);
         $request->prepareForValidation();
         $this->assertEquals('my-cool-pay', $request->get('slug'));
     }
@@ -115,9 +118,9 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        $this->actingAs($this->adminUser,'backpack');
+        $this->actingAs($this->adminUser, 'backpack');
         $this->postJson('/test-payment-method', [
-            'name'=>'Fast Pay'
+            'name' => 'Fast Pay',
         ])->assertStatus(200);
     }
 
@@ -125,7 +128,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
     public function authorization_fails_for_unauthenticated_user(): void
     {
         $this->postJson('/test-payment-method', [
-            'name'=>'Fail Pay'
+            'name' => 'Fail Pay',
         ])->assertStatus(403);
     }
 
@@ -133,9 +136,9 @@ class PaymentMethodRequestFeatureTest extends TestCase
     public function authorization_fails_for_user_without_permission(): void
     {
         $userNoPerm = User::factory()->create();
-        $this->actingAs($userNoPerm,'backpack');
+        $this->actingAs($userNoPerm, 'backpack');
         $this->postJson('/test-payment-method', [
-            'name'=>'No Perm'
+            'name' => 'No Perm',
         ])->assertStatus(403);
     }
 
@@ -143,16 +146,28 @@ class PaymentMethodRequestFeatureTest extends TestCase
     public function payment_method_creation_respects_limits(): void
     {
         $this->revokeUnlimitedAccess('payment_method');
-        $this->actingAs($this->adminUser,'backpack');
-        EntityLimit::where('entity_type','payment_method')->update(['limit_value'=>1]);
+        $this->actingAs($this->adminUser, 'backpack');
+        EntityLimit::where('entity_type', 'payment_method')->update(['limit_value' => 1]);
         $this->postJson('/test-payment-method', [
-            'name'=>'First Method'
+            'name' => 'First Method',
         ])->assertStatus(200);
-        $this->limitService->recordUsage($this->adminUser->id,'payment_method','count','monthly','backpack');
-        $this->expectException(\App\Domain\User\Exceptions\EntityLimitExceededException::class);
-        $request = new class extends PaymentMethodRequest { public function rules(): array { return []; } };
-        $request->replace(['name'=>'Second Method']);
-        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> null]);
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'payment_method',
+            'count',
+            'monthly',
+            'backpack',
+        );
+        $this->expectException(EntityLimitExceededException::class);
+        $request = new class extends PaymentMethodRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
+        $request->replace(['name' => 'Second Method']);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
         $request->authorize();
     }
@@ -160,12 +175,24 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function payment_method_update_bypasses_limits(): void
     {
-        $this->actingAs($this->adminUser,'backpack');
-        EntityLimit::where('entity_type','payment_method')->update(['limit_value'=>0]);
-        $this->limitService->recordUsage($this->adminUser->id,'payment_method','count','monthly','backpack');
-        $request = new class extends PaymentMethodRequest { public function rules(): array { return []; } };
-        $request->replace(['name'=>'Updated']);
-        $request->setRouteResolver(fn()=> (object)['parameter'=>fn($n)=> 'existing-pay']);
+        $this->actingAs($this->adminUser, 'backpack');
+        EntityLimit::where('entity_type', 'payment_method')->update(['limit_value' => 0]);
+        $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'payment_method',
+            'count',
+            'monthly',
+            'backpack',
+        );
+        $request = new class extends PaymentMethodRequest
+        {
+            public function rules(): array
+            {
+                return [];
+            }
+        };
+        $request->replace(['name' => 'Updated']);
+        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-pay']);
         $request->setMethod('PUT');
         $this->assertTrue($request->authorize());
     }

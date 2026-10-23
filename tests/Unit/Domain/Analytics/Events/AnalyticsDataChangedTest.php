@@ -12,8 +12,12 @@ class AnalyticsDataChangedTest extends TestCase
     #[Test]
     public function event_implements_domain_event_interface(): void
     {
-        $event = new AnalyticsDataChanged(123, 'invoice', 456);
-        
+        $event = new AnalyticsDataChanged(
+            123,
+            'invoice',
+            456,
+        );
+
         $this->assertInstanceOf(DomainEvent::class, $event);
     }
 
@@ -22,7 +26,7 @@ class AnalyticsDataChangedTest extends TestCase
     {
         $userId = 123;
         $event = new AnalyticsDataChanged($userId, 'invoice');
-        
+
         $this->assertEquals($userId, $event->userId);
     }
 
@@ -31,7 +35,7 @@ class AnalyticsDataChangedTest extends TestCase
     {
         $changeType = 'client';
         $event = new AnalyticsDataChanged(123, $changeType);
-        
+
         $this->assertEquals($changeType, $event->changeType);
     }
 
@@ -39,8 +43,12 @@ class AnalyticsDataChangedTest extends TestCase
     public function event_stores_entity_id_correctly(): void
     {
         $entityId = 456;
-        $event = new AnalyticsDataChanged(123, 'invoice', $entityId);
-        
+        $event = new AnalyticsDataChanged(
+            123,
+            'invoice',
+            $entityId,
+        );
+
         $this->assertEquals($entityId, $event->entityId);
     }
 
@@ -48,7 +56,7 @@ class AnalyticsDataChangedTest extends TestCase
     public function event_uses_default_change_type_when_not_provided(): void
     {
         $event = new AnalyticsDataChanged(123);
-        
+
         $this->assertEquals('general', $event->changeType);
     }
 
@@ -56,7 +64,7 @@ class AnalyticsDataChangedTest extends TestCase
     public function event_allows_null_entity_id(): void
     {
         $event = new AnalyticsDataChanged(123, 'statistics');
-        
+
         $this->assertNull($event->entityId);
     }
 
@@ -66,7 +74,7 @@ class AnalyticsDataChangedTest extends TestCase
         $before = new \DateTimeImmutable('now');
         $event = new AnalyticsDataChanged(123, 'invoice');
         $after = new \DateTimeImmutable('now');
-        
+
         $this->assertInstanceOf(\DateTimeImmutable::class, $event->occurredOn);
         $this->assertGreaterThanOrEqual($before->getTimestamp(), $event->occurredOn->getTimestamp());
         $this->assertLessThanOrEqual($after->getTimestamp(), $event->occurredOn->getTimestamp());
@@ -76,7 +84,7 @@ class AnalyticsDataChangedTest extends TestCase
     public function get_event_name_returns_class_name(): void
     {
         $event = new AnalyticsDataChanged(123);
-        
+
         $this->assertEquals(AnalyticsDataChanged::class, $event->getEventName());
     }
 
@@ -85,7 +93,7 @@ class AnalyticsDataChangedTest extends TestCase
     {
         $event1 = new AnalyticsDataChanged(123);
         $event2 = new AnalyticsDataChanged(123);
-        
+
         $this->assertIsString($event1->getEventId());
         $this->assertIsString($event2->getEventId());
         $this->assertNotEquals($event1->getEventId(), $event2->getEventId());
@@ -97,10 +105,14 @@ class AnalyticsDataChangedTest extends TestCase
         $userId = 123;
         $changeType = 'client';
         $entityId = 456;
-        $event = new AnalyticsDataChanged($userId, $changeType, $entityId);
-        
+        $event = new AnalyticsDataChanged(
+            $userId,
+            $changeType,
+            $entityId,
+        );
+
         $payload = $event->getPayload();
-        
+
         $this->assertIsArray($payload);
         $this->assertEquals($userId, $payload['user_id']);
         $this->assertEquals($changeType, $payload['change_type']);
@@ -113,9 +125,9 @@ class AnalyticsDataChangedTest extends TestCase
     public function get_occurred_on_returns_immutable_datetime(): void
     {
         $event = new AnalyticsDataChanged(123);
-        
+
         $occurredOn = $event->getOccurredOn();
-        
+
         $this->assertInstanceOf(\DateTimeImmutable::class, $occurredOn);
         $this->assertEquals($event->occurredOn, $occurredOn);
     }
@@ -123,11 +135,22 @@ class AnalyticsDataChangedTest extends TestCase
     #[Test]
     public function event_with_all_change_types(): void
     {
-        $changeTypes = ['invoice', 'client', 'supplier', 'statistics', 'monthly', 'dashboard'];
-        
+        $changeTypes = [
+            'invoice',
+            'client',
+            'supplier',
+            'statistics',
+            'monthly',
+            'dashboard',
+        ];
+
         foreach ($changeTypes as $changeType) {
-            $event = new AnalyticsDataChanged(123, $changeType, 456);
-            
+            $event = new AnalyticsDataChanged(
+                123,
+                $changeType,
+                456,
+            );
+
             $this->assertEquals($changeType, $event->changeType);
             $this->assertEquals(123, $event->userId);
             $this->assertEquals(456, $event->entityId);

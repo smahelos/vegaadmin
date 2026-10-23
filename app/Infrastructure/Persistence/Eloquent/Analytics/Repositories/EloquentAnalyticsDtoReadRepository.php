@@ -3,14 +3,12 @@
 namespace App\Infrastructure\Persistence\Eloquent\Analytics\Repositories;
 
 use App\Domain\Analytics\Contracts\AnalyticsDtoReadRepository;
-use App\Infrastructure\Persistence\Eloquent\Analytics\Repositories\EloquentAnalyticsReadRepository;
 
 class EloquentAnalyticsDtoReadRepository implements AnalyticsDtoReadRepository
 {
     public function __construct(
-        private readonly EloquentAnalyticsReadRepository $analyticsReadRepository
-    ) {
-    }
+        private readonly EloquentAnalyticsReadRepository $analyticsReadRepository,
+    ) {}
 
     public function getUserStats(int $userId): array
     {

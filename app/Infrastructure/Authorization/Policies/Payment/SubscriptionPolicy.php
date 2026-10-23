@@ -4,7 +4,6 @@ namespace App\Infrastructure\Authorization\Policies\Payment;
 
 use App\Models\Subscription;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class SubscriptionPolicy
 {
@@ -52,7 +51,7 @@ class SubscriptionPolicy
         }
 
         // Users can cancel their own subscriptions
-        if ($user->id === $subscription->user_id && 
+        if ($user->id === $subscription->user_id &&
             $user->hasPermissionTo('frontend.can_cancel_subscription', 'web')) {
             return true;
         }

@@ -28,10 +28,17 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
      * @param  array<string, mixed>  $data
      * @param  list<InvoiceProductWriteData>  $products
      */
-    public function create(UserId $userId, array $data, array $products): InvoiceDTO
-    {
+    public function create(
+        UserId $userId,
+        array $data,
+        array $products,
+    ): InvoiceDTO {
         return $this->transaction->transaction(
-            fn (): InvoiceDTO => $this->invoiceService->createInvoice($userId, $data, $products)
+            fn (): InvoiceDTO => $this->invoiceService->createInvoice(
+                $userId,
+                $data,
+                $products,
+            ),
         );
     }
 
@@ -41,10 +48,19 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
      * @param  array<string, mixed>  $data
      * @param  list<InvoiceProductWriteData>  $products
      */
-    public function update(UserId $userId, InvoiceId $invoiceId, array $data, array $products): InvoiceDTO
-    {
+    public function update(
+        UserId $userId,
+        InvoiceId $invoiceId,
+        array $data,
+        array $products,
+    ): InvoiceDTO {
         return $this->transaction->transaction(
-            fn (): InvoiceDTO => $this->invoiceService->updateInvoice($userId, $invoiceId, $data, $products)
+            fn (): InvoiceDTO => $this->invoiceService->updateInvoice(
+                $userId,
+                $invoiceId,
+                $data,
+                $products,
+            ),
         );
     }
 

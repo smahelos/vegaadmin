@@ -2,29 +2,40 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Infrastructure\Forms\User\UserFormFields;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\PermissionManager\app\Http\Requests\UserStoreCrudRequest as StoreRequest;
 use Backpack\PermissionManager\app\Http\Requests\UserUpdateCrudRequest as UpdateRequest;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * User management controller
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
+ *
+ * @property-read CrudPanel $crud
  */
 class UserCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+    use CreateOperation {
         store as traitStore;
     }
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation {
         update as traitUpdate;
     }
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+
     // Access control is configured via application CrudAccessServiceInterface in setup()
     use UserFormFields;
 
@@ -35,13 +46,13 @@ class UserCrudController extends CrudController
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\User::class);
+        CRUD::setModel(User::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/user');
         CRUD::setEntityNameStrings(__('users.entity.singular'), __('users.entity.plural'));
 
         // Configure access using centralized service
         $userId = optional(backpack_user())->id ?? 0;
-        app(\App\Application\User\Contracts\CrudAccessServiceInterface::class)
+        app(CrudAccessServiceInterface::class)
             ->configureCrudAccess($this->crud, (int) $userId);
     }
 
@@ -54,22 +65,22 @@ class UserCrudController extends CrudController
     {
         $this->crud->addColumns([
             [
-                'name'  => 'name',
+                'name' => 'name',
                 'label' => __('users.fields.name'),
-                'type'  => 'text',
+                'type' => 'text',
             ],
             [
-                'name'  => 'email',
+                'name' => 'email',
                 'label' => __('users.fields.email'),
-                'type'  => 'email',
+                'type' => 'email',
             ],
             [ // n-n relationship (with pivot table)
-                'label'     => __('users.fields.roles'),
-                'type'      => 'select_multiple',
-                'name'      => 'roles',
-                'entity'    => 'roles',
+                'label' => __('users.fields.roles'),
+                'type' => 'select_multiple',
+                'name' => 'roles',
+                'entity' => 'roles',
                 'attribute' => 'name',
-                'model'     => config('permission.models.role'),
+                'model' => config('permission.models.role'),
             ],
         ]);
 
@@ -77,23 +88,31 @@ class UserCrudController extends CrudController
             // Role Filter
             $this->crud->addFilter(
                 [
-                    'name'  => 'role',
-                    'type'  => 'select2',
+                    'name' => 'role',
+                    'type' => 'select2',
                     'label' => __('users.filters.role'),
                 ],
                 config('permission.models.role')::all()->pluck('name', 'id')->toArray(),
                 function ($value) {
-                    $this->crud->addClause('whereHas', 'roles', function ($query) use ($value) {
-                        $query->where('role_id', '=', $value);
-                    });
-                }
+                    $this->crud->addClause(
+                        'whereHas',
+                        'roles',
+                        function ($query) use ($value) {
+                            $query->where(
+                                'role_id',
+                                '=',
+                                $value,
+                            );
+                        },
+                    );
+                },
             );
 
             // Extra Permission Filter
             $this->crud->addFilter(
                 [
-                    'name'  => 'permissions',
-                    'type'  => 'select2',
+                    'name' => 'permissions',
+                    'type' => 'select2',
                     'label' => __('users.filters.permission'),
                 ],
                 config('permission.models.permission')::all()->pluck('name', 'id')->toArray(),
@@ -105,7 +124,7 @@ class UserCrudController extends CrudController
                             $q->where('id', $value);
                         });
                     });
-                }
+                },
             );
         }
     }
@@ -142,26 +161,26 @@ class UserCrudController extends CrudController
         $this->crud->column('name')->label(__('users.fields.name'));
         $this->crud->column('email')->label(__('users.fields.email'));
         $this->crud->column([
-            'label'             => __('users.fields.roles_permissions'),
+            'label' => __('users.fields.roles_permissions'),
             'field_unique_name' => 'user_role_permission',
-            'type'              => 'checklist_dependency',
-            'name'              => 'roles_permissions',
-            'subfields'         => [
+            'type' => 'checklist_dependency',
+            'name' => 'roles_permissions',
+            'subfields' => [
                 'primary' => [
-                    'label'            => __('users.fields.roles'),
-                    'name'             => 'roles',
-                    'entity'           => 'roles',
+                    'label' => __('users.fields.roles'),
+                    'name' => 'roles',
+                    'entity' => 'roles',
                     'entity_secondary' => 'permissions',
-                    'attribute'        => 'name',
-                    'model'            => config('permission.models.role'),
+                    'attribute' => 'name',
+                    'model' => config('permission.models.role'),
                 ],
                 'secondary' => [
-                    'label'            => __('users.fields.permissions'),
-                    'name'             => 'permissions',
-                    'entity'           => 'permissions',
-                    'entity_primary'   => 'roles',
-                    'attribute'        => 'name',
-                    'model'            => config('permission.models.permission'),
+                    'label' => __('users.fields.permissions'),
+                    'name' => 'permissions',
+                    'entity' => 'permissions',
+                    'entity_primary' => 'roles',
+                    'attribute' => 'name',
+                    'model' => config('permission.models.permission'),
                 ],
             ],
         ]);
@@ -172,7 +191,7 @@ class UserCrudController extends CrudController
     /**
      * Custom store method for password hashing
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function store()
     {
@@ -186,7 +205,7 @@ class UserCrudController extends CrudController
     /**
      * Custom update method for password hashing
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function update()
     {
@@ -200,8 +219,8 @@ class UserCrudController extends CrudController
     /**
      * Process password field - hash if provided
      *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Request
+     * @param  Request  $request
+     * @return Request
      */
     protected function handlePasswordInput($request)
     {
@@ -228,49 +247,49 @@ class UserCrudController extends CrudController
     {
         $this->crud->addFields([
             [
-                'name'  => 'name',
+                'name' => 'name',
                 'label' => __('users.fields.name'),
-                'type'  => 'text',
+                'type' => 'text',
             ],
             [
-                'name'  => 'email',
+                'name' => 'email',
                 'label' => __('users.fields.email'),
-                'type'  => 'email',
+                'type' => 'email',
             ],
             [
-                'name'  => 'password',
+                'name' => 'password',
                 'label' => __('users.fields.password'),
-                'type'  => 'password',
+                'type' => 'password',
             ],
             [
-                'name'  => 'password_confirmation',
+                'name' => 'password_confirmation',
                 'label' => __('users.fields.password_confirmation'),
-                'type'  => 'password',
+                'type' => 'password',
             ],
             [
-                'label'             => __('users.fields.roles_permissions'),
+                'label' => __('users.fields.roles_permissions'),
                 'field_unique_name' => 'user_role_permission',
-                'type'              => 'checklist_dependency',
-                'name'              => 'roles,permissions',
-                'subfields'         => [
+                'type' => 'checklist_dependency',
+                'name' => 'roles,permissions',
+                'subfields' => [
                     'primary' => [
-                        'label'            => __('users.fields.roles'),
-                        'name'             => 'roles',
-                        'entity'           => 'roles',
+                        'label' => __('users.fields.roles'),
+                        'name' => 'roles',
+                        'entity' => 'roles',
                         'entity_secondary' => 'permissions',
-                        'attribute'        => 'name',
-                        'model'            => config('permission.models.role'),
-                        'pivot'            => true,
-                        'number_columns'   => 3,
+                        'attribute' => 'name',
+                        'model' => config('permission.models.role'),
+                        'pivot' => true,
+                        'number_columns' => 3,
                     ],
                     'secondary' => [
-                        'label'          => __('users.fields.permissions'),
-                        'name'           => 'permissions',
-                        'entity'         => 'permissions',
+                        'label' => __('users.fields.permissions'),
+                        'name' => 'permissions',
+                        'entity' => 'permissions',
                         'entity_primary' => 'roles',
-                        'attribute'      => 'name',
-                        'model'          => config('permission.models.permission'),
-                        'pivot'          => true,
+                        'attribute' => 'name',
+                        'model' => config('permission.models.permission'),
+                        'pivot' => true,
                         'number_columns' => 3,
                     ],
                 ],

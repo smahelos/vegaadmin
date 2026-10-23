@@ -14,7 +14,7 @@ class InvoiceFormDTO
     /** @param array<string,mixed> $meta */
     public function __construct(
         private readonly FieldSetDTO $fields,
-        private readonly array $meta
+        private readonly array $meta,
     ) {}
 
     public function fields(): FieldSetDTO
@@ -24,6 +24,7 @@ class InvoiceFormDTO
 
     /**
      * Return legacy compatible array for blade merge.
+     *
      * @return array<string,mixed>
      */
     public function toArray(): array

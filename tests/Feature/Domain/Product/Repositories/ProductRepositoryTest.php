@@ -15,12 +15,13 @@ class ProductRepositoryTest extends TestCase
     use RefreshDatabaseWithData;
 
     private ProductRepositoryInterface $productRepository;
+
     private User $user;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->productRepository = $this->app->make(ProductRepositoryInterface::class);
         $this->user = User::factory()->create();
     }
@@ -29,10 +30,10 @@ class ProductRepositoryTest extends TestCase
     public function can_find_user_products(): void
     {
         $otherUser = User::factory()->create();
-        
+
         // Create products for our user
         Product::factory()->count(3)->create(['user_id' => $this->user->id]);
-        
+
         // Create products for other user (should not be returned)
         Product::factory()->count(2)->create(['user_id' => $otherUser->id]);
 
@@ -49,17 +50,17 @@ class ProductRepositoryTest extends TestCase
     {
         $firstProduct = Product::factory()->create([
             'user_id' => $this->user->id,
-            'created_at' => now()->subDays(2)
+            'created_at' => now()->subDays(2),
         ]);
-        
+
         $secondProduct = Product::factory()->create([
             'user_id' => $this->user->id,
-            'created_at' => now()->subDay()
+            'created_at' => now()->subDay(),
         ]);
-        
+
         $thirdProduct = Product::factory()->create([
             'user_id' => $this->user->id,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
 
         $products = $this->productRepository->findUserProducts($this->user);
@@ -72,7 +73,7 @@ class ProductRepositoryTest extends TestCase
     public function can_get_user_product_count(): void
     {
         $otherUser = User::factory()->create();
-        
+
         Product::factory()->count(5)->create(['user_id' => $this->user->id]);
         Product::factory()->count(3)->create(['user_id' => $otherUser->id]);
 
@@ -118,7 +119,7 @@ class ProductRepositoryTest extends TestCase
             'name' => 'Test Product',
             'price' => 99.99,
             'user_id' => $this->user->id,
-            'description' => 'Test description'
+            'description' => 'Test description',
         ];
 
         $product = $this->productRepository->create($productData);
@@ -137,7 +138,7 @@ class ProductRepositoryTest extends TestCase
 
         $updateData = [
             'name' => 'Updated Product',
-            'price' => 149.99
+            'price' => 149.99,
         ];
 
         $updatedProduct = $this->productRepository->update($product, $updateData);
@@ -147,7 +148,7 @@ class ProductRepositoryTest extends TestCase
         $this->assertDatabaseHas('products', [
             'id' => $product->id,
             'name' => 'Updated Product',
-            'price' => 149.99
+            'price' => 149.99,
         ]);
     }
 
@@ -163,13 +164,13 @@ class ProductRepositoryTest extends TestCase
 
         // Returned model should have new name
         $this->assertEquals('New Name', $updatedProduct->name);
-        
+
         // Database should be updated
         $this->assertDatabaseHas('products', [
             'id' => $productId,
-            'name' => 'New Name'
+            'name' => 'New Name',
         ]);
-        
+
         // Fresh model should also have new name
         $freshProduct = Product::find($productId);
         $this->assertEquals('New Name', $freshProduct->name);
@@ -190,7 +191,7 @@ class ProductRepositoryTest extends TestCase
     public function repository_interface_is_bound(): void
     {
         $repository = $this->app->make(ProductRepositoryInterface::class);
-        
+
         $this->assertInstanceOf(ProductRepositoryInterface::class, $repository);
     }
 }

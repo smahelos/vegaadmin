@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Controller;
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Models\SubscriptionPlan;
+use App\Http\Controllers\Controller;
 use App\Models\Subscription;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
+use App\Models\SubscriptionPlan;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class SubscriptionController extends Controller
 {
     use AuthorizesRequests;
-    
+
     private PaymentApplicationServiceInterface $paymentApp;
 
     public function __construct(PaymentApplicationServiceInterface $paymentApp)
@@ -30,7 +30,7 @@ class SubscriptionController extends Controller
     {
         $plans = SubscriptionPlan::active()->get();
         $userSubscription = null;
-        
+
         if (Auth::check()) {
             $userSubscription = Auth::user()->subscriptions()
                 ->where('status', 'active')
@@ -54,8 +54,11 @@ class SubscriptionController extends Controller
     /**
      * Subscribe to a plan
      */
-    public function subscribe(Request $request, string $locale, SubscriptionPlan $plan): RedirectResponse
-    {
+    public function subscribe(
+        Request $request,
+        string $locale,
+        SubscriptionPlan $plan,
+    ): RedirectResponse {
         $request->validate([
             'gateway' => 'required|string|in:gopay',
         ]);
@@ -82,21 +85,25 @@ class SubscriptionController extends Controller
         ]);
 
         // Process payment
-        $returnUrl = config('services.gopay.production') 
-            ? route('payment.return') 
+        $returnUrl = config('services.gopay.production')
+            ? route('payment.return')
             : config('services.gopay.test_return_url', 'https://httpbin.org/get');
-            
-        $notifyUrl = config('services.gopay.production') 
-            ? route('payment.notify') 
+
+        $notifyUrl = config('services.gopay.production')
+            ? route('payment.notify')
             : config('services.gopay.test_notify_url', 'https://httpbin.org/post');
-            
+
         $paymentData = [
             'return_url' => $returnUrl,
             'notify_url' => $notifyUrl,
             'lang' => app()->getLocale() === 'cs' ? 'CS' : 'EN',
         ];
 
-        $result = $this->paymentApp->initiateSubscription($subscription, $request->gateway, $paymentData);
+        $result = $this->paymentApp->initiateSubscription(
+            $subscription,
+            $request->gateway,
+            $paymentData,
+        );
 
         if ($result->success && $result->redirectUrl) {
             return redirect($result->redirectUrl);
@@ -137,7 +144,7 @@ class SubscriptionController extends Controller
             ->where('status', 'active')
             ->first();
 
-        if (!$subscription) {
+        if (! $subscription) {
             return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
                 ->with('info', __('subscriptions.messages.none_active'));
         }

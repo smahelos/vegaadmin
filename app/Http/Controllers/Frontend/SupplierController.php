@@ -2,19 +2,24 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Controller;
+use App\Application\Party\Contracts\PartyApplicationServiceInterface as InvoicePartyServiceInterface;
 // Removed direct Supplier model usage (delegated to party service)
-use App\Http\Requests\SupplierRequest;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Infrastructure\Forms\Party\SupplierFormFields;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
+use App\Application\Payment\Contracts\BankApplicationServiceInterface;
 use App\Application\Payment\Contracts\BankApplicationServiceInterface as BankServiceInterface;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface as CountryServiceInterface;
 use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService;
-use App\Application\Party\Contracts\PartyApplicationServiceInterface as InvoicePartyServiceInterface;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\SupplierRequest;
+use App\Infrastructure\Forms\Party\SupplierFormFields;
+use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class SupplierController extends Controller
 {
@@ -23,7 +28,7 @@ class SupplierController extends Controller
     /**
      * Bank service instance
      *
-     * @var \App\Application\Payment\Contracts\BankApplicationServiceInterface
+     * @var BankApplicationServiceInterface
      */
     protected $bankService;
 
@@ -35,32 +40,27 @@ class SupplierController extends Controller
     protected $countryService;
 
     /**
-    * Party service facade instance
-    *
-    * @var InvoicePartyServiceInterface
-    */
+     * Party service facade instance
+     *
+     * @var InvoicePartyServiceInterface
+     */
     protected $partyService;
 
     /**
      * Universal limit service instance
      *
-    * @var UELSService
+     * @var UELSService
      */
     protected $limitService;
 
     /**
      * Constructor
-     *
-      * @param BankServiceInterface $bankService
-      * @param CountryServiceInterface $countryService
-      * @param InvoicePartyServiceInterface $partyService
-      * @param UELSService $limitService
      */
     public function __construct(
-          BankServiceInterface $bankService,
-          CountryServiceInterface $countryService,
-          InvoicePartyServiceInterface $partyService,
-          UELSService $limitService
+        BankServiceInterface $bankService,
+        CountryServiceInterface $countryService,
+        InvoicePartyServiceInterface $partyService,
+        UELSService $limitService,
     ) {
         $this->bankService = $bankService;
         $this->countryService = $countryService;
@@ -71,7 +71,7 @@ class SupplierController extends Controller
     /**
      * Display paginated list of user suppliers
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function index()
     {
@@ -84,7 +84,7 @@ class SupplierController extends Controller
     /**
      * Show form for creating a new supplier
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function create()
     {
@@ -131,15 +131,14 @@ class SupplierController extends Controller
             'banks' => $banks,
             'banksData' => $banksData,
             'countries' => $countries,
-            'limitsData' => $limitsData
+            'limitsData' => $limitsData,
         ]);
     }
 
     /**
      * Store a new supplier
      *
-     * @param SupplierRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function store(SupplierRequest $request)
     {
@@ -159,7 +158,7 @@ class SupplierController extends Controller
             if ($user && empty($validatedData['supplier_id'])) {
                 // Check supplier creation permission via UELS (not client)
                 $canCreate = $this->limitService->canUserCreateEntity($user->id, 'supplier');
-                if (!$canCreate) {
+                if (! $canCreate) {
                     return redirect()->back()
                         ->withInput()
                         ->with('error', trans('suppliers.messages.limit_exceeded'));
@@ -175,8 +174,8 @@ class SupplierController extends Controller
             $locale = $request->route('locale') ?? 'cs';
 
             return redirect()->route('frontend.suppliers', ['locale' => $locale])
-                            ->with('success', __('suppliers.messages.created'));
-        } catch (\App\Domain\User\Exceptions\EntityLimitExceededException $e) {
+                ->with('success', __('suppliers.messages.created'));
+        } catch (EntityLimitExceededException $e) {
             return back()->withInput()->with('error', trans('suppliers.messages.limit_exceeded'));
         } catch (ValidationException $e) {
             // Handle file upload validation errors with detailed messages
@@ -186,31 +185,34 @@ class SupplierController extends Controller
                 ->with('error', __('suppliers.messages.error_create'));
         } catch (\Exception $e) {
             // Log the actual error for debugging
-            Log::error('Supplier creation failed', ['user_id' => Auth::id(), 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Log::error('Supplier creation failed', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return back()->withInput()
-                        ->with('error', __('suppliers.messages.error_create') . ': ' . $e->getMessage());
+                ->with('error', __('suppliers.messages.error_create') . ': ' . $e->getMessage());
         }
     }
 
     /**
      * Display supplier details and related invoices
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     * @return View|RedirectResponse
      */
     public function show(string $locale, int $id)
     {
         try {
             // Ignore requests for static files
-            if (preg_match('/\.(js\.map|css\.map|js|css|png|jpg|gif|svg|woff|woff2|ttf|eot)$/', (string)$id)) {
+            if (preg_match('/\.(js\.map|css\.map|js|css|png|jpg|gif|svg|woff|woff2|ttf|eot)$/', (string) $id)) {
                 return redirect()
                     ->route('frontend.suppliers', ['locale' => $locale])
                     ->with('error', __('suppliers.messages.error_show'));
             }
 
             // Check if ID is numeric
-            if (!is_numeric($id)) {
+            if (! is_numeric($id)) {
                 return redirect()
                     ->route('frontend.suppliers', ['locale' => $locale])
                     ->with('error', __('suppliers.messages.invalid_id'));
@@ -240,9 +242,7 @@ class SupplierController extends Controller
     /**
      * Show form for editing a supplier
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     * @return View|RedirectResponse
      */
     public function edit(string $locale, int $id)
     {
@@ -274,28 +274,28 @@ class SupplierController extends Controller
                 'banks' => $banks,
                 'banksData' => $banksData,
                 'countries' => $countries,
-                'limitsData' => $limitsData
+                'limitsData' => $limitsData,
             ]);
 
         } catch (ModelNotFoundException $e) {
             return redirect()->route('frontend.suppliers', ['locale' => $locale])
-                             ->with('error', __('suppliers.messages.error_edit'));
+                ->with('error', __('suppliers.messages.error_edit'));
         } catch (\Exception $e) {
             return redirect()->route('frontend.suppliers', ['locale' => $locale])
-                             ->with('error', __('suppliers.messages.error_edit'));
+                ->with('error', __('suppliers.messages.error_edit'));
         }
     }
 
     /**
      * Update supplier data
      *
-     * @param SupplierRequest $request
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
-    public function update(SupplierRequest $request, string $locale, int $id)
-    {
+    public function update(
+        SupplierRequest $request,
+        string $locale,
+        int $id,
+    ) {
         try {
             // Get User
             $user = Auth::user();
@@ -308,8 +308,11 @@ class SupplierController extends Controller
 
             // Handle file upload if provided: proactively delete old file, then pass UploadedFile to mutator
             if ($request->hasFile('supplier_logo')) {
-                if (!empty($supplier->supplier_logo)) {
-                    try { Storage::disk('public')->delete($supplier->supplier_logo); } catch (\Throwable) {}
+                if (! empty($supplier->supplier_logo)) {
+                    try {
+                        Storage::disk('public')->delete($supplier->supplier_logo);
+                    } catch (\Throwable) {
+                    }
                 }
                 $validatedData['supplier_logo'] = $request->file('supplier_logo');
             }
@@ -336,7 +339,13 @@ class SupplierController extends Controller
                 ->with('error', __('suppliers.messages.validation_failed'));
         } catch (\Exception $e) {
             // Log the actual error for debugging
-            Log::error('Supplier update failed', ['supplier_id' => $id, 'user_id' => Auth::id(), 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Log::error('Supplier update failed', [
+                'supplier_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', __('suppliers.messages.error_update') . ': ' . $e->getMessage());
@@ -346,9 +355,7 @@ class SupplierController extends Controller
     /**
      * Delete supplier if it has no associated invoices
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroy(string $locale, int $id)
     {
@@ -358,7 +365,7 @@ class SupplierController extends Controller
 
             // Find supplier
             $supplier = $this->partyService->findSupplier($user->id, $id);
-            if (!$this->partyService->deleteSupplier($user->id, $supplier->id)) {
+            if (! $this->partyService->deleteSupplier($user->id, $supplier->id)) {
                 return redirect()->route('frontend.suppliers', ['locale' => $locale])
                     ->with('error', __('suppliers.messages.error_delete_invoices'));
             }
@@ -375,12 +382,12 @@ class SupplierController extends Controller
                 ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_delete'));
         }
-    }    /**
+    }
+
+    /**
      * Set supplier as default
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function setDefault(string $locale, int $id)
     {
@@ -409,8 +416,7 @@ class SupplierController extends Controller
     /**
      * Get current user's products limits
      *
-     * @param \App\Models\User|null $user
-     * @return array
+     * @param  User|null  $user
      */
     public function getSuppliersLimitStats($user = null): array
     {
@@ -418,22 +424,31 @@ class SupplierController extends Controller
             $user = Auth::user();
         }
         if ($user) {
-            $bestPeriod = $this->limitService->getBestPeriodType($user->id, 'supplier', 'count');
-            $stats = $this->limitService->getUsageStatistics($user->id, 'supplier', 'count', $bestPeriod);
-            $limit = $stats['limit'] ?? (($stats['remaining'] ?? null) !== null ? (int)$stats['remaining'] + (int)($stats['current_usage'] ?? 0) : 0);
-            $current = (int)($stats['current_usage'] ?? 0);
+            $bestPeriod = $this->limitService->getBestPeriodType(
+                $user->id,
+                'supplier',
+                'count',
+            );
+            $stats = $this->limitService->getUsageStatistics(
+                $user->id,
+                'supplier',
+                'count',
+                $bestPeriod,
+            );
+            $limit = $stats['limit'] ?? (($stats['remaining'] ?? null) !== null ? (int) $stats['remaining'] + (int) ($stats['current_usage'] ?? 0) : 0);
+            $current = (int) ($stats['current_usage'] ?? 0);
             $canCreate = $stats['can_create'] ?? ($limit > $current);
+
             return [
                 'limit' => $limit,
                 'current_usage' => $current,
-                'allowed' => $canCreate
+                'allowed' => $canCreate,
             ];
-        }
-        else {
+        } else {
             return [
                 'limit' => 0,
                 'current_usage' => 0,
-                'allowed' => false
+                'allowed' => false,
             ];
         }
     }

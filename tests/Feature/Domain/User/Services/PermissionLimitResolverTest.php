@@ -20,17 +20,17 @@ class PermissionLimitResolverTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create required permissions for testing
         Permission::create(['name' => 'can_create_edit_invoice', 'guard_name' => 'web']);
         Permission::create(['name' => 'can_use_api', 'guard_name' => 'web']);
         Permission::create(['name' => 'basic_user', 'guard_name' => 'web']);
         Permission::create(['name' => 'premium_user', 'guard_name' => 'web']);
-        
+
         // Create basic role
         $basicRole = Role::create(['name' => 'basic', 'guard_name' => 'web']);
         $basicRole->givePermissionTo('can_create_edit_invoice');
-        
+
         $this->resolver = app(PermissionLimitResolver::class);
     }
 
@@ -50,7 +50,12 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
-        $limit = $this->resolver->getUserLimit($user->id, 'invoice', 'count', 'monthly');
+        $limit = $this->resolver->getUserLimit(
+            $user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
 
         $this->assertEquals(10, $limit);
     }
@@ -61,7 +66,12 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         // User has no permissions
 
-    $limit = $this->resolver->getUserLimit($user->id, 'invoice', 'count', 'monthly');
+        $limit = $this->resolver->getUserLimit(
+            $user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
 
         $this->assertEquals(0, $limit);
     }
@@ -91,7 +101,12 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo(['basic_user', 'premium_user']);
 
-    $limit = $this->resolver->getUserLimit($user->id, 'invoice', 'count', 'monthly');
+        $limit = $this->resolver->getUserLimit(
+            $user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
 
         // Should return the highest limit (25)
         $this->assertEquals(25, $limit);
@@ -113,7 +128,12 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('can_use_api');
 
-    $limit = $this->resolver->getUserLimit($user->id, 'invoice', 'count', 'monthly');
+        $limit = $this->resolver->getUserLimit(
+            $user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
 
         $this->assertEquals(999999, $limit);
     }
@@ -165,7 +185,12 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('basic_user');
 
-    $limit = $this->resolver->getUserLimit($user->id, 'client', 'count', 'daily');
+        $limit = $this->resolver->getUserLimit(
+            $user->id,
+            'client',
+            'count',
+            'daily',
+        );
 
         $this->assertEquals(15, $limit);
     }
@@ -176,7 +201,12 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('basic_user'); // This permission exists but has no limits
 
-    $limit = $this->resolver->getUserLimit($user->id, 'invoice', 'count', 'monthly');
+        $limit = $this->resolver->getUserLimit(
+            $user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
 
         $this->assertEquals(0, $limit);
     }
@@ -197,7 +227,12 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
-    $limit = $this->resolver->getUserLimit($user->id, 'invoice', 'count', 'monthly');
+        $limit = $this->resolver->getUserLimit(
+            $user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
 
         $this->assertEquals(20, $limit);
     }
@@ -218,7 +253,12 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
-    $limit = $this->resolver->getUserLimit($user->id, 'invoice', 'count', 'monthly');
+        $limit = $this->resolver->getUserLimit(
+            $user->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
 
         // Should return 0 because the limit is inactive
         $this->assertEquals(0, $limit);
@@ -249,7 +289,7 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
-    $allLimits = $this->resolver->getAllUserLimits($user->id);
+        $allLimits = $this->resolver->getAllUserLimits($user->id);
 
         $this->assertArrayHasKey('invoice', $allLimits);
         $this->assertArrayHasKey('client', $allLimits);
@@ -272,18 +312,23 @@ class PermissionLimitResolverTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
-    $limits = $this->resolver->getUserPermissionLimits($user->id, 'invoice');
+        $limits = $this->resolver->getUserPermissionLimits($user->id, 'invoice');
 
-    $this->assertIsArray($limits);
-    $this->assertNotEmpty($limits);
-    $this->assertArrayHasKey('permission', $limits[0]);
-    $this->assertArrayHasKey('limits', $limits[0]);
+        $this->assertIsArray($limits);
+        $this->assertNotEmpty($limits);
+        $this->assertArrayHasKey('permission', $limits[0]);
+        $this->assertArrayHasKey('limits', $limits[0]);
     }
 
     #[Test]
     public function anonymous_user_gets_zero_limits(): void
     {
-        $limit = $this->resolver->getUserLimit(null, 'invoice', 'count', 'monthly');
+        $limit = $this->resolver->getUserLimit(
+            null,
+            'invoice',
+            'count',
+            'monthly',
+        );
 
         $this->assertEquals(0, $limit);
     }

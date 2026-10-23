@@ -15,7 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->decimal('price', 10, 2);
+            $table->decimal(
+                'price',
+                10,
+                2,
+            );
             $table->string('currency', 3)->default('CZK');
             $table->enum('billing_period', ['monthly', 'yearly'])->default('monthly');
             $table->integer('billing_interval')->default(1); // Every X months/years
@@ -23,7 +27,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->integer('trial_days')->default(0); // Free trial days
             $table->timestamps();
-            
+
             $table->index(['is_active', 'billing_period']);
         });
     }

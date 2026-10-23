@@ -24,22 +24,31 @@ class UserRequestFeatureTest extends TestCase
 
     private function validate(array $data): \Illuminate\Validation\Validator
     {
-        $request = UserRequest::create('/', 'PUT', $data);
+        $request = UserRequest::create(
+            '/',
+            'PUT',
+            $data,
+        );
         $request->setUserResolver(fn () => $this->user);
 
-        return Validator::make($data, $request->rules(), [], $request->attributes());
+        return Validator::make(
+            $data,
+            $request->rules(),
+            [],
+            $request->attributes(),
+        );
     }
 
     #[Test]
     public function guest_is_not_authorized(): void
     {
-        $this->assertFalse((new UserRequest())->authorize());
+        $this->assertFalse((new UserRequest)->authorize());
     }
 
     #[Test]
     public function signed_in_user_is_authorized(): void
     {
-        $request = new UserRequest();
+        $request = new UserRequest;
         $request->setUserResolver(fn () => $this->user);
 
         $this->assertTrue($request->authorize());
@@ -48,7 +57,7 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function name_and_email_pass(): void
     {
-        $this->assertFalse($this->validate(['name' => 'Jan Novák', 'email' => 'jan_'.uniqid().'@example.com'])->fails());
+        $this->assertFalse($this->validate(['name' => 'Jan Novák', 'email' => 'jan_' . uniqid() . '@example.com'])->fails());
     }
 
     #[Test]

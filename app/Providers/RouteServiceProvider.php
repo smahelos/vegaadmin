@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -60,11 +60,16 @@ class RouteServiceProvider extends ServiceProvider
     protected function registerLocalizedRouteMacro(): void
     {
         Route::macro('localized', function ($group) {
-            $availableLocales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+            $availableLocales = config('app.available_locales', [
+                'cs',
+                'en',
+                'de',
+                'sk',
+            ]);
             $supportedLocales = implode('|', $availableLocales);
 
             // Register routes only with locale prefix to avoid duplicates
-            Route::group(['prefix' => '{locale}', 'where'=> ['locale' => $supportedLocales]], $group);
+            Route::group(['prefix' => '{locale}', 'where' => ['locale' => $supportedLocales]], $group);
         });
     }
 }

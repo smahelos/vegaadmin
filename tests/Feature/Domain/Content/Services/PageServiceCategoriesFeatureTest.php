@@ -5,8 +5,8 @@ namespace Tests\Feature\Domain\Content\Services;
 use App\Application\Content\Contracts\PageApplicationServiceInterface as PageService;
 use App\Models\Page;
 use App\Models\PageCategory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -19,7 +19,7 @@ class PageServiceCategoriesFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-    $this->service = app(PageService::class);
+        $this->service = app(PageService::class);
     }
 
     #[Test]
@@ -46,6 +46,6 @@ class PageServiceCategoriesFeatureTest extends TestCase
         // Eager loaded pages are only published and ordered
         $returned = $categories->firstWhere('id', $catWithPages->id);
         $this->assertCount(2, $returned->pages);
-        $this->assertTrue($returned->pages->every(fn($p) => $p->published));
+        $this->assertTrue($returned->pages->every(fn ($p) => $p->published));
     }
 }

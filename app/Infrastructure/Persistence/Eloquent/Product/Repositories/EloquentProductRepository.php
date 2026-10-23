@@ -5,6 +5,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Product\Repositories;
 use App\Application\Product\Contracts\ProductRepositoryInterface;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 
 class EloquentProductRepository implements ProductRepositoryInterface
@@ -12,7 +13,12 @@ class EloquentProductRepository implements ProductRepositoryInterface
     public function findUserProducts(User $user): Collection
     {
         return Product::where('user_id', $user->id)
-            ->with(['category', 'tax', 'supplier', 'invoices'])
+            ->with([
+                'category',
+                'tax',
+                'supplier',
+                'invoices',
+            ])
             ->orderByDesc('created_at')
             ->get();
     }
@@ -24,9 +30,14 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function findByIdForUser(int $id, User $user): Product
     {
-        return Product::where('id',$id)
-            ->where('user_id',$user->id)
-            ->with(['category', 'tax', 'supplier', 'invoices'])
+        return Product::where('id', $id)
+            ->where('user_id', $user->id)
+            ->with([
+                'category',
+                'tax',
+                'supplier',
+                'invoices',
+            ])
             ->firstOrFail();
     }
 
@@ -38,12 +49,13 @@ class EloquentProductRepository implements ProductRepositoryInterface
     public function update(Product $product, array $data): Product
     {
         $product->update($data);
+
         return $product->fresh();
     }
 
     public function delete(Product $product): bool
     {
-        return (bool)$product->delete();
+        return (bool) $product->delete();
     }
 
     public function make(array $attributes = []): Product
@@ -53,41 +65,48 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function listForUser(int $userId): Collection
     {
-        return Product::where('user_id',$userId)->orderByDesc('created_at')->get();
+        return Product::where('user_id', $userId)->orderByDesc('created_at')->get();
     }
 
     // Additional methods for DTO repository support
-    
+
     public function getProductsForDropdown(int $userId): array
     {
-        return Product::where('user_id', $userId)->pluck('name','id')->toArray();
+        return Product::where('user_id', $userId)->pluck('name', 'id')->toArray();
     }
 
     public function getDefaultProduct(int $userId): ?Product
     {
-        return Product::where('user_id',$userId)->where('is_default',true)->first();
+        return Product::where('user_id', $userId)->where('is_default', true)->first();
     }
 
     public function findByIdAny(int $id): ?Product
     {
-        return Product::with(['category', 'tax', 'supplier', 'invoices'])->find($id);
+        return Product::with([
+            'category',
+            'tax',
+            'supplier',
+            'invoices',
+        ])->find($id);
     }
 
     /**
-     * @param int $id
-     * @param int $userId
-     * @return Product|null
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws ModelNotFoundException
      */
     public function findByIdForUserInt(int $id, int $userId): ?Product
     {
-        $product = Product::where('id',$id)
-            ->where('user_id',$userId)
-            ->with(['category', 'tax', 'supplier', 'invoices'])
+        $product = Product::where('id', $id)
+            ->where('user_id', $userId)
+            ->with([
+                'category',
+                'tax',
+                'supplier',
+                'invoices',
+            ])
             ->first();
 
-        if (!$product) {
-            throw new \Illuminate\Database\Eloquent\ModelNotFoundException("Product not found for user.");
+        if (! $product) {
+            throw new ModelNotFoundException('Product not found for user.');
         }
 
         return $product;
@@ -95,20 +114,35 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function allForAdmin(): Collection
     {
-        return Product::with(['category', 'tax', 'supplier', 'invoices'])->get();
+        return Product::with([
+            'category',
+            'tax',
+            'supplier',
+            'invoices',
+        ])->get();
     }
 
     public function allForUser(int $userId): Collection
     {
-        return Product::where('user_id',$userId)
-            ->with(['category', 'tax', 'supplier', 'invoices'])
+        return Product::where('user_id', $userId)
+            ->with([
+                'category',
+                'tax',
+                'supplier',
+                'invoices',
+            ])
             ->get();
     }
 
     public function allForInvoice(int $invoiceId): Collection
     {
-        return Product::where('invoice_id',$invoiceId)
-            ->with(['category', 'tax', 'supplier', 'invoices'])
+        return Product::where('invoice_id', $invoiceId)
+            ->with([
+                'category',
+                'tax',
+                'supplier',
+                'invoices',
+            ])
             ->get();
     }
 
@@ -121,6 +155,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
     {
         $product = Product::findOrFail($id);
         $product->update($data);
+
         return $product->fresh();
     }
 

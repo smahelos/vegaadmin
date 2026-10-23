@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\InvoiceController;
 use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
+use App\Http\Controllers\Api\InvoiceController;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -19,7 +19,11 @@ class InvoiceControllerTest extends TestCase
         $constructor = $reflection->getConstructor();
         $this->assertNotNull($constructor, 'Constructor missing');
         $params = $constructor->getParameters();
-        $this->assertCount(1, $params, 'Expected exactly one dependency');
+        $this->assertCount(
+            1,
+            $params,
+            'Expected exactly one dependency',
+        );
         $type = $params[0]->getType();
         $this->assertNotNull($type, 'Missing type hint for dependency');
         $this->assertEquals(InvoiceListingApplicationServiceInterface::class, $type instanceof \ReflectionNamedType ? $type->getName() : null);
@@ -30,13 +34,17 @@ class InvoiceControllerTest extends TestCase
     {
         $reflection = new \ReflectionClass(InvoiceController::class);
         $methodNames = collect($reflection->getMethods())
-            ->filter(fn($m) => $m->isPublic() && $m->getDeclaringClass()->getName() === InvoiceController::class && $m->getName() !== '__construct')
+            ->filter(fn ($m) => $m->isPublic() && $m->getDeclaringClass()->getName() === InvoiceController::class && $m->getName() !== '__construct')
             ->map->getName()
             ->values()
             ->all();
 
         sort($methodNames);
-        $this->assertEquals(['getInvoice','getInvoices'], $methodNames, 'Unexpected public methods');
+        $this->assertEquals(
+            ['getInvoice', 'getInvoices'],
+            $methodNames,
+            'Unexpected public methods',
+        );
     }
 
     #[Test]

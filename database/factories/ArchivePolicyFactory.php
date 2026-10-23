@@ -6,7 +6,7 @@ use App\Models\ArchivePolicy;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ArchivePolicy>
+ * @extends Factory<ArchivePolicy>
  */
 class ArchivePolicyFactory extends Factory
 {
@@ -31,7 +31,7 @@ class ArchivePolicyFactory extends Factory
                 'created_at',
                 'updated_at',
                 'deleted_at',
-                'archived_at'
+                'archived_at',
             ]),
             'enabled' => fake()->boolean(80), // 80% chance of being enabled
             'last_archived_at' => fake()->optional(0.6)->dateTimeBetween('-1 year', 'now'),

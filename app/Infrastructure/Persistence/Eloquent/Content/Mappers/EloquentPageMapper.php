@@ -2,8 +2,8 @@
 
 namespace App\Infrastructure\Persistence\Eloquent\Content\Mappers;
 
-use App\Domain\Content\DTO\PageDTO;
 use App\Domain\Content\DTO\PageCategoryDTO;
+use App\Domain\Content\DTO\PageDTO;
 use App\Models\Page;
 use App\Models\PageCategory;
 
@@ -24,7 +24,10 @@ class EloquentPageMapper
         }
 
         $toArray = static function ($value): ?array {
-            if ($value === null) { return null; }
+            if ($value === null) {
+                return null;
+            }
+
             return is_array($value) ? $value : [$value];
         };
 
@@ -46,7 +49,10 @@ class EloquentPageMapper
     public static function toCategoryDTO(PageCategory $model): PageCategoryDTO
     {
         $toArray = static function ($value): ?array {
-            if ($value === null) { return null; }
+            if ($value === null) {
+                return null;
+            }
+
             return is_array($value) ? $value : [$value];
         };
 

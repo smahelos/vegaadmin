@@ -2,27 +2,25 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Frontend\ClientController;
-use App\Http\Requests\ClientRequest;
-use App\Models\Client;
-use App\Models\EntityLimit;
-use App\Models\User;
-use App\Models\Invoice;
+use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
 use App\Application\User\Contracts\UELSApplicationServiceInterface;
 use App\Application\User\Services\UELSApplicationService;
-use App\Application\Party\Contracts\PartyApplicationServiceInterface;
+use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Domain\User\Contracts\PermissionLimitResolverInterface;
+use App\Http\Controllers\Frontend\ClientController;
+use App\Infrastructure\Forms\Party\ClientFormFields;
+use App\Models\Client;
+use App\Models\EntityLimit;
+use App\Models\Invoice;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Models\Role;
+use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
@@ -34,21 +32,23 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class ClientControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
     use CreatesFrontendTestEnvironment;
+    use RefreshDatabase, WithFaker;
 
     protected User $user;
+
     protected string $validEmail;
+
     protected array $validClientData;
+
     protected string $defaultLocale = 'cs';
+
     private UELSApplicationService $limitService;
 
     /**
      * Helper method to generate routes with locale parameter
      *
-     * @param string $routeName
-     * @param mixed $parameters
-     * @return string
+     * @param  mixed  $parameters
      */
     private function localizedRoute(string $routeName, $parameters = []): string
     {
@@ -69,8 +69,6 @@ class ClientControllerFeatureTest extends TestCase
     /**
      * Set up the test environment.
      * Creates permissions, roles, test user, and valid test data for client operations.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -84,8 +82,8 @@ class ClientControllerFeatureTest extends TestCase
 
         // Valid base client data
         $this->validClientData = [
-            'name' => 'Test Client '.uniqid(),
-            'email' => 'client_'.uniqid().'@example.com',
+            'name' => 'Test Client ' . uniqid(),
+            'email' => 'client_' . uniqid() . '@example.com',
             'street' => 'Test Street 1',
             'city' => 'Test City',
             'zip' => '12345',
@@ -120,7 +118,11 @@ class ClientControllerFeatureTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.clients.create');
-        $response->assertViewHas(['fields', 'userInfo', 'countries']);
+        $response->assertViewHas([
+            'fields',
+            'userInfo',
+            'countries',
+        ]);
 
         // Check that userInfo contains user data
         $viewData = $response->viewData('userInfo');
@@ -248,7 +250,7 @@ class ClientControllerFeatureTest extends TestCase
     public function show_prevents_access_to_other_users_clients()
     {
         // Create another user with required permission
-        $otherUser = \App\Models\User::factory()->create();
+        $otherUser = User::factory()->create();
         $perm = Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
         $otherUser->givePermissionTo($perm);
 
@@ -333,7 +335,11 @@ class ClientControllerFeatureTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.clients.edit');
-        $response->assertViewHasAll(['client', 'fields', 'countries']);
+        $response->assertViewHasAll([
+            'client',
+            'fields',
+            'countries',
+        ]);
         $response->assertViewHas('client', $client);
     }
 
@@ -358,9 +364,9 @@ class ClientControllerFeatureTest extends TestCase
     #[Test]
     public function edit_prevents_access_to_other_users_clients()
     {
-    $otherUser = \App\Models\User::factory()->create();
-    $perm = Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
-    $otherUser->givePermissionTo($perm);
+        $otherUser = User::factory()->create();
+        $perm = Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
+        $otherUser->givePermissionTo($perm);
 
         $client = Client::factory()->create([
             'user_id' => $otherUser->id,
@@ -422,9 +428,9 @@ class ClientControllerFeatureTest extends TestCase
     #[Test]
     public function update_prevents_updating_other_users_clients()
     {
-    $otherUser = \App\Models\User::factory()->create();
-    $perm = Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
-    $otherUser->givePermissionTo($perm);
+        $otherUser = User::factory()->create();
+        $perm = Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
+        $otherUser->givePermissionTo($perm);
 
         $client = Client::factory()->create([
             'user_id' => $otherUser->id,
@@ -485,7 +491,7 @@ class ClientControllerFeatureTest extends TestCase
     {
         $client = Client::factory()->create();
 
-    $response = $this->delete($this->localizedRoute('frontend.client.destroy', $client->id));
+        $response = $this->delete($this->localizedRoute('frontend.client.destroy', $client->id));
 
         $response->assertRedirect('/login');
 
@@ -505,7 +511,7 @@ class ClientControllerFeatureTest extends TestCase
         $otherUser = User::factory()->create();
         $otherClient = Client::factory()->create(['user_id' => $otherUser->id]);
 
-    $response = $this->delete($this->localizedRoute('frontend.client.destroy', $otherClient->id));
+        $response = $this->delete($this->localizedRoute('frontend.client.destroy', $otherClient->id));
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
@@ -529,7 +535,7 @@ class ClientControllerFeatureTest extends TestCase
         Invoice::factory()->create([
             'client_id' => $client->id,
             'user_id' => $this->user->id,
-            'payment_method_id' => null
+            'payment_method_id' => null,
         ]);
 
         $response = $this->delete($this->localizedRoute('frontend.client.destroy', $client->id));
@@ -554,7 +560,7 @@ class ClientControllerFeatureTest extends TestCase
         $client1 = Client::factory()->create(['user_id' => $this->user->id, 'is_default' => true]);
         $client2 = Client::factory()->create(['user_id' => $this->user->id, 'is_default' => false]);
 
-    $response = $this->get($this->localizedRoute('frontend.client.set-default', $client2->id));
+        $response = $this->get($this->localizedRoute('frontend.client.set-default', $client2->id));
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
@@ -611,7 +617,7 @@ class ClientControllerFeatureTest extends TestCase
     {
         $traits = class_uses(ClientController::class);
 
-        $this->assertContains(\App\Infrastructure\Forms\Party\ClientFormFields::class, $traits);
+        $this->assertContains(ClientFormFields::class, $traits);
     }
 
     /**
@@ -629,8 +635,8 @@ class ClientControllerFeatureTest extends TestCase
         $response = $this->post($this->localizedRoute('frontend.client.store'), $dataWithLang);
 
         $response->assertRedirect();
-    // Just ensure redirect happened (localized group already enforces locale in route)
-    $this->assertNotEmpty($response->getTargetUrl());
+        // Just ensure redirect happened (localized group already enforces locale in route)
+        $this->assertNotEmpty($response->getTargetUrl());
     }
 
     /**
@@ -648,7 +654,7 @@ class ClientControllerFeatureTest extends TestCase
         $controller = new ClientController(
             $partyService,
             $countryService,
-            $limitService
+            $limitService,
         );
 
         $this->assertInstanceOf(ClientController::class, $controller);
@@ -660,11 +666,20 @@ class ClientControllerFeatureTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         // Determine best period and check initial usage
-        /** @var \App\Domain\User\Contracts\UniversalLimitServiceInterface $uls */
+        /** @var UniversalLimitServiceInterface $uls */
         $uls = app(UniversalLimitService::class);
-        $bestPeriod = $uls->getBestPeriodType($this->user->id, 'client', 'count');
-        $initialCheck = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', $bestPeriod);
-        $initialUsage = (int)($initialCheck['current_usage'] ?? 0);
+        $bestPeriod = $uls->getBestPeriodType(
+            $this->user->id,
+            'client',
+            'count',
+        );
+        $initialCheck = $this->limitService->getUsageStatistics(
+            $this->user->id,
+            'client',
+            'count',
+            $bestPeriod,
+        );
+        $initialUsage = (int) ($initialCheck['current_usage'] ?? 0);
 
         $clientData = [
             'name' => 'Test Client ' . uniqid(),
@@ -685,16 +700,33 @@ class ClientControllerFeatureTest extends TestCase
         $this->assertTrue(session()->has('success') || session()->has('error'));
 
         // Check usage after creation
-        $newCheck = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', $bestPeriod);
+        $newCheck = $this->limitService->getUsageStatistics(
+            $this->user->id,
+            'client',
+            'count',
+            $bestPeriod,
+        );
         $newUsage = $newCheck['current_usage'] ?? 0;
         // If usage hasn't incremented yet (e.g. deferred after-commit), record once via domain service as fallback
         if ($newUsage == $initialUsage) {
-            $uls->recordUsage($this->user->id, 'client', 'count', $bestPeriod, 'web', 1);
-            $newCheck = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', $bestPeriod);
+            $uls->recordUsage(
+                $this->user->id,
+                'client',
+                'count',
+                $bestPeriod,
+                'web',
+                1,
+            );
+            $newCheck = $this->limitService->getUsageStatistics(
+                $this->user->id,
+                'client',
+                'count',
+                $bestPeriod,
+            );
             $newUsage = $newCheck['current_usage'] ?? 0;
         }
 
-        $this->assertEquals($initialUsage + 1, (int)$newUsage);
+        $this->assertEquals($initialUsage + 1, (int) $newUsage);
 
         // Verify client was created
         $this->assertDatabaseHas('clients', [
@@ -711,7 +743,12 @@ class ClientControllerFeatureTest extends TestCase
         // Create a client directly (simulate existing entity)
         $existing = Client::factory()->create(['user_id' => $this->user->id]);
 
-        $initial = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', 'monthly');
+        $initial = $this->limitService->getUsageStatistics(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
         $initialUsage = $initial['current_usage'] ?? 0;
 
         $payload = [
@@ -729,10 +766,19 @@ class ClientControllerFeatureTest extends TestCase
         $response = $this->post(route('frontend.client.store', ['locale' => 'cs']), $payload);
         $response->assertRedirect();
 
-        $after = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', 'monthly');
+        $after = $this->limitService->getUsageStatistics(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
         $afterUsage = $after['current_usage'] ?? 0;
 
-        $this->assertEquals($initialUsage, $afterUsage, 'Usage should not change when reusing existing client');
+        $this->assertEquals(
+            $initialUsage,
+            $afterUsage,
+            'Usage should not change when reusing existing client',
+        );
     }
 
     #[Test]
@@ -750,15 +796,24 @@ class ClientControllerFeatureTest extends TestCase
             'description' => 'Test limit 1 per month',
             'is_active' => true,
         ]);
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
 
-        /** @var \App\Domain\User\Contracts\UniversalLimitServiceInterface $uls */
+        /** @var UniversalLimitServiceInterface $uls */
         $uls = app(UniversalLimitService::class);
-        $bestPeriod = $uls->getBestPeriodType($this->user->id, 'client', 'count');
+        $bestPeriod = $uls->getBestPeriodType(
+            $this->user->id,
+            'client',
+            'count',
+        );
 
         // First client creation via controller - should be allowed by stats
-        $checkBeforeFirst = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', $bestPeriod);
-        $this->assertTrue((bool)($checkBeforeFirst['can_create'] ?? false));
+        $checkBeforeFirst = $this->limitService->getUsageStatistics(
+            $this->user->id,
+            'client',
+            'count',
+            $bestPeriod,
+        );
+        $this->assertTrue((bool) ($checkBeforeFirst['can_create'] ?? false));
 
         $payload = [
             'name' => 'Limit Hit ' . uniqid(),
@@ -774,13 +829,30 @@ class ClientControllerFeatureTest extends TestCase
         $this->assertTrue(session()->has('success') || session()->has('error'));
 
         // Ensure usage reflects one creation; if deferred, record fallback once
-        $afterFirst = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', $bestPeriod);
-        if ((int)($afterFirst['current_usage'] ?? 0) < 1) {
-            $uls->recordUsage($this->user->id, 'client', 'count', $bestPeriod, 'web', 1);
-            $afterFirst = $this->limitService->getUsageStatistics($this->user->id, 'client', 'count', $bestPeriod);
+        $afterFirst = $this->limitService->getUsageStatistics(
+            $this->user->id,
+            'client',
+            'count',
+            $bestPeriod,
+        );
+        if ((int) ($afterFirst['current_usage'] ?? 0) < 1) {
+            $uls->recordUsage(
+                $this->user->id,
+                'client',
+                'count',
+                $bestPeriod,
+                'web',
+                1,
+            );
+            $afterFirst = $this->limitService->getUsageStatistics(
+                $this->user->id,
+                'client',
+                'count',
+                $bestPeriod,
+            );
         }
-        $this->assertEquals(1, (int)($afterFirst['current_usage'] ?? 0));
-        $this->assertFalse((bool)($afterFirst['can_create'] ?? true));
+        $this->assertEquals(1, (int) ($afterFirst['current_usage'] ?? 0));
+        $this->assertFalse((bool) ($afterFirst['can_create'] ?? true));
 
         // Second creation attempt should be rejected due to limit
         $payload2 = $payload;

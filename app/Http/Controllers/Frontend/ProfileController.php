@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Controller;
 use App\Application\User\Contracts\UserApplicationServiceInterface;
+use App\Domain\User\ValueObjects\UserPassword;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\PasswordUpdateRequest;
+use App\Http\Requests\UserRequest;
 use App\Infrastructure\Forms\User\UserFormFields;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\UserRequest;
-use App\Http\Requests\PasswordUpdateRequest;
-use App\Domain\User\ValueObjects\UserPassword;
+use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
@@ -19,14 +20,12 @@ class ProfileController extends Controller
     /**
      * User service instance
      *
-     * @var \App\Application\User\Contracts\UserApplicationServiceInterface
+     * @var UserApplicationServiceInterface
      */
     protected $userService;
 
     /**
      * Constructor
-     *
-     * @param \App\Application\User\Contracts\UserApplicationServiceInterface $userService
      */
     public function __construct(UserApplicationServiceInterface $userService)
     {
@@ -36,7 +35,7 @@ class ProfileController extends Controller
     /**
      * Show form for editing user profile
      *
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     * @return View|RedirectResponse
      */
     public function edit()
     {
@@ -60,8 +59,7 @@ class ProfileController extends Controller
     /**
      * Update user profile
      *
-     * @param UserRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function update(UserRequest $request)
     {
@@ -89,8 +87,7 @@ class ProfileController extends Controller
     /**
      * Update only user password
      *
-     * @param PasswordUpdateRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function updatePassword(PasswordUpdateRequest $request)
     {

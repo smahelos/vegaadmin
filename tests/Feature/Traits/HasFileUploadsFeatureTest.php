@@ -17,7 +17,9 @@ class TestModelWithFileUploads extends Model
     use HasFileUploads;
 
     protected $fillable = ['*'];
+
     public $table = 'test_models';
+
     public $timestamps = false;
 
     // Override for testing
@@ -32,12 +34,21 @@ class TestModelWithFileUploads extends Model
         return $this->isFileImage($attribute);
     }
 
-    public function callHandleFileUpload(string $attribute, $value, string $path, array $options = []): void
-    {
+    public function callHandleFileUpload(
+        string $attribute,
+        $value,
+        string $path,
+        array $options = [],
+    ): void {
         $reflection = new \ReflectionClass($this);
         $method = $reflection->getMethod('handleFileUpload');
         $method->setAccessible(true);
-        $method->invokeArgs($this, [$attribute, $value, $path, $options]);
+        $method->invokeArgs($this, [
+            $attribute,
+            $value,
+            $path,
+            $options,
+        ]);
     }
 
     public function callGetFileUrl(string $attribute, string $disk = 'public'): ?string
@@ -45,21 +56,30 @@ class TestModelWithFileUploads extends Model
         $reflection = new \ReflectionClass($this);
         $method = $reflection->getMethod('getFileUrl');
         $method->setAccessible(true);
+
         return $method->invokeArgs($this, [$attribute, $disk]);
     }
 
-    public function callGetThumbnailUrl(string $attribute, string $thumbnailFolder = 'thumbnails', string $disk = 'public'): ?string
-    {
+    public function callGetThumbnailUrl(
+        string $attribute,
+        string $thumbnailFolder = 'thumbnails',
+        string $disk = 'public',
+    ): ?string {
         $reflection = new \ReflectionClass($this);
         $method = $reflection->getMethod('getThumbnailUrl');
         $method->setAccessible(true);
-        return $method->invokeArgs($this, [$attribute, $thumbnailFolder, $disk]);
+
+        return $method->invokeArgs($this, [
+            $attribute,
+            $thumbnailFolder,
+            $disk,
+        ]);
     }
 }
 
 class HasFileUploadsFeatureTest extends TestCase
 {
-    use RefreshDatabase, HasFileUploads;
+    use HasFileUploads, RefreshDatabase;
 
     protected array $attributes = [];
 
@@ -77,7 +97,11 @@ class HasFileUploadsFeatureTest extends TestCase
         $this->attributes = ['old_file' => 'old_file.jpg'];
 
         // Act
-        $this->handleFileUpload('image', $file, 'uploads/images');
+        $this->handleFileUpload(
+            'image',
+            $file,
+            'uploads/images',
+        );
 
         // Assert
         $this->assertNotNull($this->attributes['image']);
@@ -91,7 +115,11 @@ class HasFileUploadsFeatureTest extends TestCase
         $this->attributes = ['image' => 'existing_file.jpg'];
 
         // Act
-        $this->handleFileUpload('image', null, 'uploads/images');
+        $this->handleFileUpload(
+            'image',
+            null,
+            'uploads/images',
+        );
 
         // Assert
         $this->assertEquals('existing_file.jpg', $this->attributes['image']);
@@ -105,7 +133,12 @@ class HasFileUploadsFeatureTest extends TestCase
         $options = ['maxFileSize' => 2048, 'allowedMimeTypes' => ['image/jpeg']];
 
         // Act - Should not throw exception with valid options
-        $this->handleFileUpload('image', $file, 'uploads/images', $options);
+        $this->handleFileUpload(
+            'image',
+            $file,
+            'uploads/images',
+            $options,
+        );
 
         // Assert
         $this->assertNotNull($this->attributes['image']);
@@ -193,7 +226,11 @@ class HasFileUploadsFeatureTest extends TestCase
         Storage::disk('custom')->put('test-image.jpg', 'fake image content');
 
         // Act
-        $url = $this->getThumbnailUrl('image', 'thumbnails', 'custom');
+        $url = $this->getThumbnailUrl(
+            'image',
+            'thumbnails',
+            'custom',
+        );
 
         // Assert
         $this->assertNotNull($url);
@@ -212,7 +249,7 @@ class HasFileUploadsFeatureTest extends TestCase
             'test.svg',
             'test.bmp',
             'test.JPG', // uppercase
-            'test.PNG'  // uppercase
+            'test.PNG',  // uppercase
         ];
 
         foreach ($imageFiles as $filename) {
@@ -233,7 +270,7 @@ class HasFileUploadsFeatureTest extends TestCase
             'test.mp4',
             'test.mp3',
             'test.zip',
-            'test.exe'
+            'test.exe',
         ];
 
         foreach ($nonImageFiles as $filename) {
@@ -281,7 +318,11 @@ class HasFileUploadsFeatureTest extends TestCase
     public function get_attribute_file_url_handles_array_attributes(): void
     {
         // Arrange
-        $this->attributes = ['files' => ['file1.pdf', 'file2.pdf', 'file3.pdf']];
+        $this->attributes = ['files' => [
+            'file1.pdf',
+            'file2.pdf',
+            'file3.pdf',
+        ]];
         Storage::disk('public')->put('file2.pdf', 'fake content');
 
         // Act
@@ -314,7 +355,11 @@ class HasFileUploadsFeatureTest extends TestCase
         Storage::disk('custom')->put('test-file.pdf', 'fake content');
 
         // Act
-        $url = $this->getAttributeFileUrl('file', null, 'custom');
+        $url = $this->getAttributeFileUrl(
+            'file',
+            null,
+            'custom',
+        );
 
         // Assert
         $this->assertNotNull($url);
@@ -324,11 +369,19 @@ class HasFileUploadsFeatureTest extends TestCase
     public function trait_handles_file_upload_workflow_correctly(): void
     {
         // Arrange
-        $file = UploadedFile::fake()->image('upload.jpg', 100, 100);
-        $model = new TestModelWithFileUploads();
+        $file = UploadedFile::fake()->image(
+            'upload.jpg',
+            100,
+            100,
+        );
+        $model = new TestModelWithFileUploads;
 
         // Act - Upload file
-        $model->callHandleFileUpload('profile_image', $file, 'uploads/profiles');
+        $model->callHandleFileUpload(
+            'profile_image',
+            $file,
+            'uploads/profiles',
+        );
 
         // Verify file was uploaded
         $this->assertNotNull($model->profile_image);
@@ -353,13 +406,17 @@ class HasFileUploadsFeatureTest extends TestCase
         $files = [
             UploadedFile::fake()->image('image1.jpg'),
             UploadedFile::fake()->create('document.pdf', 100),
-            UploadedFile::fake()->image('image2.png')
+            UploadedFile::fake()->image('image2.png'),
         ];
 
-        $model = new TestModelWithFileUploads();
+        $model = new TestModelWithFileUploads;
         $uploadedFiles = [];
         foreach ($files as $index => $file) {
-            $model->callHandleFileUpload("file_{$index}", $file, 'uploads/mixed');
+            $model->callHandleFileUpload(
+                "file_{$index}",
+                $file,
+                'uploads/mixed',
+            );
             $uploadedFiles[] = $model->{"file_{$index}"};
         }
 

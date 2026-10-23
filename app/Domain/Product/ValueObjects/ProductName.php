@@ -11,13 +11,12 @@ class ProductName
     /**
      * Constructor
      *
-     * @param string $value
      * @throws InvalidArgumentException
      */
     public function __construct(string $value)
     {
         $value = trim($value);
-        
+
         if (empty($value)) {
             throw new InvalidArgumentException('Product name cannot be empty');
         }
@@ -31,8 +30,6 @@ class ProductName
 
     /**
      * Get the value
-     *
-     * @return string
      */
     public function getValue(): string
     {
@@ -41,8 +38,6 @@ class ProductName
 
     /**
      * Convert to string
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -51,9 +46,6 @@ class ProductName
 
     /**
      * Create from string
-     *
-     * @param string $value
-     * @return self
      */
     public static function fromString(string $value): self
     {
@@ -62,9 +54,6 @@ class ProductName
 
     /**
      * Check if equals to another ProductName
-     *
-     * @param ProductName $other
-     * @return bool
      */
     public function equals(ProductName $other): bool
     {

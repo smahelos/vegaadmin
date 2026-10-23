@@ -15,25 +15,26 @@ use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 class InvoiceCrudControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesAdminTestEnvironment;
+    use RefreshDatabase;
 
     private User $adminUser;
+
     private User $regularUser;
+
     private UniversalLimitService $limitService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->setUpAdminTestEnvironment();
-        
+
         $this->limitService = app(UniversalLimitService::class);
     }
 
@@ -41,7 +42,7 @@ class InvoiceCrudControllerTest extends TestCase
     public function invoice_creation_records_entity_usage(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        
+
         // Create entity limit for invoices
         EntityLimit::factory()->create([
             'entity_type' => 'invoice',
@@ -59,7 +60,12 @@ class InvoiceCrudControllerTest extends TestCase
         $status = Status::factory()->create();
 
         // Check initial usage
-        $initialCheck = $this->limitService->checkLimit($this->adminUser->id, 'invoice', 'count', 'monthly');
+        $initialCheck = $this->limitService->checkLimit(
+            $this->adminUser->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
         $initialUsage = $initialCheck['current_usage'] ?? 0;
 
         $invoiceData = [
@@ -81,14 +87,29 @@ class InvoiceCrudControllerTest extends TestCase
 
         // Simulate invoice creation by directly calling recordUsage
         $invoice = Invoice::factory()->create($invoiceData);
-        $result = $this->limitService->recordUsage($this->adminUser->id, 'invoice', 'count', 'monthly', 'backpack');
+        $result = $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'invoice',
+            'count',
+            'monthly',
+            'backpack',
+        );
         $this->assertTrue($result, 'recordUsage should return true when successful');
 
         // Check usage after creation
-        $newCheck = $this->limitService->checkLimit($this->adminUser->id, 'invoice', 'count', 'monthly');
+        $newCheck = $this->limitService->checkLimit(
+            $this->adminUser->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
         $newUsage = $newCheck['current_usage'] ?? 0;
 
-        $this->assertEquals($initialUsage + 1, $newUsage, 'Usage should increase by 1 after recording');
+        $this->assertEquals(
+            $initialUsage + 1,
+            $newUsage,
+            'Usage should increase by 1 after recording',
+        );
 
         // Verify invoice was created
         $this->assertDatabaseHas('invoices', [
@@ -119,9 +140,14 @@ class InvoiceCrudControllerTest extends TestCase
         $status = Status::factory()->create();
 
         // First invoice creation - should succeed
-        $checkBeforeFirst = $this->limitService->checkLimit($this->adminUser->id, 'invoice', 'count', 'monthly');
+        $checkBeforeFirst = $this->limitService->checkLimit(
+            $this->adminUser->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
         $this->assertTrue($checkBeforeFirst['allowed'], 'First invoice should be allowed');
-        
+
         $invoice1 = Invoice::factory()->create([
             'user_id' => $this->adminUser->id,
             'client_id' => $client->id,
@@ -129,16 +155,31 @@ class InvoiceCrudControllerTest extends TestCase
             'payment_method_id' => $paymentMethod->id,
             'payment_status_id' => $status->id,
         ]);
-        
+
         // Record usage with correct parameters
-        $result1 = $this->limitService->recordUsage($this->adminUser->id, 'invoice', 'count', 'monthly', 'backpack');
+        $result1 = $this->limitService->recordUsage(
+            $this->adminUser->id,
+            'invoice',
+            'count',
+            'monthly',
+            'backpack',
+        );
         $this->assertTrue($result1, 'First recordUsage should succeed');
-        
+
         // Second invoice creation - should fail due to limit
-        $checkBeforeSecond = $this->limitService->checkLimit($this->adminUser->id, 'invoice', 'count', 'monthly');
+        $checkBeforeSecond = $this->limitService->checkLimit(
+            $this->adminUser->id,
+            'invoice',
+            'count',
+            'monthly',
+        );
         $this->assertFalse($checkBeforeSecond['allowed'], 'Second invoice should be denied due to limit');
-        $this->assertEquals('limit_exceeded', $checkBeforeSecond['reason'], 'Reason should be limit_exceeded');
-        
+        $this->assertEquals(
+            'limit_exceeded',
+            $checkBeforeSecond['reason'],
+            'Reason should be limit_exceeded',
+        );
+
         // Verify first invoice was created
         $this->assertDatabaseHas('invoices', [
             'id' => $invoice1->id,
@@ -213,7 +254,11 @@ class InvoiceCrudControllerTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect();
 
-        $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'invoice_text' => $text, 'user_id' => $this->adminUser->id]);
+        $this->assertDatabaseHas('invoices', [
+            'id' => $invoice->id,
+            'invoice_text' => $text,
+            'user_id' => $this->adminUser->id,
+        ]);
     }
 
     #[Test]
@@ -247,7 +292,7 @@ class InvoiceCrudControllerTest extends TestCase
      */
     private function datagridCells(string $html): array
     {
-        $document = new DOMDocument();
+        $document = new DOMDocument;
         @$document->loadHTML('<?xml encoding="utf-8">' . $html);
         $xpath = new DOMXPath($document);
         $cells = [];

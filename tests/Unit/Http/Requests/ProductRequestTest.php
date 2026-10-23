@@ -9,12 +9,12 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for ProductRequest - CRITICAL RULE: Only pure business logic, no Laravel dependencies
- * 
+ *
  * According to Unit Test Isolation rule, this class tests only:
  * - Class structure and inheritance
  * - Method signatures and return types
  * - Pure validation rules structure (without framework execution)
- * 
+ *
  * Tests that require Laravel framework (authorization with Auth facade, actual validation execution)
  * should be moved to Feature tests.
  */
@@ -25,7 +25,7 @@ class ProductRequestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->request = new ProductRequest();
+        $this->request = new ProductRequest;
     }
 
     #[Test]
@@ -40,7 +40,7 @@ class ProductRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('authorize');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType, 'authorize method should have a return type');
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -51,7 +51,7 @@ class ProductRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -62,7 +62,7 @@ class ProductRequestTest extends TestCase
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('array', $returnType->getName());
     }
@@ -72,7 +72,7 @@ class ProductRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('rules');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertCount(0, $method->getParameters());
     }
@@ -82,7 +82,7 @@ class ProductRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
+
         $this->assertTrue($method->isPublic());
         $this->assertCount(0, $method->getParameters());
     }
@@ -91,7 +91,7 @@ class ProductRequestTest extends TestCase
     public function request_has_expected_class_structure(): void
     {
         $reflection = new \ReflectionClass($this->request);
-        
+
         $this->assertEquals('App\Http\Requests', $reflection->getNamespaceName());
         $this->assertTrue($reflection->hasMethod('authorize'));
         $this->assertTrue($reflection->hasMethod('rules'));
@@ -104,10 +104,10 @@ class ProductRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $method = $reflection->getMethod('attributes');
-        
+
         // Test method exists and is public
         $this->assertTrue($method->isPublic());
-        
+
         // Test return type
         $returnType = $method->getReturnType();
         $this->assertNotNull($returnType);
@@ -119,7 +119,7 @@ class ProductRequestTest extends TestCase
     {
         $reflection = new \ReflectionClass($this->request);
         $this->assertTrue($reflection->hasMethod('prepareForValidation'));
-        
+
         $method = $reflection->getMethod('prepareForValidation');
         $this->assertTrue($method->isProtected());
     }

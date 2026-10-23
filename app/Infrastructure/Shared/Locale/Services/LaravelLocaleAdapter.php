@@ -8,14 +8,12 @@ class LaravelLocaleAdapter implements Locale
 {
     /**
      * Get locale
-     *
-     * @return string
      */
     public function getLocale(): string
     {
         return config('app.locale', 'cs');
     }
-    
+
     /**
      * Get available locales from config.
      *
@@ -23,13 +21,16 @@ class LaravelLocaleAdapter implements Locale
      */
     public function getAvailableLocales(): array
     {
-        return config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+        return config('app.available_locales', [
+            'cs',
+            'en',
+            'de',
+            'sk',
+        ]);
     }
 
     /**
      * Get fallback locale from config.
-     *
-     * @return string
      */
     public function getFallbackLocale(): string
     {
@@ -37,7 +38,7 @@ class LaravelLocaleAdapter implements Locale
     }
 
     /**
-     * Get country locale map from config. 
+     * Get country locale map from config.
      *
      * @return array<string>
      */
@@ -49,8 +50,7 @@ class LaravelLocaleAdapter implements Locale
     /**
      * Set application locale.
      *
-     * @param string $locale Locale to set
-     * @return void
+     * @param  string  $locale  Locale to set
      */
     public function setLocale(string $locale): void
     {
@@ -64,18 +64,20 @@ class LaravelLocaleAdapter implements Locale
     public function localeFromCountry(?string $country): string
     {
         $fallback = $this->getFallbackLocale();
-        if (!$country) {
+        if (! $country) {
             return $fallback;
         }
         $map = $this->getCountryLocaleMap();
         $code = strtoupper($country);
+
         return $map[$code] ?? $fallback;
     }
 
     /**
      * Summary of determineLocale
-     * @param mixed $requestLocale
-     * @param mixed $dataLocale
+     *
+     * @param  mixed  $requestLocale
+     * @param  mixed  $dataLocale
      * @return void
      */
     public function determineLocale(?string $requestLocale = null, ?string $dataLocale = null): string

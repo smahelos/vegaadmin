@@ -16,7 +16,7 @@ class ExpenseCategoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->model = new ExpenseCategory();
+        $this->model = new ExpenseCategory;
     }
 
     #[Test]
@@ -51,7 +51,7 @@ class ExpenseCategoryTest extends TestCase
             'slug',
             'description',
             'color',
-            'is_active'
+            'is_active',
         ];
 
         $this->assertEquals($expectedFillable, $this->model->getFillable());

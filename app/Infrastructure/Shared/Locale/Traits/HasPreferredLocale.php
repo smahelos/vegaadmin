@@ -15,8 +15,6 @@ trait HasPreferredLocale
 {
     /**
      * Determines preferred language based on country or returns default language
-     * 
-     * @return string
      */
     public function getPreferredLocale(): string
     {
@@ -39,14 +37,12 @@ trait HasPreferredLocale
 
     /**
      * Convert country to preferred language or return default
-     * 
-     * @param string|null $country
-     * @return string
      */
     public static function localeFromCountry(?string $country): string
     {
         /** @var LocaleServiceInterface $localeService */
         $localeService = app(LocaleServiceInterface::class);
+
         return $localeService->localeFromCountry($country);
     }
 }

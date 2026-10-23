@@ -2,12 +2,11 @@
 
 namespace App\Infrastructure\Forms\Products;
 
-use App\Models\ProductCategory;
-use App\Models\Tax;
-use App\Models\Supplier;
 use App\Domain\Shared\Money\Contracts\CurrencyServiceInterface;
-use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
+use App\Models\ProductCategory;
+use App\Models\Supplier;
+use App\Models\Tax;
 use Illuminate\Support\Facades\App;
 
 trait ProductFormFields
@@ -15,11 +14,15 @@ trait ProductFormFields
     /**
      * Get client form fields definitions
      */
-    protected function getProductFields($productCategories = [], $taxRates = [], $currencies = [], $suppliers = [])
-    {
+    protected function getProductFields(
+        $productCategories = [],
+        $taxRates = [],
+        $currencies = [],
+        $suppliers = [],
+    ) {
         // Get currency codes from CurrencyService
         $currencies = App::make(CurrencyServiceInterface::class)->getAllCurrencies();
-        
+
         // Get suppliers from ProductService
         $suppliers = App::make(ProductFormDataServiceInterface::class)->getAllSuppliers();
 

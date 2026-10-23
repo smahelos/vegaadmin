@@ -2,51 +2,59 @@
 
 namespace App\Http\Requests;
 
+use App\Application\User\Contracts\UELSApplicationServiceInterface;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use App\Application\User\Contracts\UELSApplicationServiceInterface;
 
 /**
  * Base Entity Request for Frontend
- * 
+ *
  * Abstract base class for frontend requests that need entity limit checking
  * Provides universal limit enforcement for all frontend operations
  */
 abstract class BaseEntityRequest extends FormRequest
 {
-
     /**
      * Enhanced authorization with limit checking for frontend users
      */
     public function authorize(): bool
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return false;
         }
-        
+
         $user = Auth::user();
-        
+
         // Check basic permissions first (using web guard) - skip if no permission required
         $requiredPermission = $this->getRequiredPermission();
-        if (!empty($requiredPermission) && !$user->can($requiredPermission)) {
+        if (! empty($requiredPermission) && ! $user->can($requiredPermission)) {
             return false;
         }
-        
+
         // Skip limit check for updates or if user has unlimited access
-        if (!$this->isCreatingEntity() || $this->hasUnlimitedAccess()) {
+        if (! $this->isCreatingEntity() || $this->hasUnlimitedAccess()) {
             return true;
         }
-        
+
         // Check entity limits for creation - use best available period
         $limitService = app(UELSApplicationServiceInterface::class);
-        $bestPeriod = $limitService->getBestPeriodType($user->id, $this->getEntityType(), 'count');
-        $limitStats = $limitService->getUsageStatistics($user->id, $this->getEntityType(), 'count', $bestPeriod);
-        
-        if (!$limitStats['can_create']) {
+        $bestPeriod = $limitService->getBestPeriodType(
+            $user->id,
+            $this->getEntityType(),
+            'count',
+        );
+        $limitStats = $limitService->getUsageStatistics(
+            $user->id,
+            $this->getEntityType(),
+            'count',
+            $bestPeriod,
+        );
+
+        if (! $limitStats['can_create']) {
             throw new EntityLimitExceededException($limitStats);
         }
-        
+
         return true;
     }
 
@@ -112,13 +120,13 @@ abstract class BaseEntityRequest extends FormRequest
     protected function getMethodBasedRules(): array
     {
         $rules = $this->rules();
-        
+
         // For updates, make certain fields optional
         if ($this->isUpdatingEntity()) {
             // This can be customized in child classes
             $rules = $this->makeFieldsOptionalForUpdate($rules);
         }
-        
+
         return $rules;
     }
 
@@ -146,14 +154,18 @@ abstract class BaseEntityRequest extends FormRequest
         // Default implementation - can be overridden in child classes
         foreach ($rules as $field => &$rule) {
             if (is_string($rule) && str_contains($rule, 'required')) {
-                $rule = str_replace('required', 'sometimes', $rule);
+                $rule = str_replace(
+                    'required',
+                    'sometimes',
+                    $rule,
+                );
             } elseif (is_array($rule)) {
                 $rule = array_map(function ($r) {
                     return $r === 'required' ? 'sometimes' : $r;
                 }, $rule);
             }
         }
-        
+
         return $rules;
     }
 
@@ -164,7 +176,7 @@ abstract class BaseEntityRequest extends FormRequest
     {
         $user = Auth::user();
         $unlimitedPermission = 'frontend.unlimited_access.' . $this->getEntityType();
-        
+
         return $user && $user->can($unlimitedPermission);
     }
 

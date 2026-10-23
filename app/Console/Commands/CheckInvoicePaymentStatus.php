@@ -2,15 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Invoice;
-use App\Models\StatusCategory;
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
+use App\Domain\Shared\Notifications\DTO\Recipient;
+use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
+use App\Models\Invoice;
+use App\Models\Status;
+use App\Models\StatusCategory;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 
 class CheckInvoicePaymentStatus extends Command
 {
@@ -38,11 +40,15 @@ class CheckInvoicePaymentStatus extends Command
         $daysBefore = (int) $this->option('days-before');
         $daysAfter = (int) $this->option('days-after');
         $today = Carbon::today();
-        $count = ['upcoming' => 0, 'due_today' => 0, 'overdue' => 0];
+        $count = [
+            'upcoming' => 0,
+            'due_today' => 0,
+            'overdue' => 0,
+        ];
 
         // Get statuses from database and exclude 'paid' and 'cancelled'
         $paidStatusSlugs = ['paid', 'cancelled'];
-        $unpaidStatuses = \App\Models\Status::whereNotIn('slug', $paidStatusSlugs)
+        $unpaidStatuses = Status::whereNotIn('slug', $paidStatusSlugs)
             ->where('category_id', StatusCategory::where('slug', 'invoice-payment')->first()->id ?? null)
             ->pluck('slug')
             ->toArray();
@@ -53,11 +59,12 @@ class CheckInvoicePaymentStatus extends Command
             // 1. Invoices that are due in the next X days
             // Get all unpaid invoices and filter by due date in PHP (database-agnostic)
             $upcomingDueInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses) {
-                    $query->whereIn('slug', $unpaidStatuses);
-                })
+                $query->whereIn('slug', $unpaidStatuses);
+            })
                 ->get()
                 ->filter(function ($invoice) use ($today, $daysBefore) {
                     $dueDate = Carbon::parse($invoice->issue_date)->addDays($invoice->due_in);
+
                     return $dueDate->equalTo($today->copy()->addDays($daysBefore));
                 });
 
@@ -68,11 +75,12 @@ class CheckInvoicePaymentStatus extends Command
 
             // 2. invoices that are due today
             $dueTodayInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses) {
-                    $query->whereIn('slug', $unpaidStatuses);
-                })
+                $query->whereIn('slug', $unpaidStatuses);
+            })
                 ->get()
                 ->filter(function ($invoice) use ($today) {
                     $dueDate = Carbon::parse($invoice->issue_date)->addDays($invoice->due_in);
+
                     return $dueDate->equalTo($today);
                 });
 
@@ -83,11 +91,12 @@ class CheckInvoicePaymentStatus extends Command
 
             // 3. Invoices that are overdue (e.g. 1 day after due date)
             $overdueInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses) {
-                    $query->whereIn('slug', $unpaidStatuses);
-                })
+                $query->whereIn('slug', $unpaidStatuses);
+            })
                 ->get()
                 ->filter(function ($invoice) use ($today, $daysAfter) {
                     $dueDate = Carbon::parse($invoice->issue_date)->addDays($invoice->due_in);
+
                     return $dueDate->equalTo($today->copy()->subDays($daysAfter));
                 });
 
@@ -99,8 +108,8 @@ class CheckInvoicePaymentStatus extends Command
             $this->info("Notifications sent: {$count['upcoming']} upcoming, {$count['due_today']} today, {$count['overdue']} overdue.");
 
         } catch (\Exception $e) {
-            $this->error("Error while checking invoices: " . $e->getMessage());
-            Log::error("Error while checking invoices: " . $e->getMessage(), ['exception' => $e]);
+            $this->error('Error while checking invoices: ' . $e->getMessage());
+            Log::error('Error while checking invoices: ' . $e->getMessage(), ['exception' => $e]);
         }
 
         return Command::SUCCESS;
@@ -125,7 +134,7 @@ class CheckInvoicePaymentStatus extends Command
                 $invoice,
                 recipientType: 'supplier',
                 locale: $locale,
-                daysLeft: now()->diffInDays(\Carbon\Carbon::parse($invoice->issue_date)->addDays($invoice->due_in), false)
+                daysLeft: now()->diffInDays(Carbon::parse($invoice->issue_date)->addDays($invoice->due_in), false),
             );
         }
 
@@ -138,7 +147,7 @@ class CheckInvoicePaymentStatus extends Command
                 $invoice,
                 recipientType: 'client',
                 locale: $locale,
-                daysLeft: now()->diffInDays(\Carbon\Carbon::parse($invoice->issue_date)->addDays($invoice->due_in), false)
+                daysLeft: now()->diffInDays(Carbon::parse($invoice->issue_date)->addDays($invoice->due_in), false),
             );
         }
     }
@@ -161,7 +170,7 @@ class CheckInvoicePaymentStatus extends Command
                 InvoiceReminderType::DUE_TODAY,
                 $invoice,
                 recipientType: 'supplier',
-                locale: $locale
+                locale: $locale,
             );
         }
 
@@ -173,7 +182,7 @@ class CheckInvoicePaymentStatus extends Command
                 InvoiceReminderType::DUE_TODAY,
                 $invoice,
                 recipientType: 'client',
-                locale: $locale
+                locale: $locale,
             );
         }
     }
@@ -197,7 +206,7 @@ class CheckInvoicePaymentStatus extends Command
                 $invoice,
                 recipientType: 'supplier',
                 locale: $locale,
-                daysOverdue: \Carbon\Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->diffInDays(now())
+                daysOverdue: Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->diffInDays(now()),
             );
         }
 
@@ -210,13 +219,13 @@ class CheckInvoicePaymentStatus extends Command
                 $invoice,
                 recipientType: 'client',
                 locale: $locale,
-                daysOverdue: \Carbon\Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->diffInDays(now())
+                daysOverdue: Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->diffInDays(now()),
             );
         }
 
         // Actually change the status of the invoice to 'overdue'
         if ($invoice->payment_status_slug !== 'overdue') {
-            $overdueStatus = \App\Models\Status::where('slug', 'overdue')->first();
+            $overdueStatus = Status::where('slug', 'overdue')->first();
             if ($overdueStatus) {
                 $invoice->payment_status_id = $overdueStatus->id;
                 $invoice->save();
@@ -240,17 +249,21 @@ class CheckInvoicePaymentStatus extends Command
         $notifier = app(InvoiceReminderNotifierInterface::class);
         $payload = new InvoiceReminderPayload(
             invoiceNumber: $invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(\Carbon\Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->format('Y-m-d')),
             daysLeft: $daysLeft,
             daysOverdue: $daysOverdue,
             recipientType: $recipientType,
             locale: $locale,
         );
-        $recipient = new \App\Domain\Shared\Notifications\DTO\Recipient(
+        $recipient = new Recipient(
             name: $recipientType === 'supplier' ? ($invoice->supplier->name ?? '') : ($invoice->client->name ?? ''),
             email: $recipientType === 'supplier' ? ($invoice->supplier->email ?? '') : ($invoice->client->email ?? ''),
             preferredLocale: $locale,
         );
-        $notifier->send($type, $payload, $recipient);
+        $notifier->send(
+            $type,
+            $payload,
+            $recipient,
+        );
     }
 }

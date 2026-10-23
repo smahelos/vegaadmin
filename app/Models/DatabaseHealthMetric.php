@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class DatabaseHealthMetric extends Model
 {
@@ -29,7 +29,7 @@ class DatabaseHealthMetric extends Model
         'metric_unit',
         'status',
         'recommendation',
-        'measured_at'
+        'measured_at',
     ];
 
     /**
@@ -39,7 +39,7 @@ class DatabaseHealthMetric extends Model
      */
     protected $casts = [
         'metric_value' => 'decimal:4',
-        'measured_at' => 'datetime'
+        'measured_at' => 'datetime',
     ];
 
     /**
@@ -50,7 +50,7 @@ class DatabaseHealthMetric extends Model
         $badges = [
             'good' => '<span class="badge text-bg-success">Good</span>',
             'warning' => '<span class="badge text-bg-warning">Warning</span>',
-            'critical' => '<span class="badge text-bg-danger">Critical</span>'
+            'critical' => '<span class="badge text-bg-danger">Critical</span>',
         ];
 
         return $badges[$this->status] ?? '<span class="badge text-bg-light">Unknown</span>';
@@ -64,7 +64,7 @@ class DatabaseHealthMetric extends Model
         if ($this->metric_unit) {
             return $this->metric_value . ' ' . $this->metric_unit;
         }
-        
+
         return $this->metric_value;
     }
 
@@ -73,7 +73,11 @@ class DatabaseHealthMetric extends Model
      */
     public function scopeRecent($query)
     {
-        return $query->where('measured_at', '>=', now()->subDay());
+        return $query->where(
+            'measured_at',
+            '>=',
+            now()->subDay(),
+        );
     }
 
     /**

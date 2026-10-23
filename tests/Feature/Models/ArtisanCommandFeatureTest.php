@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
@@ -29,7 +30,7 @@ class ArtisanCommandFeatureTest extends TestCase
     public function fillable_attributes_can_be_mass_assigned(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
-        
+
         $data = [
             'name' => 'Test Command',
             'description' => 'Test command description',
@@ -57,7 +58,7 @@ class ArtisanCommandFeatureTest extends TestCase
 
         $this->assertIsBool($command->is_active);
         $this->assertIsInt($command->sort_order);
-        $this->assertInstanceOf(\Carbon\Carbon::class, $command->created_at);
+        $this->assertInstanceOf(Carbon::class, $command->created_at);
     }
 
     #[Test]
@@ -75,7 +76,7 @@ class ArtisanCommandFeatureTest extends TestCase
     public function can_create_command_without_optional_fields(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
-        
+
         $data = [
             'name' => 'Minimal Command',
             'category_id' => $category->id,
@@ -113,18 +114,18 @@ class ArtisanCommandFeatureTest extends TestCase
     public function can_update_command(): void
     {
         $command = ArtisanCommand::factory()->create();
-        
+
         $newData = [
             'name' => 'Updated Command',
             'is_active' => false,
             'sort_order' => 100,
         ];
-        
+
         $command->update($newData);
-        
+
         $this->assertDatabaseHas('artisan_commands', array_merge(
             ['id' => $command->id],
-            $newData
+            $newData,
         ));
     }
 
@@ -133,9 +134,9 @@ class ArtisanCommandFeatureTest extends TestCase
     {
         $command = ArtisanCommand::factory()->create();
         $commandId = $command->id;
-        
+
         $command->delete();
-        
+
         $this->assertDatabaseMissing('artisan_commands', ['id' => $commandId]);
     }
 
@@ -144,7 +145,7 @@ class ArtisanCommandFeatureTest extends TestCase
     {
         $activeCommand = ArtisanCommand::factory()->create(['is_active' => 1]);
         $inactiveCommand = ArtisanCommand::factory()->create(['is_active' => 0]);
-        
+
         $this->assertTrue($activeCommand->is_active);
         $this->assertFalse($inactiveCommand->is_active);
         $this->assertIsBool($activeCommand->is_active);
@@ -156,10 +157,10 @@ class ArtisanCommandFeatureTest extends TestCase
     {
         $category1 = ArtisanCommandCategory::factory()->create(['name' => 'Cache']);
         $category2 = ArtisanCommandCategory::factory()->create(['name' => 'Database']);
-        
+
         $command1 = ArtisanCommand::factory()->create(['category_id' => $category1->id]);
         $command2 = ArtisanCommand::factory()->create(['category_id' => $category2->id]);
-        
+
         $this->assertEquals('Cache', $command1->category->name);
         $this->assertEquals('Database', $command2->category->name);
     }
@@ -168,7 +169,7 @@ class ArtisanCommandFeatureTest extends TestCase
     public function sort_order_has_default_value_when_not_specified(): void
     {
         $command = ArtisanCommand::factory()->create(['sort_order' => 0]);
-        
+
         $this->assertEquals(0, $command->sort_order);
         $this->assertIsInt($command->sort_order);
     }
@@ -178,9 +179,9 @@ class ArtisanCommandFeatureTest extends TestCase
     {
         $parametersDesc = 'Use --force to override existing files';
         $command = ArtisanCommand::factory()->create([
-            'parameters_description' => $parametersDesc
+            'parameters_description' => $parametersDesc,
         ]);
-        
+
         $this->assertEquals($parametersDesc, $command->parameters_description);
     }
 
@@ -188,9 +189,9 @@ class ArtisanCommandFeatureTest extends TestCase
     public function relationship_eager_loading_works(): void
     {
         $commands = ArtisanCommand::factory()->count(3)->create();
-        
+
         $commandsWithCategory = ArtisanCommand::with('category')->get();
-        
+
         $this->assertCount(3, $commandsWithCategory);
         foreach ($commandsWithCategory as $command) {
             $this->assertNotNull($command->category);

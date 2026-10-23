@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class ArchivePolicy extends Model
 {
@@ -22,7 +22,7 @@ class ArchivePolicy extends Model
         'date_column',
         'enabled',
         'last_archived_at',
-        'records_archived'
+        'records_archived',
     ];
 
     /**
@@ -34,7 +34,7 @@ class ArchivePolicy extends Model
         'enabled' => 'boolean',
         'last_archived_at' => 'datetime',
         'retention_months' => 'integer',
-        'records_archived' => 'integer'
+        'records_archived' => 'integer',
     ];
 
     /**
@@ -42,7 +42,7 @@ class ArchivePolicy extends Model
      */
     public function getEnabledBadgeAttribute()
     {
-        return $this->enabled 
+        return $this->enabled
             ? '<span class="badge text-bg-success">Enabled</span>'
             : '<span class="badge text-bg-secondary">Disabled</span>';
     }
@@ -60,7 +60,7 @@ class ArchivePolicy extends Model
      */
     public function getLastArchivedFormattedAttribute()
     {
-        return $this->last_archived_at 
+        return $this->last_archived_at
             ? $this->last_archived_at->format('d.m.Y H:i')
             : 'Never';
     }
@@ -70,15 +70,19 @@ class ArchivePolicy extends Model
      */
     public function getRecordsToArchiveAttribute()
     {
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return 0;
         }
 
         $cutoffDate = now()->subMonths($this->retention_months);
-        
+
         try {
             return \DB::table($this->table_name)
-                ->where($this->date_column, '<', $cutoffDate)
+                ->where(
+                    $this->date_column,
+                    '<',
+                    $cutoffDate,
+                )
                 ->count();
         } catch (\Exception $e) {
             return 0;

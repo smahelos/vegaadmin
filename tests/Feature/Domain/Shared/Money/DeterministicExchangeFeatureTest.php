@@ -6,8 +6,8 @@ use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
 use Tests\Support\Traits\UsesDeterministicExchange;
+use Tests\TestCase;
 
 /**
  * Feature test verifying deterministic FX stub integration.
@@ -20,7 +20,7 @@ class DeterministicExchangeFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-    $this->setUpDeterministicExchange(); // sets config flag for provider swap
+        $this->setUpDeterministicExchange(); // sets config flag for provider swap
     }
 
     #[Test]

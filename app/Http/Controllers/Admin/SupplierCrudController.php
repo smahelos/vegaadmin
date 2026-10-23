@@ -3,25 +3,31 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\SupplierRequest;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Supplier;
 use App\Models\User;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
  * Supplier management controller
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
+ *
+ * @property-read CrudPanel $crud
  */
 class SupplierCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+    use CreateOperation {
         store as traitStore;
     }
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation; // Usage recording via generic observer
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation; // Usage recording via generic observer
 
     /**
      * Configure the CrudPanel object
@@ -30,7 +36,7 @@ class SupplierCrudController extends CrudController
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\Supplier::class);
+        CRUD::setModel(Supplier::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/supplier');
         CRUD::setEntityNameStrings('supplier', 'suppliers');
     }
@@ -49,8 +55,12 @@ class SupplierCrudController extends CrudController
             ->values(
                 User::all()->pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function($value) {
-                CRUD::addClause('where', 'user_id', $value);
+            ->whenActive(function ($value) {
+                CRUD::addClause(
+                    'where',
+                    'user_id',
+                    $value,
+                );
             });
 
         CRUD::column('user_id')
@@ -58,7 +68,7 @@ class SupplierCrudController extends CrudController
             ->label('Owner')
             ->entity('user')
             ->attribute('name')
-            ->value(function($entry) {
+            ->value(function ($entry) {
                 return $entry->user_id ? $entry->user->name : 'N/A';
             });
 
@@ -118,7 +128,7 @@ class SupplierCrudController extends CrudController
     {
         if (backpack_user()) {
             $request = $this->crud->getRequest();
-            if (!$request->has('user_id') || empty($request->input('user_id'))) {
+            if (! $request->has('user_id') || empty($request->input('user_id'))) {
                 $request->merge(['user_id' => backpack_user()->id]);
             }
         }
@@ -127,7 +137,7 @@ class SupplierCrudController extends CrudController
     public function store()
     {
         $this->beforeEntityStore();
+
         return $this->traitStore();
     }
-
 }

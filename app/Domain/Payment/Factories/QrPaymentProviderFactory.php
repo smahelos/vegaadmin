@@ -3,17 +3,15 @@
 namespace App\Domain\Payment\Factories;
 
 use App\Domain\Payment\Contracts\QrPaymentProviderInterface;
-use App\Domain\Payment\Providers\QrPayment\CzechQrPaymentProvider;
-use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
-use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\Providers\QrPayment\CzechQrPaymentProvider;
+use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
+use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 
 class QrPaymentProviderFactory
 {
     /**
      * Available QR payment providers
-     *
-     * @var array
      */
     private static array $providers = [
         'CZ' => CzechQrPaymentProvider::class,
@@ -24,33 +22,51 @@ class QrPaymentProviderFactory
     /**
      * IBAN country codes mapping to providers
      * For automatic detection based on IBAN
-     *
-     * @var array
      */
     private static array $ibanCountryMapping = [
         'CZ' => 'CZ',
         'SK' => 'SK',
         // European countries that use standard SEPA
-        'DE' => 'EU', 'FR' => 'EU', 'IT' => 'EU', 'ES' => 'EU', 'NL' => 'EU',
-        'BE' => 'EU', 'AT' => 'EU', 'PT' => 'EU', 'GR' => 'EU', 'IE' => 'EU',
-        'FI' => 'EU', 'LU' => 'EU', 'SI' => 'EU', 'CY' => 'EU', 'MT' => 'EU',
-        'EE' => 'EU', 'LV' => 'EU', 'LT' => 'EU', 'PL' => 'EU', 'HU' => 'EU',
-        'RO' => 'EU', 'BG' => 'EU', 'HR' => 'EU', 'DK' => 'EU', 'SE' => 'EU',
+        'DE' => 'EU',
+        'FR' => 'EU',
+        'IT' => 'EU',
+        'ES' => 'EU',
+        'NL' => 'EU',
+        'BE' => 'EU',
+        'AT' => 'EU',
+        'PT' => 'EU',
+        'GR' => 'EU',
+        'IE' => 'EU',
+        'FI' => 'EU',
+        'LU' => 'EU',
+        'SI' => 'EU',
+        'CY' => 'EU',
+        'MT' => 'EU',
+        'EE' => 'EU',
+        'LV' => 'EU',
+        'LT' => 'EU',
+        'PL' => 'EU',
+        'HU' => 'EU',
+        'RO' => 'EU',
+        'BG' => 'EU',
+        'HR' => 'EU',
+        'DK' => 'EU',
+        'SE' => 'EU',
     ];
 
     /**
      * Create QR payment provider based on country code
      *
-     * @param string $countryCode ISO 3166-1 alpha-2 country code
-     * @return QrPaymentProviderInterface
+     * @param  string  $countryCode  ISO 3166-1 alpha-2 country code
+     *
      * @throws \InvalidArgumentException
      */
     public static function createProvider(string $countryCode): QrPaymentProviderInterface
     {
         $countryCode = strtoupper($countryCode);
-        
-        if (!isset(self::$providers[$countryCode])) {
-            
+
+        if (! isset(self::$providers[$countryCode])) {
+
             // Fallback to European provider for unknown European countries
             if (in_array($countryCode, array_keys(self::$ibanCountryMapping))) {
                 $countryCode = 'EU';
@@ -60,35 +76,34 @@ class QrPaymentProviderFactory
         }
 
         $providerClass = self::$providers[$countryCode];
-        
-        if (!class_exists($providerClass)) {
+
+        if (! class_exists($providerClass)) {
             throw new \InvalidArgumentException("Provider class not found: {$providerClass}");
         }
 
-        return new $providerClass();
+        return new $providerClass;
     }
 
     /**
      * Auto-detect provider based on payment payload data
      * Priority: 1. IBAN country 2. Currency 3. Default (CZ)
      *
-     * @param QrPaymentPayload $payload Payment data
-     * @return QrPaymentProviderInterface
+     * @param  QrPaymentPayload  $payload  Payment data
      */
     public static function autoDetectProvider(QrPaymentPayload $payload): QrPaymentProviderInterface
     {
         // Priority 1: Detect from Country Code if provided
-        if (!empty($payload->countryCode) && self::hasProvider($payload->countryCode)) {
+        if (! empty($payload->countryCode) && self::hasProvider($payload->countryCode)) {
             return self::createProvider($payload->countryCode);
         }
 
         // Priority 2: Detect from IBAN
-        if (!empty($payload->iban)) {
+        if (! empty($payload->iban)) {
             $ibanCountryCode = strtoupper(substr(preg_replace('/\s+/', '', $payload->iban), 0, 2));
-            
+
             if (isset(self::$ibanCountryMapping[$ibanCountryCode])) {
                 $providerCountryCode = self::$ibanCountryMapping[$ibanCountryCode];
-                
+
                 try {
                     return self::createProvider($providerCountryCode);
                 } catch (\InvalidArgumentException $e) {
@@ -99,15 +114,16 @@ class QrPaymentProviderFactory
 
         // Priority 3: Detect from currency (basic heuristic)
         $currency = $payload->amount->getCurrency();
-        if (!empty($currency)) {
+        if (! empty($currency)) {
             switch (strtoupper($currency)) {
                 case 'CZK':
                     return self::createProvider('CZ');
                 case 'EUR':
                     // EUR is used in many countries, prefer Slovak if we have Slovak bank details
-                    if (!empty($payload->bankCode) && self::isSlovakBankCode($payload->bankCode)) {
+                    if (! empty($payload->bankCode) && self::isSlovakBankCode($payload->bankCode)) {
                         return self::createProvider('SK');
                     }
+
                     return self::createProvider('EU');
                 default:
                     return self::createProvider('CZ');
@@ -121,9 +137,6 @@ class QrPaymentProviderFactory
     /**
      * Check if bank code belongs to Slovak bank
      * This is a simplified check - in real implementation you'd have a complete list
-     *
-     * @param string $bankCode
-     * @return bool
      */
     private static function isSlovakBankCode(string $bankCode): bool
     {
@@ -138,14 +151,12 @@ class QrPaymentProviderFactory
             '7500', // CSOB
             '8120', // CSOB
         ];
-        
+
         return in_array($bankCode, $slovakBankCodes);
     }
 
     /**
      * Get all available providers
-     *
-     * @return array
      */
     public static function getAvailableProviders(): array
     {
@@ -154,9 +165,6 @@ class QrPaymentProviderFactory
 
     /**
      * Check if provider exists for country code
-     *
-     * @param string $countryCode
-     * @return bool
      */
     public static function hasProvider(string $countryCode): bool
     {

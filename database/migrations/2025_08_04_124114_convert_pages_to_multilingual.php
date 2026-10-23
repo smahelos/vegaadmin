@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -14,7 +14,7 @@ return new class extends Migration
     {
         // First, backup existing data and convert to multilingual format
         $pages = DB::table('pages')->get();
-        
+
         // Store converted data temporarily
         $convertedPages = [];
         foreach ($pages as $page) {
@@ -33,7 +33,7 @@ return new class extends Migration
             $table->json('slug_new')->nullable()->after('name_new');
             $table->json('description_new')->nullable()->after('slug_new');
             $table->json('content_new')->nullable()->after('description_new');
-            
+
             // Add missing meta columns as JSON
             $table->json('meta_title')->nullable()->after('content_new');
             $table->json('meta_description')->nullable()->after('meta_title');
@@ -60,16 +60,21 @@ return new class extends Migration
             // Drop indexes first if they exist
             $schema = DB::getSchemaBuilder();
             $indexNames = $schema->getIndexes('pages');
-            
+
             foreach ($indexNames as $index) {
                 if (in_array($index['name'], ['pages_slug_index', 'pages_slug_unique'])) {
                     $table->dropIndex($index['name']);
                 }
             }
-            
-            $table->dropColumn(['name', 'slug', 'description', 'content']);
+
+            $table->dropColumn([
+                'name',
+                'slug',
+                'description',
+                'content',
+            ]);
         });
-        
+
         Schema::table('pages', function (Blueprint $table) {
             $table->renameColumn('name_new', 'name');
             $table->renameColumn('slug_new', 'slug');
@@ -85,7 +90,7 @@ return new class extends Migration
     {
         // Get current multilingual data
         $pages = DB::table('pages')->get();
-        
+
         // Convert back to single language (CS)
         $convertedPages = [];
         foreach ($pages as $page) {
@@ -93,7 +98,7 @@ return new class extends Migration
             $slug = json_decode($page->slug, true);
             $description = json_decode($page->description, true);
             $content = json_decode($page->content, true);
-            
+
             $convertedPages[] = [
                 'id' => $page->id,
                 'name' => $name['cs'] ?? '',
@@ -126,11 +131,16 @@ return new class extends Migration
         Schema::table('pages', function (Blueprint $table) {
             // Drop multilingual columns
             $table->dropColumn([
-                'name', 'slug', 'description', 'content',
-                'meta_title', 'meta_description', 'meta_keywords'
+                'name',
+                'slug',
+                'description',
+                'content',
+                'meta_title',
+                'meta_description',
+                'meta_keywords',
             ]);
         });
-        
+
         Schema::table('pages', function (Blueprint $table) {
             // Rename old columns back
             $table->renameColumn('name_old', 'name');

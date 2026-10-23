@@ -18,14 +18,14 @@ class RedirectIfAuthenticatedFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RedirectIfAuthenticated();
+        $this->middleware = new RedirectIfAuthenticated;
     }
 
     #[Test]
     public function guest_user_passes_through(): void
     {
         $request = Request::create('/login');
-        $result = $this->middleware->handle($request, fn() => response('OK'));
+        $result = $this->middleware->handle($request, fn () => response('OK'));
         $this->assertEquals('OK', $result->getContent());
     }
 
@@ -35,7 +35,11 @@ class RedirectIfAuthenticatedFeatureTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
         $request = Request::create('/login');
-        $response = $this->middleware->handle($request, fn() => response('OK'), 'web');
+        $response = $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+            'web',
+        );
         $this->assertEquals(302, $response->getStatusCode());
         $this->assertStringContainsString('dashboard', $response->headers->get('Location'));
     }
@@ -46,7 +50,11 @@ class RedirectIfAuthenticatedFeatureTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'backpack');
         $request = Request::create('/admin/login');
-        $response = $this->middleware->handle($request, fn() => response('OK'), 'backpack');
+        $response = $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+            'backpack',
+        );
         $this->assertEquals(302, $response->getStatusCode());
         $this->assertStringContainsString('admin', $response->headers->get('Location'));
     }

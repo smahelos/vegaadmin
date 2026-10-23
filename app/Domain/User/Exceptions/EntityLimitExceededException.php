@@ -13,7 +13,9 @@ use Throwable;
 class EntityLimitExceededException extends Exception
 {
     private array $limitData;
+
     private string $messageKey;
+
     /** @var array<string,mixed> */
     private array $context;
 
@@ -23,14 +25,18 @@ class EntityLimitExceededException extends Exception
         array $context = [],
         ?string $message = null,
         int $code = 403,
-        ?Throwable $previous = null
+        ?Throwable $previous = null,
     ) {
         $this->limitData = $limitData;
         $this->messageKey = $messageKey ?: $this->defaultMessageKey();
         $this->context = $context ?: $this->defaultContext();
         // Keep a generic English fallback message for logs/debugging without using framework translators.
         $message = $message ?: $this->generateMessage();
-        parent::__construct($message, $code, $previous);
+        parent::__construct(
+            $message,
+            $code,
+            $previous,
+        );
     }
 
     /**
@@ -78,8 +84,9 @@ class EntityLimitExceededException extends Exception
      */
     private function generateMessage(): string
     {
-        $entity = (string)($this->limitData['entity'] ?? $this->limitData['entity_type'] ?? 'entity');
-        $limit = (string)($this->limitData['limit'] ?? 'unknown');
+        $entity = (string) ($this->limitData['entity'] ?? $this->limitData['entity_type'] ?? 'entity');
+        $limit = (string) ($this->limitData['limit'] ?? 'unknown');
+
         return "You have reached the limit for {$entity} (max: {$limit}).";
     }
 
@@ -89,6 +96,7 @@ class EntityLimitExceededException extends Exception
     private function defaultMessageKey(): string
     {
         $entity = $this->limitData['entity_type'] ?? $this->limitData['entity'] ?? null;
+
         return match ($entity) {
             'supplier' => 'suppliers.messages.limit_exceeded',
             'product' => 'products.messages.limit_exceeded',

@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\ProductRequest;
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductRequest;
+use App\Infrastructure\Forms\Products\ProductFormFields;
+use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use App\Infrastructure\Forms\Products\ProductFormFields;
+use Illuminate\View\View;
 
 class ProductController extends Controller
 {
@@ -20,24 +23,20 @@ class ProductController extends Controller
     /**
      * Product service instance
      *
-    * @var ProductApplicationServiceInterface
+     * @var ProductApplicationServiceInterface
      */
     protected $productService;
 
     /**
-    * Universal Entity Limit application service
-    *
-    * @var UELSService
-    */
+     * Universal Entity Limit application service
+     *
+     * @var UELSService
+     */
     protected $limitService;
 
-    /**
-     * @param ProductApplicationServiceInterface $productService
-     * @param UELSService $limitService
-     */
     public function __construct(
         ProductApplicationServiceInterface $productService,
-        UELSService $limitService
+        UELSService $limitService,
     ) {
         $this->productService = $productService;
         $this->limitService = $limitService;
@@ -72,7 +71,7 @@ class ProductController extends Controller
             'productCategories' => $formData['product_categories'],
             'taxRates' => $formData['tax_rates'],
             'fields' => $fields,
-            'limitsData' => $limitsData
+            'limitsData' => $limitsData,
         ]);
     }
 
@@ -87,7 +86,7 @@ class ProductController extends Controller
         // Check entity limits before creation
         if ($user) {
             $canCreate = $this->limitService->canUserCreateEntity($user->id, 'product');
-            if (!$canCreate) {
+            if (! $canCreate) {
                 return redirect()->back()
                     ->withInput()
                     ->with('error', trans('products.messages.limit_exceeded'));
@@ -102,11 +101,12 @@ class ProductController extends Controller
         try {
             $product = $this->productService->createProduct($validatedData, $user->id);
             $locale = $request->route('locale') ?? app()->getLocale();
+
             return redirect()->route('frontend.products', ['locale' => $locale])
                 ->with('success', trans('products.messages.created'));
         } catch (ValidationException $e) {
             // Handle file upload validation errors with detailed messages
-             return redirect()->back()
+            return redirect()->back()
                 ->withErrors($e->errors())
                 ->withInput()
                 ->with('error', trans('products.messages.validation_failed'));
@@ -115,8 +115,9 @@ class ProductController extends Controller
             Log::error('Product creation failed', [
                 'user_id' => $user->id ?? 'guest',
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', trans('products.messages.error_create') . ': ' . $e->getMessage());
@@ -126,9 +127,7 @@ class ProductController extends Controller
     /**
      * Display the specified product.
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function show(string $locale, int $id)
     {
@@ -148,9 +147,7 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified product.
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function edit(string $locale, int $id)
     {
@@ -173,20 +170,20 @@ class ProductController extends Controller
             'productCategories' => $formData['product_categories'],
             'taxRates' => $formData['tax_rates'],
             'fields' => $fields,
-            'limitsData' => $limitsData
+            'limitsData' => $limitsData,
         ]);
     }
 
     /**
      * Update the specified product in storage.
      *
-     * @param \App\Http\Requests\ProductRequest $request
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
-    public function update(ProductRequest $request, string $locale, int $id)
-    {
+    public function update(
+        ProductRequest $request,
+        string $locale,
+        int $id,
+    ) {
         try {
             $user = Auth::user();
 
@@ -201,21 +198,37 @@ class ProductController extends Controller
             }
 
             // Update product using service
-            $this->productService->updateProduct($id, $data, $user->id);
+            $this->productService->updateProduct(
+                $id,
+                $data,
+                $user->id,
+            );
 
             return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
                 ->with('success', trans('products.messages.updated'));
 
         } catch (ValidationException $e) {
             // Handle file upload validation errors with detailed messages
-            Log::error('Product update failed', ['product_id' => $id, 'user_id' => Auth::id(), 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Log::error('Product update failed', [
+                'product_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return redirect()->back()
                 ->withErrors($e->errors())
                 ->withInput()
                 ->with('error', trans('products.messages.validation_failed'));
         } catch (\Throwable $e) {
             // Log the actual error for debugging
-            Log::error('Product update failed', ['product_id' => $id, 'user_id' => Auth::id(), 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Log::error('Product update failed', [
+                'product_id' => $id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', trans('products.messages.error_update') . ': ' . $e->getMessage());
@@ -225,9 +238,7 @@ class ProductController extends Controller
     /**
      * Remove the specified product from storage.
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroy(string $locale, int $id)
     {
@@ -246,8 +257,7 @@ class ProductController extends Controller
     /**
      * Get current user's products limits
      *
-     * @param \App\Models\User|null $user
-     * @return array
+     * @param  User|null  $user
      */
     public function getProductsLimitStats($user = null): array
     {
@@ -255,21 +265,31 @@ class ProductController extends Controller
             $user = Auth::user();
         }
         if ($user) {
-            $bestPeriod = $this->limitService->getBestPeriodType($user->id, 'product', 'count');
-            $stats = $this->limitService->getUsageStatistics($user->id, 'product', 'count', $bestPeriod);
-            $limit = $stats['limit'] ?? (($stats['remaining'] ?? null) !== null ? (int)$stats['remaining'] + (int)($stats['current_usage'] ?? 0) : 0);
-            $current = (int)($stats['current_usage'] ?? 0);
+            $bestPeriod = $this->limitService->getBestPeriodType(
+                $user->id,
+                'product',
+                'count',
+            );
+            $stats = $this->limitService->getUsageStatistics(
+                $user->id,
+                'product',
+                'count',
+                $bestPeriod,
+            );
+            $limit = $stats['limit'] ?? (($stats['remaining'] ?? null) !== null ? (int) $stats['remaining'] + (int) ($stats['current_usage'] ?? 0) : 0);
+            $current = (int) ($stats['current_usage'] ?? 0);
             $canCreate = $stats['can_create'] ?? ($limit > $current);
+
             return [
                 'limit' => $limit,
                 'current_usage' => $current,
-                'allowed' => $canCreate
+                'allowed' => $canCreate,
             ];
         } else {
             return [
                 'limit' => 0,
                 'current_usage' => 0,
-                'allowed' => false
+                'allowed' => false,
             ];
         }
     }

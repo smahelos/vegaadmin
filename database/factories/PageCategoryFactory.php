@@ -6,7 +6,7 @@ use App\Models\PageCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PageCategory>
+ * @extends Factory<PageCategory>
  */
 class PageCategoryFactory extends Factory
 {
@@ -24,22 +24,27 @@ class PageCategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $locales = config('app.available_locales', ['cs', 'en', 'de', 'sk']);
+        $locales = config('app.available_locales', [
+            'cs',
+            'en',
+            'de',
+            'sk',
+        ]);
         $baseName = $this->faker->words(2, true);
         $baseSlug = $this->faker->unique()->slug();
         $baseDescription = $this->faker->sentence();
-        
+
         $nameData = [];
         $slugData = [];
         $descriptionData = [];
-        
+
         // Generate data for each locale
         foreach ($locales as $locale) {
             $nameData[$locale] = $baseName . ' ' . strtoupper($locale);
             $slugData[$locale] = $baseSlug . '-' . $locale;
             $descriptionData[$locale] = $baseDescription . ' [' . strtoupper($locale) . ']';
         }
-        
+
         return [
             'name' => $nameData,
             'slug' => $slugData,

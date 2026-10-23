@@ -3,7 +3,6 @@
 namespace Tests\Unit\Livewire\Product;
 
 use App\Livewire\Product\ProductListSelect;
-use Illuminate\Foundation\Http\FormRequest;
 use Livewire\Component;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -15,8 +14,8 @@ class ProductListSelectTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->component = new ProductListSelect();
+
+        $this->component = new ProductListSelect;
     }
 
     #[Test]
@@ -40,23 +39,27 @@ class ProductListSelectTest extends TestCase
     public function component_has_correct_listeners(): void
     {
         $expectedListeners = [
-            'setSelectedProductIds' => 'handleSetSelectedProductIds'
+            'setSelectedProductIds' => 'handleSetSelectedProductIds',
         ];
-        
+
         $reflection = new \ReflectionClass($this->component);
         $property = $reflection->getProperty('listeners');
         $property->setAccessible(true);
         $listeners = $property->getValue($this->component);
-        
+
         $this->assertEquals($expectedListeners, $listeners);
     }
 
     #[Test]
     public function set_selected_product_ids_sets_array_correctly(): void
     {
-        $ids = [1, 2, 3];
+        $ids = [
+            1,
+            2,
+            3,
+        ];
         $this->component->setSelectedProductIds($ids);
-        
+
         $this->assertEquals($ids, $this->component->selectedProductIds);
     }
 
@@ -65,14 +68,14 @@ class ProductListSelectTest extends TestCase
     {
         $this->component->sortField = 'name';
         $this->component->sortDirection = 'asc';
-        
+
         $this->component->sortBy('name');
-        
+
         $this->assertEquals('name', $this->component->sortField);
         $this->assertEquals('desc', $this->component->sortDirection);
-        
+
         $this->component->sortBy('name');
-        
+
         $this->assertEquals('name', $this->component->sortField);
         $this->assertEquals('asc', $this->component->sortDirection);
     }
@@ -82,9 +85,9 @@ class ProductListSelectTest extends TestCase
     {
         $this->component->sortField = 'name';
         $this->component->sortDirection = 'desc';
-        
+
         $this->component->sortBy('price');
-        
+
         $this->assertEquals('price', $this->component->sortField);
         $this->assertEquals('asc', $this->component->sortDirection);
     }
@@ -92,31 +95,51 @@ class ProductListSelectTest extends TestCase
     #[Test]
     public function handle_set_selected_product_ids_with_array_structure(): void
     {
-        $params = ['ids' => [1, 2, 3]];
+        $params = ['ids' => [
+            1,
+            2,
+            3,
+        ]];
         $this->component->handleSetSelectedProductIds($params);
-        
-        $this->assertEquals([1, 2, 3], $this->component->selectedProductIds);
+
+        $this->assertEquals([
+            1,
+            2,
+            3,
+        ], $this->component->selectedProductIds);
     }
 
     #[Test]
     public function handle_set_selected_product_ids_with_direct_array(): void
     {
-        $params = [1, 2, 3];
+        $params = [
+            1,
+            2,
+            3,
+        ];
         $this->component->handleSetSelectedProductIds($params);
-        
-        $this->assertEquals([1, 2, 3], $this->component->selectedProductIds);
+
+        $this->assertEquals([
+            1,
+            2,
+            3,
+        ], $this->component->selectedProductIds);
     }
 
     #[Test]
     public function handle_set_selected_product_ids_ignores_invalid_input(): void
     {
-        $originalIds = [4, 5, 6];
+        $originalIds = [
+            4,
+            5,
+            6,
+        ];
         $this->component->selectedProductIds = $originalIds;
-        
+
         // Test with string input (should be ignored)
         $this->component->handleSetSelectedProductIds('invalid');
         $this->assertEquals($originalIds, $this->component->selectedProductIds);
-        
+
         // Test with null input (should be ignored)
         $this->component->handleSetSelectedProductIds(null);
         $this->assertEquals($originalIds, $this->component->selectedProductIds);
@@ -128,7 +151,7 @@ class ProductListSelectTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('mount');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -139,7 +162,7 @@ class ProductListSelectTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\Contracts\View\View', $returnType->getName());
     }
@@ -150,7 +173,7 @@ class ProductListSelectTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('selectProduct');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('bool', $returnType->getName());
     }
@@ -161,7 +184,7 @@ class ProductListSelectTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('setSelectedProductIds');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -172,7 +195,7 @@ class ProductListSelectTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -183,7 +206,7 @@ class ProductListSelectTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('updatingSearch');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -194,7 +217,7 @@ class ProductListSelectTest extends TestCase
         $reflection = new \ReflectionClass($this->component);
         $method = $reflection->getMethod('handleSetSelectedProductIds');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }

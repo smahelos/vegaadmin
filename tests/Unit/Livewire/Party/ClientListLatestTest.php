@@ -5,8 +5,8 @@ namespace Tests\Unit\Livewire\Party;
 use App\Livewire\Party\ClientListLatest;
 use Livewire\Component;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
 use ReflectionClass;
+use Tests\TestCase;
 
 class ClientListLatestTest extends TestCase
 {
@@ -15,7 +15,7 @@ class ClientListLatestTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->component = new ClientListLatest();
+        $this->component = new ClientListLatest;
     }
 
     #[Test]
@@ -28,13 +28,13 @@ class ClientListLatestTest extends TestCase
     public function component_has_correct_public_properties(): void
     {
         $reflection = new ReflectionClass($this->component);
-        
+
         $orderAscProperty = $reflection->getProperty('orderAsc');
         $this->assertTrue($orderAscProperty->isPublic());
-        
+
         $orderByProperty = $reflection->getProperty('orderBy');
         $this->assertTrue($orderByProperty->isPublic());
-        
+
         $errorMessageProperty = $reflection->getProperty('errorMessage');
         $this->assertTrue($errorMessageProperty->isPublic());
     }
@@ -51,15 +51,15 @@ class ClientListLatestTest extends TestCase
     public function component_has_correct_property_types(): void
     {
         $reflection = new ReflectionClass($this->component);
-        
+
         $orderAscProperty = $reflection->getProperty('orderAsc');
         $orderAscType = $orderAscProperty->getType();
         $this->assertEquals('bool', $orderAscType->getName());
-        
+
         $orderByProperty = $reflection->getProperty('orderBy');
         $orderByType = $orderByProperty->getType();
         $this->assertEquals('string', $orderByType->getName());
-        
+
         $errorMessageProperty = $reflection->getProperty('errorMessage');
         $errorMessageType = $errorMessageProperty->getType();
         $this->assertEquals('string', $errorMessageType->getName());
@@ -78,7 +78,7 @@ class ClientListLatestTest extends TestCase
         $reflection = new ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('void', $returnType->getName());
     }
@@ -89,11 +89,11 @@ class ClientListLatestTest extends TestCase
         $reflection = new ReflectionClass($this->component);
         $method = $reflection->getMethod('sortBy');
         $parameters = $method->getParameters();
-        
+
         $this->assertCount(1, $parameters);
         $fieldParam = $parameters[0];
         $this->assertEquals('field', $fieldParam->getName());
-        
+
         $paramType = $fieldParam->getType();
         $this->assertNotNull($paramType);
         $this->assertEquals('string', $paramType->getName());
@@ -111,7 +111,7 @@ class ClientListLatestTest extends TestCase
         $reflection = new ReflectionClass($this->component);
         $method = $reflection->getMethod('render');
         $returnType = $method->getReturnType();
-        
+
         $this->assertNotNull($returnType);
         $this->assertEquals('Illuminate\Contracts\View\View', $returnType->getName());
     }
@@ -128,7 +128,7 @@ class ClientListLatestTest extends TestCase
     {
         $reflection = new ReflectionClass($this->component);
         $docComment = $reflection->getDocComment();
-        
+
         $this->assertNotFalse($docComment);
         $this->assertStringContainsString('ClientListLatest Livewire Component', $docComment);
         $this->assertStringContainsString('latest clients', $docComment);
@@ -138,11 +138,11 @@ class ClientListLatestTest extends TestCase
     public function component_structure_validation(): void
     {
         $reflection = new ReflectionClass($this->component);
-        
+
         // Check that class is not abstract or final
         $this->assertFalse($reflection->isAbstract());
         $this->assertFalse($reflection->isFinal());
-        
+
         // Check that it has the expected methods
         $expectedMethods = ['sortBy', 'render'];
         foreach ($expectedMethods as $method) {

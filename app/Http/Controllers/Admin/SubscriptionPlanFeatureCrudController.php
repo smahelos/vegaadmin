@@ -2,46 +2,55 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Http\Requests\Admin\SubscriptionPlanFeatureRequest;
+use App\Models\SubscriptionPlanFeature;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
  * SubscriptionPlanFeature CRUD controller
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
+ *
+ * @property-read CrudPanel $crud
  */
 class SubscriptionPlanFeatureCrudController extends CrudController
 {
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
+    use CreateOperation;
+    use DeleteOperation;
+    use ListOperation;
+    use ShowOperation;
+    use UpdateOperation;
     // Access control is configured via application CrudAccessServiceInterface in setup()
 
     /**
      * Configure the CrudPanel object and check user permissions
-     * 
+     *
      * @return void
      */
     public function setup()
     {
-        CRUD::setModel(\App\Models\SubscriptionPlanFeature::class);
+        CRUD::setModel(SubscriptionPlanFeature::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/subscription-plan-feature');
         CRUD::setEntityNameStrings(
             __('subscriptions.features.entity.singular'),
-            __('subscriptions.features.entity.plural')
+            __('subscriptions.features.entity.plural'),
         );
 
         // Configure access using centralized service
         $userId = optional(backpack_user())->id ?? 0;
-        app(\App\Application\User\Contracts\CrudAccessServiceInterface::class)
+        app(CrudAccessServiceInterface::class)
             ->configureCrudAccess($this->crud, (int) $userId);
     }
 
     /**
      * Setup list view columns
-     * 
+     *
      * @return void
      */
     protected function setupListOperation()
@@ -85,21 +94,27 @@ class SubscriptionPlanFeatureCrudController extends CrudController
 
         // Add filters
         if (backpack_pro()) {
-            CRUD::addFilter([
-                'type' => 'simple',
-                'name' => 'is_active',
-                'label' => __('subscriptions.features.filters.active_only'),
-            ],
-            false,
-            function () {
-                CRUD::addClause('where', 'is_active', '1');
-            });
+            CRUD::addFilter(
+                [
+                    'type' => 'simple',
+                    'name' => 'is_active',
+                    'label' => __('subscriptions.features.filters.active_only'),
+                ],
+                false,
+                function () {
+                    CRUD::addClause(
+                        'where',
+                        'is_active',
+                        '1',
+                    );
+                },
+            );
         }
     }
 
     /**
      * Setup create and update forms
-     * 
+     *
      * @return void
      */
     protected function setupCreateOperation()
@@ -151,7 +166,7 @@ class SubscriptionPlanFeatureCrudController extends CrudController
 
     /**
      * Setup update operation
-     * 
+     *
      * @return void
      */
     protected function setupUpdateOperation()
@@ -161,19 +176,19 @@ class SubscriptionPlanFeatureCrudController extends CrudController
 
     /**
      * Setup show operation
-     * 
+     *
      * @return void
      */
     protected function setupShowOperation()
     {
         $this->setupListOperation();
-        
+
         CRUD::addColumn([
             'name' => 'created_at',
             'label' => __('subscriptions.features.fields.created_at'),
             'type' => 'datetime',
         ]);
-        
+
         CRUD::addColumn([
             'name' => 'updated_at',
             'label' => __('subscriptions.features.fields.updated_at'),

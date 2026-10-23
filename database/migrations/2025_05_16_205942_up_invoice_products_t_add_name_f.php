@@ -24,7 +24,7 @@ return new class extends Migration
     {
         Schema::table('invoice_products', function (Blueprint $table) {
             $table->dropColumn([
-                'name'
+                'name',
             ]);
         });
     }

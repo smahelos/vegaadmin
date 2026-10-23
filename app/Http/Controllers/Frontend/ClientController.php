@@ -2,24 +2,27 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Controller;
+use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 // Removed direct Client model usage; delegate to party service
+use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
+use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService; // still used for catch blocks
+use App\Http\Controllers\Controller;
 use App\Http\Requests\ClientRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException; // still used for catch blocks
+use App\Infrastructure\Forms\Party\ClientFormFields;
+use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Infrastructure\Forms\Party\ClientFormFields;
-use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
-use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService;
-use App\Application\Party\Contracts\PartyApplicationServiceInterface;
+use Illuminate\View\View;
 
 class ClientController extends Controller
 {
     use ClientFormFields; // Frontend limits via observers
 
     /**
-    * @var PartyApplicationServiceInterface
-    */
+     * @var PartyApplicationServiceInterface
+     */
     protected $partyService;
 
     /**
@@ -34,15 +37,11 @@ class ClientController extends Controller
 
     /**
      * Constructor
-     *
-     * @param PartyApplicationServiceInterface $partyService
-     * @param CountryApplicationServiceInterface $countryService
-     * @param UELSService $limitService
      */
     public function __construct(
         PartyApplicationServiceInterface $partyService,
         CountryApplicationServiceInterface $countryService,
-        UELSService $limitService
+        UELSService $limitService,
     ) {
         $this->partyService = $partyService;
         $this->countryService = $countryService;
@@ -52,7 +51,7 @@ class ClientController extends Controller
     /**
      * Display paginated list of user clients
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function index()
     {
@@ -65,7 +64,7 @@ class ClientController extends Controller
     /**
      * Show form for creating a new client
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function create()
     {
@@ -97,15 +96,14 @@ class ClientController extends Controller
             'fields' => $fields,
             'userInfo' => $userInfo,
             'countries' => $countries,
-            'limitsData' => $limitsData
+            'limitsData' => $limitsData,
         ]);
     }
 
     /**
      * Store a new client
      *
-     * @param ClientRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function store(ClientRequest $request)
     {
@@ -117,7 +115,7 @@ class ClientController extends Controller
             // Pre-limit check (generic)
             if ($user) {
                 $canCreate = $this->limitService->canUserCreateEntity($user->id, 'client');
-                if (!$canCreate) {
+                if (! $canCreate) {
                     return redirect()->back()
                         ->withInput()
                         ->with('error', trans('clients.messages.limit_exceeded'));
@@ -130,27 +128,25 @@ class ClientController extends Controller
             $locale = $request->route('locale') ?? 'cs';
 
             return redirect()->route('frontend.clients', ['locale' => $locale])
-                            ->with('success', __('clients.messages.created'));
+                ->with('success', __('clients.messages.created'));
         } catch (\Exception $e) {
             Log::error('Error creating client: ' . $e->getMessage());
 
             return back()->withInput()
-                        ->with('error', __('clients.messages.error_create'));
+                ->with('error', __('clients.messages.error_create'));
         }
     }
 
     /**
      * Display client details and related invoices
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     * @return View|RedirectResponse
      */
     public function show(string $locale, int $id)
     {
         try {
             // Ignore requests for static files
-            if (preg_match('/\.(js\.map|css\.map|js|css|png|jpg|gif|svg|woff|woff2|ttf|eot)$/', (string)$id)) {
+            if (preg_match('/\.(js\.map|css\.map|js|css|png|jpg|gif|svg|woff|woff2|ttf|eot)$/', (string) $id)) {
                 return redirect()
                     ->route('frontend.clients', ['locale' => $locale])
                     ->with('error', __('clients.messages.not_found'));
@@ -184,9 +180,7 @@ class ClientController extends Controller
     /**
      * Show form for editing a client
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     * @return View|RedirectResponse
      */
     public function edit(string $locale, int $id)
     {
@@ -209,31 +203,32 @@ class ClientController extends Controller
                 'client' => $client,
                 'fields' => $fields,
                 'countries' => $countries,
-                'limitsData' => $limitsData
+                'limitsData' => $limitsData,
             ]);
 
         } catch (ModelNotFoundException $e) {
             Log::error('Client not found for edit: ' . $e->getMessage());
 
             return redirect()->route('frontend.clients', ['locale' => $locale])
-                             ->with('error', __('clients.messages.error_update'));
+                ->with('error', __('clients.messages.error_update'));
         } catch (\Exception $e) {
             Log::error('Error editing client: ' . $e->getMessage());
+
             return redirect()->route('frontend.clients', ['locale' => $locale])
-                             ->with('error', __('clients.messages.error_update'));
+                ->with('error', __('clients.messages.error_update'));
         }
     }
 
     /**
      * Update client data
      *
-     * @param ClientRequest $request
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
-    public function update(ClientRequest $request, string $locale, int $id)
-    {
+    public function update(
+        ClientRequest $request,
+        string $locale,
+        int $id,
+    ) {
         try {
             // Get current logged user
             $user = Auth::user();
@@ -258,6 +253,7 @@ class ClientController extends Controller
                 ->with('error', __('clients.messages.error_update'));
         } catch (\Exception $e) {
             Log::error('Error updating client #' . $id . ': ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
                 ->with('error', __('clients.messages.error_update'));
@@ -267,9 +263,7 @@ class ClientController extends Controller
     /**
      * Delete client if it has no associated invoices
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function destroy(string $locale, int $id)
     {
@@ -279,7 +273,7 @@ class ClientController extends Controller
 
             // Get client using repository
             $client = $this->partyService->findClient($user->id, $id);
-            if (!$this->partyService->deleteClient($user->id, $client->id)) {
+            if (! $this->partyService->deleteClient($user->id, $client->id)) {
                 return redirect()->route('frontend.clients', ['locale' => $locale])
                     ->with('error', __('clients.messages.error_delete_invoices'));
             }
@@ -295,6 +289,7 @@ class ClientController extends Controller
                 ->with('error', __('clients.messages.error_delete'));
         } catch (\Exception $e) {
             Log::error('Error deleting client #' . $id . ': ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
                 ->with('error', __('clients.messages.error_delete'));
@@ -304,9 +299,7 @@ class ClientController extends Controller
     /**
      * Set client as default
      *
-     * @param string $locale
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function setDefault(string $locale, int $id)
     {
@@ -329,6 +322,7 @@ class ClientController extends Controller
                 ->with('error', __('clients.messages.error_update'));
         } catch (\Exception $e) {
             Log::error('Error setting client as default #' . $id . ': ' . $e->getMessage());
+
             return redirect()
                 ->route('frontend.clients', ['locale' => $locale])
                 ->with('error', __('clients.messages.error_update'));
@@ -338,8 +332,7 @@ class ClientController extends Controller
     /**
      * Get current user's products limits
      *
-     * @param \App\Models\User|null $user
-     * @return array
+     * @param  User|null  $user
      */
     public function getClientsLimitStats($user = null): array
     {
@@ -347,22 +340,31 @@ class ClientController extends Controller
             $user = Auth::user();
         }
         if ($user) {
-            $bestPeriod = $this->limitService->getBestPeriodType($user->id, 'client', 'count');
-            $stats = $this->limitService->getUsageStatistics($user->id, 'client', 'count', $bestPeriod);
-            $limit = $stats['limit'] ?? (($stats['remaining'] ?? null) !== null ? (int)$stats['remaining'] + (int)($stats['current_usage'] ?? 0) : 0);
-            $current = (int)($stats['current_usage'] ?? 0);
+            $bestPeriod = $this->limitService->getBestPeriodType(
+                $user->id,
+                'client',
+                'count',
+            );
+            $stats = $this->limitService->getUsageStatistics(
+                $user->id,
+                'client',
+                'count',
+                $bestPeriod,
+            );
+            $limit = $stats['limit'] ?? (($stats['remaining'] ?? null) !== null ? (int) $stats['remaining'] + (int) ($stats['current_usage'] ?? 0) : 0);
+            $current = (int) ($stats['current_usage'] ?? 0);
             $canCreate = $stats['can_create'] ?? ($limit > $current);
+
             return [
                 'limit' => $limit,
                 'current_usage' => $current,
-                'allowed' => (bool)$canCreate,
+                'allowed' => (bool) $canCreate,
             ];
-        }
-        else {
+        } else {
             return [
                 'limit' => 0,
                 'current_usage' => 0,
-                'allowed' => false
+                'allowed' => false,
             ];
         }
     }
