@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\EntityLimit;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,10 +13,6 @@ class EntityLimitCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
     use RefreshDatabase;
-
-    private User $adminUser;
-
-    private User $regularUser;
 
     protected function setUp(): void
     {

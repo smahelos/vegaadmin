@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\ArtisanCommandCategoryRequest;
 use App\Models\ArtisanCommandCategory;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
@@ -15,10 +14,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class ArtisanCommandCategoryRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
-
-    protected User $adminUser;
-
-    protected User $regularUser;
 
     protected function setUp(): void
     {

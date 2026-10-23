@@ -15,8 +15,6 @@ class SubscriptionPolicyFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase;
 
-    protected User $user;
-
     private SubscriptionPolicy $policy;
 
     protected function setUp(): void

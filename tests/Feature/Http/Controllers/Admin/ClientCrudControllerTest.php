@@ -19,8 +19,6 @@ class ClientCrudControllerTest extends TestCase
 
     private User $user;
 
-    private User $adminUser;
-
     private UniversalLimitService $limitService;
 
     protected function setUp(): void

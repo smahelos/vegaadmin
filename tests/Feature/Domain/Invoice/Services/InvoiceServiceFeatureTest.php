@@ -30,8 +30,6 @@ class InvoiceServiceFeatureTest extends TestCase
 
     private InvoiceService $service;
 
-    private User $user;
-
     protected function setUp(): void
     {
         parent::setUp();

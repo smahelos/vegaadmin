@@ -25,11 +25,7 @@ class InvoiceControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase;
 
-    protected User $backendAdminUser;
-
     protected User $frontendUser; // alias to trait-created user
-
-    protected User $user; // declared to align with trait dynamic assignment
 
     protected InMemoryInvoiceServiceStub $stub;
 

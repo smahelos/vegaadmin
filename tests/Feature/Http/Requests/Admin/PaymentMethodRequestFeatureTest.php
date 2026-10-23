@@ -18,10 +18,6 @@ class PaymentMethodRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     private UniversalLimitService $limitService;
 
     protected function setUp(): void

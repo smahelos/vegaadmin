@@ -28,10 +28,6 @@ class InvoiceRequestFeatureTest extends TestCase
 
     private UniversalLimitService $limitService;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     private User $invoiceUser;
 
     private Client $client;

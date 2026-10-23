@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\PageCrudController;
 use App\Models\Page;
 use App\Models\PageCategory;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -21,10 +20,6 @@ class PageCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
     use RefreshDatabase;
-
-    private User $adminUser;
-
-    private User $regularUser;
 
     private PageCategory $category;
 

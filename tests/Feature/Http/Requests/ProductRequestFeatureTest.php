@@ -25,8 +25,6 @@ class ProductRequestFeatureTest extends TestCase
 
     private array $validProductData;
 
-    private User $user;
-
     private Tax $tax;
 
     private ProductCategory $category;

@@ -29,10 +29,6 @@ class InvoiceRequestFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $user;
-
-    protected User $adminUser;
-
     protected PaymentMethod $paymentMethod;
 
     protected Status $paymentStatus;

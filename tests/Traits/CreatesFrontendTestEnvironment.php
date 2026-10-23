@@ -10,6 +10,14 @@ use Spatie\Permission\Models\Role;
 
 trait CreatesFrontendTestEnvironment
 {
+    protected User $adminUser;
+
+    protected User $backendAdminUser;
+
+    protected User $unauthorizedAdmin;
+
+    protected User $user;
+
     /**
      * Set up frontend test environment with all required permissions and roles
      */

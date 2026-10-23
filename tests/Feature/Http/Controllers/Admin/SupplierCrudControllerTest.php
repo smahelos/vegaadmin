@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\EntityLimit;
 use App\Models\Supplier;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -15,10 +14,6 @@ class SupplierCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
     use RefreshDatabase;
-
-    private User $adminUser;
-
-    private User $regularUser;
 
     private UniversalLimitService $limitService;
 

@@ -23,8 +23,6 @@ class LoginControllerTest extends TestCase
 
     protected LoginController $controller;
 
-    protected User $user;
-
     protected string $validEmail;
 
     protected string $validPassword;

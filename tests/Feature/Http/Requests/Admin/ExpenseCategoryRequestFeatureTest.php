@@ -17,10 +17,6 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     protected function setUp(): void
     {
         parent::setUp();

@@ -24,8 +24,6 @@ class QrPaymentServiceFeatureTest extends TestCase
 
     private QrPaymentPayloadMapper $mapper;
 
-    private User $user;
-
     protected function setUp(): void
     {
         parent::setUp();

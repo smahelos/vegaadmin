@@ -8,6 +8,10 @@ use Spatie\Permission\Models\Role;
 
 trait CreatesAdminTestEnvironment
 {
+    protected User $adminUser;
+
+    protected User $regularUser;
+
     /**
      * Set up admin test environment with all required permissions and roles
      */

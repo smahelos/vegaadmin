@@ -16,10 +16,6 @@ class CronTaskRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     protected function setUp(): void
     {
         parent::setUp();

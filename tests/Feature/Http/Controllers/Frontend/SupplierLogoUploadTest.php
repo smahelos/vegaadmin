@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Models\EntityLimit;
 use App\Models\Supplier;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -17,8 +16,6 @@ class SupplierLogoUploadTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
     use RefreshDatabase;
-
-    private User $user;
 
     protected function setUp(): void
     {

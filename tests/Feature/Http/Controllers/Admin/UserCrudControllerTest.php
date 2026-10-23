@@ -21,10 +21,6 @@ class UserCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     /**
      * Set up the test environment before each test.
      * Creates permissions, roles, and test users for admin CRUD testing.

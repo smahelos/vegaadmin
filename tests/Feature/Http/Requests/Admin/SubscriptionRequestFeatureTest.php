@@ -15,10 +15,6 @@ class SubscriptionRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     private SubscriptionRequest $request;
 
     protected function setUp(): void

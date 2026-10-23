@@ -8,7 +8,6 @@ use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -26,8 +25,6 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 class InvoiceLogoUploadTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
-
-    protected User $user;
 
     protected PaymentMethod $paymentMethod;
 

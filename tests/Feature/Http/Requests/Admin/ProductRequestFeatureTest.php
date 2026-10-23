@@ -29,10 +29,6 @@ class ProductRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     private User $productUser;
 
     private UniversalLimitService $limitService;

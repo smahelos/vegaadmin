@@ -22,14 +22,12 @@ class CurrencySelectTest extends TestCase
         parent::setUp();
 
         // Mock CurrencyService using Mockery 1.6 best practices
-        // @phpstan-ignore-next-line
         $mockService = Mockery::mock(CurrencyServiceInterface::class);
         $currencies = [
             'CZK' => 'Czech Koruna',
             'EUR' => 'Euro',
             'USD' => 'US Dollar',
         ];
-        // @phpstan-ignore-next-line
         $mockService
             ->shouldReceive('getCommonCurrencies')
             ->andReturnUsing(function () use ($currencies) {

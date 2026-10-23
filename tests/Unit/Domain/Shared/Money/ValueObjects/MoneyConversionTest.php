@@ -18,7 +18,6 @@ class MoneyConversionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // @phpstan-ignore-next-line
         $this->exchange = Mockery::mock(CurrencyExchangeServiceInterface::class);
     }
 

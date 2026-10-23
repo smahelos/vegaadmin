@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\SubscriptionPlanFeatureRequest;
 use App\Models\SubscriptionPlanFeature;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -15,10 +14,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
-
-    protected User $adminUser;
-
-    protected User $regularUser;
 
     private SubscriptionPlanFeatureRequest $request;
 

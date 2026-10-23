@@ -23,10 +23,6 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $adminUser;
-
-    protected User $user;
-
     protected array $validExpenseCategoryData;
 
     /**

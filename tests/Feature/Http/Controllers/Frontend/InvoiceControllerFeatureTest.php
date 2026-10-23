@@ -24,8 +24,6 @@ class InvoiceControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase;
 
-    private User $user;
-
     private Invoice $invoice;
 
     private UniversalLimitService $limitService;

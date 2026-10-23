@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use App\Models\CronTask;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -54,10 +53,6 @@ class CronTaskCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
     use RefreshDatabase;
-
-    private User $adminUser;
-
-    private User $regularUser;
 
     protected function setUp(): void
     {

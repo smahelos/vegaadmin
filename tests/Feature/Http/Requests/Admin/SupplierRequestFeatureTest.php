@@ -23,10 +23,6 @@ class SupplierRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     protected UniversalLimitService $limitService;
 
     private User $supplierUser;

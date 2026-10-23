@@ -22,10 +22,6 @@ class ExpenseCrudControllerTest extends TestCase
     use CreatesAdminTestEnvironment;
     use RefreshDatabase;
 
-    private User $adminUser;
-
-    private User $regularUser;
-
     private UniversalLimitService $limitService;
 
     protected function setUp(): void

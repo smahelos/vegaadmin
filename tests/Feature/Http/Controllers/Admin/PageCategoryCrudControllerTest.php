@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\PageCategoryCrudController;
 use App\Models\PageCategory;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,10 +18,6 @@ class PageCategoryCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
     use RefreshDatabase;
-
-    private User $adminUser;
-
-    private User $regularUser;
 
     protected function setUp(): void
     {

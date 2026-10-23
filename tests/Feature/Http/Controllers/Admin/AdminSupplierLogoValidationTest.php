@@ -18,10 +18,6 @@ class AdminSupplierLogoValidationTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    private User $adminUser;
-
-    private User $regularUser;
-
     protected function setUp(): void
     {
         parent::setUp();

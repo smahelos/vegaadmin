@@ -22,10 +22,6 @@ class TaxRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     private UniversalLimitService $limitService;
 
     /**

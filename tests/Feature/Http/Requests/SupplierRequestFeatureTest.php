@@ -21,8 +21,6 @@ class SupplierRequestFeatureTest extends TestCase
 
     private array $validSupplierData;
 
-    private User $user;
-
     protected function setUp(): void
     {
         parent::setUp();

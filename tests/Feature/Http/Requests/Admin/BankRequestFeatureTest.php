@@ -19,8 +19,6 @@ class BankRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
     private UniversalLimitService $limitService;
 
     protected function setUp(): void

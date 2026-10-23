@@ -31,8 +31,6 @@ class SupplierControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $user;
-
     protected string $validEmail;
 
     protected array $validSupplierData;

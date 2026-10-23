@@ -23,10 +23,6 @@ class ExpenseRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -100,7 +96,7 @@ class ExpenseRequestFeatureTest extends TestCase
                     $updatePayload[$field] = $value;
                 }
             }
-            if (! empty($updatePayload)) {
+            if ($updatePayload !== []) {
                 $updatePayload['updated_at'] = now();
                 \DB::table('expenses')->where('id', $expense->id)->update($updatePayload);
             }

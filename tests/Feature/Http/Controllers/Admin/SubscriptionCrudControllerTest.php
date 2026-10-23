@@ -15,10 +15,6 @@ class SubscriptionCrudControllerTest extends TestCase
     use CreatesAdminTestEnvironment;
     use RefreshDatabase;
 
-    private User $adminUser;
-
-    private User $regularUser;
-
     protected function setUp(): void
     {
         parent::setUp();

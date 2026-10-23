@@ -23,10 +23,6 @@ class StatusRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     private StatusCategory $statusCategory;
 
     /**

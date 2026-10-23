@@ -22,8 +22,6 @@ class PasswordUpdateRequestFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $user;
-
     protected array $validPasswordData;
 
     protected string $currentPassword = 'current-password-123';

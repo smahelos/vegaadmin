@@ -20,10 +20,6 @@ class ArchivePolicyRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     /**
      * Set up test environment.
      */

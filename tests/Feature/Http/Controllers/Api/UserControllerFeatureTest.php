@@ -26,12 +26,6 @@ class UserControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $adminUser;
-
-    protected User $backendAdminUser;
-
-    protected User $unauthorizedAdmin;
-
     protected User $testUser1;
 
     protected User $testUser2;

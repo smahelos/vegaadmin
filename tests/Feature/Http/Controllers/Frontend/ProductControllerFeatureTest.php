@@ -18,8 +18,6 @@ class ProductControllerFeatureTest extends TestCase
     use CreatesFrontendTestEnvironment;
     use RefreshDatabase;
 
-    private User $user;
-
     private UniversalLimitService $limitService;
 
     protected function setUp(): void

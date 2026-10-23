@@ -291,7 +291,7 @@ class CurrencyServiceFeatureTest extends TestCase
     #[Test]
     public function get_all_currencies_logs_errors(): void
     {
-        Log::spy();
+        $log = Log::spy();
         $client = new class implements HttpClientInterface
         {
             public function get(string $url, array $headers = []): array
@@ -324,7 +324,7 @@ class CurrencyServiceFeatureTest extends TestCase
         $this->service = $this->app->make(CurrencyServiceInterface::class);
         $this->service->getAllCurrencies();
         // Our domain logger adapter delegates to Log::log('warning', ...), not Log::warning(...)
-        Log::shouldHaveReceived('log');
+        $log->shouldHaveReceived('log');
     }
 
     #[Test]

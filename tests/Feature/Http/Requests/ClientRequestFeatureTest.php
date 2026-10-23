@@ -25,10 +25,6 @@ class ClientRequestFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $user;
-
-    protected User $adminUser;
-
     protected array $validClientData;
 
     /**

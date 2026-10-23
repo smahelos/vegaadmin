@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\PageRequest;
 use App\Models\PageCategory;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
@@ -20,8 +19,6 @@ class PageRequestFeatureTest extends TestCase
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
     private PageRequest $request;
-
-    private User $adminUser;
 
     private PageCategory $category;
 

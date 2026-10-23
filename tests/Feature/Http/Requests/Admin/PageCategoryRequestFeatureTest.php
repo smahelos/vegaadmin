@@ -30,10 +30,6 @@ class PageCategoryRequestFeatureTest extends TestCase
 
     private User $user;
 
-    protected User $adminUser;
-
-    protected User $regularUser;
-
     /**
      * Set up test environment.
      */

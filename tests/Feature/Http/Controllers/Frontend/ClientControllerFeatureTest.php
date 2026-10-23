@@ -35,8 +35,6 @@ class ClientControllerFeatureTest extends TestCase
     use CreatesFrontendTestEnvironment;
     use RefreshDatabase, WithFaker;
 
-    protected User $user;
-
     protected string $validEmail;
 
     protected array $validClientData;

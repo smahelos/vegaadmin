@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\SubscriptionPlanFeature;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -13,10 +12,6 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
     use RefreshDatabase;
-
-    private User $adminUser;
-
-    private User $regularUser;
 
     protected function setUp(): void
     {

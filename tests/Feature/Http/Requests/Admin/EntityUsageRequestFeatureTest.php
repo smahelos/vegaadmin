@@ -15,10 +15,6 @@ class EntityUsageRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment, RefreshDatabase;
 
-    protected $adminUser;
-
-    protected $regularUser;
-
     protected function setUp(): void
     {
         parent::setUp();

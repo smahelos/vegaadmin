@@ -23,8 +23,6 @@ class SubscriptionControllerFeatureTest extends TestCase
     use RefreshDatabase;
     use WithSyntheticPaymentAppService;
 
-    protected User $user;
-
     protected function setUp(): void
     {
         parent::setUp();

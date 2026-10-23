@@ -25,10 +25,6 @@ class ProductCategoryRequestFeatureTest extends TestCase
 
     protected User $user;
 
-    protected User $regularUser;
-
-    protected User $adminUser;
-
     private ProductCategory $productCategory;
 
     private UniversalLimitService $limitService;

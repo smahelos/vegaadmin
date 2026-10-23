@@ -22,10 +22,6 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase;
 
-    protected User $adminUser;
-
-    protected User $user;
-
     private UniversalLimitService $limitService;
 
     protected function setUp(): void

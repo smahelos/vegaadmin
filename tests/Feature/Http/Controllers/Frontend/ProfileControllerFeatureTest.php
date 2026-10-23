@@ -17,8 +17,6 @@ class ProfileControllerFeatureTest extends TestCase
     use CreatesFrontendTestEnvironment;
     use RefreshDatabase;
 
-    private User $user;
-
     protected function setUp(): void
     {
         parent::setUp();

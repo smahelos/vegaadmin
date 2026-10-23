@@ -28,10 +28,6 @@ class ExpenseRequestFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
 
-    protected User $user;
-
-    protected User $adminUser;
-
     protected User $targetUser;
 
     protected Supplier $supplier;
