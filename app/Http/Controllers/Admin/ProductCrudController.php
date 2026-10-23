@@ -78,7 +78,7 @@ class ProductCrudController extends CrudController
             ->type('select2')
             ->label(__('products.fields.user_id'))
             ->values(
-                User::all()->pluck('name', 'id')->toArray(),
+                User::pluck('name', 'id')->toArray(),
             )
             ->whenActive(function ($value) {
                 CRUD::addClause(
@@ -92,7 +92,7 @@ class ProductCrudController extends CrudController
             ->type('select2')
             ->label(__('products.fields.supplier_id'))
             ->values(
-                Supplier::all()->pluck('name', 'id')->toArray(),
+                Supplier::pluck('name', 'id')->toArray(),
             )
             ->whenActive(function ($value) {
                 CRUD::addClause(

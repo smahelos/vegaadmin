@@ -76,7 +76,7 @@ class InvoiceCrudController extends CrudController
             ->type('select2')
             ->label(__('invoices.fields.user_id'))
             ->values(
-                User::all()->pluck('name', 'id')->toArray(),
+                User::pluck('name', 'id')->toArray(),
             )
             ->whenActive(function ($value) {
                 CRUD::addClause(
@@ -90,7 +90,7 @@ class InvoiceCrudController extends CrudController
             ->type('select2')
             ->label(__('invoices.fields.status'))
             ->values(
-                Status::all()->pluck('name', 'id')->toArray(),
+                Status::pluck('name', 'id')->toArray(),
             )
             ->whenActive(function ($value) {
                 CRUD::addClause(

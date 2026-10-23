@@ -65,7 +65,7 @@ class EntityUsageCrudController extends CrudController
             ->type('select2')
             ->label(__('entity_limits.usages.fields.user_id'))
             ->values(
-                User::all()->pluck('name', 'id')->toArray(),
+                User::pluck('name', 'id')->toArray(),
             )
             ->whenActive(function ($value) {
                 CRUD::addClause(

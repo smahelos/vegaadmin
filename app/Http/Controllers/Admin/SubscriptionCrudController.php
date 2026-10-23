@@ -145,7 +145,7 @@ class SubscriptionCrudController extends CrudController
                 ->type('select2')
                 ->label(__('subscriptions.filters.user_id'))
                 ->values(
-                    User::all()->pluck('name', 'id')->toArray(),
+                    User::pluck('name', 'id')->toArray(),
                 )
                 ->whenActive(function ($value) {
                     CRUD::addClause(

@@ -92,7 +92,7 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
 
     public function prepareGuestCreateData(): array
     {
-        $paymentMethods = PaymentMethod::all()->pluck('slug', 'id')->toArray();
+        $paymentMethods = PaymentMethod::pluck('slug', 'id')->toArray();
         $statuses = Status::pluck('name', 'id')->toArray();
         $taxRates = Tax::where('slug', 'dph')->pluck('rate', 'id')->toArray();
         $banks = $this->bankService->getBanksForDropdown();

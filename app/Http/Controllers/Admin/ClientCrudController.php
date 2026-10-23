@@ -56,7 +56,7 @@ class ClientCrudController extends CrudController
             ->type('select2')
             ->label('User')
             ->values(
-                User::all()->pluck('name', 'id')->toArray(),
+                User::pluck('name', 'id')->toArray(),
             )
             ->whenActive(function ($value) {
                 CRUD::addClause(

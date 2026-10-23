@@ -142,8 +142,7 @@ class ExpenseCrudController extends CrudController
         CRUD::filter('supplier_id')
             ->type('select2')
             ->label(__('expenses.fields.supplier_id'))
-            ->values(Supplier::all()
-                ->pluck('name', 'id')->toArray());
+            ->values(Supplier::pluck('name', 'id')->toArray());
 
         CRUD::filter('category_id')
             ->type('select2')
