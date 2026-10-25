@@ -9,7 +9,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 **A. Foundations**
 
 1. ~~Tooling — Pint over the whole codebase in one commit, Larastan in CI, before the large rewrites so that their diffs stay clean.~~ Done 2026-10-23 (branch `ls-tooling`): Pint and PHP_CodeSniffer over the whole codebase, Larastan at level 1, all three in CI; raising the level is "Larastan level" below.
-2. Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".
+2. ~~Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".~~ Done 2026-10-24 (branch `ls-security`); found on the way: "Cron tasks run any command without a permission check", "Admin access middleware logs every request".
 3. "Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.
 4. "Domain events are published inside the transaction" with "No queue worker" — the issued-invoice work publishes its events on top of it; both deliver work outside the request, and the queue's `after_commit` is set there.
 
@@ -39,35 +39,20 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 ## Security
 
-### Public statistics endpoints expose all users' revenue
-- **Where:** `routes/api.php` (statistics routes in the public `web, throttle` group), `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentApiStatisticsRepository.php`
-- **Problem:** `/api/monthly-revenue` and the other statistics routes need no login; `getMonthlyRevenueQuery()` and `getExpenseQuery()` have no user filter, so a guest gets revenue summed over every user.
-- **Fix:** move the routes behind `api.require.frontend`, scope every query by the user passed in from Application (no `Auth::id()` in the repository).
-
-### State changes over GET
-- **Where:** `routes/web.php` (`client/{id}/set-default`, `supplier/{id}/set-default`, `invoices/delete/{token}`), `routes/backpack/custom.php` (`cron-task/{id}/run`, `cache/clear*` linked from the admin menu)
-- **Problem:** GET requests change state without CSRF protection; a link or prefetch triggers them.
-- **Fix:** `POST`/`PUT`/`DELETE` routes with forms (`rules/http.md`, Routes).
-
-### Sorting from the URL without an allowlist
-- **Where:** all components in `app/Livewire/` (`#[Url] $orderBy` / `$sortField` passed to `orderBy()`)
-- **Problem:** any column name from the query string reaches the query.
-- **Fix:** allowlist per component; resolved together with moving the queries into repositories.
-
-### Middleware registered twice
-- **Where:** `bootstrap/app.php`
-- **Problem:** the `web` group re-appends cookie, session, error and CSRF middleware it already contains; `RefreshFrontendSession` and `SetLocale` are prepended to the group and applied again by alias in `routes/web.php`, the first time before the session starts.
-- **Fix:** keep Laravel's group defaults, register each middleware once.
-
 ### Payment notification route
 - **Where:** `routes/web.php` (`POST /payment/notify` in the `web` group), `app/Http/Controllers/Frontend/PaymentController.php::notify()`
 - **Problem:** the route is not excluded from CSRF, so an external notification most likely ends with 419 (to verify); the whole request payload is logged.
 - **Fix:** CSRF exception, gateway-verified handling as in `rules/payments.md`, log only the payment id.
 
-### Exception messages shown to users
-- **Where:** `app/Http/Controllers/Frontend/{ProductController,SupplierController,InvoiceController}.php` (flash messages and JSON `error`), `app/Http/Controllers/Api/{UserController,InvoiceController}.php` (JSON `error`), `app/Http/Controllers/Admin/CacheManagementController.php` (admin alert)
-- **Problem:** the raw `$e->getMessage()` is appended to the error a user sees or returned in JSON, so SQL errors, column names, file paths and other internals reach the browser. The profile screen had the same flaw and was fixed in `ls-missing-translations`.
-- **Fix:** a complete translated message for the user, the exception only in the log with structured context (`rules/php.md`, Errors); done together with "Error handling" below by mapping context exceptions in `app/Exceptions/ExceptionHandling.php`.
+### Cron tasks run any command without a permission check
+- **Where:** `app/Http/Controllers/Admin/CronTaskCrudController.php` (no `allowAccess()` / `denyAccess()`, `run()` without a check), `app/Models/CronTask.php::simulateRun()`
+- **Problem:** every admin user, `backend_user` without permissions included, can create, edit and run cron tasks; a task's command is an Artisan command or any `Class::method`, resolved from the container and called. `simulateRun()` swallows the exception and returns `false`.
+- **Fix:** gate the CRUD operations and the run action by `can_*_cron_task` permissions (`permissions.md`), allow only scheduled Artisan commands from a list, move running into an application service that throws on failure.
+
+### Admin access middleware logs every request
+- **Where:** `app/Http/Middleware/RequireBackpackAccess.php`
+- **Problem:** every admin request writes an `info` log entry with the user's e-mail, roles and permissions.
+- **Fix:** drop the debug log; log only a denied access, with the user id.
 
 ## Invoice
 
@@ -212,7 +197,19 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** value object prepared for a feature that does not exist yet (no `sku` column).
 - **Fix:** use it when SKU is added, or delete it.
 
+## Analytics
+
+### Dashboard statistics sum amounts across currencies
+- **Where:** `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentApiStatisticsRepository.php`, `app/Application/Analytics/Contracts/ApiStatistics{Repository,ApplicationServiceInterface}.php`, `app/Http/Controllers/Api/StatisticsController.php`, `resources/js/dashboard-statistics.js`
+- **Problem:** `SUM(invoices.payment_amount)` and `SUM(expenses.amount)` add invoices and expenses in different currencies into one number. The port returns `list<array<string, mixed>>` instead of DTOs, lives in Application without the `Interface` suffix, the service has an interface without being a port, and the controller returns arrays without a `JsonResource`.
+- **Fix:** sums per currency as `Money` in statistics DTOs (`MonthlyStatDTO`-style), a Domain port `StatisticsReadRepositoryInterface`, a `final` service without interface, resources for the responses; the charts show one series per currency or convert through ČNB rates (decide with "Currency conversion of invoice items happens in the browser").
+
 ## Entity limits
+
+### UELS API routes shadow each other
+- **Where:** `routes/api.php` (`/uels` and `/uels/{id}` in the frontend group, `/uels` and `/uels/{entity}` in the public `auth:web` group)
+- **Problem:** two routes share each URI, so `api.uels` (`getUELS`) and `api.uels.entity` are never reached; `/uels/{entity}` answers with `getUELSById`.
+- **Fix:** one route per endpoint inside the `api.require.frontend` group, delete the endpoints without a consumer (`http.md`, API responses).
 
 ### UELS dashboard bulk reset fails
 - **Where:** `app/Http/Controllers/Admin/UELSDashboardController.php::bulkResetUsage()`
@@ -244,7 +241,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 ### Run tests on MySQL instead of in-memory SQLite
 - **Where:** `phpunit.xml`, `config/database.php` (`testing` connection), `tests/TestCase.php`, `tests/Traits/RefreshDatabaseWithData.php`, `.github/workflows/*`, SQLite branches in `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentAnalyticsReadRepository.php`, `app/Console/Commands/Database{Optimize,Monitor}Command.php` and 10 migrations (including `2025_07_23_054624_add_basic_foreign_keys_for_testing.php`)
 - **Problem:** the application runs on MySQL, tests on in-memory SQLite. MySQL-specific queries (`DATE_FORMAT`, `STR_TO_DATE`, …) are never tested, SQLite does not enforce strict `sql_mode` or column types, and production code and migrations carry `driver === 'sqlite'` branches that exist only for the tests. `TestCase` resets `RefreshDatabaseState` so that every test migrates all migrations again, and `RefreshDatabaseWithData` runs `migrate:fresh` + seed before every test.
-- **Fix (decided 2026-10-20):** tests run only on MySQL — a separate test database in the existing MySQL container, next to the local development database, and a MySQL service in CI. Squash the migrations into a clean MySQL schema first (no production yet). Migrate and seed once, one transaction per test (`RefreshDatabase`); remove the `TestCase` reset, `RefreshDatabaseWithData` and every SQLite branch; fix tests that rely on fixed IDs or row order. The test user needs `CREATE DATABASE` for `--parallel` (`<database>_test_N`).
+- **Fix (decided 2026-10-20):** tests run only on MySQL — a separate test database in the existing MySQL container, next to the local development database, and a MySQL service in CI. Squash the migrations into a clean MySQL schema first (no production yet). Migrate and seed once, one transaction per test (`RefreshDatabase`); remove the `TestCase` reset, `RefreshDatabaseWithData` and every SQLite branch; fix tests that rely on fixed IDs or row order. The test user needs `CREATE DATABASE` for `--parallel` (`<database>_test_N`). Pin the dashboard chart queries of `EloquentApiStatisticsRepository` (user scope, date range, clients) against MySQL; until then `StatisticsControllerFeatureTest` runs on `FakeApiStatisticsRepository`.
 
 ### `ddd:guard` snapshot test fails now and then in parallel runs
 - **Where:** `tests/Feature/Console/DddGuardDiJsonSnapshotTest.php`
