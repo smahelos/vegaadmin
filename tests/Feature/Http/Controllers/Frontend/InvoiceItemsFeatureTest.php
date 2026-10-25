@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Client;
 use App\Models\EntityLimit;
@@ -126,7 +127,7 @@ final class InvoiceItemsFeatureTest extends TestCase
             'client_id' => Client::factory()->create(['user_id' => $this->user->id])->id,
             'supplier_id' => Supplier::factory()->create(['user_id' => $this->user->id])->id,
             'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
-            'payment_status_id' => Status::factory()->create()->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             'issue_date' => now()->format('Y-m-d'),
             'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,

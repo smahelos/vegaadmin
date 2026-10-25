@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\Client;
@@ -270,7 +271,7 @@ class InvoiceControllerFeatureTest extends TestCase
         $client = Client::factory()->create(['user_id' => $this->user->id]);
         $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
         $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
+        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
 
         // Check initial usage
         $initialCheck = $this->limitService->checkLimit(
@@ -348,7 +349,7 @@ class InvoiceControllerFeatureTest extends TestCase
         $client = Client::factory()->create(['user_id' => $this->user->id]);
         $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
         $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
+        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
 
         // First invoice creation - should succeed
         $checkBeforeFirst = $this->limitService->checkLimit(

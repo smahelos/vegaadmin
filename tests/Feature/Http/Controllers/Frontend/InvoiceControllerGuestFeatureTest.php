@@ -8,6 +8,7 @@ use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoiceMutationPayload;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -62,7 +63,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     {
         // Provide full valid payload to satisfy validation (guest create)
         $paymentMethodId = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id;
-        $statusId = Status::factory()->create()->id;
+        $statusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id;
         $invoiceData = [
             'invoice_vs' => 'GUEST-' . uniqid(),
             'payment_method_id' => $paymentMethodId,
@@ -121,7 +122,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     {
         // Provide full valid payload to satisfy validation then simulate exception in service
         $paymentMethodId = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id;
-        $statusId = Status::factory()->create()->id;
+        $statusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id;
         $invoiceData = [
             'invoice_vs' => 'GUEST-' . uniqid(),
             'payment_method_id' => $paymentMethodId,

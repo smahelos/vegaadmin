@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Client;
 use App\Models\EntityLimit;
@@ -53,7 +54,7 @@ class InvoiceLogoUploadTest extends TestCase
 
         // Create related models
         $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $this->paymentStatus = Status::factory()->create();
+        $this->paymentStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
         $this->supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
         $this->client = Client::factory()->create(['user_id' => $this->user->id]);
 

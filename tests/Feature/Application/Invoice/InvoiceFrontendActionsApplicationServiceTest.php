@@ -134,7 +134,7 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
             'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
             // Start with a non-paid random status (simulate initial state before marking as paid)
-            'payment_status_id' => Status::factory()->create()->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             'name' => 'Supp ' . uniqid(),
             'street' => 'Street',
             'city' => 'City',

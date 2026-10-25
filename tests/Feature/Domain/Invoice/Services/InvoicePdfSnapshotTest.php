@@ -4,6 +4,7 @@ namespace Tests\Feature\Domain\Invoice\Services;
 
 use App\Application\Invoice\Services\InvoicePdfRenderer;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Enums\PaymentMethodCode;
@@ -56,7 +57,7 @@ class InvoicePdfSnapshotTest extends TestCase
         ]);
         $client = Client::factory()->create(['name' => 'Snapshot Client a.s.']);
         $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
-        $status = Status::factory()->create();
+        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
 
         $invoice = Invoice::factory()->create([
             'supplier_id' => $supplier->id,
@@ -145,7 +146,7 @@ class InvoicePdfSnapshotTest extends TestCase
             ])->id,
             'client_id' => Client::factory()->create()->id,
             'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail()->id,
-            'payment_status_id' => Status::factory()->create()->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             'issue_date' => '2026-03-05',
             'tax_point_date' => '2026-03-04',
             'due_in' => 14,

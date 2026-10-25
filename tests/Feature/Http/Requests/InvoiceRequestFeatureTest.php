@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Http\Requests\InvoiceRequest;
@@ -64,7 +65,7 @@ class InvoiceRequestFeatureTest extends TestCase
     private function createRelatedModels(): void
     {
         $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $this->paymentStatus = Status::factory()->create();
+        $this->paymentStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
         $this->supplier = Supplier::factory()->create();
         $this->client = Client::factory()->create();
         foreach (['12.00', '21.00'] as $rate) {
@@ -383,6 +384,22 @@ class InvoiceRequestFeatureTest extends TestCase
             $this->assertTrue($validator->fails(), "Validation should fail for email: {$email}");
             $this->assertArrayHasKey('email', $validator->errors()->toArray());
         }
+    }
+
+    #[Test]
+    public function validation_fails_with_an_expense_status(): void
+    {
+        $invalidData = $this->validInvoiceData;
+        $invalidData['payment_status_id'] = Status::where('slug', 'paid-expense')->firstOrFail()->id;
+
+        $request = new InvoiceRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
+
+        $this->assertSame(['payment_status_id'], array_keys($validator->errors()->toArray()));
     }
 
     #[Test]

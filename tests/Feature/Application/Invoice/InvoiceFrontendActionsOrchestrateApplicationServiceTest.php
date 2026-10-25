@@ -5,6 +5,7 @@ namespace Tests\Feature\Application\Invoice;
 use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Models\PaymentMethod;
@@ -128,7 +129,7 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
             'issue_date' => now()->format('Y-m-d'),
             'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
-            'payment_status_id' => Status::factory()->create()->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             'name' => 'Supp ' . uniqid(),
             'street' => 'Street',
             'city' => 'City',
