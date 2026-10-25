@@ -35,9 +35,6 @@ class InvoiceList extends Component
     #[Url(as: 'direction')]
     public bool $orderAsc = false;
 
-    #[Url(keep: true)]
-    public int $page = 1;
-
     public ?string $errorMessage = null;
 
     /**

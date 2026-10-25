@@ -225,76 +225,42 @@ class ProductListFeatureTest extends TestCase
     public function updating_search_resets_pagination(): void
     {
         $this->actingAs($this->user);
-
-        // Create 16 products to have multiple pages
         Product::factory()->count(16)->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ProductList::class);
-
-        // Set page to 2 manually
-        $component->set('page', 2);
-        $this->assertEquals(2, $component->get('page'));
-
-        // Update search - should trigger the updatingSearch method
-        $component->set('search', 'test');
-        $this->assertEquals('test', $component->get('search'));
-
-        // Note: The page reset behavior with URL attributes may not work in tests
-        // but the search should be updated correctly and the method should be called
-        // Let's verify the component still functions after search change
-        $component->assertStatus(200);
+        Livewire::test(ProductList::class)
+            ->call('gotoPage', 2)
+            ->assertSet('paginators.page', 2)
+            ->set('search', 'test')
+            ->assertSet('paginators.page', 1);
     }
 
     #[Test]
     public function updating_status_resets_pagination(): void
     {
         $this->actingAs($this->user);
-
-        // Create 16 products to have multiple pages
         Product::factory()->count(16)->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ProductList::class);
-
-        // Set page to 2 manually
-        $component->set('page', 2);
-        $this->assertEquals(2, $component->get('page'));
-
-        // Update status - should trigger the updatingStatus method which calls resetPage()
-        $component->set('status', 'active');
-        $this->assertEquals('active', $component->get('status'));
-
-        // Page should be reset to 1 after status change
-        // Note: In Livewire testing, the URL attributes behavior might not reset the page automatically
-        // but the status should be updated correctly
-        $this->assertEquals('active', $component->get('status'));
+        Livewire::test(ProductList::class)
+            ->call('gotoPage', 2)
+            ->assertSet('paginators.page', 2)
+            ->set('status', 'active')
+            ->assertSet('paginators.page', 1);
     }
 
     #[Test]
     public function reset_filters_clears_all_filters_and_pagination(): void
     {
         $this->actingAs($this->user);
-
-        // Create 16 products to have multiple pages
         Product::factory()->count(16)->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ProductList::class)
+        Livewire::test(ProductList::class)
             ->set('search', 'test')
             ->set('status', 'active')
-            ->set('page', 2);
-
-        // Verify we have filters and page set
-        $this->assertEquals('test', $component->get('search'));
-        $this->assertEquals('active', $component->get('status'));
-
-        // Call resetFilters method
-        $component->call('resetFilters');
-
-        // Filters should be reset
-        $this->assertEquals('', $component->get('search'));
-        $this->assertEquals('', $component->get('status'));
-
-        // Note: Page reset in URL attributes may not work perfectly in tests,
-        // but resetFilters method should be called successfully
+            ->call('gotoPage', 2)
+            ->call('resetFilters')
+            ->assertSet('search', '')
+            ->assertSet('status', '')
+            ->assertSet('paginators.page', 1);
     }
 
     #[Test]
@@ -397,13 +363,13 @@ class ProductListFeatureTest extends TestCase
             ->set('status', 'active')
             ->set('orderBy', 'name')
             ->set('orderAsc', true)
-            ->set('page', 2);
+            ->call('gotoPage', 2);
 
         $component->assertSet('search', 'test');
         $component->assertSet('status', 'active');
         $component->assertSet('orderBy', 'name');
         $component->assertSet('orderAsc', true);
-        $component->assertSet('page', 2);
+        $component->assertSet('paginators.page', 2);
     }
 
     #[Test]

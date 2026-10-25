@@ -6,7 +6,6 @@ use App\Livewire\Party\ClientList;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -113,62 +112,33 @@ class ClientListFeatureTest extends TestCase
     }
 
     #[Test]
-    public function pagination_state_management_works(): void
+    public function goes_to_the_next_page(): void
     {
         $this->actingAs($this->user);
-
-        // Create 16 clients to have multiple pages
         Client::factory()->count(16)->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ClientList::class);
+        $component = Livewire::test(ClientList::class)
+            ->assertSet('paginators.page', 1)
+            ->call('gotoPage', 2)
+            ->assertSet('paginators.page', 2);
 
-        // Test initial state
-        $this->assertEquals(1, $component->get('page'));
-
-        // Test setting page manually
-        $component->set('page', 2);
-        $this->assertEquals(2, $component->get('page'));
-
-        // Test setting page back to 1
-        $component->set('page', 1);
-        $this->assertEquals(1, $component->get('page'));
-
-        // Test search functionality
-        $component->set('search', 'test');
-        $this->assertEquals('test', $component->get('search'));
-
-        // Test clearing search
-        $component->set('search', '');
-        $this->assertEquals('', $component->get('search'));
+        $clients = $component->viewData('clients');
+        $this->assertSame(2, $clients->currentPage());
+        $this->assertCount(6, $clients->items());
     }
 
     #[Test]
     public function reset_filters_clears_all_filters_and_pagination(): void
     {
         $this->actingAs($this->user);
-
-        // Create 16 clients to have multiple pages
         Client::factory()->count(16)->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ClientList::class)
+        Livewire::test(ClientList::class)
             ->set('search', 'test')
-            ->set('page', 2);
-
-        // Verify we have filters and page set
-        $this->assertEquals('test', $component->get('search'));
-
-        // Call resetFilters method
-        $component->call('resetFilters');
-
-        // Filters should be reset
-        $this->assertEquals('', $component->get('search'));
-
-        // Verify the component state is properly reset
-        $this->assertTrue($component->get('search') === '');
-
-        // Verify component renders without errors after reset
-        $clients = $component->instance()->render()->getData()['clients'];
-        $this->assertInstanceOf(LengthAwarePaginator::class, $clients);
+            ->call('gotoPage', 2)
+            ->call('resetFilters')
+            ->assertSet('search', '')
+            ->assertSet('paginators.page', 1);
     }
 
     #[Test]

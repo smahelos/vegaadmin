@@ -6,7 +6,6 @@ use App\Livewire\Party\SupplierList;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -162,50 +161,26 @@ class SupplierListFeatureTest extends TestCase
     public function updating_search_resets_pagination(): void
     {
         $this->actingAs($this->user);
-
-        // Create 16 suppliers to have multiple pages
         Supplier::factory()->count(16)->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(SupplierList::class);
-
-        // Set page to 2 manually
-        $component->set('page', 2);
-
-        // Update search - this should trigger updatingSearch()
-        $component->set('search', 'test');
-
-        // Verify search was set
-        $this->assertEquals('test', $component->get('search'));
-
-        // Test that the component handles search properly
-        $suppliers = $component->instance()->render()->getData()['suppliers'];
-        $this->assertInstanceOf(LengthAwarePaginator::class, $suppliers);
+        Livewire::test(SupplierList::class)
+            ->call('gotoPage', 2)
+            ->set('search', 'test')
+            ->assertSet('paginators.page', 1);
     }
 
     #[Test]
     public function reset_filters_clears_all_filters_and_pagination(): void
     {
         $this->actingAs($this->user);
-
-        // Create 16 suppliers to have multiple pages
         Supplier::factory()->count(16)->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(SupplierList::class)
+        Livewire::test(SupplierList::class)
             ->set('search', 'test')
-            ->set('page', 2);
-
-        // Verify we have search filter
-        $this->assertEquals('test', $component->get('search'));
-
-        // Call resetFilters method
-        $component->call('resetFilters');
-
-        // Search filter should be reset
-        $this->assertEquals('', $component->get('search'));
-
-        // Verify suppliers are displayed properly
-        $suppliers = $component->instance()->render()->getData()['suppliers'];
-        $this->assertInstanceOf(LengthAwarePaginator::class, $suppliers);
+            ->call('gotoPage', 2)
+            ->call('resetFilters')
+            ->assertSet('search', '')
+            ->assertSet('paginators.page', 1);
     }
 
     #[Test]
@@ -266,22 +241,16 @@ class SupplierListFeatureTest extends TestCase
     public function component_handles_pagination(): void
     {
         $this->actingAs($this->user);
-
-        // Create exactly 16 suppliers to test pagination (10 on page 1, 6 on page 2)
         Supplier::factory()->count(16)->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(SupplierList::class);
+        $component = Livewire::test(SupplierList::class)
+            ->assertSet('paginators.page', 1)
+            ->call('gotoPage', 2)
+            ->assertSet('paginators.page', 2);
 
-        // Page 1 should be default
-        $this->assertEquals(1, $component->get('page'));
-
-        // Navigate to page 2
-        $component->set('page', 2);
-        $this->assertEquals(2, $component->get('page'));
-
-        // Navigate back to page 1
-        $component->set('page', 1);
-        $this->assertEquals(1, $component->get('page'));
+        $suppliers = $component->viewData('suppliers');
+        $this->assertSame(2, $suppliers->currentPage());
+        $this->assertCount(6, $suppliers->items());
     }
 
     #[Test]

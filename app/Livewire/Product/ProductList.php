@@ -48,12 +48,6 @@ class ProductList extends Component
     public bool $orderAsc = false;
 
     /**
-     * Current page for pagination
-     */
-    #[Url(keep: true)]
-    public int $page = 1;
-
-    /**
      * Error message to display to user
      */
     public ?string $errorMessage = null;
