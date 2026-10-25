@@ -1,39 +1,83 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Analytics\Contracts;
 
+use App\Domain\Party\ValueObjects\PartyId;
+use App\Domain\User\ValueObjects\UserId;
+use DateTimeImmutable;
+
 /**
- * Domain contract for API statistics operations. Infrastructure provides Eloquent/DB implementations.
+ * Statistics of one user's invoices and expenses for the dashboard charts. Every method covers
+ * invoices issued (expenses dated) from $from up to $to inclusive; $to null means up to today.
+ * An empty $clientIds means all clients.
  */
 interface ApiStatisticsRepository
 {
     /**
-     * Get monthly revenue query
+     * @param  list<PartyId>  $clientIds
+     * @return list<array<string, mixed>>
      */
-    public function getMonthlyRevenueQuery(): mixed;
+    public function monthlyRevenue(
+        UserId $userId,
+        DateTimeImmutable $from,
+        ?DateTimeImmutable $to,
+        array $clientIds,
+    ): array;
 
     /**
-     * Gets client revenue query.
+     * The ten clients with the highest revenue.
+     *
+     * @param  list<PartyId>  $clientIds
+     * @return list<array<string, mixed>>
      */
-    public function getClientRevenueQuery(string $startDate): mixed;
+    public function clientRevenue(
+        UserId $userId,
+        DateTimeImmutable $from,
+        ?DateTimeImmutable $to,
+        array $clientIds,
+    ): array;
 
     /**
-     * Gets revenue statistics query.
+     * @param  list<PartyId>  $clientIds
+     * @return list<array<string, mixed>>
      */
-    public function getRevenueQuery(): mixed;
+    public function revenue(
+        UserId $userId,
+        DateTimeImmutable $from,
+        ?DateTimeImmutable $to,
+        array $clientIds,
+    ): array;
 
     /**
-     * Gets expense statistics query.
+     * @return list<array<string, mixed>>
      */
-    public function getExpenseQuery(): mixed;
+    public function expenses(
+        UserId $userId,
+        DateTimeImmutable $from,
+        ?DateTimeImmutable $to,
+    ): array;
 
     /**
-     * Gets invoice status distribution query.
+     * @param  list<PartyId>  $clientIds
+     * @return list<array<string, mixed>>
      */
-    public function getInvoiceStatusQuery(): mixed;
+    public function invoiceStatus(
+        UserId $userId,
+        DateTimeImmutable $from,
+        ?DateTimeImmutable $to,
+        array $clientIds,
+    ): array;
 
     /**
-     * Gets payment method usage statistics query.
+     * @param  list<PartyId>  $clientIds
+     * @return list<array<string, mixed>>
      */
-    public function getPaymentMethodsQuery(): mixed;
+    public function paymentMethods(
+        UserId $userId,
+        DateTimeImmutable $from,
+        ?DateTimeImmutable $to,
+        array $clientIds,
+    ): array;
 }

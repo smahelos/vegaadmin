@@ -90,7 +90,7 @@
                                     <select id="stats-timerange"
                                         class="form-input mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base dark:text-white px-4 py-2 bg-blue-50 dark:bg-gray-700">
                                         <option value="year">{{ __('dashboard.filters.last_year') }}</option>
-                                        <option value="6month">{{ __('dashboard.filters.last_6_months') }}</option>
+                                        <option value="half_year">{{ __('dashboard.filters.last_6_months') }}</option>
                                         <option value="quarter">{{ __('dashboard.filters.last_quarter') }}</option>
                                         <option value="month">{{ __('dashboard.filters.last_month') }}</option>
                                         <option value="custom">{{ __('dashboard.filters.custom_range') }}</option>
