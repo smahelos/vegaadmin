@@ -1,12 +1,11 @@
 <?php
 
-namespace Tests\Domain\Console\Feature\Services;
+namespace Tests\Feature\Domain\Shared\Console\Services;
 
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -21,20 +20,6 @@ class ArtisanCommandsServiceFeatureTest extends TestCase
 
         // Clear cache before each test
         Cache::flush();
-    }
-
-    protected function tearDown(): void
-    {
-        // Force database disconnection to clear transactions
-        try {
-            while (DB::transactionLevel() > 0) {
-                DB::rollBack();
-            }
-        } catch (\Exception $e) {
-            // If rollback fails, disconnect and reconnect
-            DB::disconnect();
-        }
-        parent::tearDown();
     }
 
     #[Test]

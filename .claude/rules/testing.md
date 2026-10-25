@@ -28,6 +28,7 @@ paths:
 - Schema comes from the migrations and reference data from `DatabaseSeeder`, migrated and seeded once; each test runs in a transaction (`RefreshDatabase`). Tests never create tables, columns or permission schema themselves.
 - Permissions in tests come from `PermissionCatalog` (`permissions.md`), not from hand-written lists.
 - Seeded data is present: unique fields get unique values (`uniqid()`) and no test depends on fixed ids or on row order it did not set.
+- A test ends inside its transaction: no `TRUNCATE`, DDL, manual `DB::rollBack()` or `DB::disconnect()`. Otherwise RefreshDatabase migrates and seeds again before the next test (seconds each), and `tests/TestCase.php` fails the test. Only a test of a statement MySQL commits implicitly (`OPTIMIZE TABLE`) calls `allowImplicitCommit()`.
 
 ## Conventions
 

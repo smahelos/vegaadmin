@@ -10,11 +10,6 @@ use Tests\TestCase;
 
 class SyncArtisanCommandsFeatureTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
-
     #[Test]
     public function command_executes_successfully(): void
     {
@@ -27,7 +22,7 @@ class SyncArtisanCommandsFeatureTest extends TestCase
     public function command_syncs_artisan_commands(): void
     {
         // Clear existing commands
-        ArtisanCommand::truncate();
+        ArtisanCommand::query()->delete();
 
         $exitCode = Artisan::call('artisan:sync-commands');
 
@@ -78,7 +73,7 @@ class SyncArtisanCommandsFeatureTest extends TestCase
     #[Test]
     public function command_creates_proper_command_records(): void
     {
-        ArtisanCommand::truncate();
+        ArtisanCommand::query()->delete();
 
         $exitCode = Artisan::call('artisan:sync-commands');
 

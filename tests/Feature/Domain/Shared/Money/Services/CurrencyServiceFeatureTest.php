@@ -5,7 +5,6 @@ namespace Tests\Feature\Domain\Shared\Money\Services;
 use App\Domain\Shared\Http\Contracts\HttpClientInterface;
 use App\Domain\Shared\Money\Contracts\CurrencyServiceInterface;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -19,18 +18,6 @@ class CurrencyServiceFeatureTest extends TestCase
         parent::setUp();
         $this->service = $this->app->make(CurrencyServiceInterface::class);
         Cache::flush();
-    }
-
-    protected function tearDown(): void
-    {
-        try {
-            while (DB::transactionLevel() > 0) {
-                DB::rollBack();
-            }
-        } catch (\Exception $e) {
-            DB::disconnect();
-        }
-        parent::tearDown();
     }
 
     #[Test]

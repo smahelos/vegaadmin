@@ -23,6 +23,8 @@ abstract class TestCase extends BaseTestCase
      */
     protected bool $seed = true;
 
+    private bool $implicitCommitAllowed = false;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -35,6 +37,31 @@ abstract class TestCase extends BaseTestCase
 
         // Reset Spatie\Permission cached permissions to avoid memory bloat across long test runs
         app(PermissionRegistrar::class)->forgetCachedPermissions();
+    }
+
+    /**
+     * RefreshDatabase migrates and seeds the database again before the next test when a test ends
+     * outside its transaction (an implicit commit such as OPTIMIZE TABLE or TRUNCATE, a manual
+     * rollback, a disconnect), which costs seconds per test.
+     */
+    protected function tearDown(): void
+    {
+        $leftTransaction = isset($this->app)
+            && ! $this->app->make('db')->connection()->getPdo()->inTransaction();
+
+        parent::tearDown();
+
+        if ($leftTransaction && ! $this->implicitCommitAllowed) {
+            $this->fail('The test ended outside the RefreshDatabase transaction, so the next test would migrate and seed again');
+        }
+    }
+
+    /**
+     * For a test of a statement MySQL commits implicitly; the next test migrates and seeds again.
+     */
+    protected function allowImplicitCommit(): void
+    {
+        $this->implicitCommitAllowed = true;
     }
 
     /**
