@@ -45,17 +45,6 @@ class PaymentMethodFactory extends Factory
     }
 
     /**
-     * Create a cash payment method.
-     */
-    public function cash(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'name' => 'Cash',
-            'slug' => 'cash',
-        ]);
-    }
-
-    /**
      * Create a credit card payment method.
      */
     public function creditCard(): static

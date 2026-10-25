@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\ExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -21,7 +20,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class ExpenseCategoryRequestFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     protected array $validExpenseCategoryData;
 

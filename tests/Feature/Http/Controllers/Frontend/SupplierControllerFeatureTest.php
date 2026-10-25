@@ -9,10 +9,10 @@ use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSServic
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Http\Controllers\Frontend\SupplierController;
 use App\Models\EntityLimit;
+use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -29,7 +29,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class SupplierControllerFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     protected string $validEmail;
 
@@ -758,5 +758,22 @@ class SupplierControllerFeatureTest extends TestCase
         // Verify first supplier was created but second wasn't
         $this->assertDatabaseHas('suppliers', ['email' => $supplier1Data['email']]);
         $this->assertDatabaseMissing('suppliers', ['email' => $supplier2Data['email']]);
+    }
+
+    #[Test]
+    public function destroy_prevents_deleting_supplier_with_expenses(): void
+    {
+        $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
+        Expense::factory()->create([
+            'user_id' => $this->user->id,
+            'supplier_id' => $supplier->id,
+        ]);
+
+        $this->actingAs($this->user)
+            ->delete($this->localizedRoute('frontend.supplier.destroy', $supplier->id))
+            ->assertRedirect()
+            ->assertSessionHas('error', __('suppliers.messages.error_delete_documents'));
+
+        $this->assertDatabaseHas('suppliers', ['id' => $supplier->id]);
     }
 }

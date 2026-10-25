@@ -10,7 +10,6 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -20,7 +19,6 @@ use Tests\Traits\WithSyntheticPaymentAppService;
 class SubscriptionControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use RefreshDatabase;
     use WithSyntheticPaymentAppService;
 
     protected function setUp(): void

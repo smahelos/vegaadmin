@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Requests;
 use App\Http\Requests\SupplierRequest;
 use App\Models\EntityLimit;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +16,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class SupplierRequestFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     private array $validSupplierData;
 
@@ -28,7 +27,7 @@ class SupplierRequestFeatureTest extends TestCase
         // Set up frontend test environment with roles and permissions
         $this->setUpFrontendTestEnvironment();
 
-        // Get roles and permissions created by TestingDatabaseSeeder
+        // Roles and permissions come from the sync_permission_catalog migration
         // $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $frontendUserRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
         $permission = Permission::where('name', 'frontend.can_create_edit_supplier')

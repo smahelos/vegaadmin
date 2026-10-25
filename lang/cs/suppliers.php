@@ -84,7 +84,7 @@ return [
         'error_delete' => 'Při mazání dodavatele došlo k chybě.',
         'error_edit' => 'Při úpravě dodavatele došlo k chybě.',
         'error_show' => 'Při zobrazování dodavatele došlo k chybě.',
-        'error_delete_invoices' => 'Dodavatele nelze smazat, protože má přiřazené faktury.',
+        'error_delete_documents' => 'Dodavatele nelze smazat, protože má přiřazené faktury nebo výdaje.',
         'validation_failed' => 'Při validaci formuláře byly nalezeny chyby. Zkontrolujte prosím údaje níže.',
         'error_loading' => 'Nastala chyba při načítání dodavatelů. Prosím, zkuste to znovu později.',
         'no_suppliers' => 'Nebyli nalezeni žádní dodavatelé.',

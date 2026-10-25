@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Providers;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -21,8 +20,6 @@ use Tests\TestCase;
  */
 class DomainServiceProviderBindingsTest extends TestCase
 {
-    use RefreshDatabase; // Migrations give safer environment if any resolution touches DB models
-
     /** @var array<string> */
     private array $skip = [
         'App\\Domain\\Payment\\Contracts\\PaymentGatewayInterface',

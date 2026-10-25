@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -20,7 +19,7 @@ use Tests\TestCase;
  */
 class SupplierControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     protected User $admin;
 
@@ -326,8 +325,9 @@ class SupplierControllerFeatureTest extends TestCase
     #[Test]
     public function user_gets_most_recent_supplier_when_no_default(): void
     {
-        // Remove default status from all user's suppliers
+        // Remove default status from all user's suppliers; the regular one is the newest
         Supplier::where('user_id', $this->user->id)->update(['is_default' => false]);
+        $this->defaultSupplier->forceFill(['created_at' => now()->subDay()])->saveQuietly();
 
         $response = $this->actingAs($this->user, 'web')
             ->getJson('/api/supplier/default');
@@ -338,11 +338,7 @@ class SupplierControllerFeatureTest extends TestCase
         $this->assertEquals($this->user->id, $supplier['user_id']);
         $this->assertFalse($supplier['is_default']);
 
-        // Should return the most recently created supplier
-        $mostRecent = Supplier::where('user_id', $this->user->id)
-            ->orderBy('created_at', 'desc')
-            ->first();
-        $this->assertEquals($mostRecent->id, $supplier['id']);
+        $this->assertEquals($this->userSupplier->id, $supplier['id']);
     }
 
     /**

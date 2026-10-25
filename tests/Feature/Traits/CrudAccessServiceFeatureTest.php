@@ -7,7 +7,6 @@ use App\Infrastructure\Authorization\Services\CrudAccessService;
 use App\Models\Client;
 use App\Models\User;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -15,8 +14,6 @@ use Tests\TestCase;
 
 class CrudAccessServiceFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private CrudAccessService $service;
 
     private CrudPanel $crud;

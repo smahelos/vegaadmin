@@ -8,7 +8,6 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use App\Providers\AuthServiceProvider;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,8 +16,6 @@ use Tests\TestCase;
 
 class AuthServiceProviderFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

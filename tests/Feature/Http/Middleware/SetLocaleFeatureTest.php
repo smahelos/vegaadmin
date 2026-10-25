@@ -3,15 +3,12 @@
 namespace Tests\Feature\Http\Middleware;
 
 use App\Http\Middleware\SetLocale;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SetLocaleFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private SetLocale $middleware;
 
     protected function setUp(): void

@@ -5,7 +5,6 @@ namespace Tests\Feature\Console\Commands;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Status;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,8 +12,6 @@ use Tests\TestCase;
 
 class TestInvoiceReminderFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

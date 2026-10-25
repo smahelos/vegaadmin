@@ -71,6 +71,7 @@ return [
         'error_selecting' => 'Das Produkt konnte nicht ausgewählt werden.',
         'not_found' => 'Das Produkt wurde nicht gefunden.',
         'error_delete' => 'Fehler beim Löschen des Produkts.',
+        'error_delete_invoices' => 'Das Produkt kann nicht gelöscht werden, da es auf Rechnungen verwendet wird.',
         'validation_failed' => 'Die Validierung ist fehlgeschlagen. Bitte überprüfen Sie die Eingabefelder.',
         'no_image' => 'Kein Bild verfügbar.',
         'no_image_selected' => 'Kein Bild ausgewählt.',

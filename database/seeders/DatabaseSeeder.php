@@ -1,30 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class DatabaseSeeder extends Seeder
+final class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Reference data for every environment (the test suite included), development accounts and
+     * their data in local.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
+        $this->call(ReferenceDataSeeder::class);
         $this->call(CronTasksSeeder::class);
         $this->call(PageContentSeeder::class);
-        $this->call(SubscriptionPermissionSeeder::class);
         $this->call(SubscriptionPlanSeeder::class);
-        $this->call(SubscriptionPlanFeaturePermissionSeeder::class);
-        $this->call(TestingDatabaseSeeder::class);
+
+        if (app()->environment('local')) {
+            $this->call(DevelopmentDataSeeder::class);
+        }
     }
 }

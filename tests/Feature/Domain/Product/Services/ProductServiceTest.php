@@ -11,12 +11,9 @@ use App\Models\Product;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class ProductServiceTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private ProductServiceInterface $productService;
 
     private User $user;

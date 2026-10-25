@@ -4,7 +4,6 @@ namespace Tests\Feature\Domain\Shared\File;
 
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -13,8 +12,6 @@ use Tests\TestCase;
 
 class FileUploadContextLimitsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private FileUploadServiceInterface $service;
 
     protected function setUp(): void

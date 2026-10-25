@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\ProductCategoryRequest;
 use App\Models\EntityLimit;
 use App\Models\ProductCategory;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -21,7 +20,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class ProductCategoryRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase;
+    use CreatesAdminTestEnvironment;
 
     protected User $user;
 

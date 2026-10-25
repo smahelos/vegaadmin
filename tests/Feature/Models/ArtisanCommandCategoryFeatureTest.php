@@ -5,14 +5,13 @@ namespace Tests\Feature\Models;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ArtisanCommandCategoryFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     #[Test]
     public function can_create_artisan_command_category_with_factory(): void

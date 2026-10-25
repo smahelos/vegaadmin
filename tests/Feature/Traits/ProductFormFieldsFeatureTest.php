@@ -6,13 +6,12 @@ use App\Infrastructure\Forms\Products\ProductFormFields;
 use App\Models\ProductCategory;
 use App\Models\Supplier;
 use App\Models\Tax;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ProductFormFieldsFeatureTest extends TestCase
 {
-    use ProductFormFields, RefreshDatabase;
+    use ProductFormFields;
 
     #[Test]
     public function get_product_fields_returns_array(): void

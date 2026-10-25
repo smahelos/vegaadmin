@@ -5,14 +5,11 @@ namespace Tests\Feature\Models;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class UserSubscriptionFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function user_has_subscriptions_relationship(): void
     {

@@ -81,8 +81,12 @@ The `cron` container runs the Laravel scheduler (`php artisan schedule:work`).
 - The `app` and `cron` containers mount the project, so code changes apply without a rebuild. Rebuild (`docker compose up -d --build app cron`) only after changing `app.dockerfile` or `WWW_UID`/`WWW_GID`.
 - After a `composer.lock` change: `docker exec BILLEX-app composer install`.
 - After a `package-lock.json` change: `npm ci`; `npm run dev` runs the Vite dev server.
-- Tests run inside the app container on an in-memory SQLite database:
+- In `local`, `php artisan migrate:fresh --seed` rebuilds the development database with reference data and development accounts (`database/seeders/DevelopmentDataSeeder.php`, password `backpack`): `admin@billex.test` and `backend@billex.test` for the admin panel, `user1@` / `user2@billex.test` (`frontend_user`) and `plus1@` / `plus2@billex.test` (`frontend_user_plus`) with a year of invoices, clients and expenses.
+- Tests run inside the app container on MySQL, in the `invoice_testing` database next to the development one; `phpunit.xml` names the database, the connection comes from `.env` through `docker-compose.yaml`. Create the database once and let the application user manage every `invoice_testing*` database (a parallel run creates `invoice_testing_test_N`):
 
   ```bash
-  docker exec BILLEX-app php artisan test --parallel
+  docker exec -it BILLEX-db mysql -u root -p -e "CREATE DATABASE invoice_testing; GRANT ALL ON \`invoice\\_testing%\`.* TO '<DB_USERNAME>'@'%';"
+  docker exec BILLEX-app php artisan test --parallel --drop-databases
   ```
+
+  `--drop-databases` removes the `invoice_testing_test_N` databases after the run.

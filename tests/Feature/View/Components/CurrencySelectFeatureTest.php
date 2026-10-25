@@ -4,15 +4,12 @@ namespace Tests\Feature\View\Components;
 
 use App\Domain\Shared\Money\Services\CurrencyService; // real service now under domain
 use App\View\Components\CurrencySelect;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\View\View;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CurrencySelectFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function component_renders_successfully_with_real_service(): void
     {

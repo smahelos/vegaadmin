@@ -6,7 +6,6 @@ use App\Livewire\Product\ProductListSelect;
 use App\Models\Product;
 use App\Models\Tax;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,8 +13,6 @@ use Tests\TestCase;
 
 class ProductListSelectFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private User $user;
 
     protected function setUp(): void

@@ -6,14 +6,13 @@ use App\Models\Status;
 use App\Models\StatusCategory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class StatusCategoryFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     #[Test]
     public function status_category_can_be_created_with_factory()

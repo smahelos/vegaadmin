@@ -3,7 +3,6 @@
 namespace Tests\Feature\Domain\Shared\File;
 
 use App\Models\Product;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -12,8 +11,6 @@ use Tests\TestCase;
 
 class ProductImageValidationFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function rejects_disallowed_extension(): void
     {

@@ -3,7 +3,6 @@
 namespace Tests\Feature\Traits;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,8 +12,6 @@ use Tests\TestCase;
 
 class FrontendAuthFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

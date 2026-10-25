@@ -8,7 +8,6 @@ use App\Infrastructure\Authorization\PermissionCatalog;
 use App\Models\EntityLimitUsage;
 use App\Models\PageCategory;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -19,8 +18,6 @@ use Tests\TestCase;
  */
 final class ClosureColumnTest extends TestCase
 {
-    use RefreshDatabase;
-
     private User $admin;
 
     protected function setUp(): void

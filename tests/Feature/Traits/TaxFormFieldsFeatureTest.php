@@ -3,14 +3,11 @@
 namespace Tests\Feature\Traits;
 
 use App\Infrastructure\Forms\Tax\TaxFormFields;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TaxFormFieldsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private object $traitInstance;
 
     protected function setUp(): void

@@ -19,7 +19,6 @@ class PaymentWriteData
         public readonly ?string $gateway_payment = null,
         public readonly ?string $gateway_data = null,
         public readonly ?string $failure_reason = null,
-        public readonly ?string $original_status_enum_note = null,
         public readonly ?string $paid_at = null,
         public readonly ?string $expires_at = null,
         public readonly ?string $created_at = null,
@@ -42,7 +41,6 @@ class PaymentWriteData
             gateway_payment: $data['gateway_payment'] ?? null,
             gateway_data: $data['gateway_data'] ?? null,
             failure_reason: $data['failure_reason'] ?? null,
-            original_status_enum_note: $data['original_status_enum_note'] ?? null,
             paid_at: $data['paid_at'] ?? null,
             expires_at: $data['expires_at'] ?? null,
             created_at: $data['created_at'] ?? null,
@@ -93,9 +91,6 @@ class PaymentWriteData
         }
         if ($this->failure_reason !== null) {
             $map['failure_reason'] = $this->failure_reason;
-        }
-        if ($this->original_status_enum_note !== null) {
-            $map['original_status_enum_note'] = $this->original_status_enum_note;
         }
         if ($this->paid_at !== null) {
             $map['paid_at'] = $this->paid_at;

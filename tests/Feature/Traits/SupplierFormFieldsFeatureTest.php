@@ -3,14 +3,11 @@
 namespace Tests\Feature\Traits;
 
 use App\Infrastructure\Forms\Party\SupplierFormFields;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SupplierFormFieldsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private TestSupplierController $controller;
 
     protected function setUp(): void

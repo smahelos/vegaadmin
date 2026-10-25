@@ -11,12 +11,9 @@ use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class UserServiceTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private UserService $userService;
 
     protected function setUp(): void

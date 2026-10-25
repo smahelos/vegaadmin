@@ -6,7 +6,6 @@ use App\Models\Status;
 use App\Models\StatusCategory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,7 +13,15 @@ use Tests\TestCase;
 
 class StatusFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The queries below read the whole statuses table; start without the seeded statuses
+        Status::query()->delete();
+    }
 
     #[Test]
     public function model_can_be_created_with_factory(): void

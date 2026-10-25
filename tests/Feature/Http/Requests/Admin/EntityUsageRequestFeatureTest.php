@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\EntityUsageRequest;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -13,7 +12,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class EntityUsageRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase;
+    use CreatesAdminTestEnvironment;
 
     protected function setUp(): void
     {

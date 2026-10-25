@@ -7,12 +7,9 @@ use App\Domain\Payment\Services\GatewayRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\Fakes\Payment\FakePaymentGateway;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class GatewayRegistryTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private GatewayRegistryInterface $registry;
 
     protected function setUp(): void

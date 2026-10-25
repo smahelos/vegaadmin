@@ -7,7 +7,6 @@ use App\Infrastructure\Notifications\Invoice\Messages\InvoiceOverdueReminder;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,8 +14,6 @@ use Tests\TestCase;
 
 class InvoiceOverdueReminderFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private Invoice $invoice;
 
     private User $user;

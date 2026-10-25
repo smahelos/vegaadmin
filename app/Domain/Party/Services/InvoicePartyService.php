@@ -211,9 +211,9 @@ class InvoicePartyService implements InvoicePartyServiceInterface
     }
 
     /**
-     * Delete a supplier if no invoices are linked
+     * Delete a supplier if no invoices or expenses refer to it
      *
-     * @return bool True if deleted, false if not (due to linked invoices)
+     * @return bool True if deleted, false if not (due to linked documents)
      */
     public function deleteSupplier(int $userId, int $supplierId): bool
     {
@@ -225,8 +225,7 @@ class InvoicePartyService implements InvoicePartyServiceInterface
             return false;
         }
 
-        // Check if supplier has linked invoices
-        if ($this->writeSuppliers->hasLinkedInvoices($partyId)) {
+        if ($this->writeSuppliers->hasLinkedDocuments($partyId)) {
             return false;
         }
 

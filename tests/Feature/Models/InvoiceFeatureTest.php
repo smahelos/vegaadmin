@@ -8,22 +8,18 @@ use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Status;
-use App\Models\StatusCategory;
 use App\Models\Supplier;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class InvoiceFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function it_can_be_created_with_factory(): void
     {
@@ -169,7 +165,7 @@ class InvoiceFeatureTest extends TestCase
     #[Test]
     public function get_payment_status_slug_attribute_returns_slug(): void
     {
-        $status = Status::factory()->create(['slug' => 'paid']);
+        $status = Status::where('slug', 'paid')->firstOrFail();
         $invoice = Invoice::factory()->create(['payment_status_id' => $status->id]);
 
         $slug = $invoice->getPaymentStatusSlugAttribute();
@@ -227,15 +223,8 @@ class InvoiceFeatureTest extends TestCase
         // We'll test that when color attribute is an empty string (falsy),
         // the method falls back to slug mapping
 
-        $statusCategory = StatusCategory::factory()->create();
-        $status = Status::create([
-            'name' => 'Paid Status',
-            'slug' => 'paid',
-            'category_id' => $statusCategory->id,
-            'color' => '', // Empty string should trigger fallback to slug mapping
-            'description' => 'Test status',
-            'is_active' => true,
-        ]);
+        $status = Status::where('slug', 'paid')->firstOrFail();
+        $status->update(['color' => '']); // Empty string should trigger fallback to slug mapping
 
         $client = Client::factory()->create();
         $user = User::factory()->create();

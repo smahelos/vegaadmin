@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Rules\UniquePerUser;
+
 class SupplierRequest extends BaseEntityRequest
 {
     /**
@@ -33,7 +35,17 @@ class SupplierRequest extends BaseEntityRequest
             'city' => 'required|string|max:255',
             'zip' => 'required|string|max:20',
             'country' => 'required|string|max:100',
-            'ico' => 'nullable|string|max:20',
+            'ico' => [
+                'nullable',
+                'string',
+                'max:20',
+                UniquePerUser::rule(
+                    'suppliers',
+                    'ico',
+                    $this->input('user_id'),
+                    $this->route('id'),
+                ),
+            ],
             'dic' => 'nullable|string|max:30',
             'description' => 'nullable|string',
             'supplier_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:2048',

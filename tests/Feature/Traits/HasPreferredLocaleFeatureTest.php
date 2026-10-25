@@ -3,14 +3,11 @@
 namespace Tests\Feature\Traits;
 
 use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class HasPreferredLocaleFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function locale_from_country_returns_correct_locales(): void
     {

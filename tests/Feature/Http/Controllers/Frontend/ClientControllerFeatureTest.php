@@ -14,7 +14,6 @@ use App\Models\Client;
 use App\Models\EntityLimit;
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -33,7 +32,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 class ClientControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     protected string $validEmail;
 
@@ -820,4 +819,28 @@ class ClientControllerFeatureTest extends TestCase
         $response->assertSessionHas('error');
     }
     */
+
+    #[Test]
+    public function store_refuses_a_company_number_the_user_already_has(): void
+    {
+        $existing = Client::factory()->create(['user_id' => $this->user->id]);
+
+        $this->actingAs($this->user)
+            ->post($this->localizedRoute('frontend.client.store'), [...$this->validClientData, 'ico' => $existing->ico])
+            ->assertSessionHasErrors('ico');
+
+        $this->assertSame(1, Client::where('user_id', $this->user->id)->where('ico', $existing->ico)->count());
+    }
+
+    #[Test]
+    public function store_accepts_a_company_number_another_user_has(): void
+    {
+        $foreign = Client::factory()->create();
+
+        $this->actingAs($this->user)
+            ->post($this->localizedRoute('frontend.client.store'), [...$this->validClientData, 'ico' => $foreign->ico])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('clients', ['user_id' => $this->user->id, 'ico' => $foreign->ico]);
+    }
 }

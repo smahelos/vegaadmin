@@ -79,6 +79,9 @@ return [
         'created_at' => 'Erstellt am',
         'updated_at' => 'Aktualisiert am',
     ],
+    'messages' => [
+        'delete_referenced' => 'Der Eintrag kann nicht gelöscht werden, da andere Einträge ihn verwenden, zum Beispiel Belege.',
+    ],
     'colors' => [
         'green' => 'Grün',
         'yellow' => 'Gelb',

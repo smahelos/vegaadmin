@@ -3,14 +3,11 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class SessionControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     /** @test */
     public function check_auth_returns_unauthenticated_when_not_logged_in(): void
     {

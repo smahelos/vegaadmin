@@ -36,7 +36,7 @@ Only Infrastructure touches Eloquent (`architecture.md`). Shape of a repository 
 
 ## Migrations and schema
 
-- Every schema change is a new migration, reversible through `down()`. The schema will be squashed into one clean MySQL schema before production (`docs/TECH_DEBT.md`).
+- Every schema change is a new migration, reversible through `down()`.
 - Follow the existing schema naming: plural snake_case tables, `<entity>_id` foreign keys with a real foreign key constraint and an explicit `onDelete`, `is_<flag>` booleans, Laravel `created_at`/`updated_at`.
 - Amounts are `decimal`, dates `date`/`datetime`, enum-backed values `string`. A value is stored once: no JSON copy of rows that live in their own table.
 - Reference data the app needs to run (statuses, permissions, plans) is created by a migration or by `DatabaseSeeder`, never by hand.

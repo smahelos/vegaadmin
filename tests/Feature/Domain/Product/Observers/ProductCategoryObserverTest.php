@@ -7,12 +7,9 @@ use App\Models\ProductCategory;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class ProductCategoryObserverTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     #[Test]
     public function category_observer_dispatches_events_on_lifecycle_and_only_on_relevant_updates(): void
     {

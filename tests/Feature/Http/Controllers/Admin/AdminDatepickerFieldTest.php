@@ -6,7 +6,6 @@ use App\Models\CronTask;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Subscription;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -15,7 +14,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class AdminDatepickerFieldTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
-    use RefreshDatabase;
 
     protected function setUp(): void
     {

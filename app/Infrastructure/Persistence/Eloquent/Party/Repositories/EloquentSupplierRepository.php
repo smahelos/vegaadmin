@@ -4,6 +4,8 @@ namespace App\Infrastructure\Persistence\Eloquent\Party\Repositories;
 
 use App\Application\Party\Contracts\SupplierReadRepositoryInterface;
 use App\Application\Party\Contracts\SupplierWriteRepositoryInterface;
+use App\Models\Expense;
+use App\Models\Invoice;
 use App\Models\Supplier;
 use Illuminate\Support\Collection;
 
@@ -16,7 +18,10 @@ class EloquentSupplierRepository implements SupplierReadRepositoryInterface, Sup
 
     public function getDefaultSupplier(int $userId): ?Supplier
     {
-        return Supplier::where('user_id', $userId)->where('is_default', true)->first() ?? Supplier::where('user_id', $userId)->first();
+        $default = Supplier::where('user_id', $userId)->where('is_default', true)->first();
+
+        // Without a default the most recently created supplier stands in
+        return $default ?? Supplier::where('user_id', $userId)->latest()->latest('id')->first();
     }
 
     public function findById(int $id): ?Supplier
@@ -89,13 +94,9 @@ class EloquentSupplierRepository implements SupplierReadRepositoryInterface, Sup
         return (bool) $supplier->delete();
     }
 
-    public function hasLinkedInvoices(int $id): bool
+    public function hasLinkedDocuments(int $id): bool
     {
-        $supplier = Supplier::find($id);
-        if (! $supplier) {
-            return false;
-        }
-
-        return $supplier->invoices()->exists();
+        return Invoice::where('supplier_id', $id)->exists()
+            || Expense::where('supplier_id', $id)->exists();
     }
 }

@@ -10,14 +10,11 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CompleteIntegrationTest extends TestCase
 {
-    use RefreshDatabase;
-
     private AnalyticsDashboardServiceInterface $dashboardService;
 
     protected function setUp(): void

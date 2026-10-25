@@ -7,15 +7,12 @@ namespace Tests\Feature\Infrastructure\Persistence\Eloquent\Observers;
 use App\Domain\User\Events\UserDataChanged;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 final class InvoiceObserverFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function changing_the_invoice_text_keeps_the_items(): void
     {

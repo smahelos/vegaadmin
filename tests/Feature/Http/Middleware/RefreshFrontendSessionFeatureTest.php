@@ -3,15 +3,12 @@
 namespace Tests\Feature\Http\Middleware;
 
 use App\Http\Middleware\RefreshFrontendSession;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RefreshFrontendSessionFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private RefreshFrontendSession $middleware;
 
     protected function setUp(): void

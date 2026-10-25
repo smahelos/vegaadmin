@@ -11,10 +11,8 @@ use App\Models\EntityLimit;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
-use App\Models\StatusCategory;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -22,7 +20,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class InvoiceControllerFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase;
+    use CreatesFrontendTestEnvironment;
 
     private Invoice $invoice;
 
@@ -420,16 +418,7 @@ class InvoiceControllerFeatureTest extends TestCase
     public function mark_as_paid_updates_status(): void
     {
         $this->actingAs($this->user, 'web');
-        // Ensure a 'paid' status exists with slug 'paid'
-        $paidStatus = Status::firstOrCreate([
-            'slug' => 'paid',
-        ], [
-            'name' => 'paid',
-            'category_id' => StatusCategory::factory()->create()->id,
-            'color' => 'bg-green-100 text-green-800',
-            'description' => 'Paid status',
-            'is_active' => true,
-        ]);
+        $paidStatus = Status::where('slug', 'paid')->firstOrFail();
 
         $this->put(route('frontend.invoice.mark-as-paid', ['locale' => 'en', 'id' => $this->invoice->id]));
         $this->invoice->refresh();
@@ -505,5 +494,18 @@ class InvoiceControllerFeatureTest extends TestCase
         $response->assertOk();
         $this->assertTrue(str_contains(strtolower($response->headers->get('content-disposition') ?? ''), 'attachment'));
         $this->assertStringContainsString($this->invoice->invoice_vs, $response->headers->get('content-disposition'));
+    }
+
+    #[Test]
+    public function store_refuses_a_new_client_with_a_company_number_the_user_already_has(): void
+    {
+        $existing = Client::factory()->create(['user_id' => $this->user->id]);
+
+        $this->actingAs($this->user, 'web')
+            ->post(route('frontend.invoice.store', ['locale' => 'cs']), [
+                'client_name' => 'New client ' . uniqid(),
+                'client_ico' => $existing->ico,
+            ])
+            ->assertSessionHasErrors('client_ico');
     }
 }

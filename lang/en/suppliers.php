@@ -84,7 +84,7 @@ return [
         'error_delete' => 'An error occurred while deleting the supplier.',
         'error_edit' => 'An error occurred while editing the supplier.',
         'error_show' => 'An error occurred while viewing the supplier.',
-        'error_delete_invoices' => 'The supplier cannot be deleted because it has associated invoices.',
+        'error_delete_documents' => 'The supplier cannot be deleted because it has associated invoices or expenses.',
         'validation_failed' => 'Validation failed. Please check the input fields.',
         'error_loading' => 'An error occurred while loading suppliers. Please try again later.',
         'no_suppliers' => 'No suppliers found.',

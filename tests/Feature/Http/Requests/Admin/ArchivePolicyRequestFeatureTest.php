@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\ArchivePolicyRequest;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -18,7 +17,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class ArchivePolicyRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase;
+    use CreatesAdminTestEnvironment;
 
     /**
      * Set up test environment.

@@ -8,12 +8,9 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class ProductRepositoryTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private ProductRepositoryInterface $productRepository;
 
     private User $user;
@@ -118,6 +115,7 @@ class ProductRepositoryTest extends TestCase
         $productData = [
             'name' => 'Test Product',
             'price' => 99.99,
+            'currency' => 'CZK',
             'user_id' => $this->user->id,
             'description' => 'Test description',
         ];

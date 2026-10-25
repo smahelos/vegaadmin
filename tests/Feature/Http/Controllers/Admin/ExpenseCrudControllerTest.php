@@ -11,7 +11,6 @@ use App\Models\Status;
 use App\Models\StatusCategory;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -20,7 +19,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class ExpenseCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
-    use RefreshDatabase;
 
     private UniversalLimitService $limitService;
 
@@ -40,9 +38,9 @@ class ExpenseCrudControllerTest extends TestCase
 
     private function ensureStatus(): Status
     {
-        $category = StatusCategory::factory()->create(['slug' => 'expense-statuses']);
-
-        return Status::factory()->create(['category_id' => $category->id]);
+        return Status::factory()->create([
+            'category_id' => StatusCategory::where('slug', 'expense-statuses')->firstOrFail()->id,
+        ]);
     }
 
     #[Test]

@@ -5,7 +5,6 @@ namespace Tests\Feature\Infrastructure\Authorization\Policies\Payment;
 use App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy;
 use App\Models\Subscription;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -13,7 +12,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class SubscriptionPolicyFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase;
+    use CreatesFrontendTestEnvironment;
 
     private SubscriptionPolicy $policy;
 

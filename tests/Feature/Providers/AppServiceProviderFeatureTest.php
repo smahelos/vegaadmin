@@ -6,15 +6,12 @@ use App\Http\Controllers\Admin\UserCrudController;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
 use App\Models\Invoice;
 use App\Providers\AppServiceProvider;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AppServiceProviderFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function provider_is_registered_in_application(): void
     {

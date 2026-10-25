@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Console\Commands;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
@@ -10,8 +9,6 @@ use Tests\TestCase;
 
 class CheckMissingTranslationsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function command_executes_successfully_with_default_parameters(): void
     {
@@ -85,22 +82,17 @@ class CheckMissingTranslationsFeatureTest extends TestCase
     #[Test]
     public function command_checks_actual_translation_files(): void
     {
-        // This test assumes that we have some language files
-        if (File::exists(lang_path('en')) && File::exists(lang_path('cs'))) {
-            $exitCode = Artisan::call('translations:check', [
-                'locale' => 'en',
-                '--compare' => 'cs',
-            ]);
+        $exitCode = Artisan::call('translations:check', [
+            'locale' => 'en',
+            '--compare' => 'cs',
+        ]);
 
-            $this->assertContains($exitCode, [0, 1]);
+        $this->assertContains($exitCode, [0, 1]);
 
-            $output = Artisan::output();
+        $output = Artisan::output();
 
-            // Should mention checking files
-            $this->assertStringContainsString('Checking missing translations', $output);
-        } else {
-            $this->markTestSkipped('Language files not found');
-        }
+        // Should mention checking files
+        $this->assertStringContainsString('Checking missing translations', $output);
     }
 
     #[Test]
@@ -128,21 +120,17 @@ class CheckMissingTranslationsFeatureTest extends TestCase
     #[Test]
     public function command_processes_php_translation_files(): void
     {
-        if (File::exists(lang_path('en')) && File::exists(lang_path('cs'))) {
-            $exitCode = Artisan::call('translations:check', [
-                'locale' => 'en',
-                '--compare' => 'cs',
-            ]);
+        $exitCode = Artisan::call('translations:check', [
+            'locale' => 'en',
+            '--compare' => 'cs',
+        ]);
 
-            $this->assertContains($exitCode, [0, 1]);
+        $this->assertContains($exitCode, [0, 1]);
 
-            $output = Artisan::output();
+        $output = Artisan::output();
 
-            // The command should process .php files
-            $this->assertNotEmpty($output);
-        } else {
-            $this->markTestSkipped('Language directories not found');
-        }
+        // The command should process .php files
+        $this->assertNotEmpty($output);
     }
 
     #[Test]

@@ -10,15 +10,12 @@ use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 /**
  * Integration test for Domain Events triggered by actual Party service calls
  */
 class PartyServiceDomainEventsTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private InvoicePartyService $partyService;
 
     private User $user;

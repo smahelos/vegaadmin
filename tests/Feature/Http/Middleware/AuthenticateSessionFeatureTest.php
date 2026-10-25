@@ -6,7 +6,6 @@ namespace Tests\Feature\Http\Middleware;
 
 use App\Infrastructure\Authorization\PermissionCatalog;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -18,8 +17,6 @@ use Tests\TestCase;
  */
 final class AuthenticateSessionFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function admin_stays_logged_in_after_login(): void
     {

@@ -7,14 +7,13 @@ use App\Models\Supplier;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class BankFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     #[Test]
     public function bank_can_be_created_with_factory()
@@ -32,15 +31,10 @@ class BankFeatureTest extends TestCase
     #[Test]
     public function bank_serves_as_reference_data()
     {
-        $bank = Bank::factory()->create([
-            'code' => '0100',
-            'name' => 'Czech National Bank',
-        ]);
-
-        // Bank serves as reference data for suppliers
+        // Banks are reference data seeded in every environment
         $this->assertDatabaseHas('banks', [
             'code' => '0100',
-            'name' => 'Czech National Bank',
+            'name' => 'Komerční banka',
         ]);
 
         // Suppliers can reference this bank via bank_code field

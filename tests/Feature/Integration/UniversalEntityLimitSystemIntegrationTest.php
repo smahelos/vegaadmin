@@ -12,7 +12,6 @@ use App\Http\Requests\InvoiceRequest;
 use App\Http\Requests\SupplierRequest;
 use App\Models\EntityLimit;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -20,7 +19,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class UniversalEntityLimitSystemIntegrationTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase;
+    use CreatesFrontendTestEnvironment;
 
     private UniversalLimitService $limitService;
 

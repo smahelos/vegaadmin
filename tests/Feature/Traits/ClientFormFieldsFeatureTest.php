@@ -3,14 +3,11 @@
 namespace Tests\Feature\Traits;
 
 use App\Infrastructure\Forms\Party\ClientFormFields;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ClientFormFieldsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private object $traitInstance;
 
     protected function setUp(): void

@@ -10,8 +10,8 @@ use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
 
 /**
- * Records the scope of every call and returns one fixed row per method. Stands in for the
- * MySQL-only queries until the tests run on MySQL (docs/TECH_DEBT.md).
+ * Records the scope of every call and returns one fixed row per method, so that controller tests
+ * check the scope they pass; the queries themselves are pinned by EloquentApiStatisticsRepositoryTest.
  */
 final class FakeApiStatisticsRepository implements ApiStatisticsRepository
 {

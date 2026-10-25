@@ -20,6 +20,26 @@ jobs:
     name: Baselines / Guard / Drift / Tests (Parity)
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # Tests run on MySQL (phpunit.xml: DB_CONNECTION=mysql, DB_DATABASE=invoice_testing); root may
+    # create the invoice_testing_test_N databases of a parallel run
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: invoice_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: ''
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -28,7 +48,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: bcmath, exif, gd, intl, pcntl, zip
+          extensions: bcmath, exif, gd, intl, pcntl, pdo_mysql, zip
           coverage: none
           tools: composer
 

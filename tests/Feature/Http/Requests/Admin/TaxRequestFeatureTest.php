@@ -7,7 +7,6 @@ use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\TaxRequest;
 use App\Models\EntityLimit;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -20,7 +19,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class TaxRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase;
+    use CreatesAdminTestEnvironment;
 
     private UniversalLimitService $limitService;
 

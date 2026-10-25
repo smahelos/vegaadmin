@@ -8,7 +8,6 @@ use App\Application\Analytics\Contracts\ApiStatisticsRepository;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Models\User;
 use DateTimeImmutable;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -19,8 +18,6 @@ use Tests\TestCase;
 
 final class StatisticsControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private FakeApiStatisticsRepository $statistics;
 
     protected function setUp(): void

@@ -5,14 +5,11 @@ namespace Tests\Feature\Models;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ProductCategoryFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function can_create_product_category(): void
     {

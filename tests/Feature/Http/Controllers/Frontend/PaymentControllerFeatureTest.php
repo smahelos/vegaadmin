@@ -6,7 +6,6 @@ use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
 use App\Http\Controllers\Frontend\PaymentController;
 use App\Models\Payment;
 use App\Models\Subscription;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,8 +13,6 @@ use Tests\TestCase;
 
 class PaymentControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function payment_return_handles_successful_payment(): void
     {

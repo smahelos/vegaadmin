@@ -7,7 +7,6 @@ use App\Models\Page;
 use App\Models\PageCategory;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -18,8 +17,6 @@ use Tests\TestCase;
  */
 class PageControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

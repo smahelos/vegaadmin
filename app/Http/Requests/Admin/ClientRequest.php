@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Rules\UniquePerUser;
+
 class ClientRequest extends BaseEntityRequest
 {
     /**
@@ -32,7 +34,17 @@ class ClientRequest extends BaseEntityRequest
             'city' => 'required|string|max:255',
             'zip' => 'required|string|max:20',
             'country' => 'required|string|max:100',
-            'ico' => 'nullable|string|max:20',
+            'ico' => [
+                'nullable',
+                'string',
+                'max:20',
+                UniquePerUser::rule(
+                    'clients',
+                    'ico',
+                    $this->input('user_id'),
+                    $this->route('id'),
+                ),
+            ],
             'dic' => 'nullable|string|max:30',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',

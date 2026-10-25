@@ -8,6 +8,7 @@ use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\Events\ProductCreated;
+use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\Validation\ProductCreationValidator;
 use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
@@ -82,10 +83,14 @@ class ProductService implements ProductServiceInterface
     }
 
     /**
-     * Delete product with cleanup using DTOs
+     * @throws ProductInUseException when an invoice line refers to the product
      */
     public function deleteProduct(ProductId $productId): void
     {
+        if ($this->productWriteRepository->isUsedOnInvoices($productId)) {
+            throw ProductInUseException::onInvoices($productId);
+        }
+
         $this->productWriteRepository->delete($productId);
     }
 

@@ -3,15 +3,12 @@
 namespace Tests\Feature\View\Components;
 
 use App\View\Components\Select;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\View\View;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SelectFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private function getBasicOptions(): array
     {
         return [

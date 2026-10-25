@@ -8,6 +8,8 @@ namespace App\Domain\Party\DTO;
  */
 class SupplierWriteData
 {
+    public readonly ?string $ico;
+
     /**
      * @param  mixed  $supplier_logo  Can be string path or UploadedFile
      */
@@ -19,7 +21,7 @@ class SupplierWriteData
         public readonly ?string $city = null,
         public readonly ?string $zip = null,
         public readonly ?string $country = null,
-        public readonly ?string $ico = null,
+        ?string $ico = null,
         public readonly ?string $dic = null,
         public readonly ?string $shortcut = null,
         public readonly ?string $description = null,
@@ -29,10 +31,14 @@ class SupplierWriteData
         public readonly ?string $bank_name = null,
         public readonly ?string $iban = null,
         public readonly ?string $swift = null,
-        public readonly ?string $has_payment_info = null,
+        public readonly ?bool $has_payment_info = null,
         public readonly ?int $user_id = null,
         public readonly bool $is_default = false,
-    ) {}
+    ) {
+        $ico = $ico === null ? null : trim($ico);
+        // ico is unique per user, so an empty one is stored as null, never as an empty string
+        $this->ico = $ico === '' ? null : $ico;
+    }
 
     /**
      * Create from associative array.

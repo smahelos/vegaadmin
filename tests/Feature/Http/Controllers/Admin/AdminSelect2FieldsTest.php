@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Supplier;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
@@ -17,7 +16,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class AdminSelect2FieldsTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
-    use RefreshDatabase;
 
     protected function setUp(): void
     {

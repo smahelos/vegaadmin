@@ -30,7 +30,6 @@ use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -48,7 +47,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class AdminCrudSmokeTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
-    use RefreshDatabase;
 
     protected function setUp(): void
     {

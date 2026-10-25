@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Console;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -12,8 +11,6 @@ use Tests\TestCase;
  */
 class DddGuardDiJsonSnapshotTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function ddd_guard_di_json_structure_is_valid(): void
     {

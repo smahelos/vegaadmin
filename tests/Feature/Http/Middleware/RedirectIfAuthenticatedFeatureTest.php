@@ -4,15 +4,12 @@ namespace Tests\Feature\Http\Middleware;
 
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RedirectIfAuthenticatedFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private RedirectIfAuthenticated $middleware;
 
     protected function setUp(): void

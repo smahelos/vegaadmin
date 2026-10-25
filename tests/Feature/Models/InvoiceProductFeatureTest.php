@@ -6,14 +6,11 @@ use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class InvoiceProductFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function can_create_invoice_product(): void
     {

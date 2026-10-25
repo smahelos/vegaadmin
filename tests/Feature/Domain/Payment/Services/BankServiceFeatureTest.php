@@ -7,12 +7,9 @@ use App\Domain\Payment\Services\BankService;
 use App\Models\Bank;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class BankServiceFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private BankService $service;
 
     protected function setUp(): void

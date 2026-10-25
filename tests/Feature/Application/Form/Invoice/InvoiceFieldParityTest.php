@@ -4,7 +4,6 @@ namespace Tests\Feature\Application\Form\Invoice;
 
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -14,7 +13,6 @@ use Tests\TestCase;
 class InvoiceFieldParityTest extends TestCase
 {
     use InvoiceFormFields;
-    use RefreshDatabase; // access getInvoiceFields directly
 
     private array $clients = ['1' => 'Client'];
 

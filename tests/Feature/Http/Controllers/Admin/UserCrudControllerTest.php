@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,7 +18,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class UserCrudControllerTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesAdminTestEnvironment, WithFaker;
 
     /**
      * Set up the test environment before each test.

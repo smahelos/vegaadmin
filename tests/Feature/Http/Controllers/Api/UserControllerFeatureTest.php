@@ -8,7 +8,6 @@ use App\Domain\User\Contracts\UserServiceInterface;
 use App\Domain\User\DTO\UserDTO;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,7 +23,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class UserControllerFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     protected User $testUser1;
 

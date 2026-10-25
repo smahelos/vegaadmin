@@ -4,7 +4,6 @@ namespace Tests\Feature\Models;
 
 use App\Models\Tax;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
@@ -12,7 +11,15 @@ use Tests\TestCase;
 
 class TaxFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The queries below count the whole taxes table; start without the seeded VAT rates
+        Tax::query()->delete();
+    }
 
     #[Test]
     public function model_can_be_created_with_factory(): void

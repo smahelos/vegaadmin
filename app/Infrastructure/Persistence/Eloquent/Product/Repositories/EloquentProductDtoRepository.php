@@ -6,9 +6,12 @@ use App\Domain\Product\Contracts\ProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
+use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Product\Mappers\EloquentProductMapper;
+use App\Models\InvoiceProduct;
+use Illuminate\Database\QueryException;
 
 /**
  * Eloquent implementation of Product DTO repository.
@@ -16,6 +19,9 @@ use App\Infrastructure\Persistence\Eloquent\Product\Mappers\EloquentProductMappe
  */
 class EloquentProductDtoRepository implements ProductDtoReadRepositoryInterface, ProductDtoWriteRepositoryInterface
 {
+    /** MySQL ER_ROW_IS_REFERENCED_2: a foreign key with ON DELETE RESTRICT refused the delete */
+    private const ROW_IS_REFERENCED = 1451;
+
     public function __construct(
         private readonly EloquentProductRepository $productRepository,
         private readonly EloquentProductMapper $mapper,
@@ -61,9 +67,26 @@ class EloquentProductDtoRepository implements ProductDtoReadRepositoryInterface,
         return $this->mapper->toDto($eloquentProduct);
     }
 
+    public function isUsedOnInvoices(ProductId $id): bool
+    {
+        return InvoiceProduct::where('product_id', $id->getValue())->exists();
+    }
+
+    /**
+     * @throws ProductInUseException when an invoice line refers to the product
+     */
     public function delete(ProductId $id): void
     {
-        $this->productRepository->deleteById($id->getValue());
+        try {
+            $this->productRepository->deleteById($id->getValue());
+        } catch (QueryException $e) {
+            // the service checks for invoice lines first; this catches one added in the meantime
+            if (($e->errorInfo[1] ?? null) !== self::ROW_IS_REFERENCED) {
+                throw $e;
+            }
+
+            throw ProductInUseException::onInvoices($id, $e);
+        }
     }
 
     public function deleteByUserId(int $userId): int

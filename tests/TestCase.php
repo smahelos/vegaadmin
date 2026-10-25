@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests;
 
 use App\Http\Middleware\SetLocale;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabaseState;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use RuntimeException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -13,36 +16,19 @@ use Spatie\Permission\PermissionRegistrar;
 abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication;
+    use RefreshDatabase;
 
     /**
-     * Whether this process tests against in-memory SQLite (detected on the first test).
+     * Migrate and seed DatabaseSeeder once per process; every test then runs in a transaction.
      */
-    private static bool $usesInMemoryDatabase = false;
+    protected bool $seed = true;
 
-    /**
-     * Set up the test environment.
-     */
     protected function setUp(): void
     {
-        // In-memory SQLite: give every test a fresh, freshly migrated database in both sequential
-        // and parallel runs. Laravel otherwise reuses the PDO cached by a previous test and skips
-        // migrations, so a test that disconnects or wipes it breaks every later test in the process.
-        if (self::$usesInMemoryDatabase) {
-            RefreshDatabaseState::$inMemoryConnections = [];
-            RefreshDatabaseState::$migrated = false;
-        }
-
         parent::setUp();
 
         // Built assets (public/build) are not versioned and CI does not run the Vite build
         $this->withoutVite();
-
-        self::$usesInMemoryDatabase = $this->usesInMemorySqlite();
-
-        // Persistent databases (sequential runs only): migrate and seed once per process
-        if (! self::$usesInMemoryDatabase && ! $this->isParallelTestEnvironment()) {
-            $this->setupSequentialTesting();
-        }
 
         // Disable middleware that might cause issues during tests
         $this->withoutMiddleware(SetLocale::class);
@@ -52,39 +38,16 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * Check if we're running in parallel test environment
+     * RefreshDatabase wipes the database, so refuse anything but the test database — a cached
+     * config or a missing phpunit.xml variable would otherwise point it at the development data.
      */
-    protected function isParallelTestEnvironment(): bool
+    protected function beforeRefreshingDatabase(): void
     {
-        return isset($_ENV['TEST_TOKEN']) && $_ENV['TEST_TOKEN'];
-    }
+        $database = (string) config('database.connections.' . config('database.default') . '.database');
 
-    private function usesInMemorySqlite(): bool
-    {
-        $conn = config('database.connections.' . config('database.default'));
-
-        return ($conn['driver'] ?? null) === 'sqlite' && in_array(
-            $conn['database'] ?? null,
-            [':memory:', null],
-            true,
-        );
-    }
-
-    /**
-     * Setup for sequential testing against a persistent database - migrations run once
-     */
-    protected function setupSequentialTesting(): void
-    {
-        if (! RefreshDatabaseState::$migrated) {
-            $this->artisan('migrate:fresh');
-            $this->artisan('db:seed', ['--class' => 'DatabaseSeeder']);
-            RefreshDatabaseState::$migrated = true;
+        if (preg_match('/_testing(_test_\d+)?$/', $database) !== 1) {
+            throw new RuntimeException('Tests run only against a *_testing database, not "' . $database . '"');
         }
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
     }
 
     /**

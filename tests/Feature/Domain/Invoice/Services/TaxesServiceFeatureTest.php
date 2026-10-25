@@ -8,18 +8,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class TaxesServiceFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private TaxesService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->service = app(TaxesService::class);
+
+        // The service lists the whole taxes table; start without the seeded VAT rates
+        Tax::query()->delete();
 
         // Clear cache before each test
         Cache::flush();

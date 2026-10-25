@@ -3,7 +3,6 @@
 namespace Tests\Feature\Domain\Shared\Geography\Services;
 
 use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
@@ -11,8 +10,6 @@ use Tests\TestCase;
 
 class CountryServiceFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private CountryServiceInterface $service;
 
     protected function setUp(): void

@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests;
 
 use App\Http\Requests\RegistrationRequest;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -18,7 +17,7 @@ use Tests\TestCase;
  */
 class RegistrationRequestFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     protected array $validRegistrationData;
 

@@ -11,7 +11,6 @@ use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
@@ -27,7 +26,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class InvoiceRequestFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     protected PaymentMethod $paymentMethod;
 
@@ -581,6 +580,93 @@ class InvoiceRequestFeatureTest extends TestCase
         if ($validator->fails()) {
             $this->fail('Validation failed: ' . implode(', ', $validator->errors()->all()));
         }
+    }
+
+    /**
+     * Errors of the IČO fields when the invoice brings the given party fields.
+     *
+     * @param  array<string, mixed>  $partyFields
+     * @return array{supplier: list<string>, client: list<string>}
+     */
+    private function partyIcoErrors(
+        User $user,
+        array $partyFields,
+    ): array {
+        $data = $partyFields + $this->validInvoiceData;
+        // the rule reads supplier_id and client_id from the request itself
+        $request = InvoiceRequest::create(
+            '/',
+            'POST',
+            $data,
+        );
+        $request->setUserResolver(fn () => $user);
+
+        $errors = Validator::make(
+            $data,
+            $request->rules(),
+            $request->messages(),
+            $request->attributes(),
+        )->errors();
+
+        return ['supplier' => $errors->get('ico'), 'client' => $errors->get('client_ico')];
+    }
+
+    #[Test]
+    public function new_party_with_the_ico_of_a_stored_one_asks_to_select_it(): void
+    {
+        $user = User::factory()->create();
+        Supplier::factory()->create(['user_id' => $user->id, 'ico' => '11111111']);
+        Client::factory()->create(['user_id' => $user->id, 'ico' => '22222222']);
+
+        $errors = $this->partyIcoErrors($user, [
+            'supplier_id' => null,
+            'name' => 'New Supplier',
+            'ico' => '11111111',
+            'client_id' => null,
+            'client_name' => 'New Client',
+            'client_ico' => '22222222',
+        ]);
+
+        $this->assertSame([__('invoices.validation.supplier_exists')], $errors['supplier']);
+        $this->assertSame([__('invoices.validation.client_exists')], $errors['client']);
+    }
+
+    #[Test]
+    public function selected_party_is_not_checked_for_a_duplicate_ico(): void
+    {
+        $user = User::factory()->create();
+        $supplier = Supplier::factory()->create(['user_id' => $user->id, 'ico' => '11111111']);
+        $client = Client::factory()->create(['user_id' => $user->id, 'ico' => '22222222']);
+
+        $errors = $this->partyIcoErrors($user, [
+            'supplier_id' => $supplier->id,
+            'ico' => '11111111',
+            'client_id' => $client->id,
+            'client_ico' => '22222222',
+        ]);
+
+        $this->assertSame([], $errors['supplier']);
+        $this->assertSame([], $errors['client']);
+    }
+
+    #[Test]
+    public function new_party_may_share_the_ico_of_another_users_party(): void
+    {
+        $otherUser = User::factory()->create();
+        Supplier::factory()->create(['user_id' => $otherUser->id, 'ico' => '11111111']);
+        Client::factory()->create(['user_id' => $otherUser->id, 'ico' => '22222222']);
+
+        $errors = $this->partyIcoErrors(User::factory()->create(), [
+            'supplier_id' => null,
+            'name' => 'New Supplier',
+            'ico' => '11111111',
+            'client_id' => null,
+            'client_name' => 'New Client',
+            'client_ico' => '22222222',
+        ]);
+
+        $this->assertSame([], $errors['supplier']);
+        $this->assertSame([], $errors['client']);
     }
 
     #[Test]

@@ -4,7 +4,6 @@ namespace Tests\Feature\Models;
 
 use App\Models\CronTask;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -17,7 +16,7 @@ use Tests\TestCase;
  */
 class CronTaskFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     #[Test]
     public function can_create_cron_task_with_factory(): void

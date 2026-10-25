@@ -4,15 +4,12 @@ namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Http\Controllers\Api\ApiBackpackController;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use ReflectionClass;
 use Tests\TestCase;
 
 class ApiBackpackControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

@@ -8,7 +8,6 @@ use App\Livewire\Party\ClientList;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,8 +15,6 @@ use Tests\TestCase;
 
 final class SortsTest extends TestCase
 {
-    use RefreshDatabase;
-
     private User $user;
 
     protected function setUp(): void

@@ -9,7 +9,6 @@ use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -22,7 +21,7 @@ use Tests\TestCase;
  */
 class ExpenseFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     #[Test]
     public function can_create_expense_with_factory(): void
@@ -252,6 +251,7 @@ class ExpenseFeatureTest extends TestCase
             'user_id' => $user->id,
             'expense_date' => '2025-06-18 00:00:00',
             'amount' => 75.00,
+            'currency' => 'CZK',
             'description' => 'Simple expense',
             'attachments' => null,
         ];

@@ -24,7 +24,7 @@ paths:
 
 ## Test database
 
-- Tests run on MySQL in a test database separate from the local development database; the switch from in-memory SQLite is tracked in `docs/TECH_DEBT.md`. Until it lands, avoid MySQL-only SQL in code that has no MySQL test.
+- Tests run on MySQL in the `invoice_testing` database, separate from the local development database (CI: a MySQL service). Code has no branches for other database drivers.
 - Schema comes from the migrations and reference data from `DatabaseSeeder`, migrated and seeded once; each test runs in a transaction (`RefreshDatabase`). Tests never create tables, columns or permission schema themselves.
 - Permissions in tests come from `PermissionCatalog` (`permissions.md`), not from hand-written lists.
 - Seeded data is present: unique fields get unique values (`uniqid()`) and no test depends on fixed ids or on row order it did not set.

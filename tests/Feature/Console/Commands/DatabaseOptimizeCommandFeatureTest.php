@@ -2,15 +2,12 @@
 
 namespace Tests\Feature\Console\Commands;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DatabaseOptimizeCommandFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private string $processId;
 
     protected function setUp(): void

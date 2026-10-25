@@ -9,7 +9,6 @@ use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -23,7 +22,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class InvoiceControllerFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase;
+    use CreatesFrontendTestEnvironment;
 
     protected User $frontendUser; // alias to trait-created user
 

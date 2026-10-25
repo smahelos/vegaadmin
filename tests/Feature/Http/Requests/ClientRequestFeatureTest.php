@@ -6,7 +6,6 @@ use App\Http\Requests\ClientRequest;
 use App\Models\Client;
 use App\Models\EntityLimit;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -23,7 +22,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class ClientRequestFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     protected array $validClientData;
 

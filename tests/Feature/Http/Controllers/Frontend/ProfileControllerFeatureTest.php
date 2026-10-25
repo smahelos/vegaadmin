@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -15,7 +14,6 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 class ProfileControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use RefreshDatabase;
 
     protected function setUp(): void
     {

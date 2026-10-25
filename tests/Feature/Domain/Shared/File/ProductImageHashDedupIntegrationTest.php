@@ -4,7 +4,6 @@ namespace Tests\Feature\Domain\Shared\File;
 
 use App\Models\FileHash;
 use App\Models\Product;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -12,8 +11,6 @@ use Tests\TestCase;
 
 class ProductImageHashDedupIntegrationTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function product_image_dedup_reuses_file(): void
     {

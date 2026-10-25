@@ -6,7 +6,6 @@ use App\Http\Requests\Admin\StatusRequest;
 use App\Models\Status;
 use App\Models\StatusCategory;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
@@ -21,7 +20,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class StatusRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase;
+    use CreatesAdminTestEnvironment;
 
     private StatusCategory $statusCategory;
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,8 +15,6 @@ use Tests\TestCase;
 
 final class CacheManagementControllerTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
      * @return array<string, array{string, list<string>, string}>
      */

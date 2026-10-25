@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 use App\Http\Requests\Admin\ExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,7 +14,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class ExpenseCategoryRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesAdminTestEnvironment, WithFaker;
 
     protected function setUp(): void
     {

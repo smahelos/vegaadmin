@@ -7,14 +7,11 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SubscriptionFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function subscription_can_be_created_with_valid_data(): void
     {

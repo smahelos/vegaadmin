@@ -6,14 +6,11 @@ use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPlanFeature;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SubscriptionPlanFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function subscription_plan_can_be_created_with_valid_data(): void
     {
@@ -79,6 +76,9 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_active_scope_returns_only_active_plans(): void
     {
+        // The scope reads the whole table; start without the seeded plans
+        SubscriptionPlan::query()->delete();
+
         SubscriptionPlan::factory()->create(['is_active' => true]);
         SubscriptionPlan::factory()->create(['is_active' => false]);
 

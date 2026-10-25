@@ -5,7 +5,6 @@ namespace Tests\Feature\Models;
 use App\Models\Page;
 use App\Models\PageCategory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -15,8 +14,6 @@ use Tests\TestCase;
  */
 class PageCategoryFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function page_category_can_be_created_with_valid_data(): void
     {

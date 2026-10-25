@@ -85,15 +85,15 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         // Verify product exists and user has access
         $product = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
 
-        // Handle image cleanup before deletion
-        if ($product->image) {
-            $this->fileService->deleteFile($product->image, 'public');
-        }
-
         $id = ProductId::fromInt($productId);
 
         DB::transaction(fn () => $this->productDomainService->deleteProduct($id),
         );
+
+        // The file goes only once the product is gone, so a refused delete keeps the image
+        if ($product->image) {
+            $this->fileService->deleteFile($product->image, 'public');
+        }
     }
 
     public function findProduct(int $userId, int $id): ProductDTO

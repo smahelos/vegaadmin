@@ -12,7 +12,6 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
@@ -20,8 +19,6 @@ use Tests\TestCase;
 
 class InvoicePartyServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private InvoicePartyServiceInterface $service;
 
     private PartyApplicationServiceInterface $appService;
@@ -352,5 +349,49 @@ class InvoicePartyServiceTest extends TestCase
         $result = $this->service->deleteClient($this->user->id, $client->id);
         $this->assertTrue($result);
         $this->assertDatabaseMissing('clients', ['id' => $client->id]);
+    }
+
+    #[Test]
+    public function stores_clients_without_ico_as_null_so_one_user_can_have_several(): void
+    {
+        $userId = UserId::fromInt($this->user->id);
+        $first = $this->service->resolveOrCreateClient($userId, ['name' => 'First Client', 'ico' => '']);
+        $second = $this->service->resolveOrCreateClient($userId, ['name' => 'Second Client', 'ico' => ' ']);
+
+        $this->service->updateClient($first->id, ['name' => 'First Client Renamed', 'ico' => '']);
+        $this->service->updateClient($second->id, ['name' => 'Second Client Renamed', 'ico' => '']);
+
+        $this->assertDatabaseHas('clients', [
+            'id' => $first->id,
+            'name' => 'First Client Renamed',
+            'ico' => null,
+        ]);
+        $this->assertDatabaseHas('clients', [
+            'id' => $second->id,
+            'name' => 'Second Client Renamed',
+            'ico' => null,
+        ]);
+    }
+
+    #[Test]
+    public function stores_suppliers_without_ico_as_null_so_one_user_can_have_several(): void
+    {
+        $userId = UserId::fromInt($this->user->id);
+        $first = $this->service->resolveOrCreateSupplier($userId, ['name' => 'First Supplier', 'ico' => '']);
+        $second = $this->service->resolveOrCreateSupplier($userId, ['name' => 'Second Supplier', 'ico' => ' ']);
+
+        $this->service->updateSupplier($first->id, ['name' => 'First Supplier Renamed', 'ico' => '']);
+        $this->service->updateSupplier($second->id, ['name' => 'Second Supplier Renamed', 'ico' => '']);
+
+        $this->assertDatabaseHas('suppliers', [
+            'id' => $first->id,
+            'name' => 'First Supplier Renamed',
+            'ico' => null,
+        ]);
+        $this->assertDatabaseHas('suppliers', [
+            'id' => $second->id,
+            'name' => 'Second Supplier Renamed',
+            'ico' => null,
+        ]);
     }
 }

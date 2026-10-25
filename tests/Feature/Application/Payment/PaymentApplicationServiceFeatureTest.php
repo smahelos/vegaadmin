@@ -11,14 +11,11 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PaymentApplicationServiceFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private PaymentApplicationServiceInterface $appService;
 
     protected function setUp(): void

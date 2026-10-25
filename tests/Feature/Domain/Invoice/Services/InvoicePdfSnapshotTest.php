@@ -12,7 +12,6 @@ use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -29,8 +28,6 @@ use Tests\TestCase;
  */
 class InvoicePdfSnapshotTest extends TestCase
 {
-    use RefreshDatabase;
-
     private string $snapshotDir;
 
     protected function setUp(): void

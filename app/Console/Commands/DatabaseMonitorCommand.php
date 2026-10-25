@@ -63,13 +63,7 @@ class DatabaseMonitorCommand extends Command
         $this->info("\n📊 Database Size Analysis:");
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-        $driver = DB::connection()->getDriverName();
-
-        if ($driver === 'mysql') {
-            $this->checkMySQLDatabaseSize($store);
-        } else {
-            $this->checkSQLiteDatabaseSize($store);
-        }
+        $this->checkMySQLDatabaseSize($store);
     }
 
     /**
@@ -139,38 +133,6 @@ class DatabaseMonitorCommand extends Command
     }
 
     /**
-     * Check SQLite database size (simplified)
-     */
-    private function checkSQLiteDatabaseSize($store = false)
-    {
-        // Get table names from SQLite
-        $tables = DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
-
-        $headers = ['Table', 'Rows'];
-        $data = [];
-
-        foreach ($tables as $table) {
-            $count = DB::selectOne("SELECT COUNT(*) as count FROM {$table->name}");
-            $data[] = [
-                $table->name,
-                number_format($count->count),
-            ];
-
-            if ($store) {
-                $this->storeMetric(
-                    'table_rows',
-                    $table->name,
-                    $count->count,
-                    'rows',
-                );
-            }
-        }
-
-        $this->table($headers, $data);
-        $this->info('💾 Database Type: SQLite (size metrics limited)');
-    }
-
-    /**
      * Check index usage and efficiency
      */
     private function checkIndexUsage($store = false)
@@ -179,21 +141,7 @@ class DatabaseMonitorCommand extends Command
 🔍 Index Usage Analysis:');
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-        $driver = DB::connection()->getDriverName();
-
-        if ($driver === 'mysql') {
-            $this->checkMySQLIndexUsage($store);
-        } else {
-            $this->info('📝 Index analysis limited for SQLite');
-            if ($store) {
-                $this->storeMetric(
-                    'index_count',
-                    null,
-                    0,
-                    'indexes',
-                );
-            }
-        }
+        $this->checkMySQLIndexUsage($store);
     }
 
     /**
@@ -262,13 +210,7 @@ class DatabaseMonitorCommand extends Command
         $this->info("\n⚡ Query Performance Analysis:");
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-        $driver = DB::connection()->getDriverName();
-
-        if ($driver === 'mysql') {
-            $this->checkMySQLSlowQueries($store);
-        } else {
-            $this->checkSQLiteQueryPerformance($store);
-        }
+        $this->checkMySQLSlowQueries($store);
     }
 
     /**
@@ -283,15 +225,6 @@ class DatabaseMonitorCommand extends Command
         $this->info('Slow Query Log: ' . ($slowLogStatus->Value === 'ON' ? '✅ Enabled' : '❌ Disabled'));
         $this->info("Long Query Time: {$longQueryTime->Value}s");
 
-        $this->performQueryTests($store);
-    }
-
-    /**
-     * Check SQLite query performance (simplified)
-     */
-    private function checkSQLiteQueryPerformance($store = false)
-    {
-        $this->info('📝 SQLite Query Performance (basic testing):');
         $this->performQueryTests($store);
     }
 
@@ -345,23 +278,7 @@ class DatabaseMonitorCommand extends Command
         $this->info("\n🔗 Connection Analysis:");
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-        $driver = DB::connection()->getDriverName();
-
-        if ($driver === 'mysql') {
-            $this->checkMySQLConnections($store);
-        } else {
-            $this->info('📝 Connection analysis limited for SQLite');
-            $this->info('Current Connection: 1 (SQLite file-based)');
-
-            if ($store) {
-                $this->storeMetric(
-                    'connections_current',
-                    null,
-                    1,
-                    'connections',
-                );
-            }
-        }
+        $this->checkMySQLConnections($store);
     }
 
     /**
@@ -449,20 +366,7 @@ class DatabaseMonitorCommand extends Command
 
             $this->table($headers, $data);
         } catch (\Exception $e) {
-            // Fallback for SQLite - basic user count
-            $this->info('📝 Basic user statistics (view not available):');
-
-            try {
-                $userCount = DB::selectOne('SELECT COUNT(*) as count FROM users');
-                $invoiceCount = DB::selectOne('SELECT COUNT(*) as count FROM invoices');
-                $clientCount = DB::selectOne('SELECT COUNT(*) as count FROM clients');
-
-                $this->info("Total Users: {$userCount->count}");
-                $this->info("Total Invoices: {$invoiceCount->count}");
-                $this->info("Total Clients: {$clientCount->count}");
-            } catch (\Exception $e2) {
-                $this->info('❌ Unable to fetch user statistics: ' . $e2->getMessage());
-            }
+            $this->info('❌ Unable to fetch user statistics: ' . $e->getMessage());
         }
     }
 

@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use Tests\Traits\RefreshDatabaseWithData;
 
 /**
  * Consolidated feature tests for InvoiceService.
@@ -26,7 +25,6 @@ use Tests\Traits\RefreshDatabaseWithData;
 class InvoiceServiceFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use RefreshDatabaseWithData;
 
     private InvoiceService $service;
 
@@ -194,13 +192,6 @@ class InvoiceServiceFeatureTest extends TestCase
     {
         Auth::login($this->user);
         $this->assertFalse($this->service->setInvoiceTemplate(InvoiceId::fromInt(99999), 'modern'));
-    }
-
-    #[Test]
-    public function set_invoice_template_other_users_invoice_authorization_out_of_scope(): void
-    {
-        // Ownership is enforced at application layer (e.g. controller / policy), not inside domain service.
-        $this->markTestIncomplete('Ownership check belongs to application layer; domain service intentionally allows update.');
     }
 
     #[Test]

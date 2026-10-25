@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -49,6 +50,16 @@ class ExceptionHandling
 
             // Generic redirect with translated key from exception
             return back()->withInput()->with('error', __($e->getMessageKey(), $e->getContext()));
+        });
+
+        // A product on invoice lines stays; the user is told why instead of seeing a database error
+        $exceptions->render(function (ProductInUseException $e, $request) {
+            $message = __('products.messages.error_delete_invoices');
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 409);
+            }
+
+            return back()->with('error', $message);
         });
 
         // Authentication failure on invoice routes

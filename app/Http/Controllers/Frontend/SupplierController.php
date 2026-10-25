@@ -363,7 +363,7 @@ class SupplierController extends Controller
             $supplier = $this->partyService->findSupplier($user->id, $id);
             if (! $this->partyService->deleteSupplier($user->id, $supplier->id)) {
                 return redirect()->route('frontend.suppliers', ['locale' => $locale])
-                    ->with('error', __('suppliers.messages.error_delete_invoices'));
+                    ->with('error', __('suppliers.messages.error_delete_documents'));
             }
 
             return redirect()

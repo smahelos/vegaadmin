@@ -4,7 +4,6 @@ namespace Tests\Feature\Domain\Shared\Money;
 
 use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\Traits\UsesDeterministicExchange;
 use Tests\TestCase;
@@ -14,7 +13,6 @@ use Tests\TestCase;
  */
 class DeterministicExchangeFeatureTest extends TestCase
 {
-    use RefreshDatabase;
     use UsesDeterministicExchange;
 
     protected function setUp(): void

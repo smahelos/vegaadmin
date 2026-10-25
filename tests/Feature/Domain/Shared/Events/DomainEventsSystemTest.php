@@ -10,7 +10,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 /**
  * Feature test for Domain Events system.
@@ -22,8 +21,6 @@ use Tests\Traits\RefreshDatabaseWithData;
  */
 class DomainEventsSystemTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     #[Test]
     public function domain_events_facade_can_dispatch_events(): void
     {

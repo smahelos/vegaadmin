@@ -11,7 +11,6 @@ use App\Models\ProductCategory;
 use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +26,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class ProductRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase;
+    use CreatesAdminTestEnvironment;
 
     private User $productUser;
 
@@ -82,6 +81,7 @@ class ProductRequestFeatureTest extends TestCase
             'slug' => 'wireless-headphones',
             'user_id' => $this->productUser->id,
             'price' => 99.99,
+            'currency' => 'CZK',
             'tax_id' => $this->tax->id,
             'supplier_id' => $this->supplier->id,
             'category_id' => $this->category->id,
@@ -103,6 +103,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Minimal Product',
             'user_id' => $this->productUser->id,
             'price' => 10.50,
+            'currency' => 'CZK',
             // All other fields are nullable
         ];
 
@@ -131,6 +132,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'A', // Too short (min 2 characters)
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
@@ -147,6 +149,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => str_repeat('a', 256), // Exceeds max length of 255
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
@@ -164,6 +167,7 @@ class ProductRequestFeatureTest extends TestCase
             'slug' => str_repeat('a', 256), // Exceeds max length of 255
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
@@ -176,16 +180,21 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        $existingProduct = Product::factory()->create(['slug' => 'existing-slug']);
+        Product::factory()->create([
+            'slug' => 'existing-slug',
+            'user_id' => $this->productUser->id,
+        ]);
 
         $invalidData = [
             'name' => 'Valid Product',
-            'slug' => 'existing-slug', // Already exists
+            'slug' => 'existing-slug', // Already exists for this owner
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
+        $request->merge($invalidData);
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
@@ -195,17 +204,21 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $existingProduct = Product::factory()->create(['slug' => 'existing-slug']);
+        $existingProduct = Product::factory()->create([
+            'slug' => 'existing-slug',
+            'user_id' => $this->productUser->id,
+        ]);
 
         $validData = [
             'name' => 'Updated Product',
             'slug' => 'existing-slug', // Same slug for update should be valid
             'user_id' => $this->productUser->id,
             'price' => 15.00,
+            'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
-        $request->merge(['id' => $existingProduct->id]);
+        $request->merge([...$validData, 'id' => $existingProduct->id]);
         $request->setMethod('PUT');
         $routeMock = new class($existingProduct)
         {
@@ -229,6 +242,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => 99999, // Non-existent user
             'price' => 10.00,
+            'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
@@ -245,6 +259,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => $this->productUser->id,
             'price' => -10.00, // Negative price
+            'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
@@ -261,6 +276,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => $this->productUser->id,
             'price' => 'not_a_number',
+            'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
@@ -277,6 +293,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
             'tax_id' => 99999, // Non-existent tax
         ];
 
@@ -294,6 +311,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
             'supplier_id' => 99999, // Non-existent supplier
         ];
 
@@ -311,6 +329,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
             'category_id' => 99999, // Non-existent category
         ];
 
@@ -335,6 +354,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
             'image' => $invalidImage, // Not an image
         ];
 
@@ -355,6 +375,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
             'image' => $oversizedImage, // Too large (max 2048KB)
         ];
 
@@ -375,6 +396,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
             'image' => $validImage,
         ];
 
@@ -391,6 +413,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Valid Product',
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
             'is_default' => false,
         ];
 
@@ -408,6 +431,7 @@ class ProductRequestFeatureTest extends TestCase
             'slug' => null,
             'user_id' => $this->productUser->id,
             'price' => 10.00,
+            'currency' => 'CZK',
             'tax_id' => null,
             'supplier_id' => null,
             'category_id' => null,
@@ -428,6 +452,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Free Product',
             'user_id' => $this->productUser->id,
             'price' => 0, // Zero price should be valid
+            'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
@@ -453,6 +478,7 @@ class ProductRequestFeatureTest extends TestCase
                 'name' => 'Test Product',
                 'user_id' => $this->productUser->id,
                 'price' => 25.99,
+                'currency' => 'CZK',
             ])
             ->assertStatus(200);
     }
@@ -464,6 +490,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Test Product',
             'user_id' => $this->productUser->id,
             'price' => 25.99,
+            'currency' => 'CZK',
         ])
             ->assertStatus(403);
     }
@@ -478,6 +505,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'No Perm Product',
             'user_id' => $this->productUser->id,
             'price' => 9.99,
+            'currency' => 'CZK',
         ])->assertStatus(403);
     }
 
@@ -501,6 +529,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Product One',
             'user_id' => $this->productUser->id,
             'price' => 10,
+            'currency' => 'CZK',
         ])->assertStatus(200);
 
         // Record usage manually (authorize only checks)
@@ -525,6 +554,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Product Two',
             'user_id' => $this->productUser->id,
             'price' => 20,
+            'currency' => 'CZK',
         ]);
         $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
@@ -564,6 +594,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'Updated Product',
             'user_id' => $this->productUser->id,
             'price' => 30,
+            'currency' => 'CZK',
         ]);
         $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-product-id']);
         $request->setMethod('PUT');
@@ -578,6 +609,7 @@ class ProductRequestFeatureTest extends TestCase
             'name' => 'My Cool Product',
             'user_id' => $this->productUser->id,
             'price' => 12.5,
+            'currency' => 'CZK',
         ]);
         $request->prepareForValidation();
         $this->assertEquals('my-cool-product', $request->get('slug'));
