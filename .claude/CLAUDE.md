@@ -35,11 +35,11 @@ Everything PHP runs inside the `BILLEX-app` container (stack in `docker-compose.
 
 ```bash
 docker exec BILLEX-app php artisan test                                  # full suite
-docker exec BILLEX-app php artisan test --parallel                       # paratest
+docker exec BILLEX-app php artisan test --parallel --drop-databases      # paratest, drops invoice_testing_test_N afterwards
 docker exec BILLEX-app php artisan test tests/Unit/Domain/Payment/       # directory
 docker exec BILLEX-app php artisan test --filter=InvoiceRequestTest      # single test/class
 docker exec BILLEX-app php artisan ddd:guard                             # architecture guard
-docker exec BILLEX-app php artisan db:seed --class=DemoDataSeeder        # demo user demo@billex.test / backpack, recreated on every run
+docker exec BILLEX-app php artisan migrate:fresh --seed                  # rebuild the dev DB: reference data + DevelopmentDataSeeder accounts (*@billex.test / backpack)
 docker exec BILLEX-app vendor/bin/phpcbf                                 # multi-line layout (run before Pint)
 docker exec BILLEX-app vendor/bin/pint --dirty                           # format changed files
 docker exec BILLEX-app vendor/bin/phpstan analyse --memory-limit=4G      # Larastan at the level in phpstan.neon

@@ -10,12 +10,12 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 1. ~~Tooling — Pint over the whole codebase in one commit, Larastan in CI, before the large rewrites so that their diffs stay clean.~~ Done 2026-10-23 (branch `ls-tooling`): Pint and PHP_CodeSniffer over the whole codebase, Larastan at level 1, all three in CI; raising the level is "Larastan level" below.
 2. ~~Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".~~ Done 2026-10-24 (branch `ls-security`); found on the way: "Cron tasks are not fully gated by permissions", "Admin access middleware logs every request".
-3. "Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.
+3. ~~"Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.~~ Done 2026-10-25 (branch `ls-mysql-tests`): migrations squashed by context, reference data in `ReferenceDataSeeder`, the suite runs on MySQL locally and in CI.
 4. "Domain events are published inside the transaction" with "No queue worker" — the issued-invoice work publishes its events on top of it; both deliver work outside the request, and the queue's `after_commit` is set there.
 
 **B. Invoices**
 
-5. What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Status enum lists factory slugs and English labels".
+5. What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".
 6. "Rename IČO and DIČ to `company_number` and `vat_number`" with "Compose `PrintableInvoiceData` from `PartyPrintData`" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
 7. "Issued invoices can be changed and deleted", with "Validate the variable symbol in QR payments" (numbering at issue is decided there).
 8. "Currency conversion of invoice items happens in the browser" (ČNB rates) with "Resilience of external calls".
@@ -67,10 +67,10 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** the renderer never passes the invoice's payment method, so these two templates print the fallback "Bankovní převod" on every invoice, cash and card included. The default template looks the method up itself. An invoice is a legal document.
 - **Fix:** pass the payment method label in the print data (`PrintableInvoiceData`) and let all templates print it; extend the PDF snapshot test with a non-transfer method.
 
-### Status enum lists factory slugs and English labels
+### Statuses are looked up by string slugs and labelled in English
 - **Where:** `app/Domain/Shared/Status/ValueObjects/StatusCode.php`, `StatusService::translateSlug()`, `App\Models\Status::getTranslatedNameAttribute()`
-- **Problem:** the enum holds slugs that only test factories create (`paid-status`, `pending-payment`, `cancelled-status`) and `unpaid`, which no status row has; `StatusService` refuses to start when a database lacks any enum slug. `label()` returns hardcoded English. The model accessor translates the slug itself instead of going through `translateSlug()`.
-- **Fix:** keep only the system statuses in the enum (seeded by a migration), labels from `statuses.statuses.<slug>`, one resolver used by the model, the invoice mapper and the dashboard.
+- **Problem:** the enum now matches the statuses seeded by `ReferenceDataSeeder`, but code still looks up `unpaid`, which no status row has (`InvoiceStatusApplicationService::markAsUnpaid()`, `EloquentInvoiceRepository::findOverdueForUser()` / `findUnpaidForUser()`, `InvoiceFrontendActionsApplicationService::CHANGEABLE_STATUSES`, which also offers the expense status `draft`). `label()` returns hardcoded English. The model accessor translates the slug itself instead of going through `translateSlug()`.
+- **Fix:** look statuses up through the enum instead of string slugs (`unpaid` → `pending`), labels from `statuses.statuses.<slug>`, one resolver used by the model, the invoice mapper and the dashboard.
 
 ### Compose `PrintableInvoiceData` from `PartyPrintData`
 - **Where:** `app/Domain/Invoice/DTO/PrintableInvoiceData.php`, `app/Domain/Party/DTO/PartyPrintData.php`
@@ -238,11 +238,6 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Where:** `docker-compose.yaml` (`cron` runs only `schedule:work`), `config/queue.php` (`database` by default, `QUEUE_CONNECTION=database` in `.env.example`); queued classes `app/Infrastructure/Notifications/Invoice/Messages/Invoice{Due,UpcomingDue,Overdue}Reminder.php` and `app/Infrastructure/Authorization/Listeners/UELSPermissionChangeListener.php`
 - **Problem:** nothing runs `queue:work`, so queued notifications and listeners stay in the `jobs` table and never run.
 - **Fix:** a `queue` service in `docker-compose.yaml` running `php artisan queue:work` from the app image, restarted on deploy (`queue:restart`). Backend to decide: `database` (the job is written in the same MySQL transaction as the data and shares its backups; enough for Billex's volume) or `redis` (faster, Horizon dashboard; needs its own Redis database or instance with `maxmemory-policy noeviction`, apart from cache and sessions). RabbitMQ only with the first satellite service (`docs/adr/D-043-modular-monolith.md`); jobs written against Laravel Queue and events behind `EventPublisher` let the backend change without touching Domain or Application.
-
-### Run tests on MySQL instead of in-memory SQLite
-- **Where:** `phpunit.xml`, `config/database.php` (`testing` connection), `tests/TestCase.php`, `tests/Traits/RefreshDatabaseWithData.php`, `.github/workflows/*`, SQLite branches in `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentAnalyticsReadRepository.php`, `app/Console/Commands/Database{Optimize,Monitor}Command.php` and 10 migrations (including `2025_07_23_054624_add_basic_foreign_keys_for_testing.php`)
-- **Problem:** the application runs on MySQL, tests on in-memory SQLite. MySQL-specific queries (`DATE_FORMAT`, `STR_TO_DATE`, …) are never tested, SQLite does not enforce strict `sql_mode` or column types, and production code and migrations carry `driver === 'sqlite'` branches that exist only for the tests. `TestCase` resets `RefreshDatabaseState` so that every test migrates all migrations again, and `RefreshDatabaseWithData` runs `migrate:fresh` + seed before every test.
-- **Fix (decided 2026-10-20):** tests run only on MySQL — a separate test database in the existing MySQL container, next to the local development database, and a MySQL service in CI. Squash the migrations into a clean MySQL schema first (no production yet). Migrate and seed once, one transaction per test (`RefreshDatabase`); remove the `TestCase` reset, `RefreshDatabaseWithData` and every SQLite branch; fix tests that rely on fixed IDs or row order. The test user needs `CREATE DATABASE` for `--parallel` (`<database>_test_N`). Pin the dashboard chart queries of `EloquentApiStatisticsRepository` (user scope, date range, clients) against MySQL; until then `StatisticsControllerFeatureTest` runs on `FakeApiStatisticsRepository`.
 
 ### `ddd:guard` snapshot test fails now and then in parallel runs
 - **Where:** `tests/Feature/Console/DddGuardDiJsonSnapshotTest.php`
