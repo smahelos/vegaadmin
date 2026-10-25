@@ -18,6 +18,9 @@ return new class extends Migration
             return;
         }
         $pendingId = DB::table('statuses')->where('slug', 'pending')->value('id');
+        if ($pendingId === null) {
+            throw new RuntimeException('The pending invoice status is missing; overdue invoices would be left without a status.');
+        }
 
         DB::table('invoices')->where('payment_status_id', $overdueId)->update(['payment_status_id' => $pendingId]);
         DB::table('statuses')->where('id', $overdueId)->delete();
