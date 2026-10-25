@@ -87,8 +87,6 @@ class QrPaymentProviderFactory
     /**
      * Auto-detect provider based on payment payload data
      * Priority: 1. IBAN country 2. Currency 3. Default (CZ)
-     *
-     * @param  QrPaymentPayload  $payload  Payment data
      */
     public static function autoDetectProvider(QrPaymentPayload $payload): QrPaymentProviderInterface
     {

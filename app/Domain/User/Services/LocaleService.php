@@ -28,7 +28,6 @@ class LocaleService implements LocaleServiceInterface
      *
      * Priority: request -> data -> session -> fallback.
      *
-     * @param  string|null  $requestLocale  Locale from request
      * @param  string|null  $dataLocale  Locale from stored data (e.g. cached invoice)
      */
     public function determineLocale(?string $requestLocale = null, ?string $dataLocale = null): string
@@ -55,8 +54,6 @@ class LocaleService implements LocaleServiceInterface
     /**
      * Set application locale and update session.
      * Falls back to configured fallback locale when invalid.
-     *
-     * @param  string  $locale  Locale to set
      */
     public function setLocale(string $locale): void
     {

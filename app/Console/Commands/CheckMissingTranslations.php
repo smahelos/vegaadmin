@@ -93,7 +93,6 @@ class CheckMissingTranslations extends Command
      *
      * @param  array  $compare  Reference translations array
      * @param  array  $locale  Translation array to check
-     * @param  string  $file  Current file name
      * @param  string  $prefix  Current key prefix for nested arrays
      */
     protected function checkMissingKeys(

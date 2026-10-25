@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Auth;
 if (! function_exists('backpack_auth')) {
     /**
      * Resolve the configured Backpack auth guard instance.
-     *
-     * @return StatefulGuard|Guard Auth guard for Backpack
      */
     function backpack_auth(): StatefulGuard|Guard
     {
@@ -20,8 +18,6 @@ if (! function_exists('backpack_auth')) {
 if (! function_exists('backpack_guard_name')) {
     /**
      * Determine the guard name used for Backpack (falls back to auth default if unset).
-     *
-     * @return string Guard name
      */
     function backpack_guard_name(): string
     {

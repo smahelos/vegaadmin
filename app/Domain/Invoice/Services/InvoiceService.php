@@ -43,9 +43,6 @@ final class InvoiceService implements InvoiceServiceInterface
 
     /**
      * Set invoice pdf template
-     *
-     * @param  InvoiceId  $id  Invoice ID
-     * @param  string  $template  Template name
      */
     public function setInvoiceTemplate(InvoiceId $id, string $template): bool
     {
@@ -201,7 +198,6 @@ final class InvoiceService implements InvoiceServiceInterface
      * Delete an invoice owned by a user
      *
      * @param  UserId  $userId  Owner user id
-     * @param  InvoiceId  $invoiceId  Invoice id
      */
     public function deleteInvoice(UserId $userId, InvoiceId $invoiceId): void
     {
@@ -229,7 +225,6 @@ final class InvoiceService implements InvoiceServiceInterface
      * Change invoice status
      *
      * @param  UserId  $userId  Owner user id
-     * @param  InvoiceId  $invoiceId  Invoice id
      * @param  int  $statusId  New status id
      */
     public function changeInvoiceStatus(

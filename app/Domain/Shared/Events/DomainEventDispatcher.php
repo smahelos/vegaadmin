@@ -33,7 +33,6 @@ class DomainEventDispatcher
      * Register an event handler for specific event types.
      *
      * @param  string|string[]  $eventTypes  Event class names
-     * @param  DomainEventHandler  $handler  Handler instance
      */
     public function register(string|array $eventTypes, DomainEventHandler $handler): void
     {

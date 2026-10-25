@@ -90,7 +90,6 @@ trait HasFileUploads
     /**
      * Get URL for file attribute or specific file from an array attribute
      *
-     * @param  string  $attribute  Name of the attribute
      * @param  int|null  $index  Index if the attribute is an array
      * @param  string  $disk  Storage disk
      */

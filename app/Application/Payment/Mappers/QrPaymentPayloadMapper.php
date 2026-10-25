@@ -69,7 +69,6 @@ class QrPaymentPayloadMapper
      * Safely get property from object or array without triggering errors
      *
      * @param  mixed  $object  Invoice object or array
-     * @param  string  $property  Property name
      * @return mixed Property value or null
      */
     private function safeGetProperty(mixed $object, string $property): mixed

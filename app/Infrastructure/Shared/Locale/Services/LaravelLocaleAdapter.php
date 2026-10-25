@@ -49,8 +49,6 @@ class LaravelLocaleAdapter implements Locale
 
     /**
      * Set application locale.
-     *
-     * @param  string  $locale  Locale to set
      */
     public function setLocale(string $locale): void
     {

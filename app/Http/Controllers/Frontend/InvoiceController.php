@@ -276,7 +276,6 @@ class InvoiceController extends Controller
      * Set invoice pdf template
      *
      * @param  int  $id  Invoice ID
-     * @param  string  $template  Template name
      */
     public function setTemplate(
         string $locale,
