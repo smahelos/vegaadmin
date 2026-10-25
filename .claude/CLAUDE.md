@@ -31,7 +31,7 @@ Reference material lives in `.claude/references/` and is read when a rule points
 
 ## Running commands
 
-Everything PHP runs inside the `BILLEX-app` container (stack in `docker-compose.yaml`: app/php-fpm, nginx, MySQL, Redis, MailHog, phpMyAdmin, cron). The host `php` / `./php` wrappers exec into other containers; never use them.
+Everything PHP runs inside the `BILLEX-app` container (stack in `docker-compose.yaml`: app/php-fpm, nginx, MySQL, Redis, MailHog, phpMyAdmin, cron, queue). The host `php` / `./php` wrappers exec into other containers; never use them.
 
 ```bash
 docker exec BILLEX-app php artisan test                                  # full suite
@@ -45,7 +45,7 @@ docker exec BILLEX-app vendor/bin/pint --dirty                           # forma
 docker exec BILLEX-app vendor/bin/phpstan analyse --memory-limit=4G      # Larastan at the level in phpstan.neon
 ```
 
-- `app` and `cron` bind-mount the project (`./:/var/www`): code changes apply immediately, `vendor/` comes from the host (`docker exec BILLEX-app composer install` after `composer.lock` changes). Rebuild (`docker compose up -d --build app cron`) only after changing `app.dockerfile` or the `WWW_UID`/`WWW_GID` build args in `.env`. `cron` runs `php artisan schedule:work` from the same image. `public/storage` stays a relative symlink (`../storage/app/public`).
+- `app`, `cron` and `queue` bind-mount the project (`./:/var/www`): code changes apply immediately, `vendor/` comes from the host (`docker exec BILLEX-app composer install` after `composer.lock` changes). Rebuild (`docker compose up -d --build app cron queue`) only after changing `app.dockerfile` or the `WWW_UID`/`WWW_GID` build args in `.env`. `cron` runs `php artisan schedule:work` and `queue` runs `php artisan queue:work` from the same image; the worker keeps the code in memory, so after a change to code a job or listener runs, `docker exec BILLEX-app php artisan queue:restart`. `public/storage` stays a relative symlink (`../storage/app/public`).
 - PHPUnit 11: `-v` / `--verbose` fail with `Unknown option`.
 - Frontend assets: `npm run dev` / `npm run build` (Vite, `vite.config.js`).
 

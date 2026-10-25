@@ -142,6 +142,27 @@ services:
         networks:
             - billex-network
 
+    # Queue worker: same image, user and storage as app; keeps the code in memory, so code changes need
+    # `php artisan queue:restart` (the worker exits after its current job and Docker starts it again)
+    queue:
+        image: billex-app
+        container_name: "${CONTAINER_PREFIX}-queue"
+        user: 'www-data:www-data'
+        working_dir: /var/www
+        command: php artisan queue:work --tries=3
+        restart: unless-stopped
+        volumes:
+            - ./:/var/www
+            - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+            - /etc/timezone:/etc/timezone:ro
+            - /etc/localtime:/etc/localtime:ro
+        depends_on:
+            - app
+            - database
+            - redis
+        networks:
+            - billex-network
+
 # Custom network
 networks:
     billex-network:
