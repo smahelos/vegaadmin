@@ -11,7 +11,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 1. ~~Tooling — Pint over the whole codebase in one commit, Larastan in CI, before the large rewrites so that their diffs stay clean.~~ Done 2026-10-23 (branch `ls-tooling`): Pint and PHP_CodeSniffer over the whole codebase, Larastan at level 1, all three in CI; raising the level is "Larastan level" below.
 2. Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".
 3. "Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.
-4. "Domain events are published inside the transaction" — the issued-invoice work publishes its events on top of it.
+4. "Domain events are published inside the transaction" with "No queue worker" — the issued-invoice work publishes its events on top of it; both deliver work outside the request, and the queue's `after_commit` is set there.
 
 **B. Invoices**
 
@@ -235,6 +235,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Where:** `app/Infrastructure/Shared/Events/LaravelEventPublisher.php`; `InvoiceService::createInvoice()` (`InvoiceCreated`, inside the transaction of `InvoiceCrudApplicationService`), `ProductService` and `InvoicePartyService` (`ProductCreated`, `ClientCreated`, `SupplierCreated`, inside the `DB::transaction()` of `ProductApplicationService` and `PartyApplicationService`), the Eloquent observers (`UserDataChanged`, `FormDataChanged` on every save)
 - **Problem:** `rules/application.md` publishes events after the commit; `LaravelEventPublisher` dispatches at once, so handlers run inside the transaction. Effects outside the database (cache, mail, queued jobs; `config/queue.php` has `after_commit` off) stay when it rolls back, and a cache cleared before the commit can be filled again with the old data by a concurrent request. Handlers that write to the same database (UELS usage counters) roll back with it.
 - **Fix (decided 2026-10-23, own branch):** the publisher defers dispatching until the surrounding transaction commits (`afterCommit()` of the connection in the Infrastructure adapter; outside a transaction it dispatches at once), which covers the observers too; reword `rules/application.md` to "domain events are delivered after the commit". Test that a rolled-back use case dispatches nothing.
+
+### No queue worker
+- **Where:** `docker-compose.yaml` (`cron` runs only `schedule:work`), `config/queue.php` (`database` by default, `QUEUE_CONNECTION=database` in `.env.example`); queued classes `app/Infrastructure/Notifications/Invoice/Messages/Invoice{Due,UpcomingDue,Overdue}Reminder.php` and `app/Infrastructure/Authorization/Listeners/UELSPermissionChangeListener.php`
+- **Problem:** nothing runs `queue:work`, so queued notifications and listeners stay in the `jobs` table and never run.
+- **Fix:** a `queue` service in `docker-compose.yaml` running `php artisan queue:work` from the app image, restarted on deploy (`queue:restart`). Backend to decide: `database` (the job is written in the same MySQL transaction as the data and shares its backups; enough for Billex's volume) or `redis` (faster, Horizon dashboard; needs its own Redis database or instance with `maxmemory-policy noeviction`, apart from cache and sessions). RabbitMQ only with the first satellite service (`docs/adr/D-043-modular-monolith.md`); jobs written against Laravel Queue and events behind `EventPublisher` let the backend change without touching Domain or Application.
 
 ### Run tests on MySQL instead of in-memory SQLite
 - **Where:** `phpunit.xml`, `config/database.php` (`testing` connection), `tests/TestCase.php`, `tests/Traits/RefreshDatabaseWithData.php`, `.github/workflows/*`, SQLite branches in `app/Infrastructure/Persistence/Eloquent/Analytics/Repositories/EloquentAnalyticsReadRepository.php`, `app/Console/Commands/Database{Optimize,Monitor}Command.php` and 10 migrations (including `2025_07_23_054624_add_basic_foreign_keys_for_testing.php`)
