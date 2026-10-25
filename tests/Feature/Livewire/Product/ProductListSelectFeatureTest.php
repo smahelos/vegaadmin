@@ -498,4 +498,32 @@ class ProductListSelectFeatureTest extends TestCase
         $products = $component->instance()->render()->getData()['products'];
         $this->assertCount(6, $products->items()); // Remaining 6 products on page 2
     }
+
+    #[Test]
+    public function select_product_does_not_reveal_another_users_product(): void
+    {
+        $foreign = Product::factory()->create(['user_id' => User::factory()->create()->id]);
+
+        Livewire::test(ProductListSelect::class)
+            ->call('selectProduct', $foreign->id)
+            ->assertNotDispatched('product-selected')
+            ->assertNotDispatched('closeModal');
+    }
+
+    #[Test]
+    public function lists_only_the_signed_in_users_products(): void
+    {
+        Product::factory()->create([
+            'user_id' => $this->user->id,
+            'name' => 'Own Product ' . uniqid(),
+        ]);
+        Product::factory()->create([
+            'user_id' => User::factory()->create()->id,
+            'name' => 'Foreign Product ' . uniqid(),
+        ]);
+
+        Livewire::test(ProductListSelect::class)
+            ->assertSee('Own Product')
+            ->assertDontSee('Foreign Product');
+    }
 }

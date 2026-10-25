@@ -131,8 +131,7 @@ class ProductListSelect extends Component
     public function selectProduct(int $id): bool
     {
         try {
-            // Explicitly load product including tax relation
-            $product = Product::findOrFail($id);
+            $product = Product::where('user_id', Auth::id())->findOrFail($id);
 
             // Manually load tax to ensure its availability
             if ($product->tax_id) {
@@ -193,14 +192,11 @@ class ProductListSelect extends Component
     public function render(): View
     {
         try {
-            $user = Auth::user();
             $searchTerm = $this->search;
 
             // Explicit preloading of tax rates
             $query = Product::with(['tax'])
-                ->when($user, function ($query) use ($user) {
-                    return $query->where('user_id', $user->id);
-                })
+                ->where('user_id', Auth::id())
                 ->when($searchTerm, function ($query) use ($searchTerm) {
                     $query->where(function ($q) use ($searchTerm) {
                         $q->where(
