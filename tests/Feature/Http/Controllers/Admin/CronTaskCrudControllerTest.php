@@ -4,9 +4,11 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use App\Models\CronTask;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -173,6 +175,24 @@ class CronTaskCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack')
             ->get('/admin/cron-task/' . $task->id . '/run')
             ->assertMethodNotAllowed();
+
+        $this->assertNull($task->fresh()->last_run);
+    }
+
+    #[Test]
+    public function run_requires_the_cron_task_permission(): void
+    {
+        $task = CronTask::factory()->create([
+            'command' => 'inspire',
+            'last_run' => null,
+        ]);
+        $user = User::factory()->create();
+        $user->assignRole(Role::findByName('backend_user', 'backpack'));
+        $user->givePermissionTo(Permission::findByName('backpack.access', 'backpack'));
+
+        $this->actingAs($user, 'backpack')
+            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
+            ->assertForbidden();
 
         $this->assertNull($task->fresh()->last_run);
     }

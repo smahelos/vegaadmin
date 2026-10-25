@@ -1,4 +1,4 @@
-@if ($crud->hasAccess('update'))
+@if (backpack_user()->can('can_create_edit_cron_task'))
     <form method="POST" action="{{ route('admin.cron-tasks.run', ['id' => $entry->getKey()]) }}" class="d-inline">
         @csrf
         <button type="submit"

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use App\Http\Requests\Admin\CronTaskRequest;
+use App\Http\Requests\Admin\RunCronTaskRequest;
 use App\Models\CronTask;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
@@ -13,7 +14,9 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Prologue\Alerts\Facades\Alert;
+use Throwable;
 
 class CronTaskCrudController extends CrudController
 {
@@ -251,15 +254,25 @@ class CronTaskCrudController extends CrudController
         });
     }
 
-    public function run(int $id): RedirectResponse
+    public function run(RunCronTaskRequest $request, int $id): RedirectResponse
     {
         $task = CronTask::findOrFail($id);
 
-        // The task stores its error in last_output and reports failure as false
-        if ($task->simulateRun() === false) {
-            Alert::error(__('cron_tasks.messages.execution_failed'))->flash();
-        } else {
+        try {
+            // The task stores an exception in last_output and reports it as false; only an Error escapes
+            $succeeded = $task->simulateRun() !== false;
+        } catch (Throwable $e) {
+            Log::error('Cron task run failed', [
+                'cronTaskId' => $id,
+                'exception' => $e,
+            ]);
+            $succeeded = false;
+        }
+
+        if ($succeeded) {
             Alert::success(__('cron_tasks.messages.task_executed'))->flash();
+        } else {
+            Alert::error(__('cron_tasks.messages.execution_failed'))->flash();
         }
 
         return redirect()->back();

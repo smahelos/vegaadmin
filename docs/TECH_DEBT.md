@@ -9,7 +9,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 **A. Foundations**
 
 1. ~~Tooling — Pint over the whole codebase in one commit, Larastan in CI, before the large rewrites so that their diffs stay clean.~~ Done 2026-10-23 (branch `ls-tooling`): Pint and PHP_CodeSniffer over the whole codebase, Larastan at level 1, all three in CI; raising the level is "Larastan level" below.
-2. ~~Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".~~ Done 2026-10-24 (branch `ls-security`); found on the way: "Cron tasks run any command without a permission check", "Admin access middleware logs every request".
+2. ~~Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".~~ Done 2026-10-24 (branch `ls-security`); found on the way: "Cron tasks are not fully gated by permissions", "Admin access middleware logs every request".
 3. "Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.
 4. "Domain events are published inside the transaction" with "No queue worker" — the issued-invoice work publishes its events on top of it; both deliver work outside the request, and the queue's `after_commit` is set there.
 
@@ -44,10 +44,10 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** the route is not excluded from CSRF, so an external notification most likely ends with 419 (to verify); the whole request payload is logged.
 - **Fix:** CSRF exception, gateway-verified handling as in `rules/payments.md`, log only the payment id.
 
-### Cron tasks run any command without a permission check
-- **Where:** `app/Http/Controllers/Admin/CronTaskCrudController.php` (no `allowAccess()` / `denyAccess()`, `run()` without a check), `app/Models/CronTask.php::simulateRun()`
-- **Problem:** every admin user, `backend_user` without permissions included, can create, edit and run cron tasks; a task's command is an Artisan command or any `Class::method`, resolved from the container and called. `simulateRun()` swallows the exception and returns `false`.
-- **Fix:** gate the CRUD operations and the run action by `can_*_cron_task` permissions (`permissions.md`), allow only scheduled Artisan commands from a list, move running into an application service that throws on failure.
+### Cron tasks are not fully gated by permissions
+- **Where:** `app/Http/Controllers/Admin/CronTaskCrudController.php` (no `allowAccess()` / `denyAccess()`), `app/Models/CronTask.php::simulateRun()`
+- **Problem:** saving and running a task check `can_create_edit_cron_task`, but every admin user, `backend_user` without permissions included, can list, show and delete tasks. A task's command is an Artisan command or any `Class::method`, resolved from the container and called. `simulateRun()` swallows exceptions and returns `false`.
+- **Fix:** gate every CRUD operation by its `can_*_cron_task` permission (`permissions.md`, with "Permission naming"), allow only scheduled Artisan commands from a list, move running into an application service that throws on failure.
 
 ### Admin access middleware logs every request
 - **Where:** `app/Http/Middleware/RequireBackpackAccess.php`
