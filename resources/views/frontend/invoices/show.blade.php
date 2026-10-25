@@ -106,7 +106,7 @@
                                 <div class="text-xs text-gray-500 dark:text-gray-400">{{ __('invoices.fields.due_date')
                                     }}</div>
                                 <div class="font-medium dark:text-white">{{
-                                    \Carbon\Carbon::parse($invoice->issue_date)->addDays((int)$invoice->due_in)->format(\App\Infrastructure\Shared\Support\DateHelper::format())
+                                    $invoice->due_date->format(\App\Infrastructure\Shared\Support\DateHelper::format())
                                     }}</div>
                             </div>
                         </div>

@@ -3,66 +3,13 @@
 namespace App\Application\Invoice\Contracts;
 
 use App\Application\Invoice\DTO\InvoiceFormDTO;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
-use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 
 /**
  * Contract for invoice form-related application services
  */
 interface InvoiceFormApplicationServiceInterface
 {
-    /**
-     * Get comprehensive form data for invoice creation/editing
-     */
-    public function getFormData(UserId $userId, ?InvoiceId $invoiceId = null): array;
-
-    /**
-     * Prepare form data with defaults and options
-     */
-    public function prepareFormData(UserId $userId, ?InvoiceId $invoiceId = null): array;
-
-    /**
-     * Load default values for new invoice
-     */
-    public function loadDefaults(UserId $userId): array;
-
-    /**
-     * Get select options for form dropdowns
-     */
-    public function getSelectOptions(UserId $userId): array;
-
-    /**
-     * Get available products for user
-     */
-    public function getProducts(UserId $userId): Collection;
-
-    /**
-     * Get available clients for user
-     */
-    public function getClients(UserId $userId): Collection;
-
-    /**
-     * Get available suppliers for user
-     */
-    public function getSuppliers(UserId $userId): Collection;
-
-    /**
-     * Get available banks for user
-     */
-    public function getBanks(UserId $userId): Collection;
-
-    /**
-     * Get available payment methods for user
-     */
-    public function getPaymentMethods(UserId $userId): Collection;
-
-    /**
-     * Get available taxes for user
-     */
-    public function getTaxes(UserId $userId): Collection;
-
     /**
      * Prepare data for invoice creation form (legacy compatibility)
      */

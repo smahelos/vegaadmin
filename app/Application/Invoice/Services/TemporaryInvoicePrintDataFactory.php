@@ -6,6 +6,7 @@ use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\PrintableInvoiceData;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemData;
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
@@ -23,8 +24,10 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
     {
         $currency = strtoupper((string) ($invoiceData['payment_currency'] ?? 'CZK'));
         $issue = $this->toImmutable($invoiceData['issue_date'] ?? null);
-        $dueIn = isset($invoiceData['due_in']) ? (int) $invoiceData['due_in'] : null;
-        $dueDate = $issue && $dueIn !== null ? $issue->modify('+' . (int) $dueIn . ' days') : null;
+        $dueDate = null;
+        if ($issue && isset($invoiceData['due_in'])) {
+            $dueDate = InvoiceDueDate::fromIssueDateAndDays($issue, (int) $invoiceData['due_in']);
+        }
 
         $products = $this->products->fromValidated($invoiceData['invoice-products']);
         $items = array_map(fn (InvoiceProductWriteData $product): PrintableInvoiceItemData => new PrintableInvoiceItemData(
@@ -45,7 +48,6 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
             issue_date: $issue,
             tax_point_date: $this->toImmutable($invoiceData['tax_point_date'] ?? null),
             due_date: $dueDate,
-            due_in: $dueIn,
             currency: $currency,
             template: $invoiceData['template'] ?? 'default',
             invoice_logo: $invoiceData['invoice_logo'] ?? null,

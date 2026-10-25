@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
@@ -13,6 +14,7 @@ use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -285,12 +287,13 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_negative_due_in(): void
+    #[DataProvider('dueInOutOfRange')]
+    public function validation_fails_with_due_in_outside_one_to_maximum_days(int $dueIn): void
     {
         $invalidData = [
             'client_id' => $this->client->id,
             'invoice_vs' => 'INV2024001',
-            'due_in' => 0, // Below minimum of 1
+            'due_in' => $dueIn,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
             'payment_status' => 'pending',
@@ -309,6 +312,17 @@ class InvoiceRequestFeatureTest extends TestCase
 
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('due_in', $validator->errors()->toArray());
+    }
+
+    /**
+     * @return array<string, array{int}>
+     */
+    public static function dueInOutOfRange(): array
+    {
+        return [
+            'zero' => [0],
+            'above maximum' => [InvoiceDueDate::MAX_DAYS + 1],
+        ];
     }
 
     #[Test]

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+
 class InvoiceRequest extends BaseEntityRequest
 {
     /**
@@ -36,7 +38,7 @@ class InvoiceRequest extends BaseEntityRequest
             'invoice_vs' => 'required|string|max:255',
             'invoice_ks' => 'nullable|string|max:255',
             'invoice_ss' => 'nullable|string|max:255',
-            'due_in' => 'required|numeric|min:1',
+            'due_in' => 'required|integer|min:1|max:' . InvoiceDueDate::MAX_DAYS,
             'payment_method_id' => 'required|exists:payment_methods,id',
             'payment_amount' => 'required|numeric|min:0',
             'payment_status' => 'required|string|max:100',

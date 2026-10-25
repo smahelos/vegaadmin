@@ -2,6 +2,7 @@
 
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -19,8 +20,7 @@ class PrintableInvoiceData
         public readonly ?string $number,
         public readonly ?\DateTimeImmutable $issue_date,
         public readonly ?\DateTimeImmutable $tax_point_date,
-        public readonly ?\DateTimeImmutable $due_date,
-        public readonly ?int $due_in,
+        public readonly ?InvoiceDueDate $due_date,
         public readonly string $currency,
         public readonly ?string $template,
         public readonly ?string $invoice_logo,

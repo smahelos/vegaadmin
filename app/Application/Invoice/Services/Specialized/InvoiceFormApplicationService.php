@@ -9,10 +9,8 @@ use App\Application\Invoice\DTO\InvoiceFormDTO;
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
 use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 use App\Application\Product\Contracts\InvoiceProductReadRepositoryInterface;
-use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Application\Shared\Form\DTO\FieldSetDTO;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Payment\Contracts\BankServiceInterface;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
@@ -22,7 +20,6 @@ use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -32,7 +29,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
 {
     public function __construct(
         private UserReadRepositoryInterface $userReadRepository,
-        private ProductApplicationServiceInterface $productApplicationService,
         private InvoiceProductReadRepositoryInterface $productReadRepository,
         private PartyApplicationServiceInterface $partyApplicationService,
         private BankServiceInterface $bankService,
@@ -43,158 +39,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         private InvoiceLimitApplicationServiceInterface $invoiceLimitService,
         private InvoiceServiceInterface $invoiceService,
     ) {}
-
-    /**
-     * Get comprehensive form data for invoice creation/editing
-     */
-    public function getFormData(UserId $userId, ?InvoiceId $invoiceId = null): array
-    {
-        $userIdInt = $userId->toInt();
-
-        $formData = [
-            'products' => $this->getProducts($userId),
-            'clients' => $this->getClients($userId),
-            'suppliers' => $this->getSuppliers($userId),
-            'banks' => $this->getBanks($userId),
-            'paymentMethods' => $this->getPaymentMethods($userId),
-            'taxes' => $this->getTaxes($userId),
-            'defaults' => $this->loadDefaults($userId),
-        ];
-
-        // If editing existing invoice, load its data
-        if ($invoiceId) {
-            $invoice = $this->invoiceReadRepository->findById($invoiceId->getValue());
-            $formData['invoice'] = $invoice;
-        }
-
-        return $formData;
-    }
-
-    /**
-     * Prepare form data with defaults and options
-     */
-    public function prepareFormData(UserId $userId, ?InvoiceId $invoiceId = null): array
-    {
-        $formData = $this->getFormData($userId, $invoiceId);
-
-        // Add additional preparation logic here
-        $formData['selectOptions'] = $this->getSelectOptions($userId);
-
-        return $formData;
-    }
-
-    /**
-     * Load default values for new invoice
-     */
-    public function loadDefaults(UserId $userId): array
-    {
-        $user = $this->userReadRepository->findUserById($userId);
-        $userIdInt = $userId->toInt();
-
-        return [
-            'currency' => 'CZK',
-            'language' => 'cs',
-            'due_date_days' => 14,
-            'invoice_number' => $this->generateNextInvoiceNumber($userIdInt),
-            'issue_date' => now()->format('Y-m-d'),
-            'due_date' => now()->addDays(14)->format('Y-m-d'),
-        ];
-    }
-
-    /**
-     * Get select options for form dropdowns
-     */
-    public function getSelectOptions(UserId $userId): array
-    {
-        $userIdInt = $userId->toInt();
-
-        return [
-            'products' => $this->productApplicationService->getProductsDropdown($userIdInt),
-            'clients' => $this->partyApplicationService->clientOptions($userIdInt),
-            'suppliers' => $this->partyApplicationService->supplierOptions($userIdInt),
-            'banks' => $this->bankService->getBanksForDropdown(),
-            'paymentMethods' => $this->getPaymentMethodsOptions(),
-            'taxes' => $this->getTaxesOptions(),
-        ];
-    }
-
-    /**
-     * Get available products for user
-     */
-    public function getProducts(UserId $userId): Collection
-    {
-        $userIdInt = $userId->toInt();
-
-        return $this->productApplicationService->listProducts($userIdInt);
-    }
-
-    /**
-     * Get available clients for user
-     */
-    public function getClients(UserId $userId): Collection
-    {
-        $userIdInt = $userId->toInt();
-        $clients = $this->partyApplicationService->clientOptions($userIdInt);
-
-        return collect($clients);
-    }
-
-    /**
-     * Get available suppliers for user
-     */
-    public function getSuppliers(UserId $userId): Collection
-    {
-        $userIdInt = $userId->toInt();
-        $suppliers = $this->partyApplicationService->supplierOptions($userIdInt);
-
-        return collect($suppliers);
-    }
-
-    /**
-     * Get available banks for user
-     */
-    public function getBanks(UserId $userId): Collection
-    {
-        $banks = $this->bankService->getBanksForDropdown();
-
-        return collect($banks);
-    }
-
-    /**
-     * Get available payment methods for user
-     */
-    public function getPaymentMethods(UserId $userId): Collection
-    {
-        $paymentMethods = $this->paymentMethodRepository->all();
-
-        return collect($paymentMethods);
-    }
-
-    /**
-     * Get available taxes for user
-     */
-    public function getTaxes(UserId $userId): Collection
-    {
-        $taxes = $this->taxRepository->getAllTaxes();
-
-        return collect($taxes);
-    }
-
-    /**
-     * Get payment methods options for dropdown
-     */
-    private function getPaymentMethodsOptions(): array
-    {
-        return $this->paymentMethodRepository->getAllForDropdown();
-    }
-
-    /**
-     * Get taxes options for dropdown
-     */
-    private function getTaxesOptions(): array
-    {
-        return $this->taxRepository->getAllTaxesForSelect();
-    }
 
     /**
      * Generate next invoice number for user

@@ -102,7 +102,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {{
-                        \Carbon\Carbon::parse($invoice->issue_date)->addDays((int)$invoice->due_in)->format(\App\Infrastructure\Shared\Support\DateHelper::format())
+                        $invoice->due_date->format(\App\Infrastructure\Shared\Support\DateHelper::format())
                         }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">

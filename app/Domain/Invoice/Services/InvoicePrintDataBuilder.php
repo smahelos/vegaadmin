@@ -6,6 +6,7 @@ use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\PrintableInvoiceData;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemData;
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
 use App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface;
 use App\Domain\Party\ValueObjects\PartyId;
@@ -32,7 +33,7 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         // Compute dates
         $issue = $this->toImmutableDate($invoice->issue_date);
         $taxPoint = $this->toImmutableDate($invoice->tax_point_date);
-        $due = $this->computeDueDate($issue, $invoice->due_in);
+        $due = $this->dueDate($issue, $invoice->due_in);
 
         // Items: expect array items with name, quantity, unit, price, tax_rate, tax_amount, total_price
         $items = [];
@@ -69,7 +70,6 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
             issue_date: $issue,
             tax_point_date: $taxPoint,
             due_date: $due,
-            due_in: $invoice->due_in,
             currency: strtoupper($invoice->currency ?? 'CZK'),
             template: $invoice->template,
             invoice_logo: $invoice->logo,
@@ -130,12 +130,12 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         }
     }
 
-    private function computeDueDate(?\DateTimeImmutable $issue, ?int $dueIn): ?\DateTimeImmutable
+    private function dueDate(?\DateTimeImmutable $issue, ?int $dueIn): ?InvoiceDueDate
     {
         if (! $issue || $dueIn === null) {
             return null;
         }
 
-        return $issue->modify('+' . (int) $dueIn . ' days');
+        return InvoiceDueDate::fromIssueDateAndDays($issue, $dueIn);
     }
 }

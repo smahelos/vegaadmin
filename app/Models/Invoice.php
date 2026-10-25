@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -238,18 +239,16 @@ class Invoice extends Model
         return $colorMap[$slug] ?? 'gray';
     }
 
-    /**
-     * Calculate due date based on issue date and due days
-     *
-     * @return Carbon|null
-     */
-    public function getDueDateAttribute()
+    protected function dueDate(): Attribute
     {
-        if ($this->issue_date && $this->due_in) {
-            return Carbon::parse($this->issue_date)->addDays($this->due_in);
-        }
+        return Attribute::get(function (): ?CarbonImmutable {
+            if ($this->issue_date === null || $this->due_in === null) {
+                return null;
+            }
+            $dueDate = InvoiceDueDate::fromIssueDateAndDays($this->issue_date->toDateTimeImmutable(), $this->due_in);
 
-        return null;
+            return CarbonImmutable::instance($dueDate->date());
+        });
     }
 
     /*

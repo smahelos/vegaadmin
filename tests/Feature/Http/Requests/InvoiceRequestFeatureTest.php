@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests;
 
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Http\Requests\InvoiceRequest;
 use App\Models\Client;
@@ -316,12 +317,13 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_zero_or_negative_due_in()
+    public function validation_fails_with_due_in_outside_one_to_maximum_days()
     {
         $invalidValues = [
             0,
             -1,
             -10,
+            InvoiceDueDate::MAX_DAYS + 1,
         ];
 
         foreach ($invalidValues as $value) {

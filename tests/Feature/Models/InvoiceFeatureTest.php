@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -263,47 +262,25 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_due_date_attribute_calculates_from_issue_date_and_due_in(): void
+    public function due_date_is_the_issue_date_plus_due_days(): void
     {
-        $issueDate = Carbon::parse('2025-01-01');
         $invoice = Invoice::factory()->create([
-            'issue_date' => $issueDate,
+            'issue_date' => '2025-01-01',
             'due_in' => 30,
         ]);
 
-        $dueDate = $invoice->getDueDateAttribute();
-
-        $this->assertInstanceOf(Carbon::class, $dueDate);
-        $this->assertEquals('2025-01-31', $dueDate->format('Y-m-d'));
+        $this->assertSame('2025-01-31', $invoice->due_date->format('Y-m-d'));
     }
 
     #[Test]
-    public function get_due_date_attribute_returns_null_when_due_in_is_zero(): void
+    public function due_date_is_the_issue_date_with_zero_due_days(): void
     {
-        // Create invoice with due_in = 0 (falsy value)
-        $client = Client::factory()->create();
-        $user = User::factory()->create();
-        $supplier = Supplier::factory()->create();
-        $status = Status::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-
-        $invoice = Invoice::create([
-            'invoice_vs' => 'INV-TEST',
-            'issue_date' => now(),
-            'tax_point_date' => now(),
-            'due_in' => 0, // Falsy value
-            'client_id' => $client->id,
-            'user_id' => $user->id,
-            'supplier_id' => $supplier->id,
-            'payment_status_id' => $status->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_amount' => 1000,
-            'payment_currency' => 'USD',
+        $invoice = Invoice::factory()->create([
+            'issue_date' => '2025-01-01',
+            'due_in' => 0,
         ]);
 
-        $dueDate = $invoice->getDueDateAttribute();
-
-        $this->assertNull($dueDate);
+        $this->assertSame('2025-01-01', $invoice->due_date->format('Y-m-d'));
     }
 
     #[Test]
