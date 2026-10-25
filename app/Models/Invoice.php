@@ -10,7 +10,6 @@ use App\Domain\Shared\Money\ValueObjects\Money;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -54,31 +53,6 @@ class Invoice extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
-    /**
-     * Many-to-many relationship with clients
-     */
-    public function clients()
-    {
-        return $this->belongsToMany('App\Models\Client', 'clients');
-    }
-
-    /**
-     * Many-to-many relationship with suppliers
-     */
-    public function suppliers()
-    {
-        return $this->belongsToMany('App\Models\Supplier', 'suppliers');
-    }
-
-    /**
-     * Many-to-many relationship with statuses
-     */
-    public function statuses()
-    {
-        return $this->belongsToMany('App\Models\Status', 'statuses')
-            ->withPivot('name', 'slug');
-    }
-
     /**
      * Get the client associated with the invoice
      */
@@ -156,24 +130,6 @@ class Invoice extends Model
     | FUNCTIONS
     |--------------------------------------------------------------------------
     */
-    /**
-     * Legacy alias for backward compatibility with code using paymentMethods()
-     *
-     * @return Collection
-     */
-    public function paymentMethods()
-    {
-        if ($this->relationLoaded('paymentMethod') && $this->paymentMethod) {
-            return collect([$this->paymentMethod]);
-        } elseif ($this->payment_method_id) {
-            $paymentMethod = $this->paymentMethod()->first();
-
-            return collect([$paymentMethod]);
-        }
-
-        return collect([]);
-    }
-
     /**
      * Get translated payment status name
      *

@@ -15,7 +15,6 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -85,33 +84,6 @@ class InvoiceFeatureTest extends TestCase
         $relation = $invoice->paymentStatus();
         $this->assertInstanceOf(BelongsTo::class, $relation);
         $this->assertEquals($status->id, $invoice->paymentStatus->id);
-    }
-
-    #[Test]
-    public function it_belongs_to_many_clients(): void
-    {
-        $invoice = Invoice::factory()->create();
-
-        $relation = $invoice->clients();
-        $this->assertInstanceOf(BelongsToMany::class, $relation);
-    }
-
-    #[Test]
-    public function it_belongs_to_many_suppliers(): void
-    {
-        $invoice = Invoice::factory()->create();
-
-        $relation = $invoice->suppliers();
-        $this->assertInstanceOf(BelongsToMany::class, $relation);
-    }
-
-    #[Test]
-    public function it_belongs_to_many_statuses(): void
-    {
-        $invoice = Invoice::factory()->create();
-
-        $relation = $invoice->statuses();
-        $this->assertInstanceOf(BelongsToMany::class, $relation);
     }
 
     #[Test]
@@ -307,30 +279,6 @@ class InvoiceFeatureTest extends TestCase
         $supplierName = $invoice->supplier_name;
 
         $this->assertIsString($supplierName);
-    }
-
-    #[Test]
-    public function payment_methods_legacy_method_returns_collection(): void
-    {
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $invoice = Invoice::factory()->create(['payment_method_id' => $paymentMethod->id]);
-
-        $paymentMethods = $invoice->paymentMethods();
-
-        $this->assertInstanceOf(Collection::class, $paymentMethods);
-        $this->assertCount(1, $paymentMethods);
-        $this->assertEquals($paymentMethod->id, $paymentMethods->first()->id);
-    }
-
-    #[Test]
-    public function payment_methods_legacy_method_returns_empty_collection_when_no_payment_method(): void
-    {
-        $invoice = Invoice::factory()->create(['payment_method_id' => null]);
-
-        $paymentMethods = $invoice->paymentMethods();
-
-        $this->assertInstanceOf(Collection::class, $paymentMethods);
-        $this->assertCount(0, $paymentMethods);
     }
 
     #[Test]
