@@ -23,11 +23,6 @@ final class ProductId
         return $this->value;
     }
 
-    public function equals(ProductId $other): bool
-    {
-        return $this->value === $other->value;
-    }
-
     public function __toString(): string
     {
         return (string) $this->value;

@@ -41,16 +41,6 @@ final class ProductNameTest extends TestCase
     }
 
     #[Test]
-    public function equality_checks(): void
-    {
-        $a = new ProductName('Same');
-        $b = new ProductName('Same');
-        $c = new ProductName('Diff');
-        $this->assertTrue($a->equals($b));
-        $this->assertFalse($a->equals($c));
-    }
-
-    #[Test]
     public function max_length_allowed(): void
     {
         $max = str_repeat('a', 255);

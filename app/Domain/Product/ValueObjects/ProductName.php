@@ -51,12 +51,4 @@ class ProductName
     {
         return new self($value);
     }
-
-    /**
-     * Check if equals to another ProductName
-     */
-    public function equals(ProductName $other): bool
-    {
-        return $this->value === $other->value;
-    }
 }

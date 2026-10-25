@@ -109,20 +109,4 @@ class ProductService implements ProductServiceInterface
     {
         return $this->productReadRepository->findByIdForUser($productId, $userId);
     }
-
-    /**
-     * Get default product for user
-     */
-    public function getDefaultProduct(UserId $userId): ?ProductDTO
-    {
-        return $this->productReadRepository->getDefaultProduct($userId);
-    }
-
-    /**
-     * Get user's product count
-     */
-    public function getUserProductCount(UserId $userId): int
-    {
-        return $this->productReadRepository->getUserProductCount($userId);
-    }
 }

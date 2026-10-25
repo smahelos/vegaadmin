@@ -5,8 +5,6 @@ namespace App\Application\Product\Contracts;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Collection;
 
 interface ProductApplicationServiceInterface
 {
@@ -35,16 +33,6 @@ interface ProductApplicationServiceInterface
     public function deleteProduct(int $productId, int $userId): void;
 
     /**
-     * List products with authorization.
-     */
-    public function listProducts(int $userId): Collection;
-
-    /**
-     * Get products for dropdown.
-     */
-    public function getProductsDropdown(int $userId): array;
-
-    /**
      * Check if user can view product (without loading Eloquent model).
      */
     public function authorizeViewProduct(int $userId, int $productId): void;
@@ -60,39 +48,14 @@ interface ProductApplicationServiceInterface
     public function authorizeDeleteProduct(int $userId, int $productId): void;
 
     /**
-     * Handle product image upload and processing.
-     */
-    public function handleProductImage(UploadedFile|string|null $image, ?string $oldImage = null): ?string;
-
-    /**
      * Generate slug from name
      */
     public function generateSlug(string $name): string;
 
     /**
-     * Invalidate product form data cache
-     */
-    public function invalidateFormDataCache(): bool;
-
-    /**
      * Get all product categories
      */
     public function getAllCategories(): array;
-
-    /**
-     * Get all suppliers for the current user (legacy)
-     */
-    public function getAllSuppliers(): array;
-
-    /**
-     * Get all suppliers for specific user (DTO version)
-     */
-    public function getAllSuppliersForUser(int $userId): array;
-
-    /**
-     * Delete cache for all categories
-     */
-    public function clearCategoriesCache(): void;
 
     /**
      * Find a product by ID for the given user.

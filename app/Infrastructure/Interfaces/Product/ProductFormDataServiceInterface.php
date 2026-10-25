@@ -17,24 +17,4 @@ interface ProductFormDataServiceInterface
      * Get all product categories
      */
     public function getAllCategories(): array;
-
-    /**
-     * Get all suppliers for the current user
-     */
-    public function getAllSuppliers(): array;
-
-    /**
-     * Get all suppliers for specific user
-     */
-    public function getAllSuppliersForUser(int $userId): array;
-
-    /**
-     * Invalidate product form data cache
-     */
-    public function invalidateFormDataCache(): bool;
-
-    /**
-     * Delete cache for all categories
-     */
-    public function clearCategoriesCache(): void;
 }

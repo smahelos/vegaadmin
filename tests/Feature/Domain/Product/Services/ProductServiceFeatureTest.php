@@ -5,9 +5,7 @@ namespace Tests\Feature\Domain\Product\Services;
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Models\ProductCategory;
-use App\Models\Supplier;
 use App\Models\Tax;
-use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -157,80 +155,5 @@ class ProductServiceFeatureTest extends TestCase
         $this->assertSame(['Alpha', 'Zeta'], array_values($first));
         // Second call should hit cache and perform fewer (ideally zero) queries
         $this->assertTrue(count($secondQueries) <= count($firstQueries));
-    }
-
-    #[Test]
-    public function get_all_suppliers_filters_by_authenticated_user_and_is_cached(): void
-    {
-        Cache::flush();
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-        Supplier::factory()->create(['user_id' => $user1->id, 'name' => 'S1']);
-        Supplier::factory()->create(['user_id' => $user2->id, 'name' => 'S2']);
-        $cache = $this->makeCountingCache();
-        $this->app->instance(CacheServiceInterface::class, $cache);
-        $service = app(ProductApplicationServiceInterface::class);
-        $this->actingAs($user1, 'web');
-
-        DB::enableQueryLog();
-        DB::flushQueryLog();
-        $first = $service->getAllSuppliers();
-        $firstQueries = DB::getQueryLog();
-        DB::flushQueryLog();
-        $second = $service->getAllSuppliers();
-        $secondQueries = DB::getQueryLog();
-
-        // Should return only suppliers for authenticated user1
-        $this->assertNotEmpty($first);
-        $this->assertCount(1, $first);
-        $this->assertSame('S1', array_values($first)[0]);
-        $this->assertTrue(count($secondQueries) <= count($firstQueries));
-    }
-
-    #[Test]
-    public function clear_categories_cache_invalidates_expected_keys(): void
-    {
-        Cache::flush();
-        ProductCategory::factory()->create(['name' => 'Alpha', 'slug' => 'alpha']);
-
-        // Use the tag-aware cache adapter instead of the raw facade
-        $cache = $this->makeCountingCache();
-        $this->app->instance(CacheServiceInterface::class, $cache);
-
-        // Prime adapter-backed keys that clearCategoriesCache() will forget
-        $cache->put(
-            'products_by_category:alpha:0',
-            [
-                1,
-                2,
-                3,
-            ],
-            600,
-            ['form_data', 'products'],
-        );
-        $cache->put(
-            'products_by_category:alpha:1',
-            [
-                4,
-                5,
-                6,
-            ],
-            600,
-            ['form_data', 'products'],
-        );
-        $cache->put(
-            'product_categories',
-            ['alpha' => 'Alpha'],
-            600,
-            ['form_data', 'products'],
-        );
-
-        $service = app(ProductApplicationServiceInterface::class);
-        $service->clearCategoriesCache();
-
-        // Assert via the adapter (behavior), not the raw Cache facade state
-        $this->assertNull($cache->get('products_by_category:alpha:0'));
-        $this->assertNull($cache->get('products_by_category:alpha:1'));
-        $this->assertNull($cache->get('product_categories'));
     }
 }

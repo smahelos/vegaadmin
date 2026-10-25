@@ -34,9 +34,4 @@ interface ProductDtoWriteRepositoryInterface
      * @throws ProductInUseException when an invoice line refers to the product
      */
     public function delete(ProductId $id): void;
-
-    /**
-     * Delete multiple products by user ID.
-     */
-    public function deleteByUserId(int $userId): int;
 }

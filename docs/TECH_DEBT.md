@@ -205,11 +205,6 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** `products.unit` exists and is copied into the invoice item when a product is picked, but no form sets it, so every product counts in pieces.
 - **Fix:** a unit select from `<x-unit-options />` (frontend) and the same option list in the admin, validated with `Rule::enum(Unit::class)`.
 
-### Product SKU
-- **Where:** `app/Domain/Product/ValueObjects/ProductSku.php`
-- **Problem:** value object prepared for a feature that does not exist yet (no `sku` column).
-- **Fix:** use it when SKU is added, or delete it.
-
 ## Analytics
 
 ### Dashboard statistics sum amounts across currencies
@@ -309,7 +304,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Value object accessors
 - **Where:** all 21 classes in `app/Domain/*/ValueObjects` and `app/Domain/Shared/*/ValueObjects`
-- **Problem:** private state read through four naming styles: `getValue()` (46 calls), `toInt()` (`UserId`, `PartyId`; 83 calls), `value()` (`ProductSku`), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, `BankAccount::getIban()`, …).
+- **Problem:** private state read through three naming styles: `getValue()` (46 calls), `toInt()` (`UserId`, `PartyId`; 83 calls), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, `BankAccount::getIban()`, …).
 - **Fix (decided 2026-10-20):** `final readonly class` with public readonly properties for held state (`->value`, `->amount`, `->iban`), computed values as methods without `get` (`formattedIban()`, `year()`), per `rules/php.md`.
 
 ### Business logic in models
