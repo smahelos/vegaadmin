@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Payment\Factories;
 
 use App\Domain\Payment\DTO\QrPaymentPayload;
@@ -8,32 +10,37 @@ use App\Domain\Payment\Providers\QrPayment\CzechQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class QrPaymentProviderFactoryTest extends TestCase
+final class QrPaymentProviderFactoryTest extends TestCase
 {
-    public function test_create_czech_provider()
+    #[Test]
+    public function create_czech_provider(): void
     {
         $provider = QrPaymentProviderFactory::createProvider('CZ');
         $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider);
         $this->assertEquals('CZ', $provider->getCountryCode());
     }
 
-    public function test_create_slovak_provider()
+    #[Test]
+    public function create_slovak_provider(): void
     {
         $provider = QrPaymentProviderFactory::createProvider('SK');
         $this->assertInstanceOf(SlovakQrPaymentProvider::class, $provider);
         $this->assertEquals('SK', $provider->getCountryCode());
     }
 
-    public function test_create_european_provider()
+    #[Test]
+    public function create_european_provider(): void
     {
         $provider = QrPaymentProviderFactory::createProvider('EU');
         $this->assertInstanceOf(EuropeanQrPaymentProvider::class, $provider);
         $this->assertEquals('EU', $provider->getCountryCode());
     }
 
-    public function test_create_provider_case_insensitive()
+    #[Test]
+    public function create_provider_case_insensitive(): void
     {
         $provider1 = QrPaymentProviderFactory::createProvider('cz');
         $provider2 = QrPaymentProviderFactory::createProvider('CZ');
@@ -42,7 +49,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider2);
     }
 
-    public function test_create_provider_throws_exception_for_unsupported_country()
+    #[Test]
+    public function create_provider_throws_exception_for_unsupported_country(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported country code: XX');
@@ -50,7 +58,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         QrPaymentProviderFactory::createProvider('XX');
     }
 
-    public function test_auto_detect_provider_with_explicit_country_code()
+    #[Test]
+    public function auto_detect_provider_with_explicit_country_code(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '20250001',
@@ -66,7 +75,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(SlovakQrPaymentProvider::class, $provider);
     }
 
-    public function test_auto_detect_provider_from_czech_iban()
+    #[Test]
+    public function auto_detect_provider_from_czech_iban(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '20250001',
@@ -82,7 +92,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider);
     }
 
-    public function test_auto_detect_provider_from_slovak_iban()
+    #[Test]
+    public function auto_detect_provider_from_slovak_iban(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '20250001',
@@ -98,7 +109,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(SlovakQrPaymentProvider::class, $provider);
     }
 
-    public function test_auto_detect_provider_from_german_iban()
+    #[Test]
+    public function auto_detect_provider_from_german_iban(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '20250001',
@@ -114,7 +126,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(EuropeanQrPaymentProvider::class, $provider);
     }
 
-    public function test_auto_detect_provider_from_czk_currency()
+    #[Test]
+    public function auto_detect_provider_from_czk_currency(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '20250001',
@@ -130,7 +143,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider);
     }
 
-    public function test_auto_detect_provider_from_eur_currency_with_slovak_bank()
+    #[Test]
+    public function auto_detect_provider_from_eur_currency_with_slovak_bank(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '2024001',
@@ -146,7 +160,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(SlovakQrPaymentProvider::class, $provider);
     }
 
-    public function test_auto_detect_provider_from_eur_currency_without_slovak_bank()
+    #[Test]
+    public function auto_detect_provider_from_eur_currency_without_slovak_bank(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '2024001',
@@ -162,7 +177,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(EuropeanQrPaymentProvider::class, $provider);
     }
 
-    public function test_auto_detect_provider_defaults_to_czech()
+    #[Test]
+    public function auto_detect_provider_defaults_to_czech(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '2024001',
@@ -178,7 +194,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider);
     }
 
-    public function test_get_available_providers()
+    #[Test]
+    public function get_available_providers(): void
     {
         $providers = QrPaymentProviderFactory::getAvailableProviders();
 
@@ -191,7 +208,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertEquals(EuropeanQrPaymentProvider::class, $providers['EU']);
     }
 
-    public function test_has_provider()
+    #[Test]
+    public function has_provider(): void
     {
         $this->assertTrue(QrPaymentProviderFactory::hasProvider('CZ'));
         $this->assertTrue(QrPaymentProviderFactory::hasProvider('SK'));
@@ -203,7 +221,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertTrue(QrPaymentProviderFactory::hasProvider('sk'));
     }
 
-    public function test_auto_detect_with_iban_spaces()
+    #[Test]
+    public function auto_detect_with_iban_spaces(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '2024001',
@@ -219,7 +238,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider);
     }
 
-    public function test_auto_detect_with_lowercase_iban()
+    #[Test]
+    public function auto_detect_with_lowercase_iban(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '2024001',
@@ -235,7 +255,8 @@ class QrPaymentProviderFactoryTest extends TestCase
         $this->assertInstanceOf(SlovakQrPaymentProvider::class, $provider);
     }
 
-    public function test_fallback_to_european_for_unknown_european_country()
+    #[Test]
+    public function fallback_to_european_for_unknown_european_country(): void
     {
         $invoice = new QrPaymentPayload(
             variableSymbol: '2024001',

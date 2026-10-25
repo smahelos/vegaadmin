@@ -199,36 +199,6 @@ class EntityLimit extends Model
     */
 
     /**
-     * Get the display name for the entity limit
-     */
-    public function getDisplayNameAttribute(): string
-    {
-        if ($this->permission_name === self::ANONYMOUS_PERMISSION) {
-            return 'Anonymous User Limit';
-        }
-
-        return ucfirst(str_replace(['_', '-'], ' ', $this->permission_name));
-    }
-
-    /**
-     * Get the full description combining permission, entity, and period
-     */
-    public function getFullDescriptionAttribute(): string
-    {
-        $permission = $this->permission_name === self::ANONYMOUS_PERMISSION
-            ? 'Anonymous users'
-            : "Users with '{$this->permission_name}' permission";
-
-        return sprintf(
-            '%s can create %d %s entities per %s',
-            $permission,
-            $this->limit_value,
-            $this->entity_type,
-            $this->period_type,
-        );
-    }
-
-    /**
      * Check if this is an anonymous user limit
      */
     public function getIsAnonymousAttribute(): bool

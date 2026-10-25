@@ -335,6 +335,18 @@ class ProductListSelectFeatureTest extends TestCase
     }
 
     #[Test]
+    public function handle_set_selected_product_ids_ignores_input_that_is_not_a_list(): void
+    {
+        $component = Livewire::test(ProductListSelect::class);
+        $component->call('handleSetSelectedProductIds', [4, 5]);
+
+        $component->call('handleSetSelectedProductIds', 'invalid');
+        $component->call('handleSetSelectedProductIds', null);
+
+        $component->assertSet('selectedProductIds', [4, 5]);
+    }
+
+    #[Test]
     public function select_product_returns_true_for_valid_product(): void
     {
         $this->actingAs($this->user);

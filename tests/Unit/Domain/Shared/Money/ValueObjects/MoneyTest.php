@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Shared\Money\ValueObjects;
 
+use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
 
-class MoneyTest extends TestCase
+final class MoneyTest extends TestCase
 {
     #[Test]
     public function can_create_from_float(): void
@@ -52,17 +54,6 @@ class MoneyTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         Money::fromString('10,50', 'USD');
-    }
-
-    #[Test]
-    public function structure_reflection_checks(): void
-    {
-        $r = new ReflectionClass(Money::class);
-        $this->assertTrue($r->hasMethod('fromFloat'));
-        $this->assertTrue($r->hasMethod('fromString'));
-        $this->assertTrue($r->hasMethod('getAmount'));
-        $this->assertTrue($r->hasMethod('getCurrency'));
-        $this->assertTrue($r->hasMethod('toFloat'));
     }
 
     #[Test]
@@ -318,5 +309,108 @@ class MoneyTest extends TestCase
                 $this->addToAssertionCount(1);
             }
         }
+    }
+
+    #[Test]
+    public function convert_same_currency_returns_self_amount(): void
+    {
+        $m = Money::fromString('10.50', 'EUR');
+        $copy = $m->convertTo('EUR', $this->exchangeAt(null));
+        $this->assertTrue($m->equals($copy));
+    }
+
+    #[Test]
+    public function convert_uses_exchange_rate_half_up(): void
+    {
+        $m = Money::fromString('10', 'EUR');
+        $exchange = $this->exchangeAt(1.2345);
+        $converted = $m->convertTo(
+            'USD',
+            $exchange,
+            2,
+            Money::ROUND_HALF_UP,
+        );
+        $this->assertSame('12.35', $converted->getAmount()); // 10 * 1.2345 = 12.345 -> 12.35
+    }
+
+    #[Test]
+    public function convert_uses_exchange_rate_bankers(): void
+    {
+        $m = Money::fromString('10', 'EUR');
+        $exchange = $this->exchangeAt(1.2355);
+        $converted = $m->convertTo(
+            'USD',
+            $exchange,
+            2,
+            Money::ROUND_BANKERS,
+        );
+        // 12.355 bankers -> 12.36 because previous kept digit is 5 (odd)
+        $this->assertSame('12.36', $converted->getAmount());
+    }
+
+    #[Test]
+    public function convert_invalid_rate_throws(): void
+    {
+        $m = Money::fromString('5', 'EUR');
+        $exchange = $this->exchangeAt(null);
+        $this->expectException(InvalidArgumentException::class);
+        $m->convertTo('USD', $exchange);
+    }
+
+    #[Test]
+    public function convert_scale_zero(): void
+    {
+        $m = Money::fromString('2', 'EUR');
+        $exchange = $this->exchangeAt(1.75);
+        $converted = $m->convertTo(
+            'USD',
+            $exchange,
+            0,
+            Money::ROUND_HALF_UP,
+        );
+        $this->assertSame('4', $converted->getAmount());
+    }
+
+    #[Test]
+    public function convert_zero_amount_with_rate_below_eight_decimals_returns_zero(): void
+    {
+        $m = Money::fromString('0', 'EUR');
+        $exchange = $this->exchangeAt(0.000000001);
+        $this->assertSame('0', $m->convertTo('USD', $exchange)->getAmount());
+    }
+
+    #[Test]
+    public function convert_amount_with_rate_below_eight_decimals_throws(): void
+    {
+        $m = Money::fromString('5', 'EUR');
+        $exchange = $this->exchangeAt(0.000000001);
+        $this->expectException(InvalidArgumentException::class);
+        $m->convertTo('USD', $exchange);
+    }
+
+    private function exchangeAt(?float $rate): CurrencyExchangeServiceInterface
+    {
+        return new class($rate) implements CurrencyExchangeServiceInterface
+        {
+            public function __construct(private readonly ?float $rate) {}
+
+            public function getExchangeRate(string $fromCurrency, string $toCurrency): ?float
+            {
+                return $this->rate;
+            }
+
+            public function getExchangeRates(string $baseCurrency = 'USD'): array
+            {
+                return [];
+            }
+
+            public function convert(
+                float $amount,
+                string $fromCurrency,
+                string $toCurrency,
+            ): ?float {
+                return $this->rate === null ? null : $amount * $this->rate;
+            }
+        };
     }
 }

@@ -159,6 +159,46 @@ class ProductControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function index_shows_the_product_limit_and_usage(): void
+    {
+        EntityLimit::where('permission_name', 'frontend.can_create_edit_product')->update(['limit_value' => 2]);
+        $this->limitService->recordUsage(
+            $this->user->id,
+            'product',
+            'count',
+            'monthly',
+        );
+
+        $response = $this->actingAs($this->user, 'web')->get(route('frontend.products', ['locale' => 'cs']));
+
+        $response->assertViewHas('limitsData', [
+            'limit' => 2,
+            'current_usage' => 1,
+            'allowed' => true,
+        ]);
+    }
+
+    #[Test]
+    public function index_does_not_allow_a_new_product_at_the_limit(): void
+    {
+        EntityLimit::where('permission_name', 'frontend.can_create_edit_product')->update(['limit_value' => 1]);
+        $this->limitService->recordUsage(
+            $this->user->id,
+            'product',
+            'count',
+            'monthly',
+        );
+
+        $response = $this->actingAs($this->user, 'web')->get(route('frontend.products', ['locale' => 'cs']));
+
+        $response->assertViewHas('limitsData', [
+            'limit' => 1,
+            'current_usage' => 1,
+            'allowed' => false,
+        ]);
+    }
+
+    #[Test]
     public function index_requires_authentication(): void
     {
         $response = $this->get(route('frontend.products', ['locale' => 'cs']));

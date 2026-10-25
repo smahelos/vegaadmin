@@ -48,27 +48,4 @@ class DatabaseMaintenanceLog extends Model
 
         return $this->started_at->diffForHumans($this->completed_at, true);
     }
-
-    /**
-     * Get status badge HTML
-     */
-    public function getStatusBadgeAttribute()
-    {
-        $badges = [
-            'pending' => '<span class="badge text-bg-secondary">Pending</span>',
-            'running' => '<span class="badge text-bg-warning">Running</span>',
-            'completed' => '<span class="badge text-bg-success">Completed</span>',
-            'failed' => '<span class="badge text-bg-danger">Failed</span>',
-        ];
-
-        return $badges[$this->status] ?? '<span class="badge text-bg-light">Unknown</span>';
-    }
-
-    /**
-     * Get task type formatted
-     */
-    public function getTaskTypeFormattedAttribute()
-    {
-        return ucfirst(str_replace('_', ' ', $this->task_type));
-    }
 }

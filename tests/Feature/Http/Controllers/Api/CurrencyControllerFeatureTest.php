@@ -52,6 +52,26 @@ class CurrencyControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function exchange_rate_of_a_currency_without_a_rate_is_not_found(): void
+    {
+        $resp = $this->getJson(route('api.exchange-rate', ['from' => 'USD', 'to' => 'XYZ']));
+
+        $resp->assertNotFound();
+    }
+
+    #[Test]
+    public function conversion_to_a_currency_without_a_rate_is_not_found(): void
+    {
+        $resp = $this->getJson(route('api.convert-currency', [
+            'amount' => 100,
+            'from' => 'USD',
+            'to' => 'XYZ',
+        ]));
+
+        $resp->assertNotFound();
+    }
+
+    #[Test]
     public function it_validates_exchange_rate_params(): void
     {
         $resp = $this->getJson(route('api.exchange-rate')); // missing params

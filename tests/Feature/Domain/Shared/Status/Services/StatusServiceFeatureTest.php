@@ -8,6 +8,7 @@ use App\Models\Status;
 use App\Models\StatusCategory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -130,5 +131,23 @@ class StatusServiceFeatureTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessageMatches('/' . $missing . '/');
         $service->getIdToSlugMap();
+    }
+
+    #[Test]
+    public function translates_a_status_slug_from_the_locale_file(): void
+    {
+        app()->setLocale('en');
+
+        $label = app(StatusServiceInterface::class)->translateSlug(StatusCode::APPROVED->value);
+
+        $this->assertSame('Approved', $label);
+    }
+
+    #[Test]
+    public function returns_an_unknown_slug_untranslated(): void
+    {
+        $label = app(StatusServiceInterface::class)->translateSlug('non-existing-slug');
+
+        $this->assertSame('non-existing-slug', $label);
     }
 }

@@ -109,6 +109,27 @@ class ClientControllerFeatureTest extends TestCase
      * Test index returns correct view with clients list
      */
     #[Test]
+    public function index_shows_the_client_limit_and_usage(): void
+    {
+        EntityLimit::where('permission_name', 'frontend.can_create_edit_client')->update(['limit_value' => 2]);
+        app(UniversalLimitService::class)->recordUsage(
+            $this->user->id,
+            'client',
+            'count',
+            'monthly',
+        );
+
+        $response = $this->actingAs($this->user)->get($this->localizedRoute('frontend.clients'));
+
+        $response->assertViewIs('frontend.clients.index');
+        $response->assertViewHas('limitsData', [
+            'limit' => 2,
+            'current_usage' => 1,
+            'allowed' => true,
+        ]);
+    }
+
+    #[Test]
     public function create_returns_correct_view_with_data()
     {
         $response = $this->actingAs($this->user)->get($this->localizedRoute('frontend.client.create'));

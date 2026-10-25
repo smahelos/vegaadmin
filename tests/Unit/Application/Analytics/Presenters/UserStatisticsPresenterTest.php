@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Application\Analytics\Presenters;
 
 use App\Application\Analytics\Presenters\UserStatisticsPresenter;
@@ -7,9 +9,9 @@ use App\Domain\Analytics\DTO\UserStatisticsDTO;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class UserStatisticsPresenterTest extends TestCase
+final class UserStatisticsPresenterTest extends TestCase
 {
     #[Test]
     public function presents_user_statistics_with_formatted_amount(): void

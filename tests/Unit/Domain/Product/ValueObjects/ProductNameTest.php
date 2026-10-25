@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Product\ValueObjects;
 
 use App\Domain\Product\ValueObjects\ProductName;
@@ -7,7 +9,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class ProductNameTest extends TestCase
+final class ProductNameTest extends TestCase
 {
     #[Test]
     public function trims_and_string_cast(): void

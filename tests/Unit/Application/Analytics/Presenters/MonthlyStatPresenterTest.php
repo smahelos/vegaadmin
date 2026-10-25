@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Application\Analytics\Presenters;
 
 use App\Application\Analytics\Presenters\MonthlyStatPresenter;
@@ -7,9 +9,9 @@ use App\Domain\Analytics\DTO\MonthlyStatDTO;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class MonthlyStatPresenterTest extends TestCase
+final class MonthlyStatPresenterTest extends TestCase
 {
     #[Test]
     public function presents_monthly_stat_with_formatted_total(): void

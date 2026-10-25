@@ -17,7 +17,7 @@ paths:
 
 ## Test types
 
-- `tests/Unit/` — no framework: extends `PHPUnit\Framework\TestCase`, no container, DB, facades or `new Model()`. Domain value objects and services, mappers' pure conversions, presenters.
+- `tests/Unit/` — no framework: extends `PHPUnit\Framework\TestCase`, no container, DB, facades or `new Model()`. Domain value objects and services, mappers' pure conversions, presenters. CI runs them in their own job without MySQL; `tests/Feature/Architecture/UnitTestsWithoutFrameworkTest.php` fails on `Tests\TestCase`, models, facades or Laravel helpers in `tests/Unit`.
 - `tests/Feature/` — boots Laravel (`Tests\TestCase`): application use cases, repositories, HTTP, Livewire, commands, providers.
 - The directory below `Unit/` or `Feature/` mirrors the path of the class under test (`tests/Unit/Domain/Invoice/ValueObjects/InvoiceNumberTest.php`).
 - Ports are replaced by fakes from `tests/Support/Fakes/` (gateways, clock, exchange rates); application and domain services always run for real — they are `final` and not mocked (`architecture.md`, Ports and interfaces).

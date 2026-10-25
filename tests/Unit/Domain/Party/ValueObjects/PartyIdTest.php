@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Party\ValueObjects;
 
 use App\Domain\Party\ValueObjects\PartyId;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class PartyIdTest extends TestCase
+final class PartyIdTest extends TestCase
 {
     #[Test]
     public function creates_from_positive_int(): void

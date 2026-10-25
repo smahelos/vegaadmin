@@ -147,6 +147,18 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     }
 
     #[Test]
+    public function duration_is_empty_until_the_task_has_started_and_completed(): void
+    {
+        $notStarted = DatabaseMaintenanceLog::factory()->create(['started_at' => null, 'completed_at' => null]);
+        $running = DatabaseMaintenanceLog::factory()->create(['started_at' => now(), 'completed_at' => null]);
+        $completedOnly = DatabaseMaintenanceLog::factory()->create(['started_at' => null, 'completed_at' => now()]);
+
+        $this->assertNull($notStarted->duration);
+        $this->assertNull($running->duration);
+        $this->assertNull($completedOnly->duration);
+    }
+
+    #[Test]
     public function can_query_logs_by_status(): void
     {
 

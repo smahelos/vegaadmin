@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Payment\ValueObjects;
 
 use App\Domain\Payment\ValueObjects\PaymentAmount;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Unit tests for PaymentAmount value object (pure value logic - no framework dependencies)
- */
-class PaymentAmountTest extends TestCase
+final class PaymentAmountTest extends TestCase
 {
     #[Test]
     public function create_valid_amount(): void
@@ -80,5 +80,14 @@ class PaymentAmountTest extends TestCase
         $this->assertTrue($a->equals($b)); // difference below threshold
         $c = new PaymentAmount(9.99, 'USD');
         $this->assertTrue($a->greaterThan($c));
+    }
+
+    #[Test]
+    public function creates_payment_amount_from_money_rounded_to_cents(): void
+    {
+        $amount = PaymentAmount::fromMoney(Money::fromString('123.4567', 'EUR'));
+
+        $this->assertSame('EUR', $amount->getCurrency());
+        $this->assertSame('123.46', $amount->getFormattedAmount());
     }
 }

@@ -238,6 +238,18 @@ class ClientControllerFeatureTest extends TestCase
             ]);
     }
 
+    #[Test]
+    public function admin_client_list_requires_admin_role(): void
+    {
+        $response = $this->actingAs($this->user, 'backpack')
+            ->getJson('/api/admin/client');
+
+        $response->assertStatus(403)
+            ->assertJson([
+                'error' => __('backpack::crud.unauthorized_access'),
+            ]);
+    }
+
     /**
      * Test getClients endpoint returns all clients for admin user
      */
