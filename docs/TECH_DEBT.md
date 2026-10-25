@@ -41,8 +41,8 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 ### Payment notification route
 - **Where:** `routes/web.php` (`POST /payment/notify` in the `web` group), `app/Http/Controllers/Frontend/PaymentController.php::notify()`
-- **Problem:** the route is not excluded from CSRF, so an external notification most likely ends with 419 (to verify); the whole request payload is logged.
-- **Fix:** CSRF exception, gateway-verified handling as in `rules/payments.md`, log only the payment id.
+- **Problem:** the route is not excluded from CSRF, so an external notification most likely ends with 419 (to verify); the whole request payload is logged. GoPay's documentation describes the notification as an HTTP GET on `notification_url` with the payment `id`, so a POST-only route may not match at all.
+- **Fix:** check what GoPay sends, then a route for that verb excluded from CSRF (`validateCsrfTokens(except: …)`), gateway-verified handling as in `rules/payments.md`, log only the payment id; a test that the notification passes without a CSRF token.
 
 ### Cron tasks are not fully gated by permissions
 - **Where:** `app/Http/Controllers/Admin/CronTaskCrudController.php` (no `allowAccess()` / `denyAccess()`), `app/Models/CronTask.php::simulateRun()`
