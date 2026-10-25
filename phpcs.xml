@@ -32,6 +32,10 @@
     <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
         <exclude name="SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingTraversableTypeHintSpecification"/>
     </rule>
+    <!-- GoPay\Payments declares these parameters untyped; PHP refuses a narrower type in the subclass. -->
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint">
+        <exclude-pattern>tests/Support/Fakes/GoPay/FakeGoPayPayments.php</exclude-pattern>
+    </rule>
 
     <rule ref="./phpcs/Billex"/>
 </ruleset>
