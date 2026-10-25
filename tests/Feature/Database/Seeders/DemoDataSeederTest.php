@@ -94,9 +94,9 @@ final class DemoDataSeederTest extends TestCase
     }
 
     #[Test]
-    public function refuses_to_run_in_production(): void
+    public function refuses_to_run_outside_local_development(): void
     {
-        $this->app['env'] = 'production';
+        $this->app['env'] = 'staging';
 
         $this->expectException(RuntimeException::class);
 

@@ -30,7 +30,7 @@ use Spatie\Permission\Models\Role;
  * Development data for one demo user: parties, products, invoices over the last fourteen months
  * and expenses, so that every dashboard chart and list has something to show. Running it again
  * deletes the demo user's data and creates it anew; the data is the same on every run, dated
- * relative to today.
+ * relative to today. Local and testing environments only.
  *
  *     php artisan db:seed --class=DemoDataSeeder
  */
@@ -54,8 +54,9 @@ final class DemoDataSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->environment('production')) {
-            throw new RuntimeException('DemoDataSeeder must not run in production');
+        // The demo account is overwritten and its data deleted, so never on a shared environment
+        if (! app()->environment(['local', 'testing'])) {
+            throw new RuntimeException('DemoDataSeeder runs only in the local and testing environments');
         }
 
         DB::transaction(function (): void {
@@ -287,7 +288,7 @@ final class DemoDataSeeder extends Seeder
         array $products,
     ): void {
         $today = new DateTimeImmutable('today');
-        $paymentMethods = DB::table('payment_methods')->pluck('id')->all();
+        $paymentMethods = $this->referenceIds('payment_methods');
         $sequences = [];
 
         for ($monthsBack = self::MONTHS - 1; $monthsBack >= 0; $monthsBack--) {
@@ -380,7 +381,7 @@ final class DemoDataSeeder extends Seeder
     private function createExpenses(User $user): void
     {
         $today = new DateTimeImmutable('today');
-        $categories = DB::table('expense_categories')->pluck('id')->all();
+        $categories = $this->referenceIds('expense_categories');
         $paidStatus = $this->statusId('expense-statuses', 'paid-expense');
         $descriptions = [
             'Nájem kanceláře',
@@ -419,6 +420,19 @@ final class DemoDataSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    /**
+     * @return non-empty-list<int>
+     */
+    private function referenceIds(string $table): array
+    {
+        $ids = DB::table($table)->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
+        if ($ids === []) {
+            throw new RuntimeException('Table ' . $table . ' is empty; run the reference data seeders first');
+        }
+
+        return array_values($ids);
     }
 
     private function taxId(string $rate): int
