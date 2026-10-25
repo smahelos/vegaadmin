@@ -69,6 +69,7 @@ return [
         'error_update' => 'Chyba pri aktualizácii produktu.',
         'error_loading' => 'Nastala chyba pri načítaní produktov. Prosím, skúste to znova neskôr.',
         'error_selecting' => 'Produkt sa nepodarilo vybrať.',
+        'not_found' => 'Produkt sa nenašiel.',
         'error_delete' => 'Chyba pri mazaní produktu.',
         'validation_failed' => 'Pri validácii formulára boli nájdené chyby. Skontrolujte prosím údaje nižšie.',
         'no_image' => 'Žiadny obrázok',

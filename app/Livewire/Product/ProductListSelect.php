@@ -7,6 +7,7 @@ use App\Livewire\Shared\Sorts;
 use App\Models\Product;
 use App\Models\Tax;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
@@ -181,6 +182,11 @@ class ProductListSelect extends Component
             $this->dispatch('closeModal');
 
             return true;
+        } catch (ModelNotFoundException) {
+            // Another user's product is answered like a missing one; neither is worth an error log
+            $this->errorMessage = __('products.messages.not_found');
+
+            return false;
         } catch (Throwable $e) {
             Log::error('Selecting product failed', ['exception' => $e]);
             $this->errorMessage = __('products.messages.error_selecting');

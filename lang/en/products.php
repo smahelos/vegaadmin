@@ -69,6 +69,7 @@ return [
         'error_update' => 'Error updating product.',
         'error_loading' => 'An error occurred while loading products. Please try again later.',
         'error_selecting' => 'The product could not be selected.',
+        'not_found' => 'The product was not found.',
         'error_delete' => 'Error deleting product.',
         'validation_failed' => 'Validation failed. Please check the input fields.',
         'no_image' => 'No image available.',

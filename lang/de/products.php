@@ -69,6 +69,7 @@ return [
         'error_update' => 'Fehler beim Aktualisieren des Produkts.',
         'error_loading' => 'Beim Laden der Produkte ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.',
         'error_selecting' => 'Das Produkt konnte nicht ausgewählt werden.',
+        'not_found' => 'Das Produkt wurde nicht gefunden.',
         'error_delete' => 'Fehler beim Löschen des Produkts.',
         'validation_failed' => 'Die Validierung ist fehlgeschlagen. Bitte überprüfen Sie die Eingabefelder.',
         'no_image' => 'Kein Bild verfügbar.',

@@ -372,7 +372,7 @@ class ProductListSelectFeatureTest extends TestCase
         $component->assertNotDispatched('closeModal');
 
         // Check that error message was set
-        $component->assertSet('errorMessage', __('products.messages.error_selecting'));
+        $component->assertSet('errorMessage', __('products.messages.not_found'));
     }
 
     #[Test]
@@ -507,7 +507,8 @@ class ProductListSelectFeatureTest extends TestCase
         Livewire::test(ProductListSelect::class)
             ->call('selectProduct', $foreign->id)
             ->assertNotDispatched('product-selected')
-            ->assertNotDispatched('closeModal');
+            ->assertNotDispatched('closeModal')
+            ->assertSet('errorMessage', __('products.messages.not_found'));
     }
 
     #[Test]
