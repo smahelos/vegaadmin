@@ -21,12 +21,6 @@ final class CzechQrPaymentProviderTest extends TestCase
     }
 
     #[Test]
-    public function country_code_is_czech(): void
-    {
-        $this->assertEquals('CZ', $this->provider->getCountryCode());
-    }
-
-    #[Test]
     public function supported_currencies(): void
     {
         $currencies = $this->provider->getSupportedCurrencies();
@@ -83,13 +77,5 @@ final class CzechQrPaymentProviderTest extends TestCase
         $this->assertStringContainsString('AM:1234.56', $qrString);
         $this->assertStringContainsString('CC:CZK', $qrString);
         $this->assertStringContainsString('X-VS:20250001', $qrString);
-    }
-
-    #[Test]
-    public function validate_amount(): void
-    {
-        $this->assertTrue($this->provider->validateAmount(1000.50, 'CZK'));
-        $this->assertFalse($this->provider->validateAmount(0, 'CZK'));
-        $this->assertFalse($this->provider->validateAmount(1000, 'EUR'));
     }
 }

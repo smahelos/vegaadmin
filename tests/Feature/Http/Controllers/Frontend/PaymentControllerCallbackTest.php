@@ -3,9 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Application\Payment\DTO\RefundResultDTO;
 use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
-use App\Models\Payment;
 use App\Models\Subscription;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -28,22 +26,6 @@ class PaymentControllerCallbackTest extends TestCase
             public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
             {
                 return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'completed']);
-            }
-
-            public function verify(Payment $payment): SubscriptionPaymentResultDTO
-            {
-                return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-            }
-
-            public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
-            {
-                return new RefundResultDTO(
-                    success: true,
-                    paymentId: $payment->id ?? 0,
-                    refundedAmount: $amount,
-                    currency: 'CZK',
-                    status: 'refunded',
-                );
             }
 
             public function getAvailableGateways(): array
@@ -80,22 +62,6 @@ class PaymentControllerCallbackTest extends TestCase
                 return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'failed']);
             }
 
-            public function verify(Payment $payment): SubscriptionPaymentResultDTO
-            {
-                return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-            }
-
-            public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
-            {
-                return new RefundResultDTO(
-                    success: true,
-                    paymentId: $payment->id ?? 0,
-                    refundedAmount: $amount,
-                    currency: 'CZK',
-                    status: 'refunded',
-                );
-            }
-
             public function getAvailableGateways(): array
             {
                 return [];
@@ -127,22 +93,6 @@ class PaymentControllerCallbackTest extends TestCase
             public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
             {
                 return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'pending']);
-            }
-
-            public function verify(Payment $payment): SubscriptionPaymentResultDTO
-            {
-                return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-            }
-
-            public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
-            {
-                return new RefundResultDTO(
-                    success: true,
-                    paymentId: $payment->id ?? 0,
-                    refundedAmount: $amount,
-                    currency: 'CZK',
-                    status: 'refunded',
-                );
             }
 
             public function getAvailableGateways(): array
@@ -178,22 +128,6 @@ class PaymentControllerCallbackTest extends TestCase
                 return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'completed']);
             }
 
-            public function verify(Payment $payment): SubscriptionPaymentResultDTO
-            {
-                return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-            }
-
-            public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
-            {
-                return new RefundResultDTO(
-                    success: true,
-                    paymentId: $payment->id ?? 0,
-                    refundedAmount: $amount,
-                    currency: 'CZK',
-                    status: 'refunded',
-                );
-            }
-
             public function getAvailableGateways(): array
             {
                 return [];
@@ -225,22 +159,6 @@ class PaymentControllerCallbackTest extends TestCase
             public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
             {
                 return SubscriptionPaymentResultDTO::fromArray(['success' => false, 'error' => 'x']);
-            }
-
-            public function verify(Payment $payment): SubscriptionPaymentResultDTO
-            {
-                return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-            }
-
-            public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
-            {
-                return new RefundResultDTO(
-                    success: true,
-                    paymentId: $payment->id ?? 0,
-                    refundedAmount: $amount,
-                    currency: 'CZK',
-                    status: 'refunded',
-                );
             }
 
             public function getAvailableGateways(): array

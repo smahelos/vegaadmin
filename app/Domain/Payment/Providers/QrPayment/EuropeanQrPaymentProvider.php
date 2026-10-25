@@ -7,14 +7,7 @@ use App\Domain\Payment\DTO\QrPaymentPayload;
 
 class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
 {
-    public const COUNTRY_CODE = 'EU';
-
     public const SUPPORTED_CURRENCIES = ['EUR'];
-
-    public function getCountryCode(): string
-    {
-        return self::COUNTRY_CODE;
-    }
 
     public function getSupportedCurrencies(): array
     {
@@ -64,22 +57,5 @@ class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
         );
 
         return implode("\n", $qrParts);
-    }
-
-    public function formatAccountIdentifier(
-        ?string $accountNumber,
-        ?string $bankCode,
-        ?string $iban,
-    ): ?string {
-        if (! empty($iban)) {
-            return strtoupper(preg_replace('/\s+/', '', $iban));
-        }
-
-        return null;
-    }
-
-    public function validateAmount(float $amount, string $currency): bool
-    {
-        return $amount > 0 && in_array($currency, $this->getSupportedCurrencies());
     }
 }

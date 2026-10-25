@@ -213,41 +213,4 @@ class PaymentApplicationServiceFeatureTest extends TestCase
         $this->assertEquals('completed', $callback->status);
         $this->assertDatabaseHas('payments', ['id' => $paymentId, 'status' => 'completed']);
     }
-
-    #[Test]
-    public function verify_returns_current_status(): void
-    {
-        $subscription = $this->createSubscription();
-        $init = $this->appService->initiateSubscription($subscription, 'stub');
-        $payment = Payment::find($init->paymentId);
-        $verify = $this->appService->verify($payment);
-        $this->assertTrue($verify->success);
-        $this->assertEquals('pending', $verify->status);
-    }
-
-    #[Test]
-    public function refund_full_sets_refunded_status(): void
-    {
-        $subscription = $this->createSubscription();
-        $init = $this->appService->initiateSubscription($subscription, 'stub');
-        $payment = Payment::find($init->paymentId);
-        $payment->update(['status' => 'completed']);
-        $refund = $this->appService->refund($payment, null);
-        $this->assertTrue($refund->success);
-        $this->assertEquals($payment->amount, $refund->refundedAmount);
-        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'refunded']);
-    }
-
-    #[Test]
-    public function partial_refund_sets_partially_refunded_status(): void
-    {
-        $subscription = $this->createSubscription();
-        $init = $this->appService->initiateSubscription($subscription, 'stub');
-        $payment = Payment::find($init->paymentId);
-        $payment->update(['status' => 'completed']);
-        $refund = $this->appService->refund($payment, 10.0);
-        $this->assertTrue($refund->success);
-        $this->assertEquals(10.0, $refund->refundedAmount);
-        $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'partially_refunded']);
-    }
 }

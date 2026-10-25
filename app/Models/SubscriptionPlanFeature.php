@@ -54,14 +54,6 @@ class SubscriptionPlanFeature extends Model
     }
 
     /**
-     * Check if feature is active
-     */
-    public function isActive(): bool
-    {
-        return $this->is_active;
-    }
-
-    /**
      * Generate slug from name
      */
     public function generateSlug(?string $name = null): string

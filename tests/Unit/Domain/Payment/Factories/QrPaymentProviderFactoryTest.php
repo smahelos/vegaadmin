@@ -16,30 +16,6 @@ use PHPUnit\Framework\TestCase;
 final class QrPaymentProviderFactoryTest extends TestCase
 {
     #[Test]
-    public function create_czech_provider(): void
-    {
-        $provider = QrPaymentProviderFactory::createProvider('CZ');
-        $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider);
-        $this->assertEquals('CZ', $provider->getCountryCode());
-    }
-
-    #[Test]
-    public function create_slovak_provider(): void
-    {
-        $provider = QrPaymentProviderFactory::createProvider('SK');
-        $this->assertInstanceOf(SlovakQrPaymentProvider::class, $provider);
-        $this->assertEquals('SK', $provider->getCountryCode());
-    }
-
-    #[Test]
-    public function create_european_provider(): void
-    {
-        $provider = QrPaymentProviderFactory::createProvider('EU');
-        $this->assertInstanceOf(EuropeanQrPaymentProvider::class, $provider);
-        $this->assertEquals('EU', $provider->getCountryCode());
-    }
-
-    #[Test]
     public function create_provider_case_insensitive(): void
     {
         $provider1 = QrPaymentProviderFactory::createProvider('cz');
@@ -192,20 +168,6 @@ final class QrPaymentProviderFactoryTest extends TestCase
 
         $provider = QrPaymentProviderFactory::autoDetectProvider($invoice);
         $this->assertInstanceOf(CzechQrPaymentProvider::class, $provider);
-    }
-
-    #[Test]
-    public function get_available_providers(): void
-    {
-        $providers = QrPaymentProviderFactory::getAvailableProviders();
-
-        $this->assertIsArray($providers);
-        $this->assertArrayHasKey('CZ', $providers);
-        $this->assertArrayHasKey('SK', $providers);
-        $this->assertArrayHasKey('EU', $providers);
-        $this->assertEquals(CzechQrPaymentProvider::class, $providers['CZ']);
-        $this->assertEquals(SlovakQrPaymentProvider::class, $providers['SK']);
-        $this->assertEquals(EuropeanQrPaymentProvider::class, $providers['EU']);
     }
 
     #[Test]

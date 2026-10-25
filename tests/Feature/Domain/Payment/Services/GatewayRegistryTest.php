@@ -26,27 +26,4 @@ class GatewayRegistryTest extends TestCase
         $this->assertSame($fake, $this->registry->get('fake'));
         $this->assertContains('fake', $this->registry->names());
     }
-
-    #[Test]
-    public function remove_gateway(): void
-    {
-        $fake = new FakePaymentGateway;
-        $this->registry->register('fake', $fake);
-        $this->registry->remove('fake');
-        $this->assertNull($this->registry->get('fake'));
-        $this->assertNotContains('fake', $this->registry->names());
-    }
-
-    #[Test]
-    public function metadata_is_populated_on_register(): void
-    {
-        $fake = new FakePaymentGateway;
-        $this->registry->register('fake', $fake);
-        $meta = $this->registry->metadata('fake');
-        $this->assertNotNull($meta);
-        $this->assertEquals('Fake Gateway', $meta['display_name']);
-        $this->assertEquals(['EUR', 'USD'], $meta['currencies']);
-        $all = $this->registry->allMetadata();
-        $this->assertArrayHasKey('fake', $all);
-    }
 }

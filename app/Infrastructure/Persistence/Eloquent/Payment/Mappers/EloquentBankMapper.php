@@ -27,21 +27,4 @@ class EloquentBankMapper
             'created_at' => $model->getAttribute('created_at'),
         ]);
     }
-
-    /**
-     * Convert BankDTO to array for Eloquent model creation/update.
-     */
-    public function fromDto(BankDTO $dto): array
-    {
-        return [
-            'id' => $dto->id,
-            'name' => $dto->name,
-            'code' => $dto->code,
-            'swift' => $dto->swift,
-            'country' => $dto->country,
-            'active' => $dto->active,
-            'description' => $dto->description,
-            'created_at' => $dto->created_at,
-        ];
-    }
 }

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\SubscriptionPlan;
-use App\Models\SubscriptionPlanFeature;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -47,16 +46,6 @@ class SubscriptionPlanFactory extends Factory
     }
 
     /**
-     * Indicate that the plan is inactive.
-     */
-    public function inactive(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_active' => false,
-        ]);
-    }
-
-    /**
      * Indicate that the plan has no trial period.
      */
     public function withoutTrial(): static
@@ -64,40 +53,5 @@ class SubscriptionPlanFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'trial_days' => 0,
         ]);
-    }
-
-    /**
-     * Indicate that the plan is monthly.
-     */
-    public function monthly(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'billing_period' => 'monthly',
-            'billing_interval' => 1,
-        ]);
-    }
-
-    /**
-     * Indicate that the plan is yearly.
-     */
-    public function yearly(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'billing_period' => 'yearly',
-            'billing_interval' => 1,
-        ]);
-    }
-
-    /**
-     * Indicate that the plan has features attached.
-     */
-    public function withFeatures(): static
-    {
-        return $this->afterCreating(function (SubscriptionPlan $plan): void {
-            // Create 2-4 random features and attach them to the plan
-            $featureCount = $this->faker->numberBetween(2, 4);
-            $features = SubscriptionPlanFeature::factory($featureCount)->create();
-            $plan->features()->attach($features);
-        });
     }
 }

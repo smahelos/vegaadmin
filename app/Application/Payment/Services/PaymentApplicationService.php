@@ -3,10 +3,8 @@
 namespace App\Application\Payment\Services;
 
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Application\Payment\DTO\RefundResultDTO;
 use App\Application\Payment\DTO\SubscriptionPaymentResultDTO; // placeholder for future QR flows
 use App\Application\Payment\Traits\ApplicationUseCaseLogging;
-use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Models\Payment;
 use App\Models\Subscription;
@@ -21,7 +19,6 @@ class PaymentApplicationService implements PaymentApplicationServiceInterface
 
     public function __construct(
         private readonly SubscriptionPaymentServiceInterface $subscriptionPayments,
-        private readonly QrPaymentServiceInterface $qrPayments,
     ) {}
 
     /** {@inheritDoc} */
@@ -59,39 +56,6 @@ class PaymentApplicationService implements PaymentApplicationServiceInterface
             function () use ($gateway, $payload) {
                 return SubscriptionPaymentResultDTO::fromArray(
                     $this->subscriptionPayments->handlePaymentCallback($gateway, $payload),
-                );
-            },
-        );
-    }
-
-    /** {@inheritDoc} */
-    public function verify(Payment $payment): SubscriptionPaymentResultDTO
-    {
-        return $this->withUseCaseLog(
-            'verify_payment',
-            [
-                'payment_id' => $payment->id,
-            ],
-            function () use ($payment) {
-                return SubscriptionPaymentResultDTO::fromArray(
-                    $this->subscriptionPayments->verifySubscriptionPayment($payment->id),
-                );
-            },
-        );
-    }
-
-    /** {@inheritDoc} */
-    public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
-    {
-        return $this->withUseCaseLog(
-            'refund_payment',
-            [
-                'payment_id' => $payment->id,
-                'amount' => $amount,
-            ],
-            function () use ($payment, $amount) {
-                return RefundResultDTO::fromArray(
-                    $this->subscriptionPayments->refundSubscriptionPayment($payment->id, $amount),
                 );
             },
         );

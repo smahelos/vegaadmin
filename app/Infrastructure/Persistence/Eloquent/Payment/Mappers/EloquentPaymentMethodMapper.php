@@ -27,17 +27,4 @@ class EloquentPaymentMethodMapper
             'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
         ]);
     }
-
-    /**
-     * Convert PaymentMethodDTO to array for Eloquent model creation/update.
-     */
-    public function fromDto(PaymentMethodDTO $dto): array
-    {
-        return [
-            'name' => $dto->name,
-            'slug' => $dto->code->value,
-            'description' => $dto->description,
-            'is_active' => $dto->is_active,
-        ];
-    }
 }

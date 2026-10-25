@@ -16,12 +16,6 @@ interface GatewayRegistryInterface
     /** Return all registered gateway names. */
     public function names(): array;
 
-    /** Remove a gateway registration if it exists. */
-    public function remove(string $name): void;
-
     /** Return metadata for a single gateway (null if missing). */
     public function metadata(string $name): ?array;
-
-    /** Return metadata array for all gateways. */
-    public function allMetadata(): array;
 }

@@ -13,33 +13,6 @@ use App\Models\Invoice;
 class QrPaymentPayloadMapper
 {
     /**
-     * Convert Invoice model to QrPaymentPayload DTO
-     */
-    public function fromInvoice(Invoice $invoice): QrPaymentPayload
-    {
-        // Get payment amount as Money value object
-        $amount = Money::fromString(
-            (string) $invoice->payment_amount,
-            $invoice->payment_currency ?? 'CZK',
-        );
-
-        $supplierCountry = null;
-        if ($invoice->relationLoaded('supplier') && $invoice->supplier) {
-            $supplierCountry = $invoice->supplier->country;
-        }
-
-        return new QrPaymentPayload(
-            variableSymbol: $invoice->invoice_vs,
-            amount: $amount,
-            accountNumber: $invoice->account_number,
-            bankCode: $invoice->bank_code,
-            iban: $invoice->iban,
-            countryCode: $supplierCountry ?? $invoice->country_code ?? null,
-            message: $invoice->invoice_text,
-        );
-    }
-
-    /**
      * Convert generic object/array to QrPaymentPayload DTO
      * This maintains compatibility with guest invoices and other data sources
      *

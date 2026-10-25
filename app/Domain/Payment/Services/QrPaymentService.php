@@ -34,24 +34,4 @@ class QrPaymentService implements QrPaymentServiceInterface
 
         return $this->qrRenderer->renderDataUrl($qrString);
     }
-
-    /**
-     * Check if payment payload has all required information for QR payment
-     */
-    public function hasRequiredPaymentInfo(QrPaymentPayload $payload): bool
-    {
-        $provider = QrPaymentProviderFactory::autoDetectProvider($payload);
-
-        return $provider->validatePaymentInfo($payload);
-    }
-
-    /**
-     * Get supported countries for QR payments
-     *
-     * @return array Array of country codes
-     */
-    public function getSupportedCountries(): array
-    {
-        return array_keys(QrPaymentProviderFactory::getAvailableProviders());
-    }
 }

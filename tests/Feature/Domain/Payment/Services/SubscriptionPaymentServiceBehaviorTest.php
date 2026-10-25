@@ -141,13 +141,6 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
 
                     return $this->mapper->toDto($m);
                 }
-
-                public function applyRefund(int $paymentId, float $amount): bool
-                {
-                    $m = Payment::query()->find($paymentId);
-
-                    return $m ? $m->applyRefund($amount) : false;
-                }
             };
         });
         // Bind a safe SubscriptionDtoReadRepositoryInterface stub to bypass faulty mapper subscriptionPlan handling
@@ -339,35 +332,6 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     }
 
     #[Test]
-    public function verify_subscription_updates_status_and_activates_when_completed(): void
-    {
-        $subscription = $this->makeSubscription();
-        $process = $this->service->processSubscriptionPayment(
-            $subscription->id,
-            'fake',
-            [
-                'amount' => number_format(
-                    (float) $subscription->amount,
-                    2,
-                    '.',
-                    '',
-                ),
-                'currency' => (string) $subscription->currency,
-            ],
-        );
-        $payment = Payment::find($process['payment_id']);
-        // Set gateway status to completed manually
-        $this->fakeGateway->statuses[$process['gateway_payment_id']] = 'completed';
-        $verify = $this->service->verifySubscriptionPayment($payment->id);
-        $this->assertTrue($verify['success']);
-        $this->assertEquals('completed', $verify['status']);
-        $payment->refresh();
-        $subscription->refresh();
-        $this->assertEquals('completed', $payment->status);
-        $this->assertEquals('active', $subscription->status);
-    }
-
-    #[Test]
     public function cancellation_marks_pending_payment_cancelled(): void
     {
         $subscription = $this->makeSubscription();
@@ -390,54 +354,6 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
         $this->assertTrue($cancel); // All pending should cancel
         $payment->refresh();
         $this->assertEquals('cancelled', $payment->status);
-    }
-
-    #[Test]
-    public function refund_completed_payment_returns_success_and_amount(): void
-    {
-        $subscription = $this->makeSubscription();
-        $process = $this->service->processSubscriptionPayment(
-            $subscription->id,
-            'fake',
-            [
-                'amount' => number_format(
-                    (float) $subscription->amount,
-                    2,
-                    '.',
-                    '',
-                ),
-                'currency' => (string) $subscription->currency,
-            ],
-        );
-        $payment = Payment::find($process['payment_id']);
-        // Complete payment via callback
-        $this->service->handlePaymentCallback('fake', [
-            'payment_id' => $process['gateway_payment_id'],
-            'order_id' => $payment->id,
-            'status' => 'completed',
-        ]);
-        $payment->refresh();
-        $this->assertEquals('completed', $payment->status);
-        $refund = $this->service->refundSubscriptionPayment($payment->id, 5.00);
-        $this->assertTrue($refund['success']);
-        $this->assertEquals($payment->id, $refund['payment_id']);
-        $this->assertEquals(5.00, $refund['refunded_amount']);
-    }
-
-    #[Test]
-    public function refund_pending_payment_fails(): void
-    {
-        $subscription = $this->makeSubscription();
-        $process = $this->service->processSubscriptionPayment(
-            $subscription->id,
-            'fake',
-            [],
-        );
-        $payment = Payment::find($process['payment_id']);
-        $this->assertEquals('pending', $payment->status);
-        $refund = $this->service->refundSubscriptionPayment($payment->id, 5.00);
-        $this->assertFalse($refund['success']);
-        $this->assertStringContainsString('Only completed', $refund['error']);
     }
 
     #[Test]

@@ -56,16 +56,6 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     }
 
     #[Test]
-    public function is_active_method_returns_boolean(): void
-    {
-        $activeFeature = SubscriptionPlanFeature::factory()->create(['is_active' => true]);
-        $inactiveFeature = SubscriptionPlanFeature::factory()->create(['is_active' => false]);
-
-        $this->assertTrue($activeFeature->isActive());
-        $this->assertFalse($inactiveFeature->isActive());
-    }
-
-    #[Test]
     public function generate_slug_creates_unique_slug(): void
     {
         $feature = SubscriptionPlanFeature::factory()->create(['name' => 'Test Feature Name']);

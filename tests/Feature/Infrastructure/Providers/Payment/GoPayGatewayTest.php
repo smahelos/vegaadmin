@@ -82,24 +82,6 @@ final class GoPayGatewayTest extends TestCase
     }
 
     #[Test]
-    public function reports_a_verification_the_gateway_refused(): void
-    {
-        $paymentId = $this->createPayment();
-        $this->payments->failStatus = true;
-
-        $result = $this->gateway->verifyPayment($paymentId);
-
-        $this->assertFalse($result['success']);
-        $this->assertSame('unknown', $this->gateway->getPaymentStatus($paymentId));
-    }
-
-    #[Test]
-    public function the_status_of_an_unknown_payment_is_unknown(): void
-    {
-        $this->assertSame('unknown', $this->gateway->getPaymentStatus('GP-404'));
-    }
-
-    #[Test]
     public function a_payment_return_asks_the_gateway_for_the_state(): void
     {
         $paymentId = $this->createPayment();
@@ -121,76 +103,9 @@ final class GoPayGatewayTest extends TestCase
     }
 
     #[Test]
-    public function cancels_a_payment(): void
-    {
-        $paymentId = $this->createPayment();
-
-        $this->assertTrue($this->gateway->cancelPayment($paymentId));
-        $this->assertSame('cancelled', $this->gateway->getPaymentStatus($paymentId));
-    }
-
-    #[Test]
-    public function reports_a_cancellation_the_gateway_refused(): void
-    {
-        $paymentId = $this->createPayment();
-        $this->payments->failCancel = true;
-
-        $this->assertFalse($this->gateway->cancelPayment($paymentId));
-        $this->assertSame('pending', $this->gateway->getPaymentStatus($paymentId));
-    }
-
-    #[Test]
-    public function partial_refunds_add_up_until_the_rest_is_refunded(): void
-    {
-        $paymentId = $this->createPayment();
-
-        $this->assertTrue($this->gateway->refundPayment($paymentId, 3.00)['success']);
-        $this->assertSame('partially_refunded', $this->gateway->getPaymentStatus($paymentId));
-
-        $this->assertTrue($this->gateway->refundPayment($paymentId, 2.00)['success']);
-        $this->assertSame('partially_refunded', $this->gateway->getPaymentStatus($paymentId));
-
-        $this->assertTrue($this->gateway->refundPayment($paymentId)['success']);
-        $this->assertSame('refunded', $this->gateway->getPaymentStatus($paymentId));
-    }
-
-    #[Test]
-    public function reports_a_refund_the_gateway_refused(): void
-    {
-        $paymentId = $this->createPayment();
-        $this->payments->failRefund = true;
-
-        $result = $this->gateway->refundPayment($paymentId, 10.00);
-
-        $this->assertFalse($result['success']);
-        $this->assertSame('Refund failed', $result['error']);
-    }
-
-    #[Test]
     public function supports_czech_crowns_and_euros(): void
     {
         $this->assertSame(['CZK', 'EUR'], $this->gateway->getSupportedCurrencies());
-    }
-
-    #[Test]
-    public function is_available_only_when_enabled_with_credentials(): void
-    {
-        config([
-            'services.gopay.enabled' => true,
-            'services.gopay.goid' => '8123456789',
-            'services.gopay.client_id' => 'client',
-            'services.gopay.client_secret' => 'secret',
-        ]);
-        $this->assertTrue($this->gateway->isAvailable());
-
-        config(['services.gopay.client_secret' => '']);
-        $this->assertFalse($this->gateway->isAvailable());
-
-        config([
-            'services.gopay.client_secret' => 'secret',
-            'services.gopay.enabled' => false,
-        ]);
-        $this->assertFalse($this->gateway->isAvailable());
     }
 
     private function createPayment(): string

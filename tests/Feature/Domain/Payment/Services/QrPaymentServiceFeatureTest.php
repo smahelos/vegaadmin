@@ -5,8 +5,6 @@ namespace Tests\Feature\Domain\Payment\Services;
 use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use App\Domain\Payment\Contracts\QrCodeRendererInterface;
 use App\Domain\Payment\Services\QrPaymentService;
-use App\Models\Invoice;
-use App\Models\Supplier;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -144,123 +142,6 @@ class QrPaymentServiceFeatureTest extends TestCase
 
         $this->assertNotNull($result);
         $this->assertStringStartsWith('data:image/png;base64,', $result);
-    }
-
-    #[Test]
-    public function has_required_payment_info_returns_false_for_invoice_without_account_info(): void
-    {
-        // Create invoice without supplier to ensure no account info
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'payment_amount' => '1000.00',
-            'payment_currency' => 'CZK',
-            'invoice_vs' => '20240001',
-        ]);
-        $payload = $this->mapper->fromArray($invoice->toArray());
-        $result = $this->service->hasRequiredPaymentInfo($payload);
-
-        $this->assertFalse($result);
-    }
-
-    #[Test]
-    public function has_required_payment_info_returns_false_for_missing_account_info(): void
-    {
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'supplier_id' => null,
-            'payment_amount' => '1000.00',
-            'payment_currency' => 'CZK',
-            'invoice_vs' => '20240001',
-        ]);
-        $payload = $this->mapper->fromArray($invoice->toArray());
-        $result = $this->service->hasRequiredPaymentInfo($payload);
-
-        $this->assertFalse($result);
-    }
-
-    #[Test]
-    public function has_required_payment_info_works_with_object_having_account_number(): void
-    {
-        $data = [
-            'payment_amount' => 1000,
-            'payment_currency' => 'CZK',
-            'invoice_vs' => '20240001',
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->hasRequiredPaymentInfo($payload);
-
-        $this->assertTrue($result);
-    }
-
-    #[Test]
-    public function has_required_payment_info_works_with_object_having_iban(): void
-    {
-        $data = [
-            'payment_amount' => 1000,
-            'payment_currency' => 'EUR',
-            'invoice_vs' => '20240001',
-            // Use non-CZ IBAN to trigger EU provider for EUR payments
-            'iban' => 'DE89370400440532013000',
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->hasRequiredPaymentInfo($payload);
-
-        $this->assertTrue($result);
-    }
-
-    #[Test]
-    public function has_required_payment_info_returns_true_for_supplier_with_account_info(): void
-    {
-        $supplier = Supplier::factory()->create([
-            'user_id' => $this->user->id,
-            'account_number' => '987654321',
-            'bank_code' => '0200',
-        ]);
-
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'supplier_id' => $supplier->id,
-            'payment_amount' => '1000.00',
-            'payment_currency' => 'CZK',
-            'invoice_vs' => '20240001',
-        ]);
-        // Mapper fromInvoice does not fallback to supplier account data; use array with supplier_* keys
-        $data = array_merge($invoice->toArray(), [
-            'supplier_account_number' => $supplier->account_number,
-            'supplier_bank_code' => $supplier->bank_code,
-        ]);
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->hasRequiredPaymentInfo($payload);
-
-        $this->assertTrue($result);
-    }
-
-    #[Test]
-    public function has_required_payment_info_returns_true_for_supplier_with_iban(): void
-    {
-        $supplier = Supplier::factory()->create([
-            'user_id' => $this->user->id,
-            // Use EU IBAN to match EUR currency and EU provider
-            'iban' => 'DE89370400440532013000',
-        ]);
-
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'supplier_id' => $supplier->id,
-            'payment_amount' => '1000.00',
-            'payment_currency' => 'EUR',
-            'invoice_vs' => '20240001',
-        ]);
-        // Mapper fromInvoice does not fallback to supplier IBAN; use array with supplier_* keys
-        $data = array_merge($invoice->toArray(), [
-            'supplier_iban' => $supplier->iban,
-        ]);
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->hasRequiredPaymentInfo($payload);
-
-        $this->assertTrue($result);
     }
 
     #[Test]

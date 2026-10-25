@@ -17,7 +17,6 @@ class SubscriptionPaymentResultDTO
         public readonly ?float $amount = null,
         public readonly ?string $currency = null,
         public readonly ?string $error = null,
-        public readonly array $raw = [],
     ) {}
 
     public static function fromArray(array $data): self
@@ -30,7 +29,6 @@ class SubscriptionPaymentResultDTO
             amount: $data['amount'] ?? null,
             currency: $data['currency'] ?? null,
             error: $data['error'] ?? null,
-            raw: $data,
         );
     }
 

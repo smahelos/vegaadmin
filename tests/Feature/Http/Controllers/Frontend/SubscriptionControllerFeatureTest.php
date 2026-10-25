@@ -2,11 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Application\Payment\DTO\RefundResultDTO;
-use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
 use App\Http\Controllers\Frontend\SubscriptionController;
-use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
@@ -76,6 +72,25 @@ class SubscriptionControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function my_subscription_shows_the_active_subscription(): void
+    {
+        $subscription = Subscription::factory()->create([
+            'user_id' => $this->user->id,
+            'status' => 'active',
+            'trial_ends_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(10),
+        ]);
+
+        $this->actingAs($this->user);
+
+        $response = $this->get(route('subscriptions.my-subscription', ['locale' => 'en']));
+
+        $response->assertOk();
+        $response->assertViewIs('frontend.subscriptions.my-subscription');
+        $response->assertSee($subscription->subscriptionPlan->name);
+    }
+
+    #[Test]
     public function show_displays_specific_subscription_plan(): void
     {
         $plan = SubscriptionPlan::factory()->create();
@@ -106,73 +121,6 @@ class SubscriptionControllerFeatureTest extends TestCase
         ]));
 
         $response->assertRedirect(route('login'));
-    }
-
-    #[Test]
-    public function authenticated_user_can_subscribe_to_plan(): void
-    {
-        // Override the default mock with success result
-        $this->app->singleton(PaymentApplicationServiceInterface::class, function () {
-            return new class implements PaymentApplicationServiceInterface
-            {
-                public function initiateSubscription(
-                    Subscription $subscription,
-                    string $gateway,
-                    array $data = [],
-                ): SubscriptionPaymentResultDTO {
-                    return SubscriptionPaymentResultDTO::fromArray([
-                        'success' => true,
-                        'payment_id' => 123,
-                        'status' => 'pending',
-                        'redirect_url' => 'https://stub-gateway.test/pay/123',
-                    ]);
-                }
-
-                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
-                {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
-                }
-
-                public function verify(Payment $payment): SubscriptionPaymentResultDTO
-                {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
-                }
-
-                public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
-                {
-                    return RefundResultDTO::fromArray(['success' => false]);
-                }
-
-                public function getAvailableGateways(): array
-                {
-                    return ['gopay' => [
-                        'name' => 'GoPay',
-                        'supported_currencies' => ['CZK'],
-                        'supports_recurring' => false,
-                    ]];
-                }
-
-                public function cancelSubscription(Subscription $subscription): bool
-                {
-                    return false;
-                }
-            };
-        });
-
-        $plan = SubscriptionPlan::factory()->create();
-        $this->user->givePermissionTo('frontend.can_create_subscription');
-        $this->actingAs($this->user);
-
-        $response = $this->post(route('subscriptions.subscribe', [
-            'locale' => 'en',
-            'plan' => $plan->id,
-        ]), [
-            'gateway' => 'gopay',
-        ]);
-
-        $response->assertRedirect();
-        // Redirect should be to stub gw url
-        $this->assertStringContainsString('https://stub-gateway.test/pay/', $response->headers->get('Location'));
     }
 
     #[Test]

@@ -39,29 +39,10 @@ class EloquentPaymentMethodDtoRepository implements PaymentMethodDtoReadReposito
         return $paymentMethod ? $this->mapper->toDto($paymentMethod) : null;
     }
 
-    public function findBySlug(string $slug): ?PaymentMethodDTO
-    {
-        $paymentMethod = $this->paymentMethodRepository->findBySlug($slug);
-
-        return $paymentMethod ? $this->mapper->toDto($paymentMethod) : null;
-    }
-
     public function create(PaymentMethodWriteData $writeData): PaymentMethodDTO
     {
         $eloquentPaymentMethod = $this->paymentMethodRepository->create($writeData->toArray());
 
         return $this->mapper->toDto($eloquentPaymentMethod);
-    }
-
-    public function update(PaymentMethodId $id, PaymentMethodWriteData $writeData): PaymentMethodDTO
-    {
-        $eloquentPaymentMethod = $this->paymentMethodRepository->updateById($id->getValue(), $writeData->toArray());
-
-        return $this->mapper->toDto($eloquentPaymentMethod);
-    }
-
-    public function delete(PaymentMethodId $id): void
-    {
-        $this->paymentMethodRepository->deleteById($id->getValue());
     }
 }

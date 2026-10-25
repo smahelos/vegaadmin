@@ -154,14 +154,6 @@ class QrPaymentProviderFactory
     }
 
     /**
-     * Get all available providers
-     */
-    public static function getAvailableProviders(): array
-    {
-        return self::$providers;
-    }
-
-    /**
      * Check if provider exists for country code
      */
     public static function hasProvider(string $countryCode): bool

@@ -13,16 +13,6 @@ class PaymentMethodWriteData
         public readonly bool $is_active = true,
     ) {}
 
-    public static function fromArray(array $data): self
-    {
-        return new self(
-            name: $data['name'],
-            code: PaymentMethodCode::from($data['slug']),
-            description: $data['description'] ?? null,
-            is_active: (bool) ($data['is_active'] ?? true),
-        );
-    }
-
     public function toArray(): array
     {
         return [
