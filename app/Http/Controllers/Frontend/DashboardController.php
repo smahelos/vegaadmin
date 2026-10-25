@@ -39,7 +39,6 @@ class DashboardController extends Controller
             'clientCount' => $dashboardData['statistics_formatted']['client_count'],
             'suppliersCount' => $dashboardData['statistics_formatted']['suppliers_count'],
             'totalAmount' => $dashboardData['statistics_formatted']['total_amount'],
-            'monthlyStats' => $dashboardData['monthly_stats'],
             'clients' => $dashboardData['clients'],
         ]);
     }
