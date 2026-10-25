@@ -57,16 +57,4 @@ final class FormDataChanged implements DomainEvent
             'occurred_on' => $this->occurredOn->format('Y-m-d H:i:s'),
         ];
     }
-
-    /** {@inheritDoc} */
-    public function getOccurredOn(): \DateTimeImmutable
-    {
-        return $this->occurredOn;
-    }
-
-    /** {@inheritDoc} */
-    public function getMetadata(): array
-    {
-        return $this->metadata;
-    }
 }

@@ -45,21 +45,6 @@ class ProductCreated implements DomainEvent
         $this->eventId = uniqid('user_', true);
     }
 
-    public function getProduct(): ProductDTO
-    {
-        return $this->product;
-    }
-
-    public function getAggregateId(): int
-    {
-        return $this->product->id;
-    }
-
-    public function getDomain(): string
-    {
-        return 'product';
-    }
-
     public function getPayload(): array
     {
         return [
@@ -88,19 +73,5 @@ class ProductCreated implements DomainEvent
     public function getEventId(): string
     {
         return $this->eventId;
-    }
-
-    /** {@inheritDoc} */
-    public function getOccurredOn(): \DateTimeImmutable
-    {
-        return $this->occurredOn;
-    }
-
-    /**
-     * Get any additional metadata associated with the event.
-     */
-    public function getMetadata(): array
-    {
-        return $this->metadata;
     }
 }
