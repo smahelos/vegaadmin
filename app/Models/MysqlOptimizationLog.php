@@ -42,48 +42,6 @@ class MysqlOptimizationLog extends Model
     ];
 
     /**
-     * Get priority badge
-     */
-    public function getPriorityBadgeAttribute()
-    {
-        $badges = [
-            'high' => '<span class="badge text-bg-danger">High</span>',
-            'medium' => '<span class="badge text-bg-warning">Medium</span>',
-            'low' => '<span class="badge text-bg-info">Low</span>',
-        ];
-
-        return $badges[$this->priority] ?? '<span class="badge text-bg-light">Unknown</span>';
-    }
-
-    /**
-     * Get applied status badge
-     */
-    public function getAppliedBadgeAttribute()
-    {
-        return $this->applied
-            ? '<span class="badge text-bg-success">Applied</span>'
-            : '<span class="badge text-bg-secondary">Pending</span>';
-    }
-
-    /**
-     * Get current value from MySQL if not set
-     */
-    public function getCurrentValueFromDbAttribute()
-    {
-        if ($this->current_value) {
-            return $this->current_value;
-        }
-
-        try {
-            $result = \DB::select('SHOW VARIABLES LIKE ?', [$this->setting_name]);
-
-            return $result[0]->Value ?? 'Not found';
-        } catch (\Exception $e) {
-            return 'Error reading';
-        }
-    }
-
-    /**
      * Scope for high priority items
      */
     public function scopeHighPriority($query)
