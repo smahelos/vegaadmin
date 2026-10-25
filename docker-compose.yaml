@@ -143,13 +143,14 @@ services:
             - billex-network
 
     # Queue worker: same image, user and storage as app; keeps the code in memory, so code changes need
-    # `php artisan queue:restart` (the worker exits after its current job and Docker starts it again)
+    # `php artisan queue:restart` (the worker exits after its current job and Docker starts it again);
+    # --max-time restarts it hourly as a safety net against stale code and memory leaks
     queue:
         image: billex-app
         container_name: "${CONTAINER_PREFIX}-queue"
         user: 'www-data:www-data'
         working_dir: /var/www
-        command: php artisan queue:work --tries=3
+        command: php artisan queue:work --tries=3 --backoff=10 --max-time=3600
         restart: unless-stopped
         volumes:
             - ./:/var/www

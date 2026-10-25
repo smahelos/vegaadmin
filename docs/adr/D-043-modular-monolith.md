@@ -25,7 +25,7 @@ A part may leave the monolith as a **satellite service** only when all of these 
 
 Candidates if the need arises: bank integration (polling, webhooks, consent renewal, bank tokens), accounting export, PDF rendering, notifications. The core (Invoice, Party, Product, User, subscriptions) is not split.
 
-A message broker is introduced with the first satellite, not before. RabbitMQ is the expected choice then: the core publishes events from an outbox to an exchange, each satellite has its own queue (fanout), dead-letter queues and delivery confirmations guard against loss. Until then, queued work runs on Laravel Queue (the `queue` container in `docker-compose.yaml`, `database` connection).
+A message broker is introduced with the first satellite, not before. RabbitMQ is the expected choice then: the core publishes events from an outbox to an exchange, each satellite has its own queue (fanout), dead-letter queues and delivery confirmations guard against loss. Until then, queued work runs on Laravel Queue (the `queue` container in `docker-compose.yaml`) on the `database` connection, whose `jobs` table already is the outbox: a job is stored in the transaction of the data that caused it, so a crash between the commit and the dispatch loses nothing. The broker relays from an outbox table of the same kind.
 
 ## Rationale
 

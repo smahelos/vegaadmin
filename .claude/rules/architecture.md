@@ -59,6 +59,10 @@ Repositories are Domain ports: `app/Domain/<Context>/Contracts/<Entity>{Read,Wri
 ## Events
 
 - A state change other contexts react to is a domain event (`app/Domain/<Context>/Events/<Entity><PastTense>`), published through `EventPublisherInterface` by the service that made the change. Handlers live in `Events/Handlers/` of the reacting context.
+- Where a reaction runs follows from its effect (`LaravelEventPublisher`), so nothing is lost or left behind between the commit and the reaction:
+  - a write to the Billex database (usage counters, audit) is a domain handler (`DomainEventHandler`); it runs inside the use case's transaction and commits or rolls back with it;
+  - an effect outside the database (cache invalidation) is a Laravel listener; it runs after the commit and not at all on a rollback, and its failure is logged without failing the committed use case;
+  - work that must not be lost (mail, external calls) is a queued job on the `database` connection, dispatched by the use case or a domain handler: the job row is stored in the same transaction and the worker runs it after the commit. A job dispatched from a Laravel listener is stored only after the commit and is lost if the process dies in between.
 - Eloquent observers carry no business logic or cache invalidation; that belongs in event handlers (conversion tracked in `docs/TECH_DEBT.md`).
 - Only events that are actually published exist; an event without a publisher is deleted.
 

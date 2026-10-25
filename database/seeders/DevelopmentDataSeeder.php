@@ -96,24 +96,16 @@ final class DevelopmentDataSeeder extends Seeder
             throw new RuntimeException('DevelopmentDataSeeder runs only in the local and testing environments');
         }
 
-        $userIds = DB::transaction(function (): array {
-            $userIds = [];
+        DB::transaction(function (): void {
             $index = 0;
             foreach (self::ACCOUNTS as $email => $account) {
                 $user = $this->account($email, $account);
                 if ($account['guard'] === PermissionCatalog::WEB) {
                     $this->createData($user, $index);
-                    $userIds[] = $user->id;
                 }
                 $index++;
             }
-
-            return $userIds;
         });
-
-        // Every record above was counted as created today, by event handlers that run after the commit;
-        // the accounts start with no usage
-        DB::table('entity_limit_usage')->whereIn('user_id', $userIds)->delete();
     }
 
     /**
@@ -151,6 +143,9 @@ final class DevelopmentDataSeeder extends Seeder
             $products,
         );
         $this->createExpenses($user);
+
+        // Every invoice above was counted as created today; the account starts with no usage
+        DB::table('entity_limit_usage')->where('user_id', $user->id)->delete();
     }
 
     private function deleteData(User $user): void

@@ -40,7 +40,10 @@ return [
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
-            'after_commit' => true,
+            // The job row is written in the transaction of the data: a rollback removes it and the worker sees it
+            // only after the commit, so no job is lost between the commit and the dispatch (the jobs table is the
+            // outbox). The other connections cannot share the transaction, so they dispatch after the commit.
+            'after_commit' => false,
         ],
 
         'beanstalkd' => [
