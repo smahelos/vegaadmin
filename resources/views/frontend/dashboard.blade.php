@@ -122,18 +122,13 @@
     <div class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800">
         <div class="p-3">
             <div class="">
-                @if(!empty($monthlyStats))
-                    <!-- Store monthly stats data for JavaScript -->
-                    <div id="monthly-stats-data" class="hidden" data-stats="{{ json_encode($monthlyStats ?? []) }}"></div>
-
-                    <!-- Main revenue chart (enhanced) -->
-                    <div class="p-5 mb-8">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.monthly_invoices') }}</h3>
-                        <div class="h-64">
-                            <canvas id="invoicesChart"></canvas>
-                        </div>
+                <!-- Main revenue chart (enhanced) -->
+                <div class="p-5 mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.monthly_invoices') }}</h3>
+                    <div class="h-64">
+                        <canvas id="invoicesChart"></canvas>
                     </div>
-                @endif
+                </div>
 
                 <!-- Invoice status and payment method charts -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

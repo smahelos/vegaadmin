@@ -86,7 +86,6 @@ class DashboardControllerTest extends TestCase
         $this->assertArrayHasKey('clientCount', $data);
         $this->assertArrayHasKey('suppliersCount', $data);
         $this->assertArrayHasKey('totalAmount', $data);
-        $this->assertArrayHasKey('monthlyStats', $data);
         $this->assertArrayHasKey('clients', $data);
     }
 }

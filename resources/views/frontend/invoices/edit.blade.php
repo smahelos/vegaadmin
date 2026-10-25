@@ -645,7 +645,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
 
         <!-- Dialog -->
         <div
-            class="inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-lg">
+            class="inline-block w-full max-w-4xl p-6 my-8 overflow-hidden text-left align-middle transition-all relative bg-white dark:bg-gray-800 shadow-xl rounded-lg">
             <div class="flex justify-between items-start mb-4">
                 <h3 class="text-xl font-medium leading-6 text-gray-900 dark:text-white">
                     {{ __('products.titles.select_product') }}

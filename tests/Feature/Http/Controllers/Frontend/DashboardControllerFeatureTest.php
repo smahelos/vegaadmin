@@ -106,7 +106,6 @@ class DashboardControllerFeatureTest extends TestCase
             'clientCount',
             'suppliersCount',
             'totalAmount',
-            'monthlyStats',
             'clients',
         ]);
     }

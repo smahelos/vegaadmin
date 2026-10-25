@@ -115,32 +115,20 @@ class DashboardStatistics {
      */
     initRevenueChart() {
         const ctx = document.getElementById('invoicesChart').getContext('2d');
-        
-        // Get initial data from the data attribute if available
-        const initialDataElement = document.getElementById('monthly-stats-data');
-        let initialData = [];
-        
-        if (initialDataElement && initialDataElement.dataset.stats) {
-            try {
-                initialData = JSON.parse(initialDataElement.dataset.stats);
-            } catch (error) {
-                console.error('Error parsing initial stats data:', error);
-            }
-        }
-        
+
         this.charts.revenue = this.createChart(ctx, 'bar', {
-            labels: this.formatDateLabels(initialData.map(item => item.month)),
+            labels: [],
             datasets: [
                 {
                     label: this.translations.billedAmount || 'Fakturovaná částka',
-                    data: initialData.map(item => item.total),
+                    data: [],
                     backgroundColor: 'rgba(79, 70, 229, 0.5)',
                     borderColor: 'rgb(79, 70, 229)',
                     borderWidth: 1
                 },
                 {
                     label: this.translations.paidAmount || 'Zaplacená částka',
-                    data: initialData.map(item => item.paid || 0),
+                    data: [],
                     backgroundColor: 'rgba(16, 185, 129, 0.5)',
                     borderColor: 'rgb(16, 185, 129)',
                     borderWidth: 1
@@ -168,6 +156,12 @@ class DashboardStatistics {
                     position: 'top'
                 }
             }
+        });
+
+        this.fetchData('monthly-revenue').then(data => {
+            this.updateChartData(this.charts.revenue, 'revenue', data);
+        }).catch(error => {
+            console.error('Failed to load monthly revenue:', error);
         });
     }
 
