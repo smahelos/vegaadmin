@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs the architecture guards CI runs (.github/workflows/architecture_guard.yml) against the
+# Runs the architecture guards CI runs (.github/workflows/static-analysis.yml) against the
 # working tree and reports each one; exit code 1 when any guard fails.
 set -uo pipefail
 
