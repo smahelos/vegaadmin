@@ -3,14 +3,11 @@
 namespace Tests\Feature\Console\Commands;
 
 use App\Models\CronTask;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class TestCronExpressionFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function command_exists_and_has_correct_signature(): void
     {

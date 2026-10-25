@@ -7,14 +7,11 @@ namespace Tests\Feature\Infrastructure\Persistence\Eloquent\Payment\Repositories
 use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
 use App\Domain\Payment\DTO\PaymentWriteData;
 use App\Models\Payment;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 final class EloquentPaymentDtoWriteRepositoryTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function updates_payment_and_returns_its_dto(): void
     {

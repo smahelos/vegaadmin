@@ -6,12 +6,9 @@ use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class ProductApplicationServiceMoneyFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     protected ProductApplicationServiceInterface $productApp;
 
     protected function setUp(): void

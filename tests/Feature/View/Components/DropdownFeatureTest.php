@@ -3,15 +3,12 @@
 namespace Tests\Feature\View\Components;
 
 use App\View\Components\Dropdown;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\View\View;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DropdownFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function component_renders_successfully(): void
     {

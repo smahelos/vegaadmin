@@ -14,7 +14,6 @@ use App\Models\Client;
 use App\Models\EntityLimit;
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -33,7 +32,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 class ClientControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     protected string $validEmail;
 

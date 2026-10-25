@@ -11,7 +11,6 @@ use App\Models\ProductCategory;
 use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +26,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
  */
 class ProductRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase;
+    use CreatesAdminTestEnvironment;
 
     private User $productUser;
 

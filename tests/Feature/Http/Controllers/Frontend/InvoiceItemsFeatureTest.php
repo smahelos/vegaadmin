@@ -12,7 +12,6 @@ use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\Tax;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -25,7 +24,6 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 final class InvoiceItemsFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use RefreshDatabase;
 
     protected function setUp(): void
     {

@@ -7,7 +7,6 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Tax;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -21,7 +20,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class ProductRequestFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     private array $validProductData;
 

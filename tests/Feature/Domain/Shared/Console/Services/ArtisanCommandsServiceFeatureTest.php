@@ -5,7 +5,6 @@ namespace Tests\Domain\Console\Feature\Services;
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,8 +12,6 @@ use Tests\TestCase;
 
 class ArtisanCommandsServiceFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private ArtisanCommandsServiceInterface $service;
 
     protected function setUp(): void

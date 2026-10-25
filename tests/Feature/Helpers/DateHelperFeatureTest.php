@@ -3,15 +3,12 @@
 namespace Tests\Feature\Helpers;
 
 use App\Infrastructure\Shared\Support\DateHelper;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class DateHelperFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function format_returns_czech_format_for_czech_locale(): void
     {

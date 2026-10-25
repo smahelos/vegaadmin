@@ -10,14 +10,11 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AnalyticsCacheInvalidationTest extends TestCase
 {
-    use RefreshDatabase;
-
     /** Simple in-memory tagged cache fake for deterministic behavior. */
     private array $store = [];
 

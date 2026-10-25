@@ -12,7 +12,6 @@ use App\Models\Supplier;
 use App\Models\User;
 use DOMDocument;
 use DOMXPath;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -21,7 +20,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class InvoiceCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
-    use RefreshDatabase;
 
     private UniversalLimitService $limitService;
 

@@ -11,15 +11,12 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class CacheInvalidationFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private AnalyticsDashboardServiceInterface $dashboardService;
 
     private CacheServiceInterface $cacheService;

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
@@ -10,8 +9,6 @@ use Tests\TestCase;
 
 class CurrencyControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function it_returns_common_currencies(): void
     {

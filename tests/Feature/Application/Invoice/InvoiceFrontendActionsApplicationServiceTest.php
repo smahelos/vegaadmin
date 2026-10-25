@@ -10,7 +10,6 @@ use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\StatusCategory;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\AssertsInvoiceActionResult;
@@ -19,7 +18,6 @@ use Tests\TestCase;
 class InvoiceFrontendActionsApplicationServiceTest extends TestCase
 {
     use AssertsInvoiceActionResult;
-    use RefreshDatabase;
 
     private InvoiceFrontendActionsApplicationServiceInterface $frontend;
 

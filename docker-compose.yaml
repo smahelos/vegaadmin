@@ -25,6 +25,12 @@ services:
             - "database"
         environment:
             PHP_IDE_CONFIG: "serverName=billex-dev.local"
+            # The test suite loads .env.testing instead of .env; the connection comes from here, the
+            # database name from phpunit.xml (invoice_testing)
+            DB_HOST: ${DB_HOST}
+            DB_PORT: ${DB_PORT}
+            DB_USERNAME: ${DB_USERNAME}
+            DB_PASSWORD: ${DB_PASSWORD}
         networks:
             - billex-network
     # Web Server

@@ -3,14 +3,11 @@
 namespace Tests\Feature\Traits;
 
 use App\Infrastructure\Forms\User\UserFormFields;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class UserFormFieldsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private TestUserController $controller;
 
     protected function setUp(): void

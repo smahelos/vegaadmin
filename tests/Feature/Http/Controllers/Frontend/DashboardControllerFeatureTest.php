@@ -9,15 +9,12 @@ use App\Domain\Analytics\DTO\UserStatisticsDTO;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class DashboardControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function guest_is_redirected_to_login(): void
     {

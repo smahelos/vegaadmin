@@ -9,7 +9,6 @@ use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 /**
  * Feature test for UniversalLimitService with permission-based logic
@@ -17,8 +16,6 @@ use Tests\Traits\RefreshDatabaseWithData;
  */
 class UniversalLimitServiceFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private UniversalLimitService $service;
 
     private User $user;
@@ -26,7 +23,6 @@ class UniversalLimitServiceFeatureTest extends TestCase
     private EntityLimit $monthlyInvoiceLimit;
 
     // Disable automatic database seeding - this test creates its own data
-    protected bool $seedDatabase = false;
 
     protected function setUp(): void
     {

@@ -9,7 +9,6 @@ use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Services\PermissionLimitResolver;
 use App\Http\Controllers\Api\UELSController;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,8 +16,6 @@ use Tests\TestCase;
 
 class UELSControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private UniversalLimitServiceInterface $fakeService;
 
     private PermissionLimitResolver $fakeResolver;

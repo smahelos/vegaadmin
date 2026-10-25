@@ -6,7 +6,6 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
 use App\Models\EntityLimit;
 use App\Models\Product;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -16,7 +15,6 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 class ProductControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use RefreshDatabase;
 
     private UniversalLimitService $limitService;
 

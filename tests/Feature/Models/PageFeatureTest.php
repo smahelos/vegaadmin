@@ -8,7 +8,6 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -18,8 +17,6 @@ use Tests\TestCase;
  */
 class PageFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function page_can_be_created_with_valid_data(): void
     {
@@ -239,6 +236,9 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_scope_published_filters_published_pages(): void
     {
+        // The scope reads the whole table; start without the seeded content pages
+        Page::query()->delete();
+
         $category = PageCategory::factory()->create();
 
         // Published page with no time restrictions

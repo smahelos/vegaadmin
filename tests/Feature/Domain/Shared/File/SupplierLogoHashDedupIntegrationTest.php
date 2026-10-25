@@ -4,7 +4,6 @@ namespace Tests\Feature\Domain\Shared\File;
 
 use App\Models\FileHash;
 use App\Models\Supplier;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -12,8 +11,6 @@ use Tests\TestCase;
 
 class SupplierLogoHashDedupIntegrationTest extends TestCase
 {
-    use RefreshDatabase; // Ensure migrations for users and file_hashes tables are present
-
     #[Test]
     public function supplier_logo_uses_deduplication(): void
     {

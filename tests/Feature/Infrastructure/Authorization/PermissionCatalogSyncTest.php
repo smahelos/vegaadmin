@@ -6,7 +6,6 @@ use App\Infrastructure\Authorization\PermissionCatalog;
 use App\Infrastructure\Authorization\Services\PermissionCatalogSync;
 use App\Models\Subscription;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -14,8 +13,6 @@ use Tests\TestCase;
 
 class PermissionCatalogSyncTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function migrations_create_the_catalog_permissions_and_roles(): void
     {
@@ -26,11 +23,14 @@ class PermissionCatalogSyncTest extends TestCase
         $admin = Role::findByName(PermissionCatalog::ADMIN_ROLE, PermissionCatalog::BACKPACK);
         $this->assertEqualsCanonicalizing(PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK], $admin->permissions->pluck('name')->all());
 
+        // Plan roles also hold limit_* permissions, which are plan configuration, not catalog entries
         foreach (PermissionCatalog::ROLES as $guard => $roles) {
             foreach ($roles as $role => $names) {
                 $this->assertEqualsCanonicalizing(
                     $names,
-                    Role::findByName($role, $guard)->permissions->pluck('name')->all(),
+                    Role::findByName($role, $guard)->permissions->pluck('name')
+                        ->reject(fn (string $name) => str_starts_with($name, 'limit_'))
+                        ->all(),
                     $role,
                 );
             }

@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use Tests\Traits\RefreshDatabaseWithData;
 
 /**
  * Consolidated feature tests for InvoiceService.
@@ -26,7 +25,6 @@ use Tests\Traits\RefreshDatabaseWithData;
 class InvoiceServiceFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use RefreshDatabaseWithData;
 
     private InvoiceService $service;
 

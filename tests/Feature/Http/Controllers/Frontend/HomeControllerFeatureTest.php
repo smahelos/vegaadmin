@@ -3,14 +3,11 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class HomeControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function guest_sees_login_view_when_not_authenticated(): void
     {

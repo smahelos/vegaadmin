@@ -12,6 +12,25 @@ jobs:
     strategy:
       matrix:
         php: [ '8.3' ] # extend (e.g. '8.2','8.3') when multi-version desired
+    # Tests run on MySQL (phpunit.xml: DB_CONNECTION=mysql, DB_DATABASE=invoice_testing)
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: invoice_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: ''
     steps:
       - name: Checkout
         uses: actions/checkout@v7

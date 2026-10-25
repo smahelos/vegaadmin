@@ -10,7 +10,6 @@ use App\Models\Invoice;
 use App\Models\Status;
 use App\Models\StatusCategory;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
@@ -20,7 +19,6 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 class CheckInvoicePaymentStatusFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -35,11 +33,11 @@ class CheckInvoicePaymentStatusFeatureTest extends TestCase
     }
 
     /**
-     * Create required status categories and statuses for testing
+     * The command reads unpaid statuses from the invoice-payment category, which the reference
+     * data does not have; paid and cancelled come from the reference data.
      */
     protected function createTestStatuses(): void
     {
-        // Create invoice payment status category
         $paymentCategory = StatusCategory::firstOrCreate([
             'slug' => 'invoice-payment',
         ], [
@@ -47,29 +45,12 @@ class CheckInvoicePaymentStatusFeatureTest extends TestCase
             'description' => 'Payment status for invoices',
         ]);
 
-        // Create required payment statuses
         Status::firstOrCreate([
             'slug' => 'unpaid',
             'category_id' => $paymentCategory->id,
         ], [
             'name' => 'Unpaid',
             'description' => 'Invoice is not paid yet',
-        ]);
-
-        Status::firstOrCreate([
-            'slug' => 'paid',
-            'category_id' => $paymentCategory->id,
-        ], [
-            'name' => 'Paid',
-            'description' => 'Invoice has been paid',
-        ]);
-
-        Status::firstOrCreate([
-            'slug' => 'cancelled',
-            'category_id' => $paymentCategory->id,
-        ], [
-            'name' => 'Cancelled',
-            'description' => 'Invoice has been cancelled',
         ]);
     }
 

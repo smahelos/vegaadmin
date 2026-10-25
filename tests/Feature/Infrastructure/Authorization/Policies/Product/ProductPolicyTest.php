@@ -9,12 +9,9 @@ use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class ProductPolicyTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private ProductPolicy $policy;
 
     protected function setUp(): void

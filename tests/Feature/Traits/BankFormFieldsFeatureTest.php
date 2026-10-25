@@ -4,15 +4,12 @@ namespace Tests\Feature\Traits;
 
 use App\Domain\Shared\Geography\Services\CountryService;
 use App\Infrastructure\Forms\Party\BankFormFields;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class BankFormFieldsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private object $traitInstance;
 
     protected function setUp(): void

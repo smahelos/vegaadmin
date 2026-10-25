@@ -7,13 +7,12 @@ use App\Models\Client;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class InvoiceFormFieldsFeatureTest extends TestCase
 {
-    use InvoiceFormFields, RefreshDatabase;
+    use InvoiceFormFields;
 
     #[Test]
     public function get_invoice_fields_integrates_with_country_service(): void

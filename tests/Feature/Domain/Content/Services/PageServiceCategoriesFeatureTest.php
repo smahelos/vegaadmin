@@ -6,14 +6,11 @@ use App\Application\Content\Contracts\PageApplicationServiceInterface as PageSer
 use App\Models\Page;
 use App\Models\PageCategory;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PageServiceCategoriesFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private PageService $service;
 
     protected function setUp(): void

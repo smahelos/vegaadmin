@@ -11,7 +11,6 @@ use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
@@ -21,7 +20,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class ExpenseRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesAdminTestEnvironment, WithFaker;
 
     protected function setUp(): void
     {

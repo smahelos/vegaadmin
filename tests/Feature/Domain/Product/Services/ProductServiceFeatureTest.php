@@ -8,7 +8,6 @@ use App\Models\ProductCategory;
 use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,8 +15,6 @@ use Tests\TestCase;
 
 class ProductServiceFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private function makeCountingCache(): CacheServiceInterface
     {
         return new class implements CacheServiceInterface
@@ -140,6 +137,8 @@ class ProductServiceFeatureTest extends TestCase
     public function get_all_categories_is_cached_and_sorted(): void
     {
         Cache::flush();
+        // The service lists the whole table; start without the seeded categories
+        ProductCategory::query()->delete();
         ProductCategory::factory()->create(['name' => 'Zeta']);
         ProductCategory::factory()->create(['name' => 'Alpha']);
 

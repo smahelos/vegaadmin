@@ -8,12 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RequiresOptimizationTables;
 
 class PerformanceMetricTest extends TestCase
 {
-    use RequiresOptimizationTables;
-
     private PerformanceMetric $model;
 
     protected function setUp(): void

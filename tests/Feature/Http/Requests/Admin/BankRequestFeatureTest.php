@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\BankRequest;
 use App\Models\Bank;
 use App\Models\EntityLimit;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,7 +16,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class BankRequestFeatureTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase;
+    use CreatesAdminTestEnvironment;
 
     private UniversalLimitService $limitService;
 

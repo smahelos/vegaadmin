@@ -4,7 +4,6 @@ namespace Tests\Feature\Domain\Shared\Money\Services;
 
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Money\Services\CurrencyExchangeService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -13,8 +12,6 @@ use Tests\TestCase;
 
 class CurrencyExchangeServiceFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private CurrencyExchangeService $service;
 
     protected function setUp(): void

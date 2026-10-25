@@ -12,12 +12,9 @@ use Mockery;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class SubscriptionPaymentServiceFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private SubscriptionPaymentServiceInterface $service;
 
     protected function setUp(): void

@@ -6,7 +6,6 @@ use App\Http\Requests\Admin\SupplierRequest;
 use App\Models\EntityLimit;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -16,7 +15,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 class AdminSupplierLogoValidationTest extends TestCase
 {
-    use CreatesAdminTestEnvironment, RefreshDatabase;
+    use CreatesAdminTestEnvironment;
 
     protected function setUp(): void
     {

@@ -9,7 +9,6 @@ use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 /**
  * Additional behavior-focused tests for UniversalLimitService.
@@ -18,13 +17,9 @@ use Tests\Traits\RefreshDatabaseWithData;
  */
 class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private UniversalLimitService $service;
 
     private User $user;
-
-    protected bool $seedDatabase = false; // We'll create only what we need
 
     protected function setUp(): void
     {

@@ -4,11 +4,9 @@ namespace Tests\Feature\Models;
 
 use App\Models\DatabaseHealthMetric;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RequiresOptimizationTables;
 
 /**
  * Feature tests for DatabaseHealthMetric Model
@@ -18,12 +16,11 @@ use Tests\Traits\RequiresOptimizationTables;
  */
 class DatabaseHealthMetricFeatureTest extends TestCase
 {
-    use RefreshDatabase, RequiresOptimizationTables, WithFaker;
+    use WithFaker;
 
     #[Test]
     public function can_create_database_health_metric_with_factory(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $metric = DatabaseHealthMetric::factory()->create();
 
@@ -37,7 +34,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function fillable_attributes_can_be_mass_assigned(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $data = [
             'metric_name' => 'database_size',
@@ -58,7 +54,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $metric = DatabaseHealthMetric::factory()->create([
             'metric_value' => '123.4567',
@@ -74,7 +69,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function table_name_is_correct(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $metric = DatabaseHealthMetric::factory()->create();
 
@@ -84,7 +78,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function get_status_badge_attribute_works(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $goodMetric = DatabaseHealthMetric::factory()->good()->create();
         $warningMetric = DatabaseHealthMetric::factory()->warning()->create();
@@ -109,7 +102,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function get_formatted_value_attribute_works(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $metricWithUnit = DatabaseHealthMetric::factory()->create([
             'metric_value' => '50.25',
@@ -128,7 +120,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function scope_recent_works(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         // Create old metrics (older than 24 hours)
         DatabaseHealthMetric::factory()->create([
@@ -158,7 +149,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function scope_status_works(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         DatabaseHealthMetric::factory()->good()->create();
         DatabaseHealthMetric::factory()->good()->create();
@@ -181,7 +171,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function scope_metric_type_works(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         DatabaseHealthMetric::factory()->databaseSize()->create();
         DatabaseHealthMetric::factory()->databaseSize()->create();
@@ -204,7 +193,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $goodMetric = DatabaseHealthMetric::factory()->good()->create();
         $warningMetric = DatabaseHealthMetric::factory()->warning()->create();
@@ -224,7 +212,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function factory_metric_specific_states_work(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $databaseSizeMetric = DatabaseHealthMetric::factory()->databaseSize()->create();
         $queryPerformanceMetric = DatabaseHealthMetric::factory()->queryPerformance()->create();
@@ -243,7 +230,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function factory_recent_state_works(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $recentMetric = DatabaseHealthMetric::factory()->recent()->create();
 
@@ -254,7 +240,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function factory_with_value_state_works(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $specificValueMetric = DatabaseHealthMetric::factory()->withValue(99.99)->create();
 
@@ -264,7 +249,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function can_update_database_health_metric(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $metric = DatabaseHealthMetric::factory()->create();
 
@@ -285,7 +269,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function can_delete_database_health_metric(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $metric = DatabaseHealthMetric::factory()->create();
         $metricId = $metric->id;
@@ -298,7 +281,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function can_create_metric_without_optional_fields(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         $data = [
             'metric_name' => 'simple_test',
@@ -320,7 +302,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     #[Test]
     public function chained_scopes_work_correctly(): void
     {
-        $this->skipIfTableNotExists('database_health_metrics');
 
         // Create various metrics
         DatabaseHealthMetric::factory()->recent()->good()->databaseSize()->create();

@@ -5,15 +5,12 @@ namespace Tests\Feature\Domain\Payment\Providers\PaymentGateways;
 use App\Domain\Payment\Contracts\PaymentGatewayInterface;
 use App\Infrastructure\Providers\Payment\GoPayGateway;
 use App\Models\Subscription;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\Stubs\Payment\StubGoPayPayments;
 use Tests\TestCase;
 
 class GoPayGatewayFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private GoPayGateway $gateway;
 
     private StubGoPayPayments $stub;

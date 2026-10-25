@@ -4,15 +4,12 @@ namespace Tests\Feature\Domain\User\ValueObjects;
 
 use App\Domain\Shared\Hash\Contracts\HashInterface;
 use App\Domain\User\ValueObjects\UserPassword;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class UserPasswordTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

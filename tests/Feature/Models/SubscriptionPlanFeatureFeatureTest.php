@@ -5,13 +5,18 @@ namespace Tests\Feature\Models;
 use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPlanFeature;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SubscriptionPlanFeatureFeatureTest extends TestCase
 {
-    use RefreshDatabase;
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // The scopes below read the whole table; start without the seeded plan features
+        SubscriptionPlanFeature::query()->delete();
+    }
 
     #[Test]
     public function subscription_plan_feature_can_be_created_with_factory(): void

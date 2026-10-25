@@ -13,14 +13,11 @@ use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\Services\SubscriptionPaymentService;
 use App\Infrastructure\Providers\Payment\GoPayGateway;
 use App\Providers\PaymentServiceProvider;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PaymentServiceProviderFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function provider_registers_subscription_payment_service_interface(): void
     {

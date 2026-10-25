@@ -3,15 +3,12 @@
 namespace Tests\Feature\Http\Middleware;
 
 use App\Http\Middleware\RefreshBackpackSession;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RefreshBackpackSessionFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private RefreshBackpackSession $middleware;
 
     protected function setUp(): void

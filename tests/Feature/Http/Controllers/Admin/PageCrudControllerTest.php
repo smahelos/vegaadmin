@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Http\Controllers\Admin\PageCrudController;
 use App\Models\Page;
 use App\Models\PageCategory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,7 +18,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class PageCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
-    use RefreshDatabase;
 
     private PageCategory $category;
 

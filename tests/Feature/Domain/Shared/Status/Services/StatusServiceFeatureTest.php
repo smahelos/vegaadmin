@@ -10,12 +10,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class StatusServiceFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     public function test_category_list_is_cached_and_reused(): void
     {
         $service = app(StatusServiceInterface::class);

@@ -5,7 +5,6 @@ namespace Tests\Feature\Domain\Shared\File;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
 use App\Models\FileHash;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,8 +12,6 @@ use Tests\TestCase;
 
 class InvoiceLogoHashDedupIntegrationTest extends TestCase
 {
-    use RefreshDatabase; // Ensure migrations (file_hashes table) are run for this integration test
-
     private function normalize(mixed $value): mixed
     {
         return $value instanceof UploadedFile ? IncomingFileFactory::fromUploadedFile($value) : $value;

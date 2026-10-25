@@ -9,12 +9,9 @@ use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class PermissionLimitResolverTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private PermissionLimitResolver $resolver;
 
     protected function setUp(): void

@@ -9,7 +9,6 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -17,7 +16,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class DashboardServiceFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     private AnalyticsDashboardServiceInterface $service;
 

@@ -4,15 +4,12 @@ namespace Tests\Feature\Http\Controllers\Frontend\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class LoginControllerFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function guest_can_view_login_form(): void
     {

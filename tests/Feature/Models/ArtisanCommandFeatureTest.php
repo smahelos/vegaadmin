@@ -5,14 +5,13 @@ namespace Tests\Feature\Models;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ArtisanCommandFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     #[Test]
     public function can_create_artisan_command_with_factory(): void
@@ -188,6 +187,9 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function relationship_eager_loading_works(): void
     {
+        // The query reads the whole table; start without the seeded cron command
+        ArtisanCommand::query()->delete();
+
         $commands = ArtisanCommand::factory()->count(3)->create();
 
         $commandsWithCategory = ArtisanCommand::with('category')->get();

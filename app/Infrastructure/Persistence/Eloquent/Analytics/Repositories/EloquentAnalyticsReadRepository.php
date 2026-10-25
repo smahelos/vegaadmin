@@ -22,13 +22,6 @@ class EloquentAnalyticsReadRepository implements AnalyticsReadRepository
 
     public function getMonthlyStats(int $userId, int $months): array
     {
-        $defaultConnection = config('database.default');
-        $connectionConfig = config('database.connections.' . $defaultConnection);
-        $driver = $connectionConfig['driver'] ?? 'sqlite';
-        $dateExpr = $driver === 'sqlite'
-            ? 'strftime("%Y-%m", invoices.issue_date)'
-            : 'DATE_FORMAT(invoices.issue_date, "%Y-%m")';
-
         $rows = DB::table('invoices')
             ->join(
                 'clients',
@@ -43,7 +36,8 @@ class EloquentAnalyticsReadRepository implements AnalyticsReadRepository
                 '>=',
                 now()->subMonths($months),
             )
-            ->select(DB::raw($dateExpr . ' as month'), DB::raw('SUM(invoices.payment_amount) as total'))
+            ->selectRaw("DATE_FORMAT(invoices.issue_date, '%Y-%m') as month")
+            ->selectRaw('SUM(invoices.payment_amount) as total')
             ->groupBy('month')
             ->orderBy('month')
             ->get();

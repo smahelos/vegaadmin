@@ -4,7 +4,6 @@ namespace Tests\Feature\Traits;
 
 use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -12,8 +11,6 @@ use Tests\TestCase;
 
 class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private SpatieAuthorizationAdapter $adapter;
 
     protected function setUp(): void

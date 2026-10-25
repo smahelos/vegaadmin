@@ -4,7 +4,6 @@ namespace Tests\Feature\Helpers;
 
 use App\Models\User;
 use Illuminate\Contracts\Auth\Guard;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -12,8 +11,6 @@ use Tests\TestCase;
 
 class BackpackHelpersFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests;
 
 use App\Http\Requests\PasswordUpdateRequest;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -20,7 +19,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 class PasswordUpdateRequestFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     protected array $validPasswordData;
 

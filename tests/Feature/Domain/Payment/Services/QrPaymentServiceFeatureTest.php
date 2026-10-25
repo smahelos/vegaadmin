@@ -11,12 +11,11 @@ use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class QrPaymentServiceFeatureTest extends TestCase
 {
     // Use custom trait that runs fresh migrations and seeds required data (permissions, roles, etc.)
-    use CreatesFrontendTestEnvironment, RefreshDatabaseWithData;
+    use CreatesFrontendTestEnvironment;
 
     private QrPaymentService $service;
 

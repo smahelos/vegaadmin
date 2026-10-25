@@ -15,15 +15,12 @@ use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\TestCase;
 
 final class InvoiceCrudApplicationServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function a_failure_while_storing_the_lines_leaves_the_invoice_and_its_lines_untouched(): void
     {

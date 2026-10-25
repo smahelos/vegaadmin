@@ -5,21 +5,21 @@ namespace Tests\Feature\Domain\Content\Services;
 use App\Application\Content\Contracts\PageApplicationServiceInterface as PageServiceInterface;
 use App\Models\Page;
 use App\Models\PageCategory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PageServiceFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private PageServiceInterface $pageService;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->pageService = app(PageServiceInterface::class);
+
+        // The service reads the whole pages table; start without the seeded content pages
+        Page::query()->delete();
     }
 
     #[Test]

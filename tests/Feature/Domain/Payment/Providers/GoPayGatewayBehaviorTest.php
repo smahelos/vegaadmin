@@ -9,15 +9,12 @@ use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\Fakes\Payment\StubPayments;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 /**
  * Behavior tests for GoPayGateway using StubPayments (no real HTTP calls).
  */
 class GoPayGatewayBehaviorTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private RealGoPayGateway $gateway;
 
     private StubPayments $stub;

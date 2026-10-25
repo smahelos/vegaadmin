@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Providers;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -12,8 +11,6 @@ use Tests\TestCase;
  */
 class PartyReadWriteRepositoryBindingsTest extends TestCase
 {
-    use RefreshDatabase;
-
     /** @var array<string> */
     private array $interfaces = [
         // Align with current architecture: DTO repositories are the domain contracts

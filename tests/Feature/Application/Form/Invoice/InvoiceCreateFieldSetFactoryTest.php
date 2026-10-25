@@ -3,14 +3,12 @@
 namespace Tests\Feature\Application\Form\Invoice;
 
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
-use Illuminate\Foundation\Testing\RefreshDatabase; // empty DB fine
+// empty DB fine
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class InvoiceCreateFieldSetFactoryTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function it_builds_field_set_from_trait_output(): void
     {

@@ -15,12 +15,9 @@ use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class UniversalLimitServiceGuardFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData; // Service-level behavior needing seeded permissions
-
     private UniversalLimitService $service;
 
     protected function setUp(): void

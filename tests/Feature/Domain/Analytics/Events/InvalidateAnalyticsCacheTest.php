@@ -4,14 +4,11 @@ namespace Tests\Feature\Domain\Analytics\Events;
 
 use App\Domain\Analytics\Events\AnalyticsDataChanged;
 use App\Domain\Analytics\Events\Handlers\InvalidateAnalyticsCache;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class InvalidateAnalyticsCacheTest extends TestCase
 {
-    use RefreshDatabase;
-
     private InvalidateAnalyticsCache $handler;
 
     protected function setUp(): void

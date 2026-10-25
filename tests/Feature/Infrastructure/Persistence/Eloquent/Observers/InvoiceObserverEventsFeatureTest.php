@@ -6,7 +6,6 @@ use App\Domain\User\Events\UserDataChanged;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -17,8 +16,6 @@ use Tests\TestCase;
  */
 class InvoiceObserverEventsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private User $user;
 
     protected function setUp(): void

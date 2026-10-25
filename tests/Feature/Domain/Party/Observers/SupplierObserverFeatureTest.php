@@ -8,12 +8,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class SupplierObserverFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     #[Test]
     public function supplier_observer_dispatches_events_on_lifecycle_and_only_on_relevant_updates(): void
     {

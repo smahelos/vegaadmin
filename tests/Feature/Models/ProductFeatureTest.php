@@ -7,7 +7,6 @@ use App\Models\ProductCategory;
 use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -20,7 +19,7 @@ use Tests\TestCase;
  */
 class ProductFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     #[Test]
     public function can_create_product_with_factory(): void

@@ -11,7 +11,6 @@ use App\Application\Invoice\DTO\InvoiceMutationPayload;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -20,7 +19,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class InvoiceControllerGuestFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase;
+    use CreatesFrontendTestEnvironment;
 
     protected function setUp(): void
     {

@@ -17,15 +17,12 @@ use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\View;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class InvoicePdfServiceFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private InvoicePdfRenderer $renderer;
 
     private InvoicePdfRenderer $rendererMissingTemplate;

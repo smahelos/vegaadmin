@@ -6,7 +6,6 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
 use App\Models\Client;
 use App\Models\EntityLimit;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -15,7 +14,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class ClientCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
-    use RefreshDatabase;
 
     private User $user;
 

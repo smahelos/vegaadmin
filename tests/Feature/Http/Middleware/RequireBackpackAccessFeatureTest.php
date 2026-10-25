@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Middleware;
 
 use App\Http\Middleware\RequireBackpackAccess;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -13,8 +12,6 @@ use Tests\TestCase;
 
 class RequireBackpackAccessFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private RequireBackpackAccess $middleware;
 
     protected function setUp(): void

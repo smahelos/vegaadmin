@@ -9,7 +9,6 @@ use App\Http\Requests\Admin\InvoiceRequest;
 use App\Http\Requests\Admin\SupplierRequest;
 use App\Models\EntityLimit;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Lang;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -18,8 +17,6 @@ use Tests\TestCase;
 
 class EntityLimitSystemBasicTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected User $user;
 
     protected User $backendUser;
@@ -28,7 +25,7 @@ class EntityLimitSystemBasicTest extends TestCase
     {
         parent::setUp();
 
-        // Get roles and permissions created by TestingDatabaseSeeder
+        // Roles and permissions come from the sync_permission_catalog migration
         // $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $frontendUserRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
         $backendUserRole = Role::where('name', 'backend_user')->where('guard_name', 'backpack')->first();

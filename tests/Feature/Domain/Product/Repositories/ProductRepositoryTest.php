@@ -8,12 +8,9 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class ProductRepositoryTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private ProductRepositoryInterface $productRepository;
 
     private User $user;

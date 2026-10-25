@@ -8,7 +8,6 @@ use App\Infrastructure\Forms\User\UserFormFields;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
@@ -20,7 +19,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class RegisterControllerTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, RefreshDatabase, WithFaker;
+    use CreatesFrontendTestEnvironment, WithFaker;
 
     protected string $validEmail;
 

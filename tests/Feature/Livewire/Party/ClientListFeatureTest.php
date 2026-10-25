@@ -6,7 +6,6 @@ use App\Livewire\Party\ClientList;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -14,8 +13,6 @@ use Tests\TestCase;
 
 class ClientListFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private User $user;
 
     private User $otherUser;

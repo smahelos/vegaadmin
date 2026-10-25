@@ -6,9 +6,7 @@ use App\Models\Client;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -22,7 +20,7 @@ use Tests\TestCase;
  */
 class UserFeatureTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     protected User $user;
 
@@ -217,35 +215,12 @@ class UserFeatureTest extends TestCase
 
         $userId = $this->user->id;
 
-        // Delete the user
+        // Users are soft deleted: the row stays, so clients and suppliers keep their owner
         $this->user->delete();
 
-        // Check what happens to related models
-        // This test documents the current behavior - adjust based on business rules
-        $remainingClient = Client::find($client->id);
-        $remainingSupplier = Supplier::find($supplier->id);
-
-        // If cascade delete is NOT implemented, they should still exist but with null user_id
-        // If cascade delete IS implemented, they should be null
-        // Adjust assertions based on actual business requirements
-        if ($remainingClient) {
-            // Note: SQLite cannot add foreign key constraints via ALTER TABLE,
-            // so "on delete set null" on columns added in later migrations may not apply in tests.
-            // Reflect current behavior per driver to avoid false negatives.
-            if (DB::connection()->getDriverName() === 'sqlite') {
-                $this->assertEquals($userId, $remainingClient->user_id);
-            } else {
-                $this->assertNull($remainingClient->user_id);
-            }
-        }
-
-        if ($remainingSupplier) {
-            if (DB::connection()->getDriverName() === 'sqlite') {
-                $this->assertEquals($userId, $remainingSupplier->user_id);
-            } else {
-                $this->assertNull($remainingSupplier->user_id);
-            }
-        }
+        $this->assertSoftDeleted('users', ['id' => $userId]);
+        $this->assertSame($userId, Client::findOrFail($client->id)->user_id);
+        $this->assertSame($userId, Supplier::findOrFail($supplier->id)->user_id);
     }
 
     #[Test]

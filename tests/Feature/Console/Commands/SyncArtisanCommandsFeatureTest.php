@@ -4,15 +4,12 @@ namespace Tests\Feature\Console\Commands;
 
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class SyncArtisanCommandsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();

@@ -8,19 +8,14 @@ use App\Models\User;
 use App\Models\UserActivitySummary;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RequiresOptimizationTables;
 
 class UserActivitySummaryFeatureTest extends TestCase
 {
-    use RefreshDatabase, RequiresOptimizationTables;
-
     #[Test]
     public function user_relationship_works_correctly(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $user = User::factory()->create();
 
@@ -44,7 +39,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function scope_with_recent_activity_filters_correctly(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
@@ -61,7 +55,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function scope_high_activity_filters_correctly(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $this->assertTrue(method_exists(UserActivitySummary::class, 'scopeHighActivity'));
     }
@@ -69,7 +62,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function scope_inactive_filters_correctly(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $this->assertTrue(method_exists(UserActivitySummary::class, 'scopeInactive'));
     }
@@ -77,7 +69,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function activity_level_accessor_returns_correct_values(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         // Test with mock data since we can't insert directly into a view
         $summary = new UserActivitySummary;
@@ -102,7 +93,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function activity_badge_class_accessor_returns_correct_values(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $summary = new UserActivitySummary;
 
@@ -123,7 +113,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function formatted_activity_level_accessor_returns_translations(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $summary = new UserActivitySummary;
         $summary->invoices_last_30_days = 25; // high activity
@@ -137,7 +126,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $summary = new UserActivitySummary([
             'last_invoice_date' => '2024-01-01 10:00:00',
@@ -161,7 +149,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function primary_key_configuration_works(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $summary = new UserActivitySummary(['user_id' => 123]);
 
@@ -172,7 +159,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function model_has_no_timestamps(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $summary = new UserActivitySummary;
 
@@ -184,7 +170,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function can_query_user_activity_summary_view(): void
     {
-        $this->skipIfTableNotExists('user_activity_summary');
 
         $user = User::factory()->create();
 

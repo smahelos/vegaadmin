@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Providers;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -11,8 +10,6 @@ use Tests\TestCase;
  */
 class AppServiceProviderGuardTest extends TestCase
 {
-    use RefreshDatabase;
-
     /**
      * Whitelist of allowed substrings (bindings) remaining in AppServiceProvider.
      * - Backpack user controller override

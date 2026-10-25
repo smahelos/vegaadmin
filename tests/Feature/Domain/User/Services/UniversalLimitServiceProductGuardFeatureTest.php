@@ -14,12 +14,9 @@ use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 class UniversalLimitServiceProductGuardFeatureTest extends TestCase
 {
-    use RefreshDatabaseWithData; // Needs seeded permissions + entities
-
     private UniversalLimitService $service;
 
     protected function setUp(): void

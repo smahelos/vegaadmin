@@ -5,14 +5,11 @@ namespace Tests\Feature\Models;
 use App\Models\Payment;
 use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PaymentFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function payment_can_be_created_with_valid_data(): void
     {

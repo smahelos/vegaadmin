@@ -5,7 +5,6 @@ namespace Tests\Feature\Traits;
 // FileUploadService is resolved via interface in trait; direct import not required
 use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -79,7 +78,7 @@ class TestModelWithFileUploads extends Model
 
 class HasFileUploadsFeatureTest extends TestCase
 {
-    use HasFileUploads, RefreshDatabase;
+    use HasFileUploads;
 
     protected array $attributes = [];
 

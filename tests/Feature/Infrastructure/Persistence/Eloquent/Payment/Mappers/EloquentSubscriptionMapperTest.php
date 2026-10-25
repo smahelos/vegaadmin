@@ -8,14 +8,11 @@ use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentSubscriptionMapper;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 final class EloquentSubscriptionMapperTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function maps_loaded_plan_with_its_price(): void
     {

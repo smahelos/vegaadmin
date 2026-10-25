@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Middleware;
 use App\Http\Middleware\CheckSubscription;
 use App\Models\Subscription;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,8 +12,6 @@ use Tests\TestCase;
 
 class CheckSubscriptionFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private CheckSubscription $middleware;
 
     protected function setUp(): void

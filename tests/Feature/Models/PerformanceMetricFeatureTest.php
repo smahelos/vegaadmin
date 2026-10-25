@@ -4,19 +4,14 @@ namespace Tests\Feature\Models;
 
 use App\Models\PerformanceMetric;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\RequiresOptimizationTables;
 
 class PerformanceMetricFeatureTest extends TestCase
 {
-    use RefreshDatabase, RequiresOptimizationTables;
-
     #[Test]
     public function can_create_performance_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $data = [
             'metric_type' => 'query_time',
@@ -42,7 +37,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function can_use_factory_to_create_performance_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create();
 
@@ -55,7 +49,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function factory_query_time_state_creates_query_time_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->queryTime()->create();
 
@@ -67,7 +60,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function factory_table_size_state_creates_table_size_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->tableSize()->create();
 
@@ -79,7 +71,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function factory_index_usage_state_creates_index_usage_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->indexUsage()->create();
 
@@ -92,7 +83,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function factory_slow_queries_state_creates_slow_queries_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->slowQueries()->create();
 
@@ -104,7 +94,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function factory_connection_count_state_creates_connection_count_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->connectionCount()->create();
 
@@ -117,7 +106,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function factory_for_table_state_sets_table_name(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->forTable('invoices')->create();
 
@@ -127,7 +115,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function factory_for_query_type_state_sets_query_type(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->forQueryType('UPDATE')->create();
 
@@ -137,7 +124,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function factory_recent_state_creates_recent_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->recent()->create();
 
@@ -148,7 +134,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function factory_old_state_creates_old_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->old()->create();
 
@@ -159,7 +144,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function metadata_attribute_is_cast_to_array(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create([
             'metadata' => ['test' => 'value', 'number' => 123],
@@ -172,7 +156,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function measured_at_attribute_is_cast_to_datetime(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create([
             'measured_at' => '2023-01-01 10:00:00',
@@ -185,7 +168,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function metric_value_attribute_is_cast_to_decimal(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create([
             'metric_value' => 123.456789,
@@ -198,7 +180,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function formatted_value_attribute_works_with_database(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create([
             'metric_value' => 123.45,
@@ -211,7 +192,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function metric_type_formatted_attribute_works_with_database(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create([
             'metric_type' => 'query_execution_time',
@@ -223,7 +203,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function scope_of_type_filters_correctly(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         PerformanceMetric::factory()->queryTime()->createMany(2);
         PerformanceMetric::factory()->tableSize()->create();
@@ -238,7 +217,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function scope_for_table_filters_correctly(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         PerformanceMetric::factory()->forTable('users')->createMany(2);
         PerformanceMetric::factory()->forTable('invoices')->create();
@@ -253,7 +231,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function scope_recent_filters_correctly(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         PerformanceMetric::factory()->recent()->createMany(2);
         PerformanceMetric::factory()->old()->createMany(3);
@@ -267,7 +244,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function scope_recent_accepts_custom_days(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         PerformanceMetric::factory()->create(['measured_at' => now()->subDays(5)]);
         PerformanceMetric::factory()->create(['measured_at' => now()->subDays(15)]);
@@ -281,7 +257,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function can_combine_scopes(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         PerformanceMetric::factory()->queryTime()->forTable('users')->recent()->createMany(2);
         PerformanceMetric::factory()->queryTime()->forTable('invoices')->recent()->create();
@@ -300,7 +275,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function can_query_metrics_by_query_type(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         PerformanceMetric::factory()->forQueryType('SELECT')->createMany(2);
         PerformanceMetric::factory()->forQueryType('INSERT')->create();
@@ -316,7 +290,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function can_update_performance_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create();
 
@@ -332,7 +305,6 @@ class PerformanceMetricFeatureTest extends TestCase
     #[Test]
     public function can_delete_performance_metric(): void
     {
-        $this->skipIfTableNotExists('performance_metrics');
 
         $metric = PerformanceMetric::factory()->create();
         $metricId = $metric->id;

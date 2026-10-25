@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Console\Commands;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
@@ -10,8 +9,6 @@ use Tests\TestCase;
 
 class CheckMissingTranslationsFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function command_executes_successfully_with_default_parameters(): void
     {

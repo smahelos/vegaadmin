@@ -12,7 +12,6 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
@@ -20,8 +19,6 @@ use Tests\TestCase;
 
 class InvoicePartyServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     private InvoicePartyServiceInterface $service;
 
     private PartyApplicationServiceInterface $appService;

@@ -19,15 +19,12 @@ use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\Fakes\Payment\FakePaymentGateway;
 use Tests\TestCase;
-use Tests\Traits\RefreshDatabaseWithData;
 
 /**
  * Behavior tests for subscription payment lifecycle using a Fake gateway.
  */
 class SubscriptionPaymentServiceBehaviorTest extends TestCase
 {
-    use RefreshDatabaseWithData;
-
     private SubscriptionPaymentServiceInterface $service;
 
     private FakePaymentGateway $fakeGateway;

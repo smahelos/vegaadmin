@@ -7,14 +7,11 @@ use App\Application\Invoice\Contracts\InvoiceWriteRepositoryInterface;
 use App\Models\Invoice;
 use App\Models\Status;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class EloquentInvoiceRepositoryFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     private InvoiceReadRepositoryInterface $read;
 
     private InvoiceWriteRepositoryInterface $write;
@@ -24,14 +21,13 @@ class EloquentInvoiceRepositoryFeatureTest extends TestCase
         parent::setUp();
         $this->read = app(InvoiceReadRepositoryInterface::class);
         $this->write = app(InvoiceWriteRepositoryInterface::class);
-        Status::factory()->create(['slug' => 'paid']);
     }
 
     #[Test]
     public function mark_as_paid_updates_status(): void
     {
         $invoice = Invoice::factory()->create();
-        $paid = Status::where('slug', 'paid')->first();
+        $paid = Status::where('slug', 'paid')->firstOrFail();
         $this->assertNotEquals($paid->id, $invoice->payment_status_id);
         $result = $this->write->markAsPaid($invoice->id, $paid->id);
         $this->assertTrue($result);

@@ -5,14 +5,11 @@ namespace Tests\Feature\Models;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ExpenseCategoryFeatureTest extends TestCase
 {
-    use RefreshDatabase;
-
     #[Test]
     public function can_create_expense_category(): void
     {
