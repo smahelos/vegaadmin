@@ -34,8 +34,9 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 **E. Before production and last**
 
 14. "`backpack_pro()` override claims a PRO licence" — a decision before production.
-15. The remaining "Party / Admin" items.
-16. "Architecture guards are migration scaffolding" with "`ddd:guard` snapshot test fails now and then in parallel runs".
+15. "No error monitoring" — before the first deploy.
+16. The remaining "Party / Admin" items.
+17. "Architecture guards are migration scaffolding" with "`ddd:guard` snapshot test fails now and then in parallel runs".
 
 ## Security
 
@@ -252,6 +253,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Where:** `app/Http/Controllers/Api/AresLookupController.php`, `app/Infrastructure/Shared/Http/Services/HttpClientService.php`, `app/Domain/Analytics/Services/BaseAnalyticsExternalService.php`, `config/analytics.php`
 - **Problem:** ARES is called with `Http::get()` directly from a controller without a timeout; exchange rates and countries go through `HttpClientService` without timeouts. A circuit breaker exists only in the unused Analytics base class.
 - **Fix:** timeouts and a circuit breaker in `Shared` around `HttpClientService`; move the ARES call into a service.
+
+### No error monitoring
+- **Where:** `bootstrap/app.php` (`withExceptions`), `config/logging.php` (`LOG_STACK`), `phpunit.xml`, `vite.config.js`, the layouts `resources/views/layouts/frontend.blade.php` and `app.blade.php` and the Backpack theme layout
+- **Problem:** errors outside a browser the developer is looking at — scheduled tasks in the `cron` container, queued jobs, GoPay and ARES calls, JavaScript in users' browsers — end up only in `laravel.log` or nowhere. Many controllers catch an exception and only log it, so it never reaches the exception handler.
+- **Fix (decided 2026-10-25):** Sentry Cloud with the EU data region (chosen when the organisation is created, cannot be changed later), one project per environment or the `environment` tag. PHP: `sentry/sentry-laravel`, `Integration::handles($exceptions)` next to `ExceptionHandling::registerCallbacks()`, a `sentry` log channel at level `error` in `LOG_STACK` so logged-and-caught exceptions arrive without touching controllers, `send_default_pii` off and no SQL bindings (invoices hold clients' personal data), empty `SENTRY_LARAVEL_DSN` in `phpunit.xml`. Browser: `@sentry/browser` initialised first in `resources/js/app.js` and in the admin layout, no session replay until amounts and personal data are masked; inline `<script>` blocks in the layouts move into modules (`rules/frontend.md`) so no code runs before the SDK. Source maps: `build.sourcemap: 'hidden'` (Sentry matches them through the debug IDs the plugin injects), uploaded by `@sentry/vite-plugin` and deleted after the upload, never served; the plugin keeps them unless `sourcemaps.filesToDeleteAfterUpload` is set (`public/build/**/*.map`). The build that uploads them, in CI or on deploy, fails when `public/build` still contains a `.map` file.
 
 ## Conversion to the standard
 
