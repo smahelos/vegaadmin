@@ -3,23 +3,27 @@
 namespace App\Livewire\Party;
 
 use App\Livewire\Shared\Paginates;
+use App\Livewire\Shared\Sorts;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 class SupplierList extends Component
 {
     use Paginates;
+    use Sorts;
 
     #[Url]
     public $search = '';
 
     #[Url(as: 'sort')]
-    public $orderBy = 'created_at';
+    public string $orderBy = 'created_at';
 
     #[Url(as: 'direction')]
-    public $orderAsc = false;
+    public bool $orderAsc = false;
 
     #[Url(keep: true)]
     public $page = 1;
@@ -38,14 +42,22 @@ class SupplierList extends Component
         $this->resetPage();
     }
 
-    public function sortBy($field)
+    protected function sortableColumns(): array
     {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = ! $this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
+        return [
+            'created_at' => 'created_at',
+            'name' => 'name',
+            'email' => 'email',
+            'phone' => 'phone',
+            'ico' => 'ico',
+            'is_default' => 'is_default',
+            'invoices' => 'invoices_count',
+        ];
+    }
+
+    protected function defaultSort(): string
+    {
+        return 'created_at';
     }
 
     public function render()
@@ -74,11 +86,7 @@ class SupplierList extends Component
                 });
             }
 
-            if ($this->orderBy === 'invoices') {
-                $query->orderBy('invoices_count', $this->orderAsc ? 'asc' : 'desc');
-            } else {
-                $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
-            }
+            $query->orderBy($this->sortColumn(), $this->sortDirection());
 
             $suppliers = $query->paginate(10);
 
@@ -86,8 +94,9 @@ class SupplierList extends Component
                 'suppliers' => $suppliers,
                 'hasData' => $suppliers->total() > 0,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading suppliers.';
+        } catch (Throwable $e) {
+            Log::error('Loading suppliers failed', ['exception' => $e]);
+            $this->errorMessage = __('suppliers.messages.error_loading');
 
             return view('livewire.party.supplier-list', [
                 'suppliers' => collect(),

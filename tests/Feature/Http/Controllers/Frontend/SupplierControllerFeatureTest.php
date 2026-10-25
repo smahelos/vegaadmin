@@ -23,7 +23,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 /**
  * Feature tests for Frontend\SupplierController
  *
- * Tests all frontend supplier management endpoints: index, create, store, show, edit, update, destroy, setDefault
+ * Tests all frontend supplier management endpoints: index, create, store, show, edit, update, destroy
  * Tests authentication scenarios, authorization (user ownership checks), validation, error handling
  * Tests view rendering, form processing, and security boundaries for supplier management
  */
@@ -659,76 +659,6 @@ class SupplierControllerFeatureTest extends TestCase
         $this->assertDatabaseHas('suppliers', [
             'id' => $supplier->id,
         ]);
-    }
-
-    /**
-     * Test set default sets supplier as default
-     */
-    #[Test]
-    public function set_default_sets_supplier_as_default()
-    {
-        $supplier1 = Supplier::factory()->create([
-            'user_id' => $this->user->id,
-            'is_default' => true,
-        ]);
-
-        $supplier2 = Supplier::factory()->create([
-            'user_id' => $this->user->id,
-            'is_default' => false,
-        ]);
-
-        $response = $this->actingAs($this->user)
-            ->get($this->localizedRoute('frontend.supplier.set-default', $supplier2->id));
-
-        $response->assertRedirect();
-        $this->assertStringContainsString($this->localizedRoute('frontend.suppliers'), $response->headers->get('Location'));
-        $response->assertSessionHas('success');
-
-        $this->assertDatabaseHas('suppliers', [
-            'id' => $supplier1->id,
-            'is_default' => false,
-        ]);
-
-        $this->assertDatabaseHas('suppliers', [
-            'id' => $supplier2->id,
-            'is_default' => true,
-        ]);
-    }
-
-    /**
-     * Test set default requires authentication
-     */
-    #[Test]
-    public function set_default_requires_authentication()
-    {
-        $supplier = Supplier::factory()->create([
-            'user_id' => $this->user->id,
-        ]);
-
-        $response = $this->get($this->localizedRoute('frontend.supplier.set-default', $supplier->id));
-
-        $response->assertRedirect(route('login'));
-    }
-
-    /**
-     * Test set default prevents setting other users' supplier as default
-     */
-    #[Test]
-    public function set_default_prevents_setting_other_users_supplier_as_default()
-    {
-        // Create another user with proper role
-        $otherUser = $this->createUserWithRole();
-
-        $supplier = Supplier::factory()->create([
-            'user_id' => $otherUser->id,
-        ]);
-
-        $response = $this->actingAs($this->user)
-            ->get($this->localizedRoute('frontend.supplier.set-default', $supplier->id));
-
-        $response->assertRedirect();
-        $this->assertStringContainsString($this->localizedRoute('frontend.suppliers'), $response->headers->get('Location'));
-        $response->assertSessionHas('error');
     }
 
     /**

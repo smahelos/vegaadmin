@@ -6,36 +6,21 @@ use App\Livewire\Shared\Paginates;
 use App\Models\Client;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Throwable;
 
 /**
  * ClientListLatest Livewire Component
  *
  * Displays a paginated list of the latest clients for the authenticated user.
- * Shows the most recently created clients with sorting functionality.
+ * Shows the most recently created clients.
  */
 class ClientListLatest extends Component
 {
     use Paginates;
 
-    public bool $orderAsc = false;
-
-    public string $orderBy = 'created_at';
-
     public ?string $errorMessage = null;
-
-    /**
-     * Sort by given field, toggle direction if same field
-     */
-    public function sortBy(string $field): void
-    {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = ! $this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
-    }
 
     /**
      * Render the component with latest clients data
@@ -43,8 +28,7 @@ class ClientListLatest extends Component
     public function render(): View
     {
         try {
-            $query = Client::where('user_id', Auth::id());
-            $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
+            $query = Client::where('user_id', Auth::id())->latest();
 
             $clients = $query->paginate(5);
 
@@ -53,8 +37,9 @@ class ClientListLatest extends Component
                 'hasData' => $clients->total() > 0,
                 'errorMessage' => $this->errorMessage,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading latest clients.';
+        } catch (Throwable $e) {
+            Log::error('Loading latest clients failed', ['exception' => $e]);
+            $this->errorMessage = __('clients.messages.error_loading');
 
             return view('livewire.party.client-list-latest', [
                 'clients' => collect(),

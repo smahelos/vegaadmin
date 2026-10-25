@@ -207,31 +207,31 @@ class ProductListSelectFeatureTest extends TestCase
     public function sort_by_toggles_direction_for_same_field(): void
     {
         $component = Livewire::test(ProductListSelect::class)
-            ->set('sortField', 'name')
-            ->set('sortDirection', 'asc');
+            ->set('orderBy', 'name')
+            ->set('orderAsc', true);
 
         $component->call('sortBy', 'name');
 
-        $component->assertSet('sortField', 'name')
-            ->assertSet('sortDirection', 'desc');
+        $component->assertSet('orderBy', 'name')
+            ->assertSet('orderAsc', false);
 
         $component->call('sortBy', 'name');
 
-        $component->assertSet('sortField', 'name')
-            ->assertSet('sortDirection', 'asc');
+        $component->assertSet('orderBy', 'name')
+            ->assertSet('orderAsc', true);
     }
 
     #[Test]
     public function sort_by_sets_ascending_for_different_field(): void
     {
         $component = Livewire::test(ProductListSelect::class)
-            ->set('sortField', 'name')
-            ->set('sortDirection', 'desc');
+            ->set('orderBy', 'name')
+            ->set('orderAsc', false);
 
         $component->call('sortBy', 'price');
 
-        $component->assertSet('sortField', 'price')
-            ->assertSet('sortDirection', 'asc');
+        $component->assertSet('orderBy', 'price')
+            ->assertSet('orderAsc', true);
     }
 
     #[Test]
@@ -249,8 +249,8 @@ class ProductListSelectFeatureTest extends TestCase
         ]);
 
         $component = Livewire::test(ProductListSelect::class)
-            ->set('sortField', 'name')
-            ->set('sortDirection', 'asc');
+            ->set('orderBy', 'name')
+            ->set('orderAsc', true);
 
         $products = $component->viewData('products');
         $productIds = $products->pluck('id')->toArray();
@@ -372,7 +372,7 @@ class ProductListSelectFeatureTest extends TestCase
         $component->assertNotDispatched('closeModal');
 
         // Check that error message was set
-        $component->assertSet('errorMessage', 'Error while selecting product.');
+        $component->assertSet('errorMessage', __('products.messages.not_found'));
     }
 
     #[Test]
@@ -497,5 +497,34 @@ class ProductListSelectFeatureTest extends TestCase
         // Re-render to get updated products
         $products = $component->instance()->render()->getData()['products'];
         $this->assertCount(6, $products->items()); // Remaining 6 products on page 2
+    }
+
+    #[Test]
+    public function select_product_does_not_reveal_another_users_product(): void
+    {
+        $foreign = Product::factory()->create(['user_id' => User::factory()->create()->id]);
+
+        Livewire::test(ProductListSelect::class)
+            ->call('selectProduct', $foreign->id)
+            ->assertNotDispatched('product-selected')
+            ->assertNotDispatched('closeModal')
+            ->assertSet('errorMessage', __('products.messages.not_found'));
+    }
+
+    #[Test]
+    public function lists_only_the_signed_in_users_products(): void
+    {
+        Product::factory()->create([
+            'user_id' => $this->user->id,
+            'name' => 'Own Product ' . uniqid(),
+        ]);
+        Product::factory()->create([
+            'user_id' => User::factory()->create()->id,
+            'name' => 'Foreign Product ' . uniqid(),
+        ]);
+
+        Livewire::test(ProductListSelect::class)
+            ->assertSee('Own Product')
+            ->assertDontSee('Foreign Product');
     }
 }

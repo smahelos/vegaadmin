@@ -75,40 +75,6 @@ class ClientListLatestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function sort_by_toggles_order_direction_for_same_field(): void
-    {
-        Client::factory()->count(3)->create(['user_id' => $this->user->id]);
-
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(ClientListLatest::class)
-            ->call('sortBy', 'created_at');
-
-        $component->assertSet('orderBy', 'created_at')
-            ->assertSet('orderAsc', true);
-
-        // Call again to toggle direction
-        $component->call('sortBy', 'created_at');
-
-        $component->assertSet('orderBy', 'created_at')
-            ->assertSet('orderAsc', false);
-    }
-
-    #[Test]
-    public function sort_by_sets_new_field_with_ascending_order(): void
-    {
-        Client::factory()->count(3)->create(['user_id' => $this->user->id]);
-
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(ClientListLatest::class)
-            ->call('sortBy', 'name');
-
-        $component->assertSet('orderBy', 'name')
-            ->assertSet('orderAsc', true);
-    }
-
-    #[Test]
     public function component_displays_empty_state_when_no_clients(): void
     {
         $this->actingAs($this->user);
@@ -192,59 +158,5 @@ class ClientListLatestFeatureTest extends TestCase
         $component->assertViewHas('clients');
         $component->assertViewHas('hasData', true);
         $component->assertViewHas('errorMessage', null);
-    }
-
-    #[Test]
-    public function component_sorts_by_name_correctly(): void
-    {
-        $clientB = Client::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Beta Client',
-        ]);
-
-        $clientA = Client::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Alpha Client',
-        ]);
-
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(ClientListLatest::class)
-            ->call('sortBy', 'name');
-
-        $clients = $component->viewData('clients');
-
-        // Should be sorted alphabetically (asc)
-        $this->assertEquals('Alpha Client', $clients->first()->name);
-        $this->assertEquals('Beta Client', $clients->last()->name);
-    }
-
-    #[Test]
-    public function component_handles_sorting_with_empty_data(): void
-    {
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(ClientListLatest::class)
-            ->call('sortBy', 'name');
-
-        $component->assertSet('orderBy', 'name')
-            ->assertSet('orderAsc', true);
-
-        $component->assertViewHas('hasData', false);
-    }
-
-    #[Test]
-    public function component_maintains_sort_state(): void
-    {
-        Client::factory()->count(3)->create(['user_id' => $this->user->id]);
-
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(ClientListLatest::class)
-            ->set('orderBy', 'name')
-            ->set('orderAsc', true);
-
-        $component->assertSet('orderBy', 'name')
-            ->assertSet('orderAsc', true);
     }
 }

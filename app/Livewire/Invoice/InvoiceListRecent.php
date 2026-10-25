@@ -6,13 +6,14 @@ use App\Livewire\Shared\Paginates;
 use App\Models\Invoice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\Url;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Throwable;
 
 /**
  * InvoiceListRecent Livewire Component
  *
- * Displays recent invoices with sorting functionality.
+ * Displays recent invoices.
  * Shows last 5 invoices for authenticated user with pagination support.
  */
 class InvoiceListRecent extends Component
@@ -20,34 +21,9 @@ class InvoiceListRecent extends Component
     use Paginates;
 
     /**
-     * Current sorting field
-     */
-    #[Url(as: 'sort')]
-    public string $orderBy = 'created_at';
-
-    /**
-     * Sort direction (true = ascending, false = descending)
-     */
-    #[Url(as: 'direction')]
-    public bool $orderAsc = false;
-
-    /**
      * Error message to display to user
      */
     public ?string $errorMessage = null;
-
-    /**
-     * Sort by given field, toggle direction if same field
-     */
-    public function sortBy(string $field): void
-    {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = ! $this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
-    }
 
     /**
      * Render the component with recent invoices data
@@ -60,9 +36,8 @@ class InvoiceListRecent extends Component
                 'paymentMethod',
                 'paymentStatus',
             ])
-                ->where('user_id', Auth::id());
-
-            $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
+                ->where('user_id', Auth::id())
+                ->latest();
 
             $invoices = $query->paginate(5);
 
@@ -71,8 +46,9 @@ class InvoiceListRecent extends Component
                 'hasData' => $invoices->total() > 0,
                 'errorMessage' => $this->errorMessage,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading recent invoices list.';
+        } catch (Throwable $e) {
+            Log::error('Loading recent invoices failed', ['exception' => $e]);
+            $this->errorMessage = __('invoices.messages.error_loading');
 
             return view('livewire.invoice.invoice-list-recent', [
                 'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator

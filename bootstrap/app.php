@@ -8,15 +8,9 @@ use App\Http\Middleware\RequireBackpackAccess;
 use App\Http\Middleware\RequireBackpackApiAccess;
 use App\Http\Middleware\RequireFrontendApiAccess;
 use App\Http\Middleware\SetLocale;
-use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
-use Illuminate\Session\Middleware\StartSession;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -26,30 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->web(prepend: [
-            SetLocale::class,
-            RefreshFrontendSession::class, // Refreshes the frontend session
-        ]);
+        $middleware->statefulApi();
 
-        // Ujistěte se, že VerifyCsrfToken middleware je v seznamu pro web middleware
-        $middleware->web(append: [
-            AddQueuedCookiesToResponse::class,
-            StartSession::class,
-            ShareErrorsFromSession::class,
-            ValidateCsrfToken::class,
-        ]);
-
-        // API pipeline – add EncryptCookies so that session cookie is properly decrypted
-        // Order: EncryptCookies -> EnsureFrontendRequestsAreStateful -> Cookies -> Session -> ShareErrors
-        $middleware->api(prepend: [
-            EncryptCookies::class,
-            EnsureFrontendRequestsAreStateful::class,
-            AddQueuedCookiesToResponse::class,
-            StartSession::class,
-            ShareErrorsFromSession::class,
-        ]);
-
-        // Registrace vlastního middleware jako alias
         $middleware->alias([
             'api.require.frontend' => RequireFrontendApiAccess::class,
             'api.require.backpack' => RequireBackpackApiAccess::class,

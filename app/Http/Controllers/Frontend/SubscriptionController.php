@@ -112,7 +112,7 @@ class SubscriptionController extends Controller
         $subscription->delete();
 
         return redirect()->route('subscriptions.show', ['locale' => $locale, 'plan' => $plan])
-            ->with('error', $result->error ?? __('subscriptions.messages.payment_failed'));
+            ->with('error', __('subscriptions.messages.payment_failed'));
     }
 
     /**

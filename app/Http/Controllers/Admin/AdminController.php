@@ -159,10 +159,9 @@ class AdminController extends BackpackAdminController
                 'activity_distribution' => $activityDistribution,
             ];
         } catch (\Exception $e) {
-            Log::error('Failed to get user activity stats: ' . $e->getMessage());
+            Log::error('Failed to get user activity stats', ['exception' => $e]);
 
             return [
-                'error' => 'Unable to fetch user activity statistics: ' . $e->getMessage(),
                 'total_users' => 0,
                 'active_users' => 0,
                 'high_activity_users' => 0,

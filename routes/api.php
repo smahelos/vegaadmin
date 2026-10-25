@@ -62,10 +62,17 @@ Route::middleware(['api.require.frontend', 'refresh.frontend.session'])
         // UELS (Universal Entity Limit System) API endpoints
         Route::get('/uels/{entity}/data', [UELSController::class, 'getEntityData'])->name('uels.entity-data');
         Route::get('/uels/all-entities', [UELSController::class, 'getAllEntitiesData'])->name('uels.all-entities');
+
+        // Dashboard charts
+        Route::get('/statistics/monthly-revenue', [StatisticsController::class, 'monthlyRevenue'])->name('statistics.monthly-revenue');
+        Route::get('/statistics/client-revenue', [StatisticsController::class, 'clientRevenue'])->name('statistics.client-revenue');
+        Route::get('/statistics/invoice-status', [StatisticsController::class, 'invoiceStatus'])->name('statistics.invoice-status');
+        Route::get('/statistics/payment-methods', [StatisticsController::class, 'paymentMethods'])->name('statistics.payment-methods');
+        Route::get('/statistics/revenue-expenses', [StatisticsController::class, 'revenueExpenses'])->name('statistics.revenue-expenses');
     });
 
 // Public API endpoints - no authentication required (rate limited)
-Route::middleware(['web', 'throttle:60,1'])
+Route::middleware('throttle:60,1')
     ->name('api.')
     ->group(function () {
         // Countries and currencies
@@ -84,18 +91,10 @@ Route::middleware(['web', 'throttle:60,1'])
             Route::get('/uels/{entity}', [UELSController::class, 'getEntityData'])->name('uels.entity');
             Route::get('/uels', [UELSController::class, 'getAllEntitiesData'])->name('uels.all');
         });
-
-        // Statistics (public access)
-        Route::get('/monthly-revenue', [StatisticsController::class, 'monthlyRevenue'])->name('statistics.monthly-revenue');
-        Route::get('/client-revenue', [StatisticsController::class, 'clientRevenue'])->name('statistics.client-revenue');
-        Route::get('/invoice-status', [StatisticsController::class, 'invoiceStatus'])->name('statistics.invoice-status');
-        Route::get('/payment-methods', [StatisticsController::class, 'paymentMethods'])->name('statistics.payment-methods');
-        Route::get('/revenue-expenses', [StatisticsController::class, 'revenueExpenses'])->name('statistics.revenue-expenses');
     });
 
-// Session control API endpoints - minimal middleware
-Route::middleware(['web'])
-    ->name('api.')
+// Session control API endpoints; the session comes from statefulApi() in bootstrap/app.php
+Route::name('api.')
     ->group(function () {
         Route::get('/auth-check', [SessionController::class, 'checkAuth'])->name('auth-check');
         Route::post('/session-refresh', [SessionController::class, 'refreshSession'])->name('session-refresh');

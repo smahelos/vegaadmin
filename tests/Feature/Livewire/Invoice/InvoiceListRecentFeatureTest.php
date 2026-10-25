@@ -62,48 +62,6 @@ class InvoiceListRecentFeatureTest extends TestCase
     }
 
     #[Test]
-    public function sort_by_toggles_order_direction_for_same_field(): void
-    {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->count(3)->create([
-            'user_id' => $this->user->id,
-            'client_id' => $client->id,
-        ]);
-
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class)
-            ->set('orderBy', 'issue_date')
-            ->set('orderAsc', true);
-
-        $component->call('sortBy', 'issue_date');
-
-        $component->assertSet('orderBy', 'issue_date');
-        $component->assertSet('orderAsc', false);
-    }
-
-    #[Test]
-    public function sort_by_sets_new_field_with_ascending_order(): void
-    {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->count(3)->create([
-            'user_id' => $this->user->id,
-            'client_id' => $client->id,
-        ]);
-
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class)
-            ->set('orderBy', 'created_at')
-            ->set('orderAsc', false);
-
-        $component->call('sortBy', 'issue_date');
-
-        $component->assertSet('orderBy', 'issue_date');
-        $component->assertSet('orderAsc', true);
-    }
-
-    #[Test]
     public function component_displays_empty_state_when_no_invoices(): void
     {
         $this->actingAs($this->user);
@@ -184,19 +142,6 @@ class InvoiceListRecentFeatureTest extends TestCase
         $this->assertTrue($invoice->relationLoaded('client'));
         $this->assertTrue($invoice->relationLoaded('paymentMethod'));
         $this->assertTrue($invoice->relationLoaded('paymentStatus'));
-    }
-
-    #[Test]
-    public function component_preserves_url_state(): void
-    {
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class)
-            ->set('orderBy', 'issue_date')
-            ->set('orderAsc', true);
-
-        $component->assertSet('orderBy', 'issue_date');
-        $component->assertSet('orderAsc', true);
     }
 
     #[Test]

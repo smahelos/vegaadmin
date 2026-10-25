@@ -525,10 +525,10 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                                 </div>
                             </div>
                             <div class="card-body">
-                                @if(isset($performanceTrends['error']))
+                                @if(! empty($performanceTrends['failed']))
                                 <div class="alert alert-warning">
                                     <i class="la la-exclamation-triangle"></i>
-                                    {{ __('admin/database.dashboard.performance_data_error') }}: {{ $performanceTrends['error'] }}
+                                    {{ __('admin/database.dashboard.performance_data_error') }}
                                 </div>
                                 @endif
 

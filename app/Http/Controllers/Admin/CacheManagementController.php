@@ -1,88 +1,88 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ClearCacheRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Prologue\Alerts\Facades\Alert;
+use Throwable;
 
-class CacheManagementController extends Controller
+final class CacheManagementController extends Controller
 {
-    /**
-     * Clear application cache
-     */
-    public function clearCache()
+    public function clearCache(ClearCacheRequest $request): RedirectResponse
     {
-        try {
-            Artisan::call('cache:clear');
-            Alert::success(__('admin.cache.cache_cleared_success'))->flash();
-        } catch (\Exception $e) {
-            Alert::error(__('admin.cache.cache_cleared_error', ['error' => $e->getMessage()]))->flash();
-        }
+        return $this->clear(
+            ['cache:clear'],
+            __('admin.cache.cache_cleared_success'),
+            __('admin.cache.cache_cleared_error'),
+        );
+    }
 
-        return redirect()->back();
+    public function clearConfig(ClearCacheRequest $request): RedirectResponse
+    {
+        return $this->clear(
+            ['config:clear'],
+            __('admin.cache.config_cleared_success'),
+            __('admin.cache.config_cleared_error'),
+        );
+    }
+
+    public function clearViews(ClearCacheRequest $request): RedirectResponse
+    {
+        return $this->clear(
+            ['view:clear'],
+            __('admin.cache.views_cleared_success'),
+            __('admin.cache.views_cleared_error'),
+        );
+    }
+
+    public function clearRoutes(ClearCacheRequest $request): RedirectResponse
+    {
+        return $this->clear(
+            ['route:clear'],
+            __('admin.cache.routes_cleared_success'),
+            __('admin.cache.routes_cleared_error'),
+        );
+    }
+
+    public function clearAll(ClearCacheRequest $request): RedirectResponse
+    {
+        return $this->clear(
+            [
+                'cache:clear',
+                'config:clear',
+                'view:clear',
+                'route:clear',
+            ],
+            __('admin.cache.all_cleared_success'),
+            __('admin.cache.all_cleared_error'),
+        );
     }
 
     /**
-     * Clear configuration cache
+     * @param  list<string>  $commands
      */
-    public function clearConfig()
-    {
+    private function clear(
+        array $commands,
+        string $successMessage,
+        string $errorMessage,
+    ): RedirectResponse {
         try {
-            Artisan::call('config:clear');
-            Alert::success(__('admin.cache.config_cleared_success'))->flash();
-        } catch (\Exception $e) {
-            Alert::error(__('admin.cache.config_cleared_error', ['error' => $e->getMessage()]))->flash();
-        }
-
-        return redirect()->back();
-    }
-
-    /**
-     * Clear view cache
-     */
-    public function clearViews()
-    {
-        try {
-            Artisan::call('view:clear');
-            Alert::success(__('admin.cache.views_cleared_success'))->flash();
-        } catch (\Exception $e) {
-            Alert::error(__('admin.cache.views_cleared_error', ['error' => $e->getMessage()]))->flash();
-        }
-
-        return redirect()->back();
-    }
-
-    /**
-     * Clear route cache
-     */
-    public function clearRoutes()
-    {
-        try {
-            Artisan::call('route:clear');
-            Alert::success(__('admin.cache.routes_cleared_success'))->flash();
-        } catch (\Exception $e) {
-            Alert::error(__('admin.cache.routes_cleared_error', ['error' => $e->getMessage()]))->flash();
-        }
-
-        return redirect()->back();
-    }
-
-    /**
-     * Clear all caches
-     */
-    public function clearAll()
-    {
-        try {
-            Artisan::call('cache:clear');
-            Artisan::call('config:clear');
-            Artisan::call('view:clear');
-            Artisan::call('route:clear');
-
-            Alert::success(__('admin.cache.all_cleared_success'))->flash();
-        } catch (\Exception $e) {
-            Alert::error(__('admin.cache.all_cleared_error', ['error' => $e->getMessage()]))->flash();
+            foreach ($commands as $command) {
+                Artisan::call($command);
+            }
+            Alert::success($successMessage)->flash();
+        } catch (Throwable $e) {
+            Log::error('Clearing cache failed', [
+                'commands' => $commands,
+                'exception' => $e,
+            ]);
+            Alert::error($errorMessage)->flash();
         }
 
         return redirect()->back();
