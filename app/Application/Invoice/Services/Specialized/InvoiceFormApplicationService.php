@@ -114,12 +114,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             $defaultSupplier = $this->partyApplicationService->defaultSupplier($userId);
         }
 
-        // Supplier (user) info prefill
-        $userInfo = $this->buildSupplierUserInfo($defaultSupplier, $userId);
-
-        // Client info prefill
-        $clientInfo = $this->buildClientInfo($selectedClient);
-
         // Limits data
         $limitsData = $this->getInvoicesLimit($userId);
 
@@ -142,8 +136,8 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             'suggestedNumber' => $suggestedNumber,
             'selectedClient' => $selectedClient,
             'defaultSupplier' => $defaultSupplier,
-            'userInfo' => $userInfo,
-            'clientInfo' => $clientInfo,
+            'userInfo' => [],
+            'clientInfo' => [],
             'limitsData' => $limitsData,
             'userLoggedIn' => true,
         ]);
@@ -296,24 +290,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function getNextInvoiceNumber(int $userId): string
     {
         return $this->generateNextInvoiceNumber($userId);
-    }
-
-    /**
-     * Build supplier user info (legacy compatibility)
-     */
-    private function buildSupplierUserInfo($defaultSupplier, int $userId): array
-    {
-        // TODO: Implement this method with proper logic from original service
-        return [];
-    }
-
-    /**
-     * Build client info (legacy compatibility)
-     */
-    private function buildClientInfo($selectedClient): array
-    {
-        // TODO: Implement this method with proper logic from original service
-        return [];
     }
 
     /**

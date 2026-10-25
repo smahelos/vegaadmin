@@ -6,7 +6,7 @@ use App\Domain\Shared\Config\Contracts\Config;
 
 class LaravelConfigAdapter implements Config
 {
-    public function get(string $key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         return config($key, $default);
     }

@@ -7,6 +7,7 @@ use App\Domain\User\Exceptions\EntityLimitExceededException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -102,7 +103,7 @@ class ExceptionHandling
         });
     }
 
-    private static function isInvoiceRoute($request): bool
+    private static function isInvoiceRoute(Request $request): bool
     {
         $routeName = $request->route()?->getName();
         if (! $routeName) {
@@ -112,7 +113,7 @@ class ExceptionHandling
         return str_starts_with($routeName, 'frontend.invoice') || $routeName === 'frontend.invoices';
     }
 
-    private static function isSupplierRoute($request): bool
+    private static function isSupplierRoute(Request $request): bool
     {
         $routeName = $request->route()?->getName();
         if (! $routeName) {

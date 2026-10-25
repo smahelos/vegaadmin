@@ -15,6 +15,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Client management controller
@@ -128,7 +129,7 @@ class ClientCrudController extends CrudController
      * Override store to ensure user_id is set before persisting.
      * (Usage recording moved to model observer & event system.)
      */
-    public function store()
+    public function store(): JsonResponse|RedirectResponse
     {
         $this->beforeEntityStore();
 

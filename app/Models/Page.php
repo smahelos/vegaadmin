@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\UploadedFile;
 
 class Page extends Model
 {
@@ -321,7 +322,7 @@ class Page extends Model
     /**
      * Handle main_image upload
      */
-    public function setMainImageAttribute($value): void
+    public function setMainImageAttribute(UploadedFile|string|null $value): void
     {
         $this->handleFileUpload(
             'main_image',
@@ -352,7 +353,7 @@ class Page extends Model
     /**
      * Handle images (gallery) upload
      */
-    public function setImagesAttribute($value): void
+    public function setImagesAttribute(UploadedFile|string|null $value): void
     {
         $this->handleFileUpload(
             'images',
@@ -441,7 +442,7 @@ class Page extends Model
     /**
      * Scope for pages by category
      */
-    public function scopeByCategory(Builder $query, $categoryId): Builder
+    public function scopeByCategory(Builder $query, int $categoryId): Builder
     {
         return $query->where('category_id', $categoryId);
     }
@@ -499,7 +500,7 @@ class Page extends Model
     /**
      * Get URL to the receipt file
      */
-    public function getFileUrl(string $attribute = 'pages', $index = null): ?string
+    public function getFileUrl(string $attribute = 'pages', ?int $index = null): ?string
     {
         return $this->getAttributeFileUrl($attribute, $index);
     }

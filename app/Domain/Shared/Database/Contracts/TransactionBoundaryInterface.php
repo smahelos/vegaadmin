@@ -16,5 +16,5 @@ interface TransactionBoundaryInterface
      * @param  callable():T  $callback
      * @return T
      */
-    public function transaction(callable $callback);
+    public function transaction(callable $callback): mixed;
 }

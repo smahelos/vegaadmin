@@ -134,7 +134,7 @@ class Product extends Model
     /**
      * Get the count of invoices that include this product
      */
-    public function getInvoiceCountAttribute()
+    public function getInvoiceCountAttribute(): int
     {
         return $this->invoices()->count();
     }
@@ -161,7 +161,7 @@ class Product extends Model
     /**
      * Get URL to the image file
      */
-    public function getFileUrl(string $attribute = 'image', $index = null): ?string
+    public function getFileUrl(string $attribute = 'image', ?int $index = null): ?string
     {
         return $this->getAttributeFileUrl($attribute, $index);
     }

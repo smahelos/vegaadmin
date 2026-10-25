@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -90,7 +91,7 @@ class UserActivitySummary extends Model
     /**
      * Get activity level as string
      */
-    public function getActivityLevelAttribute()
+    public function getActivityLevelAttribute(): string
     {
         if ($this->invoices_last_30_days >= 20) {
             return 'high';
@@ -106,7 +107,7 @@ class UserActivitySummary extends Model
     /**
      * Get activity level badge class
      */
-    public function getActivityBadgeClassAttribute()
+    public function getActivityBadgeClassAttribute(): string
     {
         return match ($this->activity_level) {
             'high' => 'success',
@@ -120,7 +121,7 @@ class UserActivitySummary extends Model
     /**
      * Get formatted activity level text
      */
-    public function getFormattedActivityLevelAttribute()
+    public function getFormattedActivityLevelAttribute(): string
     {
         return match ($this->activity_level) {
             'high' => __('admin.user_activity.high_activity'),
@@ -134,7 +135,7 @@ class UserActivitySummary extends Model
     /**
      * Get relationship to User model
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }

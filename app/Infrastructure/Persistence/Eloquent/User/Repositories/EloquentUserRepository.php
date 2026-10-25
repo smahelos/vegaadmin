@@ -4,6 +4,7 @@ namespace App\Infrastructure\Persistence\Eloquent\User\Repositories;
 
 use App\Domain\User\ValueObjects\UserEmail;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class EloquentUserRepository
@@ -71,7 +72,7 @@ class EloquentUserRepository
         ];
     }
 
-    public function getAllUsers()
+    public function getAllUsers(): Collection
     {
         return User::all();
     }

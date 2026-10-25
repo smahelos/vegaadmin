@@ -13,6 +13,8 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Class PageCrudController
@@ -334,7 +336,7 @@ class PageCrudController extends CrudController
     /**
      * Store a newly created resource in storage.
      */
-    public function store()
+    public function store(): JsonResponse|RedirectResponse
     {
         $this->crud->hasAccessOrFail('create');
 
@@ -354,7 +356,7 @@ class PageCrudController extends CrudController
     /**
      * Update the specified resource in storage.
      */
-    public function update()
+    public function update(): JsonResponse|RedirectResponse
     {
         $this->crud->hasAccessOrFail('update');
 

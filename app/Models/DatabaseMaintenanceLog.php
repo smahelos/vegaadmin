@@ -40,7 +40,7 @@ class DatabaseMaintenanceLog extends Model
     /**
      * Get formatted duration
      */
-    public function getDurationAttribute()
+    public function getDurationAttribute(): ?string
     {
         if (! $this->started_at || ! $this->completed_at) {
             return null;

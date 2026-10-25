@@ -38,7 +38,7 @@ class CronTask extends Model
     /**
      * Získá základní příkaz bez parametrů.
      */
-    public function getBaseCommandAttribute()
+    public function getBaseCommandAttribute(): ?string
     {
         if (empty($this->command)) {
             return null;
@@ -56,7 +56,7 @@ class CronTask extends Model
     /**
      * Získá parametry příkazu.
      */
-    public function getCommandParamsAttribute()
+    public function getCommandParamsAttribute(): ?string
     {
         if (empty($this->command)) {
             return null;
@@ -74,7 +74,7 @@ class CronTask extends Model
     /**
      * Nastaví kompletní příkaz na základě základního příkazu a parametrů.
      */
-    public function setCommandAttribute($value): void
+    public function setCommandAttribute(string $value): void
     {
         // Pokud hodnota už obsahuje mezery (kompletní příkaz), uložíme ji přímo
         if (strpos($value, ' ') !== false) {

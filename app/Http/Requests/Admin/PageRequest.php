@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PageRequest extends FormRequest
@@ -203,7 +204,7 @@ class PageRequest extends FormRequest
     /**
      * Configure the validator instance.
      */
-    public function withValidator($validator): void
+    public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator): void {
             // Ensure at least one name translation is provided

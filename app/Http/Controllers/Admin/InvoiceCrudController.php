@@ -21,6 +21,8 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\CRUD\app\Library\Widget;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -425,7 +427,7 @@ class InvoiceCrudController extends CrudController
     /**
      * Override store only to set user before persisting. Usage recorded via observer.
      */
-    public function store()
+    public function store(): JsonResponse|RedirectResponse
     {
         $this->beforeEntityStore();
 

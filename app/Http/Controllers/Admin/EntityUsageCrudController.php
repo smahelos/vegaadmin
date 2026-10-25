@@ -12,6 +12,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Prologue\Alerts\Facades\Alert;
 
@@ -240,7 +241,7 @@ class EntityUsageCrudController extends CrudController
     /**
      * Reset usage for selected entity type and period
      */
-    public function resetUsage(Request $request)
+    public function resetUsage(Request $request): RedirectResponse
     {
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
             abort(403, 'Unauthorized action.');
@@ -277,7 +278,7 @@ class EntityUsageCrudController extends CrudController
     /**
      * Bulk reset usage for multiple users
      */
-    public function bulkResetUsage(Request $request)
+    public function bulkResetUsage(Request $request): RedirectResponse
     {
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
             abort(403, 'Unauthorized action.');
@@ -330,7 +331,7 @@ class EntityUsageCrudController extends CrudController
     /**
      * Helper method to format bytes into human readable format
      */
-    private function formatBytes($bytes, $precision = 2): string
+    private function formatBytes(float|int $bytes, int $precision = 2): string
     {
         $units = [
             'B',

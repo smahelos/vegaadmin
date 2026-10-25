@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -46,7 +47,7 @@ class DatabaseHealthAlert extends Model
     /**
      * Scope for unresolved alerts
      */
-    public function scopeUnresolved($query)
+    public function scopeUnresolved(Builder $query): Builder
     {
         return $query->where('resolved', false);
     }
@@ -54,7 +55,7 @@ class DatabaseHealthAlert extends Model
     /**
      * Scope for specific severity
      */
-    public function scopeSeverity($query, $severity)
+    public function scopeSeverity(Builder $query, string $severity): Builder
     {
         return $query->where('severity', $severity);
     }

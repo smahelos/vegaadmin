@@ -68,7 +68,7 @@ class SubscriptionPaymentRefundMutationTest extends TestCase
 
             private array $meta = [];
 
-            public function __construct(private $fake)
+            public function __construct(private PaymentGatewayInterface $fake)
             {
                 $this->store['fake'] = $this->fake;
                 $this->meta['fake'] = [

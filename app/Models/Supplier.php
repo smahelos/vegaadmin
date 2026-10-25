@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Notifiable;
 
 class Supplier extends Model
@@ -47,7 +48,7 @@ class Supplier extends Model
     /**
      * Mutator for supplier_logo using centralized FileUploadService with hash dedupe.
      */
-    public function setSupplierLogoAttribute($value): void
+    public function setSupplierLogoAttribute(UploadedFile|string|null $value): void
     {
         $this->handleFileUpload(
             'supplier_logo',
@@ -156,7 +157,7 @@ class Supplier extends Model
     /**
      * Get preferred locale of the supplier
      */
-    public function preferredLocale()
+    public function preferredLocale(): string
     {
         return $this->getPreferredLocale();
     }
@@ -181,7 +182,7 @@ class Supplier extends Model
     /**
      * Mutator for is_default attribute to ensure boolean value
      */
-    public function setIsDefaultAttribute($value): void
+    public function setIsDefaultAttribute(bool|int|string|null $value): void
     {
         $this->attributes['is_default'] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }

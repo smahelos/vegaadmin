@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 class DatabaseArchiveCommand extends Command
 {
@@ -25,7 +26,7 @@ class DatabaseArchiveCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $tableName = $this->option('table');
         $dryRun = $this->option('dry-run');
@@ -142,7 +143,7 @@ class DatabaseArchiveCommand extends Command
     /**
      * Archive invoices with related products
      */
-    private function archiveInvoices($cutoffDate, $policy): void
+    private function archiveInvoices(Carbon $cutoffDate, stdClass $policy): void
     {
         $this->info('Archiving invoices with related products...');
 
@@ -209,9 +210,9 @@ class DatabaseArchiveCommand extends Command
      * Generic archive for other tables
      */
     private function genericArchive(
-        $tableName,
-        $cutoffDate,
-        $policy,
+        string $tableName,
+        Carbon $cutoffDate,
+        stdClass $policy,
     ): void {
         $this->info("Performing generic archiving for table: {$tableName}");
 

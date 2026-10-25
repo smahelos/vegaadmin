@@ -170,7 +170,7 @@ class PerformanceMetricCrudController extends CrudController
     /**
      * Format metadata key for display
      */
-    private function formatMetadataKey($key)
+    private function formatMetadataKey(int|string $key): string
     {
         // Convert snake_case to readable format
         $formatted = str_replace(
@@ -196,7 +196,7 @@ class PerformanceMetricCrudController extends CrudController
     /**
      * Format metadata value for display
      */
-    private function formatMetadataValue($key, $value)
+    private function formatMetadataValue(int|string $key, array|bool|float|int|string|null $value): string
     {
         // Handle different value types
         if (is_null($value)) {

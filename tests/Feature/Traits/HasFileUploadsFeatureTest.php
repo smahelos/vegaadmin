@@ -35,7 +35,7 @@ class TestModelWithFileUploads extends Model
 
     public function callHandleFileUpload(
         string $attribute,
-        $value,
+        UploadedFile|string|null $value,
         string $path,
         array $options = [],
     ): void {
@@ -438,14 +438,13 @@ class HasFileUploadsFeatureTest extends TestCase
         }
     }
 
-    // Magic method to simulate accessing attributes like in Eloquent models
-    public function __get($key)
+    /**
+     * The trait reads file attributes as properties, as on an Eloquent model.
+     *
+     * @return array<int|string, string>|string|null
+     */
+    public function __get(string $key): array|string|null
     {
         return $this->attributes[$key] ?? null;
-    }
-
-    public function __set($key, $value): void
-    {
-        $this->attributes[$key] = $value;
     }
 }

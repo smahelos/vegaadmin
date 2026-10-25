@@ -8,10 +8,13 @@ use App\Models\DatabaseMaintenanceLog;
 use App\Models\PerformanceMetric;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class DatabaseDashboardController extends CrudController
 {
@@ -20,7 +23,7 @@ class DatabaseDashboardController extends CrudController
         parent::__construct();
     }
 
-    public function index()
+    public function index(): View
     {
         // Get database overview statistics
         $databaseStats = $this->getDatabaseStats();
@@ -53,7 +56,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get database size and table statistics
      */
-    private function getDatabaseStats()
+    private function getDatabaseStats(): array
     {
         try {
             // Get table sizes from our monitoring view
@@ -84,7 +87,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get performance trends over time
      */
-    private function getPerformanceTrends()
+    private function getPerformanceTrends(): array
     {
         // Get the most common metric type as default
         $defaultMetricType = PerformanceMetric::select('metric_type')
@@ -101,7 +104,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get available metric types from database
      */
-    private function getAvailableMetricTypes()
+    private function getAvailableMetricTypes(): Collection
     {
         try {
             $metricTypes = PerformanceMetric::select('metric_type')
@@ -132,7 +135,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get human-readable label for metric type
      */
-    private function getMetricTypeLabel($metricType)
+    private function getMetricTypeLabel(string $metricType): string
     {
         $labels = [
             'query_time' => __('admin/database.metrics.query_time'),
@@ -152,7 +155,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get performance trends filtered by metric type via AJAX
      */
-    public function getPerformanceTrendsByType(Request $request)
+    public function getPerformanceTrendsByType(Request $request): JsonResponse
     {
         $metricType = $request->input('metric_type', 'query_time');
         $days = $request->input('days', 30);
@@ -177,7 +180,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get performance trends for specific metric type
      */
-    private function getPerformanceTrendsForType($metricType, $days = 30)
+    private function getPerformanceTrendsForType(string $metricType, int $days = 30): array
     {
         try {
             // Get metrics for specific type
@@ -271,7 +274,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Generate sample data based on metric type
      */
-    private function generateSampleDataForMetricType($metricType)
+    private function generateSampleDataForMetricType(string $metricType): int
     {
         switch ($metricType) {
             case 'query_time':
@@ -300,7 +303,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get default unit for metric type
      */
-    private function getDefaultUnitForMetricType($metricType)
+    private function getDefaultUnitForMetricType(string $metricType): string
     {
         $units = [
             'query_time' => 'ms',
@@ -320,7 +323,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get archive statistics
      */
-    private function getArchiveStats()
+    private function getArchiveStats(): array
     {
         try {
             $archivedInvoices = DB::table('invoices_archive')->count();
@@ -345,7 +348,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get database health monitoring status with detailed metrics
      */
-    private function getHealthStatus()
+    private function getHealthStatus(): array
     {
         try {
             // Get recent health metrics (last 24 hours)
@@ -407,7 +410,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get detailed breakdown of health metrics
      */
-    private function getDetailedHealthMetrics($recentMetrics)
+    private function getDetailedHealthMetrics(Collection $recentMetrics): array
     {
         $metrics = [];
 
@@ -507,7 +510,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get health trend over last 7 days
      */
-    private function getHealthTrend()
+    private function getHealthTrend(): array
     {
         try {
             $trend = [];
@@ -542,7 +545,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get color class for metric status
      */
-    private function getMetricColor($status)
+    private function getMetricColor(string $status): string
     {
         return match ($status) {
             'good' => 'success',
@@ -555,7 +558,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Calculate overall health score (0-100) - enhanced version
      */
-    private function calculateHealthScore($recentMetrics)
+    private function calculateHealthScore(Collection $recentMetrics): int
     {
         if ($recentMetrics->isEmpty()) {
             return 75; // Default score when no data
@@ -651,13 +654,13 @@ class DatabaseDashboardController extends CrudController
             $weightedSum += $scores[$i] * $weights[$i];
         }
 
-        return $totalWeight > 0 ? round($weightedSum / $totalWeight) : 75;
+        return $totalWeight > 0 ? (int) round($weightedSum / $totalWeight) : 75;
     }
 
     /**
      * Run database health check command via AJAX
      */
-    public function runHealthCheck(Request $request)
+    public function runHealthCheck(Request $request): JsonResponse
     {
         $store = $request->boolean('store', true); // Default to store metrics
         $alert = $request->boolean('alert', true); // Default to create alerts
@@ -689,7 +692,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Run database monitor command via AJAX
      */
-    public function runMonitor(Request $request)
+    public function runMonitor(Request $request): JsonResponse
     {
         try {
             \Artisan::call('db:monitor', [
@@ -715,7 +718,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Run database optimize command via AJAX
      */
-    public function runOptimize(Request $request)
+    public function runOptimize(Request $request): JsonResponse
     {
         $table = $request->get('table', 'all');
         $analyze = $request->boolean('analyze');
@@ -763,7 +766,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Run database archive command via AJAX
      */
-    public function runArchive(Request $request)
+    public function runArchive(Request $request): JsonResponse
     {
         $table = $request->get('table', 'invoices');
         $dryRun = $request->boolean('dry_run');
@@ -795,7 +798,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Run database commands via AJAX
      */
-    public function runCommand(Request $request)
+    public function runCommand(Request $request): JsonResponse
     {
         $command = $request->input('command');
 
@@ -835,7 +838,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get recent maintenance tasks with enhanced details and space savings calculation
      */
-    private function getRecentTasksWithDetails()
+    private function getRecentTasksWithDetails(): Collection
     {
         try {
             $tasks = DatabaseMaintenanceLog::orderBy('created_at', 'desc')
@@ -876,7 +879,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Clean performance metrics data
      */
-    public function cleanPerformanceMetrics(Request $request)
+    public function cleanPerformanceMetrics(Request $request): JsonResponse
     {
         $cleanupType = $request->input('cleanup_type', 'old'); // 'old', 'sample', 'all'
         $days = $request->input('days', 90); // Keep last N days
@@ -976,7 +979,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get performance metrics statistics for cleanup info
      */
-    public function getMetricsStats(Request $request)
+    public function getMetricsStats(Request $request): JsonResponse
     {
         try {
             $stats = [
@@ -1014,7 +1017,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Calculate space savings from task results JSON
      */
-    private function calculateSpaceSavings($results)
+    private function calculateSpaceSavings(?array $results): array
     {
         if (! $results || ! is_array($results)) {
             return [
@@ -1075,7 +1078,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Resolve database health alert via AJAX
      */
-    public function resolveAlert(Request $request)
+    public function resolveAlert(Request $request): JsonResponse
     {
         $alertId = $request->input('alert_id');
 
@@ -1100,7 +1103,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Generate sample performance metrics for testing
      */
-    public function generateSampleMetrics(Request $request)
+    public function generateSampleMetrics(Request $request): JsonResponse
     {
         try {
             $metricsGenerated = 0;

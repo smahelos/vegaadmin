@@ -5,6 +5,7 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ExpenseCategory extends Model
 {
@@ -36,7 +37,7 @@ class ExpenseCategory extends Model
     /**
      * Get the expenses in this category.
      */
-    public function expenses()
+    public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class, 'category_id');
     }

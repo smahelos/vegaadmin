@@ -13,6 +13,8 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Supplier management controller
@@ -126,7 +128,7 @@ class SupplierCrudController extends CrudController
         }
     }
 
-    public function store()
+    public function store(): JsonResponse|RedirectResponse
     {
         $this->beforeEntityStore();
 

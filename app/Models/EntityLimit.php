@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
@@ -114,7 +115,7 @@ class EntityLimit extends Model
     /**
      * Get the permission this limit is associated with
      */
-    public function permission()
+    public function permission(): ?Permission
     {
         // For special anonymous permission, return null
         if ($this->permission_name === self::ANONYMOUS_PERMISSION) {
@@ -128,7 +129,7 @@ class EntityLimit extends Model
      * Get usage records for this entity limit
      * Note: This is a conceptual relationship based on permission_name and entity_type
      */
-    public function usage()
+    public function usage(): Builder
     {
         // In new permission-based system, we don't have direct FK relationship
         // Usage is matched by permission_name and entity_type

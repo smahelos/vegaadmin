@@ -85,7 +85,7 @@ class Client extends Model
     /**
      * Get preferred locale of the client
      */
-    public function preferredLocale()
+    public function preferredLocale(): string
     {
         return $this->getPreferredLocale();
     }
@@ -110,7 +110,7 @@ class Client extends Model
     /**
      * Mutator for is_default attribute to ensure boolean value
      */
-    public function setIsDefaultAttribute($value): void
+    public function setIsDefaultAttribute(bool|int|string|null $value): void
     {
         $this->attributes['is_default'] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }

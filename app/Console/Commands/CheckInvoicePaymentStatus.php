@@ -33,7 +33,7 @@ class CheckInvoicePaymentStatus extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ClockInterface $clock)
+    public function handle(ClockInterface $clock): int
     {
         $daysBefore = (int) $this->option('days-before');
         $daysAfter = (int) $this->option('days-after');

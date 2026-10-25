@@ -6,6 +6,7 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -36,7 +37,7 @@ class Status extends Model
     /**
      * Get all invoices with this status
      */
-    public function invoices()
+    public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class, 'payment_status_id');
     }
@@ -115,7 +116,7 @@ class Status extends Model
     /**
      * Ensure slug is properly formatted
      */
-    public function setSlugAttribute($value): void
+    public function setSlugAttribute(string $value): void
     {
         $this->attributes['slug'] = Str::slug($value);
     }

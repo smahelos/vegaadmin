@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class EloquentTransactionBoundary implements TransactionBoundaryInterface
 {
-    public function transaction(callable $callback)
+    public function transaction(callable $callback): mixed
     {
         return DB::transaction($callback);
     }

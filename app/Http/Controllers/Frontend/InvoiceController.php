@@ -330,7 +330,7 @@ class InvoiceController extends Controller
         string $locale,
         int $id,
         Request $request,
-    ) {
+    ): RedirectResponse {
         $user = Auth::user();
         if (! $user) {
             return back()->with('error', __('users.auth.unauthenticated'));

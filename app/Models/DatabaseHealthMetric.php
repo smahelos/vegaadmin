@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -45,7 +46,7 @@ class DatabaseHealthMetric extends Model
     /**
      * Scope for recent metrics (last 24 hours)
      */
-    public function scopeRecent($query)
+    public function scopeRecent(Builder $query): Builder
     {
         return $query->where(
             'measured_at',

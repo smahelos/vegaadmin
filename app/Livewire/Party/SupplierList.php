@@ -5,6 +5,7 @@ namespace App\Livewire\Party;
 use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
 use App\Models\Supplier;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
@@ -60,7 +61,7 @@ class SupplierList extends Component
         return 'created_at';
     }
 
-    public function render()
+    public function render(): View
     {
         try {
             $query = Supplier::where('user_id', Auth::id())

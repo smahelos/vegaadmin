@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -77,7 +78,7 @@ class EntityLimitUsage extends Model
     /**
      * Scope to current period
      */
-    public function scopeCurrentPeriod($query)
+    public function scopeCurrentPeriod(Builder $query): Builder
     {
         $now = now();
 
@@ -96,7 +97,7 @@ class EntityLimitUsage extends Model
     /**
      * Scope by user (including null for anonymous)
      */
-    public function scopeForUser($query, ?int $userId)
+    public function scopeForUser(Builder $query, ?int $userId): Builder
     {
         return $query->where('user_id', $userId);
     }

@@ -14,12 +14,8 @@ trait ProductFormFields
     /**
      * Get client form fields definitions
      */
-    protected function getProductFields(
-        $productCategories = [],
-        $taxRates = [],
-        $currencies = [],
-        $suppliers = [],
-    ) {
+    protected function getProductFields(array $productCategories = [], array $taxRates = []): array
+    {
         // Get currency codes from CurrencyService
         $currencies = App::make(CurrencyServiceInterface::class)->getAllCurrencies();
 

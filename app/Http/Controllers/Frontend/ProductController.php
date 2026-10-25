@@ -28,7 +28,7 @@ class ProductController extends Controller
     /**
      * Display a listing of the user's products.
      */
-    public function index()
+    public function index(): View
     {
         // get current logged user's product limits
         $limitsData = $this->getProductsLimitStats();
@@ -40,7 +40,7 @@ class ProductController extends Controller
     /**
      * Show the form for creating a new product.
      */
-    public function create()
+    public function create(): View
     {
         // Get form data from service
         $formData = $this->productService->getFormData();
@@ -61,7 +61,7 @@ class ProductController extends Controller
     /**
      * Store a newly created product in storage.
      */
-    public function store(ProductRequest $request)
+    public function store(ProductRequest $request): RedirectResponse
     {
         $validatedData = $request->validated();
         $user = Auth::user();

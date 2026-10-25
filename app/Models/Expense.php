@@ -8,6 +8,7 @@ use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\UploadedFile;
 
 class Expense extends Model
@@ -53,7 +54,7 @@ class Expense extends Model
     /**
      * Get the supplier associated with this expense.
      */
-    public function supplier()
+    public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
     }
@@ -61,7 +62,7 @@ class Expense extends Model
     /**
      * Get the user who recorded this expense.
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -69,7 +70,7 @@ class Expense extends Model
     /**
      * Get the tax who recorded this expense.
      */
-    public function tax()
+    public function tax(): BelongsTo
     {
         return $this->belongsTo(Tax::class);
     }
@@ -77,7 +78,7 @@ class Expense extends Model
     /**
      * Get the status of this expense.
      */
-    public function status()
+    public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class);
     }
@@ -85,7 +86,7 @@ class Expense extends Model
     /**
      * Get the category of this expense.
      */
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(ExpenseCategory::class, 'category_id');
     }
@@ -93,7 +94,7 @@ class Expense extends Model
     /**
      * Get the payment method used for this expense.
      */
-    public function paymentMethod()
+    public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
@@ -148,7 +149,7 @@ class Expense extends Model
     /**
      * Get URL to the receipt file
      */
-    public function getFileUrl(string $attribute = 'attachments', $index = null): ?string
+    public function getFileUrl(string $attribute = 'attachments', ?int $index = null): ?string
     {
         return $this->getAttributeFileUrl($attribute, $index);
     }

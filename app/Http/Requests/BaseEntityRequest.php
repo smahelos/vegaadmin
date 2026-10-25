@@ -186,14 +186,6 @@ abstract class BaseEntityRequest extends FormRequest
     }
 
     /**
-     * Override the current user method to use standard Laravel Auth
-     */
-    protected function getCurrentUser()
-    {
-        return Auth::user();
-    }
-
-    /**
      * Override the user guard to use web guard instead of backpack
      */
     protected function getUserGuard(): string

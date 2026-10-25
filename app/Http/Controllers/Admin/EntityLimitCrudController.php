@@ -186,7 +186,7 @@ class EntityLimitCrudController extends CrudController
     /**
      * Helper method to format bytes into human readable format
      */
-    private function formatBytes($bytes, $precision = 2): string
+    private function formatBytes(float|int $bytes, int $precision = 2): string
     {
         $units = [
             'B',
