@@ -24,9 +24,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
         // Use process ID to avoid conflicts in parallel test execution
         $this->processId = (string) getmypid();
 
-        // Simple delay based on process ID to reduce collision chance
-        usleep((int) $this->processId % 500 * 1000); // 0-499ms delay
-
         // Create test performance metrics data
         $this->createTestMetrics();
     }
@@ -59,9 +56,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_executes_successfully(): void
     {
-        // Add small delay based on process ID to stagger parallel execution
-        usleep((int) $this->processId % 1000 * 100); // 0-99ms delay
-
         $exitCode = Artisan::call('db:clean-metrics');
 
         $this->assertEquals(0, $exitCode);
@@ -70,9 +64,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_accepts_days_option(): void
     {
-        // Add small delay based on process ID to stagger parallel execution
-        usleep((int) $this->processId % 1000 * 100);
-
         $exitCode = Artisan::call('db:clean-metrics', [
             '--days' => 30,
         ]);
@@ -83,9 +74,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_accepts_type_option(): void
     {
-        // Add small delay based on process ID to stagger parallel execution
-        usleep((int) $this->processId % 1000 * 100);
-
         $exitCode = Artisan::call('db:clean-metrics', [
             '--type' => 'old',
         ]);
@@ -96,9 +84,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_accepts_dry_run_option(): void
     {
-        // Add small delay based on process ID to stagger parallel execution
-        usleep((int) $this->processId % 1000 * 100);
-
         $exitCode = Artisan::call('db:clean-metrics', [
             '--dry-run' => true,
         ]);
@@ -109,9 +94,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_provides_feedback(): void
     {
-        // Add small delay based on process ID to stagger parallel execution
-        usleep((int) $this->processId % 1000 * 100);
-
         Artisan::call('db:clean-metrics');
 
         $output = Artisan::output();
@@ -125,10 +107,7 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
         // Exclude 'duplicate' and 'all' types that can cause hangs in testing
         $types = ['old', 'sample'];
 
-        foreach ($types as $index => $type) {
-            // Add staggered delay for each type + process ID
-            usleep(((int) $this->processId % 1000 + $index * 50) * 100);
-
+        foreach ($types as $type) {
             $exitCode = Artisan::call('db:clean-metrics', [
                 '--type' => $type,
                 '--dry-run' => true,
@@ -142,9 +121,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_respects_dry_run_mode(): void
     {
-        // Add small delay based on process ID to stagger parallel execution
-        usleep((int) $this->processId % 1000 * 100);
-
         // In dry-run mode, nothing should be deleted
         $exitCode = Artisan::call('db:clean-metrics', [
             '--dry-run' => true,
@@ -163,9 +139,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_validates_parameters(): void
     {
-        // Add small delay based on process ID to stagger parallel execution
-        usleep((int) $this->processId % 1000 * 100);
-
         // Test with valid days parameter
         $exitCode = Artisan::call('db:clean-metrics', [
             '--days' => 90,
@@ -180,9 +153,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_handles_edge_cases(): void
     {
-        // Add small delay based on process ID to stagger parallel execution
-        usleep((int) $this->processId % 1000 * 100);
-
         // Test with minimal days
         $exitCode = Artisan::call('db:clean-metrics', [
             '--days' => 1,
@@ -190,9 +160,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
         ]);
 
         $this->assertEquals(0, $exitCode);
-
-        // Add delay between commands
-        usleep(50000); // 50ms
 
         // Test with large days
         $exitCode = Artisan::call('db:clean-metrics', [
@@ -206,9 +173,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_shows_configuration_info(): void
     {
-        // Add small delay based on process ID to stagger parallel execution
-        usleep((int) $this->processId % 1000 * 100);
-
         Artisan::call('db:clean-metrics', [
             '--type' => 'old',
             '--days' => 60,
@@ -225,9 +189,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_validates_cleanup_types(): void
     {
-        // Add small delay based on process ID
-        usleep((int) $this->processId % 1000 * 100);
-
         // Test valid types that don't hang
         $validTypes = ['old', 'sample'];
         foreach ($validTypes as $type) {
@@ -246,9 +207,6 @@ class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_rejects_invalid_type(): void
     {
-        // Add small delay based on process ID
-        usleep((int) $this->processId % 1000 * 100);
-
         $exitCode = Artisan::call('db:clean-metrics', [
             '--type' => 'invalid_type',
             '--dry-run' => true,

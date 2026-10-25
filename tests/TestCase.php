@@ -8,6 +8,7 @@ use App\Http\Middleware\SetLocale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -28,6 +29,9 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // A test never reaches a real external service; fake the request with Http::fake()
+        Http::preventStrayRequests();
 
         // Built assets (public/build) are not versioned and CI does not run the Vite build
         $this->withoutVite();

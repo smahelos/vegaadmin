@@ -81,8 +81,12 @@ class CurrencyExchangeCircuitBreakerTest extends TestCase
         $this->service->getExchangeRates('USD'); // open (fallback)
         $this->assertEquals('open', Cache::get('fx_cb_state'));
 
-        // Wait for open timeout expiry
-        sleep(2);
+        // Open timeout expired: the circuit opened before the timeout
+        Cache::put(
+            'fx_cb_opened_at',
+            time() - 2,
+            60,
+        );
 
         // Probe attempt
         $this->service->getExchangeRates('USD'); // half-open probe failure -> reopen

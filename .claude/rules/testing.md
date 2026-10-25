@@ -34,6 +34,7 @@ paths:
 
 - `#[Test]` attribute, method names in snake_case describing the behaviour (`marks_invoice_as_paid_when_payment_confirmed`), `: void` return type.
 - Admin HTTP tests: `actingAs($user, 'backpack')`; an unauthenticated admin request returns 403.
+- No real external calls: `tests/TestCase.php` calls `Http::preventStrayRequests()`, so a test fakes every request it causes (`Http::fake()`) or replaces the port. No `sleep()`: a test moves the stored time or the clock instead.
 - `tests/TestCase.php` disables the `SetLocale` middleware. Tests call the application's real routes; a test never registers a route that shadows one.
 - PDF output is pinned by `InvoicePdfSnapshotTest`; regenerate snapshots only for an intended change with `UPDATE_PDF_SNAPSHOTS=1` and review the diff.
 - Run targeted tests while working. Before a commit the `pre-pr-check` skill decides between targeted tests and the full suite (only for changes that can reach anything) and runs the architecture guards; CI runs the full suite on every push to a PR.
