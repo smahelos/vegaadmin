@@ -9,6 +9,8 @@ use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Models\User;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\Fakes\Analytics\FakeApiStatisticsRepository;
@@ -77,6 +79,30 @@ final class StatisticsControllerFeatureTest extends TestCase
         foreach ($this->statistics->calls as $call) {
             $this->assertSame($user->id, $call['userId']->toInt());
         }
+    }
+
+    #[Test]
+    public function a_browser_session_signs_in_requests_from_a_stateful_domain(): void
+    {
+        config(['sanctum.stateful' => ['billex.test']]);
+
+        $this->withCredentials()
+            ->withCookie(config('session.cookie'), $this->storedSessionOf($this->statisticsUser()))
+            ->withHeader('Referer', 'https://billex.test/cs/dashboard')
+            ->getJson(route('api.statistics.monthly-revenue'))
+            ->assertOk();
+    }
+
+    #[Test]
+    public function a_browser_session_is_ignored_for_requests_from_another_domain(): void
+    {
+        config(['sanctum.stateful' => ['billex.test']]);
+
+        $this->withCredentials()
+            ->withCookie(config('session.cookie'), $this->storedSessionOf($this->statisticsUser()))
+            ->withHeader('Referer', 'https://elsewhere.test/')
+            ->getJson(route('api.statistics.monthly-revenue'))
+            ->assertUnauthorized();
     }
 
     #[Test]
@@ -169,6 +195,20 @@ final class StatisticsControllerFeatureTest extends TestCase
             ->assertJsonValidationErrors($field);
 
         $this->assertSame([], $this->statistics->calls);
+    }
+
+    /**
+     * A web session of the user as the browser holds it: stored by the session handler, sent as a cookie.
+     */
+    private function storedSessionOf(User $user): string
+    {
+        $session = $this->app['session']->driver();
+        $session->setId(Str::random(40));
+        $session->put(Auth::guard('web')->getName(), $user->id);
+        $session->save();
+        $session->flush();
+
+        return $session->getId();
     }
 
     private function statisticsUser(): User
