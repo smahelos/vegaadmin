@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire\Invoice;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Livewire\Invoice\InvoiceListRecent;
 use App\Models\Client;
 use App\Models\Invoice;
@@ -119,7 +120,7 @@ class InvoiceListRecentFeatureTest extends TestCase
     public function component_eager_loads_relationships(): void
     {
         $client = Client::factory()->create(['user_id' => $this->user->id]);
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $paymentStatus = Status::factory()->create();
 
         Invoice::factory()->create([

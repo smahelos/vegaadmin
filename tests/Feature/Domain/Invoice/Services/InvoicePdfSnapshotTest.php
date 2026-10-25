@@ -6,6 +6,7 @@ use App\Application\Invoice\Services\InvoicePdfRenderer;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -54,7 +55,7 @@ class InvoicePdfSnapshotTest extends TestCase
             'name' => 'Snapshot Supplier s.r.o.',
         ]);
         $client = Client::factory()->create(['name' => 'Snapshot Client a.s.']);
-        $paymentMethod = PaymentMethod::factory()->create(['name' => 'Bank Transfer']);
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
         $status = Status::factory()->create();
 
         $invoice = Invoice::factory()->create([
@@ -65,6 +66,7 @@ class InvoicePdfSnapshotTest extends TestCase
             'invoice_vs' => 'SNAP-001',
             'invoice_ks' => '0308',
             'invoice_ss' => '1234',
+            'invoice_text' => 'Snapshot invoice text',
             'payment_amount' => 1234.56,
             'payment_currency' => 'EUR',
         ]);

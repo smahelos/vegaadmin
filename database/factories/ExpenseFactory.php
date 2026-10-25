@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
@@ -41,7 +42,7 @@ class ExpenseFactory extends Factory
                 10000,
             ),
             'currency' => $this->faker->currencyCode(),
-            'payment_method_id' => PaymentMethod::factory(),
+            'payment_method_id' => fn (): int => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->value('id'),
             'reference_number' => $this->faker->optional()->numerify('REF-########'),
             'description' => $this->faker->sentence(),
             'tax_amount' => $this->faker->randomFloat(

@@ -200,7 +200,6 @@ return [
     'generated_at' => 'Generiert am',
     'defaults' => [
         'invoice_text' => 'Abrechnung für Dienstleistungen',
-        'payment_method' => 'Banküberweisung',
     ],
     'sections' => [
         'invoice_details' => 'Rechnungsdetails',

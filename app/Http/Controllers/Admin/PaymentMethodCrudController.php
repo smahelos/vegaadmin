@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\PaymentMethodRequest;
+use App\Infrastructure\Forms\Payment\PaymentMethodFormFields;
 use App\Models\PaymentMethod;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
@@ -22,6 +23,7 @@ class PaymentMethodCrudController extends CrudController
 {
     use CreateOperation;
     use ListOperation;
+    use PaymentMethodFormFields;
     use RestrictedDeleteOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -61,11 +63,7 @@ class PaymentMethodCrudController extends CrudController
     {
         CRUD::setValidation(PaymentMethodRequest::class);
 
-        CRUD::field('name')->label(__('payment_methods.fields.name'));
-        CRUD::field('slug')->label(__('payment_methods.fields.slug'));
-        CRUD::field('country')->label(__('payment_methods.fields.country'));
-        CRUD::field('currency')->label(__('payment_methods.fields.currency'));
-        CRUD::field('icon')->label(__('payment_methods.fields.icon'));
+        CRUD::addFields($this->getPaymentMethodFields());
     }
 
     /**

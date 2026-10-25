@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -107,7 +108,7 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
 
         return [
             'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::factory()->create()->id,
+            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
             'payment_amount' => 20,
             'payment_currency' => 'EUR',
             'issue_date' => now()->format('Y-m-d'),

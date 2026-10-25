@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
@@ -67,7 +68,7 @@ class InvoiceFeatureTest extends TestCase
     #[Test]
     public function it_belongs_to_payment_method(): void
     {
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $invoice = Invoice::factory()->create(['payment_method_id' => $paymentMethod->id]);
 
         $relation = $invoice->paymentMethod();
@@ -229,7 +230,7 @@ class InvoiceFeatureTest extends TestCase
         $client = Client::factory()->create();
         $user = User::factory()->create();
         $supplier = Supplier::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
 
         $invoice = Invoice::create([
             'invoice_vs' => 'INV-TEST2',
@@ -284,7 +285,7 @@ class InvoiceFeatureTest extends TestCase
         $user = User::factory()->create();
         $supplier = Supplier::factory()->create();
         $status = Status::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
 
         $invoice = Invoice::create([
             'invoice_vs' => 'INV-TEST',
@@ -329,7 +330,7 @@ class InvoiceFeatureTest extends TestCase
     #[Test]
     public function payment_methods_legacy_method_returns_collection(): void
     {
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $invoice = Invoice::factory()->create(['payment_method_id' => $paymentMethod->id]);
 
         $paymentMethods = $invoice->paymentMethods();

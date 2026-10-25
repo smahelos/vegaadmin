@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\EntityLimit;
 use App\Models\Expense;
@@ -58,7 +59,7 @@ class ExpenseCrudControllerTest extends TestCase
         ]);
 
         $supplier = Supplier::factory()->create(['user_id' => $this->regularUser->id]);
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = $this->ensureStatus();
         $category = ExpenseCategory::factory()->create();
 
@@ -114,7 +115,7 @@ class ExpenseCrudControllerTest extends TestCase
         ]);
 
         $supplier = Supplier::factory()->create(['user_id' => $this->regularUser->id]);
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = $this->ensureStatus();
         $category = ExpenseCategory::factory()->create();
 

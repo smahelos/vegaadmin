@@ -3,6 +3,7 @@
 namespace App\Domain\Invoice\DTO;
 
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\ValueObjects\Money;
 
 /**
@@ -57,6 +58,7 @@ class PrintableInvoiceData
         public readonly ?string $invoice_vs,
         public readonly ?string $invoice_ks,
         public readonly ?string $invoice_ss,
+        public readonly ?PaymentMethodCode $paymentMethod,
         public readonly ?string $notes,
     ) {}
 }

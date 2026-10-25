@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\Client;
 use App\Models\EntityLimit;
@@ -268,7 +269,7 @@ class InvoiceControllerFeatureTest extends TestCase
         // Create required related entities
         $client = Client::factory()->create(['user_id' => $this->user->id]);
         $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
 
         // Check initial usage
@@ -346,7 +347,7 @@ class InvoiceControllerFeatureTest extends TestCase
         // Create required related entities
         $client = Client::factory()->create(['user_id' => $this->user->id]);
         $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
 
         // First invoice creation - should succeed

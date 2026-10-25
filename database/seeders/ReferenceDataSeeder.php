@@ -97,6 +97,9 @@ final class ReferenceDataSeeder extends Seeder
     private const PAYMENT_METHODS = [
         'bankaccount' => 'Bankovním převodem',
         'cash' => 'Hotově',
+        'credit_card' => 'Platební karta',
+        'paypal' => 'PayPal',
+        'other' => 'Jiná platební metoda',
     ];
 
     /** @var list<array{string, string, string}> */

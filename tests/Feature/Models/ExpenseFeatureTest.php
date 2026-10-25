@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
@@ -41,7 +42,7 @@ class ExpenseFeatureTest extends TestCase
         $user = User::factory()->create();
         $supplier = Supplier::factory()->create();
         $category = ExpenseCategory::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
 
         $data = [
@@ -131,7 +132,7 @@ class ExpenseFeatureTest extends TestCase
     #[Test]
     public function belongs_to_payment_method_relationship(): void
     {
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $expense = Expense::factory()->create(['payment_method_id' => $paymentMethod->id]);
 
         $this->assertInstanceOf(PaymentMethod::class, $expense->paymentMethod);

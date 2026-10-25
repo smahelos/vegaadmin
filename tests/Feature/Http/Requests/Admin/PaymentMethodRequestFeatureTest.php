@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\PaymentMethodRequest;
 use App\Models\EntityLimit;
+use App\Models\PaymentMethod;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -45,28 +47,29 @@ class PaymentMethodRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data(): void
+    public function accepts_a_payment_method_code_that_is_not_stored(): void
     {
-        $request = new PaymentMethodRequest;
-        $data = [
-            'name' => 'Bank Transfer',
-            'slug' => 'bank-transfer',
-            'description' => 'Payment via bank transfer',
-            'is_active' => true,
-        ];
-        $validator = Validator::make($data, $request->rules());
+        PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
+
+        $validator = Validator::make(['name' => 'Other', 'slug' => PaymentMethodCode::OTHER->value], (new PaymentMethodRequest)->rules());
+
         $this->assertTrue($validator->passes());
     }
 
     #[Test]
-    public function validation_passes_with_minimal_data(): void
+    public function requires_a_payment_method_code(): void
     {
-        $request = new PaymentMethodRequest;
-        $data = [
-            'name' => 'Card',
-        ];
-        $validator = Validator::make($data, $request->rules());
-        $this->assertTrue($validator->passes());
+        $validator = Validator::make(['name' => 'Card'], (new PaymentMethodRequest)->rules());
+
+        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+    }
+
+    #[Test]
+    public function rejects_a_slug_that_is_not_a_payment_method_code(): void
+    {
+        $validator = Validator::make(['name' => 'Bank Transfer', 'slug' => 'bank-transfer'], (new PaymentMethodRequest)->rules());
+
+        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
     }
 
     #[Test]
@@ -79,14 +82,11 @@ class PaymentMethodRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_duplicate_slug(): void
+    public function rejects_a_payment_method_code_that_is_already_stored(): void
     {
-        // Simulate existing slug using validator unique rule (no factory needed if table empty -> pass first, second fails)
-        $existing = new PaymentMethodRequest;
-        $first = Validator::make(['name' => 'First', 'slug' => 'dup-slug'], $existing->rules());
-        $this->assertTrue($first->passes());
-        // Pretend record stored by adjusting request id context not needed; rely on DB unique constraint only if persisted.
-        // Skipping DB insert due to absence of factory in context.
+        $validator = Validator::make(['name' => 'Cash', 'slug' => PaymentMethodCode::CASH->value], (new PaymentMethodRequest)->rules());
+
+        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
     }
 
     #[Test]
@@ -102,20 +102,13 @@ class PaymentMethodRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function auto_generates_slug_when_missing(): void
-    {
-        $request = new PaymentMethodRequest;
-        $request->replace(['name' => 'My Cool Pay']);
-        $request->prepareForValidation();
-        $this->assertEquals('my-cool-pay', $request->get('slug'));
-    }
-
-    #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
+        PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
         $this->actingAs($this->adminUser, 'backpack');
         $this->postJson('/test-payment-method', [
             'name' => 'Fast Pay',
+            'slug' => PaymentMethodCode::OTHER->value,
         ])->assertStatus(200);
     }
 
@@ -143,8 +136,10 @@ class PaymentMethodRequestFeatureTest extends TestCase
         $this->revokeUnlimitedAccess('payment_method');
         $this->actingAs($this->adminUser, 'backpack');
         EntityLimit::where('entity_type', 'payment_method')->update(['limit_value' => 1]);
+        PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
         $this->postJson('/test-payment-method', [
             'name' => 'First Method',
+            'slug' => PaymentMethodCode::OTHER->value,
         ])->assertStatus(200);
         $this->limitService->recordUsage(
             $this->adminUser->id,

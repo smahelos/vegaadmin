@@ -8,11 +8,16 @@ use App\Domain\Invoice\DTO\PrintableInvoiceData;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
+use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
+use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Shared\Money\Enums\Currency;
 
 class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFactoryInterface
 {
-    public function __construct(private readonly InvoiceProductWriteDataAssembler $products) {}
+    public function __construct(
+        private readonly InvoiceProductWriteDataAssembler $products,
+        private readonly PaymentMethodDtoReadRepositoryInterface $paymentMethods,
+    ) {}
 
     public function fromArray(array $invoiceData): PrintableInvoiceData
     {
@@ -75,6 +80,7 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
             invoice_vs: $invoiceData['invoice_vs'] ?? null,
             invoice_ks: $invoiceData['invoice_ks'] ?? null,
             invoice_ss: $invoiceData['invoice_ss'] ?? null,
+            paymentMethod: $this->paymentMethods->findById(PaymentMethodId::fromInt((int) $invoiceData['payment_method_id']))?->code,
             notes: $invoiceData['invoice_text'] ?? null,
         );
     }

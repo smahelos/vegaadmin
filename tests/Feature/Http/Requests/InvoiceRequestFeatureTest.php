@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Http\Requests\InvoiceRequest;
 use App\Models\Client;
 use App\Models\EntityLimit;
@@ -61,7 +62,7 @@ class InvoiceRequestFeatureTest extends TestCase
      */
     private function createRelatedModels(): void
     {
-        $this->paymentMethod = PaymentMethod::factory()->create();
+        $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $this->paymentStatus = Status::factory()->create();
         $this->supplier = Supplier::factory()->create();
         $this->client = Client::factory()->create();

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\InvoiceRequest;
@@ -52,7 +53,7 @@ class InvoiceRequestFeatureTest extends TestCase
         $this->invoiceUser = User::factory()->create();
         $this->client = Client::factory()->create();
         $this->supplier = Supplier::factory()->create();
-        $this->paymentMethod = PaymentMethod::factory()->create();
+        $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
 
         $this->limitService = app(UniversalLimitService::class);
 

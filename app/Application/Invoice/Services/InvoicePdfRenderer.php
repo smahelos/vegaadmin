@@ -120,7 +120,7 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'user' => Auth::user(),
             'client' => $client,
             'supplier' => $supplier,
-            'paymentMethod' => null, // left null; app can enrich if needed
+            'paymentMethod' => $data->paymentMethod,
             'qrCode' => $qrCode,
             'hasQrCode' => $hasQr,
             'locale' => $locale,

@@ -5,6 +5,7 @@ namespace Tests\Feature\Application\Invoice;
 use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -126,7 +127,7 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
 
         return [
             'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::factory()->create()->id,
+            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
             'payment_amount' => 50,
             'payment_currency' => 'EUR',
             'issue_date' => now()->format('Y-m-d'),

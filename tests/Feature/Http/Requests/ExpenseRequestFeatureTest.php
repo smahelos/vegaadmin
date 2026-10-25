@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Http\Requests\ExpenseRequest;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
@@ -70,7 +71,7 @@ class ExpenseRequestFeatureTest extends TestCase
     {
         $this->supplier = Supplier::factory()->create();
         $this->category = ExpenseCategory::factory()->create();
-        $this->paymentMethod = PaymentMethod::factory()->create();
+        $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $this->status = Status::factory()->create();
         $this->targetUser = User::factory()->create();
     }

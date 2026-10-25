@@ -400,12 +400,12 @@ app()->setLocale($locale);
                 </div>
 
                 <div class="col-right">
+                    @if($paymentMethod)
                     <div class="info-row">
                         <span class="info-label">{{ __('invoices.fields.payment_method') }}:</span>
-                        <span class="info-value">
-                            {{ $paymentMethod->name ?? __('payment_methods.methods.bankaccount') }}
-                        </span>
+                        <span class="info-value">{{ __('payment_methods.methods.' . $paymentMethod->value) }}</span>
                     </div>
+                    @endif
 
                     @if($invoice->invoice_vs)
                     <div class="info-row">

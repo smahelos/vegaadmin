@@ -373,23 +373,12 @@ app()->setLocale($locale);
             </div>
 
             <div class="col-right">
+                @if($paymentMethod)
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.payment_method') }}:</span>
-                    <span class="info-value">
-                        @if(isset($paymentMethod) && $paymentMethod)
-                        {{ $paymentMethod->slug ? __('payment_methods.methods.' . $paymentMethod->slug) :
-                        __('invoices.defaults.payment_method') }}
-                        @elseif(isset($invoice->payment_method_id))
-                        @php
-                        $method = App\Models\PaymentMethod::find($invoice->payment_method_id);
-                        @endphp
-                        {{ $method?->slug ? __('payment_methods.methods.' . $method->slug) :
-                        __('invoices.defaults.payment_method') }}
-                        @else
-                        {{ __('invoices.defaults.payment_method') }}
-                        @endif
-                    </span>
+                    <span class="info-value">{{ __('payment_methods.methods.' . $paymentMethod->value) }}</span>
                 </div>
+                @endif
 
                 @if($invoice->invoice_vs)
                 <div class="info-row">
