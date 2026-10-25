@@ -3,6 +3,7 @@
 namespace App\Livewire\Product;
 
 use App\Livewire\Shared\Paginates;
+use App\Livewire\Shared\Sorts;
 use App\Models\Product;
 use App\Models\Tax;
 use Illuminate\Contracts\View\View;
@@ -19,6 +20,7 @@ use Livewire\Component;
 class ProductListSelect extends Component
 {
     use Paginates;
+    use Sorts;
 
     /**
      * Search term for filtering products
@@ -26,17 +28,11 @@ class ProductListSelect extends Component
     #[Url(except: '')]
     public string $search = '';
 
-    /**
-     * Current sorting field
-     */
-    #[Url(except: 'name')]
-    public string $sortField = 'name';
+    #[Url(as: 'sort', except: 'name')]
+    public string $orderBy = 'name';
 
-    /**
-     * Sort direction (asc/desc)
-     */
-    #[Url(except: 'asc')]
-    public string $sortDirection = 'asc';
+    #[Url(as: 'direction', except: true)]
+    public bool $orderAsc = true;
 
     /**
      * Number of items per page
@@ -113,17 +109,20 @@ class ProductListSelect extends Component
         $this->resetPage();
     }
 
-    /**
-     * Sort by given field, toggle direction if same field
-     */
-    public function sortBy(string $field): void
+    protected function sortableColumns(): array
     {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortDirection = 'asc';
-        }
-        $this->sortField = $field;
+        return [
+            'name' => 'name',
+            'category_id' => 'category_id',
+            'price' => 'price',
+            'currency' => 'currency',
+            'tax_id' => 'tax_id',
+        ];
+    }
+
+    protected function defaultSort(): string
+    {
+        return 'name';
     }
 
     /**
@@ -216,7 +215,7 @@ class ProductListSelect extends Component
                             );
                     });
                 })
-                ->orderBy($this->sortField, $this->sortDirection);
+                ->orderBy($this->sortColumn(), $this->sortDirection());
 
             // If we have selected products, exclude them from results
             if (! empty($this->selectedProductIds)) {

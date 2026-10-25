@@ -12,32 +12,12 @@ class SupplierListLatest extends Component
 {
     use Paginates;
 
-    public bool $orderAsc = false;
-
-    public string $orderBy = 'created_at';
-
     public ?string $errorMessage = null;
-
-    /**
-     * Sort by given field, toggle direction if same field
-     */
-    public function sortBy(string $field): void
-    {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = ! $this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
-        // Reset to first page when sorting changes
-        $this->resetPage();
-    }
 
     public function render(): View
     {
         try {
-            $query = Supplier::where('user_id', Auth::id());
-            $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
+            $query = Supplier::where('user_id', Auth::id())->latest();
             $suppliers = $query->paginate(5);
 
             return view('livewire.party.supplier-list-latest', [

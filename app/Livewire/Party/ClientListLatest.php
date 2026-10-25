@@ -12,30 +12,13 @@ use Livewire\Component;
  * ClientListLatest Livewire Component
  *
  * Displays a paginated list of the latest clients for the authenticated user.
- * Shows the most recently created clients with sorting functionality.
+ * Shows the most recently created clients.
  */
 class ClientListLatest extends Component
 {
     use Paginates;
 
-    public bool $orderAsc = false;
-
-    public string $orderBy = 'created_at';
-
     public ?string $errorMessage = null;
-
-    /**
-     * Sort by given field, toggle direction if same field
-     */
-    public function sortBy(string $field): void
-    {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = ! $this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
-    }
 
     /**
      * Render the component with latest clients data
@@ -43,8 +26,7 @@ class ClientListLatest extends Component
     public function render(): View
     {
         try {
-            $query = Client::where('user_id', Auth::id());
-            $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
+            $query = Client::where('user_id', Auth::id())->latest();
 
             $clients = $query->paginate(5);
 

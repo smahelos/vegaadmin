@@ -159,22 +159,6 @@ class InvoiceListTest extends TestCase
     }
 
     #[Test]
-    public function sort_by_method_has_correct_parameter_type(): void
-    {
-        $reflection = new ReflectionClass($this->component);
-        $method = $reflection->getMethod('sortBy');
-        $parameters = $method->getParameters();
-
-        $this->assertCount(1, $parameters);
-        $fieldParam = $parameters[0];
-        $this->assertEquals('field', $fieldParam->getName());
-
-        $paramType = $fieldParam->getType();
-        $this->assertNotNull($paramType);
-        $this->assertEquals('string', $paramType->getName());
-    }
-
-    #[Test]
     public function render_method_exists(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));

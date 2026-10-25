@@ -207,31 +207,31 @@ class ProductListSelectFeatureTest extends TestCase
     public function sort_by_toggles_direction_for_same_field(): void
     {
         $component = Livewire::test(ProductListSelect::class)
-            ->set('sortField', 'name')
-            ->set('sortDirection', 'asc');
+            ->set('orderBy', 'name')
+            ->set('orderAsc', true);
 
         $component->call('sortBy', 'name');
 
-        $component->assertSet('sortField', 'name')
-            ->assertSet('sortDirection', 'desc');
+        $component->assertSet('orderBy', 'name')
+            ->assertSet('orderAsc', false);
 
         $component->call('sortBy', 'name');
 
-        $component->assertSet('sortField', 'name')
-            ->assertSet('sortDirection', 'asc');
+        $component->assertSet('orderBy', 'name')
+            ->assertSet('orderAsc', true);
     }
 
     #[Test]
     public function sort_by_sets_ascending_for_different_field(): void
     {
         $component = Livewire::test(ProductListSelect::class)
-            ->set('sortField', 'name')
-            ->set('sortDirection', 'desc');
+            ->set('orderBy', 'name')
+            ->set('orderAsc', false);
 
         $component->call('sortBy', 'price');
 
-        $component->assertSet('sortField', 'price')
-            ->assertSet('sortDirection', 'asc');
+        $component->assertSet('orderBy', 'price')
+            ->assertSet('orderAsc', true);
     }
 
     #[Test]
@@ -249,8 +249,8 @@ class ProductListSelectFeatureTest extends TestCase
         ]);
 
         $component = Livewire::test(ProductListSelect::class)
-            ->set('sortField', 'name')
-            ->set('sortDirection', 'asc');
+            ->set('orderBy', 'name')
+            ->set('orderAsc', true);
 
         $products = $component->viewData('products');
         $productIds = $products->pluck('id')->toArray();

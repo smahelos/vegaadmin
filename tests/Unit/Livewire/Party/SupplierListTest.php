@@ -75,16 +75,6 @@ class SupplierListTest extends TestCase
     }
 
     #[Test]
-    public function sort_by_method_has_correct_return_type(): void
-    {
-        $reflection = new \ReflectionClass($this->component);
-        $method = $reflection->getMethod('sortBy');
-        $returnType = $method->getReturnType();
-
-        $this->assertNull($returnType);
-    }
-
-    #[Test]
     public function updating_search_method_has_correct_return_type(): void
     {
         $reflection = new \ReflectionClass($this->component);

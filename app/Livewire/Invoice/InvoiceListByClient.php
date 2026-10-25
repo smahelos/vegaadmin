@@ -3,6 +3,7 @@
 namespace App\Livewire\Invoice;
 
 use App\Livewire\Shared\Paginates;
+use App\Livewire\Shared\Sorts;
 use App\Models\Client;
 use App\Models\Invoice;
 use Illuminate\Contracts\View\View;
@@ -19,6 +20,7 @@ use Livewire\Component;
 class InvoiceListByClient extends Component
 {
     use Paginates;
+    use Sorts;
 
     public int $clientId;
 
@@ -73,17 +75,20 @@ class InvoiceListByClient extends Component
         $this->resetPage();
     }
 
-    /**
-     * Sort by given field, toggle direction if same field
-     */
-    public function sortBy(string $field): void
+    protected function sortableColumns(): array
     {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = ! $this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
+        return [
+            'created_at' => 'created_at',
+            'invoice_vs' => 'invoice_vs',
+            'issue_date' => 'issue_date',
+            'payment_amount' => 'payment_amount',
+            'due_date' => 'due_date',
+        ];
+    }
+
+    protected function defaultSort(): string
+    {
+        return 'created_at';
     }
 
     /**
@@ -123,11 +128,11 @@ class InvoiceListByClient extends Component
             }
 
             // Special handling for different sorting fields
-            if ($this->orderBy === 'due_date') {
+            if ($this->sortKey() === 'due_date') {
                 // Special handling for due_date which is calculated from issue_date + due_in
-                $query->orderByRaw('DATE_ADD(issue_date, INTERVAL due_in DAY) ' . ($this->orderAsc ? 'ASC' : 'DESC'));
+                $query->orderByRaw('DATE_ADD(issue_date, INTERVAL due_in DAY) ' . $this->sortDirection());
             } else {
-                $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
+                $query->orderBy($this->sortColumn(), $this->sortDirection());
             }
 
             $invoices = $query->paginate(10);

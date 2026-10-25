@@ -6,13 +6,12 @@ use App\Livewire\Shared\Paginates;
 use App\Models\Invoice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
  * InvoiceListRecent Livewire Component
  *
- * Displays recent invoices with sorting functionality.
+ * Displays recent invoices.
  * Shows last 5 invoices for authenticated user with pagination support.
  */
 class InvoiceListRecent extends Component
@@ -20,34 +19,9 @@ class InvoiceListRecent extends Component
     use Paginates;
 
     /**
-     * Current sorting field
-     */
-    #[Url(as: 'sort')]
-    public string $orderBy = 'created_at';
-
-    /**
-     * Sort direction (true = ascending, false = descending)
-     */
-    #[Url(as: 'direction')]
-    public bool $orderAsc = false;
-
-    /**
      * Error message to display to user
      */
     public ?string $errorMessage = null;
-
-    /**
-     * Sort by given field, toggle direction if same field
-     */
-    public function sortBy(string $field): void
-    {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = ! $this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
-    }
 
     /**
      * Render the component with recent invoices data
@@ -60,9 +34,8 @@ class InvoiceListRecent extends Component
                 'paymentMethod',
                 'paymentStatus',
             ])
-                ->where('user_id', Auth::id());
-
-            $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
+                ->where('user_id', Auth::id())
+                ->latest();
 
             $invoices = $query->paginate(5);
 

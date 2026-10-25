@@ -3,6 +3,7 @@
 namespace App\Livewire\Product;
 
 use App\Livewire\Shared\Paginates;
+use App\Livewire\Shared\Sorts;
 use App\Models\Product;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,7 @@ use Livewire\Component;
 class ProductList extends Component
 {
     use Paginates;
+    use Sorts;
 
     /**
      * Search term for filtering products
@@ -80,17 +82,23 @@ class ProductList extends Component
         $this->resetPage();
     }
 
-    /**
-     * Sort by given field, toggle direction if same field
-     */
-    public function sortBy(string $field): void
+    protected function sortableColumns(): array
     {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = ! $this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
+        return [
+            'created_at' => 'created_at',
+            'name' => 'name',
+            'category_id' => 'category_id',
+            'supplier_id' => 'supplier_id',
+            'price' => 'price',
+            'tax_id' => 'tax_id',
+            'is_default' => 'is_default',
+            'invoices' => 'invoices_count',
+        ];
+    }
+
+    protected function defaultSort(): string
+    {
+        return 'created_at';
     }
 
     /**
@@ -126,12 +134,7 @@ class ProductList extends Component
                 }
             }
 
-            // Handle special sort cases
-            if ($this->orderBy === 'invoices') {
-                $query->orderBy('invoices_count', $this->orderAsc ? 'asc' : 'desc');
-            } else {
-                $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
-            }
+            $query->orderBy($this->sortColumn(), $this->sortDirection());
 
             $products = $query->paginate(10);
 

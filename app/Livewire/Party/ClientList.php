@@ -3,6 +3,7 @@
 namespace App\Livewire\Party;
 
 use App\Livewire\Shared\Paginates;
+use App\Livewire\Shared\Sorts;
 use App\Models\Client;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,7 @@ use Livewire\Component;
 class ClientList extends Component
 {
     use Paginates;
+    use Sorts;
 
     #[Url]
     public $search = '';
@@ -26,10 +28,10 @@ class ClientList extends Component
     public $status = '';
 
     #[Url(as: 'sort')]
-    public $orderBy = 'created_at';
+    public string $orderBy = 'created_at';
 
     #[Url(as: 'direction')]
-    public $orderAsc = false;
+    public bool $orderAsc = false;
 
     #[Url(keep: true)]
     public $page = 1;
@@ -56,19 +58,22 @@ class ClientList extends Component
         $this->resetPage();
     }
 
-    /**
-     * Sort by given field, toggle direction if same field
-     *
-     * @param  string  $field
-     */
-    public function sortBy($field): void
+    protected function sortableColumns(): array
     {
-        if ($this->orderBy === $field) {
-            $this->orderAsc = ! $this->orderAsc;
-        } else {
-            $this->orderBy = $field;
-            $this->orderAsc = true;
-        }
+        return [
+            'created_at' => 'created_at',
+            'name' => 'name',
+            'email' => 'email',
+            'phone' => 'phone',
+            'ico' => 'ico',
+            'is_default' => 'is_default',
+            'invoices' => 'invoices_count',
+        ];
+    }
+
+    protected function defaultSort(): string
+    {
+        return 'created_at';
     }
 
     /**
@@ -105,11 +110,7 @@ class ClientList extends Component
                 });
             }
 
-            if ($this->orderBy === 'invoices') {
-                $query->orderBy('invoices_count', $this->orderAsc ? 'asc' : 'desc');
-            } else {
-                $query->orderBy($this->orderBy, $this->orderAsc ? 'asc' : 'desc');
-            }
+            $query->orderBy($this->sortColumn(), $this->sortDirection());
 
             $clients = $query->paginate(10);
 
