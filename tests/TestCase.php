@@ -50,7 +50,10 @@ abstract class TestCase extends BaseTestCase
      */
     protected function tearDown(): void
     {
-        $leftTransaction = isset($this->app)
+        // A test that already failed keeps its own message, even when it lost the transaction on the way
+        $failed = $this->status()->isFailure() || $this->status()->isError();
+        $leftTransaction = ! $failed
+            && isset($this->app)
             && ! $this->app->make('db')->connection()->getPdo()->inTransaction();
 
         parent::tearDown();
