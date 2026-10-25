@@ -22,10 +22,6 @@ class ProductCategoryRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
 
-    protected User $user;
-
-    private ProductCategory $productCategory;
-
     private UniversalLimitService $limitService;
 
     /**
@@ -38,7 +34,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
 
-        $this->productCategory = ProductCategory::factory()->create();
+        ProductCategory::factory()->create();
         $this->limitService = app(UniversalLimitService::class);
 
         // Provide generous limit for default tests

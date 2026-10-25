@@ -58,24 +58,4 @@ class StatusFactory extends Factory
             'is_active' => false,
         ]);
     }
-
-    /**
-     * Create a status without color.
-     */
-    public function withoutColor(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'color' => null,
-        ]);
-    }
-
-    /**
-     * Create a status without description.
-     */
-    public function withoutDescription(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'description' => null,
-        ]);
-    }
 }

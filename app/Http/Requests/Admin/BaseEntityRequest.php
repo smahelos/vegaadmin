@@ -95,42 +95,6 @@ abstract class BaseEntityRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request based on HTTP method
-     */
-    protected function getMethodBasedRules(): array
-    {
-        $rules = $this->rules();
-
-        // For updates, make certain fields optional
-        if ($this->isUpdatingEntity()) {
-            return $this->makeRulesOptionalForUpdate($rules);
-        }
-
-        return $rules;
-    }
-
-    /**
-     * Make rules optional for update requests
-     */
-    protected function makeRulesOptionalForUpdate(array $rules): array
-    {
-        foreach ($rules as $field => $rule) {
-            if (is_string($rule) && str_contains($rule, 'required')) {
-                $rules[$field] = str_replace(
-                    'required',
-                    'sometimes',
-                    $rule,
-                );
-            } elseif (is_array($rule) && in_array('required', $rule)) {
-                $key = array_search('required', $rule);
-                $rules[$field][$key] = 'sometimes';
-            }
-        }
-
-        return $rules;
-    }
-
-    /**
      * Get entity type specific to this request
      * Override this method in child classes if auto-detection doesn't work
      */
@@ -145,15 +109,6 @@ abstract class BaseEntityRequest extends FormRequest
         );
 
         return strtolower($cleanName);
-    }
-
-    /**
-     * Check if limit checking should be bypassed for this request
-     * Override in child classes for custom logic
-     */
-    protected function shouldBypassLimitCheck(): bool
-    {
-        return false;
     }
 
     /**
@@ -189,14 +144,6 @@ abstract class BaseEntityRequest extends FormRequest
     protected function isCreatingEntity(): bool
     {
         return $this->isMethod('POST');
-    }
-
-    /**
-     * Check if current request is for entity update
-     */
-    protected function isUpdatingEntity(): bool
-    {
-        return $this->isMethod('PUT') || $this->isMethod('PATCH');
     }
 
     /**

@@ -120,58 +120,11 @@ abstract class BaseEntityRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request based on HTTP method
-     */
-    protected function getMethodBasedRules(): array
-    {
-        $rules = $this->rules();
-
-        // For updates, make certain fields optional
-        if ($this->isUpdatingEntity()) {
-            // This can be customized in child classes
-            $rules = $this->makeFieldsOptionalForUpdate($rules);
-        }
-
-        return $rules;
-    }
-
-    /**
      * Determine if this is an entity creation request
      */
     protected function isCreatingEntity(): bool
     {
         return $this->isMethod('POST');
-    }
-
-    /**
-     * Determine if this is an entity update request
-     */
-    protected function isUpdatingEntity(): bool
-    {
-        return $this->isMethod('PUT') || $this->isMethod('PATCH');
-    }
-
-    /**
-     * Make specified fields optional for update operations
-     */
-    protected function makeFieldsOptionalForUpdate(array $rules): array
-    {
-        // Default implementation - can be overridden in child classes
-        foreach ($rules as $field => &$rule) {
-            if (is_string($rule) && str_contains($rule, 'required')) {
-                $rule = str_replace(
-                    'required',
-                    'sometimes',
-                    $rule,
-                );
-            } elseif (is_array($rule)) {
-                $rule = array_map(function ($r) {
-                    return $r === 'required' ? 'sometimes' : $r;
-                }, $rule);
-            }
-        }
-
-        return $rules;
     }
 
     /**
@@ -183,13 +136,5 @@ abstract class BaseEntityRequest extends FormRequest
         $unlimitedPermission = 'frontend.unlimited_access.' . $this->getEntityType();
 
         return $user && $user->can($unlimitedPermission);
-    }
-
-    /**
-     * Override the user guard to use web guard instead of backpack
-     */
-    protected function getUserGuard(): string
-    {
-        return 'web';
     }
 }

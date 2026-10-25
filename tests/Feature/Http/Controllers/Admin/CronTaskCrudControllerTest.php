@@ -30,11 +30,6 @@ if (! class_exists(CronTaskCommandsServiceStub::class)) {
             ];
         }
 
-        public function getAllCategories(bool $onlyActive = true): array
-        {
-            return ['cron' => 'Cron'];
-        }
-
         public function clearCommandsCache(): void {}
 
         public function getAllCommandsWithDetails(): array

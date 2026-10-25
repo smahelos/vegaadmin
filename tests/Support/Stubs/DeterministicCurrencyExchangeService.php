@@ -33,20 +33,6 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
         return $this->baseRates[$toCurrency] / $this->baseRates[$fromCurrency];
     }
 
-    public function getExchangeRates(string $baseCurrency = 'USD'): array
-    {
-        $baseCurrency = strtoupper($baseCurrency);
-        if (! isset($this->baseRates[$baseCurrency])) {
-            $baseCurrency = 'USD';
-        }
-        $rates = [];
-        foreach ($this->baseRates as $code => $rate) {
-            $rates[$code] = $rate / $this->baseRates[$baseCurrency];
-        }
-
-        return $rates;
-    }
-
     public function convert(
         float $amount,
         string $fromCurrency,

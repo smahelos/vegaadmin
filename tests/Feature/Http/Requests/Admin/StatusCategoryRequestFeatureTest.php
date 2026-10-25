@@ -20,8 +20,6 @@ class StatusCategoryRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
 
-    private StatusCategory $statusCategory;
-
     /**
      * Set up test environment.
      */
@@ -32,7 +30,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
 
-        $this->statusCategory = StatusCategory::factory()->create();
+        StatusCategory::factory()->create();
 
         // Define test routes
         Route::post('/test-status-category', function (StatusCategoryRequest $request) {

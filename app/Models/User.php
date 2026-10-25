@@ -95,36 +95,6 @@ class User extends Authenticatable
         return $this->hasMany(Subscription::class);
     }
 
-    /**
-     * Get user's active subscription
-     */
-    public function activeSubscription(): ?Subscription
-    {
-        return $this->subscriptions()->where('status', 'active')->first();
-    }
-
-    /**
-     * Check if user has active subscription
-     */
-    public function hasActiveSubscription(): bool
-    {
-        return $this->activeSubscription() !== null;
-    }
-
-    /**
-     * Check if user has admin role
-     */
-    public function is_admin(): bool
-    {
-        // Check for admin role using Spatie Permission if available
-        if (method_exists($this, 'hasRole')) {
-            return $this->hasRole('admin');
-        }
-
-        // Fallback if roles are not assigned - default to false for security
-        return false;
-    }
-
     /*
     |--------------------------------------------------------------------------
     | SCOPES

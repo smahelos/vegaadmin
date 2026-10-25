@@ -525,11 +525,6 @@ class InMemoryUserServiceStub implements UserServiceInterface
         }
     }
 
-    public function findUserByEmail(string $email): ?UserDTO
-    {
-        return null;
-    }
-
     public function updateProfile(int $userId, array $data): bool
     {
         return false;
@@ -556,26 +551,6 @@ class InMemoryUserServiceStub implements UserServiceInterface
         $user->exists = true;
 
         return UserDTO::fromArray($user->toArray());
-    }
-
-    public function softDeleteUser(int $userId): bool
-    {
-        return false;
-    }
-
-    public function restoreUser(int $userId): bool
-    {
-        return false;
-    }
-
-    public function changeEmail(int $userId, string $newEmail): bool
-    {
-        return false;
-    }
-
-    public function getActivitySummary(int $userId): array
-    {
-        return [];
     }
 
     public function getAllUsers(): array
@@ -621,20 +596,5 @@ class InMemoryUserServiceStub implements UserServiceInterface
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,
         );
-    }
-
-    public function findBySupplierId(int $partyId): ?UserDTO
-    {
-        return null;
-    }
-
-    public function findByClientId(int $partyId): ?UserDTO
-    {
-        return null;
-    }
-
-    public function updateById(int $id, array $data): bool
-    {
-        return false;
     }
 }

@@ -10,7 +10,6 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
@@ -98,21 +97,5 @@ class UserController extends Controller
         $search_term = $request->input('q');
 
         return response()->json($this->userService->searchUsers($search_term, 10, $request->integer('page', 1)));
-    }
-
-    /**
-     * Get currently authenticated backpack user (for tests, override in subclass)
-     */
-    protected function getBackpackUser(): ?User
-    {
-        return function_exists('backpack_auth') && backpack_auth()->check() ? backpack_auth()->user() : null;
-    }
-
-    /**
-     * Get currently authenticated frontend user (for tests, override in subclass)
-     */
-    protected function getFrontendUser(): ?User
-    {
-        return Auth::guard('web')->check() ? Auth::guard('web')->user() : null;
     }
 }
