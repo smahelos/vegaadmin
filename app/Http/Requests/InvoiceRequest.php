@@ -106,7 +106,7 @@ final class InvoiceRequest extends BaseEntityRequest
             'payment_method_id' => 'required|exists:payment_methods,id',
             'payment_currency' => ['required', Rule::enum(Currency::class)],
             'issue_date' => 'required|date',
-            'tax_point_date' => 'nullable|date',
+            'tax_point_date' => 'required|date',
             'due_in' => 'required|integer|min:1',
             'payment_status_id' => 'required|exists:statuses,id',
 

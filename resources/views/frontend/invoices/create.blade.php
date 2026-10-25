@@ -72,7 +72,7 @@ $attributes[] = 'value="' . old($field['name'], $userInfo[$field['name'] ?? ''] 
 } elseif($field['name'] === 'issue_date') {
 $attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
 } elseif($field['name'] === 'tax_point_date') {
-$attributes[] = 'value="' . old($field['name'], now()->addDays(7)->format('Y-m-d')) . '"';
+$attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
 } elseif($field['name'] === 'invoice_vs') {
 $attributes[] = 'value="' . old($field['name'], $suggestedNumber ?? '') . '"';
 } else {

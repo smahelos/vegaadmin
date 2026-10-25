@@ -42,7 +42,7 @@ class InvoiceRequest extends BaseEntityRequest
             'payment_status' => 'required|string|max:100',
             'payment_currency' => 'required|string|max:100',
             'issue_date' => 'required|date',
-            'tax_point_date' => 'nullable|date',
+            'tax_point_date' => 'required|date',
             'ico' => 'nullable|string|max:20',
             'dic' => 'nullable|string|max:30',
             'street' => 'required|string|max:255',

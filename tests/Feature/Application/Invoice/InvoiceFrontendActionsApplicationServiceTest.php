@@ -131,6 +131,7 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
             'payment_amount' => 50,
             'payment_currency' => 'EUR',
             'issue_date' => now()->format('Y-m-d'),
+            'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
             // Start with a non-paid random status (simulate initial state before marking as paid)
             'payment_status_id' => Status::factory()->create()->id,

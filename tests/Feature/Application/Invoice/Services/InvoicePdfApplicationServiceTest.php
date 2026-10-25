@@ -122,6 +122,7 @@ class InvoicePdfApplicationServiceTest extends TestCase
             'payment_amount' => 100,
             'payment_currency' => 'EUR',
             'issue_date' => now()->format('Y-m-d'),
+            'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
             'payment_status_id' => Status::factory()->create()->id,
             'name' => 'Supplier ' . uniqid(),

@@ -128,6 +128,7 @@ final class InvoiceItemsFeatureTest extends TestCase
             'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
             'payment_status_id' => Status::factory()->create()->id,
             'issue_date' => now()->format('Y-m-d'),
+            'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
             'payment_amount' => 1,
             'payment_currency' => 'CZK',

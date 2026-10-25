@@ -181,6 +181,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'payment_amount' => 1000.50,
             'payment_currency' => 'EUR',
             'issue_date' => $this->faker->date(),
+            'tax_point_date' => $this->faker->date(),
             'due_in' => 14,
             'payment_status_id' => $this->paymentStatus->id,
 
@@ -455,7 +456,6 @@ class InvoiceRequestFeatureTest extends TestCase
         $nullableFields = [
             'invoice_ks',
             'invoice_ss',
-            'tax_point_date',
             'email',
             'phone',
             'ico',
@@ -560,6 +560,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'payment_amount' => 1000,
             'payment_currency' => 'CZK',
             'issue_date' => $this->faker->date(),
+            'tax_point_date' => $this->faker->date(),
             'due_in' => 14,
             'payment_status_id' => $this->paymentStatus->id,
 
