@@ -23,6 +23,11 @@ interface ProductDtoWriteRepositoryInterface
     public function update(ProductId $id, ProductWriteData $writeData): ProductDTO;
 
     /**
+     * Whether an invoice line refers to the product, which keeps it from being deleted.
+     */
+    public function isUsedOnInvoices(ProductId $id): bool;
+
+    /**
      * Delete product by ID.
      */
     public function delete(ProductId $id): void;

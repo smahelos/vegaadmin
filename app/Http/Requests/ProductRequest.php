@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Rules\UniquePerUser;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -45,7 +46,17 @@ class ProductRequest extends FormRequest
 
         $rules = [
             'name' => 'required|string|min:2|max:255',
-            'slug' => 'nullable|string|max:255|unique:products,slug,' . $id,
+            'slug' => [
+                'nullable',
+                'string',
+                'max:255',
+                UniquePerUser::rule(
+                    'products',
+                    'slug',
+                    $this->user()?->id,
+                    $id,
+                ),
+            ],
             'price' => 'required|numeric|min:0',
             'tax_id' => 'nullable|exists:taxes,id',
             'category_id' => 'nullable|exists:product_categories,id',
@@ -59,7 +70,17 @@ class ProductRequest extends FormRequest
 
         // For updates make slug optional (sometimes) but still unique ignoring current product id
         if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
-            $rules['slug'] = 'sometimes|string|max:255|unique:products,slug,' . $id;
+            $rules['slug'] = [
+                'sometimes',
+                'string',
+                'max:255',
+                UniquePerUser::rule(
+                    'products',
+                    'slug',
+                    $this->user()?->id,
+                    $id,
+                ),
+            ];
         }
 
         return $rules;

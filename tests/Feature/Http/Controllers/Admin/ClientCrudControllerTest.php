@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\Client;
 use App\Models\EntityLimit;
+use App\Models\Invoice;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -165,5 +166,27 @@ class ClientCrudControllerTest extends TestCase
                 'zip',
                 'country',
             ]);
+    }
+
+    #[Test]
+    public function destroy_of_a_client_with_invoices_answers_with_a_notification(): void
+    {
+        $invoice = Invoice::factory()->create();
+
+        $this->deleteJson('/admin/client/' . $invoice->client_id)
+            ->assertOk()
+            ->assertExactJson(['error' => [__('general.messages.delete_referenced')]]);
+
+        $this->assertDatabaseHas('clients', ['id' => $invoice->client_id]);
+    }
+
+    #[Test]
+    public function destroy_deletes_a_client_without_documents(): void
+    {
+        $client = Client::factory()->create();
+
+        $this->deleteJson('/admin/client/' . $client->id)->assertOk();
+
+        $this->assertDatabaseMissing('clients', ['id' => $client->id]);
     }
 }

@@ -19,7 +19,7 @@ return new class extends Migration
                 10,
                 2,
             );
-            $table->string('currency', 3)->default('CZK');
+            $table->string('currency', 3);
             $table->enum('billing_period', ['monthly', 'yearly'])->default('monthly');
             $table->integer('billing_interval')->default(1);
             $table->boolean('is_active')->default(true);
@@ -45,8 +45,12 @@ return new class extends Migration
 
         Schema::create('subscription_plan_subscription_plan_feature', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('subscription_plan_id');
-            $table->unsignedBigInteger('subscription_plan_feature_id');
+            $table->foreignId('subscription_plan_id')
+                ->constrained(indexName: 'sp_spf_plan_foreign')
+                ->cascadeOnDelete();
+            $table->foreignId('subscription_plan_feature_id')
+                ->constrained(indexName: 'sp_spf_feature_foreign')
+                ->cascadeOnDelete();
             $table->timestamps();
 
             $table->unique(['subscription_plan_id', 'subscription_plan_feature_id'], 'sp_spf_unique');
@@ -54,8 +58,8 @@ return new class extends Migration
 
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('subscription_plan_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->foreignId('subscription_plan_id')->constrained()->restrictOnDelete();
             $table->enum('status', [
                 'pending',
                 'active',
@@ -72,7 +76,7 @@ return new class extends Migration
                 10,
                 2,
             );
-            $table->string('currency', 3)->default('CZK');
+            $table->string('currency', 3);
             $table->json('metadata')->nullable();
             $table->timestamps();
 
@@ -82,7 +86,7 @@ return new class extends Migration
 
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('subscription_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('subscription_id')->constrained()->restrictOnDelete();
             $table->string('gateway');
             $table->string('gateway_payment_id')->nullable();
             $table->enum(
@@ -103,7 +107,7 @@ return new class extends Migration
                 2,
             );
             $table->decimal('refunded_amount', 10, 2)->default(0);
-            $table->string('currency', 3)->default('CZK');
+            $table->string('currency', 3);
             $table->string('payment_method')->nullable();
             $table->json('gateway_data')->nullable();
             $table->text('failure_reason')->nullable();

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\SupplierRequest;
 use App\Models\Supplier;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -24,8 +24,8 @@ class SupplierCrudController extends CrudController
     use CreateOperation {
         store as traitStore;
     }
-    use DeleteOperation;
     use ListOperation;
+    use RestrictedDeleteOperation;
     use ShowOperation;
     use UpdateOperation; // Usage recording via generic observer
 

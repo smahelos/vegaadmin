@@ -84,7 +84,7 @@ return [
         'error_delete' => 'Pri vymazávaní dodávateľa došlo k chybe.',
         'error_edit' => 'Pri úprave dodávateľa došlo k chybe.',
         'error_show' => 'Pri zobrazovaní dodávateľa došlo k chybe.',
-        'error_delete_invoices' => 'Dodávateľa nemožno vymazať, pretože má priradené faktúry.',
+        'error_delete_documents' => 'Dodávateľa nemožno vymazať, pretože má priradené faktúry alebo výdavky.',
         'validation_failed' => 'Pri validácii formulára boli nájdené chyby. Skontrolujte prosím údaje nižšie.',
         'error_loading' => 'Nastala chyba pri načítaní dodávateľov. Prosím, skúste to znovu neskôr.',
         'no_suppliers' => 'Neboli nájdení žiadni dodávatelia.',

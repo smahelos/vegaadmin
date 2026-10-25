@@ -21,6 +21,6 @@ interface SupplierDtoWriteRepositoryInterface
     /** Delete supplier by ID */
     public function deleteById(PartyId $id): bool;
 
-    /** Check if supplier has linked invoices */
-    public function hasLinkedInvoices(PartyId $id): bool;
+    /** Whether invoices or expenses refer to the supplier, which keeps it from being deleted */
+    public function hasLinkedDocuments(PartyId $id): bool;
 }

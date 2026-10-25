@@ -819,4 +819,28 @@ class ClientControllerFeatureTest extends TestCase
         $response->assertSessionHas('error');
     }
     */
+
+    #[Test]
+    public function store_refuses_a_company_number_the_user_already_has(): void
+    {
+        $existing = Client::factory()->create(['user_id' => $this->user->id]);
+
+        $this->actingAs($this->user)
+            ->post($this->localizedRoute('frontend.client.store'), [...$this->validClientData, 'ico' => $existing->ico])
+            ->assertSessionHasErrors('ico');
+
+        $this->assertSame(1, Client::where('user_id', $this->user->id)->where('ico', $existing->ico)->count());
+    }
+
+    #[Test]
+    public function store_accepts_a_company_number_another_user_has(): void
+    {
+        $foreign = Client::factory()->create();
+
+        $this->actingAs($this->user)
+            ->post($this->localizedRoute('frontend.client.store'), [...$this->validClientData, 'ico' => $foreign->ico])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('clients', ['user_id' => $this->user->id, 'ico' => $foreign->ico]);
+    }
 }

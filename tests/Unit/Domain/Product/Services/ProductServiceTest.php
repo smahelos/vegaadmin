@@ -7,6 +7,7 @@ use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
 use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
+use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\Services\ProductService;
 use App\Domain\Product\Validation\ProductCreationValidator;
 use App\Domain\Product\ValueObjects\ProductId;
@@ -90,6 +91,8 @@ class ProductServiceTest extends TestCase
 
             public ?ProductId $capturedDelete = null;
 
+            public bool $usedOnInvoices = false;
+
             public function create(ProductWriteData $writeData): ProductDTO
             {
                 $this->capturedCreate = $writeData;
@@ -150,6 +153,11 @@ class ProductServiceTest extends TestCase
                     is_default: (bool) ($writeData->is_default ?? false),
                     is_active: true,
                 );
+            }
+
+            public function isUsedOnInvoices(ProductId $id): bool
+            {
+                return $this->usedOnInvoices;
             }
 
             public function delete(ProductId $id): void
@@ -254,6 +262,19 @@ class ProductServiceTest extends TestCase
         $this->service->deleteProduct($id);
         $this->assertNotNull($this->writeSpy->capturedDelete);
         $this->assertSame(77, $this->writeSpy->capturedDelete->getValue());
+    }
+
+    #[Test]
+    public function delete_product_refuses_a_product_used_on_invoices(): void
+    {
+        $this->writeSpy->usedOnInvoices = true;
+
+        try {
+            $this->service->deleteProduct(ProductId::fromInt(77));
+            $this->fail('A product used on invoices must not be deleted');
+        } catch (ProductInUseException) {
+            $this->assertNull($this->writeSpy->capturedDelete);
+        }
     }
 
     #[Test]

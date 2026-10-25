@@ -9,6 +9,7 @@ use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Product\Mappers\EloquentProductMapper;
+use App\Models\InvoiceProduct;
 
 /**
  * Eloquent implementation of Product DTO repository.
@@ -59,6 +60,11 @@ class EloquentProductDtoRepository implements ProductDtoReadRepositoryInterface,
         $eloquentProduct = $this->productRepository->updateById($id->getValue(), $writeData->toArray());
 
         return $this->mapper->toDto($eloquentProduct);
+    }
+
+    public function isUsedOnInvoices(ProductId $id): bool
+    {
+        return InvoiceProduct::where('product_id', $id->getValue())->exists();
     }
 
     public function delete(ProductId $id): void

@@ -22,23 +22,23 @@ return new class extends Migration
 
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('supplier_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('category_id')->nullable()->constrained('expense_categories')->nullOnDelete();
+            $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->foreignId('supplier_id')->nullable()->constrained()->restrictOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained('expense_categories')->restrictOnDelete();
             $table->date('expense_date');
             $table->decimal(
                 'amount',
                 15,
                 2,
             );
-            $table->string('currency', 3)->default('CZK');
-            $table->foreignId('payment_method_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('currency', 3);
+            $table->foreignId('payment_method_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('reference_number')->nullable();
             $table->text('description')->nullable();
             $table->text('attachments');
             $table->decimal('tax_amount', 10, 2)->default(0);
             $table->boolean('tax_included')->default(true);
-            $table->foreignId('status_id')->nullable()->constrained('statuses')->nullOnDelete();
+            $table->foreignId('status_id')->nullable()->constrained('statuses')->restrictOnDelete();
             $table->timestamps();
         });
     }

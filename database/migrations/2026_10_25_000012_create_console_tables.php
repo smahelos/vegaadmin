@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->text('parameters_description')->nullable();
-            $table->foreignId('category_id')->constrained('artisan_command_categories')->cascadeOnDelete();
+            $table->foreignId('category_id')->constrained('artisan_command_categories')->restrictOnDelete();
             $table->boolean('is_active')->default(true);
             $table->integer('sort_order')->default(0);
             $table->timestamps();

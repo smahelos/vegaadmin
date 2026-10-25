@@ -103,8 +103,8 @@ class EloquentSupplierDtoRepository implements SupplierDtoReadRepositoryInterfac
         return $this->repo->deleteById($id->toInt());
     }
 
-    public function hasLinkedInvoices(PartyId $id): bool
+    public function hasLinkedDocuments(PartyId $id): bool
     {
-        return $this->repo->hasLinkedInvoices($id->toInt());
+        return $this->repo->hasLinkedDocuments($id->toInt());
     }
 }

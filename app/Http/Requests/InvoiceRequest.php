@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\Shared\Unit\Enums\Unit;
+use App\Http\Requests\Rules\UniquePerUser;
 use Closure;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Config;
@@ -149,7 +150,20 @@ final class InvoiceRequest extends BaseEntityRequest
                 'max:255',
                 'required_without:supplier_id',
             ],
-            'ico' => 'nullable|string|max:50',
+            'ico' => [
+                'nullable',
+                'string',
+                'max:50',
+                // a new party is created only without a selected one; its IČO must be new for the user
+                Rule::when(
+                    ! $this->filled('supplier_id'),
+                    [UniquePerUser::rule(
+                        'suppliers',
+                        'ico',
+                        $this->user()?->id,
+                    )],
+                ),
+            ],
             'dic' => 'nullable|string|max:50',
             'supplier_shortcut' => 'nullable|string|max:50',
 
@@ -200,7 +214,20 @@ final class InvoiceRequest extends BaseEntityRequest
                 'max:255',
                 'required_without:client_id',
             ],
-            'client_ico' => 'nullable|string|max:50',
+            'client_ico' => [
+                'nullable',
+                'string',
+                'max:50',
+                // a new party is created only without a selected one; its IČO must be new for the user
+                Rule::when(
+                    ! $this->filled('client_id'),
+                    [UniquePerUser::rule(
+                        'clients',
+                        'ico',
+                        $this->user()?->id,
+                    )],
+                ),
+            ],
             'client_dic' => 'nullable|string|max:50',
             'client_shortcut' => 'nullable|string|max:50',
 

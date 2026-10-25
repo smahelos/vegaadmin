@@ -71,6 +71,7 @@ return [
         'error_selecting' => 'Produkt se nepodařilo vybrat.',
         'not_found' => 'Produkt nebyl nalezen.',
         'error_delete' => 'Chyba při mazání produktu.',
+        'error_delete_invoices' => 'Produkt nelze smazat, protože je použitý na fakturách.',
         'validation_failed' => 'Při validaci formuláře byly nalezeny chyby. Zkontrolujte prosím údaje níže.',
         'no_image' => 'Žádný obrázek nebyl vybrán.',
         'no_image_selected' => 'Žádný obrázek nebyl vybrán.',

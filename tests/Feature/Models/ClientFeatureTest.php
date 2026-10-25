@@ -227,42 +227,6 @@ class ClientFeatureTest extends TestCase
     }
 
     #[Test]
-    public function client_deletion_behavior_with_invoices()
-    {
-        // Create invoices for the client
-        $invoice1 = Invoice::factory()->create([
-            'client_id' => $this->client->id,
-            'payment_method_id' => null,
-        ]);
-
-        $invoice2 = Invoice::factory()->create([
-            'client_id' => $this->client->id,
-            'payment_method_id' => null,
-        ]);
-
-        $clientId = $this->client->id;
-
-        // Delete the client
-        $this->client->delete();
-
-        // Check what happens to related invoices
-        // This test documents the current behavior - adjust based on business rules
-        $remainingInvoice1 = Invoice::find($invoice1->id);
-        $remainingInvoice2 = Invoice::find($invoice2->id);
-
-        // If cascade delete is NOT implemented, they should still exist but with null client_id
-        // If cascade delete IS implemented, they should be null
-        // Adjust assertions based on actual business requirements
-        if ($remainingInvoice1) {
-            $this->assertNull($remainingInvoice1->client_id);
-        }
-
-        if ($remainingInvoice2) {
-            $this->assertNull($remainingInvoice2->client_id);
-        }
-    }
-
-    #[Test]
     public function client_creation_with_full_data()
     {
         $clientData = [

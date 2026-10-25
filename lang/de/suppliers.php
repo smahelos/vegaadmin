@@ -84,7 +84,7 @@ return [
         'error_delete' => 'Beim Löschen des Lieferanten ist ein Fehler aufgetreten.',
         'error_edit' => 'Beim Bearbeiten des Lieferanten ist ein Fehler aufgetreten.',
         'error_show' => 'Beim Anzeigen des Lieferanten ist ein Fehler aufgetreten.',
-        'error_delete_invoices' => 'Der Lieferant kann nicht gelöscht werden, da er zugehörige Rechnungen hat.',
+        'error_delete_documents' => 'Der Lieferant kann nicht gelöscht werden, da er zugehörige Rechnungen oder Ausgaben hat.',
         'validation_failed' => 'Bei der Formularvalidierung sind Fehler aufgetreten. Bitte überprüfen Sie die untenstehenden Angaben.',
         'error_loading' => 'Beim Laden der Lieferanten ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.',
         'no_suppliers' => 'Keine Lieferanten gefunden.',

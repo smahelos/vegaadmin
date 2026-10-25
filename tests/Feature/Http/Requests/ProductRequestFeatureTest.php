@@ -443,14 +443,18 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function slug_uniqueness_validation()
     {
-        // Create a product with a specific slug
-        Product::factory()->create(['slug' => 'existing-slug']);
+        // Create a product of the user with a specific slug
+        Product::factory()->create([
+            'slug' => 'existing-slug',
+            'user_id' => $this->user->id,
+        ]);
 
-        // Try to create another product with the same slug
+        // Try to create another product of the same user with the same slug
         $data = $this->validProductData;
         $data['slug'] = 'existing-slug';
 
         $request = new ProductRequest;
+        $request->setUserResolver(fn () => $this->user);
         $validator = Validator::make($data, $request->rules());
 
         $this->assertTrue($validator->fails(), 'Validation should fail with duplicate slug');

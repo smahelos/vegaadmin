@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
+use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\ProductRequest;
-use App\Models\Product; // fixed namespace
+use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
@@ -21,8 +22,8 @@ class ProductCrudController extends CrudController
     use CreateOperation {
         store as traitStore;
     }
-    use DeleteOperation;
     use ListOperation;
+    use RestrictedDeleteOperation;
     use ShowOperation;
     use UpdateOperation; // Usage recording via generic observer
 
@@ -171,6 +172,14 @@ class ProductCrudController extends CrudController
             ->type('number')
             ->label(__('products.fields.price'))
             ->attributes(['step' => '0.01']);
+
+        $currencyCodes = array_column(Currency::cases(), 'value');
+        CRUD::field('currency')
+            ->type('select_from_array')
+            ->label(__('products.fields.currency'))
+            ->options(array_combine($currencyCodes, $currencyCodes))
+            ->allows_null(false);
+
         // Get taxes from the service
         $taxes = $this->taxesService->getAllTaxesForSelect();
 

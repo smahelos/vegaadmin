@@ -79,6 +79,9 @@ return [
         'created_at' => 'Created At',
         'updated_at' => 'Updated At',
     ],
+    'messages' => [
+        'delete_referenced' => 'The record cannot be deleted because other records use it, such as documents.',
+    ],
     'colors' => [
         'green' => 'Green',
         'yellow' => 'Yellow',

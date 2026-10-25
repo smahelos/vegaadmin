@@ -115,6 +115,7 @@ class ProductRepositoryTest extends TestCase
         $productData = [
             'name' => 'Test Product',
             'price' => 99.99,
+            'currency' => 'CZK',
             'user_id' => $this->user->id,
             'description' => 'Test description',
         ];

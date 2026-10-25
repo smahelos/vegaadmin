@@ -159,7 +159,11 @@ class ProductCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $name = 'Product ' . uniqid();
 
-        $this->post('/admin/product', ['name' => $name, 'price' => 100])
+        $this->post('/admin/product', [
+            'name' => $name,
+            'price' => 100,
+            'currency' => 'CZK',
+        ])
             ->assertSessionHasNoErrors()
             ->assertRedirect();
 

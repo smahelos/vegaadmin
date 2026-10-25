@@ -495,4 +495,17 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->assertTrue(str_contains(strtolower($response->headers->get('content-disposition') ?? ''), 'attachment'));
         $this->assertStringContainsString($this->invoice->invoice_vs, $response->headers->get('content-disposition'));
     }
+
+    #[Test]
+    public function store_refuses_a_new_client_with_a_company_number_the_user_already_has(): void
+    {
+        $existing = Client::factory()->create(['user_id' => $this->user->id]);
+
+        $this->actingAs($this->user, 'web')
+            ->post(route('frontend.invoice.store', ['locale' => 'cs']), [
+                'client_name' => 'New client ' . uniqid(),
+                'client_ico' => $existing->ico,
+            ])
+            ->assertSessionHasErrors('client_ico');
+    }
 }

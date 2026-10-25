@@ -46,6 +46,7 @@ class ProductFeatureTest extends TestCase
             'slug' => 'test-product',
             'user_id' => $user->id,
             'price' => 99.99,
+            'currency' => 'CZK',
             'tax_id' => $tax->id,
             'category_id' => $category->id,
             'description' => 'Test product description',
@@ -278,6 +279,7 @@ class ProductFeatureTest extends TestCase
             'name' => 'Simple Product',
             'user_id' => $user->id,
             'price' => 25.00,
+            'currency' => 'CZK',
         ];
 
         $product = Product::create($data);

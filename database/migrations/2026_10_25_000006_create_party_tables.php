@@ -12,8 +12,8 @@ return new class extends Migration
     {
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('ico')->nullable()->unique();
+            $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->string('ico')->nullable();
             $table->string('dic')->nullable();
             $table->string('name');
             $table->string('shortcut')->nullable();
@@ -29,15 +29,15 @@ return new class extends Migration
 
             $table->index(['user_id', 'created_at'], 'idx_clients_user_created');
             $table->index(['user_id', 'is_default'], 'idx_clients_user_default');
-            $table->index(['user_id', 'ico'], 'idx_clients_user_ico');
+            $table->unique(['user_id', 'ico'], 'clients_user_ico_unique');
             $table->index(['user_id', 'name'], 'idx_clients_user_name_search');
             $table->index(['user_id', 'email'], 'idx_clients_user_email_search');
         });
 
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('ico')->nullable()->unique();
+            $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->string('ico')->nullable();
             $table->string('dic')->nullable();
             $table->string('name');
             $table->string('shortcut')->nullable();
@@ -60,7 +60,7 @@ return new class extends Migration
 
             $table->index(['user_id', 'created_at'], 'idx_suppliers_user_created');
             $table->index(['user_id', 'is_default'], 'idx_suppliers_user_default');
-            $table->index(['user_id', 'ico'], 'idx_suppliers_user_ico');
+            $table->unique(['user_id', 'ico'], 'suppliers_user_ico_unique');
             $table->index(['user_id', 'name'], 'idx_suppliers_user_name_search');
             $table->index(['user_id', 'email'], 'idx_suppliers_user_email_search');
         });

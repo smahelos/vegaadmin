@@ -79,6 +79,9 @@ return [
         'created_at' => 'Vytvorené',
         'updated_at' => 'Aktualizované',
     ],
+    'messages' => [
+        'delete_referenced' => 'Záznam nemožno vymazať, pretože ho používajú iné záznamy, napríklad doklady.',
+    ],
     'colors' => [
         'green' => 'Zelená',
         'yellow' => 'Žltá',

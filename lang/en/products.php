@@ -71,6 +71,7 @@ return [
         'error_selecting' => 'The product could not be selected.',
         'not_found' => 'The product was not found.',
         'error_delete' => 'Error deleting product.',
+        'error_delete_invoices' => 'The product cannot be deleted because it is used on invoices.',
         'validation_failed' => 'Validation failed. Please check the input fields.',
         'no_image' => 'No image available.',
         'no_image_selected' => 'No image selected yet.',

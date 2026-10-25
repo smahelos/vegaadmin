@@ -4,8 +4,10 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\EntityLimit;
+use App\Models\InvoiceProduct;
 use App\Models\Product;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -341,5 +343,47 @@ class ProductControllerFeatureTest extends TestCase
 
         // Verify product still exists (shouldn't be deleted if no ownership)
         $this->assertDatabaseHas('products', ['id' => $product->id]);
+    }
+
+    #[Test]
+    public function destroy_refuses_a_product_on_invoices_and_keeps_its_image(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('products/kept.png', 'image');
+        $product = Product::factory()->create([
+            'user_id' => $this->user->id,
+            'image' => 'products/kept.png',
+        ]);
+        InvoiceProduct::factory()->create(['product_id' => $product->id]);
+
+        $this->actingAs($this->user, 'web')
+            ->from(route('frontend.products', ['locale' => 'cs']))
+            ->delete(route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]))
+            ->assertRedirect(route('frontend.products', ['locale' => 'cs']))
+            ->assertSessionHas('error', __('products.messages.error_delete_invoices'));
+
+        $this->assertDatabaseHas('products', ['id' => $product->id]);
+        Storage::disk('public')->assertExists('products/kept.png');
+    }
+
+    #[Test]
+    public function store_refuses_a_slug_the_user_already_has_but_accepts_another_users(): void
+    {
+        $own = Product::factory()->create(['user_id' => $this->user->id]);
+        $foreign = Product::factory()->create();
+        $productData = [
+            'name' => 'Product ' . uniqid(),
+            'price' => 10,
+            'currency' => 'CZK',
+        ];
+
+        $this->actingAs($this->user, 'web')
+            ->post(route('frontend.product.store', ['locale' => 'cs']), [...$productData, 'slug' => $own->slug])
+            ->assertSessionHasErrors('slug');
+
+        $this->post(route('frontend.product.store', ['locale' => 'cs']), [...$productData, 'slug' => $foreign->slug])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('products', ['user_id' => $this->user->id, 'slug' => $foreign->slug]);
     }
 }

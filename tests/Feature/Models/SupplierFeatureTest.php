@@ -320,42 +320,6 @@ class SupplierFeatureTest extends TestCase
      *
      * @return void
      */
-    #[Test]
-    public function supplier_deletion_behavior_with_invoices()
-    {
-        // Create invoices for the supplier
-        $invoice1 = Invoice::factory()->create([
-            'supplier_id' => $this->supplier->id,
-            'payment_method_id' => null,
-        ]);
-
-        $invoice2 = Invoice::factory()->create([
-            'supplier_id' => $this->supplier->id,
-            'payment_method_id' => null,
-        ]);
-
-        $supplierId = $this->supplier->id;
-
-        // Delete the supplier
-        $this->supplier->delete();
-
-        // Check what happens to related invoices
-        // This test documents the current behavior - adjust based on business rules
-        $remainingInvoice1 = Invoice::find($invoice1->id);
-        $remainingInvoice2 = Invoice::find($invoice2->id);
-
-        // If cascade delete is NOT implemented, they should still exist but with null supplier_id
-        // If cascade delete IS implemented, they should be null
-        // Adjust assertions based on actual business requirements
-        if ($remainingInvoice1) {
-            $this->assertNull($remainingInvoice1->supplier_id);
-        }
-
-        if ($remainingInvoice2) {
-            $this->assertNull($remainingInvoice2->supplier_id);
-        }
-    }
-
     /**
      * Test supplier creation with all attributes.
      *
