@@ -277,11 +277,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Larastan level
 - **Where:** `phpstan.neon`
-- **Problem:** Larastan runs at level 1 (2026-10-23); level 2 reports about 1000 more errors, level 6 over 4000. One level applies to the whole codebase.
+- **Problem:** Larastan runs at level 1 (2026-10-23); level 2 reports about 1000 more errors, level 6 over 4000. One level applies to the whole codebase. Array value types are not checked yet: `phpcs.xml` leaves out Slevomat's `MissingTraversableTypeHintSpecification` (about 1150 signatures without `list<…>` / `array<string, …>`), which Larastan reports from level 6.
 - **Fix:** raise the level once the whole codebase passes the next one: levels 2–6 while the contexts are converted (Order of work 13), 7–10 (`max`) after that, one level per branch. No baseline file and no ignore comments.
 
 ### `strict_types` and `final`
-- **Where:** all of `app/`, `tests/`, `database/` (11 of 1227 files declare `strict_types`, 11 classes are `final`); files touched by a branch keep their old shape, e.g. `app/Http/Controllers/Frontend/ProfileController.php` (no constructor promotion, untyped properties)
+- **Where:** all of `app/`, `tests/`, `database/` (149 of 1018 files declare `strict_types`, 120 classes are `final`, 2026-10-25); files touched by a branch keep their old shape, e.g. `app/Http/Controllers/Frontend/ProfileController.php` (neither)
 - **Fix:** add `declare(strict_types=1)` and `final` (except abstract bases and Eloquent models, `rules/php.md`); the test suite catches the coercions this exposes.
 
 ### Transaction boundaries
@@ -312,9 +312,9 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** private state read through four naming styles: `getValue()` (46 calls), `toInt()` (`UserId`, `PartyId`; 83 calls), `value()` (`ProductSku`), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, `BankAccount::getIban()`, …).
 - **Fix (decided 2026-10-20):** `final readonly class` with public readonly properties for held state (`->value`, `->amount`, `->iban`), computed values as methods without `get` (`formattedIban()`, `year()`), per `rules/php.md`.
 
-### Business logic and untyped relations in models
-- **Where:** `app/Models/Invoice.php` (`subtotal_money` / `total_tax_money` accessors computing totals through `InvoiceTotals`, due date, `overdue` and `paid` for the lists, logging, `HasRoles`), `HasRoles` also on `PaymentMethod`, `$guarded` in 6 models; invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
-- **Fix:** logic into Domain, totals built by `EloquentInvoiceMapper` once Application no longer receives models, `$fillable` and typed relations (`rules/persistence.md`).
+### Business logic in models
+- **Where:** `app/Models/Invoice.php` (`subtotal_money` / `total_tax_money` accessors computing totals through `InvoiceTotals`, due date, `overdue` and `paid` for the lists, logging, `HasRoles`), `HasRoles` also on `PaymentMethod`, `$guarded` in 6 models; `User::invoices()` goes through the user's clients instead of `invoices.user_id`, so the `total_invoices` of `EloquentUserRepository` misses invoices without a client (`client_id` is nullable); invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
+- **Fix:** logic into Domain, totals built by `EloquentInvoiceMapper` once Application no longer receives models, `$fillable`, `User::invoices()` as `hasMany` on `user_id` (`rules/persistence.md`).
 
 ### Validation in several places
 - **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Application/*/Services/*InputValidationService.php`, `app/Domain/*/Validation/`; entity limits checked in requests, controllers and observers
@@ -334,7 +334,8 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Frontend
 - **Where:** `resources/views` (25 files with inline `<script>`, 100 `style=""` attributes, 103 `@php` blocks, `number_format` for money), `resources/js` (6.5k lines of page scripts and `window.*` globals beside Livewire/Alpine)
-- **Fix:** per `rules/frontend.md`.
+- **Problem:** besides the above, the invoice forms are filled twice over. `InvoiceFormApplicationService::prepareCreateData()` passes empty `userInfo` and `clientInfo` (the edit form gets neither), which `frontend/invoices/{create,edit}.blade.php` still read as fallback values and edit links; the supplier and client are filled in the browser by `supplier-form-data.js` / `client-form-data.js` from `/api/supplier/default`, `/api/client/default` or the `supplier_id` / `client_id` URL parameter.
+- **Fix:** per `rules/frontend.md`; the Livewire invoice form fills the supplier and client on the server from `defaultSupplier` / `selectedClient` and drops `userInfo`, `clientInfo`, both scripts and their endpoints ("API responses").
 
 ### Translations
 - **Where:** 44 `trans()` calls in `app/` and `resources/views`; 9 form requests with `messages()`; `lang/*/admin.php` sections `dashboard`, `user_activity`, `user`, `auth`, `general`; `lang/*/emails.php` calls `config()` and `date()`

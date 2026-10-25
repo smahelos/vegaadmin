@@ -20,6 +20,7 @@ paths:
 ## Types
 
 - Every parameter, property and return value is typed, `void` included. `mixed` only where the value is genuinely open (a cache value), never to avoid naming a type.
+- CI enforces it: PHP_CodeSniffer (Slevomat `ReturnTypeHint`, `ParameterTypeHint` in `phpcs.xml`) for return and parameter types, `tomasvotruba/type-coverage` in Larastan (`phpstan.neon`) for properties. A property declared by a parent class (Eloquent `$fillable`, Command `$signature`) keeps the parent's declaration and is not counted. The only exception is a signature PHP refuses to narrow — a subclass of an untyped vendor method — excluded file by file in `phpcs.xml` with the reason.
 - Public methods of Domain and Application return objects (DTO, value object, `Result`, enum), not associative arrays. An array is fine as a list of typed items, documented as `list<FooDTO>`.
 - Docblocks only add what the signature cannot say: array shapes (`list<...>`, `array<string, ...>`), `@throws`, a non-obvious invariant. No `@param`/`@return` that repeat the signature, no class docblocks that repeat the class name.
 - Domain values that the code compares — statuses, types, units, templates — are backed enums, never string or int literals (`InvoiceStatus::PAID`, not `'paid'`).
