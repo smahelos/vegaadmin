@@ -42,6 +42,10 @@ services:
         tags:
             - shipmonk.deadCode.memberUsageProvider
     -
+        class: Billex\PHPStan\DeadCode\BladeTemplateUsageProvider
+        tags:
+            - shipmonk.deadCode.memberUsageProvider
+    -
         class: Billex\PHPStan\DeadCode\LivewireUsageProvider
         tags:
             - shipmonk.deadCode.memberUsageProvider
