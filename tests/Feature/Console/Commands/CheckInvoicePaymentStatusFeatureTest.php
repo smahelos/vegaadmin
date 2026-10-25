@@ -3,6 +3,10 @@
 namespace Tests\Feature\Console\Commands;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
+use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceOverdueReminder;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceUpcomingDueReminder;
@@ -13,6 +17,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
@@ -172,6 +177,31 @@ class CheckInvoicePaymentStatusFeatureTest extends TestCase
                     && ($notifiable->routes['mail'] ?? null) === $client->email;
             },
         );
+    }
+
+    #[Test]
+    public function command_fails_when_a_reminder_cannot_be_sent(): void
+    {
+        $this->app->instance(InvoiceReminderNotifierInterface::class, new class implements InvoiceReminderNotifierInterface
+        {
+            public function send(
+                InvoiceReminderType $type,
+                InvoiceReminderPayload $payload,
+                Recipient $recipient,
+            ): void {
+                throw new RuntimeException('Mail transport is down');
+            }
+        });
+        Invoice::factory()->create([
+            'client_id' => Client::factory()->create(['email' => 'test@example.com'])->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
+            'issue_date' => Carbon::today()->subDays(30),
+            'due_in' => 30,
+        ]);
+
+        $exitCode = Artisan::call('invoices:check-payment-status');
+
+        $this->assertSame(1, $exitCode);
     }
 
     #[Test]

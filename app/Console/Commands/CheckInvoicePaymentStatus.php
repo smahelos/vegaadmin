@@ -94,6 +94,8 @@ class CheckInvoicePaymentStatus extends Command
         } catch (\Exception $e) {
             $this->error('Error while checking invoices: ' . $e->getMessage());
             Log::error('Error while checking invoices: ' . $e->getMessage(), ['exception' => $e]);
+
+            return Command::FAILURE;
         }
 
         return Command::SUCCESS;
