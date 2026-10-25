@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Analytics\Events;
 
 use App\Domain\Analytics\Events\AnalyticsDataChanged;
@@ -7,7 +9,7 @@ use App\Domain\Shared\Events\Contracts\DomainEvent;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class AnalyticsDataChangedTest extends TestCase
+final class AnalyticsDataChangedTest extends TestCase
 {
     #[Test]
     public function event_implements_domain_event_interface(): void

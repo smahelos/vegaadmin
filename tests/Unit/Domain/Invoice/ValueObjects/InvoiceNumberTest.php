@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Invoice\ValueObjects;
 
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class InvoiceNumberTest extends TestCase
+final class InvoiceNumberTest extends TestCase
 {
     #[Test]
     public function creates_valid_invoice_number(): void

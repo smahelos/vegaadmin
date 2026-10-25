@@ -1,13 +1,15 @@
 <?php
 
-namespace Tests\Unit\Application\Form\DTO;
+declare(strict_types=1);
+
+namespace Tests\Unit\Application\Shared\Form\DTO;
 
 use App\Application\Shared\Form\DTO\FieldDTO;
 use App\Application\Shared\Form\DTO\FieldSetDTO;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class FieldSetDTOTest extends TestCase
+final class FieldSetDTOTest extends TestCase
 {
     #[Test]
     public function it_converts_all_fields_to_arrays(): void

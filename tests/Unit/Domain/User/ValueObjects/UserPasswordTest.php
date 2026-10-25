@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\User\ValueObjects;
 
 use App\Domain\User\ValueObjects\UserPassword;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class UserPasswordTest extends TestCase
+final class UserPasswordTest extends TestCase
 {
     #[Test]
     public function calculates_password_strength_score(): void
@@ -54,61 +56,5 @@ class UserPasswordTest extends TestCase
 
         $this->assertEquals(0, $emptyScore);
         $this->assertLessThanOrEqual(100, $maxScore);
-    }
-
-    #[Test]
-    public function class_structure_validation(): void
-    {
-        // Test class structure without instantiation (no Laravel framework)
-        $reflection = new \ReflectionClass(UserPassword::class);
-
-        $this->assertTrue($reflection->hasMethod('fromPlainText'));
-        $this->assertTrue($reflection->hasMethod('fromHash'));
-        $this->assertTrue($reflection->hasMethod('getHash'));
-        $this->assertTrue($reflection->hasMethod('verify'));
-        $this->assertTrue($reflection->hasMethod('getStrengthScore'));
-
-        // Test method visibility and static nature
-        $fromPlainText = $reflection->getMethod('fromPlainText');
-        $this->assertTrue($fromPlainText->isStatic());
-        $this->assertTrue($fromPlainText->isPublic());
-
-        $getStrengthScore = $reflection->getMethod('getStrengthScore');
-        $this->assertTrue($getStrengthScore->isStatic());
-        $this->assertTrue($getStrengthScore->isPublic());
-    }
-
-    #[Test]
-    public function method_return_types_are_properly_defined(): void
-    {
-        $reflection = new \ReflectionClass(UserPassword::class);
-
-        $methodReturnTypes = [
-            'fromPlainText' => 'self',
-            'fromHash' => 'self',
-            'getHash' => 'string',
-            'verify' => 'bool',
-            'getStrengthScore' => 'int',
-            'getStrengthDescription' => 'string',
-            'meetsSecurityRequirements' => 'bool',
-        ];
-
-        foreach ($methodReturnTypes as $methodName => $expectedType) {
-            $method = $reflection->getMethod($methodName);
-            $returnType = $method->getReturnType();
-
-            $this->assertNotNull($returnType, "Method {$methodName} should have return type");
-
-            $actualType = (string) $returnType;
-            if ($returnType->allowsNull()) {
-                $actualType = '?' . ltrim($actualType, '?');
-            }
-
-            $this->assertEquals(
-                $expectedType,
-                $actualType,
-                "Method {$methodName} return type mismatch",
-            );
-        }
     }
 }

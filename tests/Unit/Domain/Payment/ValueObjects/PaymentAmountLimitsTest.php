@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Payment\ValueObjects;
 
 use App\Domain\Payment\ValueObjects\PaymentAmountLimits;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class PaymentAmountLimitsTest extends TestCase
+final class PaymentAmountLimitsTest extends TestCase
 {
     #[Test]
     public function exposes_supported_currencies(): void

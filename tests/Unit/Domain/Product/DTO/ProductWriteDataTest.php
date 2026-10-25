@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Product\DTO;
 
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class ProductWriteDataTest extends TestCase
+final class ProductWriteDataTest extends TestCase
 {
     #[Test]
     public function accepts_money_vo(): void

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Application\Analytics\Presenters;
 
 use App\Application\Analytics\Presenters\ClientTotalPresenter;
@@ -7,9 +9,9 @@ use App\Domain\Analytics\DTO\ClientTotalDTO;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class ClientTotalPresenterTest extends TestCase
+final class ClientTotalPresenterTest extends TestCase
 {
     #[Test]
     public function presents_client_total_with_formatted_amount(): void

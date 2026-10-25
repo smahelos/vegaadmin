@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Product\ValueObjects;
 
 use App\Domain\Product\ValueObjects\ProductSku;
@@ -7,7 +9,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class ProductSkuTest extends TestCase
+final class ProductSkuTest extends TestCase
 {
     #[Test]
     public function normalization_and_string_cast(): void

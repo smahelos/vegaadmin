@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Application\Shared\Form\DTO;
 
 use App\Application\Shared\Form\DTO\FieldDTO;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class FieldDTOTest extends TestCase
+final class FieldDTOTest extends TestCase
 {
     #[Test]
     public function it_exports_legacy_array_structure(): void

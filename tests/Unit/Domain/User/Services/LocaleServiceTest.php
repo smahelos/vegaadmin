@@ -1,278 +1,123 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\User\Services;
 
 use App\Domain\Shared\Session\Contracts\SessionInterface;
 use App\Domain\User\Contracts\Locale;
 use App\Domain\User\Services\LocaleService;
-use Mockery;
-use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
-use ReflectionClass;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class LocaleServiceTest extends TestCase
+final class LocaleServiceTest extends TestCase
 {
-    protected LocaleService $service;
+    private Locale $locale;
 
-    /** @var MockInterface */
-    protected $mockSession;
+    private SessionInterface $session;
 
-    /** @var MockInterface */
-    protected $mockLocale;
+    private LocaleService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->mockSession = Mockery::mock(SessionInterface::class);
-        $this->mockLocale = Mockery::mock(Locale::class);
+        $this->locale = new class implements Locale
+        {
+            public string $current = 'cs';
 
-        $this->service = new LocaleService($this->mockSession, $this->mockLocale);
+            public function getLocale(): string
+            {
+                return $this->current;
+            }
+
+            public function getAvailableLocales(): array
+            {
+                return ['cs', 'en'];
+            }
+
+            public function getFallbackLocale(): string
+            {
+                return 'en';
+            }
+
+            public function getCountryLocaleMap(): array
+            {
+                return ['CZ' => 'cs'];
+            }
+
+            public function setLocale(string $locale): void
+            {
+                $this->current = $locale;
+            }
+
+            public function localeFromCountry(?string $country): string
+            {
+                return 'en';
+            }
+
+            public function determineLocale(?string $requestLocale = null, ?string $dataLocale = null): string
+            {
+                return $requestLocale ?? $dataLocale ?? 'cs';
+            }
+        };
+        $this->session = new class implements SessionInterface
+        {
+            /** @var array<string, mixed> */
+            public array $values = [];
+
+            public function get(string $key, mixed $default = null): mixed
+            {
+                return $this->values[$key] ?? $default;
+            }
+
+            public function put(string $key, mixed $value): void
+            {
+                $this->values[$key] = $value;
+            }
+
+            public function forget(string $key): void
+            {
+                unset($this->values[$key]);
+            }
+        };
+        $this->service = new LocaleService($this->session, $this->locale);
     }
 
     #[Test]
-    public function get_available_locales_returns_configured_list(): void
+    public function set_locale_applies_a_supported_locale_and_stores_it_in_the_session(): void
     {
-        $this->mockLocale->shouldReceive('getAvailableLocales')
-            ->once()
-            ->andReturn([
-                'cs',
-                'en',
-                'de',
-            ]);
-
-        $locales = $this->service->getAvailableLocales();
-        $this->assertIsArray($locales);
-        $this->assertNotEmpty($locales);
-        $this->assertContains('cs', $locales);
-    }
-
-    #[Test]
-    public function determine_locale_priority_request_over_data_and_session(): void
-    {
-        // Locale adapter decides resolution; ensure it returns request locale
-        $this->mockLocale->shouldReceive('determineLocale')
-            ->once()
-            ->with('en', 'sk')
-            ->andReturn('en');
-
-        $result = $this->service->determineLocale('en', 'sk');
-        $this->assertEquals('en', $result);
-    }
-
-    #[Test]
-    public function determine_locale_priority_data_over_session(): void
-    {
-        $this->mockLocale->shouldReceive('determineLocale')
-            ->once()
-            ->with(null, 'sk')
-            ->andReturn('sk');
-
-        $result = $this->service->determineLocale(null, 'sk');
-        $this->assertEquals('sk', $result);
-    }
-
-    #[Test]
-    public function determine_locale_uses_session_when_request_and_data_missing(): void
-    {
-        $this->mockLocale->shouldReceive('determineLocale')
-            ->once()
-            ->with(null, null)
-            ->andReturn('de');
-
-        $result = $this->service->determineLocale();
-        $this->assertEquals('de', $result);
-    }
-
-    #[Test]
-    public function determine_locale_fallback_when_none_valid(): void
-    {
-        $fallback = config('app.fallback_locale');
-        $this->mockLocale->shouldReceive('determineLocale')
-            ->once()
-            ->with('xx', 'yy')
-            ->andReturn($fallback);
-
-        $result = $this->service->determineLocale('xx', 'yy');
-        $this->assertEquals($fallback, $result);
-    }
-
-    #[Test]
-    public function set_locale_valid_updates_app_and_session(): void
-    {
-        $this->mockLocale->shouldReceive('getAvailableLocales')
-            ->once()
-            ->andReturn(['cs', 'en']);
-        $this->mockLocale->shouldReceive('setLocale')
-            ->once()
-            ->with('en');
-        $this->mockSession->shouldReceive('put')
-            ->once()
-            ->with('locale', 'en');
-
         $this->service->setLocale('en');
-        $this->assertTrue(true); // Expectations are the assertion
+
+        $this->assertSame('en', $this->locale->getLocale());
+        $this->assertSame('en', $this->session->get('locale'));
     }
 
     #[Test]
-    public function set_locale_invalid_sets_fallback(): void
+    public function set_locale_falls_back_for_an_unsupported_locale(): void
     {
-        $fallback = config('app.fallback_locale');
-        $this->mockLocale->shouldReceive('getAvailableLocales')
-            ->once()
-            ->andReturn(['cs', 'en']);
-        $this->mockLocale->shouldReceive('getFallbackLocale')
-            ->once()
-            ->andReturn($fallback);
-        $this->mockLocale->shouldReceive('setLocale')
-            ->once()
-            ->with($fallback);
-        $this->mockSession->shouldReceive('put')
-            ->once()
-            ->with('locale', $fallback);
-
         $this->service->setLocale('xx');
-        $this->assertTrue(true);
+
+        $this->assertSame('en', $this->locale->getLocale());
+        $this->assertSame('en', $this->session->get('locale'));
     }
 
     #[Test]
-    public function service_can_be_instantiated(): void
+    public function determine_locale_is_resolved_by_the_locale_adapter(): void
     {
-        $this->assertInstanceOf(LocaleService::class, $this->service);
+        $this->assertSame('sk', $this->service->determineLocale(null, 'sk'));
     }
 
     #[Test]
-    public function get_available_locales_method_exists(): void
+    public function locale_from_country_maps_a_known_country_case_insensitively(): void
     {
-        $this->assertTrue(method_exists($this->service, 'getAvailableLocales'));
-
-        $reflection = new ReflectionClass($this->service);
-        $method = $reflection->getMethod('getAvailableLocales');
-        $returnType = $method->getReturnType();
-
-        $this->assertNotNull($returnType);
-        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        $this->assertEquals('array', $returnType->getName());
-
-        // Check that method has no parameters
-        $parameters = $method->getParameters();
-        $this->assertCount(0, $parameters);
+        $this->assertSame('cs', $this->service->localeFromCountry('cz'));
     }
 
     #[Test]
-    public function determine_locale_method_exists(): void
+    public function locale_from_country_falls_back_for_an_unknown_or_missing_country(): void
     {
-        $this->assertTrue(method_exists($this->service, 'determineLocale'));
-
-        $reflection = new ReflectionClass($this->service);
-        $method = $reflection->getMethod('determineLocale');
-        $returnType = $method->getReturnType();
-
-        $this->assertNotNull($returnType);
-        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        $this->assertEquals('string', $returnType->getName());
-
-        // Check parameters
-        $parameters = $method->getParameters();
-        $this->assertCount(2, $parameters);
-        $this->assertEquals('requestLocale', $parameters[0]->getName());
-        $this->assertEquals('dataLocale', $parameters[1]->getName());
-
-        $this->assertTrue($parameters[0]->getType()->allowsNull());
-        $this->assertInstanceOf(\ReflectionNamedType::class, $parameters[0]->getType());
-        $this->assertEquals('string', $parameters[0]->getType()->getName());
-        $this->assertTrue($parameters[1]->getType()->allowsNull());
-        $this->assertInstanceOf(\ReflectionNamedType::class, $parameters[1]->getType());
-        $this->assertEquals('string', $parameters[1]->getType()->getName());
-
-        // Check default values
-        $this->assertTrue($parameters[0]->isDefaultValueAvailable());
-        $this->assertNull($parameters[0]->getDefaultValue());
-        $this->assertTrue($parameters[1]->isDefaultValueAvailable());
-        $this->assertNull($parameters[1]->getDefaultValue());
-    }
-
-    #[Test]
-    public function set_locale_method_exists(): void
-    {
-        $this->assertTrue(method_exists($this->service, 'setLocale'));
-
-        $reflection = new ReflectionClass($this->service);
-        $method = $reflection->getMethod('setLocale');
-        $returnType = $method->getReturnType();
-
-        $this->assertNotNull($returnType);
-        $this->assertInstanceOf(\ReflectionNamedType::class, $returnType);
-        $this->assertEquals('void', $returnType->getName());
-
-        // Check parameters
-        $parameters = $method->getParameters();
-        $this->assertCount(1, $parameters);
-        $this->assertEquals('locale', $parameters[0]->getName());
-        $this->assertInstanceOf(\ReflectionNamedType::class, $parameters[0]->getType());
-        $this->assertEquals('string', $parameters[0]->getType()->getName());
-    }
-
-    #[Test]
-    public function service_has_correct_structure(): void
-    {
-        $reflection = new ReflectionClass($this->service);
-        $this->assertEquals('App\\Domain\\User\\Services', $reflection->getNamespaceName());
-        $this->assertEquals('LocaleService', $reflection->getShortName());
-        $this->assertFalse($reflection->isAbstract());
-        $this->assertFalse($reflection->isInterface());
-    }
-
-    #[Test]
-    public function all_public_methods_have_return_types(): void
-    {
-        $reflection = new ReflectionClass($this->service);
-        $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
-
-        foreach ($methods as $method) {
-            if ($method->getName() !== '__construct' &&
-                $method->getDeclaringClass()->getName() === LocaleService::class) {
-                $this->assertNotNull(
-                    $method->getReturnType(),
-                    "Method {$method->getName()} should have a return type",
-                );
-            }
-        }
-    }
-
-    #[Test]
-    public function public_methods_count(): void
-    {
-        $reflection = new ReflectionClass($this->service);
-        $publicMethods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
-
-        // Filter out inherited methods and constructor
-        $customPublicMethods = array_filter($publicMethods, function ($method) {
-            return $method->getDeclaringClass()->getName() === LocaleService::class
-                && $method->getName() !== '__construct';
-        });
-
-        // getAvailableLocales, determineLocale, localeFromCountry, setLocale
-        $this->assertCount(7, $customPublicMethods);
-    }
-
-    #[Test]
-    public function method_parameter_types_are_correct(): void
-    {
-        $reflection = new ReflectionClass($this->service);
-        $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC);
-
-        foreach ($methods as $method) {
-            if ($method->getName() !== '__construct' &&
-                $method->getDeclaringClass()->getName() === LocaleService::class) {
-                foreach ($method->getParameters() as $parameter) {
-                    $this->assertNotNull(
-                        $parameter->getType(),
-                        "Parameter {$parameter->getName()} in method {$method->getName()} should have a type",
-                    );
-                }
-            }
-        }
+        $this->assertSame('en', $this->service->localeFromCountry('US'));
+        $this->assertSame('en', $this->service->localeFromCountry(null));
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\User\ValueObjects;
 
 use App\Domain\User\ValueObjects\UserEmail;
@@ -7,7 +9,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class UserEmailTest extends TestCase
+final class UserEmailTest extends TestCase
 {
     #[Test]
     public function creates_valid_email(): void

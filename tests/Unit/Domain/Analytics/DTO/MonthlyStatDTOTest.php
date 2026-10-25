@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Analytics\DTO;
 
 use App\Domain\Analytics\DTO\MonthlyStatDTO;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class MonthlyStatDTOTest extends TestCase
+final class MonthlyStatDTOTest extends TestCase
 {
     #[Test]
     public function from_array_maps_and_normalizes_total(): void

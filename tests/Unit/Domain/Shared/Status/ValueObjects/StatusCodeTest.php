@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Shared\Status\ValueObjects;
 
 use App\Domain\Shared\Status\ValueObjects\StatusCode;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class StatusCodeEnumTest extends TestCase
+final class StatusCodeTest extends TestCase
 {
     #[Test]
     public function enum_has_cases(): void

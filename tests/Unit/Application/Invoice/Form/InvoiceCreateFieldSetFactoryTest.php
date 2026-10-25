@@ -1,12 +1,14 @@
 <?php
 
-namespace Tests\Unit\Application\Form\Invoice;
+declare(strict_types=1);
+
+namespace Tests\Unit\Application\Invoice\Form;
 
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class InvoiceCreateFieldSetFactoryTest extends TestCase
+final class InvoiceCreateFieldSetFactoryTest extends TestCase
 {
     #[Test]
     public function it_builds_field_set_from_trait_output(): void

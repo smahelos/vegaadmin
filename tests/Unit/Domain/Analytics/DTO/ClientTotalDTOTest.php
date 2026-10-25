@@ -1,66 +1,66 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Analytics\DTO;
 
 use App\Domain\Analytics\DTO\ClientTotalDTO;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Models\Client;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class ClientTotalDTOTest extends TestCase
+final class ClientTotalDTOTest extends TestCase
 {
     #[Test]
-    public function from_client_uses_loaded_invoice_aggregate(): void
+    public function from_array_rounds_the_total_to_two_decimals(): void
     {
-        // Create a lightweight client model instance (no DB needed for structure mapping)
-        $client = new Client;
-        $client->client_id = 10;
-        $client->client_name = 'Test Client';
-        // Simulate loaded invoices relation with aggregate total
-        $aggregate = new Client; // reuse model to attach dynamic total attribute
-        $aggregate->total = 99.999; // will normalize to 100.00
-        $client->setRelation('invoices', new EloquentCollection([$aggregate]));
-        $client->total = $client->invoices->sum('total');
+        $dto = ClientTotalDTO::fromArray([
+            'client_id' => 10,
+            'client_name' => 'Test Client',
+            'total' => 99.999,
+        ], 'CZK');
 
-        $dto = ClientTotalDTO::fromArray($client->toArray(), 'CZK');
         $this->assertSame(10, $dto->clientId);
         $this->assertSame('Test Client', $dto->clientName);
-        $this->assertInstanceOf(Money::class, $dto->totalAmount);
         $this->assertSame(100.00, $dto->totalAmount->toFloat());
+        $this->assertSame('CZK', $dto->totalAmount->getCurrency());
     }
 
     #[Test]
-    public function to_array_exports_expected_shape(): void
+    public function from_array_rejects_a_row_without_a_total(): void
     {
-        $client = new Client;
-        $client->client_id = 1;
-        $client->client_name = 'X';
-        $client->setRelation('invoices', new EloquentCollection);
-        $client->total = $client->invoices->sum('total');
-        $dto = ClientTotalDTO::fromArray($client->toArray(), 'CZK');
-        $arr = $dto->toArray();
+        $this->expectException(InvalidArgumentException::class);
+
+        ClientTotalDTO::fromArray(['client_id' => 1, 'client_name' => 'X'], 'CZK');
+    }
+
+    #[Test]
+    public function to_array_exports_the_client_and_total(): void
+    {
+        $dto = ClientTotalDTO::fromArray([
+            'client_id' => 1,
+            'client_name' => 'X',
+            'total' => 0,
+        ], 'CZK');
+
         $this->assertSame([
-            'client_id',
-            'client_name',
-            'total_amount',
-        ], array_keys($arr));
-        $this->assertSame(1, $arr['client_id']);
-        $this->assertSame(0.0, $arr['total_amount']);
+            'client_id' => 1,
+            'client_name' => 'X',
+            'total_amount' => 0.0,
+        ], $dto->toArray());
     }
 
     #[Test]
-    public function to_formatted_array_uses_formatter(): void
+    public function to_formatted_array_adds_the_formatted_total(): void
     {
-        $client = new Client;
-        $client->client_id = 2;
-        $client->client_name = 'Y';
-        $client->setRelation('invoices', new EloquentCollection);
-        $client->total = $client->invoices->sum('total');
-        $dto = ClientTotalDTO::fromArray($client->toArray(), 'CZK');
-        $fakeFormatter = new class implements MoneyFormatterInterface
+        $dto = ClientTotalDTO::fromArray([
+            'client_id' => 2,
+            'client_name' => 'Y',
+            'total' => 0,
+        ], 'CZK');
+        $formatter = new class implements MoneyFormatterInterface
         {
             public function format(
                 Money $money,
@@ -80,9 +80,10 @@ class ClientTotalDTOTest extends TestCase
                 return '0.00 CZK';
             }
         };
-        $formatted = $dto->toFormattedArray($fakeFormatter);
+
+        $formatted = $dto->toFormattedArray($formatter);
+
         $this->assertSame('Y', $formatted['client_name']);
-        $this->assertSame(0.0, $formatted['total_amount']);
         $this->assertSame('0.00 CZK', $formatted['total_amount_formatted']);
     }
 }

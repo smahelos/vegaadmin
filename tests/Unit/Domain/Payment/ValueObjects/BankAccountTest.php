@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Payment\ValueObjects;
 
 use App\Domain\Payment\ValueObjects\BankAccount;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class BankAccountTest extends TestCase
+final class BankAccountTest extends TestCase
 {
     #[Test]
     public function creates_valid_bank_account_from_iban(): void

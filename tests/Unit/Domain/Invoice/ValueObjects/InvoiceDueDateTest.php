@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Invoice\ValueObjects;
 
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
@@ -7,7 +9,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class InvoiceDueDateTest extends TestCase
+final class InvoiceDueDateTest extends TestCase
 {
     #[Test]
     public function creates_from_issue_date_and_days(): void

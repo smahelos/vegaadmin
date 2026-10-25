@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Shared\Money\Services;
 
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
@@ -11,7 +13,7 @@ use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class MoneyFormatterTest extends TestCase
+final class MoneyFormatterTest extends TestCase
 {
     private MoneyFormatterInterface $formatter;
 

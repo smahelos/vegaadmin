@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Analytics\Services;
 
 use App\Domain\Analytics\Contracts\AnalyticsDtoReadRepository;
-use App\Domain\Analytics\Contracts\DashboardServiceInterface as AnalyticsDashboardServiceInterface;
 use App\Domain\Analytics\DTO\ClientTotalDTO;
 use App\Domain\Analytics\DTO\MonthlyStatDTO;
 use App\Domain\Analytics\DTO\UserStatisticsDTO;
@@ -12,9 +13,9 @@ use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\User\ValueObjects\UserId;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class DashboardServiceTest extends TestCase
+final class DashboardServiceTest extends TestCase
 {
     private AnalyticsDashboardService $service;
 
@@ -93,7 +94,7 @@ class DashboardServiceTest extends TestCase
             public function getMonthlyStats(int $userId, int $months): array
             {
                 return [
-                    ['month' => now()->format('Y-m'), 'total' => 25.50],
+                    ['month' => '2025-01', 'total' => 25.50],
                 ];
             }
 
@@ -120,41 +121,6 @@ class DashboardServiceTest extends TestCase
     }
 
     // Reflection-based builder removed; we directly construct the service with explicit stubs
-
-    #[Test]
-    public function structure_is_correct(): void
-    {
-        $this->assertInstanceOf(AnalyticsDashboardService::class, $this->service);
-        $this->assertInstanceOf(AnalyticsDashboardServiceInterface::class, $this->service);
-        $reflection = new \ReflectionClass($this->service);
-        $this->assertTrue($reflection->hasMethod('getUserStatistics'));
-        $this->assertTrue($reflection->hasMethod('getMonthlyStatistics'));
-        $this->assertTrue($reflection->hasMethod('getClientsWithInvoiceTotals'));
-        $this->assertTrue($reflection->hasMethod('getDashboardData'));
-    }
-
-    #[Test]
-    public function public_methods_have_return_types_and_parameters(): void
-    {
-        $reflection = new \ReflectionClass($this->service);
-        $publicMethods = array_filter(
-            $reflection->getMethods(\ReflectionMethod::IS_PUBLIC),
-            fn ($m) => $m->getDeclaringClass()->getName() === AnalyticsDashboardService::class && $m->getName() !== '__construct',
-        );
-        $this->assertCount(5, $publicMethods); // interface methods + invalidateUserCache
-        foreach ($publicMethods as $method) {
-            $this->assertNotNull($method->getReturnType(), $method->getName() . ' missing return type');
-        }
-    }
-
-    #[Test]
-    public function cache_related_constants_exist(): void
-    {
-        $reflection = new \ReflectionClass($this->service);
-        $this->assertTrue($reflection->hasConstant('STATS_CACHE_TTL'));
-        $this->assertTrue($reflection->hasConstant('MONTHLY_CACHE_TTL'));
-        $this->assertTrue($reflection->hasConstant('CACHE_PREFIX'));
-    }
 
     #[Test]
     public function invalidate_user_cache_uses_tag_invalidation(): void

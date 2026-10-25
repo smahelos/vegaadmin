@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Payment\Providers\QrPayment;
 
 use App\Domain\Payment\DTO\QrPaymentPayload;
@@ -8,7 +10,7 @@ use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class EuropeanQrPaymentProviderTest extends TestCase
+final class EuropeanQrPaymentProviderTest extends TestCase
 {
     private EuropeanQrPaymentProvider $provider;
 

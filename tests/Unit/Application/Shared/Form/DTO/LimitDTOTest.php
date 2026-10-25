@@ -1,12 +1,14 @@
 <?php
 
-namespace Tests\Unit\Application\Form\DTO;
+declare(strict_types=1);
+
+namespace Tests\Unit\Application\Shared\Form\DTO;
 
 use App\Application\Shared\Form\DTO\LimitDTO;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class LimitDTOTest extends TestCase
+final class LimitDTOTest extends TestCase
 {
     #[Test]
     public function it_builds_from_array_and_exports(): void

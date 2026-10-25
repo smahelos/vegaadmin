@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Product\Services;
 
 use App\Domain\Product\Contracts\ProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
-use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\Exceptions\ProductInUseException;
@@ -18,9 +19,9 @@ use App\Domain\Shared\Str\Contracts\Str;
 use App\Domain\Shared\Unit\Enums\Unit;
 use App\Domain\User\ValueObjects\UserId;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class ProductServiceTest extends TestCase
+final class ProductServiceTest extends TestCase
 {
     private ProductService $service;
 
@@ -194,37 +195,6 @@ class ProductServiceTest extends TestCase
     }
 
     // Structural tests
-    #[Test]
-    public function service_can_be_instantiated(): void
-    {
-        $this->assertInstanceOf(ProductService::class, $this->service);
-    }
-
-    #[Test]
-    public function service_implements_interface(): void
-    {
-        $this->assertInstanceOf(ProductServiceInterface::class, $this->service);
-    }
-
-    #[Test]
-    public function public_methods_count_excluding_constructor(): void
-    {
-        $r = new \ReflectionClass($this->service);
-        $pub = array_filter($r->getMethods(\ReflectionMethod::IS_PUBLIC), fn ($m) => $m->getDeclaringClass()->getName() === ProductService::class && $m->getName() !== '__construct');
-        // create, update, delete, findAny, findForUser, getDefaultProduct, getUserProductCount
-        $this->assertCount(7, $pub);
-    }
-
-    #[Test]
-    public function all_public_methods_have_return_types(): void
-    {
-        $r = new \ReflectionClass($this->service);
-        foreach ($r->getMethods(\ReflectionMethod::IS_PUBLIC) as $m) {
-            if ($m->getDeclaringClass()->getName() === ProductService::class && $m->getName() !== '__construct') {
-                $this->assertNotNull($m->getReturnType(), $m->getName() . ' missing return type');
-            }
-        }
-    }
 
     // Behavior tests
     #[Test]

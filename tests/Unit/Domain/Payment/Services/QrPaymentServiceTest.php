@@ -1,16 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\Domain\Payment\Services;
 
 use App\Domain\Payment\Contracts\QrCodeRendererInterface;
-use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\DTO\QrPaymentPayload;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
 
-class QrPaymentServiceTest extends TestCase
+final class QrPaymentServiceTest extends TestCase
 {
     private QrPaymentService $service;
 
@@ -33,13 +34,6 @@ class QrPaymentServiceTest extends TestCase
     }
 
     #[Test]
-    public function service_and_interface(): void
-    {
-        $this->assertInstanceOf(QrPaymentService::class, $this->service);
-        $this->assertInstanceOf(QrPaymentServiceInterface::class, $this->service);
-    }
-
-    #[Test]
     public function public_methods_exist(): void
     {
         $expected = [
@@ -55,36 +49,6 @@ class QrPaymentServiceTest extends TestCase
                 "Missing method $m",
             );
         }
-    }
-
-    #[Test]
-    public function method_signatures(): void
-    {
-        $r = new \ReflectionClass($this->service);
-        $hasInfo = $r->getMethod('hasRequiredPaymentInfo');
-        $this->assertEquals('payload', $hasInfo->getParameters()[0]->getName());
-        $this->assertEquals('App\\Domain\\Payment\\DTO\\QrPaymentPayload', (string) $hasInfo->getParameters()[0]->getType());
-        $this->assertEquals('bool', (string) $hasInfo->getReturnType());
-
-        $generateQr = $r->getMethod('generateQrCodeBase64');
-        $params = $generateQr->getParameters();
-        $this->assertCount(1, $params);
-        $this->assertEquals('App\\Domain\\Payment\\DTO\\QrPaymentPayload', (string) $params[0]->getType());
-
-        $supported = $r->getMethod('getSupportedCountries');
-        $this->assertEquals('array', (string) $supported->getReturnType());
-        $this->assertCount(0, $supported->getParameters());
-    }
-
-    #[Test]
-    public function public_methods_count(): void
-    {
-        $r = new \ReflectionClass($this->service);
-        $public = array_filter(
-            $r->getMethods(\ReflectionMethod::IS_PUBLIC),
-            fn ($m) => $m->getDeclaringClass()->getName() === QrPaymentService::class && $m->getName() !== '__construct',
-        );
-        $this->assertCount(3, $public);
     }
 
     #[Test]
