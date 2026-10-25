@@ -7,22 +7,7 @@ use Illuminate\View\View;
 
 class DropdownLink extends Component
 {
-    /**
-     * Link target URL
-     *
-     * @var string
-     */
-    public $href;
-
-    /**
-     * Create a new component instance
-     *
-     * @param  string  $href  Link target URL
-     */
-    public function __construct(string $href)
-    {
-        $this->href = $href;
-    }
+    public function __construct(public string $href) {}
 
     /**
      * Render the dropdown link component

@@ -8,20 +8,11 @@ use App\Domain\Shared\Events\FormDataChanged;
 class InvalidateFormDataCache
 {
     /**
-     * Cache service instance
-     *
-     * @var CacheServiceInterface
-     */
-    protected $cacheService;
-
-    /**
      * Create the event listener
      */
     public function __construct(
-        CacheServiceInterface $cacheService,
-    ) {
-        $this->cacheService = $cacheService;
-    }
+        private readonly CacheServiceInterface $cacheService,
+    ) {}
 
     /**
      * Handle the event

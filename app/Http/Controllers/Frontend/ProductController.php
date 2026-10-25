@@ -20,27 +20,10 @@ class ProductController extends Controller
     use AuthorizesRequests;
     use ProductFormFields; // Frontend limits handled via observers now
 
-    /**
-     * Product service instance
-     *
-     * @var ProductApplicationServiceInterface
-     */
-    protected $productService;
-
-    /**
-     * Universal Entity Limit application service
-     *
-     * @var UELSService
-     */
-    protected $limitService;
-
     public function __construct(
-        ProductApplicationServiceInterface $productService,
-        UELSService $limitService,
-    ) {
-        $this->productService = $productService;
-        $this->limitService = $limitService;
-    }
+        private readonly ProductApplicationServiceInterface $productService,
+        private readonly UELSService $limitService,
+    ) {}
 
     /**
      * Display a listing of the user's products.

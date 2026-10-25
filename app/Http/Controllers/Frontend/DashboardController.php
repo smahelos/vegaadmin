@@ -10,19 +10,9 @@ use Illuminate\View\View;
 class DashboardController extends Controller
 {
     /**
-     * Dashboard service instance
-     *
-     * @var DashboardApplicationServiceInterface
-     */
-    protected $dashboardService;
-
-    /**
      * Constructor
      */
-    public function __construct(DashboardApplicationServiceInterface $dashboardService)
-    {
-        $this->dashboardService = $dashboardService;
-    }
+    public function __construct(private readonly DashboardApplicationServiceInterface $dashboardService) {}
 
     /**
      * Show the application dashboard with user statistics

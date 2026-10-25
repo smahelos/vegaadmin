@@ -17,7 +17,7 @@ class SupplierList extends Component
     use Sorts;
 
     #[Url]
-    public $search = '';
+    public string $search = '';
 
     #[Url(as: 'sort')]
     public string $orderBy = 'created_at';
@@ -26,9 +26,9 @@ class SupplierList extends Component
     public bool $orderAsc = false;
 
     #[Url(keep: true)]
-    public $page = 1;
+    public int $page = 1;
 
-    public $errorMessage = null;
+    public ?string $errorMessage = null;
 
     public function updatingSearch(): void
     {

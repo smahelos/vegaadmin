@@ -18,19 +18,9 @@ class ProfileController extends Controller
     use UserFormFields;
 
     /**
-     * User service instance
-     *
-     * @var UserApplicationServiceInterface
-     */
-    protected $userService;
-
-    /**
      * Constructor
      */
-    public function __construct(UserApplicationServiceInterface $userService)
-    {
-        $this->userService = $userService;
-    }
+    public function __construct(private readonly UserApplicationServiceInterface $userService) {}
 
     /**
      * Show form for editing user profile

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Application\Party\Contracts\PartyApplicationServiceInterface as InvoicePartyServiceInterface;
 // Removed direct Supplier model usage (delegated to party service)
-use App\Application\Payment\Contracts\BankApplicationServiceInterface;
 use App\Application\Payment\Contracts\BankApplicationServiceInterface as BankServiceInterface;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface as CountryServiceInterface;
 use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService;
@@ -26,47 +25,14 @@ class SupplierController extends Controller
     use SupplierFormFields; // Frontend limits via observers
 
     /**
-     * Bank service instance
-     *
-     * @var BankApplicationServiceInterface
-     */
-    protected $bankService;
-
-    /**
-     * Country service instance
-     *
-     * @var CountryServiceInterface
-     */
-    protected $countryService;
-
-    /**
-     * Party service facade instance
-     *
-     * @var InvoicePartyServiceInterface
-     */
-    protected $partyService;
-
-    /**
-     * Universal limit service instance
-     *
-     * @var UELSService
-     */
-    protected $limitService;
-
-    /**
      * Constructor
      */
     public function __construct(
-        BankServiceInterface $bankService,
-        CountryServiceInterface $countryService,
-        InvoicePartyServiceInterface $partyService,
-        UELSService $limitService,
-    ) {
-        $this->bankService = $bankService;
-        $this->countryService = $countryService;
-        $this->partyService = $partyService;
-        $this->limitService = $limitService;
-    }
+        private readonly BankServiceInterface $bankService,
+        private readonly CountryServiceInterface $countryService,
+        private readonly InvoicePartyServiceInterface $partyService,
+        private readonly UELSService $limitService,
+    ) {}
 
     /**
      * Display paginated list of user suppliers

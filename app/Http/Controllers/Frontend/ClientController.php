@@ -21,32 +21,13 @@ class ClientController extends Controller
     use ClientFormFields; // Frontend limits via observers
 
     /**
-     * @var PartyApplicationServiceInterface
-     */
-    protected $partyService;
-
-    /**
-     * @var CountryApplicationServiceInterface
-     */
-    protected $countryService;
-
-    /**
-     * @var UELSService
-     */
-    protected $limitService;
-
-    /**
      * Constructor
      */
     public function __construct(
-        PartyApplicationServiceInterface $partyService,
-        CountryApplicationServiceInterface $countryService,
-        UELSService $limitService,
-    ) {
-        $this->partyService = $partyService;
-        $this->countryService = $countryService;
-        $this->limitService = $limitService;
-    }
+        private readonly PartyApplicationServiceInterface $partyService,
+        private readonly CountryApplicationServiceInterface $countryService,
+        private readonly UELSService $limitService,
+    ) {}
 
     /**
      * Display paginated list of user clients
