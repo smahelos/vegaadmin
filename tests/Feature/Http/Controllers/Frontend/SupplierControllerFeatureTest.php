@@ -31,8 +31,6 @@ class SupplierControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, WithFaker;
 
-    protected string $validEmail;
-
     protected array $validSupplierData;
 
     protected string $defaultLocale = 'cs';

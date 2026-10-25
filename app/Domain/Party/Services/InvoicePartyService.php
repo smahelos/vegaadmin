@@ -169,48 +169,6 @@ class InvoicePartyService implements InvoicePartyServiceInterface
     }
 
     /**
-     * Set a supplier as default for the user, unsetting others
-     */
-    public function setSupplierDefault(int $userId, int $supplierId): void
-    {
-        $partyId = PartyId::fromInt($supplierId);
-
-        // Unset default flag on other suppliers
-        $this->writeSuppliers->unsetOthersDefault($partyId, $userId);
-
-        // Get current supplier DTO, clone its data and set is_default = true
-        $supplierDto = $this->readSuppliers->findById($partyId);
-        $writeData = $this->cloneWriteDto(
-            $supplierDto,
-            SupplierWriteData::class,
-            ['is_default' => true],
-        );
-
-        $this->writeSuppliers->updateById($partyId, $writeData);
-    }
-
-    /**
-     * Summary of setClientDefault
-     */
-    public function setClientDefault(int $userId, int $clientId): void
-    {
-        $partyId = PartyId::fromInt($clientId);
-
-        // Unset default flag on other clients
-        $this->writeClients->unsetOthersDefault($partyId, $userId);
-
-        // Get current client DTO, clone its data and set is_default = true
-        $clientDto = $this->readClients->findById($partyId);
-        $writeData = $this->cloneWriteDto(
-            $clientDto,
-            ClientWriteData::class,
-            ['is_default' => true],
-        );
-
-        $this->writeClients->updateById($partyId, $writeData);
-    }
-
-    /**
      * Delete a supplier if no invoices or expenses refer to it
      *
      * @return bool True if deleted, false if not (due to linked documents)
@@ -279,27 +237,5 @@ class InvoicePartyService implements InvoicePartyServiceInterface
         }
 
         return $this->readClients->firstForUser($userId);
-    }
-
-    /**
-     * Clone a DTO with some field overrides.
-     * Used to maintain immutability while updating specific fields.
-     */
-    private function cloneWriteDto(
-        object $dto,
-        string $writeClass,
-        array $overrides,
-    ): object {
-        $data = get_object_vars($dto);
-        foreach ($overrides as $k => $v) {
-            $data[$k] = $v;
-        }
-
-        // Use Factory instead of buildDto
-        return match ($writeClass) {
-            ClientWriteData::class => PartyDtoFactory::createClientWriteData($data),
-            SupplierWriteData::class => PartyDtoFactory::createSupplierWriteData($data),
-            default => throw new \InvalidArgumentException("Unsupported DTO class: $writeClass"),
-        };
     }
 }

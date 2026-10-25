@@ -136,17 +136,5 @@ class ClientCrudController extends CrudController
         return $this->traitStore();
     }
 
-    /**
-     * Returns client data as JSON by ID
-     *
-     * @param  int  $id  Client ID
-     */
-    public function fetch(int $id): JsonResponse
-    {
-        $client = Client::findOrFail($id);
-
-        return response()->json($client);
-    }
-
     // Usage recording is now handled by ClientObserver (model created event)
 }

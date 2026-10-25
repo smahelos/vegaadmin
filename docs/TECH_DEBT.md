@@ -29,7 +29,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 **D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
 
-13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field; Party: client mapper); "Move cache invalidation from observers to domain event handlers" after step 4.
+13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field); "Move cache invalidation from observers to domain event handlers" after step 4.
 14. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 
 **E. Before production and last**
@@ -364,8 +364,3 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** 105 files in `app/`, `resources/`, `lang/`, `tests/` — properties, variables and parameters `$ico` / `$dic`, `->ico` / `->dic`, prefixed variants (`client_ico`, `client_dic`, `supplier_ico`, `supplier_dic`); DB columns `ico` / `dic` in `clients` and `suppliers` (indexes `idx_clients_user_ico`, `idx_suppliers_user_ico`); translation keys (`clients.fields.ico`, …)
 - **Problem:** the Czech abbreviations IČO (company registration number) and DIČ (VAT number) are used as identifiers in English code.
 - **Fix (decided 2026-10-20):** rename everything, the same name in every layer: PHP `companyNumber` / `vatNumber`, DB columns and indexes `company_number` / `vat_number`, request and form keys `client_company_number`, `supplier_vat_number`, …, translation keys `….company_number` / `….vat_number`. Not `company_id` / `vat_id`: the `_id` / `Id` suffix is reserved for entity identifiers and foreign keys, and `vat_id` or `client_company_id` would read as one.
-
-### Client mapper maps invoices as clients
-- **Where:** `app/Infrastructure/Persistence/Eloquent/Party/Mappers/EloquentClientMapper.php::toClientDTO()`
-- **Problem:** loaded `invoices` are passed to `toClientDTO()` itself.
-- **Fix:** map invoices with the invoice mapper (or drop them from `ClientDTO`).

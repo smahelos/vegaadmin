@@ -290,30 +290,6 @@ class InvoicePartyServiceTest extends TestCase
     }
 
     #[Test]
-    public function set_client_default_unsets_previous_defaults(): void
-    {
-        $c1 = Client::factory()->create(['user_id' => $this->user->id, 'is_default' => true]);
-        $c2 = Client::factory()->create(['user_id' => $this->user->id, 'is_default' => false]);
-        $this->service->setClientDefault($this->user->id, $c2->id);
-        $c1->refresh();
-        $c2->refresh();
-        $this->assertFalse($c1->is_default);
-        $this->assertTrue($c2->is_default);
-    }
-
-    #[Test]
-    public function set_supplier_default_unsets_previous_defaults(): void
-    {
-        $s1 = Supplier::factory()->create(['user_id' => $this->user->id, 'is_default' => true]);
-        $s2 = Supplier::factory()->create(['user_id' => $this->user->id, 'is_default' => false]);
-        $this->service->setSupplierDefault($this->user->id, $s2->id);
-        $s1->refresh();
-        $s2->refresh();
-        $this->assertFalse($s1->is_default);
-        $this->assertTrue($s2->is_default);
-    }
-
-    #[Test]
     public function delete_supplier_returns_false_when_linked_invoices_exist(): void
     {
         $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);

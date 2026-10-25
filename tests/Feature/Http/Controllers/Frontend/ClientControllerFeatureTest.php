@@ -34,8 +34,6 @@ class ClientControllerFeatureTest extends TestCase
     use CreatesFrontendTestEnvironment;
     use WithFaker;
 
-    protected string $validEmail;
-
     protected array $validClientData;
 
     protected string $defaultLocale = 'cs';

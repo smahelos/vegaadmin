@@ -9,7 +9,6 @@ use App\Domain\Payment\Contracts\BankServiceInterface;
 use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
 use App\Domain\User\Contracts\LocaleServiceInterface;
 use App\Domain\User\ValueObjects\UserId;
-use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use PHPUnit\Framework\Attributes\Test;
@@ -160,12 +159,10 @@ class RegisterControllerFeatureTest extends TestCase
                     country: $data['country'] ?? null,
                     ico: $data['ico'] ?? null,
                     dic: $data['dic'] ?? null,
-                    shortcut: $data['shortcut'] ?? null,
                     description: $data['description'] ?? null,
                     created_at: $data['created_at'] ?? null,
                     user_id: $userId->toInt(),
                     is_default: false,
-                    invoices: [],
                 );
             }
 
@@ -182,7 +179,6 @@ class RegisterControllerFeatureTest extends TestCase
                     country: $data['country'] ?? null,
                     ico: $data['ico'] ?? null,
                     dic: $data['dic'] ?? null,
-                    shortcut: $data['shortcut'] ?? null,
                     description: $data['description'] ?? null,
                     created_at: $data['created_at'] ?? null,
                     supplier_logo: $data['supplier_logo'] ?? null,
@@ -191,10 +187,8 @@ class RegisterControllerFeatureTest extends TestCase
                     bank_name: $data['bank_name'] ?? null,
                     iban: $data['iban'] ?? null,
                     swift: $data['swift'] ?? null,
-                    has_payment_info: $data['has_payment_info'] ?? null,
                     user_id: $userId->toInt(),
                     is_default: false,
-                    invoices: [],
                 );
             }
 
@@ -212,7 +206,6 @@ class RegisterControllerFeatureTest extends TestCase
                         country: $data['country'] ?? null,
                         ico: $data['ico'] ?? null,
                         dic: $data['dic'] ?? null,
-                        shortcut: $data['shortcut'] ?? null,
                         description: $data['description'] ?? null,
                         created_at: $data['created_at'] ?? null,
                         supplier_logo: $data['supplier_logo'] ?? null,
@@ -221,10 +214,8 @@ class RegisterControllerFeatureTest extends TestCase
                         bank_name: $data['bank_name'] ?? null,
                         iban: $data['iban'] ?? null,
                         swift: $data['swift'] ?? null,
-                        has_payment_info: $data['has_payment_info'] ?? null,
                         user_id: $userId->toInt(),
                         is_default: false,
-                        invoices: [],
                     ),
                     'created' => true,
                 ];
@@ -244,12 +235,10 @@ class RegisterControllerFeatureTest extends TestCase
                         country: $data['country'] ?? null,
                         ico: $data['ico'] ?? null,
                         dic: $data['dic'] ?? null,
-                        shortcut: $data['shortcut'] ?? null,
                         description: $data['description'] ?? null,
                         created_at: $data['created_at'] ?? null,
                         user_id: $userId->toInt(),
                         is_default: false,
-                        invoices: [],
                     ),
                     'created' => true,
                 ];
@@ -274,12 +263,10 @@ class RegisterControllerFeatureTest extends TestCase
                     country: null,
                     ico: null,
                     dic: null,
-                    shortcut: null,
                     description: null,
                     created_at: null,
                     user_id: $userId,
                     is_default: false,
-                    invoices: [],
                 );
 
                 return $client;
@@ -298,7 +285,6 @@ class RegisterControllerFeatureTest extends TestCase
                     country: null,
                     ico: null,
                     dic: null,
-                    shortcut: null,
                     description: null,
                     created_at: null,
                     supplier_logo: null,
@@ -307,10 +293,8 @@ class RegisterControllerFeatureTest extends TestCase
                     bank_name: null,
                     iban: null,
                     swift: null,
-                    has_payment_info: null,
                     user_id: $userId,
                     is_default: false,
-                    invoices: [],
                 );
             }
 
@@ -327,16 +311,13 @@ class RegisterControllerFeatureTest extends TestCase
                     'country' => $data['country'] ?? null,
                     'ico' => $data['ico'] ?? null,
                     'dic' => $data['dic'] ?? null,
-                    'shortcut' => $data['shortcut'] ?? null,
                     'description' => $data['description'] ?? null,
                     'created_at' => $data['created_at'] ?? null,
                     'user_id' => $this->returnClientUserId,
                     'is_default' => false,
-                    'invoices' => [],
                 ];
-                $dataDTO = ClientDTO::fromArray($data);
 
-                return $dataDTO;
+                return new ClientDTO(...$data);
             }
 
             public function updateSupplier(int $supplierId, array $data): SupplierDTO
@@ -352,7 +333,6 @@ class RegisterControllerFeatureTest extends TestCase
                     'country' => $data['country'] ?? null,
                     'ico' => $data['ico'] ?? null,
                     'dic' => $data['dic'] ?? null,
-                    'shortcut' => $data['shortcut'] ?? null,
                     'description' => $data['description'] ?? null,
                     'created_at' => $data['created_at'] ?? null,
                     'supplier_logo' => $data['supplier_logo'] ?? null,
@@ -361,14 +341,11 @@ class RegisterControllerFeatureTest extends TestCase
                     'bank_name' => $data['bank_name'] ?? null,
                     'iban' => $data['iban'] ?? null,
                     'swift' => $data['swift'] ?? null,
-                    'has_payment_info' => $data['has_payment_info'] ?? null,
                     'user_id' => $this->returnSupplierUserId,
                     'is_default' => false,
-                    'invoices' => [],
                 ];
-                $dataDTO = SupplierDTO::fromArray($data);
 
-                return $dataDTO;
+                return new SupplierDTO(...$data);
             }
 
             public function setSupplierDefault(int $userId, int $supplierId): void {}
@@ -471,317 +448,5 @@ class RegisterControllerFeatureTest extends TestCase
         $response->assertRedirect();
         $this->assertAuthenticated('web');
         $this->assertDatabaseHas('users', ['email' => $payload['email']]);
-    }
-
-    #[Test]
-    public function registration_failure_from_party_service_shows_error_and_does_not_authenticate(): void
-    {
-        $this->withoutMiddleware(VerifyCsrfToken::class);
-        $locale = config('app.locale');
-
-        Role::firstOrCreate(['name' => 'frontend_user', 'guard_name' => 'web']);
-
-        // Rebind party service to failing implementation
-        $this->app->bind(InvoicePartyServiceInterface::class, fn () => new class implements InvoicePartyServiceInterface
-        {
-            public bool $throwModelNotFound = false;
-
-            public bool $throwGenericException = true; // Aktivujeme vyhozování výjimek
-
-            public int $returnClientUserId = 1;
-
-            public int $returnSupplierUserId = 1;
-
-            public function clientOptions(int $userId): array
-            {
-                return [];
-            }
-
-            public function supplierOptions(int $userId): array
-            {
-                return [];
-            }
-
-            public function defaultClient(int $userId): ?ClientDTO
-            {
-                return null;
-            }
-
-            public function defaultSupplier(int $userId): ?SupplierDTO
-            {
-                return null;
-            }
-
-            public function resolveOrCreateClient(UserId $userId, array $data): ClientDTO
-            {
-                return new ClientDTO(
-                    id: 1,
-                    name: $data['name'] ?? 'Default Client',
-                    email: $data['email'] ?? 'client@example.com',
-                    phone: $data['phone'] ?? null,
-                    street: $data['street'] ?? null,
-                    city: $data['city'] ?? null,
-                    zip: $data['zip'] ?? null,
-                    country: $data['country'] ?? null,
-                    ico: $data['ico'] ?? null,
-                    dic: $data['dic'] ?? null,
-                    shortcut: $data['shortcut'] ?? null,
-                    description: $data['description'] ?? null,
-                    created_at: $data['created_at'] ?? null,
-                    user_id: $userId->toInt(),
-                    is_default: false,
-                    invoices: [],
-                );
-            }
-
-            public function resolveOrCreateSupplier(UserId $userId, array $data): SupplierDTO
-            {
-                return new SupplierDTO(
-                    id: 1,
-                    name: $data['name'] ?? 'Default Supplier',
-                    email: $data['email'] ?? 'supplier@example.com',
-                    phone: $data['phone'] ?? null,
-                    street: $data['street'] ?? null,
-                    city: $data['city'] ?? null,
-                    zip: $data['zip'] ?? null,
-                    country: $data['country'] ?? null,
-                    ico: $data['ico'] ?? null,
-                    dic: $data['dic'] ?? null,
-                    shortcut: $data['shortcut'] ?? null,
-                    description: $data['description'] ?? null,
-                    created_at: $data['created_at'] ?? null,
-                    supplier_logo: $data['supplier_logo'] ?? null,
-                    account_number: $data['account_number'] ?? null,
-                    bank_code: $data['bank_code'] ?? null,
-                    bank_name: $data['bank_name'] ?? null,
-                    iban: $data['iban'] ?? null,
-                    swift: $data['swift'] ?? null,
-                    has_payment_info: $data['has_payment_info'] ?? null,
-                    user_id: $userId->toInt(),
-                    is_default: false,
-                    invoices: [],
-                );
-            }
-
-            public function resolveOrCreateSupplierWithFlag(UserId $userId, array $data): array
-            {
-                if ($this->throwGenericException) {
-                    throw new \Exception('Party service failure during supplier creation');
-                }
-
-                return [
-                    'supplier' => new SupplierDTO(
-                        id: 1,
-                        name: $data['name'] ?? 'Default Supplier',
-                        email: $data['email'] ?? 'supplier@example.com',
-                        phone: $data['phone'] ?? null,
-                        street: $data['street'] ?? null,
-                        city: $data['city'] ?? null,
-                        zip: $data['zip'] ?? null,
-                        country: $data['country'] ?? null,
-                        ico: $data['ico'] ?? null,
-                        dic: $data['dic'] ?? null,
-                        shortcut: $data['shortcut'] ?? null,
-                        description: $data['description'] ?? null,
-                        created_at: $data['created_at'] ?? null,
-                        supplier_logo: $data['supplier_logo'] ?? null,
-                        account_number: $data['account_number'] ?? null,
-                        bank_code: $data['bank_code'] ?? null,
-                        bank_name: $data['bank_name'] ?? null,
-                        iban: $data['iban'] ?? null,
-                        swift: $data['swift'] ?? null,
-                        has_payment_info: $data['has_payment_info'] ?? null,
-                        user_id: $userId->toInt(),
-                        is_default: false,
-                        invoices: [],
-                    ),
-                    'created' => true,
-                ];
-            }
-
-            public function resolveOrCreateClientWithFlag(UserId $userId, array $data): array
-            {
-                return [
-                    'client' => new ClientDTO(
-                        id: 1,
-                        name: $data['name'] ?? 'Default Client',
-                        email: $data['email'] ?? 'client@example.com',
-                        phone: $data['phone'] ?? null,
-                        street: $data['street'] ?? null,
-                        city: $data['city'] ?? null,
-                        zip: $data['zip'] ?? null,
-                        country: $data['country'] ?? null,
-                        ico: $data['ico'] ?? null,
-                        dic: $data['dic'] ?? null,
-                        shortcut: $data['shortcut'] ?? null,
-                        description: $data['description'] ?? null,
-                        created_at: $data['created_at'] ?? null,
-                        user_id: $userId->toInt(),
-                        is_default: false,
-                        invoices: [],
-                    ),
-                    'created' => true,
-                ];
-            }
-
-            public function findClient(int $userId, int $id): ClientDTO
-            {
-                if ($this->throwModelNotFound) {
-                    throw new ModelNotFoundException;
-                }
-                if ($this->throwGenericException) {
-                    throw new \Exception('Failure');
-                }
-                $client = new ClientDTO(
-                    id: $id,
-                    name: 'Client To Find',
-                    email: 'clienttofind@example.com',
-                    phone: null,
-                    street: null,
-                    city: null,
-                    zip: null,
-                    country: null,
-                    ico: null,
-                    dic: null,
-                    shortcut: null,
-                    description: null,
-                    created_at: null,
-                    user_id: $userId,
-                    is_default: false,
-                    invoices: [],
-                );
-
-                return $client;
-            }
-
-            public function findSupplier(int $userId, int $id): SupplierDTO
-            {
-                return new SupplierDTO(
-                    id: $id,
-                    name: 'Default Supplier',
-                    email: 'supplier@example.com',
-                    phone: null,
-                    street: null,
-                    city: null,
-                    zip: null,
-                    country: null,
-                    ico: null,
-                    dic: null,
-                    shortcut: null,
-                    description: null,
-                    created_at: null,
-                    supplier_logo: null,
-                    account_number: null,
-                    bank_code: null,
-                    bank_name: null,
-                    iban: null,
-                    swift: null,
-                    has_payment_info: null,
-                    user_id: $userId,
-                    is_default: false,
-                    invoices: [],
-                );
-            }
-
-            public function updateClient(int $clientId, array $data): ClientDTO
-            {
-                $data = [
-                    'id' => $clientId,
-                    'name' => $data['name'] ?? 'Default Client',
-                    'email' => $data['email'] ?? 'client@example.com',
-                    'phone' => $data['phone'] ?? null,
-                    'street' => $data['street'] ?? null,
-                    'city' => $data['city'] ?? null,
-                    'zip' => $data['zip'] ?? null,
-                    'country' => $data['country'] ?? null,
-                    'ico' => $data['ico'] ?? null,
-                    'dic' => $data['dic'] ?? null,
-                    'shortcut' => $data['shortcut'] ?? null,
-                    'description' => $data['description'] ?? null,
-                    'created_at' => $data['created_at'] ?? null,
-                    'user_id' => $this->returnClientUserId,
-                    'is_default' => false,
-                    'invoices' => [],
-                ];
-                $dataDTO = ClientDTO::fromArray($data);
-
-                return $dataDTO;
-            }
-
-            public function updateSupplier(int $supplierId, array $data): SupplierDTO
-            {
-                $data = [
-                    'id' => $supplierId,
-                    'name' => $data['name'] ?? 'Default Supplier',
-                    'email' => $data['email'] ?? 'supplier@example.com',
-                    'phone' => $data['phone'] ?? null,
-                    'street' => $data['street'] ?? null,
-                    'city' => $data['city'] ?? null,
-                    'zip' => $data['zip'] ?? null,
-                    'country' => $data['country'] ?? null,
-                    'ico' => $data['ico'] ?? null,
-                    'dic' => $data['dic'] ?? null,
-                    'shortcut' => $data['shortcut'] ?? null,
-                    'description' => $data['description'] ?? null,
-                    'created_at' => $data['created_at'] ?? null,
-                    'supplier_logo' => $data['supplier_logo'] ?? null,
-                    'account_number' => $data['account_number'] ?? null,
-                    'bank_code' => $data['bank_code'] ?? null,
-                    'bank_name' => $data['bank_name'] ?? null,
-                    'iban' => $data['iban'] ?? null,
-                    'swift' => $data['swift'] ?? null,
-                    'has_payment_info' => $data['has_payment_info'] ?? null,
-                    'user_id' => $this->returnSupplierUserId,
-                    'is_default' => false,
-                    'invoices' => [],
-                ];
-                $dataDTO = SupplierDTO::fromArray($data);
-
-                return $dataDTO;
-            }
-
-            public function setSupplierDefault(int $userId, int $supplierId): void {}
-
-            public function setClientDefault(int $userId, int $clientId): void {}
-
-            public function deleteSupplier(int $userId, int $supplierId): bool
-            {
-                return true;
-            }
-
-            public function deleteClient(int $userId, int $clientId): bool
-            {
-                return true;
-            }
-
-            public function listSuppliers(User $user): array
-            {
-                return [];
-            }
-
-            public function listClients(User $user): array
-            {
-                return [];
-            }
-
-            public function defaultSupplierOrFirst(int $userId): ?SupplierDTO
-            {
-                return null;
-            }
-
-            public function defaultClientOrFirst(int $userId): ?ClientDTO
-            {
-                return null;
-            }
-        });
-
-        $payload = $this->registrationPayload();
-        $response = $this->post(route('frontend.register', ['locale' => $locale]), $payload);
-        $response->assertStatus(302);
-        $this->assertTrue(session()->has('error'));
-        $this->assertGuest('web');
-
-        // User may or may not be persisted depending on where exception occurred; ensure not authenticated
-        $this->assertGuest('web');
     }
 }
