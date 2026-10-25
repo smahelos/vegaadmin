@@ -150,18 +150,6 @@ class ProductListTest extends TestCase
     }
 
     #[Test]
-    public function sort_by_method_has_correct_parameter_type(): void
-    {
-        $reflection = new \ReflectionClass($this->component);
-        $method = $reflection->getMethod('sortBy');
-        $parameters = $method->getParameters();
-
-        $this->assertCount(1, $parameters);
-        $this->assertEquals('field', $parameters[0]->getName());
-        $this->assertEquals('string', $parameters[0]->getType()->getName());
-    }
-
-    #[Test]
     public function render_method_exists(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));

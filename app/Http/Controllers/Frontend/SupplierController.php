@@ -184,15 +184,13 @@ class SupplierController extends Controller
                 ->withInput()
                 ->with('error', __('suppliers.messages.error_create'));
         } catch (\Exception $e) {
-            // Log the actual error for debugging
             Log::error('Supplier creation failed', [
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'userId' => Auth::id(),
+                'exception' => $e,
             ]);
 
             return back()->withInput()
-                ->with('error', __('suppliers.messages.error_create') . ': ' . $e->getMessage());
+                ->with('error', __('suppliers.messages.error_create'));
         }
     }
 
@@ -338,17 +336,15 @@ class SupplierController extends Controller
                 ->withInput()
                 ->with('error', __('suppliers.messages.validation_failed'));
         } catch (\Exception $e) {
-            // Log the actual error for debugging
             Log::error('Supplier update failed', [
-                'supplier_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'supplierId' => $id,
+                'userId' => Auth::id(),
+                'exception' => $e,
             ]);
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', __('suppliers.messages.error_update') . ': ' . $e->getMessage());
+                ->with('error', __('suppliers.messages.error_update'));
         }
     }
 
@@ -381,35 +377,6 @@ class SupplierController extends Controller
             return redirect()
                 ->route('frontend.suppliers', ['locale' => $locale])
                 ->with('error', __('suppliers.messages.error_delete'));
-        }
-    }
-
-    /**
-     * Set supplier as default
-     *
-     * @return RedirectResponse
-     */
-    public function setDefault(string $locale, int $id)
-    {
-        try {
-            // Get User
-            $user = Auth::user();
-
-            // Find supplier
-            $supplier = $this->partyService->findSupplier($user->id, $id);
-            $this->partyService->setSupplierDefault($user->id, $supplier->id);
-
-            return redirect()
-                ->route('frontend.suppliers', ['locale' => $locale])
-                ->with('success', __('suppliers.messages.set_default'));
-        } catch (ModelNotFoundException $e) {
-            return redirect()
-                ->route('frontend.suppliers', ['locale' => $locale])
-                ->with('error', __('suppliers.messages.error_set_default'));
-        } catch (\Exception $e) {
-            return redirect()
-                ->route('frontend.suppliers', ['locale' => $locale])
-                ->with('error', __('suppliers.messages.error_set_default'));
         }
     }
 

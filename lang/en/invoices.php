@@ -153,7 +153,7 @@ return [
         'delete_error' => 'Error deleting invoice: ',
         'show_error' => 'The requested invoice was not found.',
         'edit_error_unauthorized' => 'You are not authorized to edit this invoice.',
-        'error_loading' => 'An error occurred while loading invoices. Please try again later: ',
+        'error_loading' => 'An error occurred while loading invoices. Please try again later.',
         'created_guest' => 'Invoice was successfully created!',
         'thank_you' => 'Thank you for creating an invoice!',
         'invoice_created_guest' => 'Your invoice has been successfully created. You can download it by clicking the button below.',

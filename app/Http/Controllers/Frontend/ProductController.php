@@ -111,16 +111,14 @@ class ProductController extends Controller
                 ->withInput()
                 ->with('error', trans('products.messages.validation_failed'));
         } catch (\Throwable $e) {
-            // Log the actual error for debugging
             Log::error('Product creation failed', [
-                'user_id' => $user->id ?? 'guest',
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'userId' => Auth::id(),
+                'exception' => $e,
             ]);
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', trans('products.messages.error_create') . ': ' . $e->getMessage());
+                ->with('error', __('products.messages.error_create'));
         }
     }
 
@@ -221,17 +219,15 @@ class ProductController extends Controller
                 ->withInput()
                 ->with('error', trans('products.messages.validation_failed'));
         } catch (\Throwable $e) {
-            // Log the actual error for debugging
             Log::error('Product update failed', [
-                'product_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'productId' => $id,
+                'userId' => Auth::id(),
+                'exception' => $e,
             ]);
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', trans('products.messages.error_update') . ': ' . $e->getMessage());
+                ->with('error', __('products.messages.error_update'));
         }
     }
 

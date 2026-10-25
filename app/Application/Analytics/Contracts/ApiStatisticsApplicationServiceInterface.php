@@ -1,47 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Analytics\Contracts;
 
-use Illuminate\Http\Request;
+use App\Domain\Analytics\DTO\StatisticsFilter;
+use App\Domain\User\ValueObjects\UserId;
 
 /**
- * Application layer service interface for API statistics endpoints.
- * Keeps controllers thin by encapsulating query building and aggregation logic.
+ * Dashboard chart statistics of one user.
  */
 interface ApiStatisticsApplicationServiceInterface
 {
     /**
-     * Monthly revenue statistics (total + paid) grouped by YYYY-MM.
+     * Revenue (total and paid) per month, YYYY-MM.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<array<string, mixed>>
      */
-    public function monthlyRevenue(Request $request): array;
+    public function monthlyRevenue(UserId $userId, StatisticsFilter $filter): array;
 
     /**
-     * Top client revenue statistics for authenticated user.
-     *
-     * @return array<int, array<string, mixed>>
+     * @return list<array<string, mixed>>
      */
-    public function clientRevenue(Request $request): array;
+    public function clientRevenue(UserId $userId, StatisticsFilter $filter): array;
 
     /**
-     * Invoice status distribution for authenticated user.
-     *
-     * @return array<int, array<string, mixed>>
+     * @return list<array<string, mixed>>
      */
-    public function invoiceStatus(Request $request): array;
+    public function invoiceStatus(UserId $userId, StatisticsFilter $filter): array;
 
     /**
-     * Payment method usage statistics for authenticated user.
-     *
-     * @return array<int, array<string, mixed>>
+     * @return list<array<string, mixed>>
      */
-    public function paymentMethods(Request $request): array;
+    public function paymentMethods(UserId $userId, StatisticsFilter $filter): array;
 
     /**
-     * Combined revenue vs expense per month timeline for authenticated user.
+     * Revenue and expense rows per month, ordered by month.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<array<string, mixed>>
      */
-    public function revenueExpenses(Request $request): array;
+    public function revenueExpenses(UserId $userId, StatisticsFilter $filter): array;
 }

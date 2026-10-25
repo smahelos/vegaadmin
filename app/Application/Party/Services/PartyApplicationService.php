@@ -158,12 +158,6 @@ class PartyApplicationService implements PartyApplicationServiceInterface
         );
     }
 
-    public function setClientDefault(int $userId, int $clientId): void
-    {
-        DB::transaction(fn () => $this->partyService->setClientDefault($userId, $clientId),
-        );
-    }
-
     public function resolveOrCreateSupplier(int $userId, array $data): Supplier
     {
         $this->validationService->validateSupplierBusinessRules($data, $userId);
@@ -200,12 +194,6 @@ class PartyApplicationService implements PartyApplicationServiceInterface
     public function deleteSupplier(int $userId, int $supplierId): bool
     {
         return DB::transaction(fn () => $this->partyService->deleteSupplier($userId, $supplierId),
-        );
-    }
-
-    public function setSupplierDefault(int $userId, int $supplierId): void
-    {
-        DB::transaction(fn () => $this->partyService->setSupplierDefault($userId, $supplierId),
         );
     }
 

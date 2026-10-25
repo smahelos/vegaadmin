@@ -1,38 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
 use App\Application\Analytics\Contracts\ApiStatisticsApplicationServiceInterface;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\StatisticsRequest;
+use Illuminate\Http\JsonResponse;
 
-class StatisticsController extends Controller
+final class StatisticsController extends Controller
 {
-    public function __construct(private ApiStatisticsApplicationServiceInterface $statsApp) {}
+    public function __construct(
+        private readonly ApiStatisticsApplicationServiceInterface $statistics,
+    ) {}
 
-    public function monthlyRevenue(Request $request)
+    public function monthlyRevenue(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statsApp->monthlyRevenue($request)]);
+        return response()->json(['data' => $this->statistics->monthlyRevenue($request->userId(), $request->filter())]);
     }
 
-    public function clientRevenue(Request $request)
+    public function clientRevenue(StatisticsRequest $request): JsonResponse
     {
-        // Returns array of client_id, client_name, total
-        return response()->json($this->statsApp->clientRevenue($request));
+        return response()->json(['data' => $this->statistics->clientRevenue($request->userId(), $request->filter())]);
     }
 
-    public function invoiceStatus(Request $request)
+    public function invoiceStatus(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statsApp->invoiceStatus($request)]);
+        return response()->json(['data' => $this->statistics->invoiceStatus($request->userId(), $request->filter())]);
     }
 
-    public function paymentMethods(Request $request)
+    public function paymentMethods(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statsApp->paymentMethods($request)]);
+        return response()->json(['data' => $this->statistics->paymentMethods($request->userId(), $request->filter())]);
     }
 
-    public function revenueExpenses(Request $request)
+    public function revenueExpenses(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statsApp->revenueExpenses($request)]);
+        return response()->json(['data' => $this->statistics->revenueExpenses($request->userId(), $request->filter())]);
     }
 }

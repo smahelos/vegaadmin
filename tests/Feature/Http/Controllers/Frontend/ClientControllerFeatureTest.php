@@ -26,7 +26,7 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
 /**
  * Feature tests for Frontend\ClientController
  *
- * Tests all frontend client management endpoints: index, create, store, show, edit, update, destroy, setDefault
+ * Tests all frontend client management endpoints: index, create, store, show, edit, update, destroy
  * Tests authentication scenarios, authorization (user ownership checks), validation, error handling
  * Tests view rendering, form processing, and security boundaries for client management
  */
@@ -542,67 +542,6 @@ class ClientControllerFeatureTest extends TestCase
         $response->assertSessionHas('error');
 
         $this->assertDatabaseHas('clients', ['id' => $client->id]);
-    }
-
-    /**
-     * Test setDefault method sets client as default.
-     *
-     * @return void
-     */
-    #[Test]
-    public function set_default_sets_client_as_default()
-    {
-        $this->actingAs($this->user);
-
-        // Create multiple clients
-        $client1 = Client::factory()->create(['user_id' => $this->user->id, 'is_default' => true]);
-        $client2 = Client::factory()->create(['user_id' => $this->user->id, 'is_default' => false]);
-
-        $response = $this->get($this->localizedRoute('frontend.client.set-default', $client2->id));
-
-        $response->assertRedirect();
-        $response->assertSessionHas('success');
-
-        // Check that client2 is now default and client1 is not
-        $client1->refresh();
-        $client2->refresh();
-
-        $this->assertFalse($client1->is_default);
-        $this->assertTrue($client2->is_default);
-    }
-
-    /**
-     * Test setDefault method requires authentication.
-     *
-     * @return void
-     */
-    #[Test]
-    public function set_default_requires_authentication()
-    {
-        $client = Client::factory()->create();
-
-        $response = $this->get($this->localizedRoute('frontend.client.set-default', $client->id));
-
-        $response->assertRedirect('/login');
-    }
-
-    /**
-     * Test setDefault method prevents setting other user's client as default.
-     *
-     * @return void
-     */
-    #[Test]
-    public function set_default_prevents_setting_other_users_client_as_default()
-    {
-        $this->actingAs($this->user);
-
-        $otherUser = User::factory()->create();
-        $otherClient = Client::factory()->create(['user_id' => $otherUser->id]);
-
-        $response = $this->get($this->localizedRoute('frontend.client.set-default', $otherClient->id));
-
-        $response->assertRedirect();
-        $response->assertSessionHas('error');
     }
 
     /**

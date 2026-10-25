@@ -28,12 +28,8 @@ Route::get('/', function () {
     return redirect("/{$defaultLocale}");
 })->name('root');
 
-// Middleware application for frontend routes
-// This middleware will refresh the session for the frontend
-// and ensure that the session is always up to date
-// with the latest data from the database.
+// The web group comes from bootstrap/app.php; locale and session refresh run after the session has started
 Route::middleware([
-    'web',
     'set.locale',
     'refresh.frontend.session',
 ])->group(function () {
@@ -72,7 +68,6 @@ Route::middleware([
             Route::get('/client/{id}/edit', [ClientController::class, 'edit'])->name('frontend.client.edit');
             Route::put('/client/{id}', [ClientController::class, 'update'])->name('frontend.client.update');
             Route::delete('/client/{id}', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
-            Route::get('/client/{id}/set-default', [ClientController::class, 'setDefault'])->name('frontend.client.set-default');
 
             // Suppliers
             Route::get('/supplier', [SupplierController::class, 'index'])->name('frontend.suppliers');
@@ -82,7 +77,6 @@ Route::middleware([
             Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('frontend.supplier.edit');
             Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('frontend.supplier.update');
             Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('frontend.supplier.destroy');
-            Route::get('/supplier/{id}/set-default', [SupplierController::class, 'setDefault'])->name('frontend.supplier.set-default');
 
             // Profile
             Route::get('/profile', [ProfileController::class, 'edit'])->name('frontend.profile.edit');
@@ -137,8 +131,9 @@ Route::middleware([
             ->withoutMiddleware(['auth']);
 
         // Delete invoice with token (for guests)
-        Route::get('/invoices/delete/{token}', [InvoiceController::class, 'deleteGuestInvoice'])
-            ->name('frontend.invoice.delete.token')
+        Route::delete('/guest-invoices/{token}', [InvoiceController::class, 'destroyGuest'])
+            ->where('token', '[A-Za-z0-9]{64}')
+            ->name('frontend.guest-invoices.destroy')
             ->withoutMiddleware(['auth']);
 
         // Page routes
@@ -155,12 +150,10 @@ Route::middleware([
 });
 
 // Auth routes outside locale group for Laravel auth middleware compatibility
-Route::middleware(['web', 'guest'])->group(function () {
+Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 });
 
 // Payment callback routes (outside locale and auth middleware)
-Route::middleware(['web'])->group(function () {
-    Route::get('/payment/return', [PaymentController::class, 'return'])->name('payment.return');
-    Route::post('/payment/notify', [PaymentController::class, 'notify'])->name('payment.notify');
-});
+Route::get('/payment/return', [PaymentController::class, 'return'])->name('payment.return');
+Route::post('/payment/notify', [PaymentController::class, 'notify'])->name('payment.notify');

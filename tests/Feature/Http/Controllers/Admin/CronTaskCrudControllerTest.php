@@ -4,9 +4,11 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
 use App\Models\CronTask;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -129,5 +131,69 @@ class CronTaskCrudControllerTest extends TestCase
         $response = $this->post('/admin/cron-task', $payload);
         $response->assertStatus(302); // Validation redirect
         $response->assertSessionHasErrors(['custom_expression']);
+    }
+
+    #[Test]
+    public function run_executes_the_task_and_reports_success(): void
+    {
+        $task = CronTask::factory()->create([
+            'command' => 'inspire',
+            'last_run' => null,
+        ]);
+
+        $this->actingAs($this->adminUser, 'backpack')
+            ->from('/admin/cron-task')
+            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
+            ->assertRedirect('/admin/cron-task')
+            ->assertSessionHas('alert_messages.success', [__('cron_tasks.messages.task_executed')])
+            ->assertSessionMissing('alert_messages.error');
+
+        $this->assertNotNull($task->fresh()->last_run);
+    }
+
+    #[Test]
+    public function run_reports_a_failed_task_as_an_error(): void
+    {
+        $task = CronTask::factory()->create(['command' => 'billex:no-such-command']);
+
+        $this->actingAs($this->adminUser, 'backpack')
+            ->from('/admin/cron-task')
+            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
+            ->assertRedirect('/admin/cron-task')
+            ->assertSessionHas('alert_messages.error', [__('cron_tasks.messages.execution_failed')])
+            ->assertSessionMissing('alert_messages.success');
+    }
+
+    #[Test]
+    public function run_is_not_reachable_over_get(): void
+    {
+        $task = CronTask::factory()->create([
+            'command' => 'inspire',
+            'last_run' => null,
+        ]);
+
+        $this->actingAs($this->adminUser, 'backpack')
+            ->get('/admin/cron-task/' . $task->id . '/run')
+            ->assertMethodNotAllowed();
+
+        $this->assertNull($task->fresh()->last_run);
+    }
+
+    #[Test]
+    public function run_requires_the_cron_task_permission(): void
+    {
+        $task = CronTask::factory()->create([
+            'command' => 'inspire',
+            'last_run' => null,
+        ]);
+        $user = User::factory()->create();
+        $user->assignRole(Role::findByName('backend_user', 'backpack'));
+        $user->givePermissionTo(Permission::findByName('backpack.access', 'backpack'));
+
+        $this->actingAs($user, 'backpack')
+            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
+            ->assertForbidden();
+
+        $this->assertNull($task->fresh()->last_run);
     }
 }

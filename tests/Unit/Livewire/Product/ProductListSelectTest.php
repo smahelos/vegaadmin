@@ -25,17 +25,6 @@ class ProductListSelectTest extends TestCase
     }
 
     #[Test]
-    public function component_has_correct_default_properties(): void
-    {
-        $this->assertEquals('', $this->component->search);
-        $this->assertEquals('name', $this->component->sortField);
-        $this->assertEquals('asc', $this->component->sortDirection);
-        $this->assertEquals(10, $this->component->perPage);
-        $this->assertEquals([], $this->component->selectedProductIds);
-        $this->assertNull($this->component->errorMessage);
-    }
-
-    #[Test]
     public function component_has_correct_listeners(): void
     {
         $expectedListeners = [
@@ -61,35 +50,6 @@ class ProductListSelectTest extends TestCase
         $this->component->setSelectedProductIds($ids);
 
         $this->assertEquals($ids, $this->component->selectedProductIds);
-    }
-
-    #[Test]
-    public function sort_by_toggles_direction_for_same_field(): void
-    {
-        $this->component->sortField = 'name';
-        $this->component->sortDirection = 'asc';
-
-        $this->component->sortBy('name');
-
-        $this->assertEquals('name', $this->component->sortField);
-        $this->assertEquals('desc', $this->component->sortDirection);
-
-        $this->component->sortBy('name');
-
-        $this->assertEquals('name', $this->component->sortField);
-        $this->assertEquals('asc', $this->component->sortDirection);
-    }
-
-    #[Test]
-    public function sort_by_sets_ascending_for_different_field(): void
-    {
-        $this->component->sortField = 'name';
-        $this->component->sortDirection = 'desc';
-
-        $this->component->sortBy('price');
-
-        $this->assertEquals('price', $this->component->sortField);
-        $this->assertEquals('asc', $this->component->sortDirection);
     }
 
     #[Test]

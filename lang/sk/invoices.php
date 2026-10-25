@@ -153,7 +153,7 @@ return [
         'delete_error' => 'Pri vymazávaní faktúry došlo k chybe: ',
         'show_error' => 'Požadovaná faktúra nebola nájdená.',
         'edit_error_unauthorized' => 'Nemáte oprávnenie upravovať túto faktúru.',
-        'error_loading' => 'Nastala chyba pri načítaní faktúr. Prosím, skúste to znova neskôr: ',
+        'error_loading' => 'Nastala chyba pri načítaní faktúr. Prosím, skúste to znova neskôr.',
         'created_guest' => 'Faktúra bola úspešne vytvorená!',
         'thank_you' => 'Ďakujeme za vytvorenie faktúry!',
         'invoice_created_guest' => 'Vaša faktúra bola úspešne vytvorená. Môžete si ju stiahnuť kliknutím na tlačidlo nižšie.',

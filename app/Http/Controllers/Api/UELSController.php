@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * API Controller for Universal Entity Limit System (UELS) - Permission-based
@@ -244,11 +245,10 @@ class UELSController extends Controller
                 'all_limits' => $entityInfo['limits'],
             ]);
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to retrieve UELS data',
-                'message' => config('app.debug') ? $e->getMessage() : 'Internal server error',
-            ], 500);
+        } catch (Throwable $e) {
+            Log::error('Loading UELS data failed', ['exception' => $e]);
+
+            return response()->json(['message' => __('entity_limits.modal.error')], 500);
         }
     }
 
@@ -400,11 +400,10 @@ class UELSController extends Controller
                 'user_name' => $user?->name ?? 'Anonymous',
                 'timestamp' => now()->toISOString(),
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to retrieve UELS data',
-                'message' => config('app.debug') ? $e->getMessage() : 'Internal server error',
-            ], 500);
+        } catch (Throwable $e) {
+            Log::error('Loading UELS data failed', ['exception' => $e]);
+
+            return response()->json(['message' => __('entity_limits.modal.error')], 500);
         }
     }
 
@@ -437,11 +436,10 @@ class UELSController extends Controller
                 'permission_limits' => $permissionLimits,
                 'timestamp' => now()->toISOString(),
             ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to retrieve permissions',
-                'message' => config('app.debug') ? $e->getMessage() : 'Internal server error',
-            ], 500);
+        } catch (Throwable $e) {
+            Log::error('Loading UELS permissions failed', ['exception' => $e]);
+
+            return response()->json(['message' => __('entity_limits.modal.error')], 500);
         }
     }
 

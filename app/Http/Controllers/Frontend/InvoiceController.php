@@ -147,12 +147,11 @@ class InvoiceController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error(__('invoices.messages.create_error') . $e->getMessage());
+            Log::error('Guest invoice creation failed', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
-                'message' => __('invoices.messages.create_error') . ': ' . $e->getMessage(),
-                'error' => $e->getMessage(),
+                'message' => __('invoices.messages.create_error'),
             ], 500);
         }
     }
@@ -255,13 +254,7 @@ class InvoiceController extends Controller
             ->with('success', __($result->message ?? 'invoices.messages.updated'));
     }
 
-    /**
-     * Delete temporary invoice for guest user
-     *
-     * @param  string  $token  Invoice token
-     * @return RedirectResponse
-     */
-    public function deleteGuestInvoice(string $locale, string $token)
+    public function destroyGuest(string $locale, string $token): RedirectResponse
     {
         try {
             $deleted = $this->guestInvoiceApplicationService->deleteTemporary($token);

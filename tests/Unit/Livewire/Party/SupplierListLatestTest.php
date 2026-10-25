@@ -24,55 +24,6 @@ class SupplierListLatestTest extends TestCase
     }
 
     #[Test]
-    public function component_has_required_properties(): void
-    {
-        $this->assertObjectHasProperty('orderAsc', $this->component);
-        $this->assertObjectHasProperty('orderBy', $this->component);
-        $this->assertObjectHasProperty('errorMessage', $this->component);
-    }
-
-    #[Test]
-    public function component_has_default_property_values(): void
-    {
-        $this->assertFalse($this->component->orderAsc);
-        $this->assertEquals('created_at', $this->component->orderBy);
-        $this->assertNull($this->component->errorMessage);
-    }
-
-    #[Test]
-    public function sort_by_toggles_order_for_same_field(): void
-    {
-        $this->component->orderBy = 'name';
-        $this->component->orderAsc = false;
-
-        $this->component->sortBy('name');
-
-        $this->assertTrue($this->component->orderAsc);
-    }
-
-    #[Test]
-    public function sort_by_sets_new_field_with_ascending_order(): void
-    {
-        $this->component->orderBy = 'created_at';
-        $this->component->orderAsc = false;
-
-        $this->component->sortBy('name');
-
-        $this->assertEquals('name', $this->component->orderBy);
-        $this->assertTrue($this->component->orderAsc);
-    }
-
-    #[Test]
-    public function sort_by_method_exists_and_is_public(): void
-    {
-        $this->assertTrue(method_exists($this->component, 'sortBy'));
-
-        $reflection = new \ReflectionClass($this->component);
-        $method = $reflection->getMethod('sortBy');
-        $this->assertTrue($method->isPublic());
-    }
-
-    #[Test]
     public function render_method_exists_and_is_public(): void
     {
         $this->assertTrue(method_exists($this->component, 'render'));

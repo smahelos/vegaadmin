@@ -466,7 +466,7 @@ class DashboardStatistics {
             });
         }
         
-        const url = `/api/${endpoint}?${queryParams.toString()}`;
+        const url = `/api/statistics/${endpoint}?${queryParams.toString()}`;
         
         try {
             // Přidáme logování pro diagnostiku

@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
+use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoiceMutationPayload;
 use App\Models\PaymentMethod;
@@ -257,41 +258,44 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function delete_guest_invoice_success_redirects_with_success(): void
+    public function guest_deletes_the_invoice_of_their_session(): void
     {
-        $this->mock(GuestInvoiceApplicationServiceInterface::class)
-            ->shouldReceive('deleteTemporary')
-            ->once()
-            ->andReturn(true);
+        $store = app(TemporaryInvoiceStoreInterface::class);
+        $token = $store->store(['invoice_vs' => '20260001']);
 
-        $response = $this->get(route('frontend.invoice.delete.token', ['locale' => 'cs', 'token' => 'tokDEL']));
+        $response = $this->withSession(['last_guest_invoice_token' => $token])
+            ->delete(route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]));
+
         $response->assertRedirect(route('home', ['locale' => 'cs']));
         $response->assertSessionHas('success');
+        $response->assertSessionMissing('last_guest_invoice_token');
+        $this->assertNull($store->get($token));
     }
 
     #[Test]
-    public function delete_guest_invoice_failure_redirects_with_error(): void
+    public function guest_cannot_delete_an_invoice_of_another_session(): void
     {
-        $this->mock(GuestInvoiceApplicationServiceInterface::class)
-            ->shouldReceive('deleteTemporary')
-            ->once()
-            ->andReturn(false);
+        $store = app(TemporaryInvoiceStoreInterface::class);
+        $token = $store->store(['invoice_vs' => '20260001']);
 
-        $response = $this->get(route('frontend.invoice.delete.token', ['locale' => 'cs', 'token' => 'tokBAD']));
+        $response = $this->withSession(['last_guest_invoice_token' => str_repeat('a', 64)])
+            ->delete(route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]));
+
         $response->assertRedirect(route('home', ['locale' => 'cs']));
         $response->assertSessionHas('error');
+        $this->assertNotNull($store->get($token));
     }
 
     #[Test]
-    public function delete_guest_invoice_exception_redirects_with_error(): void
+    public function guest_invoice_is_not_deleted_over_get(): void
     {
-        $this->mock(GuestInvoiceApplicationServiceInterface::class)
-            ->shouldReceive('deleteTemporary')
-            ->once()
-            ->andThrow(new \Exception('fail'));
+        $store = app(TemporaryInvoiceStoreInterface::class);
+        $token = $store->store(['invoice_vs' => '20260001']);
 
-        $response = $this->get(route('frontend.invoice.delete.token', ['locale' => 'cs', 'token' => 'tokEX']));
-        $response->assertRedirect(route('home', ['locale' => 'cs']));
-        $response->assertSessionHas('error');
+        $this->withSession(['last_guest_invoice_token' => $token])
+            ->get(route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]))
+            ->assertMethodNotAllowed();
+
+        $this->assertNotNull($store->get($token));
     }
 }

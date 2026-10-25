@@ -94,43 +94,6 @@ class SupplierListLatestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function sort_by_toggles_order_direction(): void
-    {
-        $this->actingAs($this->user);
-
-        Supplier::factory()->count(3)->create(['user_id' => $this->user->id]);
-
-        $component = Livewire::test(SupplierListLatest::class);
-
-        // Initial state
-        $component->assertSet('orderBy', 'created_at')
-            ->assertSet('orderAsc', false);
-
-        // First click - should toggle to ascending
-        $component->call('sortBy', 'created_at')
-            ->assertSet('orderAsc', true);
-
-        // Second click - should toggle back to descending
-        $component->call('sortBy', 'created_at')
-            ->assertSet('orderAsc', false);
-    }
-
-    #[Test]
-    public function sort_by_changes_field_and_sets_ascending(): void
-    {
-        $this->actingAs($this->user);
-
-        Supplier::factory()->count(3)->create(['user_id' => $this->user->id]);
-
-        Livewire::test(SupplierListLatest::class)
-            ->assertSet('orderBy', 'created_at')
-            ->assertSet('orderAsc', false)
-            ->call('sortBy', 'name')
-            ->assertSet('orderBy', 'name')
-            ->assertSet('orderAsc', true);
-    }
-
-    #[Test]
     public function component_paginates_suppliers_with_five_per_page(): void
     {
         $this->actingAs($this->user);

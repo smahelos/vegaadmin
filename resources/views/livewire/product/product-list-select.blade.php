@@ -26,9 +26,9 @@
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
                         wire:click="sortBy('name')">
                         {{ __('products.fields.name') }}
-                        @if ($sortField === 'name')
+                        @if ($orderBy === 'name')
                         <span class="ml-1">
-                            @if ($sortDirection === 'asc')
+                            @if ($orderAsc)
                             <i class="fas fa-sort-up"></i>
                             @else
                             <i class="fas fa-sort-down"></i>
@@ -40,9 +40,9 @@
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
                         wire:click="sortBy('category_id')">
                         {{ __('products.fields.category_id') }}
-                        @if ($sortField === 'category')
+                        @if ($orderBy === 'category_id')
                         <span class="ml-1">
-                            @if ($sortDirection === 'asc')
+                            @if ($orderAsc)
                             <i class="fas fa-sort-up"></i>
                             @else
                             <i class="fas fa-sort-down"></i>
@@ -54,9 +54,9 @@
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
                         wire:click="sortBy('price')">
                         {{ __('products.fields.price') }}
-                        @if ($sortField === 'price')
+                        @if ($orderBy === 'price')
                         <span class="ml-1">
-                            @if ($sortDirection === 'asc')
+                            @if ($orderAsc)
                             <i class="fas fa-sort-up"></i>
                             @else
                             <i class="fas fa-sort-down"></i>
@@ -68,9 +68,9 @@
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
                         wire:click="sortBy('currency')">
                         {{ __('products.fields.currency') }}
-                        @if ($sortField === 'currency')
+                        @if ($orderBy === 'currency')
                         <span class="ml-1">
-                            @if ($sortDirection === 'asc')
+                            @if ($orderAsc)
                             <i class="fas fa-sort-up"></i>
                             @else
                             <i class="fas fa-sort-down"></i>
@@ -82,9 +82,9 @@
                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer"
                         wire:click="sortBy('tax_id')">
                         {{ __('products.fields.tax_id') }}
-                        @if ($sortField === 'tax_id')
+                        @if ($orderBy === 'tax_id')
                         <span class="ml-1">
-                            @if ($sortDirection === 'asc')
+                            @if ($orderAsc)
                             <i class="fas fa-sort-up"></i>
                             @else
                             <i class="fas fa-sort-down"></i>

@@ -188,9 +188,9 @@ class InvoiceListFeatureTest extends TestCase
         $this->actingAs($this->user);
 
         $component = Livewire::test(InvoiceList::class)
-            ->call('sortBy', 'number');
+            ->call('sortBy', 'invoice_vs');
 
-        $component->assertSet('orderBy', 'number')
+        $component->assertSet('orderBy', 'invoice_vs')
             ->assertSet('orderAsc', true);
     }
 
@@ -376,12 +376,12 @@ class InvoiceListFeatureTest extends TestCase
         $component = Livewire::test(InvoiceList::class)
             ->set('search', 'test')
             ->set('status', 'paid')
-            ->set('orderBy', 'number')
+            ->set('orderBy', 'invoice_vs')
             ->set('orderAsc', true);
 
         $component->assertSet('search', 'test')
             ->assertSet('status', 'paid')
-            ->assertSet('orderBy', 'number')
+            ->assertSet('orderBy', 'invoice_vs')
             ->assertSet('orderAsc', true);
     }
 

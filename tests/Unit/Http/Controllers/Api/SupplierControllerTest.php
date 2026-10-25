@@ -442,10 +442,6 @@ class FakeSupplierPartyService implements PartyApplicationServiceInterface
         return new Supplier($data);
     }
 
-    public function setSupplierDefault(int $userId, int $supplierId): void {}
-
-    public function setClientDefault(int $userId, int $clientId): void {}
-
     public function deleteSupplier(int $userId, int $supplierId): bool
     {
         return true;

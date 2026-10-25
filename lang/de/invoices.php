@@ -153,7 +153,7 @@ return [
         'delete_error' => 'Beim Löschen der Rechnung ist ein Fehler aufgetreten: ',
         'show_error' => 'Die angeforderte Rechnung wurde nicht gefunden.',
         'edit_error_unauthorized' => 'Sie sind nicht berechtigt, diese Rechnung zu bearbeiten.',
-        'error_loading' => 'Beim Laden der Rechnungen ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut: ',
+        'error_loading' => 'Beim Laden der Rechnungen ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.',
         'created_guest' => 'Rechnung wurde erfolgreich erstellt!',
         'thank_you' => 'Vielen Dank für die Erstellung der Rechnung!',
         'invoice_created_guest' => 'Ihre Rechnung wurde erfolgreich erstellt. Sie können sie durch Klicken auf die Schaltfläche unten herunterladen.',

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\CacheManagementController;
+use App\Http\Controllers\Admin\CronTaskCrudController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------
@@ -23,7 +25,7 @@ Route::group([
     Route::crud('status-category', 'StatusCategoryCrudController');
     Route::crud('supplier', 'SupplierCrudController');
     Route::crud('cron-task', 'CronTaskCrudController');
-    Route::get('cron-task/{id}/run', 'App\Http\Controllers\Admin\CronTaskCrudController@runCronTask');
+    Route::post('cron-task/{id}/run', [CronTaskCrudController::class, 'run'])->whereNumber('id')->name('admin.cron-tasks.run');
     Route::crud('artisan-command-category', 'ArtisanCommandCategoryCrudController');
     Route::crud('artisan-command', 'ArtisanCommandCrudController');
     Route::crud('tax', 'TaxCrudController');
@@ -59,11 +61,11 @@ Route::group([
     Route::crud('entity-usage', 'EntityUsageCrudController');
 
     // Cache Management Routes
-    Route::get('cache/clear', 'CacheManagementController@clearCache')->name('admin.cache.clear');
-    Route::get('cache/clear-config', 'CacheManagementController@clearConfig')->name('admin.cache.clear-config');
-    Route::get('cache/clear-views', 'CacheManagementController@clearViews')->name('admin.cache.clear-views');
-    Route::get('cache/clear-routes', 'CacheManagementController@clearRoutes')->name('admin.cache.clear-routes');
-    Route::get('cache/clear-all', 'CacheManagementController@clearAll')->name('admin.cache.clear-all');
+    Route::post('cache/clear', [CacheManagementController::class, 'clearCache'])->name('admin.cache.clear');
+    Route::post('cache/clear-config', [CacheManagementController::class, 'clearConfig'])->name('admin.cache.clear-config');
+    Route::post('cache/clear-views', [CacheManagementController::class, 'clearViews'])->name('admin.cache.clear-views');
+    Route::post('cache/clear-routes', [CacheManagementController::class, 'clearRoutes'])->name('admin.cache.clear-routes');
+    Route::post('cache/clear-all', [CacheManagementController::class, 'clearAll'])->name('admin.cache.clear-all');
 }); // this should be the absolute last line of this file
 
 /**

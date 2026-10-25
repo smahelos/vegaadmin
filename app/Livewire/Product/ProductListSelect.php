@@ -3,12 +3,16 @@
 namespace App\Livewire\Product;
 
 use App\Livewire\Shared\Paginates;
+use App\Livewire\Shared\Sorts;
 use App\Models\Product;
 use App\Models\Tax;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 /**
  * ProductListSelect Livewire Component
@@ -19,6 +23,7 @@ use Livewire\Component;
 class ProductListSelect extends Component
 {
     use Paginates;
+    use Sorts;
 
     /**
      * Search term for filtering products
@@ -26,17 +31,11 @@ class ProductListSelect extends Component
     #[Url(except: '')]
     public string $search = '';
 
-    /**
-     * Current sorting field
-     */
-    #[Url(except: 'name')]
-    public string $sortField = 'name';
+    #[Url(as: 'sort', except: 'name')]
+    public string $orderBy = 'name';
 
-    /**
-     * Sort direction (asc/desc)
-     */
-    #[Url(except: 'asc')]
-    public string $sortDirection = 'asc';
+    #[Url(as: 'direction', except: true)]
+    public bool $orderAsc = true;
 
     /**
      * Number of items per page
@@ -113,17 +112,20 @@ class ProductListSelect extends Component
         $this->resetPage();
     }
 
-    /**
-     * Sort by given field, toggle direction if same field
-     */
-    public function sortBy(string $field): void
+    protected function sortableColumns(): array
     {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortDirection = 'asc';
-        }
-        $this->sortField = $field;
+        return [
+            'name' => 'name',
+            'category_id' => 'category_id',
+            'price' => 'price',
+            'currency' => 'currency',
+            'tax_id' => 'tax_id',
+        ];
+    }
+
+    protected function defaultSort(): string
+    {
+        return 'name';
     }
 
     /**
@@ -132,8 +134,7 @@ class ProductListSelect extends Component
     public function selectProduct(int $id): bool
     {
         try {
-            // Explicitly load product including tax relation
-            $product = Product::findOrFail($id);
+            $product = Product::where('user_id', Auth::id())->findOrFail($id);
 
             // Manually load tax to ensure its availability
             if ($product->tax_id) {
@@ -181,8 +182,14 @@ class ProductListSelect extends Component
             $this->dispatch('closeModal');
 
             return true;
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while selecting product.';
+        } catch (ModelNotFoundException) {
+            // Another user's product is answered like a missing one; neither is worth an error log
+            $this->errorMessage = __('products.messages.not_found');
+
+            return false;
+        } catch (Throwable $e) {
+            Log::error('Selecting product failed', ['exception' => $e]);
+            $this->errorMessage = __('products.messages.error_selecting');
 
             return false;
         }
@@ -194,14 +201,11 @@ class ProductListSelect extends Component
     public function render(): View
     {
         try {
-            $user = Auth::user();
             $searchTerm = $this->search;
 
             // Explicit preloading of tax rates
             $query = Product::with(['tax'])
-                ->when($user, function ($query) use ($user) {
-                    return $query->where('user_id', $user->id);
-                })
+                ->where('user_id', Auth::id())
                 ->when($searchTerm, function ($query) use ($searchTerm) {
                     $query->where(function ($q) use ($searchTerm) {
                         $q->where(
@@ -216,7 +220,7 @@ class ProductListSelect extends Component
                             );
                     });
                 })
-                ->orderBy($this->sortField, $this->sortDirection);
+                ->orderBy($this->sortColumn(), $this->sortDirection());
 
             // If we have selected products, exclude them from results
             if (! empty($this->selectedProductIds)) {
@@ -229,8 +233,9 @@ class ProductListSelect extends Component
                 'products' => $products,
                 'hasData' => $products->total() > 0,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading products for selection.';
+        } catch (Throwable $e) {
+            Log::error('Loading products for selection failed', ['exception' => $e]);
+            $this->errorMessage = __('products.messages.error_loading');
 
             // Return empty products collection in case of error
             return view('livewire.product.product-list-select', [
