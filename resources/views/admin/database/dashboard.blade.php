@@ -519,9 +519,6 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                                         onclick="showCleanupModal()">
                                         <i class="la la-broom"></i> {{ __('admin/database.dashboard.cleanup_data') }}
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-info" onclick="generateSampleMetrics()">
-                                        <i class="la la-plus"></i> {{ __('admin/database.dashboard.generate_sample_data') }}
-                                    </button>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -809,7 +806,6 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
         // Expose functions globally for onclick handlers
         window.changeMetricType = function() { return window.DatabaseDashboard.changeMetricType(); };
         window.refreshChart = function() { return window.DatabaseDashboard.refreshChart(); };
-        window.generateSampleMetrics = function() { return window.DatabaseDashboard.generateSampleMetrics(); };
         window.resolveAlert = function(alertId) { return window.DatabaseDashboard.resolveAlert(alertId); };
         window.runDatabaseCommand = function(command) { return window.DatabaseDashboard.runDatabaseCommand(command); };
         window.showCleanupModal = function() { return window.DatabaseDashboard.showCleanupModal(); };

@@ -308,49 +308,6 @@ function loadChartData(metricType, days) {
 }
 
 /**
- * Generate sample metrics function
- */
-function generateSampleMetrics() {
-    if (!confirm(trans('confirm_generate_sample'))) {
-        return;
-    }
-
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    
-    btn.disabled = true;
-    btn.innerHTML = `<i class="la la-spinner la-spin"></i> ${trans('generating')}...`;
-
-    fetch(getUrl('database-dashboard/generate-sample-metrics'), {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': getCsrfToken()
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        
-        if (data.success) {
-            showNotification('success', data.message || trans('sample_metrics_generated'));
-            
-            // Reload page to show new data
-            setTimeout(() => location.reload(), 2000);
-        } else {
-            showNotification('error', data.message || trans('sample_generation_failed'));
-        }
-    })
-    .catch(error => {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        console.error('Error:', error);
-        showNotification('error', trans('sample_generation_error'));
-    });
-}
-
-/**
  * Resolve alert function
  */
 function resolveAlert(alertId) {
@@ -651,7 +608,6 @@ function showNotification(type, message) {
 window.DatabaseDashboard = {
     changeMetricType,
     refreshChart,
-    generateSampleMetrics,
     resolveAlert,
     runDatabaseCommand,
     showCleanupModal,
