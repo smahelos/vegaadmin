@@ -146,6 +146,46 @@ class SupplierControllerFeatureTest extends TestCase
         $response->assertViewIs('frontend.suppliers.index');
     }
 
+    #[Test]
+    public function index_shows_the_supplier_limit_and_usage(): void
+    {
+        EntityLimit::where('permission_name', 'frontend.can_create_edit_supplier')->update(['limit_value' => 2]);
+        app(UniversalLimitService::class)->recordUsage(
+            $this->user->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
+
+        $response = $this->actingAs($this->user)->get($this->localizedRoute('frontend.suppliers'));
+
+        $response->assertViewHas('limitsData', [
+            'limit' => 2,
+            'current_usage' => 1,
+            'allowed' => true,
+        ]);
+    }
+
+    #[Test]
+    public function index_does_not_allow_a_new_supplier_at_the_limit(): void
+    {
+        EntityLimit::where('permission_name', 'frontend.can_create_edit_supplier')->update(['limit_value' => 1]);
+        app(UniversalLimitService::class)->recordUsage(
+            $this->user->id,
+            'supplier',
+            'count',
+            'monthly',
+        );
+
+        $response = $this->actingAs($this->user)->get($this->localizedRoute('frontend.suppliers'));
+
+        $response->assertViewHas('limitsData', [
+            'limit' => 1,
+            'current_usage' => 1,
+            'allowed' => false,
+        ]);
+    }
+
     /**
      * Test index requires authentication
      */

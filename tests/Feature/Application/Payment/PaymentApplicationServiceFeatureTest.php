@@ -11,6 +11,8 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -189,6 +191,25 @@ class PaymentApplicationServiceFeatureTest extends TestCase
             'subscription_id' => $subscription->id,
             'status' => 'pending',
         ]);
+    }
+
+    #[Test]
+    public function initiate_subscription_logs_the_start_and_success_of_the_use_case(): void
+    {
+        $log = Log::spy();
+        $subscription = $this->createSubscription();
+
+        $this->appService->initiateSubscription($subscription, 'stub');
+
+        $log->shouldHaveReceived('info')
+            ->with('usecase.start', Mockery::on(
+                fn (array $context): bool => $context['use_case'] === 'initiate_subscription'
+                    && $context['subscription_id'] === $subscription->id,
+            ))
+            ->once();
+        $log->shouldHaveReceived('info')
+            ->with('usecase.success', Mockery::on(fn (array $context): bool => isset($context['duration_ms'])))
+            ->once();
     }
 
     #[Test]

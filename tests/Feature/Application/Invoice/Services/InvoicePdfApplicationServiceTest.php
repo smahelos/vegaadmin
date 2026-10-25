@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Application\Invoice;
+namespace Tests\Feature\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
@@ -187,5 +187,49 @@ class InvoicePdfApplicationServiceTest extends TestCase
         ); // preview stream
         $this->assertInvoiceSuccess($result, 'Guest preview failed');
         $this->assertNotNull($result->response);
+    }
+
+    #[Test]
+    public function another_users_invoice_is_not_rendered(): void
+    {
+        $create = $this->mutationService->create(
+            $this->user->id,
+            $this->baseData(),
+            [],
+        );
+        $this->assertInvoiceSuccess($create, 'Invoice creation failed');
+        $otherUser = User::factory()->create();
+
+        $pdf = $this->pdfService->generateForUser($otherUser->id, $create->invoice->id);
+
+        $this->assertInvoiceFailure($pdf);
+        $this->assertSame('invoices.messages.show_error', $pdf->message);
+        $this->assertNull($pdf->response);
+    }
+
+    #[Test]
+    public function guest_without_a_token_gets_not_found(): void
+    {
+        $result = $this->pdfService->generateForGuestByToken(
+            null,
+            'cs',
+            false,
+        );
+
+        $this->assertInvoiceFailure($result);
+        $this->assertSame('invoices.messages.not_found', $result->message);
+    }
+
+    #[Test]
+    public function guest_with_an_unknown_token_gets_expired(): void
+    {
+        $result = $this->pdfService->generateForGuestByToken(
+            'unknown-token',
+            'cs',
+            false,
+        );
+
+        $this->assertInvoiceFailure($result);
+        $this->assertSame('invoices.messages.expired', $result->message);
     }
 }
