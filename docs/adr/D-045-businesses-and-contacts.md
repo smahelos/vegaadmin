@@ -1,6 +1,6 @@
 # D-045: The User's Businesses and Their Contacts Are Separate Entities
 
-Status: Proposed 2026-10-25
+Status: Accepted 2026-10-25
 
 ## Context
 
@@ -12,13 +12,13 @@ The Party context stores two kinds of records under the names client and supplie
 
 Supplier and customer are roles on a document, not kinds of companies. On an issued invoice the user's business is the supplier and the other company is the customer; on a received invoice it is the other way round. The same company is often both: the user buys printing from it and also invoices it for design work.
 
-The code duplicates the two kinds: 55 files come in Client / Supplier pairs (models, repositories, mappers, ports, DTOs, write data, events, observers, controllers, requests, form fields, Livewire components), which `rules/architecture.md` calls a defect.
+The code duplicates the two kinds: 50 files come in 25 Client / Supplier pairs (models, repositories, mappers, ports, DTOs, write data, events, observers, controllers, requests, form fields, Livewire components), which `rules/architecture.md` calls a defect.
 
 ## Decision
 
 1. **`Business`** (table `businesses`, UI "Moje firmy") is the user's own identity: name, address, company and VAT number, logo, bank accounts, and later the VAT payer flag. It replaces `suppliers`. Registration creates the default business.
-2. **`Contact`** (table `contacts`, UI "Kontakty") is anyone the user does business with: the customers of issued documents and the suppliers of received documents. It replaces `clients`. A company has one contact record whatever role it plays, unique by `(user_id, company_number)`.
-3. **Documents name the role in their foreign keys**: an issued document has `business_id` and `contact_id` (its customer), a received document has `business_id` and `contact_id` (its supplier). Supplier and customer stay words of the document and its print, not entity names.
+2. **`Contact`** (table `contacts`, UI "Kontakty") is anyone the user does business with: the customers of issued documents and the suppliers of received documents. It replaces `clients`. A company has one contact record whatever role it plays, unique by `(user_id, company_number)`. A contact without a company number (a private person) is allowed and is not deduplicated by the key: MySQL treats NULLs in a unique index as distinct. An archived contact keeps its row and its key; entering its company number again restores it instead of creating a new one (TECH_DEBT "Clients, suppliers and products cannot be archived").
+3. **Documents name the role in their foreign keys**: an issued document has `business_id` and `contact_id` (its customer), a received document has `business_id` and `contact_id` (its supplier). Supplier and customer stay words of the document and its print, not entity names. The role of `contact_id` follows from the document table, one per direction (`docs/adr/D-044-document-tables.md`), and from its Domain class, never from a flag on the contact: the print DTO and the party snapshot of an issued document take the business as supplier and the contact as customer, those of a received document the contact as supplier and the business as customer. A test per direction pins it, since a swap would print the wrong bank account in the QR payment.
 4. **One class per entity** in the Party context. Behaviour that both entities share (address, company number lookup, archiving) is written once and used by both, not copied into a pair.
 5. **Done together with step 7 of the order of work** (renaming IČO and DIČ to `company_number` and `vat_number`, `PartyPrintData`), in one branch. Both rewrite the same files and the PDF snapshots, so they are rewritten once.
 
