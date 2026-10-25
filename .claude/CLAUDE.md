@@ -36,7 +36,8 @@ Everything PHP runs inside the `BILLEX-app` container (stack in `docker-compose.
 ```bash
 docker exec BILLEX-app php artisan test                                  # full suite
 docker exec BILLEX-app php artisan test --parallel --drop-databases      # paratest, drops invoice_testing_test_N afterwards
-docker exec BILLEX-app php artisan test tests/Unit/Domain/Payment/       # directory
+docker exec BILLEX-app vendor/bin/phpunit --testsuite Unit              # unit tests only: no Laravel, no database
+docker exec BILLEX-app php artisan test tests/Feature/Http/              # directory
 docker exec BILLEX-app php artisan test --filter=InvoiceRequestTest      # single test/class
 docker exec BILLEX-app php artisan ddd:guard                             # architecture guard
 docker exec BILLEX-app php artisan migrate:fresh --seed                  # rebuild the dev DB: reference data + DevelopmentDataSeeder accounts (*@billex.test / backpack)

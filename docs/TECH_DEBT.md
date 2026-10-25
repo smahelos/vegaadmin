@@ -12,7 +12,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 2. ~~Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".~~ Done 2026-10-24 (branch `ls-security`); found on the way: "Cron tasks are not fully gated by permissions", "Admin access middleware logs every request".
 3. ~~"Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.~~ Done 2026-10-25 (branch `ls-mysql-tests`): migrations squashed by context, reference data in `ReferenceDataSeeder`, the suite runs on MySQL locally and in CI.
 4. ~~"Domain events are published inside the transaction" with "No queue worker" — the issued-invoice work publishes its events on top of it; both deliver work outside the request, and the queue's `after_commit` is set there.~~ Done 2026-10-25 (branch `ls-events-after-commit`): domain handlers (database writes) run inside the transaction, Laravel listeners (cache) after the commit with their failures logged, queued jobs are stored in the transaction on the `database` connection (`rules/architecture.md`, Events); a `queue` container runs the worker.
-5. "Test runs and CI are slower than they need to be" with the `tests/Unit` part of "Tests that pin structure instead of behaviour" — every later branch runs the suite many times.
+5. ~~"Test runs and CI are slower than they need to be" with the `tests/Unit` part of "Tests that pin structure instead of behaviour" — every later branch runs the suite many times.~~ Done 2026-10-25 (branches `ls-test-speed`, `ls-unit-tests`): no more migrating again after tests that left their transaction, no Basset downloads; `tests/Unit` holds only behaviour tests without Laravel and runs as its own CI job without MySQL. `schema:dump` was deferred, see "Test runs and CI are slower than they need to be".
 
 **B. Invoices**
 
@@ -252,9 +252,9 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Fix:** find what the command shares with other parallel processes (scanned files, cache, output buffer) and isolate it, or drop the test together with the guards (Architecture guards are migration scaffolding).
 
 ### Test runs and CI are slower than they need to be
-- **Where:** `tests/Unit` (100 of 208 files extend `Tests\TestCase`), `.github/workflows/tests.yml`
-- **Problem:** the full suite takes about 0:55 locally with 12 processes (4150 tests, 2026-10-25, branch `ls-test-speed`: no more migrating and seeding again after tests that left their transaction, no Basset downloads, no sleeps). What remains: unit tests boot Laravel and open a database transaction, so they cannot run without MySQL; every process still migrates and seeds before its first test (about 9 s with 12 processes, 108 s of the 597 s the tests take together).
-- **Fix:** unit tests on `PHPUnit\Framework\TestCase` as in "Tests that pin structure instead of behaviour", run as their own job of `tests.yml` without MySQL; `php artisan schema:dump` only if migrating per process still matters after that (it needs the `mysql` client in `app.dockerfile`).
+- **Where:** `tests/TestCase.php` (`RefreshDatabase`), `phpunit.xml`
+- **Problem:** every parallel process migrates and seeds before its first test: 12–14 s each with 12 processes, about 170 s of the 663 s the 2986 tests take together (2026-10-25, branch `ls-unit-tests`); the run takes 0:57. Migrating is about 6 s of it, seeding the rest.
+- **Fix:** `php artisan schema:dump` would save the migrating part (about 6 s of the run) but needs the `mysql` client in `app.dockerfile` and in CI and a new dump after every migration; decided 2026-10-25 to measure again after step 8, when the invoice and document migrations are in.
 
 ### Erasing a user account
 - **Where:** `users` (soft deletes), `UserCrudController`, the restricting `user_id` foreign keys of `clients`, `suppliers`, `products`, `expenses`, `invoices` and `subscriptions`; cascading `entity_limit_usage`, `model_has_roles`, `model_has_permissions`
@@ -295,7 +295,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** move every use to the Domain ports, delete the Application repositories and their implementations. Then, per `rules/persistence.md` (decided 2026-10-20): ports without `Dto` and always with `Interface` (`ClientReadRepositoryInterface`; today 24 ports incl. `BankDtoRepository`, `AnalyticsDtoReadRepository`); a read port for every read entity, a write port only where the Domain writes (unsplit today: `StatusDtoRepositoryInterface`, `StatusCategoryDtoRepositoryInterface`, `BankDtoRepository`, `ArtisanCommandsDtoRepositoryInterface`, `AnalyticsDtoReadRepository`); one `Eloquent<Entity>Repository` per entity implementing both (merge `EloquentPaymentDto{Read,Write}Repository`, `EloquentSubscriptionDto{Read,Write}Repository`).
 
 ### Framework and model dependencies outside Infrastructure
-- **Where:** `App\Models` in 37 Application files, 39 of 55 controllers and all 10 Livewire components; `Illuminate\Http` in 7 Application files; facades/helpers in 13 Application files; `app/Domain/Payment/Services/SubscriptionPaymentService.php` imports `GoPayGateway`
+- **Where:** `App\Models` in 37 Application files, 39 of 55 controllers and all 10 Livewire components; `Illuminate\Http` in 7 Application files; facades/helpers in 13 Application files (e.g. `Log` in `ApplicationUseCaseLogging`, `session()` in `InvoicePdfApplicationService`, `Cache` in `TemporaryInvoiceStore` — their tests have to boot Laravel); `config()` in `app/Domain/Shared/File/Config/FileUploadConfig.php`; `app/Domain/Payment/Services/SubscriptionPaymentService.php` imports `GoPayGateway`
 - **Fix:** per `rules/architecture.md` (dependency table); Livewire components call application services.
 
 ### Interfaces without a port
@@ -326,11 +326,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Error handling
 - **Where:** 121 `catch (\Exception …)` in 53 files, mostly `Log::error($e->getMessage())` plus a generic message; failures returned as `false` or `['success' => false]`; only 4 domain exceptions
-- **Fix:** context exceptions, mapping in `app/Exceptions/ExceptionHandling.php` (`rules/php.md`, Errors).
+- **Fix:** context exceptions, mapping in `app/Exceptions/ExceptionHandling.php` (`rules/php.md`, Errors). The tests that pinned the catch-all responses (`exception_returns_500` and the like) were deleted with the `tests/Unit` clean-up; the conversion tests the mapped responses instead.
 
 ### Tests that pin structure instead of behaviour
-- **Where:** 235 `class_exists`/`method_exists` assertions, 189 files using reflection, 44 `$fillable`/`$casts` assertions (e.g. `tests/Unit/Models/*`); 100 tests in `tests/Unit` extending `Tests\TestCase`; `CreatesFrontendTestEnvironment` creating permission tables and hand-written permission lists; 43 tests named `test_*` or `@test`
-- **Fix:** delete structural tests, move framework tests to `tests/Feature`, use `PermissionCatalog` and migrations (`rules/testing.md`).
+- **Where:** `tests/Feature` only (`tests/Unit` was cleaned up 2026-10-25, branch `ls-unit-tests`): 27 `class_exists`/`method_exists` calls, 23 files using reflection, 24 `$fillable`/`$casts` references (e.g. `tests/Feature/Models/*`); `CreatesFrontendTestEnvironment` creating permission tables and hand-written permission lists; 15 tests named `test_*` or `@test` (PHPUnit 12 drops `@test`)
+- **Fix:** delete structural tests and convert the rest with each context (step 13), use `PermissionCatalog` and migrations (`rules/testing.md`).
 
 ### Frontend
 - **Where:** `resources/views` (25 files with inline `<script>`, 100 `style=""` attributes, 103 `@php` blocks, `number_format` for money), `resources/js` (6.5k lines of page scripts and `window.*` globals beside Livewire/Alpine)
