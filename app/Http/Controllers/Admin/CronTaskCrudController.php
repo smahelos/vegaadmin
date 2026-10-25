@@ -12,6 +12,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\RedirectResponse;
 use Prologue\Alerts\Facades\Alert;
 
 class CronTaskCrudController extends CrudController
@@ -250,15 +251,15 @@ class CronTaskCrudController extends CrudController
         });
     }
 
-    public function runCronTask($id)
+    public function run(int $id): RedirectResponse
     {
         $task = CronTask::findOrFail($id);
 
-        try {
-            $task->simulateRun();
+        // The task stores its error in last_output and reports failure as false
+        if ($task->simulateRun() === false) {
+            Alert::error(__('cron_tasks.messages.execution_failed'))->flash();
+        } else {
             Alert::success(__('cron_tasks.messages.task_executed'))->flash();
-        } catch (\Exception $e) {
-            Alert::error(__('cron_tasks.messages.execution_failed') . ': ' . $e->getMessage())->flash();
         }
 
         return redirect()->back();

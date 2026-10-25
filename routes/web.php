@@ -135,8 +135,9 @@ Route::middleware([
             ->withoutMiddleware(['auth']);
 
         // Delete invoice with token (for guests)
-        Route::get('/invoices/delete/{token}', [InvoiceController::class, 'deleteGuestInvoice'])
-            ->name('frontend.invoice.delete.token')
+        Route::delete('/guest-invoices/{token}', [InvoiceController::class, 'destroyGuest'])
+            ->where('token', '[A-Za-z0-9]{64}')
+            ->name('frontend.guest-invoices.destroy')
             ->withoutMiddleware(['auth']);
 
         // Page routes

@@ -169,15 +169,30 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
 {{-- 9. System Configuration --}}
 @if(backpack_user()->hasPermissionTo('can_configure_system', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.cache.title') }}" icon="la la-cogs text-danger">
-    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_cache') }}" icon="la la-trash"
-        :link="route('admin.cache.clear')" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_config') }}" icon="la la-cog"
-        :link="route('admin.cache.clear-config')" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_views') }}" icon="la la-eye"
-        :link="route('admin.cache.clear-views')" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_routes') }}" icon="la la-route"
-        :link="route('admin.cache.clear-routes')" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin.cache.clear_all') }}" icon="la la-broom"
-        :link="route('admin.cache.clear-all')" />
+    @include('admin.inc.menu_post_item', [
+        'title' => __('admin.cache.clear_cache'),
+        'icon' => 'la la-trash',
+        'action' => route('admin.cache.clear'),
+    ])
+    @include('admin.inc.menu_post_item', [
+        'title' => __('admin.cache.clear_config'),
+        'icon' => 'la la-cog',
+        'action' => route('admin.cache.clear-config'),
+    ])
+    @include('admin.inc.menu_post_item', [
+        'title' => __('admin.cache.clear_views'),
+        'icon' => 'la la-eye',
+        'action' => route('admin.cache.clear-views'),
+    ])
+    @include('admin.inc.menu_post_item', [
+        'title' => __('admin.cache.clear_routes'),
+        'icon' => 'la la-route',
+        'action' => route('admin.cache.clear-routes'),
+    ])
+    @include('admin.inc.menu_post_item', [
+        'title' => __('admin.cache.clear_all'),
+        'icon' => 'la la-broom',
+        'action' => route('admin.cache.clear-all'),
+    ])
 </x-backpack::menu-dropdown>
 @endif

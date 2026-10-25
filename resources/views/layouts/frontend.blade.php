@@ -93,11 +93,16 @@
                                 <i class="fas fa-download mr-2 !leading-[1.2]"></i> {{ __('invoices.actions.download')
                                 }}
                             </a>
-                            <a href="{{ route('frontend.invoice.delete.token', ['token' => Session::get('last_guest_invoice_token'), 'locale' => app()->getLocale()]) }}"
-                                class="inline-flex items-right px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-700 hover:text-white bg-red-200 hover:bg-red-400 transition-colors duration-200"
-                                onclick="return confirm('{{ __('invoices.messages.confirm_delete') }}');">
-                                <i class="fas fa-trash-alt mr-2 !leading-[1.2]"></i> {{ __('invoices.actions.delete') }}
-                            </a>
+                            <form method="POST"
+                                action="{{ route('frontend.guest-invoices.destroy', ['token' => Session::get('last_guest_invoice_token'), 'locale' => app()->getLocale()]) }}"
+                                onsubmit="return confirm(@js(__('invoices.messages.confirm_delete')));">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="inline-flex items-right px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-700 hover:text-white bg-red-200 hover:bg-red-400 transition-colors duration-200 cursor-pointer">
+                                    <i class="fas fa-trash-alt mr-2 !leading-[1.2]"></i> {{ __('invoices.actions.delete') }}
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
