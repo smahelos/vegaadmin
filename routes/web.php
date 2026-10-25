@@ -28,12 +28,8 @@ Route::get('/', function () {
     return redirect("/{$defaultLocale}");
 })->name('root');
 
-// Middleware application for frontend routes
-// This middleware will refresh the session for the frontend
-// and ensure that the session is always up to date
-// with the latest data from the database.
+// The web group comes from bootstrap/app.php; locale and session refresh run after the session has started
 Route::middleware([
-    'web',
     'set.locale',
     'refresh.frontend.session',
 ])->group(function () {
@@ -154,12 +150,10 @@ Route::middleware([
 });
 
 // Auth routes outside locale group for Laravel auth middleware compatibility
-Route::middleware(['web', 'guest'])->group(function () {
+Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 });
 
 // Payment callback routes (outside locale and auth middleware)
-Route::middleware(['web'])->group(function () {
-    Route::get('/payment/return', [PaymentController::class, 'return'])->name('payment.return');
-    Route::post('/payment/notify', [PaymentController::class, 'notify'])->name('payment.notify');
-});
+Route::get('/payment/return', [PaymentController::class, 'return'])->name('payment.return');
+Route::post('/payment/notify', [PaymentController::class, 'notify'])->name('payment.notify');

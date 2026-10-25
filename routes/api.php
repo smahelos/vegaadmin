@@ -72,7 +72,7 @@ Route::middleware(['api.require.frontend', 'refresh.frontend.session'])
     });
 
 // Public API endpoints - no authentication required (rate limited)
-Route::middleware(['web', 'throttle:60,1'])
+Route::middleware('throttle:60,1')
     ->name('api.')
     ->group(function () {
         // Countries and currencies
@@ -93,9 +93,8 @@ Route::middleware(['web', 'throttle:60,1'])
         });
     });
 
-// Session control API endpoints - minimal middleware
-Route::middleware(['web'])
-    ->name('api.')
+// Session control API endpoints; the session comes from statefulApi() in bootstrap/app.php
+Route::name('api.')
     ->group(function () {
         Route::get('/auth-check', [SessionController::class, 'checkAuth'])->name('auth-check');
         Route::post('/session-refresh', [SessionController::class, 'refreshSession'])->name('session-refresh');
