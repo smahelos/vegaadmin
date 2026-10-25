@@ -28,7 +28,6 @@ return [
         'pending' => 'Čeká na zaplacení',
         'pending-payment' => 'Čekající platba',
         'rejected' => 'Zamítnuto',
-        'unpaid' => 'Nezaplaceno',
     ],
     'filters' => [
         'category' => 'Filtrovat podle kategorie',

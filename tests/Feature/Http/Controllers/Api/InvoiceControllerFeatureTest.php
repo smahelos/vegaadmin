@@ -293,11 +293,6 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
         return $this->getAll(UserId::fromInt($userId))->toArray();
     }
 
-    public function markInvoiceAsPaid(int $userId, int $invoiceId): bool
-    {
-        return false;
-    }
-
     public function setInvoiceTemplate(
         int $userId,
         int $invoiceId,

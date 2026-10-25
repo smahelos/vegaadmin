@@ -11,6 +11,7 @@ use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
 use App\Domain\Shared\Status\ValueObjects\StatusId;
@@ -20,13 +21,6 @@ use Illuminate\Support\Facades\Log;
 
 class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActionsApplicationServiceInterface
 {
-    /** @var list<string> */
-    private const CHANGEABLE_STATUSES = [
-        'paid',
-        'unpaid',
-        'draft',
-    ];
-
     public function __construct(
         private InvoiceStatusApplicationServiceInterface $invoiceStatus,
         private InvoiceLimitApplicationServiceInterface $invoiceLimit,
@@ -42,7 +36,7 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
         return $this->changeStatus(
             $userId,
             $invoiceId,
-            'paid',
+            InvoiceStatus::PAID,
         );
     }
 
@@ -79,17 +73,10 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
     public function changeStatus(
         int $userId,
         int $invoiceId,
-        string $statusSlug,
+        InvoiceStatus $status,
     ): InvoiceActionResult {
         try {
-            $statusId = in_array(
-                $statusSlug,
-                self::CHANGEABLE_STATUSES,
-                true,
-            )
-                ? $this->statusRepository->findIdBySlug($statusSlug)
-                : null;
-
+            $statusId = $this->statusRepository->findIdBySlug($status->value);
             if ($statusId === null) {
                 return InvoiceActionResult::failure('invoices.messages.status_not_found');
             }
@@ -100,14 +87,14 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
                 new UserId($userId),
             );
 
-            $messageKey = $statusSlug === 'paid' ? 'invoices.messages.marked_as_paid' : 'invoices.messages.status_changed';
+            $messageKey = $status === InvoiceStatus::PAID ? 'invoices.messages.marked_as_paid' : 'invoices.messages.status_changed';
 
             return InvoiceActionResult::success(message: $messageKey);
         } catch (\Throwable $e) {
             Log::error('InvoiceFrontendActions changeStatus failed', [
                 'invoice_id' => $invoiceId,
                 'user_id' => $userId,
-                'status' => $statusSlug,
+                'status' => $status->value,
                 'error' => $e->getMessage(),
             ]);
 
@@ -162,7 +149,7 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
                 $messages[] = $r->message;
             }
         }
-        // Status (already normalized in command: mark_paid => 'paid')
+        // Status (already normalized in command: mark_paid => paid)
         if ($actions->status) {
             $r = $this->changeStatus(
                 $userId,

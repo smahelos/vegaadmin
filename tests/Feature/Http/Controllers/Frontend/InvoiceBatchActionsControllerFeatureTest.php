@@ -162,4 +162,20 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
         ]);
         $response->assertSessionHasErrors('template');
     }
+
+    #[Test]
+    public function batch_actions_rejects_unknown_status(): void
+    {
+        $this->actingAs($this->user);
+        $invoice = app(InvoiceMutationApplicationServiceInterface::class)
+            ->create(
+                $this->user->id,
+                $this->baseData(),
+                [],
+            )->invoice;
+        $response = $this->post(route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]), [
+            'status' => 'overdue',
+        ]);
+        $response->assertSessionHasErrors('status');
+    }
 }

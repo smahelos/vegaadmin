@@ -4,7 +4,7 @@ namespace Tests\Feature\Application\Invoice;
 
 use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
-use App\Application\Invoice\DTO\InvoiceActionStatus;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Models\PaymentMethod;
@@ -170,13 +170,16 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
         $paid = $this->frontend->markAsPaid($this->user->id, $invoiceId);
         $this->assertInvoiceSuccess($paid, 'Mark paid failed');
 
-        // Attempt changeStatus with a non-existing slug => expect failure (robustness)
-        $failStatus = $this->frontend->changeStatus(
+        $partiallyPaid = $this->frontend->changeStatus(
             $this->user->id,
             $invoiceId,
-            'nonexistent-slug',
+            InvoiceStatus::PARTIALLY_PAID,
         );
-        $this->assertEquals(InvoiceActionStatus::FAILURE, $failStatus->status);
+        $this->assertInvoiceSuccess($partiallyPaid, 'Change status failed');
+        $this->assertDatabaseHas('invoices', [
+            'id' => $invoiceId,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PARTIALLY_PAID->value)->value('id'),
+        ]);
     }
 
     #[Test]

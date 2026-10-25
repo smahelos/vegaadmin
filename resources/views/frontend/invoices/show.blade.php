@@ -16,7 +16,7 @@
         </a>
 
         <!-- Button for marking as paid - show only if not paid -->
-        @if($invoice->payment_status_slug != 'paid')
+        @if(! $invoice->paid)
         <form method="POST" class="col-span-1 md:col-span-none inline-block"
             action="{{ route('frontend.invoice.mark-as-paid', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}">
             @csrf

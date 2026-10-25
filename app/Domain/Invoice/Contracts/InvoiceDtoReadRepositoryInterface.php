@@ -18,12 +18,6 @@ interface InvoiceDtoReadRepositoryInterface
     /** Find invoice by ID for specific user (ownership enforced). */
     public function findByIdForUser(InvoiceId $id, UserId $userId): ?InvoiceDTO;
 
-    /** Find unpaid invoices for a user. */
-    public function findUnpaidForUser(UserId $userId): array;
-
-    /** Find overdue invoices for a user. */
-    public function findOverdueForUser(UserId $userId): array;
-
     /** Get invoice count for a user. */
     public function getUserInvoiceCount(UserId $userId): int;
 

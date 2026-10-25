@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Client;
 use App\Models\Invoice;
@@ -216,39 +217,12 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_status_color_class_attribute_returns_mapped_color_for_slug(): void
+    public function get_status_color_class_attribute_returns_gray_when_status_has_no_color(): void
     {
-        // Since Status model has a color accessor that never returns null,
-        // we need to test the mapping logic differently.
-        // We'll test that when color attribute is an empty string (falsy),
-        // the method falls back to slug mapping
+        $status = Status::factory()->create(['color' => '']);
+        $invoice = Invoice::factory()->create(['payment_status_id' => $status->id]);
 
-        $status = Status::where('slug', 'paid')->firstOrFail();
-        $status->update(['color' => '']); // Empty string should trigger fallback to slug mapping
-
-        $client = Client::factory()->create();
-        $user = User::factory()->create();
-        $supplier = Supplier::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-
-        $invoice = Invoice::create([
-            'invoice_vs' => 'INV-TEST2',
-            'issue_date' => now(),
-            'tax_point_date' => now(),
-            'due_in' => 30,
-            'client_id' => $client->id,
-            'user_id' => $user->id,
-            'supplier_id' => $supplier->id,
-            'payment_status_id' => $status->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_amount' => 1000,
-            'payment_currency' => 'USD',
-        ]);
-
-        $colorClass = $invoice->getStatusColorClassAttribute();
-
-        // Empty string is falsy, so it falls back to slug mapping: 'paid' -> 'green'
-        $this->assertEquals('green', $colorClass);
+        $this->assertSame('gray', $invoice->status_color_class);
     }
 
     #[Test]
@@ -281,6 +255,37 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         $this->assertSame('2025-01-01', $invoice->due_date->format('Y-m-d'));
+    }
+
+    #[Test]
+    public function paid_reflects_the_paid_status(): void
+    {
+        $this->assertTrue($this->invoiceDueDaysAgo(InvoiceStatus::PAID, 0)->paid);
+        $this->assertFalse($this->invoiceDueDaysAgo(InvoiceStatus::PARTIALLY_PAID, 0)->paid);
+    }
+
+    #[Test]
+    public function unpaid_invoice_is_overdue_the_day_after_its_due_date(): void
+    {
+        $invoice = $this->invoiceDueDaysAgo(InvoiceStatus::PARTIALLY_PAID, 1);
+
+        $this->assertTrue($invoice->overdue);
+    }
+
+    #[Test]
+    public function unpaid_invoice_is_not_overdue_on_its_due_date(): void
+    {
+        $invoice = $this->invoiceDueDaysAgo(InvoiceStatus::PENDING, 0);
+
+        $this->assertFalse($invoice->overdue);
+    }
+
+    #[Test]
+    public function paid_invoice_is_never_overdue(): void
+    {
+        $invoice = $this->invoiceDueDaysAgo(InvoiceStatus::PAID, 10);
+
+        $this->assertFalse($invoice->overdue);
     }
 
     #[Test]
@@ -426,5 +431,14 @@ class InvoiceFeatureTest extends TestCase
         $money = $invoice->total_tax_money;
         $this->assertEquals('33', $money->getAmount());
         $this->assertEquals('USD', $money->getCurrency());
+    }
+
+    private function invoiceDueDaysAgo(InvoiceStatus $status, int $days): Invoice
+    {
+        return Invoice::factory()->create([
+            'payment_status_id' => Status::where('slug', $status->value)->firstOrFail()->id,
+            'issue_date' => now()->subDays(14 + $days)->toDateString(),
+            'due_in' => 14,
+        ]);
     }
 }

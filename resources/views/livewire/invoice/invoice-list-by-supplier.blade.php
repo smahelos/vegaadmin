@@ -109,7 +109,7 @@
                         {{ number_format($invoice->payment_amount, 2, ',', ' ') }} {{ $invoice->payment_currency }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm
-                        @if($invoice->due_date && $invoice->due_date->isPast() && (!$invoice->paymentStatus || $invoice->payment_status_slug !== 'paid'))
+                        @if($invoice->overdue)
                             text-red-600 font-medium bg-red-100 dark:text-white dark:bg-red-900">
                         @else
                         text-gray-500 dark:text-gray-400">

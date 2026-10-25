@@ -2,13 +2,13 @@
 
 namespace Tests\Feature\Console\Commands;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceOverdueReminder;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceUpcomingDueReminder;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Status;
-use App\Models\StatusCategory;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
@@ -27,31 +27,6 @@ class CheckInvoicePaymentStatusFeatureTest extends TestCase
         $this->setUpFrontendTestEnvironment();
 
         Notification::fake();
-
-        // Create required status categories and statuses manually
-        $this->createTestStatuses();
-    }
-
-    /**
-     * The command reads unpaid statuses from the invoice-payment category, which the reference
-     * data does not have; paid and cancelled come from the reference data.
-     */
-    protected function createTestStatuses(): void
-    {
-        $paymentCategory = StatusCategory::firstOrCreate([
-            'slug' => 'invoice-payment',
-        ], [
-            'name' => 'Invoice Payment Status',
-            'description' => 'Payment status for invoices',
-        ]);
-
-        Status::firstOrCreate([
-            'slug' => 'unpaid',
-            'category_id' => $paymentCategory->id,
-        ], [
-            'name' => 'Unpaid',
-            'description' => 'Invoice is not paid yet',
-        ]);
     }
 
     #[Test]
@@ -81,7 +56,7 @@ class CheckInvoicePaymentStatusFeatureTest extends TestCase
             'email' => 'test@example.com',
         ]);
 
-        $unpaidStatus = Status::where('slug', 'unpaid')->first();
+        $unpaidStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
 
         // Create invoice due in 3 days (default days-before)
         $invoice = Invoice::factory()->create([
@@ -122,7 +97,7 @@ class CheckInvoicePaymentStatusFeatureTest extends TestCase
             'email' => 'test@example.com',
         ]);
 
-        $unpaidStatus = Status::where('slug', 'unpaid')->first();
+        $unpaidStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
 
         // Create invoice due today
         $invoice = Invoice::factory()->create([
@@ -163,7 +138,7 @@ class CheckInvoicePaymentStatusFeatureTest extends TestCase
             'email' => 'test@example.com',
         ]);
 
-        $unpaidStatus = Status::where('slug', 'unpaid')->first();
+        $unpaidStatus = Status::where('slug', InvoiceStatus::PARTIALLY_PAID->value)->firstOrFail();
 
         // Create invoice overdue by 1 day (default days-after)
         $invoice = Invoice::factory()->create([
@@ -177,6 +152,9 @@ class CheckInvoicePaymentStatusFeatureTest extends TestCase
         $exitCode = Artisan::call('invoices:check-payment-status');
 
         $this->assertEquals(0, $exitCode);
+
+        // Being overdue is derived from the due date; the reminder leaves the stored status alone
+        $this->assertSame($unpaidStatus->id, $invoice->fresh()->payment_status_id);
 
         // Check that overdue reminder was sent via on-demand notification to client's email
         Notification::assertSentOnDemand(
@@ -258,7 +236,7 @@ class CheckInvoicePaymentStatusFeatureTest extends TestCase
             'email' => 'test@example.com',
         ]);
 
-        $unpaidStatus = Status::where('slug', 'unpaid')->first();
+        $unpaidStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
 
         // Create invoice due in 5 days
         $invoice = Invoice::factory()->create([

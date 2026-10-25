@@ -1,10 +1,10 @@
 {
     "summary": {
         "total_controllers": 56,
-        "avg_loc": 183.79,
+        "avg_loc": 183.71,
         "avg_eloquent_static_calls": 1.27,
         "controllers_with_direct_db_calls": 2,
-        "timestamp": "2026-10-25T19:00:04+00:00"
+        "timestamp": "2026-10-25T19:37:57+00:00"
     },
     "controllers": {
         "Http/Controllers/Frontend/PageController.php": {
@@ -88,7 +88,7 @@
             "public_method_count": 3
         },
         "Http/Controllers/Frontend/InvoiceController.php": {
-            "loc": 384,
+            "loc": 380,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,

@@ -28,7 +28,6 @@ return [
         'pending' => 'Pending',
         'pending-payment' => 'Pending Payment',
         'rejected' => 'Rejected',
-        'unpaid' => 'Unpaid',
     ],
     'filters' => [
         'category' => 'Filter by Category',

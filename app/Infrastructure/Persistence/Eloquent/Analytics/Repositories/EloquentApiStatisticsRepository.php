@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Eloquent\Analytics\Repositories;
 
 use App\Application\Analytics\Contracts\ApiStatisticsRepository;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Party\ValueObjects\PartyId;
+use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Expense;
 use App\Models\Invoice;
@@ -16,6 +18,13 @@ use Illuminate\Support\Facades\DB;
 
 final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
 {
+    /** Status bucket of unpaid invoices past their due date; overdue is derived, not stored */
+    private const OVERDUE = 'overdue';
+
+    public function __construct(
+        private readonly ClockInterface $clock,
+    ) {}
+
     public function monthlyRevenue(
         UserId $userId,
         DateTimeImmutable $from,
@@ -31,8 +40,8 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
             ->select(
                 DB::raw('DATE_FORMAT(invoices.issue_date, "%Y-%m") as month'),
                 DB::raw('SUM(invoices.payment_amount) as total'),
-                DB::raw('SUM(CASE WHEN statuses.slug = "paid" THEN invoices.payment_amount ELSE 0 END) as paid'),
             )
+            ->selectRaw('SUM(CASE WHEN statuses.slug = ? THEN invoices.payment_amount ELSE 0 END) as paid', [InvoiceStatus::PAID->value])
             ->leftJoin(
                 'statuses',
                 'invoices.payment_status_id',
@@ -132,10 +141,16 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
             $to,
             $clientIds,
         )
-            ->select(
-                'statuses.slug as status',
-                DB::raw('COUNT(*) as count'),
+            ->selectRaw(
+                'CASE WHEN statuses.slug IN (?, ?) AND DATE_ADD(invoices.issue_date, INTERVAL invoices.due_in DAY) < ? THEN ? ELSE statuses.slug END as status',
+                [
+                    InvoiceStatus::PENDING->value,
+                    InvoiceStatus::PARTIALLY_PAID->value,
+                    $this->clock->now()->format('Y-m-d'),
+                    self::OVERDUE,
+                ],
             )
+            ->selectRaw('COUNT(*) as count')
             ->leftJoin(
                 'statuses',
                 'invoices.payment_status_id',

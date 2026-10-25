@@ -19,14 +19,6 @@ interface InvoiceServiceInterface
     // public function saveInvoiceProducts(int $invoiceId, array $products): void;
 
     /**
-     * Mark invoice as paid
-     *
-     * @param  InvoiceId  $id  Invoice ID
-     * @return bool Success status
-     */
-    public function markInvoiceAsPaid(InvoiceId $id): bool;
-
-    /**
      * Set invoice pdf template
      *
      * @param  InvoiceId  $id  Invoice ID

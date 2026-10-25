@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Shared\Money\Enums\Currency;
@@ -216,27 +217,7 @@ class Invoice extends Model
      */
     public function getStatusColorClassAttribute()
     {
-        if (! $this->paymentStatus) {
-            return 'gray';
-        }
-
-        // Prioritize color from database if exists
-        if ($this->paymentStatus->color) {
-            return $this->paymentStatus->color;
-        }
-
-        $colorMap = [
-            'paid' => 'green',
-            'pending' => 'yellow',
-            'overdue' => 'red',
-            'partially_paid' => 'blue',
-            'canceled' => 'gray',
-            'unknown' => 'gray',
-        ];
-
-        $slug = $this->getPaymentStatusSlugAttribute();
-
-        return $colorMap[$slug] ?? 'gray';
+        return $this->paymentStatus?->color ?: 'gray';
     }
 
     protected function dueDate(): Attribute
@@ -249,6 +230,32 @@ class Invoice extends Model
 
             return CarbonImmutable::instance($dueDate->date());
         });
+    }
+
+    protected function paid(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->invoiceStatus() === InvoiceStatus::PAID);
+    }
+
+    /**
+     * Overdue is not stored: an unpaid invoice turns overdue the day after its due date.
+     */
+    protected function overdue(): Attribute
+    {
+        return Attribute::get(function (): bool {
+            $status = $this->invoiceStatus();
+            if ($status === null || ! $status->isUnpaid() || $this->issue_date === null || $this->due_in === null) {
+                return false;
+            }
+            $dueDate = InvoiceDueDate::fromIssueDateAndDays($this->issue_date->toDateTimeImmutable(), $this->due_in);
+
+            return $dueDate->daysUntil(CarbonImmutable::today()->toDateTimeImmutable()) < 0;
+        });
+    }
+
+    private function invoiceStatus(): ?InvoiceStatus
+    {
+        return InvoiceStatus::tryFrom($this->paymentStatus?->slug ?? '');
     }
 
     /*

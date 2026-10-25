@@ -24,9 +24,6 @@ interface InvoiceWriteRepositoryInterface
     /** Create an unsaved invoice instance (for form stubs) */
     public function make(array $attributes = []): Invoice;
 
-    /** Mark invoice as paid by assigning paid status id */
-    public function markAsPaid(int $id, int $paidStatusId): bool;
-
     /** Set PDF template for invoice */
     public function setTemplate(int $id, string $template): bool;
 

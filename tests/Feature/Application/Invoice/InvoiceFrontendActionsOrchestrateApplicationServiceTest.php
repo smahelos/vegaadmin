@@ -165,28 +165,4 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
         $this->assertIsArray($result->data);
         $this->assertNotNull($result->invoice, 'Expected invoice to be attached when includeInvoice=true');
     }
-
-    #[Test]
-    public function orchestrate_partial_fail_when_status_invalid_but_template_ok(): void
-    {
-        $create = $this->mutation->create(
-            $this->user->id,
-            $this->baseData(),
-            [],
-        );
-        $invoiceId = $create->invoice->id;
-        $result = $this->frontend->orchestrate(
-            $this->user->id,
-            $invoiceId,
-            OrchestratedInvoiceActions::fromArray([
-                'template' => 'modern',
-                'status' => 'nonexistent-status-slug',
-            ], includeInvoice: true),
-        );
-        $this->assertInvoiceFailure($result, 'Expected failure due to invalid status');
-        $this->assertIsArray($result->data);
-        $this->assertArrayHasKey('errors', $result->data);
-        $this->assertArrayHasKey('status', $result->data['errors']);
-        $this->assertNull($result->invoice, 'Invoice should not be attached on failure');
-    }
 }

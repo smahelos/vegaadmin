@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
@@ -9,8 +10,6 @@ use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Models\Invoice;
-use App\Models\Status;
-use App\Models\StatusCategory;
 use DateTimeImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -45,12 +44,10 @@ class CheckInvoicePaymentStatus extends Command
             'overdue' => 0,
         ];
 
-        // Get statuses from database and exclude 'paid' and 'cancelled'
-        $paidStatusSlugs = ['paid', 'cancelled'];
-        $unpaidStatuses = Status::whereNotIn('slug', $paidStatusSlugs)
-            ->where('category_id', StatusCategory::where('slug', 'invoice-payment')->first()->id ?? null)
-            ->pluck('slug')
-            ->toArray();
+        $unpaidStatuses = array_map(
+            static fn (InvoiceStatus $status): string => $status->value,
+            InvoiceStatus::unpaid(),
+        );
 
         $this->info('Checking invoice for payment reminder...');
 
@@ -208,16 +205,6 @@ class CheckInvoicePaymentStatus extends Command
                 locale: $locale,
                 daysOverdue: -$this->dueDate($invoice)->daysUntil($today),
             );
-        }
-
-        // Actually change the status of the invoice to 'overdue'
-        if ($invoice->payment_status_slug !== 'overdue') {
-            $overdueStatus = Status::where('slug', 'overdue')->first();
-            if ($overdueStatus) {
-                $invoice->payment_status_id = $overdueStatus->id;
-                $invoice->save();
-                $this->info("Invoice status #{$invoice->invoice_vs} changed to 'overdue'");
-            }
         }
     }
 

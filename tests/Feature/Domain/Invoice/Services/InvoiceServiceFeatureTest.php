@@ -11,7 +11,6 @@ use App\Domain\Shared\Unit\Enums\Unit;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
 use App\Models\Product;
-use App\Models\Status;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use PHPUnit\Framework\Attributes\Test;
@@ -86,47 +85,6 @@ class InvoiceServiceFeatureTest extends TestCase
     }
 
     // --- Mark as paid ---
-
-    #[Test]
-    public function mark_invoice_as_paid_updates_status(): void
-    {
-        Auth::login($this->user);
-        // Ensure a single 'paid' status exists (avoid unique constraint violation if seeded)
-        $paidStatus = Status::firstOrCreate(
-            ['slug' => 'paid'],
-            [
-                'name' => 'Paid',
-                'category_id' => 1,
-                'color' => 'bg-green-100 text-green-800',
-                'description' => 'Autocreated paid status for tests',
-                'is_active' => true,
-            ],
-        );
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'payment_status_id' => 1,
-        ]);
-        $this->assertTrue($this->service->markInvoiceAsPaid(InvoiceId::fromInt($invoice->id)));
-        $invoice->refresh();
-        $this->assertEquals($paidStatus->id, $invoice->payment_status_id);
-    }
-
-    #[Test]
-    public function mark_invoice_as_paid_returns_false_when_no_paid_status_exists(): void
-    {
-        Auth::login($this->user);
-        // Remove any existing 'paid' status to simulate missing status scenario
-        Status::where('slug', 'paid')->delete();
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-        $this->assertFalse($this->service->markInvoiceAsPaid(InvoiceId::fromInt($invoice->id)));
-    }
-
-    #[Test]
-    public function mark_invoice_as_paid_returns_false_for_nonexistent_invoice(): void
-    {
-        Auth::login($this->user);
-        $this->assertFalse($this->service->markInvoiceAsPaid(InvoiceId::fromInt(99999)));
-    }
 
     // --- Ensure object properties ---
 

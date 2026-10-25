@@ -33,11 +33,6 @@ final class ReferenceDataSeeder extends Seeder
                     'yellow',
                 ],
                 [
-                    'overdue',
-                    'Po splatnosti',
-                    'red',
-                ],
-                [
                     'partially-paid',
                     'Částečně uhrazená',
                     'blue',

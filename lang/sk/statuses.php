@@ -28,7 +28,6 @@ return [
         'pending' => 'Čaká na zaplatenie',
         'pending-payment' => 'Čakajúca platba',
         'rejected' => 'Odmietnuté',
-        'unpaid' => 'Nezaplatené',
     ],
     'filters' => [
         'category' => 'Filtrovať podľa kategórie',
