@@ -1,6 +1,8 @@
 <?php
 
-namespace Tests\Feature\Shared\Money;
+declare(strict_types=1);
+
+namespace Tests\Feature\Domain\Shared\Money;
 
 use App\Domain\Shared\Money\Services\CurrencyExchangeService;
 use Illuminate\Support\Facades\Cache;
@@ -8,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class CurrencyExchangeCircuitBreakerTest extends TestCase
+final class CurrencyExchangeCircuitBreakerTest extends TestCase
 {
     private CurrencyExchangeService $service;
 

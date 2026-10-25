@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Console\Commands;
 
 use App\Models\ArtisanCommand;
@@ -8,7 +10,7 @@ use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class SyncArtisanCommandsFeatureTest extends TestCase
+final class SyncArtisanCommandsFeatureTest extends TestCase
 {
     #[Test]
     public function command_executes_successfully(): void

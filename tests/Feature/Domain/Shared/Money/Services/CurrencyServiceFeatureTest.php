@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Domain\Shared\Money\Services;
 
 use App\Domain\Shared\Http\Contracts\HttpClientInterface;
@@ -9,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class CurrencyServiceFeatureTest extends TestCase
+final class CurrencyServiceFeatureTest extends TestCase
 {
     private CurrencyServiceInterface $service;
 
@@ -18,12 +20,6 @@ class CurrencyServiceFeatureTest extends TestCase
         parent::setUp();
         $this->service = $this->app->make(CurrencyServiceInterface::class);
         Cache::flush();
-    }
-
-    #[Test]
-    public function service_instantiated_correctly(): void
-    {
-        $this->assertInstanceOf(CurrencyServiceInterface::class, $this->service);
     }
 
     #[Test]

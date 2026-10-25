@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Domain\Shared\Console\Services;
 
 use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
@@ -9,7 +11,7 @@ use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class ArtisanCommandsServiceFeatureTest extends TestCase
+final class ArtisanCommandsServiceFeatureTest extends TestCase
 {
     private ArtisanCommandsServiceInterface $service;
 
@@ -20,13 +22,6 @@ class ArtisanCommandsServiceFeatureTest extends TestCase
 
         // Clear cache before each test
         Cache::flush();
-    }
-
-    #[Test]
-    public function instantiates_correctly(): void
-    {
-        $service = $this->app->make(ArtisanCommandsServiceInterface::class);
-        $this->assertInstanceOf(ArtisanCommandsServiceInterface::class, $service);
     }
 
     #[Test]

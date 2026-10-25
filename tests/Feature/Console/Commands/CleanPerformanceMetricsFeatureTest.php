@@ -1,19 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Console\Commands;
 
 use App\Models\PerformanceMetric;
-use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-/**
- * @group isolated
- * Tests for db:clean-metrics command that require sequential execution
- * due to potential conflicts with parallel database operations.
- */
-class CleanPerformanceMetricsFeatureTest extends TestCase
+final class CleanPerformanceMetricsFeatureTest extends TestCase
 {
     private string $processId;
 
