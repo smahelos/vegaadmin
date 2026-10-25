@@ -12,31 +12,33 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 2. ~~Security — "Public statistics endpoints expose all users' revenue", "State changes over GET", "Sorting from the URL without an allowlist", "Middleware registered twice", "Exception messages shown to users".~~ Done 2026-10-24 (branch `ls-security`); found on the way: "Cron tasks are not fully gated by permissions", "Admin access middleware logs every request".
 3. ~~"Run tests on MySQL instead of in-memory SQLite" with the squashed migrations, before the invoice work adds new migrations.~~ Done 2026-10-25 (branch `ls-mysql-tests`): migrations squashed by context, reference data in `ReferenceDataSeeder`, the suite runs on MySQL locally and in CI.
 4. "Domain events are published inside the transaction" with "No queue worker" — the issued-invoice work publishes its events on top of it; both deliver work outside the request, and the queue's `after_commit` is set there.
+5. "Test runs and CI are slower than they need to be" with the `tests/Unit` part of "Tests that pin structure instead of behaviour" — every later branch runs the suite many times.
 
 **B. Invoices**
 
-5. What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".
-6. "Rename IČO and DIČ to `company_number` and `vat_number`" with "Compose `PrintableInvoiceData` from `PartyPrintData`" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
-7. "Issued invoices can be changed and deleted", with "Validate the variable symbol in QR payments" (numbering at issue is decided there).
-8. "Currency conversion of invoice items happens in the browser" (ČNB rates) with "Resilience of external calls".
+6. What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".
+7. "Rename IČO and DIČ to `company_number` and `vat_number`" with "Compose `PrintableInvoiceData` from `PartyPrintData`" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
+8. "Issued invoices can be changed and deleted", with "Validate the variable symbol in QR payments" (numbering at issue is decided there) and "Clients, suppliers and products cannot be archived"; then "Expenses are not modelled as received documents", which shares the VAT lines, the VAT payer flag and the document tables (`docs/adr/D-044-document-tables.md`).
+9. "Currency conversion of invoice items happens in the browser" (ČNB rates) with "Resilience of external calls".
 
 **C. Payments and subscription plans**
 
-9. "Permission naming" — the plans grant permissions.
-10. Payments: "Payment notification route", "GoPay is called inside the database transaction", "Typed GoPay request with real customer data", "Move refund logic into `RefundState`", "Payment adapter guard checks nothing", "UELS dashboard bulk reset fails".
-11. The subscription plans, with "Subscription screens with placeholder content".
+10. "Permission naming" — the plans grant permissions.
+11. Payments: "Payment notification route", "GoPay is called inside the database transaction", "Typed GoPay request with real customer data", "Move refund logic into `RefundState`", "Payment adapter guard checks nothing", "UELS dashboard bulk reset fails".
+12. The subscription plans, with "Subscription screens with placeholder content".
 
 **D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
 
-12. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: image deletion, unit field; Party: duplicates, client mapper); "Move cache invalidation from observers to domain event handlers" after step 4.
-13. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
+13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field; Party: duplicates, client mapper); "Move cache invalidation from observers to domain event handlers" after step 4.
+14. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 
 **E. Before production and last**
 
-14. "`backpack_pro()` override claims a PRO licence" — a decision before production.
-15. "No error monitoring" — before the first deploy.
-16. The remaining "Party / Admin" items.
-17. "Architecture guards are migration scaffolding" with "`ddd:guard` snapshot test fails now and then in parallel runs".
+15. "`backpack_pro()` override claims a PRO licence" — a decision before production.
+16. "No error monitoring" — before the first deploy.
+17. "Erasing a user account" — before the first real user; needs the retention rules of step 8.
+18. The remaining "Party / Admin" items.
+19. "Architecture guards are migration scaffolding" with "`ddd:guard` snapshot test fails now and then in parallel runs".
 
 ## Security
 
@@ -60,7 +62,12 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 ### Issued invoices can be changed and deleted
 - **Where:** `InvoiceCrudApplicationService` (update, delete), frontend `InvoiceController` (edit, update, set-template, delete), `Admin\InvoiceCrudController` and `Admin\InvoiceRequest`, `InvoicePrintDataBuilder` (reads the current client and supplier), `InvoicePdfRenderer`, `app/Console/Commands/DatabaseArchiveCommand.php` and `archive_policies` (36 months), `Money` (no negative amounts)
 - **Problem:** an issued invoice is a tax document kept unchanged for 10 years (§ 34 and § 35 ZDPH; corrections through a corrective tax document, § 42 and § 45 ZDPH; § 35 ZÚ; to confirm with an accountant after the 2025 amendment). Today an invoice has no draft/issued state (`draft` is a payment status), can be edited in the frontend and the admin and is deleted for good (no `deleted_at`); the admin edits `payment_amount` without the lines, so the amount can disagree with them. It stores only `client_id` and `supplier_id`, so a later change of the party changes every old invoice; the PDF is rendered again from the current template and logo on every download. `db:archive` moves invoices and items older than 36 months out of the main tables and deletes clients and suppliers by the same policy.
-- **Fix (decided 2026-10-23, own branch, step 7 of the order of work):** a document life cycle separate from the payment status (draft → issued → cancelled by a corrective document); issuing assigns the number, stores a snapshot of the parties, bank account, lines, totals, currency, payment method, template and logo, and stores the rendered PDF with its hash, which later downloads return. The Domain refuses changes to an issued invoice; only its payment status changes. Corrections and cancellations are corrective tax documents (credit or debit note) linked to the invoice, with their own PDF; a cancellation can copy the invoice into a new draft. The admin shows the amount read-only. Invoices, corrective documents and their PDFs are kept for 10 years, also when the user account is deleted; who issued or cancelled a document and when is recorded. Open decisions: numbering at issue, a number series for corrective documents, negative `Money` or a sign by document type, existing invoices, VAT payers vs non-payers; keep or delete `InvoiceCrudApplicationService::delete()`, `getForEdit()`, `softDelete()` and `restore()`, which nothing calls (deleting drafts).
+- **Fix (decided 2026-10-23, own branch, step 8 of the order of work):** a document life cycle separate from the payment status (draft → issued → cancelled by a corrective document); issuing assigns the number, stores a snapshot of the parties, bank account, lines, totals, currency, payment method, template and logo, and stores the rendered PDF with its hash, which later downloads return. The Domain refuses changes to an issued invoice; only its payment status changes. Corrections and cancellations are corrective tax documents (credit or debit note) linked to the invoice, with their own PDF; a cancellation can copy the invoice into a new draft. The admin shows the amount read-only. Invoices, corrective documents and their PDFs are kept for 10 years while the account exists (archiving them is the user's duty; "Erasing a user account"); who issued or cancelled a document and when is recorded. Open decisions: numbering at issue, a number series for corrective documents, negative `Money` or a sign by document type, existing invoices, VAT payers vs non-payers; keep or delete `InvoiceCrudApplicationService::delete()`, `getForEdit()`, `softDelete()` and `restore()`, which nothing calls (deleting drafts).
+
+### Expenses are not modelled as received documents
+- **Where:** `expenses` (`2026_10_25_000009_create_expense_tables.php`), `App\Models\Expense`, `ExpenseRequest` (frontend and admin), `Admin\ExpenseCrudController`, expense statuses in `ReferenceDataSeeder`
+- **Problem:** Billex is for VAT payers and non-payers alike, but an expense is one amount with an optional `tax_amount` and a `tax_included` flag. It has no document type, no VAT breakdown by rate, no taxable supply date (DUZP) or date of receipt (which decides the VAT deduction), no supplier's document number and no due date; its statuses (draft, in review, approved, rejected…) are an approval process for companies, not the payment state a sole trader needs. A document the user claims a VAT deduction from is kept for 10 years (§ 35 ZDPH).
+- **Fix (decided 2026-10-25, after "Issued invoices can be changed and deleted"):** an expense is a received document, stored as `docs/adr/D-044-document-tables.md` describes: a document type enum (received invoice and simplified tax document / receipt first; corrective document, advance invoice and the tax document for a received payment later as new cases), a VAT regime enum (standard first; reverse charge and acquisition from the EU later), VAT lines by rate shared with issued documents (a non-payer enters only the total), supplier's document number, issue date, DUZP, date of receipt, due date, attachment; a payment state (unpaid, paid) instead of the approval statuses; a VAT payer flag on the user (also an open decision of "Issued invoices can be changed and deleted"). The user still deletes an expense: it is their record of someone else's document. Every table or column only one document type needs is decided by the user (criteria in the ADR).
 
 ### Modern and minimal PDFs always print "bank transfer"
 - **Where:** `app/Application/Invoice/Services/InvoicePdfRenderer.php` (`'paymentMethod' => null`), `resources/views/pdfs/templates/{modern,minimal}.blade.php`
@@ -117,7 +124,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 ### Payment DTOs do not match the model casts
 - **Where:** `app/Domain/Payment/DTO/PaymentDTO.php`, `app/Domain/Payment/DTO/PaymentWriteData.php`, `app/Models/Payment.php`
 - **Problem:** the model casts `gateway_data` to an array, but both DTOs type it `?string`: mapping a payment that holds gateway data throws a `TypeError`. Found while adding Larastan (2026-10-23).
-- **Fix:** type the gateway data in the DTOs (a typed value or `array<string, mixed>`), with a repository test that stores and reads it back. Do this with the payments work (Order of work 10).
+- **Fix:** type the gateway data in the DTOs (a typed value or `array<string, mixed>`), with a repository test that stores and reads it back. Do this with the payments work (Order of work 11).
 
 ### Validate the variable symbol in QR payments
 - **Where:** `app/Domain/Payment/DTO/QrPaymentPayload.php`
@@ -145,6 +152,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Fix:** link real terms and privacy pages (Content), compute the saving from the monthly and yearly prices or drop the badge, format amounts with the subscription's currency through `MoneyFormatterInterface`. Do this with the subscription plans work.
 
 ## Party / Admin
+
+### Clients, suppliers and products cannot be archived
+- **Where:** `clients`, `suppliers`, `products` (no `deleted_at`), `InvoicePartyService::deleteClient()` / `deleteSupplier()`, `ProductService::deleteProduct()`, the restricting foreign keys of `invoices`, `invoice_products` and `expenses`, the unique indexes `(user_id, ico)` and `(user_id, slug)`
+- **Problem:** documents keep their client, supplier and product (foreign keys restrict deleting them), so a user cannot remove a client they have invoiced from their lists; the delete is refused with a message. Soft deletes would collide with the unique indexes: a new client with the IČO of an archived one is refused.
+- **Fix (decided 2026-10-25, step 8):** soft deletes for clients, suppliers and products: archived records disappear from lists and selects, documents and statistics keep pointing at them. Entering the IČO of an archived client or supplier restores it instead of creating a new one; the domain methods throw an exception instead of returning `false` (`rules/domain.md`).
 
 ### Inactive banks are still offered
 - **Where:** `banks.active`, `app/Infrastructure/Persistence/Eloquent/Payment/Repositories/EloquentBankRepository.php` (`getAllBanks()`)
@@ -182,11 +194,6 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Fix:** add `lang/vendor/backpack/sk/{base,crud}.php` with the keys of the package's `en` files, checked against the package after each Backpack upgrade; or drop Slovak from the admin locales.
 
 ## Product
-
-### Product image is deleted before the product
-- **Where:** `app/Application/Product/Services/ProductApplicationService.php::deleteProduct()`
-- **Problem:** the image file is deleted before the transaction that deletes the product; when the delete fails, the product stays without its image.
-- **Fix:** delete the file after the transaction commits.
 
 ### Products have no unit field
 - **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php`, frontend and admin product forms and requests
@@ -244,6 +251,16 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** in `php artisan test --parallel` the `Artisan::call('ddd:guard', …)` call occasionally throws (seen 2026-10-22); the test passes alone and in the next full runs.
 - **Fix:** find what the command shares with other parallel processes (scanned files, cache, output buffer) and isolate it, or drop the test together with the guards (Architecture guards are migration scaffolding).
 
+### Test runs and CI are slower than they need to be
+- **Where:** `tests/Unit` (100 of 206 files extend `Tests\TestCase`), `tests/TestCase.php`, `.github/workflows/*.yml`
+- **Problem:** the full suite takes about 2:40 locally with 12 processes (4112 tests, 2026-10-25); a CI runner has 4 vCPUs, a private repository's runner 2. Unit tests boot Laravel and open a database transaction; nobody has measured which tests are slow; every process migrates and seeds before its first test (about 4 s); nothing stops a test from calling a real external service. In CI every job runs its own `composer install` without a cache (about seven per push), and the architecture and payment tests repeat parts of the full suite that `architecture-baselines.yml` runs on the same pull request.
+- **Fix:** measure first (`php artisan test --parallel --profile`) and fix the slowest tests; `Http::preventStrayRequests()` in `TestCase`; unit tests on `PHPUnit\Framework\TestCase` as in "Tests that pin structure instead of behaviour", run as their own CI job without MySQL; one test workflow (lint, unit, feature tests on MySQL with `--parallel`, guards) whose jobs share a `vendor/` cached by `composer.lock`; the CI MySQL data directory on tmpfs. `php artisan schema:dump` only if migrating per process still matters after that (it needs the `mysql` client in `app.dockerfile`).
+
+### Erasing a user account
+- **Where:** `users` (soft deletes), `UserCrudController`, the restricting `user_id` foreign keys of `clients`, `suppliers`, `products`, `expenses`, `invoices` and `subscriptions`; cascading `entity_limit_usage`, `model_has_roles`, `model_has_permissions`
+- **Problem:** there is no way to erase a user under GDPR. A database cascade would delete documents without the export and notice the law requires, so the foreign keys restrict and nothing disappears by accident. For the user's invoices, clients and expenses Billex is a processor: the duty to archive them is the user's, and after the service ends Billex returns and deletes them (Art. 28(3)(g) GDPR). For the account, subscription and Billex's own invoices for it Billex is the controller and keeps them for 10 years as a legal obligation (Art. 17(3)(b)).
+- **Fix (proposed 2026-10-25, to be reviewed by a lawyer, with the terms of service and the data processing agreement):** an application use case, not a cascade: the user requests erasure and receives an export of all their data (invoice PDFs, expenses, clients); the account is blocked at once; after the announced period the use case deletes their business data, credentials, tokens, logs and settings in dependency order; only Billex's documents for the subscription stay, with the minimum data about the user as customer.
+
 ### Resilience of external calls
 - **Where:** `app/Http/Controllers/Api/AresLookupController.php`, `app/Infrastructure/Shared/Http/Services/HttpClientService.php`, `app/Domain/Analytics/Services/BaseAnalyticsExternalService.php`, `config/analytics.php`
 - **Problem:** ARES is called with `Http::get()` directly from a controller without a timeout; exchange rates and countries go through `HttpClientService` without timeouts. A circuit breaker exists only in the unused Analytics base class.
@@ -261,7 +278,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ### Larastan level
 - **Where:** `phpstan.neon`
 - **Problem:** Larastan runs at level 1 (2026-10-23); level 2 reports about 1000 more errors, level 6 over 4000. One level applies to the whole codebase.
-- **Fix:** raise the level once the whole codebase passes the next one: levels 2–6 while the contexts are converted (Order of work 12), 7–10 (`max`) after that, one level per branch. No baseline file and no ignore comments.
+- **Fix:** raise the level once the whole codebase passes the next one: levels 2–6 while the contexts are converted (Order of work 13), 7–10 (`max`) after that, one level per branch. No baseline file and no ignore comments.
 
 ### `strict_types` and `final`
 - **Where:** all of `app/`, `tests/`, `database/` (11 of 1227 files declare `strict_types`, 11 classes are `final`); files touched by a branch keep their old shape, e.g. `app/Http/Controllers/Frontend/ProfileController.php` (no constructor promotion, untyped properties)
@@ -316,7 +333,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** context exceptions, mapping in `app/Exceptions/ExceptionHandling.php` (`rules/php.md`, Errors).
 
 ### Tests that pin structure instead of behaviour
-- **Where:** 235 `class_exists`/`method_exists` assertions, 189 files using reflection, 44 `$fillable`/`$casts` assertions (e.g. `tests/Unit/Models/*`); 107 tests in `tests/Unit` extending `Tests\TestCase`; `CreatesFrontendTestEnvironment` creating permission tables and hand-written permission lists; 43 tests named `test_*` or `@test`
+- **Where:** 235 `class_exists`/`method_exists` assertions, 189 files using reflection, 44 `$fillable`/`$casts` assertions (e.g. `tests/Unit/Models/*`); 100 tests in `tests/Unit` extending `Tests\TestCase`; `CreatesFrontendTestEnvironment` creating permission tables and hand-written permission lists; 43 tests named `test_*` or `@test`
 - **Fix:** delete structural tests, move framework tests to `tests/Feature`, use `PermissionCatalog` and migrations (`rules/testing.md`).
 
 ### Frontend
