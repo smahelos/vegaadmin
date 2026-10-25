@@ -16,7 +16,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 **B. Invoices**
 
-6. What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".
+6. ~~What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".~~ Done 2026-10-25 (branch `ls-invoice-print`): the PDFs print the stored tax point date, invoice text and payment method (`PaymentMethodCode`) in the PDF language, the tax point date is required, due dates go through `InvoiceDueDate`, PDF dates through `DateFormatterInterface`; invoice statuses are the `InvoiceStatus` enum and overdue is derived from the due date, which also made the payment reminders work again. Left over: "VAT rates by the supplier's country", "Status labels are resolved in two places"; found on the way: "Dates outside the PDFs are formatted by hand", "Payment reminders query Eloquent in the console command", "Invoice status fields of the invoice requests".
 7. "Clients and suppliers mix the user's businesses with their contacts" and "Optional client and supplier fields cannot be cleared" with "Rename IČO and DIČ to `company_number` and `vat_number`", "Compose `PrintableInvoiceData` from `PartyPrintData`" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
 8. "Issued invoices can be changed and deleted", with "Validate the variable symbol in QR payments" (numbering at issue is decided there) and "Clients, suppliers and products cannot be archived"; then "Expenses are not modelled as received documents", which shares the VAT lines, the VAT payer flag and the document tables (`docs/adr/D-044-document-tables.md`).
 9. "Currency conversion of invoice items happens in the browser" (ČNB rates) with "Resilience of external calls".
@@ -69,35 +69,35 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** Billex is for VAT payers and non-payers alike, but an expense is one amount with an optional `tax_amount` and a `tax_included` flag. It has no document type, no VAT breakdown by rate, no taxable supply date (DUZP) or date of receipt (which decides the VAT deduction), no supplier's document number and no due date; its statuses (draft, in review, approved, rejected…) are an approval process for companies, not the payment state a sole trader needs. A document the user claims a VAT deduction from is kept for 10 years (§ 35 ZDPH).
 - **Fix (decided 2026-10-25, after "Issued invoices can be changed and deleted"):** an expense is a received document, stored as `docs/adr/D-044-document-tables.md` describes: a document type enum (received invoice and simplified tax document / receipt first; corrective document, advance invoice and the tax document for a received payment later as new cases), a VAT regime enum (standard first; reverse charge and acquisition from the EU later), VAT lines by rate shared with issued documents (a non-payer enters only the total), supplier's document number, issue date, DUZP, date of receipt, due date, attachment; a payment state (unpaid, paid) instead of the approval statuses; a VAT payer flag on the user (also an open decision of "Issued invoices can be changed and deleted"). The user still deletes an expense: it is their record of someone else's document. Every table or column only one document type needs is decided by the user (criteria in the ADR).
 
-### Modern and minimal PDFs always print "bank transfer"
-- **Where:** `app/Application/Invoice/Services/InvoicePdfRenderer.php` (`'paymentMethod' => null`), `resources/views/pdfs/templates/{modern,minimal}.blade.php`
-- **Problem:** the renderer never passes the invoice's payment method, so these two templates print the fallback "Bankovní převod" on every invoice, cash and card included. The default template looks the method up itself. An invoice is a legal document.
-- **Fix:** pass the payment method label in the print data (`PrintableInvoiceData`) and let all templates print it; extend the PDF snapshot test with a non-transfer method.
+### Status labels are resolved in two places
+- **Where:** `app/Domain/Shared/Status/ValueObjects/StatusCode.php` (`label()`), `StatusService::translateSlug()`, `App\Models\Status::getTranslatedNameAttribute()`
+- **Problem:** invoice statuses are the `InvoiceStatus` enum and expense statuses `StatusCode`, but `StatusCode::label()` returns hardcoded English as a fallback, and the model accessor translates the slug itself instead of going through `translateSlug()`.
+- **Fix:** labels only from `statuses.statuses.<slug>` (every case of both enums has the key), one resolver used by the model, the invoice mapper and the dashboard; delete `label()`. The expense statuses change with "Expenses are not modelled as received documents".
 
-### Statuses are looked up by string slugs and labelled in English
-- **Where:** `app/Domain/Shared/Status/ValueObjects/StatusCode.php`, `StatusService::translateSlug()`, `App\Models\Status::getTranslatedNameAttribute()`
-- **Problem:** the enum now matches the statuses seeded by `ReferenceDataSeeder`, but code still looks up `unpaid`, which no status row has (`InvoiceStatusApplicationService::markAsUnpaid()`, `EloquentInvoiceRepository::findOverdueForUser()` / `findUnpaidForUser()`, `InvoiceFrontendActionsApplicationService::CHANGEABLE_STATUSES`, which also offers the expense status `draft`). `label()` returns hardcoded English. The model accessor translates the slug itself instead of going through `translateSlug()`.
-- **Fix:** look statuses up through the enum instead of string slugs (`unpaid` → `pending`), labels from `statuses.statuses.<slug>`, one resolver used by the model, the invoice mapper and the dashboard.
+### Invoice status fields of the invoice requests
+- **Where:** `app/Http/Requests/Admin/InvoiceRequest.php`, `app/Http/Requests/InvoiceRequest.php`, `tests/Feature/Http/Controllers/Admin/InvoiceCrudControllerTest.php`
+- **Problem:** the admin request requires `payment_status`, a field the admin form does not have (it sends `payment_status_id`, which the request does not validate), so saving an invoice from the admin form fails validation; the tests post `payment_status` by hand. The frontend request accepts any status id (`exists:statuses,id`), expense statuses included.
+- **Fix:** both requests validate `payment_status_id` against the statuses of `InvoiceStatus` (one shared rule set, `rules/http.md`); the admin tests post the form's fields.
 
 ### Compose `PrintableInvoiceData` from `PartyPrintData`
 - **Where:** `app/Domain/Invoice/DTO/PrintableInvoiceData.php`, `app/Domain/Party/DTO/PartyPrintData.php`
 - **Problem:** `PrintableInvoiceData` has ~40 flat `supplier_*` / `client_*` fields. `PartyPrintData` was created in the same commit to hold one party, but was never used.
 - **Fix:** `supplier: PartyPrintData`, `client: PartyPrintData`; update `InvoicePrintDataBuilder`, `TemporaryInvoicePrintDataFactory`, `InvoicePdfRenderer`, the PDF templates and snapshots.
 
-### Calculate due dates through `InvoiceDueDate`
-- **Where:** `app/Domain/Invoice/ValueObjects/InvoiceDueDate.php`
-- **Problem:** the due date (`issue_date + due_in`) is computed separately in `Invoice` model accessor, `InvoicePrintDataBuilder`, `TemporaryInvoicePrintDataFactory` and Livewire list ordering; `InvoiceFormApplicationService` hardcodes `now()->addDays(14)`.
-- **Fix:** Domain/Application calculations use the value object.
-
 ### Currency conversion of invoice items happens in the browser
 - **Where:** `resources/js/currency-manager.js` (`getExchangeRate()`, `convertAmount()`), `resources/js/invoice-item-manager.js`, `app/Domain/Shared/Money/Services/CurrencyExchangeService.php`, `InvoiceRequestAssembler`, `/api/currencies/{exchange-rate,convert}`
 - **Problem:** the invoice form converts item prices in JavaScript with floats; the server checks only that every item is in the invoice currency (`InvoiceRequest`), stores the converted price as it arrives and keeps no rate or date with the invoice. The form also previews line and invoice totals in JavaScript floats; the stored amounts are computed on the server (`InvoiceTotals`). Rates come from the free ExchangeRate-API (`open.er-api.com`); when it fails, the service silently returns rates hardcoded in the class (EUR→CZK 25.29 against 24.27 on 2026-10-23), and when a rate is missing the browser uses 1:1. VAT in CZK on a foreign-currency invoice needs the ČNB rate (§ 4 odst. 5 ZDPH; to confirm with an accountant). `Money::convertTo()` exists but nothing calls it.
 - **Fix (decided 2026-10-23, own branch after the issued-invoice immutability):** ČNB daily rates behind an exchange rate port; conversion on the server through `Money::convertTo()` when the invoice is stored; the rate, its date and source stored with the invoice and printed on it; an unavailable rate is an error shown to the user, never a fallback table or 1:1; `/api/currencies/convert` becomes the form's conversion or is deleted.
 
-### VAT rates are typed into the database by hand
-- **Where:** `taxes` table (read by `TaxDtoReadRepositoryInterface::getDphRatesForDropdown()`), `InvoiceRequest` (allowed item rates), invoice and product forms
-- **Problem:** no migration or seeder creates the VAT rates, so a fresh install offers only 0 % and accepts nothing else; the development database has 12, 21 and 25 % (25 % is not a Czech rate).
-- **Fix:** create the Czech rates as reference data in a migration (`rules/persistence.md`); decide with an accountant whether the rates depend on the supplier's country.
+### VAT rates by the supplier's country
+- **Where:** `ReferenceDataSeeder::VAT_RATES`, `InvoiceRequest` (allowed item rates), invoice and product forms
+- **Problem:** the reference data creates the Czech rates (0, 12 and 21 %) for every supplier; a supplier from another country would need its own rates.
+- **Fix:** decide with an accountant whether the rates depend on the supplier's country; until then Czech rates only.
+
+### Payment reminders query Eloquent in the console command
+- **Where:** `app/Console/Commands/CheckInvoicePaymentStatus.php`, `app/Console/Commands/TestInvoiceReminder.php`
+- **Problem:** the command loads every unpaid invoice with Eloquent three times and filters them by due date in PHP, resolves the notifier with `app()` and catches `\Exception` around the whole run; the delivery layer works with models (`rules/architecture.md`).
+- **Fix:** an Invoice application use case that reads the unpaid invoices due on a given day through a read port (the due date computed in SQL) and sends the reminders through `InvoiceReminderNotifierInterface`; the commands only call it.
 
 ### Format invoice amounts through a presenter
 - **Where:** `resources/views/frontend/invoices/show.blade.php`
@@ -246,6 +246,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** events are not yet used as `.claude/rules/architecture.md` (Events) requires. Cache invalidation runs through observers → `UserDataChanged`; `AnalyticsDataChanged` is never published, so its registered handler never runs. Events `ClientDeleted`, `ClientSetAsDefault`, `SupplierDeleted`, `SupplierSetAsDefault`, `SupplierUpdated`, `ProductDeleted`, `ProductSetAsDefault`, `ProductUpdated` exist but are never published.
 - **Fix:** publish the entity events from the domain services, let the cache invalidation handle them as Laravel listeners (after the commit, `rules/architecture.md` Events; `InvalidateAnalyticsCache` is a domain handler today, which would run inside the transaction), then remove the observers and `AnalyticsDataChanged`.
 
+### Dates outside the PDFs are formatted by hand
+- **Where:** `app/Infrastructure/Shared/Support/DateHelper.php` (formats for cs and en only), 15 views in `resources/views` (`->format('d.m.Y')`, `DateHelper::format()`, e.g. `frontend/invoices/show.blade.php`, the Livewire invoice lists), `app/Infrastructure/Notifications/Invoice/Messages/Invoice{Upcoming,Overdue,}DueReminder.php`
+- **Problem:** the PDFs format dates through `DateFormatterInterface` in their language, but the frontend, the admin and the reminder emails print the Czech format for every locale.
+- **Fix:** dates through `DateFormatterInterface` in the recipient's or the page's locale: a `<x-date>` Blade component for views, the notifications format with the payload's locale; delete `DateHelper`.
+
 ### `ddd:guard` snapshot test fails now and then in parallel runs
 - **Where:** `tests/Feature/Console/DddGuardDiJsonSnapshotTest.php`
 - **Problem:** in `php artisan test --parallel` the `Artisan::call('ddd:guard', …)` call occasionally throws (seen 2026-10-22); the test passes alone and in the next full runs.
@@ -312,8 +317,8 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** private state read through four naming styles: `getValue()` (46 calls), `toInt()` (`UserId`, `PartyId`; 83 calls), `value()` (`ProductSku`), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, `BankAccount::getIban()`, …).
 - **Fix (decided 2026-10-20):** `final readonly class` with public readonly properties for held state (`->value`, `->amount`, `->iban`), computed values as methods without `get` (`formattedIban()`, `year()`), per `rules/php.md`.
 
-### Business logic and broken relations in models
-- **Where:** `app/Models/Invoice.php` (`subtotal_money` / `total_tax_money` accessors computing totals through `InvoiceTotals`, due date, logging, `HasRoles`, `belongsToMany(...)` to `clients`/`suppliers`/`statuses` tables), `$guarded` in 6 models; invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
+### Business logic and untyped relations in models
+- **Where:** `app/Models/Invoice.php` (`subtotal_money` / `total_tax_money` accessors computing totals through `InvoiceTotals`, due date, `overdue` and `paid` for the lists, logging, `HasRoles`), `HasRoles` also on `PaymentMethod`, `$guarded` in 6 models; invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
 - **Fix:** logic into Domain, totals built by `EloquentInvoiceMapper` once Application no longer receives models, `$fillable` and typed relations (`rules/persistence.md`).
 
 ### Validation in several places
