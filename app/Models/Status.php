@@ -95,14 +95,6 @@ class Status extends Model
         }
     }
 
-    /**
-     * Scope for active statuses only
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', 1);
-    }
-
     /*
     |--------------------------------------------------------------------------
     | SCOPES

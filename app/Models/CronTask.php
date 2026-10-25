@@ -36,51 +36,6 @@ class CronTask extends Model
     ];
 
     /**
-     * Vrátí čitelný název frekvence
-     */
-    public function getFrequencyNameAttribute()
-    {
-        $frequencies = [
-            'daily' => __('cron_tasks.frequencies.daily'),
-            'weekly' => __('cron_tasks.frequencies.weekly'),
-            'monthly' => __('cron_tasks.frequencies.monthly'),
-            'custom' => __('cron_tasks.frequencies.custom'),
-        ];
-
-        return $frequencies[$this->frequency] ?? $this->frequency;
-    }
-
-    /**
-     * Vrátí čitelný název dne v týdnu
-     */
-    public function getDayOfWeekNameAttribute()
-    {
-        if ($this->day_of_week === null) {
-            return null;
-        }
-
-        $days = [
-            0 => __('cron_tasks.days.sunday'),
-            1 => __('cron_tasks.days.monday'),
-            2 => __('cron_tasks.days.tuesday'),
-            3 => __('cron_tasks.days.wednesday'),
-            4 => __('cron_tasks.days.thursday'),
-            5 => __('cron_tasks.days.friday'),
-            6 => __('cron_tasks.days.saturday'),
-        ];
-
-        return $days[$this->day_of_week] ?? $this->day_of_week;
-    }
-
-    /**
-     * Vrátí formátovaný čas spuštění
-     */
-    public function getFormattedRunAtAttribute()
-    {
-        return $this->run_at ? $this->run_at->format('H:i') : null;
-    }
-
-    /**
      * Získá základní příkaz bez parametrů.
      */
     public function getBaseCommandAttribute()

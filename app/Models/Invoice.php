@@ -137,14 +137,6 @@ class Invoice extends Model
     }
 
     /**
-     * Get payment status slug
-     */
-    public function getPaymentStatusSlugAttribute()
-    {
-        return $this->paymentStatus ? $this->paymentStatus->slug : 'unknown';
-    }
-
-    /**
      * Get client name with fallback for unknown client
      */
     public function getClientNameAttribute()

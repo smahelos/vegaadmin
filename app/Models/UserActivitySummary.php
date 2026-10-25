@@ -88,42 +88,6 @@ class UserActivitySummary extends Model
     }
 
     /**
-     * Scope for users with recent activity (invoices in last 30 days)
-     */
-    public function scopeWithRecentActivity($query)
-    {
-        return $query->where(
-            'invoices_last_30_days',
-            '>',
-            0,
-        );
-    }
-
-    /**
-     * Scope for users with high activity (more than 20 invoices in last 30 days)
-     */
-    public function scopeHighActivity($query)
-    {
-        return $query->where(
-            'invoices_last_30_days',
-            '>',
-            20,
-        );
-    }
-
-    /**
-     * Scope for inactive users (no invoices in last 30 days)
-     */
-    public function scopeInactive($query)
-    {
-        return $query->where(
-            'invoices_last_30_days',
-            '=',
-            0,
-        );
-    }
-
-    /**
      * Get activity level as string
      */
     public function getActivityLevelAttribute()

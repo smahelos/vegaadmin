@@ -56,32 +56,6 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     }
 
     #[Test]
-    public function scope_active_filters_active_features(): void
-    {
-        SubscriptionPlanFeature::factory()->create(['is_active' => true, 'name' => 'Active Feature']);
-        SubscriptionPlanFeature::factory()->create(['is_active' => false, 'name' => 'Inactive Feature']);
-
-        $activeFeatures = SubscriptionPlanFeature::active()->get();
-
-        $this->assertEquals(1, $activeFeatures->count());
-        $this->assertEquals('Active Feature', $activeFeatures->first()->name);
-    }
-
-    #[Test]
-    public function scope_ordered_sorts_by_sort_order(): void
-    {
-        $feature1 = SubscriptionPlanFeature::factory()->create(['sort_order' => 3, 'name' => 'Third']);
-        $feature2 = SubscriptionPlanFeature::factory()->create(['sort_order' => 1, 'name' => 'First']);
-        $feature3 = SubscriptionPlanFeature::factory()->create(['sort_order' => 2, 'name' => 'Second']);
-
-        $orderedFeatures = SubscriptionPlanFeature::ordered()->get();
-
-        $this->assertEquals('First', $orderedFeatures[0]->name);
-        $this->assertEquals('Second', $orderedFeatures[1]->name);
-        $this->assertEquals('Third', $orderedFeatures[2]->name);
-    }
-
-    #[Test]
     public function is_active_method_returns_boolean(): void
     {
         $activeFeature = SubscriptionPlanFeature::factory()->create(['is_active' => true]);
@@ -124,27 +98,6 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
         $feature->delete();
 
         $this->assertSoftDeleted('subscription_plan_features', ['id' => $featureId]);
-    }
-
-    #[Test]
-    public function features_without_explicit_ordering_follow_creation_order(): void
-    {
-        $first = SubscriptionPlanFeature::factory()->create(['sort_order' => 5, 'name' => 'Last by sort_order']);
-        $second = SubscriptionPlanFeature::factory()->create(['sort_order' => 1, 'name' => 'First by sort_order']);
-        $third = SubscriptionPlanFeature::factory()->create(['sort_order' => 3, 'name' => 'Middle by sort_order']);
-
-        // Without explicit ordering, features follow creation/ID order
-        $features = SubscriptionPlanFeature::all();
-
-        $this->assertEquals('Last by sort_order', $features[0]->name);
-        $this->assertEquals('First by sort_order', $features[1]->name);
-        $this->assertEquals('Middle by sort_order', $features[2]->name);
-
-        // Verify that ordered scope gives different result
-        $orderedFeatures = SubscriptionPlanFeature::ordered()->get();
-        $this->assertEquals('First by sort_order', $orderedFeatures[0]->name);
-        $this->assertEquals('Middle by sort_order', $orderedFeatures[1]->name);
-        $this->assertEquals('Last by sort_order', $orderedFeatures[2]->name);
     }
 
     #[Test]

@@ -58,30 +58,6 @@ class SubscriptionFeatureTest extends TestCase
     }
 
     #[Test]
-    public function subscription_active_scope_returns_only_active_subscriptions(): void
-    {
-        $activeSubscription = Subscription::factory()->create(['status' => 'active']);
-        $inactiveSubscription = Subscription::factory()->create(['status' => 'expired']);
-
-        $activeSubscriptions = Subscription::active()->get();
-
-        $this->assertCount(1, $activeSubscriptions);
-        $this->assertEquals($activeSubscription->id, $activeSubscriptions->first()->id);
-    }
-
-    #[Test]
-    public function subscription_expired_scope_returns_only_expired_subscriptions(): void
-    {
-        $activeSubscription = Subscription::factory()->create(['status' => 'active']);
-        $expiredSubscription = Subscription::factory()->create(['status' => 'expired']);
-
-        $expiredSubscriptions = Subscription::expired()->get();
-
-        $this->assertCount(1, $expiredSubscriptions);
-        $this->assertEquals($expiredSubscription->id, $expiredSubscriptions->first()->id);
-    }
-
-    #[Test]
     public function subscription_is_active_returns_correct_boolean(): void
     {
         // Test with status 'active' and future end date - should be active

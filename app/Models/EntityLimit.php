@@ -144,54 +144,6 @@ class EntityLimit extends Model
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Scope to only active limits
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope by entity type
-     */
-    public function scopeForEntity($query, string $entityType)
-    {
-        return $query->where('entity_type', $entityType);
-    }
-
-    /**
-     * Scope by metric type
-     */
-    public function scopeByMetricType($query, string $metricType)
-    {
-        return $query->where('metric_type', $metricType);
-    }
-
-    /**
-     * Scope by period type
-     */
-    public function scopeByPeriod($query, string $periodType)
-    {
-        return $query->where('period_type', $periodType);
-    }
-
-    /**
-     * Scope by permission name
-     */
-    public function scopeByPermission($query, string $permissionName)
-    {
-        return $query->where('permission_name', $permissionName);
-    }
-
-    /**
-     * Scope for anonymous user limits
-     */
-    public function scopeForAnonymous($query)
-    {
-        return $query->where('permission_name', self::ANONYMOUS_PERMISSION);
-    }
-
     /*
     |--------------------------------------------------------------------------
     | MUTATORS & ACCESSORS

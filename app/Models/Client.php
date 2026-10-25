@@ -83,22 +83,6 @@ class Client extends Model
     |--------------------------------------------------------------------------
     */
     /**
-     * Get the full address of the client
-     */
-    public function getFullAddressAttribute()
-    {
-        return "{$this->street}, {$this->zip} {$this->city}, {$this->country}";
-    }
-
-    /**
-     * Get the full name with shortcut of the client
-     */
-    public function getFullNameAttribute()
-    {
-        return "{$this->name} ({$this->shortcut})";
-    }
-
-    /**
      * Get preferred locale of the client
      */
     public function preferredLocale()

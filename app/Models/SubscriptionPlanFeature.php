@@ -54,22 +54,6 @@ class SubscriptionPlanFeature extends Model
     }
 
     /**
-     * Scope for active features
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope for ordered features
-     */
-    public function scopeOrdered($query)
-    {
-        return $query->orderBy('sort_order')->orderBy('name');
-    }
-
-    /**
      * Check if feature is active
      */
     public function isActive(): bool

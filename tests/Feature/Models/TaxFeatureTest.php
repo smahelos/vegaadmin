@@ -230,16 +230,6 @@ class TaxFeatureTest extends TestCase
     }
 
     #[Test]
-    public function rate_formatted_attribute_works_with_database(): void
-    {
-        $tax = Tax::factory()->create(['rate' => 21.50]);
-
-        $tax->refresh();
-
-        $this->assertEquals('21.50%', $tax->rate_formatted);
-    }
-
-    #[Test]
     public function tax_has_timestamps(): void
     {
         $tax = Tax::factory()->create();

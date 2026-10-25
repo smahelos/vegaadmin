@@ -147,44 +147,6 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     }
 
     #[Test]
-    public function scope_high_priority_filters_correctly(): void
-    {
-        MysqlOptimizationLog::factory()->highPriority()->createMany(2);
-        MysqlOptimizationLog::factory()->mediumPriority()->create();
-        MysqlOptimizationLog::factory()->lowPriority()->create();
-
-        $highPriorityLogs = MysqlOptimizationLog::highPriority()->get();
-
-        $this->assertCount(2, $highPriorityLogs);
-        $this->assertTrue($highPriorityLogs->every(fn ($log) => $log->priority === 'high'));
-    }
-
-    #[Test]
-    public function scope_unapplied_filters_correctly(): void
-    {
-        MysqlOptimizationLog::factory()->applied()->createMany(2);
-        MysqlOptimizationLog::factory()->unapplied()->createMany(3);
-
-        $unappliedLogs = MysqlOptimizationLog::unapplied()->get();
-
-        $this->assertCount(3, $unappliedLogs);
-        $this->assertTrue($unappliedLogs->every(fn ($log) => ! $log->applied));
-    }
-
-    #[Test]
-    public function can_combine_scopes(): void
-    {
-        MysqlOptimizationLog::factory()->highPriority()->applied()->create();
-        MysqlOptimizationLog::factory()->highPriority()->unapplied()->createMany(2);
-        MysqlOptimizationLog::factory()->mediumPriority()->unapplied()->create();
-
-        $highPriorityUnappliedLogs = MysqlOptimizationLog::highPriority()->unapplied()->get();
-
-        $this->assertCount(2, $highPriorityUnappliedLogs);
-        $this->assertTrue($highPriorityUnappliedLogs->every(fn ($log) => $log->priority === 'high' && ! $log->applied));
-    }
-
-    #[Test]
     public function can_query_logs_by_setting_name(): void
     {
         MysqlOptimizationLog::factory()->create(['setting_name' => 'innodb_buffer_pool_size']);

@@ -126,22 +126,6 @@ class Supplier extends Model
     |--------------------------------------------------------------------------
     */
     /**
-     * Get the full address of the supplier
-     */
-    public function getFullAddressAttribute()
-    {
-        return "{$this->street}, {$this->zip} {$this->city}, {$this->country}";
-    }
-
-    /**
-     * Get the full name with shortcut of the supplier
-     */
-    public function getFullNameAttribute()
-    {
-        return "{$this->name} ({$this->shortcut})";
-    }
-
-    /**
      * Format account number in number/code format
      */
     public function getFullAccountNumberAttribute(): ?string

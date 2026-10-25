@@ -101,38 +101,6 @@ class EntityLimitUsage extends Model
         return $query->where('user_id', $userId);
     }
 
-    /**
-     * Scope by entity type
-     */
-    public function scopeForEntity($query, string $entityType)
-    {
-        return $query->where('entity_type', $entityType);
-    }
-
-    /**
-     * Scope by metric type
-     */
-    public function scopeByMetricType($query, string $metricType)
-    {
-        return $query->where('metric_type', $metricType);
-    }
-
-    /**
-     * Scope by period type
-     */
-    public function scopeByPeriodType($query, string $periodType)
-    {
-        return $query->where('period_type', $periodType);
-    }
-
-    /**
-     * Scope for anonymous users
-     */
-    public function scopeForAnonymous($query)
-    {
-        return $query->whereNull('user_id');
-    }
-
     /*
     |--------------------------------------------------------------------------
     | MUTATORS & ACCESSORS

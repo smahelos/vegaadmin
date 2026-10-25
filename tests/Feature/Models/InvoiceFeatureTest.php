@@ -136,27 +136,6 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_payment_status_slug_attribute_returns_slug(): void
-    {
-        $status = Status::where('slug', 'paid')->firstOrFail();
-        $invoice = Invoice::factory()->create(['payment_status_id' => $status->id]);
-
-        $slug = $invoice->getPaymentStatusSlugAttribute();
-
-        $this->assertEquals('paid', $slug);
-    }
-
-    #[Test]
-    public function get_payment_status_slug_attribute_returns_unknown_when_no_status(): void
-    {
-        $invoice = Invoice::factory()->create(['payment_status_id' => null]);
-
-        $slug = $invoice->getPaymentStatusSlugAttribute();
-
-        $this->assertEquals('unknown', $slug);
-    }
-
-    #[Test]
     public function get_client_name_attribute_returns_client_name(): void
     {
         $client = Client::factory()->create(['name' => 'Test Client']);
