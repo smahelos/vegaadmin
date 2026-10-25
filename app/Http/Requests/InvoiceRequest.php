@@ -447,6 +447,8 @@ final class InvoiceRequest extends BaseEntityRequest
         return [
             'supplier_id.required_without' => __('invoices.validation.supplier_required_without'),
             'client_id.required_without' => __('invoices.validation.client_required_without'),
+            'ico.unique' => __('invoices.validation.supplier_exists'),
+            'client_ico.unique' => __('invoices.validation.client_exists'),
             'invoice-products.required' => __('invoices.validation.amount_positive'),
             'invoice-products.min' => __('invoices.validation.amount_positive'),
             'invoice-products.*.currency.same' => __('invoices.validation.item_currency'),

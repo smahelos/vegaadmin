@@ -4,6 +4,7 @@ namespace App\Domain\Product\Contracts;
 
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
+use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\ValueObjects\ProductId;
 
 /**
@@ -29,6 +30,8 @@ interface ProductDtoWriteRepositoryInterface
 
     /**
      * Delete product by ID.
+     *
+     * @throws ProductInUseException when an invoice line refers to the product
      */
     public function delete(ProductId $id): void;
 

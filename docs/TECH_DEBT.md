@@ -29,7 +29,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 **D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
 
-13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field; Party: duplicates, client mapper); "Move cache invalidation from observers to domain event handlers" after step 4.
+13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field; Party: duplicates, client mapper, clearing optional fields); "Move cache invalidation from observers to domain event handlers" after step 4.
 14. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 
 **E. Before production and last**
@@ -157,6 +157,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Where:** `clients`, `suppliers`, `products` (no `deleted_at`), `InvoicePartyService::deleteClient()` / `deleteSupplier()`, `ProductService::deleteProduct()`, the restricting foreign keys of `invoices`, `invoice_products` and `expenses`, the unique indexes `(user_id, ico)` and `(user_id, slug)`
 - **Problem:** documents keep their client, supplier and product (foreign keys restrict deleting them), so a user cannot remove a client they have invoiced from their lists; the delete is refused with a message. Soft deletes would collide with the unique indexes: a new client with the IČO of an archived one is refused.
 - **Fix (decided 2026-10-25, step 8):** soft deletes for clients, suppliers and products: archived records disappear from lists and selects, documents and statistics keep pointing at them. Entering the IČO of an archived client or supplier restores it instead of creating a new one; the domain methods throw an exception instead of returning `false` (`rules/domain.md`).
+
+### Optional client and supplier fields cannot be cleared
+- **Where:** `app/Domain/Party/DTO/ClientWriteData.php`, `SupplierWriteData.php` (`toArray()`), `InvoicePartyService::updateClient()` / `updateSupplier()`, the frontend client and supplier edit forms
+- **Problem:** the write data drop every `null` so that an update changes only what was sent. The form sends an emptied field as `null` (`ConvertEmptyStringsToNull`), so emptying the IČO, DIČ, phone, e-mail or description of a client or supplier and saving keeps the old value. Found while normalising an empty IČO to `null` (PR #57).
+- **Fix:** an update carries the whole state of the form, with `null` meaning empty; `setClientDefault()` / `setSupplierDefault()` and `cloneWriteDto()` change only the flag in their own query instead of rewriting the record. An HTTP test empties each optional field. With the Party conversion (step 13).
 
 ### Inactive banks are still offered
 - **Where:** `banks.active`, `app/Infrastructure/Persistence/Eloquent/Payment/Repositories/EloquentBankRepository.php` (`getAllBanks()`)

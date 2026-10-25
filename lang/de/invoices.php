@@ -181,6 +181,8 @@ return [
     ],
     'validation' => [
         'item_currency' => 'Die Währung der Position muss der Währung der Rechnung entsprechen.',
+        'client_exists' => 'Ein Kunde mit dieser Unternehmens-ID existiert bereits, wählen Sie ihn aus der Liste aus.',
+        'supplier_exists' => 'Ein Lieferant mit dieser Unternehmens-ID existiert bereits, wählen Sie ihn aus der Liste aus.',
         'tax_rate' => 'Eine Rechnungsposition hat einen ungültigen MwSt.-Satz. Zulässige Sätze: :rates.',
         'amount_required' => 'Betrag ist erforderlich',
         'amount_numeric' => 'Betrag muss eine Zahl sein',

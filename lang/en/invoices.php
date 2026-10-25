@@ -181,6 +181,8 @@ return [
     ],
     'validation' => [
         'item_currency' => 'The item currency must match the invoice currency.',
+        'client_exists' => 'A client with this Company ID already exists, select them from the list.',
+        'supplier_exists' => 'A supplier with this Company ID already exists, select them from the list.',
         'tax_rate' => 'An invoice item has an invalid VAT rate. Allowed rates: :rates.',
         'amount_required' => 'Amount is required',
         'amount_numeric' => 'Amount must be a number',

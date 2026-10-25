@@ -181,6 +181,8 @@ return [
     ],
     'validation' => [
         'item_currency' => 'Mena položky musí byť rovnaká ako mena faktúry.',
+        'client_exists' => 'Klient s týmto IČO už existuje, vyberte ho zo zoznamu.',
+        'supplier_exists' => 'Dodávateľ s týmto IČO už existuje, vyberte ho zo zoznamu.',
         'tax_rate' => 'Položka faktúry má neplatnú sadzbu DPH. Povolené sadzby: :rates.',
         'amount_required' => 'Suma je povinná',
         'amount_numeric' => 'Suma musí byť číslo',
