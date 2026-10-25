@@ -74,11 +74,11 @@ Invoicing application: Laravel 12, Backpack admin panel, a public frontend (Blad
 | MailHog (outgoing e-mails) | http://localhost:8025 |
 | phpMyAdmin | http://localhost:8888 |
 
-The `cron` container runs the Laravel scheduler (`php artisan schedule:work`).
+The `cron` container runs the Laravel scheduler (`php artisan schedule:work`), the `queue` container the queue worker (`php artisan queue:work` on the `database` connection).
 
 ## Development
 
-- The `app` and `cron` containers mount the project, so code changes apply without a rebuild. Rebuild (`docker compose up -d --build app cron`) only after changing `app.dockerfile` or `WWW_UID`/`WWW_GID`.
+- The `app`, `cron` and `queue` containers mount the project, so code changes apply without a rebuild; the queue worker keeps the code in memory and picks up changes after `docker exec BILLEX-app php artisan queue:restart`. Rebuild (`docker compose up -d --build app cron queue`) only after changing `app.dockerfile` or `WWW_UID`/`WWW_GID`.
 - After a `composer.lock` change: `docker exec BILLEX-app composer install`.
 - After a `package-lock.json` change: `npm ci`; `npm run dev` runs the Vite dev server.
 - In `local`, `php artisan migrate:fresh --seed` rebuilds the development database with reference data and development accounts (`database/seeders/DevelopmentDataSeeder.php`, password `backpack`): `admin@billex.test` and `backend@billex.test` for the admin panel, `user1@` / `user2@billex.test` (`frontend_user`) and `plus1@` / `plus2@billex.test` (`frontend_user_plus`) with a year of invoices, clients and expenses.

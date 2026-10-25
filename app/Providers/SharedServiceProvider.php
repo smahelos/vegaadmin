@@ -63,6 +63,7 @@ use App\Infrastructure\Shared\Str\Services\LaravelStrAdapter;
 use App\Infrastructure\Shared\Time\CarbonClock;
 use App\Infrastructure\Shared\Time\CarbonPeriodService;
 use App\Infrastructure\Shared\Translation\LaravelTranslator;
+use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -173,6 +174,11 @@ class SharedServiceProvider extends ServiceProvider
             EventPublisherInterface::class,
             LaravelEventPublisher::class,
         );
+
+        // The connections report their transactions to the 'db.transactions' singleton, which is not bound by class name
+        $this->app->when(LaravelEventPublisher::class)
+            ->needs(DatabaseTransactionsManager::class)
+            ->give(fn (): DatabaseTransactionsManager => $this->app->make('db.transactions'));
 
         // File services
         $this->app->bind(

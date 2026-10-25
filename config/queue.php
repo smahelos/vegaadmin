@@ -40,6 +40,10 @@ return [
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
+            // A job dispatched inside a transaction (use case, domain handler) is written in that transaction: a
+            // rollback removes it and the worker sees it only after the commit, so it is not lost between the
+            // commit and the dispatch (the jobs table is the outbox). The other connections cannot share the
+            // transaction, so they dispatch after the commit.
             'after_commit' => false,
         ],
 
@@ -49,7 +53,7 @@ return [
             'queue' => env('BEANSTALKD_QUEUE', 'default'),
             'retry_after' => (int) env('BEANSTALKD_QUEUE_RETRY_AFTER', 90),
             'block_for' => 0,
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
         'sqs' => [
@@ -60,7 +64,7 @@ return [
             'queue' => env('SQS_QUEUE', 'default'),
             'suffix' => env('SQS_SUFFIX'),
             'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
         'redis' => [
@@ -69,7 +73,7 @@ return [
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
             'block_for' => null,
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
     ],
