@@ -195,13 +195,6 @@ class InvoiceServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function set_invoice_template_other_users_invoice_authorization_out_of_scope(): void
-    {
-        // Ownership is enforced at application layer (e.g. controller / policy), not inside domain service.
-        $this->markTestIncomplete('Ownership check belongs to application layer; domain service intentionally allows update.');
-    }
-
-    #[Test]
     public function set_invoice_template_accepts_valid_template_names(): void
     {
         Auth::login($this->user);

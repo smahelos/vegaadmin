@@ -117,19 +117,16 @@ class SyncArtisanCommandsFeatureTest extends TestCase
         Artisan::call('artisan:sync-commands');
 
         // Modify a command record
-        $command = ArtisanCommand::first();
-        if ($command) {
-            $originalDescription = $command->description;
-            $command->update(['description' => 'Custom description']);
+        $command = ArtisanCommand::firstOrFail();
+        $command->update(['description' => 'Custom description']);
 
-            // Sync again
-            Artisan::call('artisan:sync-commands');
+        // Sync again
+        Artisan::call('artisan:sync-commands');
 
-            // Should preserve the record but may update signature/name
-            $this->assertTrue(ArtisanCommand::where('id', $command->id)->exists());
-        } else {
-            $this->markTestSkipped('No commands found to test preservation');
-        }
+        $this->assertDatabaseHas('artisan_commands', [
+            'id' => $command->id,
+            'description' => 'Custom description',
+        ]);
     }
 
     #[Test]
