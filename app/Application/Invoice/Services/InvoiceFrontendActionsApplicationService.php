@@ -12,6 +12,7 @@ use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
 use App\Domain\Shared\Status\ValueObjects\StatusId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\User;
@@ -19,12 +20,20 @@ use Illuminate\Support\Facades\Log;
 
 class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActionsApplicationServiceInterface
 {
+    /** @var list<string> */
+    private const CHANGEABLE_STATUSES = [
+        'paid',
+        'unpaid',
+        'draft',
+    ];
+
     public function __construct(
         private InvoiceStatusApplicationServiceInterface $invoiceStatus,
         private InvoiceLimitApplicationServiceInterface $invoiceLimit,
         private InvoiceListingApplicationServiceInterface $invoiceListing,
         private InvoiceReadRepositoryInterface $invoiceReadRepository,
         private InvoiceServiceInterface $invoiceService,
+        private StatusDtoRepositoryInterface $statusRepository,
     ) {}
 
     public function markAsPaid(int $userId, int $invoiceId): InvoiceActionResult
@@ -73,22 +82,21 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
         string $statusSlug,
     ): InvoiceActionResult {
         try {
-            // Convert string status to StatusId - first find status by slug
-            // For now, use a simple mapping - this should be improved to use repository
-            $statusMapping = [
-                'paid' => 2, // assuming paid status has ID 2
-                'unpaid' => 1, // assuming unpaid status has ID 1
-                'draft' => 3, // assuming draft status has ID 3
-            ];
+            $statusId = in_array(
+                $statusSlug,
+                self::CHANGEABLE_STATUSES,
+                true,
+            )
+                ? $this->statusRepository->findIdBySlug($statusSlug)
+                : null;
 
-            if (! isset($statusMapping[$statusSlug])) {
+            if ($statusId === null) {
                 return InvoiceActionResult::failure('invoices.messages.status_not_found');
             }
 
-            $statusId = new StatusId($statusMapping[$statusSlug]);
             $this->invoiceStatus->changeStatus(
                 new InvoiceId($invoiceId),
-                $statusId,
+                new StatusId($statusId),
                 new UserId($userId),
             );
 

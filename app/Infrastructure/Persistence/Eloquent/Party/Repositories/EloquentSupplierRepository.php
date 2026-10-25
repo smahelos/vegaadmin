@@ -16,7 +16,10 @@ class EloquentSupplierRepository implements SupplierReadRepositoryInterface, Sup
 
     public function getDefaultSupplier(int $userId): ?Supplier
     {
-        return Supplier::where('user_id', $userId)->where('is_default', true)->first() ?? Supplier::where('user_id', $userId)->first();
+        $default = Supplier::where('user_id', $userId)->where('is_default', true)->first();
+
+        // Without a default the most recently created supplier stands in
+        return $default ?? Supplier::where('user_id', $userId)->latest()->latest('id')->first();
     }
 
     public function findById(int $id): ?Supplier

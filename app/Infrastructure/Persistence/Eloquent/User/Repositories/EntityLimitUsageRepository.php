@@ -231,9 +231,10 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
             return false;
         }
 
-        // Check if user has any of the permissions configured for this entity
+        // Check if user has any of the permissions configured for this entity; a limit may name a
+        // permission of the other guard, which counts as not granted instead of throwing
         foreach ($permissionsForEntity as $permission) {
-            if ($user->hasPermissionTo($permission, $guard)) {
+            if ($user->checkPermissionTo($permission, $guard)) {
                 Log::debug('EntityLimitUsageRepository: User has permission for entity', [
                     'entity_type' => $entityType,
                     'user_id' => $userId,

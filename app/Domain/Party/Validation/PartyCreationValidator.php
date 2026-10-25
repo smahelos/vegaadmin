@@ -22,7 +22,8 @@ class PartyCreationValidator implements PartyCreationValidatorInterface
             'city' => $prefixed ? ($data['client_city'] ?? '') : ($data['city'] ?? ''),
             'zip' => $prefixed ? ($data['client_zip'] ?? '') : ($data['zip'] ?? ''),
             'country' => $prefixed ? ($data['client_country'] ?? 'CZ') : ($data['country'] ?? 'CZ'),
-            'ico' => $prefixed ? ($data['client_ico'] ?? '') : ($data['ico'] ?? ''),
+            // ico is unique, so a missing one is stored as null, never as an empty string
+            'ico' => ($prefixed ? ($data['client_ico'] ?? null) : ($data['ico'] ?? null)) ?: null,
             'dic' => $prefixed ? ($data['client_dic'] ?? '') : ($data['dic'] ?? ''),
             'email' => $prefixed ? ($data['client_email'] ?? '') : ($data['email'] ?? ''),
             'phone' => $prefixed ? ($data['client_phone'] ?? '') : ($data['phone'] ?? ''),
@@ -45,7 +46,7 @@ class PartyCreationValidator implements PartyCreationValidatorInterface
             'city' => $data['city'] ?? '',
             'zip' => $data['zip'] ?? '',
             'country' => $data['country'] ?? 'CZ',
-            'ico' => $data['ico'] ?? '',
+            'ico' => ($data['ico'] ?? null) ?: null,
             'dic' => $data['dic'] ?? '',
             'email' => $data['email'] ?? '',
             'phone' => $data['phone'] ?? '',

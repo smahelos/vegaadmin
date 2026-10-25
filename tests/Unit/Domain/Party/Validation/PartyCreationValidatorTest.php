@@ -130,4 +130,20 @@ class PartyCreationValidatorTest extends TestCase
         $this->expectException(PartyCreationException::class);
         $this->validator->validateSupplier(new UserId($this->user->id), ['name' => 'AB']);
     }
+
+    #[Test]
+    public function validate_client_stores_missing_ico_as_null(): void
+    {
+        $payload = $this->validator->validateClient(new UserId($this->user->id), ['client_name' => 'Client ABC', 'client_ico' => '']);
+
+        $this->assertNull($payload['ico']);
+    }
+
+    #[Test]
+    public function validate_supplier_stores_missing_ico_as_null(): void
+    {
+        $payload = $this->validator->validateSupplier(new UserId($this->user->id), ['name' => 'Supplier ABC']);
+
+        $this->assertNull($payload['ico']);
+    }
 }

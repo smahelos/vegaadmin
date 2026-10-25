@@ -29,7 +29,7 @@ class SupplierWriteData
         public readonly ?string $bank_name = null,
         public readonly ?string $iban = null,
         public readonly ?string $swift = null,
-        public readonly ?string $has_payment_info = null,
+        public readonly ?bool $has_payment_info = null,
         public readonly ?int $user_id = null,
         public readonly bool $is_default = false,
     ) {}
