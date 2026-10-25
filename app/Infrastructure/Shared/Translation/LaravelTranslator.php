@@ -16,16 +16,4 @@ class LaravelTranslator implements TranslatorInterface
     {
         return $this->translator->has($key, $locale);
     }
-
-    public function trans(
-        string $key,
-        array $replace = [],
-        ?string $locale = null,
-    ): string {
-        return $this->translator->get(
-            $key,
-            $replace,
-            $locale,
-        );
-    }
 }

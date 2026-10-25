@@ -184,33 +184,4 @@ class MoneyFormatter implements MoneyFormatterInterface
         // If after trimming length (mb_strlen) <= 2 treat as short symbol
         return mb_strlen($trimmed, 'UTF-8') <= 2;
     }
-
-    /**
-     * Legacy fallback formatting (kept for reference, now unused directly in main path).
-     */
-    private function fallbackFormat(
-        Money $money,
-        string $locale,
-        int $fractionDigits,
-        bool $forceCode,
-    ): string {
-        $decimalSep = str_starts_with($locale, 'cs') ? ',' : '.';
-        $thousandSep = str_starts_with($locale, 'cs') ? ' ' : ',';
-        $currency = strtoupper($money->getCurrency());
-        $numeric = $money->toFloat();
-        $formatted = number_format(
-            $numeric,
-            $fractionDigits,
-            $decimalSep,
-            $thousandSep,
-        );
-        // Always prefix code in fallback; symbol detection not available
-        if ($numeric < 0) {
-            $formatted = ltrim($formatted, '-');
-
-            return '-' . $currency . ' ' . $formatted;
-        }
-
-        return $currency . ' ' . $formatted;
-    }
 }

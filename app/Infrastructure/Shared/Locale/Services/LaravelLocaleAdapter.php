@@ -48,30 +48,6 @@ class LaravelLocaleAdapter implements Locale
     }
 
     /**
-     * Set application locale.
-     */
-    public function setLocale(string $locale): void
-    {
-        app()->setLocale($locale);
-    }
-
-    /**
-     * Map country code to preferred locale using configuration.
-     * Falls back to app.fallback_locale when not found or empty.
-     */
-    public function localeFromCountry(?string $country): string
-    {
-        $fallback = $this->getFallbackLocale();
-        if (! $country) {
-            return $fallback;
-        }
-        $map = $this->getCountryLocaleMap();
-        $code = strtoupper($country);
-
-        return $map[$code] ?? $fallback;
-    }
-
-    /**
      * Summary of determineLocale
      *
      * @param  mixed  $requestLocale

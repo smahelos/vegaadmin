@@ -127,8 +127,6 @@ class EloquentUserDtoRepository implements UserReadRepositoryInterface, UserWrit
             total: $paginator->total(),
             perPage: $paginator->perPage(),
             currentPage: $paginator->currentPage(),
-            lastPage: $paginator->lastPage(),
-            hasMore: $paginator->currentPage() < $paginator->lastPage(),
         );
     }
 

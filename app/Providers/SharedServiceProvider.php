@@ -32,10 +32,7 @@ use App\Domain\Shared\Money\Services\CurrencyService;
 use App\Domain\Shared\Money\Services\DeterministicCurrencyExchangeService;
 use App\Domain\Shared\Money\Services\MoneyFormatter;
 use App\Domain\Shared\Session\Contracts\SessionInterface;
-use App\Domain\Shared\Status\Contracts\StatusCategoryDtoRepositoryInterface;
 use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
-use App\Domain\Shared\Status\Contracts\StatusServiceInterface;
-use App\Domain\Shared\Status\Services\StatusService;
 use App\Domain\Shared\Str\Contracts\Str;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\Shared\Tax\Contracts\TaxDtoWriteRepositoryInterface;
@@ -48,7 +45,6 @@ use App\Domain\Shared\Translation\Contracts\TranslatorInterface;
 use App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories\EloquentArtisanCommandsDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories\EloquentArtisanCommandsRepository;
 use App\Infrastructure\Persistence\Eloquent\Shared\Database\EloquentTransactionBoundary;
-use App\Infrastructure\Persistence\Eloquent\Shared\Status\Repositories\EloquentStatusCategoryDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Shared\Status\Repositories\EloquentStatusDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Shared\Tax\Repositories\EloquentTaxDtoRepository;
 use App\Infrastructure\Shared\Cache\CacheService;
@@ -88,12 +84,6 @@ class SharedServiceProvider extends ServiceProvider
      */
     private function registerDomainServices(): void
     {
-        // Status service (used by multiple domains)
-        $this->app->bind(
-            StatusServiceInterface::class,
-            StatusService::class,
-        );
-
         // File Upload Config wrapper (singleton)
         $this->app->singleton(FileUploadConfig::class, function () {
             return new FileUploadConfig;
@@ -267,11 +257,6 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->bind(
             StatusDtoRepositoryInterface::class,
             EloquentStatusDtoRepository::class,
-        );
-
-        $this->app->bind(
-            StatusCategoryDtoRepositoryInterface::class,
-            EloquentStatusCategoryDtoRepository::class,
         );
 
         $this->app->bind(

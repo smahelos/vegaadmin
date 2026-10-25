@@ -52,11 +52,6 @@ class FileUploadContextConfig
         return $this->thumbnail['path'] ?? null;
     }
 
-    public function getThumbnailQuality(): ?int
-    {
-        return $this->thumbnail['quality'] ?? null;
-    }
-
     public function isHashDeduplicationEnabled(): bool
     {
         return $this->enableHashDeduplication;

@@ -19,9 +19,4 @@ interface SessionInterface
      * Put a value into session.
      */
     public function put(string $key, mixed $value): void;
-
-    /**
-     * Forget a key from session.
-     */
-    public function forget(string $key): void;
 }

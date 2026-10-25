@@ -5,38 +5,12 @@ namespace App\Domain\Shared\Geography\Contracts;
 interface CountryServiceInterface
 {
     /**
-     * Get list of all countries retrieved from external API (or fallback list).
-     * Each country item contains ISO alpha-2 code, common name and flag emoji.
-     *
-     * Example item structure:
-     * [
-     *   'cca2' => 'CZ',
-     *   'name' => ['common' => 'Czech Republic'],
-     *   'flag' => '🇨🇿'
-     * ]
-     *
-     * @return array<int, array{
-     *     cca2: string,
-     *     name: array{common: string},
-     *     flag: string
-     * }>
-     */
-    public function getAllCountries(): array;
-
-    /**
      * Get countries prepared for select elements with detailed data.
      * Array keyed by country code, values contain code, name and flag.
      *
      * @return array<string, array{code: string, name: string, flag: string}>
      */
     public function getCountriesForSelect(): array;
-
-    /**
-     * Get simplified mapping for select elements (code => name).
-     *
-     * @return array<string, string>
-     */
-    public function getSimpleCountriesForSelect(): array;
 
     /**
      * Get mapping of country codes to country names (sorted by name asc).

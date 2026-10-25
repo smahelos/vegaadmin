@@ -15,20 +15,6 @@ class LimitDTO
     ) {}
 
     /**
-     * Factory from legacy array shape.
-     *
-     * @param  array{limit:int,current_usage:int,allowed:bool}  $data
-     */
-    public static function fromArray(array $data): self
-    {
-        return new self(
-            $data['limit'] ?? 0,
-            $data['current_usage'] ?? 0,
-            $data['allowed'] ?? false,
-        );
-    }
-
-    /**
      * Export to legacy array shape.
      *
      * @return array{limit:int,current_usage:int,allowed:bool}

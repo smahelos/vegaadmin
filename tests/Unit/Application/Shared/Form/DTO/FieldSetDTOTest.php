@@ -32,25 +32,4 @@ final class FieldSetDTOTest extends TestCase
         $this->assertSame('a', $arr[0]['name']);
         $this->assertSame('b', $arr[1]['name']);
     }
-
-    #[Test]
-    public function find_returns_field_by_name(): void
-    {
-        $fieldB = new FieldDTO(
-            name: 'b',
-            label: 'B',
-            type: 'number',
-        );
-        $set = new FieldSetDTO([
-            new FieldDTO(
-                name: 'a',
-                label: 'A',
-                type: 'text',
-            ),
-            $fieldB,
-        ]);
-
-        $this->assertSame($fieldB, $set->find('b'));
-        $this->assertNull($set->find('c'));
-    }
 }

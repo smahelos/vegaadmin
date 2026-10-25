@@ -44,32 +44,7 @@ interface FileUploadServiceInterface
      */
     public function deleteFile(?string $path, string $disk): bool;
 
-    /** Get public URL of a stored file (or null if missing).
-     *
-     * @param  string|null  $path  File path (null means no file)
-     * @param  string  $disk  Storage disk name
-     * @return string|null Public URL or null if file doesn't exist
-     */
-    public function getFileUrl(?string $path, string $disk = 'public'): ?string;
-
-    /** Get thumbnail URL if image thumbnail exists, otherwise original file URL.
-     *
-     * @param  string|null  $path  File path (null means no file)
-     * @param  string  $disk  Storage disk name
-     * @param  string  $thumbnailPath  Thumbnail storage path
-     * @return string|null Public URL or null if file doesn't exist
-     */
-    public function getThumbnailUrl(
-        ?string $path,
-        string $disk = 'public',
-        string $thumbnailPath = 'thumbnails',
-    ): ?string;
-
-    /** Return icon class name based on file extension.
-     *
-     * @param  string  $filePath  File path to determine icon for
-     * @return string Icon class name (e.g. 'file-icon-pdf')
-     */
+    /** Line Awesome icon class for the file's extension, `la-file` when the extension is unknown. */
     public function getFileTypeIcon(string $filePath): string;
 
     /** Sanitize a raw filename (remove diacritics & unsafe chars).
@@ -78,28 +53,4 @@ interface FileUploadServiceInterface
      * @return string Sanitized filename
      */
     public function sanitizeFilename(string $filename): string;
-
-    /** Generate unique sanitized filename avoiding collisions in destination path.
-     *
-     * @param  string  $originalName  Original file name
-     * @param  string  $extension  File extension (without dot)
-     * @param  string  $destinationPath  Destination path to check for collisions
-     * @param  string  $disk  Storage disk name
-     * @return string Unique filename with sanitized characters
-     */
-    public function generateUniqueFilename(
-        string $originalName,
-        string $extension,
-        string $destinationPath,
-        string $disk = 'public',
-    ): string;
-
-    /**
-     * Get URL from attribute value which can be a single path, array or JSON encoded array.
-     */
-    public function getFileUrlFromAttribute(
-        mixed $value,
-        ?int $index = null,
-        string $disk = 'public',
-    ): ?string;
 }

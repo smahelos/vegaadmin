@@ -601,16 +601,12 @@ class InMemoryUserServiceStub implements UserServiceInterface
             $offset,
             $perPage,
         );
-        $lastPage = (int) max(1, (int) ceil($total / max(1, $perPage)));
-        $hasMore = $currentPage < $lastPage;
 
         return new PaginatedResult(
             $pageItems,
             $total,
             $perPage,
             $currentPage,
-            $lastPage,
-            $hasMore,
         );
     }
 

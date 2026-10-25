@@ -24,21 +24,6 @@ class HttpClientService implements HttpClientInterface
         return [];
     }
 
-    public function post(
-        string $url,
-        array $data = [],
-        array $headers = [],
-    ): array {
-        $response = Http::withHeaders($headers)->post($url, $data);
-        if ($response->successful()) {
-            $json = $response->json();
-
-            return is_array($json) ? $json : [];
-        }
-
-        return [];
-    }
-
     public function put(
         string $url,
         array $data = [],

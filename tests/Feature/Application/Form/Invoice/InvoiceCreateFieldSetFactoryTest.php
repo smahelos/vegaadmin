@@ -3,7 +3,6 @@
 namespace Tests\Feature\Application\Form\Invoice;
 
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
-// empty DB fine
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -21,8 +20,8 @@ class InvoiceCreateFieldSetFactoryTest extends TestCase
             currencies: ['CZK' => 'CZK'],
         );
 
-        $arr = $set->toArray();
-        $this->assertGreaterThan(5, count($arr));
-        $this->assertNotEmpty($set->find('invoice_vs'));
+        $fields = $set->toArray();
+        $this->assertGreaterThan(5, count($fields));
+        $this->assertContains('invoice_vs', array_column($fields, 'name'));
     }
 }

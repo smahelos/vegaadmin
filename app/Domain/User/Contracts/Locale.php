@@ -29,17 +29,6 @@ interface Locale
     public function getCountryLocaleMap(): array;
 
     /**
-     * Set application locale and update session.
-     */
-    public function setLocale(string $locale): void;
-
-    /**
-     * Map country code to preferred locale using configuration.
-     * Falls back to app.fallback_locale when not found or empty.
-     */
-    public function localeFromCountry(?string $country): string;
-
-    /**
      * Summary of determineLocale
      *
      * @param  mixed  $requestLocale

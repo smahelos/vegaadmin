@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-25T22:45:52+00:00",
+    "generated_at": "2026-10-25T22:57:44+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -21,10 +21,6 @@
         },
         "App\\Providers\\SharedServiceProvider": {
             "bind": [
-                {
-                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface",
-                    "concrete": "App\\Domain\\Shared\\Status\\Services\\StatusService"
-                },
                 {
                     "abstract": "App\\Domain\\Shared\\Money\\Contracts\\CurrencyExchangeServiceInterface",
                     "concrete": "closure"
@@ -116,10 +112,6 @@
                 {
                     "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusDtoRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusDtoRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusCategoryDtoRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusCategoryDtoRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Shared\\Tax\\Contracts\\TaxDtoReadRepositoryInterface",
@@ -1332,26 +1324,10 @@
                 "method": "bind"
             }
         },
-        "App\\Domain\\Shared\\Status\\Contracts\\StatusCategoryDtoRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusCategoryDtoRepository",
-                "provider": "App\\Providers\\SharedServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Domain\\Shared\\Status\\Contracts\\StatusDtoRepositoryInterface": {
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusDtoRepository",
-                "provider": "App\\Providers\\SharedServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\Status\\Services\\StatusService",
                 "provider": "App\\Providers\\SharedServiceProvider",
                 "method": "bind"
             }

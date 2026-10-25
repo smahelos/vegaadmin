@@ -88,28 +88,8 @@ class CacheService implements CacheServiceInterface
         return true;
     }
 
-    public function userKey(int $userId, string $suffix): string
-    {
-        return "user_{$userId}_{$suffix}";
-    }
-
     public function globalKey(string $suffix): string
     {
         return "global_{$suffix}";
-    }
-
-    public function increment(string $key, int $amount = 1): bool
-    {
-        $currentValue = Cache::get($key, 0);
-        if (! is_numeric($currentValue)) {
-            $currentValue = 0;
-        }
-        $newValue = $currentValue + $amount;
-
-        return Cache::put(
-            $key,
-            $newValue,
-            self::DEFAULT_TTL,
-        );
     }
 }
