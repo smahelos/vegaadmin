@@ -114,7 +114,6 @@ return new class extends Migration
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
-            $table->string('original_status_enum_note')->nullable()->comment('Documentation field: enum extended with partially_refunded');
 
             $table->index(['gateway', 'gateway_payment_id']);
             $table->index(['subscription_id', 'status']);

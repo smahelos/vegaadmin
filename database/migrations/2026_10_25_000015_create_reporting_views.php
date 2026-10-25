@@ -31,25 +31,6 @@ return new class extends Migration
             SQL);
 
         DB::statement(<<<'SQL'
-            CREATE OR REPLACE VIEW invoice_statistics AS
-            SELECT
-                DATE_FORMAT(issue_date, '%Y-%m') AS month_year,
-                user_id,
-                COUNT(*) AS invoice_count,
-                SUM(payment_amount) AS total_revenue,
-                AVG(payment_amount) AS avg_invoice_amount,
-                MIN(payment_amount) AS min_invoice_amount,
-                MAX(payment_amount) AS max_invoice_amount,
-                COUNT(CASE WHEN payment_status_id = 1 THEN 1 END) AS paid_invoices,
-                COUNT(CASE WHEN payment_status_id = 2 THEN 1 END) AS unpaid_invoices,
-                COUNT(CASE WHEN payment_status_id = 3 THEN 1 END) AS overdue_invoices
-            FROM invoices
-            WHERE issue_date >= DATE_SUB(NOW(), INTERVAL 24 MONTH)
-            GROUP BY DATE_FORMAT(issue_date, '%Y-%m'), user_id
-            ORDER BY month_year DESC, user_id
-            SQL);
-
-        DB::statement(<<<'SQL'
             CREATE OR REPLACE VIEW database_size_monitor AS
             SELECT
                 TABLE_NAME AS table_name,
@@ -67,7 +48,6 @@ return new class extends Migration
     public function down(): void
     {
         DB::statement('DROP VIEW IF EXISTS database_size_monitor');
-        DB::statement('DROP VIEW IF EXISTS invoice_statistics');
         DB::statement('DROP VIEW IF EXISTS user_activity_summary');
     }
 };

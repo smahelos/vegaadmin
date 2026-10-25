@@ -17,12 +17,7 @@ use Spatie\Permission\PermissionRegistrar;
  */
 final class ReferenceDataSeeder extends Seeder
 {
-    /**
-     * Invoice statuses come first: the invoice_statistics view counts statuses 1–3 as paid,
-     * pending and overdue.
-     *
-     * @var array<string, array{name: string, statuses: list<array{string, string, string}>}>
-     */
+    /** @var array<string, array{name: string, statuses: list<array{string, string, string}>}> */
     private const STATUSES = [
         'invoice-statuses' => [
             'name' => 'Invoice statuses',
@@ -151,11 +146,6 @@ final class ReferenceDataSeeder extends Seeder
             'mBank',
             'BREXCZPP',
         ],
-        [
-            '8330',
-            'Equa Bank',
-            'EQBKCZPP',
-        ],
     ];
 
     /** @var array<string, array{string, string, string}> */
@@ -214,7 +204,6 @@ final class ReferenceDataSeeder extends Seeder
         'invoice_products' => 36,
         'clients' => 36,
         'suppliers' => 36,
-        'activity_log' => 12,
     ];
 
     /**
