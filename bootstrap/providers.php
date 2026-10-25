@@ -20,7 +20,7 @@ use App\Providers\UserServiceProvider;
 return [
     // Core Laravel providers
     AppServiceProvider::class,
-    AuthServiceProvider::class,             // Also Auth application context
+    AuthServiceProvider::class,
     EventServiceProvider::class,
     RouteServiceProvider::class,
     BladeServiceProvider::class,

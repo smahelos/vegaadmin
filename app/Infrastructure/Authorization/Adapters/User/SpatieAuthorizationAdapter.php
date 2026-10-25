@@ -63,19 +63,6 @@ class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
         }
     }
 
-    public function hasCreateEditPermission(int $userId): bool
-    {
-        $user = User::query()->find($userId);
-        if (! $user || ! method_exists($user, 'hasPermissionTo')) {
-            return false;
-        }
-        try {
-            return (bool) $user->hasPermissionTo('frontend.can_create_edit_product');
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
     public function hasFrontendUserRole(int $userId): bool
     {
         $user = User::query()->find($userId);
@@ -87,15 +74,5 @@ class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
         } catch (\Throwable) {
             return false;
         }
-    }
-
-    public function canAccessAnyClients(int $userId): bool
-    {
-        return $this->isWebAdmin($userId) || $this->isBackpackAdmin($userId) || $this->hasBackpackViewPermission($userId, 'client');
-    }
-
-    public function canAccessAnySuppliers(int $userId): bool
-    {
-        return $this->isWebAdmin($userId) || $this->isBackpackAdmin($userId) || $this->hasBackpackViewPermission($userId, 'supplier');
     }
 }

@@ -43,11 +43,10 @@ Contexts and providers:
 | Payment | `PaymentServiceProvider` |
 | Product | `ProductServiceProvider` |
 | User | `UserServiceProvider` |
-| Auth (application layer only) | `AuthServiceProvider` (Laravel's own provider) |
 
 The context of a contract is the second namespace segment: `App\Domain\<Context>\...` or `App\Application\<Context>\...` is bound in `App\Providers\<Context>ServiceProvider`. Infrastructure-namespaced abstracts (e.g. `App\Infrastructure\Interfaces\Product\...`) follow the context segment in their namespace.
 
-Framework-level providers keep their current roles: `AppServiceProvider` (helpers, Backpack overrides, Blade), `EventServiceProvider`, `RouteServiceProvider`, `BladeServiceProvider`, `UIServiceProvider`, `DomainEventsServiceProvider`, `ThirdPartyServiceProvider`.
+Framework-level providers keep their current roles: `AppServiceProvider` (helpers, Backpack overrides, Blade), `AuthServiceProvider` (policies), `EventServiceProvider`, `RouteServiceProvider`, `BladeServiceProvider`, `UIServiceProvider`, `DomainEventsServiceProvider`, `ThirdPartyServiceProvider`.
 
 ### Amendments to D-039
 

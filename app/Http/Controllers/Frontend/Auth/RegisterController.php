@@ -6,7 +6,6 @@ use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 use App\Application\Payment\Contracts\BankApplicationServiceInterface;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
 use App\Application\Shared\Geography\Contracts\LocaleApplicationServiceInterface;
-use App\Application\User\Contracts\UELSApplicationServiceInterface;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegistrationRequest;
 use App\Infrastructure\Forms\User\UserFormFields;
@@ -32,7 +31,6 @@ class RegisterController extends Controller
         private readonly CountryApplicationServiceInterface $countryService,
         private readonly LocaleApplicationServiceInterface $localeService,
         private readonly PartyApplicationServiceInterface $partyService,
-        private readonly UELSApplicationServiceInterface $uelsService,
     ) {}
 
     /**

@@ -3,7 +3,6 @@ paths:
   - "app/Infrastructure/Authorization/**"
   - "app/Domain/User/**"
   - "app/Application/User/**"
-  - "app/Application/Auth/**"
   - "app/Http/Middleware/**"
   - "app/Http/Requests/**/BaseEntityRequest.php"
   - "app/Http/Controllers/Admin/EntityLimitCrudController.php"

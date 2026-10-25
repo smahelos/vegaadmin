@@ -1,20 +1,11 @@
 {
-    "generated_at": "2026-10-25T22:34:16+00:00",
+    "generated_at": "2026-10-25T22:45:52+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
                 {
                     "abstract": "Backpack\\PermissionManager\\app\\Http\\Controllers\\UserCrudController",
                     "concrete": "App\\Http\\Controllers\\Admin\\UserCrudController"
-                }
-            ],
-            "singleton": []
-        },
-        "App\\Providers\\AuthServiceProvider": {
-            "bind": [
-                {
-                    "abstract": "App\\Application\\Auth\\Contracts\\AuthorizationServiceInterface",
-                    "concrete": "App\\Application\\Auth\\Services\\AuthorizationService"
                 }
             ],
             "singleton": []
@@ -634,14 +625,6 @@
             "actual": {
                 "implementation": "App\\Application\\Analytics\\Presenters\\UserStatisticsPresenter",
                 "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Auth\\Contracts\\AuthorizationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Auth\\Services\\AuthorizationService",
-                "provider": "App\\Providers\\AuthServiceProvider",
                 "method": "bind"
             }
         },
