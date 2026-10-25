@@ -17,7 +17,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 **B. Invoices**
 
 6. What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".
-7. "Rename IČO and DIČ to `company_number` and `vat_number`" with "Compose `PrintableInvoiceData` from `PartyPrintData`" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
+7. "Clients and suppliers mix the user's businesses with their contacts" and "Optional client and supplier fields cannot be cleared" with "Rename IČO and DIČ to `company_number` and `vat_number`", "Compose `PrintableInvoiceData` from `PartyPrintData`" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
 8. "Issued invoices can be changed and deleted", with "Validate the variable symbol in QR payments" (numbering at issue is decided there) and "Clients, suppliers and products cannot be archived"; then "Expenses are not modelled as received documents", which shares the VAT lines, the VAT payer flag and the document tables (`docs/adr/D-044-document-tables.md`).
 9. "Currency conversion of invoice items happens in the browser" (ČNB rates) with "Resilience of external calls".
 
@@ -29,7 +29,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 **D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
 
-13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field; Party: duplicates, client mapper, clearing optional fields); "Move cache invalidation from observers to domain event handlers" after step 4.
+13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field; Party: client mapper); "Move cache invalidation from observers to domain event handlers" after step 4.
 14. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 
 **E. Before production and last**
@@ -153,6 +153,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 ## Party / Admin
 
+### Clients and suppliers mix the user's businesses with their contacts
+- **Where:** `clients`, `suppliers`, `expenses.supplier_id`, `products.supplier_id`; the 50 files in 25 Client / Supplier pairs of the Party context and its delivery (models, repositories, mappers, ports, DTOs, write data, events, observers, controllers, requests, form fields, Livewire components), views and `resources/js/{client,supplier}-form-data.js` (~85 % identical); `clients.php` / `suppliers.php`; `can_create_edit_client` / `can_create_edit_supplier` and their UELS limits
+- **Problem:** `suppliers` holds the user's own businesses (registration creates one, it carries the logo and the bank account of the QR payment), `clients` holds the companies the user invoices, and `expenses.supplier_id` points to the user's own businesses where a received document needs the company the user pays. Supplier and customer are roles on a document, so a company that is both would need two records, and received documents have no counterparty.
+- **Fix (decided 2026-10-25, `docs/adr/D-045-businesses-and-contacts.md`, step 7):** `Business` (`businesses`, "Moje firmy") replaces `suppliers`, `Contact` (`contacts`, "Kontakty") replaces `clients` and also holds the suppliers of received documents. One class per entity. Open questions in the ADR (contact selects by role, permissions and plan limits, `products.supplier_id`) are decided when the work starts.
+
 ### Clients, suppliers and products cannot be archived
 - **Where:** `clients`, `suppliers`, `products` (no `deleted_at`), `InvoicePartyService::deleteClient()` / `deleteSupplier()`, `ProductService::deleteProduct()`, the restricting foreign keys of `invoices`, `invoice_products` and `expenses`, the unique indexes `(user_id, ico)` and `(user_id, slug)`
 - **Problem:** documents keep their client, supplier and product (foreign keys restrict deleting them), so a user cannot remove a client they have invoiced from their lists; the delete is refused with a message. Soft deletes would collide with the unique indexes: a new client with the IČO of an archived one is refused.
@@ -161,7 +166,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 ### Optional client and supplier fields cannot be cleared
 - **Where:** `app/Domain/Party/DTO/ClientWriteData.php`, `SupplierWriteData.php` (`toArray()`), `InvoicePartyService::updateClient()` / `updateSupplier()`, the frontend client and supplier edit forms
 - **Problem:** the write data drop every `null` so that an update changes only what was sent. The form sends an emptied field as `null` (`ConvertEmptyStringsToNull`), so emptying the IČO, DIČ, phone, e-mail or description of a client or supplier and saving keeps the old value. Found while normalising an empty IČO to `null` (PR #57).
-- **Fix:** an update carries the whole state of the form, with `null` meaning empty; `setClientDefault()` / `setSupplierDefault()` and `cloneWriteDto()` change only the flag in their own query instead of rewriting the record. An HTTP test empties each optional field. With the Party conversion (step 13).
+- **Fix:** an update carries the whole state of the form, with `null` meaning empty; `setClientDefault()` / `setSupplierDefault()` and `cloneWriteDto()` change only the flag in their own query instead of rewriting the record. An HTTP test empties each optional field. With the split into businesses and contacts (step 7).
 
 ### Inactive banks are still offered
 - **Where:** `banks.active`, `app/Infrastructure/Persistence/Eloquent/Payment/Repositories/EloquentBankRepository.php` (`getAllBanks()`)
@@ -324,10 +329,6 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ### Validation in several places
 - **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Application/*/Services/*InputValidationService.php`, `app/Domain/*/Validation/`; entity limits checked in requests, controllers and observers
 - **Fix:** one rule set per entity in form requests, business validation in value objects, limit check once in the application service (`rules/http.md`, `rules/permissions.md`).
-
-### Client and supplier duplicates
-- **Where:** frontend `ClientController`/`SupplierController`, their requests, Livewire lists, views, `resources/js/{client,supplier}-form-data.js` (~85 % identical)
-- **Fix:** one Party implementation parameterised by party type.
 
 ### Directory layout
 - **Where:** `app/Infrastructure/Interfaces/`, `app/Infrastructure/Services/`, `app/Infrastructure/Providers/Payment/` (→ `Gateways/Payment/`), `app/Infrastructure/Forms/Products/` (→ `Product/`), `app/Application/Invoice/Services/Specialized/`, `app/Domain/Payment/Providers/QrPayment/`; contracts without the `Interface` suffix: `AnalyticsDtoReadRepository`, `Locale`, `BankDtoRepository`, `AnalyticsReadRepository`, `ApiStatisticsRepository`, `BankRepository`, `DomainEvent`, `Str`, `Config`
