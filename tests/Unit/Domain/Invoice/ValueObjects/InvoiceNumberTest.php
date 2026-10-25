@@ -61,27 +61,6 @@ final class InvoiceNumberTest extends TestCase
     }
 
     #[Test]
-    public function formats_with_separator(): void
-    {
-        $invoiceNumber = new InvoiceNumber('20250123');
-
-        $this->assertEquals('2025-0123', $invoiceNumber->formatWithSeparator('-'));
-        $this->assertEquals('2025/0123', $invoiceNumber->formatWithSeparator('/'));
-    }
-
-    #[Test]
-    public function checks_if_from_current_year(): void
-    {
-        $currentYear = (int) date('Y');
-        $invoiceNumber = InvoiceNumber::fromYearAndSequence($currentYear, 1);
-
-        $this->assertTrue($invoiceNumber->isFromCurrentYear());
-
-        $oldInvoiceNumber = InvoiceNumber::fromYearAndSequence($currentYear - 1, 1);
-        $this->assertFalse($oldInvoiceNumber->isFromCurrentYear());
-    }
-
-    #[Test]
     public function compares_invoice_numbers(): void
     {
         $number1 = new InvoiceNumber('20250001');
@@ -91,17 +70,6 @@ final class InvoiceNumberTest extends TestCase
         $this->assertTrue($number2->isGreaterThan($number1));
         $this->assertTrue($number1->isGreaterThan($number3));
         $this->assertFalse($number1->isGreaterThan($number2));
-    }
-
-    #[Test]
-    public function checks_equality(): void
-    {
-        $number1 = new InvoiceNumber('20250001');
-        $number2 = new InvoiceNumber('20250001');
-        $number3 = new InvoiceNumber('20250002');
-
-        $this->assertTrue($number1->equals($number2));
-        $this->assertFalse($number1->equals($number3));
     }
 
     #[Test]

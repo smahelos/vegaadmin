@@ -8,6 +8,7 @@ use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use PHPUnit\Framework\Attributes\Test;
@@ -24,7 +25,7 @@ final class InvoicePrintDataBuilderTest extends TestCase
             'invoice_text' => 'Consulting in September',
             'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail()->id,
         ]);
-        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
 
         $printData = app(InvoicePrintDataBuilder::class)->build($dto);
 

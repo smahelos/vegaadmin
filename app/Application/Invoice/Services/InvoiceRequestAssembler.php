@@ -7,7 +7,6 @@ use App\Application\Invoice\DTO\InvoiceMutationPayload;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Http\Requests\InvoiceRequest;
 use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
-use App\Models\User;
 use Illuminate\Http\UploadedFile;
 
 class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
@@ -17,22 +16,13 @@ class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
         private readonly InvoiceProductWriteDataAssembler $products,
     ) {}
 
-    public function assemble(
-        ?User $user,
-        InvoiceRequest $request,
-        bool $guest = false,
-    ): InvoiceMutationPayload {
+    public function assemble(InvoiceRequest $request): InvoiceMutationPayload
+    {
         $validated = $request->validated();
 
         $products = $this->products->fromValidated($validated['invoice-products']);
 
-        $payload = new InvoiceMutationPayload(
-            $validated,
-            $products,
-            null,
-            locale: app()->getLocale(),
-            guest: $guest,
-        );
+        $payload = new InvoiceMutationPayload($validated, $products);
 
         // Handle logo upload uniformly
         if ($request->hasFile('invoice_logo')) {

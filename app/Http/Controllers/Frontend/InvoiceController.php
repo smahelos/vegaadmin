@@ -95,7 +95,7 @@ class InvoiceController extends Controller
      */
     public function store(InvoiceRequest $request): RedirectResponse
     {
-        $payload = $this->invoiceRequestAssembler->assemble(Auth::user(), $request);
+        $payload = $this->invoiceRequestAssembler->assemble($request);
         // Let ValidationException bubble up to trigger redirect with errors
         $result = $this->invoiceMutationService->create(
             Auth::user()->id,
@@ -120,11 +120,7 @@ class InvoiceController extends Controller
     public function storeGuest(InvoiceRequest $request): JsonResponse|RedirectResponse
     {
         try {
-            $payload = $this->invoiceRequestAssembler->assemble(
-                null,
-                $request,
-                true,
-            );
+            $payload = $this->invoiceRequestAssembler->assemble($request);
             $response = $this->guestInvoiceApplicationService->storeGuestInvoice(
                 $payload->validated,
                 $request->get('lang'),
@@ -221,7 +217,7 @@ class InvoiceController extends Controller
         string $locale,
         int $id,
     ): RedirectResponse {
-        $payload = $this->invoiceRequestAssembler->assemble(Auth::user(), $request);
+        $payload = $this->invoiceRequestAssembler->assemble($request);
         // Let ValidationException bubble up to trigger redirect with errors
         $result = $this->invoiceMutationService->update(
             Auth::user()->id,

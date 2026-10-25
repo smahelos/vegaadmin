@@ -35,13 +35,12 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         $taxPoint = $this->toImmutableDate($invoice->tax_point_date);
         $due = $this->dueDate($issue, $invoice->due_in);
 
-        // Items: expect array items with name, quantity, unit, price, tax_rate, tax_amount, total_price
+        // Items: expect array items with name, quantity, unit, price, tax_rate, total_price
         $items = [];
         foreach ($invoice->items as $item) {
             // Accept either primitive array or already mapped money objects
             $currency = strtoupper($item['currency'] ?? ($invoice->currency ?? 'CZK'));
             $price = $item['price'] instanceof Money ? $item['price'] : Money::fromFloat((float) ($item['price'] ?? 0), $currency);
-            $taxAmount = $item['tax_amount'] instanceof Money ? $item['tax_amount'] : Money::fromFloat((float) ($item['tax_amount'] ?? 0), $currency);
             $lineTotal = $item['total_price'] instanceof Money ? $item['total_price'] : Money::fromFloat((float) ($item['total_price'] ?? 0), $currency);
             $items[] = new PrintableInvoiceItemData(
                 name: (string) ($item['name'] ?? ''),
@@ -49,7 +48,6 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
                 unit: ($item['unit'] ?? null) instanceof Unit ? $item['unit'] : Unit::fromInput($item['unit'] ?? null),
                 price: $price,
                 tax_rate: isset($item['tax_rate']) ? (float) $item['tax_rate'] : 0.0,
-                tax_amount: $taxAmount,
                 line_total: $lineTotal,
             );
         }

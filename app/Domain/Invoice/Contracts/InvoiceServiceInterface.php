@@ -25,18 +25,6 @@ interface InvoiceServiceInterface
      */
     public function setInvoiceTemplate(InvoiceId $id, string $template): bool;
 
-    /**
-     * Change invoice status
-     *
-     * @param  UserId  $userId  Owner user id
-     * @param  int  $statusId  New status id
-     */
-    public function changeInvoiceStatus(
-        UserId $userId,
-        InvoiceId $invoiceId,
-        int $statusId,
-    ): bool;
-
     // /**
     //  * Ensure object has required properties with default values
     //  *
@@ -72,13 +60,6 @@ interface InvoiceServiceInterface
         array $data,
         array $invoiceProducts,
     ): InvoiceDTO;
-
-    /**
-     * Delete an invoice for a user including related products.
-     *
-     * @param  UserId  $userId  Owner user id
-     */
-    public function deleteInvoice(UserId $userId, InvoiceId $invoiceId): void;
 
     public function generateInvoiceNumber(UserId $userId, int $year): string;
 }

@@ -4,7 +4,6 @@ namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceLimitApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
@@ -24,7 +23,6 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
     public function __construct(
         private InvoiceStatusApplicationServiceInterface $invoiceStatus,
         private InvoiceLimitApplicationServiceInterface $invoiceLimit,
-        private InvoiceListingApplicationServiceInterface $invoiceListing,
         private InvoiceReadRepositoryInterface $invoiceReadRepository,
         private InvoiceServiceInterface $invoiceService,
         private StatusDtoRepositoryInterface $statusRepository,

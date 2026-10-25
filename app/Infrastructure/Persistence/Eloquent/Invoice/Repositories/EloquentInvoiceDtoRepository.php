@@ -24,23 +24,11 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         private readonly EloquentInvoiceMapper $mapper,
     ) {}
 
-    public function findByIdAny(InvoiceId $id): ?InvoiceDTO
-    {
-        $model = $this->invoiceRepository->findByIdAny($id->getValue());
-
-        return $model ? $this->mapper->toDto($model) : null;
-    }
-
     public function findByIdForUser(InvoiceId $id, UserId $userId): ?InvoiceDTO
     {
         $model = $this->invoiceRepository->findForUser($userId->toInt(), $id->getValue());
 
         return $model ? $this->mapper->toDto($model) : null;
-    }
-
-    public function getInvoicesForDropdown(UserId $userId): array
-    {
-        return $this->invoiceRepository->getInvoicesForDropdown($userId->toInt());
     }
 
     public function create(InvoiceWriteData $writeData): InvoiceDTO
@@ -63,19 +51,9 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         return $this->mapper->toDto($model);
     }
 
-    public function delete(InvoiceId $id): void
-    {
-        $this->invoiceRepository->deleteById($id->getValue());
-    }
-
     public function setTemplate(InvoiceId $id, string $template): bool
     {
         return $this->invoiceRepository->setTemplate($id->getValue(), $template);
-    }
-
-    public function changeStatus(InvoiceId $id, int $statusId): bool
-    {
-        return $this->invoiceRepository->changeStatus($id->getValue(), $statusId);
     }
 
     public function findLastInvoiceNumber(UserId $userId, int $year): ?string
@@ -95,15 +73,5 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         }
 
         return $last?->getNumber();
-    }
-
-    public function existsWithNumber(UserId $userId, string $number): bool
-    {
-        return $this->invoiceRepository->existsWithNumber($userId->toInt(), $number);
-    }
-
-    public function getUserInvoiceCount(UserId $userId): int
-    {
-        return $this->invoiceRepository->getUserInvoiceCount($userId->toInt());
     }
 }

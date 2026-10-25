@@ -167,7 +167,7 @@ class InvoicePdfApplicationServiceTest extends TestCase
             $products,
         );
         $this->assertInvoiceSuccess($create, 'Invoice creation failed');
-        $pdf = $this->pdfService->generateForUser($this->user->id, $create->invoice->id);
+        $pdf = $this->pdfService->generate($this->user->id, $create->invoice->id);
         $this->assertInvoiceSuccess($pdf, 'PDF generation failed');
         $this->assertNotNull($pdf->response);
         $this->assertEquals(InvoiceActionStatus::SUCCESS, $pdf->status);
@@ -183,11 +183,12 @@ class InvoicePdfApplicationServiceTest extends TestCase
         $store = app(TemporaryInvoiceStoreInterface::class);
         $token = $store->store($data);
         $this->assertNotNull($store->get($token), 'Temporary store did not retain data');
-        $result = $this->pdfService->generateForGuestByToken(
-            $token,
-            'en',
-            true,
-        ); // preview stream
+        $result = $this->pdfService->generate(
+            userId: null,
+            token: $token,
+            locale: 'en',
+            preview: true,
+        );
         $this->assertInvoiceSuccess($result, 'Guest preview failed');
         $this->assertNotNull($result->response);
     }
@@ -203,7 +204,7 @@ class InvoicePdfApplicationServiceTest extends TestCase
         $this->assertInvoiceSuccess($create, 'Invoice creation failed');
         $otherUser = User::factory()->create();
 
-        $pdf = $this->pdfService->generateForUser($otherUser->id, $create->invoice->id);
+        $pdf = $this->pdfService->generate($otherUser->id, $create->invoice->id);
 
         $this->assertInvoiceFailure($pdf);
         $this->assertSame('invoices.messages.show_error', $pdf->message);
@@ -213,10 +214,9 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function guest_without_a_token_gets_not_found(): void
     {
-        $result = $this->pdfService->generateForGuestByToken(
-            null,
-            'cs',
-            false,
+        $result = $this->pdfService->generate(
+            userId: null,
+            locale: 'cs',
         );
 
         $this->assertInvoiceFailure($result);
@@ -226,10 +226,10 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function guest_with_an_unknown_token_gets_expired(): void
     {
-        $result = $this->pdfService->generateForGuestByToken(
-            'unknown-token',
-            'cs',
-            false,
+        $result = $this->pdfService->generate(
+            userId: null,
+            token: 'unknown-token',
+            locale: 'cs',
         );
 
         $this->assertInvoiceFailure($result);

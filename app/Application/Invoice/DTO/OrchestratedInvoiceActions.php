@@ -14,21 +14,17 @@ class OrchestratedInvoiceActions
 {
     public readonly ?string $template;
 
-    public readonly ?InvoiceStatus $status; // Final resolved status (mark_paid => paid)
-
-    public readonly bool $markPaidRequested; // Raw request flag before normalization
+    public readonly ?InvoiceStatus $status;
 
     public readonly bool $includeInvoice; // Whether to attach refreshed Invoice on success
 
     private function __construct(
         ?string $template,
         ?InvoiceStatus $status,
-        bool $markPaidRequested,
         bool $includeInvoice,
     ) {
         $this->template = $template;
         $this->status = $status;
-        $this->markPaidRequested = $markPaidRequested;
         $this->includeInvoice = $includeInvoice;
     }
 
@@ -48,7 +44,6 @@ class OrchestratedInvoiceActions
         return new self(
             $template,
             $resolvedStatus,
-            $markPaid,
             $includeInvoice,
         );
     }

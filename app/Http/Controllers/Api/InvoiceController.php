@@ -70,20 +70,4 @@ class InvoiceController extends Controller
             return response()->json(['error' => __('invoices.messages.not_found')], 404);
         }
     }
-
-    /**
-     * Get list of invoices for authenticated user
-     */
-    public function getInvoices(): JsonResponse
-    {
-        $user = $this->getAuthenticatedUser();
-
-        if (! $user) {
-            return response()->json(['error' => __('users.auth.unauthenticated')], 401);
-        }
-
-        $invoices = $this->invoiceListing->getAll(new UserId($user->id));
-
-        return response()->json($invoices);
-    }
 }

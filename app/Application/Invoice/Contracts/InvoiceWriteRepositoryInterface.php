@@ -14,22 +14,6 @@ interface InvoiceWriteRepositoryInterface
 {
     public function create(array $data): Invoice;
 
-    /** Update invoice for user (returns updated or throws if not found) */
-    public function updateForUser(
-        int $userId,
-        int $invoiceId,
-        array $data,
-    ): Invoice;
-
     /** Create an unsaved invoice instance (for form stubs) */
     public function make(array $attributes = []): Invoice;
-
-    /** Set PDF template for invoice */
-    public function setTemplate(int $id, string $template): bool;
-
-    /** Update invoice by ID */
-    public function updateById(int $id, array $data): Invoice;
-
-    /** Delete invoice by ID */
-    public function deleteById(int $id): bool;
 }

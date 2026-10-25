@@ -32,24 +32,4 @@ interface InvoiceCrudApplicationServiceInterface
         array $data,
         array $products,
     ): InvoiceDTO;
-
-    /**
-     * Delete invoice
-     */
-    public function delete(InvoiceId $invoiceId, UserId $userId): bool;
-
-    /**
-     * Get invoice by ID for editing
-     */
-    public function getForEdit(InvoiceId $invoiceId, UserId $userId): InvoiceDTO;
-
-    /**
-     * Soft delete invoice (if applicable)
-     */
-    public function softDelete(InvoiceId $invoiceId, UserId $userId): bool;
-
-    /**
-     * Restore soft-deleted invoice (if applicable)
-     */
-    public function restore(InvoiceId $invoiceId, UserId $userId): bool;
 }

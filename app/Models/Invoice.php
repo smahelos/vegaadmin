@@ -40,15 +40,6 @@ class Invoice extends Model
         'payment_amount' => 'decimal:2',
     ];
 
-    /**
-     * Available invoice templates
-     */
-    const TEMPLATES = [
-        'default' => 'Standard',
-        'modern' => 'Modern',
-        'minimal' => 'Minimal',
-    ];
-
     /*
     |--------------------------------------------------------------------------
     | RELATIONS
