@@ -6,8 +6,10 @@ use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 class SupplierList extends Component
 {
@@ -92,8 +94,9 @@ class SupplierList extends Component
                 'suppliers' => $suppliers,
                 'hasData' => $suppliers->total() > 0,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading suppliers.';
+        } catch (Throwable $e) {
+            Log::error('Loading suppliers failed', ['exception' => $e]);
+            $this->errorMessage = __('suppliers.messages.error_loading');
 
             return view('livewire.party.supplier-list', [
                 'suppliers' => collect(),

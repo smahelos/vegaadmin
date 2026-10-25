@@ -8,8 +8,10 @@ use App\Models\Invoice;
 use App\Models\Supplier;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 /**
  * InvoiceListBySupplier Livewire Component
@@ -142,8 +144,9 @@ class InvoiceListBySupplier extends Component
                 'supplier' => $supplier,
                 'hasData' => $invoices->total() > 0,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading supplier invoices.';
+        } catch (Throwable $e) {
+            Log::error('Loading supplier invoices failed', ['exception' => $e]);
+            $this->errorMessage = __('invoices.messages.error_loading');
 
             return view('livewire.invoice.invoice-list-by-supplier', [
                 'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator

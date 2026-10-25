@@ -6,7 +6,9 @@ use App\Livewire\Shared\Paginates;
 use App\Models\Supplier;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Throwable;
 
 class SupplierListLatest extends Component
 {
@@ -25,8 +27,9 @@ class SupplierListLatest extends Component
                 'hasData' => $suppliers->total() > 0,
                 'errorMessage' => $this->errorMessage,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading suppliers.';
+        } catch (Throwable $e) {
+            Log::error('Loading latest suppliers failed', ['exception' => $e]);
+            $this->errorMessage = __('suppliers.messages.error_loading');
 
             return view('livewire.party.supplier-list-latest', [
                 'suppliers' => collect(),

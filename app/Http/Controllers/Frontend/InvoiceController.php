@@ -147,12 +147,11 @@ class InvoiceController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error(__('invoices.messages.create_error') . $e->getMessage());
+            Log::error('Guest invoice creation failed', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
-                'message' => __('invoices.messages.create_error') . ': ' . $e->getMessage(),
-                'error' => $e->getMessage(),
+                'message' => __('invoices.messages.create_error'),
             ], 500);
         }
     }

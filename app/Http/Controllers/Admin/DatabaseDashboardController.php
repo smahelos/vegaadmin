@@ -71,7 +71,7 @@ class DatabaseDashboardController extends CrudController
                 'largest_tables' => $tableSizes,
             ];
         } catch (\Exception $e) {
-            Log::error('Failed to get database stats: ' . $e->getMessage());
+            Log::error('Failed to get database stats', ['exception' => $e]);
 
             return [
                 'total_size_mb' => 0,
@@ -123,7 +123,7 @@ class DatabaseDashboardController extends CrudController
 
             return $metricTypes;
         } catch (\Exception $e) {
-            Log::error('Failed to get available metric types: ' . $e->getMessage());
+            Log::error('Failed to get available metric types', ['exception' => $e]);
 
             return collect([]);
         }
@@ -165,12 +165,11 @@ class DatabaseDashboardController extends CrudController
                 'data' => $performanceTrends,
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to get performance trends by type: ' . $e->getMessage());
+            Log::error('Failed to get performance trends by type', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
                 'message' => __('admin/database.dashboard.failed_to_load_trends'),
-                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -243,7 +242,7 @@ class DatabaseDashboardController extends CrudController
                 'days' => $days,
             ];
         } catch (\Exception $e) {
-            Log::error('Failed to get performance trends for type: ' . $e->getMessage());
+            Log::error('Failed to get performance trends for type', ['exception' => $e]);
 
             // Return fallback data
             $labels = [];
@@ -264,7 +263,7 @@ class DatabaseDashboardController extends CrudController
                 'unit' => $this->getDefaultUnitForMetricType($metricType),
                 'total_metrics' => 0,
                 'days' => $days,
-                'error' => $e->getMessage(),
+                'failed' => true,
             ];
         }
     }
@@ -333,7 +332,7 @@ class DatabaseDashboardController extends CrudController
                 'archived_products' => $archivedProducts,
             ];
         } catch (\Exception $e) {
-            Log::error('Failed to get archive stats: ' . $e->getMessage());
+            Log::error('Failed to get archive stats', ['exception' => $e]);
 
             return [
                 'archived_records' => 0,
@@ -389,7 +388,7 @@ class DatabaseDashboardController extends CrudController
                 'health_trend' => $healthTrend,
             ];
         } catch (\Exception $e) {
-            Log::error('Failed to get health status: ' . $e->getMessage());
+            Log::error('Failed to get health status', ['exception' => $e]);
 
             return [
                 'health_score' => 0,
@@ -534,7 +533,7 @@ class DatabaseDashboardController extends CrudController
 
             return $trend;
         } catch (\Exception $e) {
-            Log::error('Failed to get health trend: ' . $e->getMessage());
+            Log::error('Failed to get health trend', ['exception' => $e]);
 
             return [];
         }
@@ -678,12 +677,11 @@ class DatabaseDashboardController extends CrudController
                 'output' => $output,
             ]);
         } catch (\Exception $e) {
-            Log::error('Database health check failed: ' . $e->getMessage());
+            Log::error('Database health check failed', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
                 'message' => __('admin/database.dashboard.health_check_failed'),
-                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -701,18 +699,15 @@ class DatabaseDashboardController extends CrudController
 
             return response()->json([
                 'success' => true,
-                'message' => 'Database monitoring completed successfully',
+                'message' => __('admin/database.dashboard.monitoring_completed'),
                 'output' => $output,
             ]);
         } catch (\Exception $e) {
-            Log::error('Database monitoring failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error('Database monitoring failed', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Database monitoring failed: ' . $e->getMessage(),
+                'message' => __('admin/database.dashboard.monitoring_failed'),
             ], 500);
         }
     }
@@ -747,13 +742,12 @@ class DatabaseDashboardController extends CrudController
 
             return response()->json([
                 'success' => true,
-                'message' => 'Database optimization completed successfully',
+                'message' => __('admin/database.dashboard.optimization_completed'),
                 'output' => $output,
             ]);
         } catch (\Exception $e) {
             Log::error('Database optimization failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'exception' => $e,
                 'table' => $table,
                 'analyze' => $analyze,
                 'repair' => $repair,
@@ -761,7 +755,7 @@ class DatabaseDashboardController extends CrudController
 
             return response()->json([
                 'success' => false,
-                'message' => 'Database optimization failed: ' . $e->getMessage(),
+                'message' => __('admin/database.dashboard.optimization_failed'),
             ], 500);
         }
     }
@@ -789,12 +783,11 @@ class DatabaseDashboardController extends CrudController
                 'output' => $output,
             ]);
         } catch (\Exception $e) {
-            Log::error('Database archive failed: ' . $e->getMessage());
+            Log::error('Database archive failed', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
                 'message' => __('admin/database.dashboard.archive_failed'),
-                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -830,12 +823,11 @@ class DatabaseDashboardController extends CrudController
                     ]);
             }
         } catch (\Exception $e) {
-            Log::error('Database command failed: ' . $e->getMessage());
+            Log::error('Database command failed', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
                 'message' => __('admin/database.dashboard.command_failed'),
-                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -875,7 +867,7 @@ class DatabaseDashboardController extends CrudController
 
             return $tasks;
         } catch (\Exception $e) {
-            Log::error('Failed to get recent tasks: ' . $e->getMessage());
+            Log::error('Failed to get recent tasks', ['exception' => $e]);
 
             return collect([]);
         }
@@ -943,11 +935,11 @@ class DatabaseDashboardController extends CrudController
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Failed to clean performance metrics: ' . $e->getMessage());
+            Log::error('Failed to clean performance metrics', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
-                'message' => __('admin/database.dashboard.cleanup_failed') . ': ' . $e->getMessage(),
+                'message' => __('admin/database.dashboard.cleanup_failed'),
             ]);
         }
     }
@@ -1010,11 +1002,11 @@ class DatabaseDashboardController extends CrudController
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Failed to get metrics stats: ' . $e->getMessage());
+            Log::error('Failed to get metrics stats', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
-                'message' => __('admin/database.dashboard.stats_failed') . ': ' . $e->getMessage(),
+                'message' => __('admin/database.dashboard.stats_failed'),
             ]);
         }
     }
@@ -1096,11 +1088,11 @@ class DatabaseDashboardController extends CrudController
                 'message' => __('admin/database.dashboard.alert_resolved_successfully'),
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to resolve alert: ' . $e->getMessage());
+            Log::error('Failed to resolve alert', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
-                'message' => __('admin/database.dashboard.alert_resolve_failed') . ': ' . $e->getMessage(),
+                'message' => __('admin/database.dashboard.alert_resolve_failed'),
             ]);
         }
     }
@@ -1152,11 +1144,11 @@ class DatabaseDashboardController extends CrudController
                 'message' => __('admin/database.dashboard.sample_metrics_generated_count', ['count' => $metricsGenerated]),
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to generate sample metrics: ' . $e->getMessage());
+            Log::error('Failed to generate sample metrics', ['exception' => $e]);
 
             return response()->json([
                 'success' => false,
-                'message' => __('admin/database.dashboard.sample_generation_failed') . ': ' . $e->getMessage(),
+                'message' => __('admin/database.dashboard.sample_generation_failed'),
             ]);
         }
     }

@@ -8,8 +8,10 @@ use App\Models\Client;
 use App\Models\Invoice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 /**
  * InvoiceListByClient Livewire Component
@@ -142,8 +144,9 @@ class InvoiceListByClient extends Component
                 'client' => $client,
                 'hasData' => $invoices->total() > 0,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading client invoices.';
+        } catch (Throwable $e) {
+            Log::error('Loading client invoices failed', ['exception' => $e]);
+            $this->errorMessage = __('invoices.messages.error_loading');
 
             return view('livewire.invoice.invoice-list-by-client', [
                 'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator

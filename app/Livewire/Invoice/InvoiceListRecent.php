@@ -6,7 +6,9 @@ use App\Livewire\Shared\Paginates;
 use App\Models\Invoice;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Throwable;
 
 /**
  * InvoiceListRecent Livewire Component
@@ -44,8 +46,9 @@ class InvoiceListRecent extends Component
                 'hasData' => $invoices->total() > 0,
                 'errorMessage' => $this->errorMessage,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading recent invoices list.';
+        } catch (Throwable $e) {
+            Log::error('Loading recent invoices failed', ['exception' => $e]);
+            $this->errorMessage = __('invoices.messages.error_loading');
 
             return view('livewire.invoice.invoice-list-recent', [
                 'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator

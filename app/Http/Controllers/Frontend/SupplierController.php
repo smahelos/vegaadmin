@@ -184,15 +184,13 @@ class SupplierController extends Controller
                 ->withInput()
                 ->with('error', __('suppliers.messages.error_create'));
         } catch (\Exception $e) {
-            // Log the actual error for debugging
             Log::error('Supplier creation failed', [
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'userId' => Auth::id(),
+                'exception' => $e,
             ]);
 
             return back()->withInput()
-                ->with('error', __('suppliers.messages.error_create') . ': ' . $e->getMessage());
+                ->with('error', __('suppliers.messages.error_create'));
         }
     }
 
@@ -338,17 +336,15 @@ class SupplierController extends Controller
                 ->withInput()
                 ->with('error', __('suppliers.messages.validation_failed'));
         } catch (\Exception $e) {
-            // Log the actual error for debugging
             Log::error('Supplier update failed', [
-                'supplier_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'supplierId' => $id,
+                'userId' => Auth::id(),
+                'exception' => $e,
             ]);
 
             return redirect()->back()
                 ->withInput()
-                ->with('error', __('suppliers.messages.error_update') . ': ' . $e->getMessage());
+                ->with('error', __('suppliers.messages.error_update'));
         }
     }
 

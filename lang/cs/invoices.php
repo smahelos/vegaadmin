@@ -153,7 +153,7 @@ return [
         'delete_error' => 'Při mazání faktury došlo k chybě: ',
         'show_error' => 'Požadovaná faktura nebyla nalezena.',
         'edit_error_unauthorized' => 'Nemáte oprávnění upravovat tuto fakturu.',
-        'error_loading' => 'Nastala chyba při načítání faktur. Prosím, zkuste to znovu později: ',
+        'error_loading' => 'Nastala chyba při načítání faktur. Prosím, zkuste to znovu později.',
         'created_guest' => 'Faktura byla úspěšně vytvořena!',
         'thank_you' => 'Děkujeme za vytvoření faktury!',
         'invoice_created_guest' => 'Vaše faktura byla úspěšně vytvořena. Můžete si ji stáhnout kliknutím na tlačítko níže.',

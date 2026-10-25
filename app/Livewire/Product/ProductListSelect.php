@@ -8,8 +8,10 @@ use App\Models\Product;
 use App\Models\Tax;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 /**
  * ProductListSelect Livewire Component
@@ -179,8 +181,9 @@ class ProductListSelect extends Component
             $this->dispatch('closeModal');
 
             return true;
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while selecting product.';
+        } catch (Throwable $e) {
+            Log::error('Selecting product failed', ['exception' => $e]);
+            $this->errorMessage = __('products.messages.error_selecting');
 
             return false;
         }
@@ -224,8 +227,9 @@ class ProductListSelect extends Component
                 'products' => $products,
                 'hasData' => $products->total() > 0,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading products for selection.';
+        } catch (Throwable $e) {
+            Log::error('Loading products for selection failed', ['exception' => $e]);
+            $this->errorMessage = __('products.messages.error_loading');
 
             // Return empty products collection in case of error
             return view('livewire.product.product-list-select', [

@@ -67,6 +67,8 @@ return [
         'product_deleted' => 'Product was successfully deleted.',
         'error_create' => 'Error creating product.',
         'error_update' => 'Error updating product.',
+        'error_loading' => 'An error occurred while loading products. Please try again later.',
+        'error_selecting' => 'The product could not be selected.',
         'error_delete' => 'Error deleting product.',
         'validation_failed' => 'Validation failed. Please check the input fields.',
         'no_image' => 'No image available.',

@@ -7,8 +7,10 @@ use App\Livewire\Shared\Sorts;
 use App\Models\Client;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 /**
  * ClientList Livewire Component
@@ -118,8 +120,9 @@ class ClientList extends Component
                 'clients' => $clients,
                 'hasData' => $clients->total() > 0,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading clients.';
+        } catch (Throwable $e) {
+            Log::error('Loading clients failed', ['exception' => $e]);
+            $this->errorMessage = __('clients.messages.error_loading');
 
             return view('livewire.party.client-list', [
                 'clients' => collect(),

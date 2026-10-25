@@ -372,7 +372,7 @@ class ProductListSelectFeatureTest extends TestCase
         $component->assertNotDispatched('closeModal');
 
         // Check that error message was set
-        $component->assertSet('errorMessage', 'Error while selecting product.');
+        $component->assertSet('errorMessage', __('products.messages.error_selecting'));
     }
 
     #[Test]

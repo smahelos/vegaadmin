@@ -7,8 +7,10 @@ use App\Livewire\Shared\Sorts;
 use App\Models\Product;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Throwable;
 
 /**
  * ProductList Livewire Component
@@ -142,8 +144,9 @@ class ProductList extends Component
                 'products' => $products,
                 'hasData' => $products->total() > 0,
             ]);
-        } catch (\Exception $e) {
-            $this->errorMessage = 'Error while loading products.';
+        } catch (Throwable $e) {
+            Log::error('Loading products failed', ['exception' => $e]);
+            $this->errorMessage = __('products.messages.error_loading');
 
             return view('livewire.product.product-list', [
                 'products' => Product::where('id', 0)->paginate(10), // Empty paginator
