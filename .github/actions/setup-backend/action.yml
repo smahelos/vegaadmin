@@ -1,0 +1,24 @@
+name: Set up PHP and vendor
+description: PHP 8.3 with the extensions the tests need and vendor/ restored from the cache of composer.lock
+
+runs:
+  using: composite
+  steps:
+    - name: Setup PHP 8.3
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: bcmath, exif, gd, intl, pcntl, pdo_mysql, zip
+        coverage: none
+        tools: composer
+
+    - name: Restore vendor
+      uses: actions/cache@v6
+      with:
+        path: vendor
+        key: vendor-${{ runner.os }}-php8.3-${{ hashFiles('composer.lock') }}
+
+    # Also runs the package discovery scripts when vendor/ came from the cache
+    - name: Install dependencies
+      shell: bash
+      run: composer install --no-interaction --no-progress --prefer-dist

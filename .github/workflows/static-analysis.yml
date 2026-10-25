@@ -1,0 +1,104 @@
+name: Static analysis
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: static-analysis-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  pint:
+    name: Pint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up PHP and vendor
+        uses: ./.github/actions/setup-backend
+      - name: Check formatting
+        run: vendor/bin/pint --test
+
+  phpcs:
+    name: PHP_CodeSniffer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up PHP and vendor
+        uses: ./.github/actions/setup-backend
+      - name: Check multi-line layout
+        run: vendor/bin/phpcs
+
+  larastan:
+    name: Larastan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up PHP and vendor
+        uses: ./.github/actions/setup-backend
+      - name: Static analysis
+        run: vendor/bin/phpstan analyse --memory-limit=4G --no-progress
+
+  # The guards scan the code and need no database; .claude/skills/pre-pr-check/guards.sh runs the same checks locally
+  guards:
+    name: Architecture guards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up PHP and vendor
+        uses: ./.github/actions/setup-backend
+
+      - name: Legacy report
+        run: |
+          php artisan ddd:legacy-report --json > legacy_report_latest.json
+          RES=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["residuals"];')
+          NEU=$(php -r '$d=json_decode(file_get_contents("legacy_report_latest.json"),true); echo $d["counts"]["neutralized_tests"];')
+          echo "Residuals=$RES Neutralized=$NEU"
+          if [ "$RES" -gt 0 ]; then echo "::error::Residual legacy artifacts detected ($RES)."; exit 1; fi
+          if [ "$NEU" -gt 0 ]; then echo "::warning::Neutralized tests present: $NEU"; fi
+
+      - name: DDD guard
+        run: php artisan ddd:guard
+
+      - name: Payment adapter guard
+        run: php artisan payment:adapter-guard
+
+      - name: Provider snapshot diff
+        run: |
+          php artisan ddd:providers:snapshot --diff --format=json > provider_snapshot_diff.json
+          grep -q '"errors": \[\]' provider_snapshot_diff.json || { echo '::error::Provider snapshot diff reported errors.'; cat provider_snapshot_diff.json; exit 1; }
+
+      - name: Baseline drift against committed baselines
+        run: |
+          php artisan ddd:controller-thinness:baseline --save
+          php artisan ddd:frontend-eloquent:baseline --save --path=build/metrics
+          php artisan ddd:api-eloquent:baseline --save --path=build/metrics
+          # Compare regenerated baselines with the committed ones, ignoring generation timestamps
+          compare() {
+            php -r '$b=json_decode(file_get_contents($argv[1]),true); $c=json_decode(file_get_contents($argv[2]),true); unset($b["generated_at"],$c["generated_at"],$b["summary"]["timestamp"],$c["summary"]["timestamp"]); if($b!=$c){fwrite(STDERR,"::error::Baseline drift: ".$argv[1]." (regenerate per architecture/baselines/README.md if intended)\n"); exit(1);} echo "No drift: ".$argv[1]."\n";' "$1" "$2"
+          }
+          status=0
+          compare architecture/baselines/controller_thinness_baseline.json storage/app/metrics/controller_thinness_baseline.json || status=1
+          compare architecture/baselines/frontend_controller_eloquent_baseline.json build/metrics/frontend_controller_eloquent_baseline.json || status=1
+          compare architecture/baselines/api_controller_eloquent_baseline.json build/metrics/api_controller_eloquent_baseline.json || status=1
+          exit $status
+
+      - name: Upload guard reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: guard-reports
+          path: |
+            legacy_report_latest.json
+            provider_snapshot_diff.json
+            storage/app/metrics/controller_thinness_baseline.json
+            build/metrics/frontend_controller_eloquent_baseline.json
+            build/metrics/api_controller_eloquent_baseline.json

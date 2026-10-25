@@ -12,7 +12,7 @@ description: >-
 Runs what CI checks, so a PR does not fail on something a local run would have caught. Report results; fixing is a separate decision.
 
 1. **Container.** `docker ps --filter name=BILLEX-app --format '{{.Status}}'` shows `Up`. If not, tell the user and stop — never start or rebuild containers yourself.
-2. **Formatting.** `docker exec BILLEX-app vendor/bin/phpcs` and `docker exec BILLEX-app vendor/bin/pint --test` — what `.github/workflows/lint.yml` runs. A failure is fixed by `vendor/bin/phpcbf` followed by `vendor/bin/pint`, never by hand (`rules/php.md`, Formatting).
+2. **Formatting.** `docker exec BILLEX-app vendor/bin/phpcs` and `docker exec BILLEX-app vendor/bin/pint --test` — what `.github/workflows/static-analysis.yml` runs. A failure is fixed by `vendor/bin/phpcbf` followed by `vendor/bin/pint`, never by hand (`rules/php.md`, Formatting).
 3. **Static analysis.** `docker exec BILLEX-app vendor/bin/phpstan analyse --memory-limit=4G` at the level in `phpstan.neon`. Report every error; an error is fixed in the code, never with a baseline or an ignore comment.
 4. **Tests.** CI runs the full suite on every push to a PR, so run locally only what the change can break:
    - **Full suite** (`docker exec BILLEX-app php artisan test --parallel --drop-databases`) when the change can reach anything: dependencies or vendor (`composer.lock`, a package upgrade), `phpunit.xml`, `tests/TestCase.php` and shared test traits, providers and bindings, middleware, routes, config, migrations and seeders, the `Shared` context and shared layouts or components, renaming or deleting classes or keys across the project, a rebase with conflicts in code.
@@ -23,7 +23,6 @@ Runs what CI checks, so a PR does not fail on something a local run would have c
 5. **Architecture guards.** `bash .claude/skills/pre-pr-check/guards.sh` — `ddd:guard`, provider snapshot diff, and drift of the controller-thinness, frontend-Eloquent and API-Eloquent baselines, each compared the way CI compares them.
 6. **Interpret drift.** A baseline drift is either an intended change — the branch adds or removes controller code or bindings on purpose; regenerate per `architecture/baselines/README.md` (provider snapshot: `ddd:providers:snapshot --write`) and include the file in the commit — or an unintended one that needs a code fix. Ask the user which when the diff does not make it obvious.
 7. **Dependency audit.** `docker exec BILLEX-app composer audit --locked` and `npm audit --audit-level=high --package-lock-only` (host) — what `.github/workflows/dependency_audit.yml` runs. A new advisory can fail a branch that changed no dependency; report it with the package and the fixed version.
-8. **Payment subset.** When the branch changes `app/Domain/Payment/**`, CI also runs the payment tests (`.github/workflows/payment_adapter_guard.yml`); they are part of the full suite; when the full suite is not run, run the test paths listed in that workflow's `php artisan test` steps.
 
 ## Report
 
