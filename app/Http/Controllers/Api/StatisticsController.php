@@ -22,7 +22,7 @@ final class StatisticsController extends Controller
 
     public function clientRevenue(StatisticsRequest $request): JsonResponse
     {
-        return response()->json($this->statistics->clientRevenue($request->userId(), $request->filter()));
+        return response()->json(['data' => $this->statistics->clientRevenue($request->userId(), $request->filter())]);
     }
 
     public function invoiceStatus(StatisticsRequest $request): JsonResponse

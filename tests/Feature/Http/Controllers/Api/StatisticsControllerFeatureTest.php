@@ -147,7 +147,7 @@ final class StatisticsControllerFeatureTest extends TestCase
                 'date_from' => '2026-01-15',
             ]))
             ->assertOk()
-            ->assertJsonPath('0.client_name', 'Acme');
+            ->assertJsonPath('data.0.client_name', 'Acme');
 
         $this->assertSame('2026-01-15', $this->statistics->calls[0]['from']->format('Y-m-d'));
     }
