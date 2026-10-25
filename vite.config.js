@@ -24,21 +24,4 @@ export default defineConfig({
             refresh: true,
         }),
     ],
-    build: {
-        // Setup sourcemap for easier debugging
-        // Vite generates sourcemaps for all files by default
-        sourcemap: true,
-        // Disable code splitting
-        // This is useful for debugging, but can increase the size of the final bundle
-        // and may affect performance
-        rollupOptions: {
-            output: {
-                sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
-                    // Set the source map paths to be relative to the root directory
-                    return relativeSourcePath;
-                },
-                manualChunks: undefined,
-            },
-        },
-    },
 });
