@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('invoices', function (Blueprint $table) {
+        Schema::create('invoices', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('client_id')->nullable()->index()->constrained()->restrictOnDelete();
             $table->foreignId('user_id')->index()->constrained()->restrictOnDelete();
@@ -49,7 +49,7 @@ return new class extends Migration
             $table->index(['user_id', 'invoice_vs'], 'idx_invoices_user_invoice_vs');
         });
 
-        Schema::create('invoice_products', function (Blueprint $table) {
+        Schema::create('invoice_products', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->foreignId('invoice_id')->constrained()->cascadeOnDelete();

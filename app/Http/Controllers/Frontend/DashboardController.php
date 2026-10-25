@@ -26,10 +26,8 @@ class DashboardController extends Controller
 
     /**
      * Show the application dashboard with user statistics
-     *
-     * @return View
      */
-    public function index()
+    public function index(): View
     {
         $user = Auth::user();
         $dashboardData = $this->dashboardService->getDashboardData($user);

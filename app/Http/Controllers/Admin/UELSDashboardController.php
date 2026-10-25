@@ -443,7 +443,7 @@ class UELSDashboardController extends CrudController
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $callback = function () use ($usages) {
+        $callback = function () use ($usages): void {
             $file = fopen('php://output', 'w');
 
             // CSV header

@@ -124,10 +124,8 @@ class ProductController extends Controller
 
     /**
      * Display the specified product.
-     *
-     * @return View
      */
-    public function show(string $locale, int $id)
+    public function show(string $locale, int $id): View
     {
         $user = Auth::user();
 
@@ -144,10 +142,8 @@ class ProductController extends Controller
 
     /**
      * Show the form for editing the specified product.
-     *
-     * @return View
      */
-    public function edit(string $locale, int $id)
+    public function edit(string $locale, int $id): View
     {
         $user = Auth::user();
 
@@ -174,14 +170,12 @@ class ProductController extends Controller
 
     /**
      * Update the specified product in storage.
-     *
-     * @return RedirectResponse
      */
     public function update(
         ProductRequest $request,
         string $locale,
         int $id,
-    ) {
+    ): RedirectResponse {
         try {
             $user = Auth::user();
 
@@ -233,10 +227,8 @@ class ProductController extends Controller
 
     /**
      * Remove the specified product from storage.
-     *
-     * @return RedirectResponse
      */
-    public function destroy(string $locale, int $id)
+    public function destroy(string $locale, int $id): RedirectResponse
     {
         $user = Auth::user();
 
@@ -252,10 +244,8 @@ class ProductController extends Controller
 
     /**
      * Get current user's products limits
-     *
-     * @param  User|null  $user
      */
-    public function getProductsLimitStats($user = null): array
+    public function getProductsLimitStats(?User $user = null): array
     {
         if ($user === null) {
             $user = Auth::user();

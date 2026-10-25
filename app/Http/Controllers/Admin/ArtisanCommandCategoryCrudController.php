@@ -20,14 +20,14 @@ class ArtisanCommandCategoryCrudController extends CrudController
     use ShowOperation;
     use UpdateOperation;
 
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(ArtisanCommandCategory::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/artisan-command-category');
         CRUD::setEntityNameStrings(__('artisan_commands.categories.entity.singular'), __('artisan_commands.categories.entity.plural'));
     }
 
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('name')->label(__('artisan_commands.categories.fields.name'));
         CRUD::column('slug')->label(__('artisan_commands.categories.fields.slug'));
@@ -43,7 +43,7 @@ class ArtisanCommandCategoryCrudController extends CrudController
             ->type('boolean');
     }
 
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ArtisanCommandCategoryRequest::class);
 
@@ -66,7 +66,7 @@ class ArtisanCommandCategoryCrudController extends CrudController
             ->default(true);
     }
 
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }

@@ -161,7 +161,7 @@ class DatabaseHealthCheckCommand extends Command
     /**
      * Create alert for critical metrics
      */
-    private function createAlert($metric)
+    private function createAlert($metric): void
     {
         $severity = $metric['status'] === 'critical' ? 'critical' : 'warning';
 

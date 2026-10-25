@@ -254,12 +254,8 @@ class UELSController extends Controller
 
     /**
      * Summary of findKey
-     *
-     * @param  mixed  $array
-     * @param  mixed  $keySearch
-     * @return bool
      */
-    public function findKey($keySearch, $array)
+    public function findKey(mixed $keySearch, mixed $array): bool
     {
         foreach ($array as $key => $item) {
             if ($key == $keySearch) {

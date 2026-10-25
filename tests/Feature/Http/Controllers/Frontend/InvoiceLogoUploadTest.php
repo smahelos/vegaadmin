@@ -82,7 +82,7 @@ class InvoiceLogoUploadTest extends TestCase
     }
 
     #[Test]
-    public function invoice_can_be_created_with_logo_upload()
+    public function invoice_can_be_created_with_logo_upload(): void
     {
         $this->actingAs($this->user, 'web');
 
@@ -135,7 +135,7 @@ class InvoiceLogoUploadTest extends TestCase
     }
 
     #[Test]
-    public function invoice_creation_fails_with_invalid_logo_format()
+    public function invoice_creation_fails_with_invalid_logo_format(): void
     {
         $this->actingAs($this->user);
 
@@ -176,7 +176,7 @@ class InvoiceLogoUploadTest extends TestCase
     }
 
     #[Test]
-    public function invoice_creation_fails_with_oversized_logo()
+    public function invoice_creation_fails_with_oversized_logo(): void
     {
         $this->actingAs($this->user);
 
@@ -217,7 +217,7 @@ class InvoiceLogoUploadTest extends TestCase
     }
 
     #[Test]
-    public function invoice_can_be_updated_with_logo_upload()
+    public function invoice_can_be_updated_with_logo_upload(): void
     {
         $this->actingAs($this->user);
 
@@ -271,7 +271,7 @@ class InvoiceLogoUploadTest extends TestCase
     }
 
     #[Test]
-    public function invoice_can_be_created_without_logo()
+    public function invoice_can_be_created_without_logo(): void
     {
         $this->actingAs($this->user);
 

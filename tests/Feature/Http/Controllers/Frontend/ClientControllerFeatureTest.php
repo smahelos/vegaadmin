@@ -44,10 +44,8 @@ class ClientControllerFeatureTest extends TestCase
 
     /**
      * Helper method to generate routes with locale parameter
-     *
-     * @param  mixed  $parameters
      */
-    private function localizedRoute(string $routeName, $parameters = []): string
+    private function localizedRoute(string $routeName, mixed $parameters = []): string
     {
         if (is_numeric($parameters) || is_string($parameters)) {
             // Single parameter (like ID)
@@ -130,7 +128,7 @@ class ClientControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function create_returns_correct_view_with_data()
+    public function create_returns_correct_view_with_data(): void
     {
         $response = $this->actingAs($this->user)->get($this->localizedRoute('frontend.client.create'));
 
@@ -152,7 +150,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test create requires authentication
      */
     #[Test]
-    public function create_requires_authentication()
+    public function create_requires_authentication(): void
     {
         $response = $this->get($this->localizedRoute('frontend.client.create'));
 
@@ -163,7 +161,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test store creates client successfully
      */
     #[Test]
-    public function store_creates_client_successfully()
+    public function store_creates_client_successfully(): void
     {
         $response = $this->actingAs($this->user)
             ->post($this->localizedRoute('frontend.client.store'), $this->validClientData);
@@ -183,7 +181,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test store requires authentication
      */
     #[Test]
-    public function store_requires_authentication()
+    public function store_requires_authentication(): void
     {
         $response = $this->post($this->localizedRoute('frontend.client.store'), $this->validClientData);
 
@@ -195,7 +193,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test store fails with invalid data
      */
     #[Test]
-    public function store_fails_with_invalid_data()
+    public function store_fails_with_invalid_data(): void
     {
         $invalidData = $this->validClientData;
         unset($invalidData['name']); // Remove required field
@@ -210,10 +208,10 @@ class ClientControllerFeatureTest extends TestCase
      * Test store handles exceptions gracefully
      */
     #[Test]
-    public function store_handles_exceptions_gracefully()
+    public function store_handles_exceptions_gracefully(): void
     {
         // Mock the Party facade service to throw an exception on resolve/create
-        $this->mock(PartyApplicationServiceInterface::class, function ($mock) {
+        $this->mock(PartyApplicationServiceInterface::class, function ($mock): void {
             $mock->shouldReceive('resolveOrCreateClientWithFlag')->andThrow(new \Exception('Database error'));
         });
 
@@ -228,7 +226,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test show displays client details
      */
     #[Test]
-    public function show_displays_client_details()
+    public function show_displays_client_details(): void
     {
         $client = Client::factory()->create([
             'name' => 'Test Client',
@@ -250,7 +248,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test show requires authentication
      */
     #[Test]
-    public function show_requires_authentication()
+    public function show_requires_authentication(): void
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -265,7 +263,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test show prevents access to other users' clients
      */
     #[Test]
-    public function show_prevents_access_to_other_users_clients()
+    public function show_prevents_access_to_other_users_clients(): void
     {
         // Create another user with required permission
         $otherUser = User::factory()->create();
@@ -289,7 +287,7 @@ class ClientControllerFeatureTest extends TestCase
      * With int typehint, Laravel will throw TypeError (500) for non-numeric values
      */
     #[Test]
-    public function show_handles_non_numeric_ids()
+    public function show_handles_non_numeric_ids(): void
     {
         $response = $this->actingAs($this->user)
             ->get($this->localizedRoute('frontend.client.show', 'invalid-id'));
@@ -303,7 +301,7 @@ class ClientControllerFeatureTest extends TestCase
      * With int typehint, Laravel will throw TypeError (500) for non-numeric values like 'test.js'
      */
     #[Test]
-    public function show_ignores_static_file_requests()
+    public function show_ignores_static_file_requests(): void
     {
         $response = $this->actingAs($this->user)
             ->get($this->localizedRoute('frontend.client.show', 'test.js'));
@@ -316,7 +314,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test show displays client with invoices
      */
     #[Test]
-    public function show_displays_client_with_invoices()
+    public function show_displays_client_with_invoices(): void
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -342,7 +340,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test edit returns correct view with client data
      */
     #[Test]
-    public function edit_returns_correct_view_with_client_data()
+    public function edit_returns_correct_view_with_client_data(): void
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -365,7 +363,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test edit requires authentication
      */
     #[Test]
-    public function edit_requires_authentication()
+    public function edit_requires_authentication(): void
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -380,7 +378,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test edit prevents access to other users' clients
      */
     #[Test]
-    public function edit_prevents_access_to_other_users_clients()
+    public function edit_prevents_access_to_other_users_clients(): void
     {
         $otherUser = User::factory()->create();
         $perm = Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
@@ -402,7 +400,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test update updates client successfully
      */
     #[Test]
-    public function update_updates_client_successfully()
+    public function update_updates_client_successfully(): void
     {
         $client = Client::factory()->create([
             'name' => 'Old Name',
@@ -429,7 +427,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test update requires authentication
      */
     #[Test]
-    public function update_requires_authentication()
+    public function update_requires_authentication(): void
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -444,7 +442,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test update prevents updating other users' clients
      */
     #[Test]
-    public function update_prevents_updating_other_users_clients()
+    public function update_prevents_updating_other_users_clients(): void
     {
         $otherUser = User::factory()->create();
         $perm = Permission::firstOrCreate(['name' => 'frontend.can_create_edit_client', 'guard_name' => 'web']);
@@ -466,7 +464,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test update handles validation errors
      */
     #[Test]
-    public function update_handles_validation_errors()
+    public function update_handles_validation_errors(): void
     {
         $client = Client::factory()->create([
             'user_id' => $this->user->id,
@@ -485,7 +483,7 @@ class ClientControllerFeatureTest extends TestCase
      * Test destroy deletes client without invoices
      */
     #[Test]
-    public function destroy_deletes_client_without_invoices()
+    public function destroy_deletes_client_without_invoices(): void
     {
         $this->actingAs($this->user);
 
@@ -501,11 +499,9 @@ class ClientControllerFeatureTest extends TestCase
 
     /**
      * Test destroy method requires authentication.
-     *
-     * @return void
      */
     #[Test]
-    public function destroy_requires_authentication()
+    public function destroy_requires_authentication(): void
     {
         $client = Client::factory()->create();
 
@@ -518,11 +514,9 @@ class ClientControllerFeatureTest extends TestCase
 
     /**
      * Test destroy method prevents deleting other user's clients.
-     *
-     * @return void
      */
     #[Test]
-    public function destroy_prevents_deleting_other_users_clients()
+    public function destroy_prevents_deleting_other_users_clients(): void
     {
         $this->actingAs($this->user);
 
@@ -539,11 +533,9 @@ class ClientControllerFeatureTest extends TestCase
 
     /**
      * Test destroy method prevents deleting client with invoices.
-     *
-     * @return void
      */
     #[Test]
-    public function destroy_prevents_deleting_client_with_invoices()
+    public function destroy_prevents_deleting_client_with_invoices(): void
     {
         $this->actingAs($this->user);
 
@@ -566,11 +558,9 @@ class ClientControllerFeatureTest extends TestCase
 
     /**
      * Test controller uses ClientFormFields trait.
-     *
-     * @return void
      */
     #[Test]
-    public function controller_uses_client_form_fields_trait()
+    public function controller_uses_client_form_fields_trait(): void
     {
         $traits = class_uses(ClientController::class);
 
@@ -579,11 +569,9 @@ class ClientControllerFeatureTest extends TestCase
 
     /**
      * Test controller handles locale properly in redirects.
-     *
-     * @return void
      */
     #[Test]
-    public function controller_handles_locale_in_redirects()
+    public function controller_handles_locale_in_redirects(): void
     {
         $this->actingAs($this->user);
 
@@ -598,11 +586,9 @@ class ClientControllerFeatureTest extends TestCase
 
     /**
      * Test controller dependency injection.
-     *
-     * @return void
      */
     #[Test]
-    public function controller_dependency_injection()
+    public function controller_dependency_injection(): void
     {
         $partyService = $this->createMock(PartyApplicationServiceInterface::class);
         $countryService = $this->createMock(CountryApplicationServiceInterface::class);

@@ -68,7 +68,7 @@ class ClientFeatureTest extends TestCase
     }
 
     #[Test]
-    public function client_belongs_to_user()
+    public function client_belongs_to_user(): void
     {
         $this->assertInstanceOf(User::class, $this->client->user);
         $this->assertEquals($this->user->id, $this->client->user->id);
@@ -77,7 +77,7 @@ class ClientFeatureTest extends TestCase
     }
 
     #[Test]
-    public function client_has_many_invoices()
+    public function client_has_many_invoices(): void
     {
         // Initially no invoices
         $this->assertInstanceOf(Collection::class, $this->client->invoices);
@@ -109,7 +109,7 @@ class ClientFeatureTest extends TestCase
     }
 
     #[Test]
-    public function setting_client_as_default_unsets_other_defaults()
+    public function setting_client_as_default_unsets_other_defaults(): void
     {
         // Create multiple clients for the same user
         $client1 = Client::factory()->create([
@@ -140,7 +140,7 @@ class ClientFeatureTest extends TestCase
     }
 
     #[Test]
-    public function default_client_behavior_is_user_specific()
+    public function default_client_behavior_is_user_specific(): void
     {
         // Create another user with their own client
         $otherUser = User::factory()->create([
@@ -172,7 +172,7 @@ class ClientFeatureTest extends TestCase
     }
 
     #[Test]
-    public function only_one_client_can_be_default_per_user()
+    public function only_one_client_can_be_default_per_user(): void
     {
         // Create multiple clients for the user
         $clients = [];
@@ -214,7 +214,7 @@ class ClientFeatureTest extends TestCase
     }
 
     #[Test]
-    public function preferred_locale_method()
+    public function preferred_locale_method(): void
     {
         // This tests the HasPreferredLocale trait functionality
         $locale = $this->client->preferredLocale();
@@ -227,7 +227,7 @@ class ClientFeatureTest extends TestCase
     }
 
     #[Test]
-    public function client_creation_with_full_data()
+    public function client_creation_with_full_data(): void
     {
         $clientData = [
             'user_id' => $this->user->id,
@@ -254,7 +254,7 @@ class ClientFeatureTest extends TestCase
     }
 
     #[Test]
-    public function client_update()
+    public function client_update(): void
     {
         $originalName = $this->client->name;
         $newName = $this->faker->company;

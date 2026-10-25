@@ -22,7 +22,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
 
@@ -43,7 +43,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $invalidData = [];
 
@@ -57,7 +57,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_long_name()
+    public function validation_fails_with_long_name(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
 
@@ -75,7 +75,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_long_command()
+    public function validation_fails_with_long_command(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
 
@@ -93,7 +93,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_duplicate_command()
+    public function validation_fails_with_duplicate_command(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
         ArtisanCommand::factory()->create(['command' => 'existing:command']);
@@ -112,7 +112,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_same_command_for_update()
+    public function validation_passes_with_same_command_for_update(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
         $command = ArtisanCommand::factory()->create(['command' => 'existing:command']);
@@ -133,7 +133,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_nonexistent_category_id()
+    public function validation_fails_with_nonexistent_category_id(): void
     {
         $invalidData = [
             'name' => 'Test Command',
@@ -149,7 +149,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_minimal_required_data()
+    public function validation_passes_with_minimal_required_data(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
 
@@ -166,7 +166,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_nullable_fields_set_to_null()
+    public function validation_passes_with_nullable_fields_set_to_null(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
 
@@ -185,7 +185,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_boolean_is_active()
+    public function validation_fails_with_invalid_boolean_is_active(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
 
@@ -204,7 +204,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_boolean_values_for_is_active()
+    public function validation_passes_with_boolean_values_for_is_active(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
 
@@ -232,7 +232,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_negative_sort_order()
+    public function validation_fails_with_negative_sort_order(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
 
@@ -251,7 +251,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_sort_order()
+    public function validation_passes_with_valid_sort_order(): void
     {
         $category = ArtisanCommandCategory::factory()->create();
 
@@ -269,7 +269,7 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_passes_when_authenticated()
+    public function authorization_passes_when_authenticated(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
 
@@ -278,14 +278,14 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_when_not_authenticated()
+    public function authorization_fails_when_not_authenticated(): void
     {
         $request = new ArtisanCommandRequest;
         $this->assertFalse($request->authorize());
     }
 
     #[Test]
-    public function request_has_custom_attributes()
+    public function request_has_custom_attributes(): void
     {
         $request = new ArtisanCommandRequest;
         $attributes = $request->attributes();

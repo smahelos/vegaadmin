@@ -100,11 +100,8 @@ class Expense extends Model
 
     /**
      * Handle multiple files upload for attachments
-     *
-     * @param  mixed  $value
-     * @return void
      */
-    public function setAttachmentsAttribute($value)
+    public function setAttachmentsAttribute(mixed $value): void
     {
         $fileUploadService = app(FileUploadServiceInterface::class);
         $current = $this->attachments ?? [];
@@ -150,10 +147,8 @@ class Expense extends Model
 
     /**
      * Get URL to the receipt file
-     *
-     * @return string|null
      */
-    public function getFileUrl(string $attribute = 'attachments', $index = null)
+    public function getFileUrl(string $attribute = 'attachments', $index = null): ?string
     {
         return $this->getAttributeFileUrl($attribute, $index);
     }

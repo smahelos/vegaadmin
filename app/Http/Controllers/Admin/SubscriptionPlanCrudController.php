@@ -32,10 +32,8 @@ class SubscriptionPlanCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object and check user permissions
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(SubscriptionPlan::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/subscription-plan');
@@ -52,10 +50,8 @@ class SubscriptionPlanCrudController extends CrudController
 
     /**
      * Setup list view columns
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::addColumns([
             [
@@ -114,7 +110,7 @@ class SubscriptionPlanCrudController extends CrudController
                     'label' => __('subscriptions.plans.filters.active_only'),
                 ],
                 false,
-                function () {
+                function (): void {
                     CRUD::addClause(
                         'where',
                         'is_active',
@@ -133,7 +129,7 @@ class SubscriptionPlanCrudController extends CrudController
                     'monthly' => __('subscriptions.plans.billing_periods.monthly'),
                     'yearly' => __('subscriptions.plans.billing_periods.yearly'),
                 ],
-                function ($value) {
+                function ($value): void {
                     CRUD::addClause(
                         'where',
                         'billing_period',
@@ -146,10 +142,8 @@ class SubscriptionPlanCrudController extends CrudController
 
     /**
      * Setup create and update forms
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(SubscriptionPlanRequest::class);
 
@@ -244,20 +238,16 @@ class SubscriptionPlanCrudController extends CrudController
 
     /**
      * Setup update operation
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
 
     /**
      * Setup show operation
-     *
-     * @return void
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         $this->setupListOperation();
 

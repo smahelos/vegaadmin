@@ -28,10 +28,8 @@ class PageCategoryCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(PageCategory::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/page-category');
@@ -45,10 +43,8 @@ class PageCategoryCrudController extends CrudController
      * Define what happens when the List operation is loaded.
      *
      * @see  https://backpackforlaravel.com/docs/crud-operation-list-entries
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('name')
             ->label(__('pages.categories.fields.name'))
@@ -94,10 +90,8 @@ class PageCategoryCrudController extends CrudController
      * Define what happens when the Create operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-create
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(PageCategoryRequest::class);
 
@@ -128,10 +122,8 @@ class PageCategoryCrudController extends CrudController
      * Define what happens when the Update operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-update
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
@@ -140,10 +132,8 @@ class PageCategoryCrudController extends CrudController
      * Define what happens when the Show operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-show
-     *
-     * @return void
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         // Use same columns as list operation but with more detail
         $this->setupListOperation();

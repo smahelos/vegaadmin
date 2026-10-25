@@ -42,11 +42,11 @@ class Product extends Model
      * Sets all other products of the user to is_default = false
      * if this product is set as default
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
-        static::saving(function (self $model) {
+        static::saving(function (self $model): void {
             // If this product is set as default, unset default status for other products
             if ($model->is_default) {
                 self::where('user_id', $model->user_id)
@@ -141,10 +141,8 @@ class Product extends Model
 
     /**
      * Handle image upload, replacement and deletion
-     *
-     * @param  mixed  $value
      */
-    public function setImageAttribute($value): void
+    public function setImageAttribute(mixed $value): void
     {
         // Use standardized context-based handling (product_image)
         $this->handleFileUpload(
@@ -162,20 +160,16 @@ class Product extends Model
 
     /**
      * Get URL to the image file
-     *
-     * @return string|null
      */
-    public function getFileUrl(string $attribute = 'image', $index = null)
+    public function getFileUrl(string $attribute = 'image', $index = null): ?string
     {
         return $this->getAttributeFileUrl($attribute, $index);
     }
 
     /**
      * Get a URL to the image thumbnail file
-     *
-     * @return string|null
      */
-    public function getImageThumbUrl()
+    public function getImageThumbUrl(): ?string
     {
         if (! empty($this->image)) {
             return Storage::disk('public')->path($this->image);

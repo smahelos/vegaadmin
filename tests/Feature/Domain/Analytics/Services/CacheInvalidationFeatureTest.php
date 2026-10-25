@@ -57,7 +57,7 @@ class CacheInvalidationFeatureTest extends TestCase
         $this->assertInstanceOf(Money::class, $statsFirst->totalAmount);
         $this->assertSame(100.0, $statsFirst->totalAmount->toFloat());
 
-        Invoice::withoutEvents(function () use ($user, $client) {
+        Invoice::withoutEvents(function () use ($user, $client): void {
             Invoice::factory()->create([
                 'user_id' => $user->id,
                 'client_id' => $client->id,
@@ -90,7 +90,7 @@ class CacheInvalidationFeatureTest extends TestCase
         $firstTotal = collect($monthlyFirst)->sum(fn ($dto) => $dto->total->toFloat());
         $this->assertEquals(50.0, $firstTotal);
 
-        Invoice::withoutEvents(function () use ($user, $client) {
+        Invoice::withoutEvents(function () use ($user, $client): void {
             Invoice::factory()->create([
                 'user_id' => $user->id,
                 'client_id' => $client->id,
@@ -120,10 +120,10 @@ class CacheInvalidationFeatureTest extends TestCase
         $clientsFirst = $this->dashboardService->getClientsWithInvoiceTotals(UserId::fromInt($user->id));
         $this->assertCount(1, $clientsFirst);
 
-        Client::withoutEvents(function () use ($user, &$clientB) {
+        Client::withoutEvents(function () use ($user, &$clientB): void {
             $clientB = Client::factory()->create(['user_id' => $user->id]);
         });
-        Invoice::withoutEvents(function () use ($user, &$clientB) {
+        Invoice::withoutEvents(function () use ($user, &$clientB): void {
             Invoice::factory()->create([
                 'user_id' => $user->id,
                 'client_id' => $clientB->id,
@@ -153,7 +153,7 @@ class CacheInvalidationFeatureTest extends TestCase
         $stats = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));
         $this->assertSame(1, $stats->invoiceCount);
 
-        Invoice::withoutEvents(function () use ($user, $client) {
+        Invoice::withoutEvents(function () use ($user, $client): void {
             Invoice::factory()->create([
                 'user_id' => $user->id,
                 'client_id' => $client->id,

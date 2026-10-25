@@ -71,10 +71,8 @@ class Invoice extends Model
 
     /**
      * Get the payment method associated with the invoice
-     *
-     * @return BelongsTo
      */
-    public function paymentMethod()
+    public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
@@ -132,10 +130,8 @@ class Invoice extends Model
     */
     /**
      * Get translated payment status name
-     *
-     * @return string
      */
-    public function getPaymentStatusNameAttribute()
+    public function getPaymentStatusNameAttribute(): string
     {
         return $this->paymentStatus ? $this->paymentStatus->translated_name : __('invoices.placeholders.not_available');
     }
@@ -168,10 +164,8 @@ class Invoice extends Model
 
     /**
      * Get CSS class for payment status display with fallback
-     *
-     * @return string
      */
-    public function getStatusColorClassAttribute()
+    public function getStatusColorClassAttribute(): string
     {
         return $this->paymentStatus?->color ?: 'gray';
     }

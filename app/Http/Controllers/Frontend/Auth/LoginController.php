@@ -37,21 +37,16 @@ class LoginController extends Controller
 
     /**
      * Custom redirect after successful authentication
-     *
-     * @param  mixed  $user
-     * @return RedirectResponse
      */
-    protected function authenticated(Request $request, $user)
+    protected function authenticated(Request $request, mixed $user): RedirectResponse
     {
         return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()]);
     }
 
     /**
      * Show the application's login form
-     *
-     * @return View
      */
-    public function showLoginForm()
+    public function showLoginForm(): View
     {
         return view('auth.login');
     }
@@ -59,11 +54,10 @@ class LoginController extends Controller
     /**
      * Handle a login request
      *
-     * @return RedirectResponse|Response|JsonResponse
      *
      * @throws ValidationException
      */
-    public function login(Request $request)
+    public function login(Request $request): RedirectResponse|Response|JsonResponse
     {
         $this->validateLogin($request);
 
@@ -85,10 +79,8 @@ class LoginController extends Controller
 
     /**
      * Log the user out of the application
-     *
-     * @return RedirectResponse
      */
-    public function logout(Request $request)
+    public function logout(Request $request): RedirectResponse
     {
         $this->guard()->logout();
 
@@ -101,10 +93,8 @@ class LoginController extends Controller
 
     /**
      * Attempt authentication with web guard
-     *
-     * @return bool
      */
-    protected function attemptLogin(Request $request)
+    protected function attemptLogin(Request $request): bool
     {
         return Auth::guard('web')->attempt(
             $this->credentials($request), $request->filled('remember'),
@@ -113,10 +103,8 @@ class LoginController extends Controller
 
     /**
      * Get the authentication guard
-     *
-     * @return StatefulGuard
      */
-    protected function guard()
+    protected function guard(): StatefulGuard
     {
         return Auth::guard('web');
     }

@@ -30,10 +30,8 @@ class SubscriptionPlanFeatureCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object and check user permissions
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(SubscriptionPlanFeature::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/subscription-plan-feature');
@@ -50,10 +48,8 @@ class SubscriptionPlanFeatureCrudController extends CrudController
 
     /**
      * Setup list view columns
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::addColumns([
             [
@@ -101,7 +97,7 @@ class SubscriptionPlanFeatureCrudController extends CrudController
                     'label' => __('subscriptions.features.filters.active_only'),
                 ],
                 false,
-                function () {
+                function (): void {
                     CRUD::addClause(
                         'where',
                         'is_active',
@@ -114,10 +110,8 @@ class SubscriptionPlanFeatureCrudController extends CrudController
 
     /**
      * Setup create and update forms
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(SubscriptionPlanFeatureRequest::class);
 
@@ -166,20 +160,16 @@ class SubscriptionPlanFeatureCrudController extends CrudController
 
     /**
      * Setup update operation
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
 
     /**
      * Setup show operation
-     *
-     * @return void
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         $this->setupListOperation();
 

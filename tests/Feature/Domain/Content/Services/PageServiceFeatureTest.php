@@ -23,7 +23,7 @@ class PageServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_can_get_homepage()
+    public function it_can_get_homepage(): void
     {
         // Test with no pages
         $this->assertNull($this->pageService->getHomepage());
@@ -55,7 +55,7 @@ class PageServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_can_get_page_by_slug()
+    public function it_can_get_page_by_slug(): void
     {
         $page = Page::factory()->published()->create([
             'slug' => ['cs' => 'testovaci-stranka', 'en' => 'test-page'],
@@ -77,7 +77,7 @@ class PageServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_can_get_page_by_cross_language_slug()
+    public function it_can_get_page_by_cross_language_slug(): void
     {
         $page = Page::factory()->published()->create([
             'slug' => [
@@ -101,7 +101,7 @@ class PageServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_can_get_pages_for_navigation()
+    public function it_can_get_pages_for_navigation(): void
     {
         $rootPage1 = Page::factory()->published()->root()->create();
         $rootPage2 = Page::factory()->published()->root()->create();
@@ -120,7 +120,7 @@ class PageServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_can_get_pages_by_category()
+    public function it_can_get_pages_by_category(): void
     {
         $category = PageCategory::factory()->create();
         $page1 = Page::factory()->published()->inCategory($category)->create();
@@ -137,7 +137,7 @@ class PageServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_can_search_pages()
+    public function it_can_search_pages(): void
     {
         $page1 = Page::factory()->published()->create([
             'name' => ['cs' => 'Testovací stránka', 'en' => 'Test page'],
@@ -162,7 +162,7 @@ class PageServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_can_get_breadcrumbs()
+    public function it_can_get_breadcrumbs(): void
     {
         $rootPage = Page::factory()->published()->root()->create([
             'name' => ['cs' => 'Kořenová stránka', 'en' => 'Root page'],
@@ -184,7 +184,7 @@ class PageServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_can_get_related_pages()
+    public function it_can_get_related_pages(): void
     {
         $category = PageCategory::factory()->create();
         $mainPage = Page::factory()->published()->inCategory($category)->create();
@@ -202,7 +202,7 @@ class PageServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_empty_collection_for_page_without_category()
+    public function it_returns_empty_collection_for_page_without_category(): void
     {
         $page = Page::factory()->published()->create(['category_id' => null]);
         $relatedPages = $this->pageService->getRelatedPages($this->pageService->getPageBySlug((string) $page->id));

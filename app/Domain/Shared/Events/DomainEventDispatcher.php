@@ -35,7 +35,7 @@ class DomainEventDispatcher
      * @param  string|string[]  $eventTypes  Event class names
      * @param  DomainEventHandler  $handler  Handler instance
      */
-    public function register($eventTypes, DomainEventHandler $handler): void
+    public function register(string|array $eventTypes, DomainEventHandler $handler): void
     {
         $eventTypes = is_array($eventTypes) ? $eventTypes : [$eventTypes];
 

@@ -161,7 +161,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data_using_existing_supplier_and_client()
+    public function validation_passes_with_valid_data_using_existing_supplier_and_client(): void
     {
         $request = new InvoiceRequest;
         $validator = Validator::make(
@@ -175,7 +175,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_manual_supplier_and_client_data()
+    public function validation_passes_with_manual_supplier_and_client_data(): void
     {
         $manualData = [
             'invoice_vs' => $this->faker->numerify('INV-####'),
@@ -220,7 +220,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $requiredFields = [
             'invoice_vs',
@@ -252,7 +252,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_neither_supplier_id_nor_manual_data_provided()
+    public function validation_fails_when_neither_supplier_id_nor_manual_data_provided(): void
     {
         $invalidData = $this->validInvoiceData;
         unset($invalidData['supplier_id']);
@@ -285,7 +285,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_neither_client_id_nor_manual_data_provided()
+    public function validation_fails_when_neither_client_id_nor_manual_data_provided(): void
     {
         $invalidData = $this->validInvoiceData;
         unset($invalidData['client_id']);
@@ -318,7 +318,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_due_in_outside_one_to_maximum_days()
+    public function validation_fails_with_due_in_outside_one_to_maximum_days(): void
     {
         $invalidValues = [
             0,
@@ -344,7 +344,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_currency_format()
+    public function validation_fails_with_invalid_currency_format(): void
     {
         $invalidData = $this->validInvoiceData;
         $invalidData['payment_currency'] = 'INVALID'; // Too long (max 3)
@@ -361,7 +361,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_email_formats()
+    public function validation_fails_with_invalid_email_formats(): void
     {
         $invalidEmails = [
             'invalid-email',
@@ -403,7 +403,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_nonexistent_foreign_keys()
+    public function validation_fails_with_nonexistent_foreign_keys(): void
     {
         $foreignKeyFields = [
             'payment_method_id' => 99999,
@@ -429,7 +429,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_too_short_names()
+    public function validation_fails_with_too_short_names(): void
     {
         $shortNameFields = [
             'name' => 'AB', // min 3
@@ -469,7 +469,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_nullable_fields_set_to_null()
+    public function validation_passes_with_nullable_fields_set_to_null(): void
     {
         $dataWithNulls = $this->validInvoiceData;
         $nullableFields = [
@@ -509,7 +509,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_without_authenticated_user_returns_false()
+    public function authorization_without_authenticated_user_returns_false(): void
     {
         $request = new InvoiceRequest;
 
@@ -518,7 +518,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_with_authenticated_user_succeeds()
+    public function authorization_with_authenticated_user_succeeds(): void
     {
         // Create EntityLimit to avoid EntityLimitExceededException
         EntityLimit::create([
@@ -540,7 +540,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_currencies()
+    public function validation_passes_with_valid_currencies(): void
     {
         $validCurrencies = [
             'CZK',
@@ -570,7 +570,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_handles_fallback_fields_in_prepare_for_validation()
+    public function validation_handles_fallback_fields_in_prepare_for_validation(): void
     {
         // Test that validation passes with minimal but complete data
         $minimalData = [
@@ -711,7 +711,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_invoice_logo_file()
+    public function validation_passes_with_valid_invoice_logo_file(): void
     {
         // Create a fake image file
         $file = UploadedFile::fake()->image('logo.png', 100, 100)->size(1000); // 1MB
@@ -725,7 +725,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_invoice_logo_format()
+    public function validation_fails_with_invalid_invoice_logo_format(): void
     {
         // Create a fake file with invalid format
         $file = UploadedFile::fake()->create('document.pdf', 1000);
@@ -740,7 +740,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_oversized_invoice_logo()
+    public function validation_fails_with_oversized_invoice_logo(): void
     {
         // Create a fake image file that's too large (3MB)
         $file = UploadedFile::fake()->image('logo.png', 100, 100)->size(3000);
@@ -755,7 +755,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_null_invoice_logo()
+    public function validation_passes_with_null_invoice_logo(): void
     {
         $data = $this->validInvoiceData;
         $data['invoice_logo'] = null;
@@ -766,7 +766,7 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_various_valid_image_formats()
+    public function validation_passes_with_various_valid_image_formats(): void
     {
         $formats = [
             'jpg',

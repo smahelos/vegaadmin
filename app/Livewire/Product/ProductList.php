@@ -114,7 +114,7 @@ class ProductList extends Component
                 ->withCount('invoices');
 
             if (! empty($this->search)) {
-                $query->where(function ($q) {
+                $query->where(function ($q): void {
                     $q->where(
                         'name',
                         'like',

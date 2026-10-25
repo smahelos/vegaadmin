@@ -81,10 +81,8 @@ class UserActivitySummary extends Model
     /**
      * Get the primary key for the model.
      * Using user_id as primary key for this view
-     *
-     * @return string
      */
-    public function getKeyName()
+    public function getKeyName(): string
     {
         return 'user_id';
     }

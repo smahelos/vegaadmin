@@ -444,7 +444,7 @@ class HasFileUploadsFeatureTest extends TestCase
         return $this->attributes[$key] ?? null;
     }
 
-    public function __set($key, $value)
+    public function __set($key, $value): void
     {
         $this->attributes[$key] = $value;
     }

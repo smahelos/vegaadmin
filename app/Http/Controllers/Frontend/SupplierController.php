@@ -70,10 +70,8 @@ class SupplierController extends Controller
 
     /**
      * Display paginated list of user suppliers
-     *
-     * @return View
      */
-    public function index()
+    public function index(): View
     {
         // get current logged user's suppliers limits
         $limitsData = $this->getSuppliersLimitStats();
@@ -83,10 +81,8 @@ class SupplierController extends Controller
 
     /**
      * Show form for creating a new supplier
-     *
-     * @return View
      */
-    public function create()
+    public function create(): View
     {
         // Get fields from trait
         $fields = $this->getSupplierFields();
@@ -137,10 +133,8 @@ class SupplierController extends Controller
 
     /**
      * Store a new supplier
-     *
-     * @return RedirectResponse
      */
-    public function store(SupplierRequest $request)
+    public function store(SupplierRequest $request): RedirectResponse
     {
         $validatedData = $request->validated();
 
@@ -196,10 +190,8 @@ class SupplierController extends Controller
 
     /**
      * Display supplier details and related invoices
-     *
-     * @return View|RedirectResponse
      */
-    public function show(string $locale, int $id)
+    public function show(string $locale, int $id): View|RedirectResponse
     {
         try {
             // Ignore requests for static files
@@ -239,10 +231,8 @@ class SupplierController extends Controller
 
     /**
      * Show form for editing a supplier
-     *
-     * @return View|RedirectResponse
      */
-    public function edit(string $locale, int $id)
+    public function edit(string $locale, int $id): View|RedirectResponse
     {
         try {
             // Get User
@@ -286,14 +276,12 @@ class SupplierController extends Controller
 
     /**
      * Update supplier data
-     *
-     * @return RedirectResponse
      */
     public function update(
         SupplierRequest $request,
         string $locale,
         int $id,
-    ) {
+    ): RedirectResponse {
         try {
             // Get User
             $user = Auth::user();
@@ -350,10 +338,8 @@ class SupplierController extends Controller
 
     /**
      * Delete supplier if it has no associated invoices
-     *
-     * @return RedirectResponse
      */
-    public function destroy(string $locale, int $id)
+    public function destroy(string $locale, int $id): RedirectResponse
     {
         try {
             // Get User
@@ -382,10 +368,8 @@ class SupplierController extends Controller
 
     /**
      * Get current user's products limits
-     *
-     * @param  User|null  $user
      */
-    public function getSuppliersLimitStats($user = null): array
+    public function getSuppliersLimitStats(?User $user = null): array
     {
         if ($user === null) {
             $user = Auth::user();

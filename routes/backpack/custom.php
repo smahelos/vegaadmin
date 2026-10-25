@@ -17,7 +17,7 @@ Route::group([
         (array) config('backpack.base.middleware_key', 'admin'),
     ),
     'namespace' => 'App\Http\Controllers\Admin',
-], function () { // custom admin routes
+], function (): void { // custom admin routes
     Route::crud('invoice', 'InvoiceCrudController');
     Route::crud('client', 'ClientCrudController');
     Route::crud('payment-method', 'PaymentMethodCrudController');

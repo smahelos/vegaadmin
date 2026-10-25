@@ -38,11 +38,11 @@ class Client extends Model
      * Sets all other clients of the user to is_default = false
      * if this client is set as default
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
-        static::saving(function (self $model) {
+        static::saving(function (self $model): void {
             // If this client is set as default, unset default status for other clients
             if ($model->is_default) {
                 self::where('user_id', $model->user_id)
@@ -126,7 +126,7 @@ class Client extends Model
     /**
      * Mutator for is_default attribute to ensure boolean value
      */
-    public function setIsDefaultAttribute($value)
+    public function setIsDefaultAttribute($value): void
     {
         $this->attributes['is_default'] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }

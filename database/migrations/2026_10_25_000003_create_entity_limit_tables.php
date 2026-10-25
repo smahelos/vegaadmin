@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('entity_limits', function (Blueprint $table) {
+        Schema::create('entity_limits', function (Blueprint $table): void {
             $table->id();
             $table->string('permission_name')->index()->comment('Permission that this limit applies to');
             $table->string('entity_type')->comment('Entity type: invoice, client, supplier, product, etc.');
@@ -38,7 +38,7 @@ return new class extends Migration
             $table->index(['entity_type', 'period_type']);
         });
 
-        Schema::create('entity_limit_usage', function (Blueprint $table) {
+        Schema::create('entity_limit_usage', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
             $table->string('entity_type', 50)->comment('Type of entity (invoice, client, etc.)');

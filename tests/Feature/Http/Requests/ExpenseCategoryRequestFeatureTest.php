@@ -58,7 +58,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $this->actingAs($this->user);
 
@@ -70,7 +70,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $this->actingAs($this->user);
 
@@ -93,7 +93,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_short_name()
+    public function validation_fails_with_short_name(): void
     {
         $this->actingAs($this->user);
 
@@ -108,7 +108,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_long_name()
+    public function validation_fails_with_long_name(): void
     {
         $this->actingAs($this->user);
 
@@ -123,7 +123,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_duplicate_slug()
+    public function validation_fails_with_duplicate_slug(): void
     {
         $this->actingAs($this->user);
 
@@ -141,7 +141,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_same_slug_for_update()
+    public function validation_passes_with_same_slug_for_update(): void
     {
         $this->actingAs($this->user);
 
@@ -161,7 +161,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_minimal_required_data()
+    public function validation_passes_with_minimal_required_data(): void
     {
         $this->actingAs($this->user);
 
@@ -178,7 +178,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_boolean_is_active()
+    public function validation_fails_with_invalid_boolean_is_active(): void
     {
         $this->actingAs($this->user);
 
@@ -193,7 +193,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_boolean_values_for_is_active()
+    public function validation_passes_with_boolean_values_for_is_active(): void
     {
         $this->actingAs($this->user);
 
@@ -219,7 +219,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_without_permission()
+    public function authorization_fails_without_permission(): void
     {
         // Create user without permission
         $userWithoutPermission = User::factory()->create();
@@ -231,7 +231,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_when_not_authenticated()
+    public function authorization_fails_when_not_authenticated(): void
     {
         $request = new ExpenseCategoryRequest;
 
@@ -239,7 +239,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_passes_with_correct_permission()
+    public function authorization_passes_with_correct_permission(): void
     {
         $this->actingAs($this->user, 'web');
 
@@ -249,7 +249,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function request_has_custom_attributes()
+    public function request_has_custom_attributes(): void
     {
         $request = new ExpenseCategoryRequest;
         $attributes = $request->attributes();
@@ -272,7 +272,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function slug_is_auto_generated_when_missing()
+    public function slug_is_auto_generated_when_missing(): void
     {
         $this->actingAs($this->user);
 
@@ -291,7 +291,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_too_long_color()
+    public function validation_fails_with_too_long_color(): void
     {
         $this->actingAs($this->user);
 

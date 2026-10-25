@@ -32,10 +32,10 @@ Route::get('/', function () {
 Route::middleware([
     'set.locale',
     'refresh.frontend.session',
-])->group(function () {
+])->group(function (): void {
 
     // Routes with optional locale parameter
-    Route::localized(function () {
+    Route::localized(function (): void {
         // Route::get('/', function () {
         //     return view('frontend.invoices.create');
         // })->name('home');
@@ -44,7 +44,7 @@ Route::middleware([
         //     return view('frontend.dashboard');
         // })->middleware(['auth', 'verified'])->name('dashboard');
 
-        Route::middleware('auth')->group(function () {
+        Route::middleware('auth')->group(function (): void {
             // Dashboard
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('frontend.dashboard');
 
@@ -101,7 +101,7 @@ Route::middleware([
         });
 
         // Frontend Authentication Routes - pouze pro nepřihlášené uživatele
-        Route::middleware('guest')->group(function () {
+        Route::middleware('guest')->group(function (): void {
             // Registration
             Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('frontend.register');
             Route::post('/register', [RegisterController::class, 'register']);
@@ -150,7 +150,7 @@ Route::middleware([
 });
 
 // Auth routes outside locale group for Laravel auth middleware compatibility
-Route::middleware('guest')->group(function () {
+Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 });
 

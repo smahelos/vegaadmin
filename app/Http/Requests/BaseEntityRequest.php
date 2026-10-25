@@ -61,7 +61,7 @@ abstract class BaseEntityRequest extends FormRequest
     /**
      * Handle authorization failure by converting limit exceptions to redirect with flash message
      */
-    protected function failedAuthorization()
+    protected function failedAuthorization(): void
     {
         $previous = $this->exception ?? null;
         if ($previous instanceof EntityLimitExceededException) {

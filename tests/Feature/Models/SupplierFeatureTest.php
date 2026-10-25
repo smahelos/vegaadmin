@@ -70,11 +70,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test that supplier belongs to user relationship.
-     *
-     * @return void
      */
     #[Test]
-    public function supplier_belongs_to_user()
+    public function supplier_belongs_to_user(): void
     {
         $this->assertInstanceOf(User::class, $this->supplier->user);
         $this->assertEquals($this->user->id, $this->supplier->user->id);
@@ -84,11 +82,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test that supplier can have many invoices relationship.
-     *
-     * @return void
      */
     #[Test]
-    public function supplier_has_many_invoices()
+    public function supplier_has_many_invoices(): void
     {
         // Initially no invoices
         $this->assertInstanceOf(Collection::class, $this->supplier->invoices);
@@ -121,11 +117,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test default supplier behavior - setting one supplier as default unsets others.
-     *
-     * @return void
      */
     #[Test]
-    public function setting_supplier_as_default_unsets_other_defaults()
+    public function setting_supplier_as_default_unsets_other_defaults(): void
     {
         // Create multiple suppliers for the same user
         $supplier1 = Supplier::factory()->create([
@@ -157,11 +151,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test that default supplier behavior only affects suppliers of the same user.
-     *
-     * @return void
      */
     #[Test]
-    public function default_supplier_behavior_is_user_specific()
+    public function default_supplier_behavior_is_user_specific(): void
     {
         // Create another user with their own supplier
         $otherUser = User::factory()->create([
@@ -194,11 +186,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test has_payment_info flag is automatically updated on save.
-     *
-     * @return void
      */
     #[Test]
-    public function has_payment_info_auto_update_on_save()
+    public function has_payment_info_auto_update_on_save(): void
     {
         // Create a fresh supplier for this test to ensure clean state
         $testSupplier = Supplier::factory()->create([
@@ -235,11 +225,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test has_payment_info with IBAN only.
-     *
-     * @return void
      */
     #[Test]
-    public function has_payment_info_with_iban_only()
+    public function has_payment_info_with_iban_only(): void
     {
         // Set only IBAN
         $this->supplier->iban = 'CZ6508000000192000145399';
@@ -252,11 +240,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test multiple suppliers can exist for one user but only one can be default.
-     *
-     * @return void
      */
     #[Test]
-    public function only_one_supplier_can_be_default_per_user()
+    public function only_one_supplier_can_be_default_per_user(): void
     {
         // Create multiple suppliers for the user
         $suppliers = [];
@@ -299,11 +285,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test preferred locale functionality.
-     *
-     * @return void
      */
     #[Test]
-    public function preferred_locale_method()
+    public function preferred_locale_method(): void
     {
         // This tests the HasPreferredLocale trait functionality
         $locale = $this->supplier->preferredLocale();
@@ -317,16 +301,12 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test that supplier deletion behavior with related invoices.
-     *
-     * @return void
      */
     /**
      * Test supplier creation with all attributes.
-     *
-     * @return void
      */
     #[Test]
-    public function supplier_creation_with_full_data()
+    public function supplier_creation_with_full_data(): void
     {
         $supplierData = [
             'user_id' => $this->user->id,
@@ -360,11 +340,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test that supplier updates work correctly.
-     *
-     * @return void
      */
     #[Test]
-    public function supplier_update()
+    public function supplier_update(): void
     {
         $originalName = $this->supplier->name;
         $newName = $this->faker->company;
@@ -390,11 +368,9 @@ class SupplierFeatureTest extends TestCase
 
     /**
      * Test payment info scenarios edge cases.
-     *
-     * @return void
      */
     #[Test]
-    public function payment_info_edge_cases()
+    public function payment_info_edge_cases(): void
     {
         // Test empty strings vs null values
         $this->supplier->account_number = '';

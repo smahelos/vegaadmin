@@ -30,7 +30,7 @@ class SupplierList extends Component
 
     public $errorMessage = null;
 
-    public function updatingSearch()
+    public function updatingSearch(): void
     {
         $this->resetPage();
     }
@@ -67,7 +67,7 @@ class SupplierList extends Component
                 ->withCount('invoices');
 
             if ($this->search) {
-                $query->where(function ($q) {
+                $query->where(function ($q): void {
                     $q->where(
                         'name',
                         'like',

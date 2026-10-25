@@ -65,7 +65,7 @@ class StatusCategory extends Model
     /**
      * Ensure slug is properly formatted
      */
-    public function setSlugAttribute($value)
+    public function setSlugAttribute($value): void
     {
         $this->attributes['slug'] = Str::slug($value ?: $this->name);
     }

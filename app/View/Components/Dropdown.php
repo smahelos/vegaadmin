@@ -36,9 +36,9 @@ class Dropdown extends Component
      * @param  string  $contentClasses  Additional CSS classes for content
      */
     public function __construct(
-        $align = 'right',
-        $width = 48,
-        $contentClasses = '',
+        string $align = 'right',
+        int $width = 48,
+        string $contentClasses = '',
     ) {
         $this->align = $align;
         $this->width = $width;

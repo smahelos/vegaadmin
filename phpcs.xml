@@ -25,5 +25,13 @@
         </properties>
     </rule>
 
+    <!-- Native types in every signature (.claude/rules/php.md, Types); array shapes stay in docblocks. -->
+    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint">
+        <exclude name="SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingTraversableTypeHintSpecification"/>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
+        <exclude name="SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingTraversableTypeHintSpecification"/>
+    </rule>
+
     <rule ref="./phpcs/Billex"/>
 </ruleset>

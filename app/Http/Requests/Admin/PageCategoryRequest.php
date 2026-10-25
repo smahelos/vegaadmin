@@ -52,22 +52,18 @@ class PageCategoryRequest extends FormRequest
 
     /**
      * Configure the validator instance.
-     *
-     * @param  Validator  $validator
      */
-    public function withValidator($validator): void
+    public function withValidator(Validator $validator): void
     {
-        $validator->after(function ($validator) {
+        $validator->after(function ($validator): void {
             $this->validateAtLeastOneLocale($validator);
         });
     }
 
     /**
      * Validate that at least one locale has both name and slug filled
-     *
-     * @param  Validator  $validator
      */
-    protected function validateAtLeastOneLocale($validator): void
+    protected function validateAtLeastOneLocale(Validator $validator): void
     {
         $locales = config('app.available_locales', [
             'cs',
@@ -137,10 +133,8 @@ class PageCategoryRequest extends FormRequest
 
     /**
      * Prepare the data for validation.
-     *
-     * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         $locales = config('app.available_locales', [
             'cs',

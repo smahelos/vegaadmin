@@ -119,7 +119,7 @@ class CronTask extends Model
     /**
      * Nastaví kompletní příkaz na základě základního příkazu a parametrů.
      */
-    public function setCommandAttribute($value)
+    public function setCommandAttribute($value): void
     {
         // Pokud hodnota už obsahuje mezery (kompletní příkaz), uložíme ji přímo
         if (strpos($value, ' ') !== false) {
@@ -187,10 +187,8 @@ class CronTask extends Model
 
     /**
      * Simuluje spuštění úlohy.
-     *
-     * @return mixed
      */
-    public function simulateRun()
+    public function simulateRun(): mixed
     {
         try {
             $startTime = microtime(true);

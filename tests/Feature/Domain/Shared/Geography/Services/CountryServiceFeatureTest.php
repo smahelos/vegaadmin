@@ -183,7 +183,7 @@ class CountryServiceFeatureTest extends TestCase
     #[Test]
     public function methods_handle_api_timeout(): void
     {
-        Http::fake(['restcountries.com/*' => function () {
+        Http::fake(['restcountries.com/*' => function (): void {
             throw new \Exception('timeout');
         }]);
         $this->assertNotEmpty($this->service->getAllCountries());

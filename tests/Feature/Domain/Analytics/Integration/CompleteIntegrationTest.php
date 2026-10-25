@@ -44,7 +44,7 @@ class CompleteIntegrationTest extends TestCase
         $this->assertSame(1, $afterFirst['statistics']->invoiceCount);
         $this->assertSame(25.0, $afterFirst['statistics']->totalAmount->toFloat());
 
-        Invoice::withoutEvents(function () use ($user, $client) {
+        Invoice::withoutEvents(function () use ($user, $client): void {
             Invoice::factory()->create([
                 'user_id' => $user->id,
                 'client_id' => $client->id,
@@ -64,7 +64,7 @@ class CompleteIntegrationTest extends TestCase
         $client2 = Client::withoutEvents(function () use ($user) {
             return Client::factory()->create(['user_id' => $user->id]);
         });
-        Invoice::withoutEvents(function () use ($user, $client2) {
+        Invoice::withoutEvents(function () use ($user, $client2): void {
             Invoice::factory()->create([
                 'user_id' => $user->id,
                 'client_id' => $client2->id,

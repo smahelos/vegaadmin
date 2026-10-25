@@ -93,7 +93,7 @@ class SubscriptionPlanFactory extends Factory
      */
     public function withFeatures(): static
     {
-        return $this->afterCreating(function (SubscriptionPlan $plan) {
+        return $this->afterCreating(function (SubscriptionPlan $plan): void {
             // Create 2-4 random features and attach them to the plan
             $featureCount = $this->faker->numberBetween(2, 4);
             $features = SubscriptionPlanFeature::factory($featureCount)->create();

@@ -109,7 +109,7 @@ class InvoiceListByClient extends Component
                 ->where('client_id', $this->clientId);
 
             if (! empty($this->search)) {
-                $query->where(function ($q) {
+                $query->where(function ($q): void {
                     $q->where(
                         'invoice_vs',
                         'like',
@@ -124,7 +124,7 @@ class InvoiceListByClient extends Component
             }
 
             if (! empty($this->status)) {
-                $query->whereHas('paymentStatus', function ($q) {
+                $query->whereHas('paymentStatus', function ($q): void {
                     $q->where('name', $this->status);
                 });
             }

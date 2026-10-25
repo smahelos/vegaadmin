@@ -34,10 +34,8 @@ class ProfileController extends Controller
 
     /**
      * Show form for editing user profile
-     *
-     * @return View|RedirectResponse
      */
-    public function edit()
+    public function edit(): View|RedirectResponse
     {
         try {
             // Get authenticated user as full model instance
@@ -58,10 +56,8 @@ class ProfileController extends Controller
 
     /**
      * Update user profile
-     *
-     * @return RedirectResponse
      */
-    public function update(UserRequest $request)
+    public function update(UserRequest $request): RedirectResponse
     {
         try {
             // Get authenticated user
@@ -86,10 +82,8 @@ class ProfileController extends Controller
 
     /**
      * Update only user password
-     *
-     * @return RedirectResponse
      */
-    public function updatePassword(PasswordUpdateRequest $request)
+    public function updatePassword(PasswordUpdateRequest $request): RedirectResponse
     {
         try {
             // Get authenticated user

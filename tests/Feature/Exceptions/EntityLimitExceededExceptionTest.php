@@ -13,7 +13,7 @@ class EntityLimitExceededExceptionTest extends TestCase
     public function json_requests_receive_translated_payload(): void
     {
         // Arrange: test route that throws the exception
-        Route::middleware('web')->get('/test/json-limit', function () {
+        Route::middleware('web')->get('/test/json-limit', function (): void {
             throw new EntityLimitExceededException(
                 limitData: ['entity' => 'invoice', 'limit' => 3],
             );
@@ -46,7 +46,7 @@ class EntityLimitExceededExceptionTest extends TestCase
     public function invoice_routes_redirect_back_with_flash_message(): void
     {
         // Arrange: named route under frontend.invoice*
-        Route::middleware('web')->post('/test/invoice-limit', function () {
+        Route::middleware('web')->post('/test/invoice-limit', function (): void {
             throw new EntityLimitExceededException(
                 limitData: ['entity' => 'invoice', 'limit' => 5],
             );
@@ -65,7 +65,7 @@ class EntityLimitExceededExceptionTest extends TestCase
     public function supplier_routes_redirect_back_with_flash_message(): void
     {
         // Arrange: named route under frontend.supplier*
-        Route::middleware('web')->post('/test/supplier-limit', function () {
+        Route::middleware('web')->post('/test/supplier-limit', function (): void {
             throw new EntityLimitExceededException(
                 limitData: ['entity' => 'supplier', 'limit' => 2],
             );

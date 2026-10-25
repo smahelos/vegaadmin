@@ -19,7 +19,7 @@ class PerformanceMetricCrudController extends CrudController
     /**
      * Configure the CrudPanel object
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(PerformanceMetric::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/performance-metric');
@@ -39,7 +39,7 @@ class PerformanceMetricCrudController extends CrudController
     /**
      * Define what happens when the List operation is loaded
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('metric_type')
             ->label(__('admin/database.performance_metrics.fields.metric_type'))
@@ -109,7 +109,7 @@ class PerformanceMetricCrudController extends CrudController
     /**
      * Define what happens when the Show operation is loaded
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         $this->setupListOperation();
 

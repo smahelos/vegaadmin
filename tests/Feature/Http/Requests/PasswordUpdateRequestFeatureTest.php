@@ -63,7 +63,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $this->actingAs($this->user);
 
@@ -79,7 +79,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $this->actingAs($this->user);
 
@@ -110,7 +110,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_wrong_current_password()
+    public function validation_fails_with_wrong_current_password(): void
     {
         $this->actingAs($this->user);
 
@@ -129,7 +129,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_short_new_password()
+    public function validation_fails_with_short_new_password(): void
     {
         $this->actingAs($this->user);
 
@@ -149,7 +149,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_unconfirmed_password()
+    public function validation_fails_with_unconfirmed_password(): void
     {
         $this->actingAs($this->user);
 
@@ -169,7 +169,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_password_confirmation_missing()
+    public function validation_fails_when_password_confirmation_missing(): void
     {
         $this->actingAs($this->user);
 
@@ -189,7 +189,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_minimum_password_length()
+    public function validation_passes_with_minimum_password_length(): void
     {
         $this->actingAs($this->user);
 
@@ -209,7 +209,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_complex_passwords()
+    public function validation_passes_with_complex_passwords(): void
     {
         $this->actingAs($this->user);
 
@@ -237,7 +237,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_passes_when_authenticated()
+    public function authorization_passes_when_authenticated(): void
     {
         $this->actingAs($this->user);
 
@@ -247,7 +247,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_when_not_authenticated()
+    public function authorization_fails_when_not_authenticated(): void
     {
         $request = new PasswordUpdateRequest;
 
@@ -255,7 +255,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_not_authenticated_for_current_password_check()
+    public function validation_fails_when_not_authenticated_for_current_password_check(): void
     {
         // Don't authenticate user
         $request = new PasswordUpdateRequest;
@@ -270,7 +270,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function request_has_custom_attributes()
+    public function request_has_custom_attributes(): void
     {
         $request = new PasswordUpdateRequest;
         $attributes = $request->attributes();
@@ -291,7 +291,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_same_current_and_new_password()
+    public function validation_passes_with_same_current_and_new_password(): void
     {
         $this->actingAs($this->user);
 
@@ -314,7 +314,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_different_user_current_password()
+    public function validation_fails_with_different_user_current_password(): void
     {
         // Create another user with different password
         $otherUser = User::factory()->create([
@@ -338,7 +338,7 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_handles_empty_string_passwords()
+    public function validation_handles_empty_string_passwords(): void
     {
         $this->actingAs($this->user);
 

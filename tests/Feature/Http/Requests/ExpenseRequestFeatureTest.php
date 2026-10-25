@@ -105,7 +105,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $this->actingAs($this->user);
 
@@ -117,7 +117,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $this->actingAs($this->user);
 
@@ -146,7 +146,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_date()
+    public function validation_fails_with_invalid_date(): void
     {
         $this->actingAs($this->user);
 
@@ -161,7 +161,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_negative_amount()
+    public function validation_fails_with_negative_amount(): void
     {
         $this->actingAs($this->user);
 
@@ -176,7 +176,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_currency_format()
+    public function validation_fails_with_invalid_currency_format(): void
     {
         $this->actingAs($this->user);
 
@@ -191,7 +191,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_nonexistent_supplier_id()
+    public function validation_fails_with_nonexistent_supplier_id(): void
     {
         $this->actingAs($this->user);
 
@@ -206,7 +206,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_nonexistent_category_id()
+    public function validation_fails_with_nonexistent_category_id(): void
     {
         $this->actingAs($this->user);
 
@@ -221,7 +221,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_nonexistent_user_id()
+    public function validation_fails_with_nonexistent_user_id(): void
     {
         $this->actingAs($this->user);
 
@@ -236,7 +236,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_minimal_required_data()
+    public function validation_passes_with_minimal_required_data(): void
     {
         $this->actingAs($this->user);
 
@@ -256,7 +256,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_nullable_fields_set_to_null()
+    public function validation_passes_with_nullable_fields_set_to_null(): void
     {
         $this->actingAs($this->user);
 
@@ -276,7 +276,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_negative_tax_amount()
+    public function validation_fails_with_negative_tax_amount(): void
     {
         $this->actingAs($this->user);
 
@@ -291,7 +291,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_too_long_reference_number()
+    public function validation_fails_with_too_long_reference_number(): void
     {
         $this->actingAs($this->user);
 
@@ -306,7 +306,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_file_upload()
+    public function validation_passes_with_valid_file_upload(): void
     {
         $this->actingAs($this->user);
         Storage::fake('local');
@@ -324,7 +324,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_too_large_file()
+    public function validation_fails_with_too_large_file(): void
     {
         $this->actingAs($this->user);
         Storage::fake('local');
@@ -342,7 +342,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_without_permission()
+    public function authorization_fails_without_permission(): void
     {
         // Create user without permission
         $userWithoutPermission = User::factory()->create();
@@ -354,7 +354,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_when_not_authenticated()
+    public function authorization_fails_when_not_authenticated(): void
     {
         $request = new ExpenseRequest;
 
@@ -362,7 +362,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_passes_with_correct_permission()
+    public function authorization_passes_with_correct_permission(): void
     {
         $this->actingAs($this->user);
 
@@ -372,7 +372,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function request_has_custom_attributes()
+    public function request_has_custom_attributes(): void
     {
         $request = new ExpenseRequest;
         $attributes = $request->attributes();
@@ -401,7 +401,7 @@ class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_different_valid_currencies()
+    public function validation_passes_with_different_valid_currencies(): void
     {
         $this->actingAs($this->user);
 

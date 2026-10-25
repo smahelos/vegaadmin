@@ -78,11 +78,11 @@ class Supplier extends Model
      * Sets all other suppliers of the user to is_default = false
      * if this supplier is set as default
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
-        static::saving(function (self $supplier) {
+        static::saving(function (self $supplier): void {
             // Update payment info flag
             $supplier->has_payment_info = $supplier->hasCompletePaymentInfo();
 
@@ -197,7 +197,7 @@ class Supplier extends Model
     /**
      * Mutator for is_default attribute to ensure boolean value
      */
-    public function setIsDefaultAttribute($value)
+    public function setIsDefaultAttribute($value): void
     {
         $this->attributes['is_default'] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }

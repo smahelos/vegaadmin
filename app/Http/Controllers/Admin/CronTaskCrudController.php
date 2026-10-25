@@ -26,14 +26,14 @@ class CronTaskCrudController extends CrudController
     use ShowOperation;
     use UpdateOperation;
 
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(CronTask::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/cron-task');
         CRUD::setEntityNameStrings(__('cron_tasks.entity.singular'), __('cron_tasks.entity.plural'));
     }
 
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('name')->label(__('cron_tasks.fields.name'));
         CRUD::column('command')->label(__('cron_tasks.fields.command'));
@@ -82,7 +82,7 @@ class CronTaskCrudController extends CrudController
         $this->commandsService = $commandsService;
     }
 
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(CronTaskRequest::class);
 
@@ -207,12 +207,12 @@ class CronTaskCrudController extends CrudController
         ]);
     }
 
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
 
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         $this->setupListOperation();
 
@@ -241,9 +241,9 @@ class CronTaskCrudController extends CrudController
             ->escaped(false);
     }
 
-    protected function setupOperationButtons()
+    protected function setupOperationButtons(): void
     {
-        CRUD::operation('list', function () {
+        CRUD::operation('list', function (): void {
             CRUD::addButton(
                 'line',
                 'run_cron',

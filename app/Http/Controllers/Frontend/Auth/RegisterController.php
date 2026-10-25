@@ -78,10 +78,8 @@ class RegisterController extends Controller
 
     /**
      * Show registration form with user fields
-     *
-     * @return View
      */
-    public function showRegistrationForm()
+    public function showRegistrationForm(): View
     {
         $userFields = $this->getUserFields();
         $passwordFields = $this->getPasswordFields();
@@ -106,10 +104,8 @@ class RegisterController extends Controller
 
     /**
      * Register a new user with related supplier
-     *
-     * @return RedirectResponse
      */
-    public function register(RegistrationRequest $request)
+    public function register(RegistrationRequest $request): RedirectResponse
     {
         $validatedData = $request->validated();
 

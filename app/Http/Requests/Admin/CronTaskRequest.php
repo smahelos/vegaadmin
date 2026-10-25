@@ -33,7 +33,7 @@ class CronTaskRequest extends FormRequest
                 $attribute,
                 $value,
                 $fail,
-            ) {
+            ): void {
                 // Validate custom cron expression only when frequency is custom
                 $frequency = $this->input('frequency');
                 if ($frequency === 'custom') {

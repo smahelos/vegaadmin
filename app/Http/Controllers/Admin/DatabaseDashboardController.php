@@ -947,7 +947,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Remove duplicate metrics keeping only the latest per day per type
      */
-    private function removeDuplicateMetrics()
+    private function removeDuplicateMetrics(): void
     {
         // Get duplicate metrics (more than one per day per type)
         $duplicates = DB::select('

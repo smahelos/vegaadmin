@@ -41,10 +41,8 @@ class UserCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object and check user permissions
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(User::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/user');
@@ -58,10 +56,8 @@ class UserCrudController extends CrudController
 
     /**
      * Setup list view columns
-     *
-     * @return void
      */
-    public function setupListOperation()
+    public function setupListOperation(): void
     {
         $this->crud->addColumns([
             [
@@ -93,11 +89,11 @@ class UserCrudController extends CrudController
                     'label' => __('users.filters.role'),
                 ],
                 config('permission.models.role')::all()->pluck('name', 'id')->toArray(),
-                function ($value) {
+                function ($value): void {
                     $this->crud->addClause(
                         'whereHas',
                         'roles',
-                        function ($query) use ($value) {
+                        function ($query) use ($value): void {
                             $query->where(
                                 'role_id',
                                 '=',
@@ -116,11 +112,11 @@ class UserCrudController extends CrudController
                     'label' => __('users.filters.permission'),
                 ],
                 config('permission.models.permission')::all()->pluck('name', 'id')->toArray(),
-                function ($value) {
-                    $this->crud->addClause(function ($query) use ($value) {
-                        $query->whereHas('permissions', function ($q) use ($value) {
+                function ($value): void {
+                    $this->crud->addClause(function ($query) use ($value): void {
+                        $query->whereHas('permissions', function ($q) use ($value): void {
                             $q->where('id', $value);
-                        })->orWhereHas('roles.permissions', function ($q) use ($value) {
+                        })->orWhereHas('roles.permissions', function ($q) use ($value): void {
                             $q->where('id', $value);
                         });
                     });
@@ -131,10 +127,8 @@ class UserCrudController extends CrudController
 
     /**
      * Setup create form fields
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         $this->addUserFields();
         CRUD::setValidation(StoreRequest::class);
@@ -142,10 +136,8 @@ class UserCrudController extends CrudController
 
     /**
      * Setup update form fields
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->addUserFields();
         CRUD::setValidation(UpdateRequest::class);
@@ -153,10 +145,8 @@ class UserCrudController extends CrudController
 
     /**
      * Setup show operation
-     *
-     * @return void
      */
-    public function setupShowOperation()
+    public function setupShowOperation(): void
     {
         $this->crud->column('name')->label(__('users.fields.name'));
         $this->crud->column('email')->label(__('users.fields.email'));
@@ -190,10 +180,8 @@ class UserCrudController extends CrudController
 
     /**
      * Custom store method for password hashing
-     *
-     * @return RedirectResponse
      */
-    public function store()
+    public function store(): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest($this->handlePasswordInput($this->crud->getRequest()));
@@ -204,10 +192,8 @@ class UserCrudController extends CrudController
 
     /**
      * Custom update method for password hashing
-     *
-     * @return RedirectResponse
      */
-    public function update()
+    public function update(): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest($this->handlePasswordInput($this->crud->getRequest()));
@@ -218,11 +204,8 @@ class UserCrudController extends CrudController
 
     /**
      * Process password field - hash if provided
-     *
-     * @param  Request  $request
-     * @return Request
      */
-    protected function handlePasswordInput($request)
+    protected function handlePasswordInput(Request $request): Request
     {
         // Remove password if empty
         if ($request->has('password') && $request->input('password') === null) {
@@ -240,10 +223,8 @@ class UserCrudController extends CrudController
 
     /**
      * Add user field definitions to the form
-     *
-     * @return void
      */
-    protected function addUserFields()
+    protected function addUserFields(): void
     {
         $this->crud->addFields([
             [

@@ -29,10 +29,8 @@ class PageCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(Page::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/page');
@@ -46,10 +44,8 @@ class PageCrudController extends CrudController
      * Define what happens when the List operation is loaded.
      *
      * @see  https://backpackforlaravel.com/docs/crud-operation-list-entries
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('name')
             ->label(__('pages.fields.name'))
@@ -121,7 +117,7 @@ class PageCrudController extends CrudController
                 1 => __('general.yes'),
                 0 => __('general.no'),
             ],
-            function ($value) {
+            function ($value): void {
                 $this->crud->addClause(
                     'where',
                     'published',
@@ -142,7 +138,7 @@ class PageCrudController extends CrudController
 
                 return [$category->id => $name];
             })->toArray(),
-            function ($value) {
+            function ($value): void {
                 $this->crud->addClause(
                     'where',
                     'category_id',
@@ -156,10 +152,8 @@ class PageCrudController extends CrudController
      * Define what happens when the Create operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-create
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(PageRequest::class);
 
@@ -283,10 +277,8 @@ class PageCrudController extends CrudController
      * Define what happens when the Update operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-update
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
@@ -295,10 +287,8 @@ class PageCrudController extends CrudController
      * Define what happens when the Show operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-show
-     *
-     * @return void
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         // Use same columns as list operation but with more detail
         $this->setupListOperation();

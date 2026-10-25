@@ -20,9 +20,8 @@ class InvoiceController extends Controller
      * Supports either /invoice?q=12 or /invoice/12 formats
      *
      * @param  int|null  $id  Optional ID from route parameter
-     * @return JsonResponse
      */
-    public function getInvoice(Request $request, $id = null)
+    public function getInvoice(Request $request, ?int $id = null): JsonResponse
     {
         // Get ID either from query parameter or route parameter
         $invoiceId = $id ?? $request->query('q');
@@ -74,10 +73,8 @@ class InvoiceController extends Controller
 
     /**
      * Get list of invoices for authenticated user
-     *
-     * @return JsonResponse
      */
-    public function getInvoices()
+    public function getInvoices(): JsonResponse
     {
         $user = $this->getAuthenticatedUser();
 

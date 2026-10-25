@@ -68,10 +68,8 @@ class Status extends Model
 
     /**
      * Get translated status name based on slug
-     *
-     * @return string
      */
-    public function getTranslatedNameAttribute()
+    public function getTranslatedNameAttribute(): string
     {
         // Check if status has a defined slug
         if (empty($this->slug)) {
@@ -125,7 +123,7 @@ class Status extends Model
     /**
      * Ensure slug is properly formatted
      */
-    public function setSlugAttribute($value)
+    public function setSlugAttribute($value): void
     {
         $this->attributes['slug'] = Str::slug($value);
     }

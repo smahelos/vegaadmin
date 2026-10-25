@@ -19,7 +19,7 @@ class MysqlOptimizationLogCrudController extends CrudController
     /**
      * Configure the CrudPanel object
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(MysqlOptimizationLog::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/mysql-optimization-log');
@@ -39,7 +39,7 @@ class MysqlOptimizationLogCrudController extends CrudController
     /**
      * Define what happens when the List operation is loaded
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('setting_name')
             ->label(__('admin/database.optimization_logs.fields.setting_name'))
@@ -87,7 +87,7 @@ class MysqlOptimizationLogCrudController extends CrudController
     /**
      * Define what happens when the Show operation is loaded
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         $this->setupListOperation();
 

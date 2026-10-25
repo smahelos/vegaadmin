@@ -98,13 +98,13 @@ class InvoiceList extends Component
                 ->where('user_id', Auth::id());
 
             if (! empty($this->search)) {
-                $query->where(function ($q) {
+                $query->where(function ($q): void {
                     $q->where(
                         'invoice_vs',
                         'like',
                         "%{$this->search}%",
                     )
-                        ->orWhereHas('client', function ($q) {
+                        ->orWhereHas('client', function ($q): void {
                             $q->where(
                                 'name',
                                 'like',
@@ -115,7 +115,7 @@ class InvoiceList extends Component
             }
 
             if (! empty($this->status)) {
-                $query->whereHas('paymentStatus', function ($q) {
+                $query->whereHas('paymentStatus', function ($q): void {
                     $q->where('name', $this->status);
                 });
             }
@@ -123,7 +123,7 @@ class InvoiceList extends Component
             // Special handling for different sorting fields
             if ($this->sortKey() === 'client_id') {
                 // Using subquery to sort by client name while maintaining eager loading
-                $query->orderBy(function ($query) {
+                $query->orderBy(function ($query): void {
                     $query->select('name')
                         ->from('clients')
                         ->whereColumn('clients.id', 'invoices.client_id')

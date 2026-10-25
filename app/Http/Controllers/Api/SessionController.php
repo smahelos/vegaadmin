@@ -12,10 +12,8 @@ class SessionController extends Controller
 {
     /**
      * Check authentication status
-     *
-     * @return JsonResponse
      */
-    public function checkAuth(Request $request)
+    public function checkAuth(Request $request): JsonResponse
     {
         if (Auth::check()) {
             return response()->json(['status' => 'authenticated']);
@@ -26,10 +24,8 @@ class SessionController extends Controller
 
     /**
      * Refresh session on user activity
-     *
-     * @return JsonResponse
      */
-    public function refreshSession(Request $request)
+    public function refreshSession(Request $request): JsonResponse
     {
         Session::migrate(true);
 

@@ -103,7 +103,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $request = new ClientRequest;
         $validator = Validator::make(
@@ -117,7 +117,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $requiredFields = [
             'name',
@@ -150,7 +150,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_email()
+    public function validation_fails_with_invalid_email(): void
     {
         $invalidEmails = [
             'invalid-email',
@@ -176,7 +176,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_string_fields_exceed_max_length()
+    public function validation_fails_when_string_fields_exceed_max_length(): void
     {
         $fieldsWithMaxLength = [
             'name' => 255,
@@ -208,7 +208,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_nullable_fields_empty()
+    public function validation_passes_with_nullable_fields_empty(): void
     {
         $nullableFields = [
             'shortcut',
@@ -235,7 +235,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_boolean_values()
+    public function validation_fails_with_invalid_boolean_values(): void
     {
         $invalidBooleanValues = [
             'invalid',
@@ -264,7 +264,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_boolean_values()
+    public function validation_passes_with_valid_boolean_values(): void
     {
         $validBooleanValues = [
             true,
@@ -292,7 +292,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_with_authenticated_user_via_http()
+    public function authorization_with_authenticated_user_via_http(): void
     {
         $response = $this->actingAs($this->user)
             ->post($this->localizedRoute('frontend.client.store'), $this->validClientData);
@@ -309,7 +309,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_with_unauthenticated_user_via_http()
+    public function authorization_fails_with_unauthenticated_user_via_http(): void
     {
         $response = $this->post($this->localizedRoute('frontend.client.store'), $this->validClientData);
 
@@ -348,7 +348,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_with_actual_http_request()
+    public function validation_with_actual_http_request(): void
     {
         // Test with valid data
         $response = $this->actingAs($this->user)
@@ -369,7 +369,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function edge_cases_with_whitespace_and_special_characters()
+    public function edge_cases_with_whitespace_and_special_characters(): void
     {
         // Test with whitespace in name (should be valid)
         $dataWithWhitespace = $this->validClientData;
@@ -411,7 +411,7 @@ class ClientRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function maximum_boundary_values_for_length_constraints()
+    public function maximum_boundary_values_for_length_constraints(): void
     {
         $fieldsWithExactMaxLength = [
             'name' => str_repeat('a', 255),

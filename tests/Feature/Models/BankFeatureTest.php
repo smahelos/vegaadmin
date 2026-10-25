@@ -16,7 +16,7 @@ class BankFeatureTest extends TestCase
     use WithFaker;
 
     #[Test]
-    public function bank_can_be_created_with_factory()
+    public function bank_can_be_created_with_factory(): void
     {
         $bank = Bank::factory()->create();
 
@@ -29,7 +29,7 @@ class BankFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_serves_as_reference_data()
+    public function bank_serves_as_reference_data(): void
     {
         // Banks are reference data seeded in every environment
         $this->assertDatabaseHas('banks', [
@@ -48,7 +48,7 @@ class BankFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_code_must_be_unique()
+    public function bank_code_must_be_unique(): void
     {
         $bank1 = Bank::factory()->create(['code' => '1234']);
 
@@ -57,7 +57,7 @@ class BankFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_can_be_created_with_minimal_data()
+    public function bank_can_be_created_with_minimal_data(): void
     {
         $bank = Bank::factory()->create([
             'name' => 'Test Bank',
@@ -75,7 +75,7 @@ class BankFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_can_be_created_with_all_optional_fields()
+    public function bank_can_be_created_with_all_optional_fields(): void
     {
         $bank = Bank::factory()->create([
             'name' => 'Full Bank',
@@ -97,7 +97,7 @@ class BankFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_can_be_updated()
+    public function bank_can_be_updated(): void
     {
         $bank = Bank::factory()->create([
             'name' => 'Original Bank',
@@ -117,7 +117,7 @@ class BankFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_can_be_deleted()
+    public function bank_can_be_deleted(): void
     {
         $bank = Bank::factory()->create();
         $bankId = $bank->id;
@@ -130,7 +130,7 @@ class BankFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_deletion_works_correctly()
+    public function bank_deletion_works_correctly(): void
     {
         $bank = Bank::factory()->create();
         $bankId = $bank->id;
@@ -144,7 +144,7 @@ class BankFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_factory_states_work_correctly()
+    public function bank_factory_states_work_correctly(): void
     {
         $activeBank = Bank::factory()->active()->create();
         $inactiveBank = Bank::factory()->inactive()->create();
@@ -157,7 +157,7 @@ class BankFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_creation_with_timestamps()
+    public function bank_creation_with_timestamps(): void
     {
         $bank = Bank::factory()->create();
 

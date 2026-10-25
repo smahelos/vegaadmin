@@ -194,7 +194,7 @@ trait CreatesFrontendTestEnvironment
     {
         // permissions
         if (! Schema::hasTable('permissions')) {
-            Schema::create('permissions', function (Blueprint $table) {
+            Schema::create('permissions', function (Blueprint $table): void {
                 $table->increments('id');
                 $table->string('name');
                 $table->string('guard_name');
@@ -203,7 +203,7 @@ trait CreatesFrontendTestEnvironment
         }
         // roles
         if (! Schema::hasTable('roles')) {
-            Schema::create('roles', function (Blueprint $table) {
+            Schema::create('roles', function (Blueprint $table): void {
                 $table->increments('id');
                 $table->string('name');
                 $table->string('guard_name');
@@ -212,7 +212,7 @@ trait CreatesFrontendTestEnvironment
         }
         // model_has_permissions
         if (! Schema::hasTable('model_has_permissions')) {
-            Schema::create('model_has_permissions', function (Blueprint $table) {
+            Schema::create('model_has_permissions', function (Blueprint $table): void {
                 $table->unsignedInteger('permission_id');
                 $table->string('model_type');
                 $table->unsignedBigInteger('model_id');
@@ -221,7 +221,7 @@ trait CreatesFrontendTestEnvironment
         }
         // model_has_roles
         if (! Schema::hasTable('model_has_roles')) {
-            Schema::create('model_has_roles', function (Blueprint $table) {
+            Schema::create('model_has_roles', function (Blueprint $table): void {
                 $table->unsignedInteger('role_id');
                 $table->string('model_type');
                 $table->unsignedBigInteger('model_id');
@@ -230,7 +230,7 @@ trait CreatesFrontendTestEnvironment
         }
         // role_has_permissions
         if (! Schema::hasTable('role_has_permissions')) {
-            Schema::create('role_has_permissions', function (Blueprint $table) {
+            Schema::create('role_has_permissions', function (Blueprint $table): void {
                 $table->unsignedInteger('permission_id');
                 $table->unsignedInteger('role_id');
             });

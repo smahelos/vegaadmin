@@ -19,7 +19,7 @@ class AdminController extends BackpackAdminController
         $segment,
         $routeName,
         $controller,
-    ) {
+    ): void {
         Route::get($segment, $controller . '@dashboard')->name($routeName);
     }
 

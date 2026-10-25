@@ -19,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware) {
+    ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
 
         $middleware->alias([
@@ -32,6 +32,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => RequireBackpackAccess::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions) {
+    ->withExceptions(function (Exceptions $exceptions): void {
         ExceptionHandling::registerCallbacks($exceptions);
     })->create();

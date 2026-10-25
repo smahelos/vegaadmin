@@ -106,7 +106,7 @@ class DatabaseHealthAlert extends Model
     /**
      * Mark alert as resolved
      */
-    public function markResolved()
+    public function markResolved(): void
     {
         $this->update([
             'resolved' => true,

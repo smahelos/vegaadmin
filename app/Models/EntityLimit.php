@@ -91,16 +91,16 @@ class EntityLimit extends Model
     /**
      * Boot method to clear cache when EntityLimit is saved/deleted
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
         // Clear cache when EntityLimit is saved or deleted
-        static::saved(function () {
+        static::saved(function (): void {
             Artisan::call('cache:clear');
         });
 
-        static::deleted(function () {
+        static::deleted(function (): void {
             Artisan::call('cache:clear');
         });
     }
@@ -133,7 +133,7 @@ class EntityLimit extends Model
         // In new permission-based system, we don't have direct FK relationship
         // Usage is matched by permission_name and entity_type
         return EntityLimitUsage::where('entity_type', $this->entity_type)
-            ->whereHas('user.permissions', function ($query) {
+            ->whereHas('user.permissions', function ($query): void {
                 $query->where('name', $this->permission_name);
             });
     }

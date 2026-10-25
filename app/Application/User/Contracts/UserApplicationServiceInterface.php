@@ -19,7 +19,7 @@ interface UserApplicationServiceInterface
     /**
      * @return Collection<int,User>
      */
-    public function getAllUsers();
+    public function getAllUsers(): Collection;
 
     public function searchUsers(
         ?string $term,

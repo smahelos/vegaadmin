@@ -77,7 +77,7 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     {
         return Page::published()
             ->rootPages()
-            ->with(['children' => function ($q) {
+            ->with(['children' => function ($q): void {
                 $q->published()->orderBy('sort_order');
             }])
             ->orderBy('sort_order')
@@ -103,7 +103,7 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
 
     public function searchPublished(string $keyword, string $locale): Collection
     {
-        return Page::published()->where(function ($q) use ($keyword, $locale) {
+        return Page::published()->where(function ($q) use ($keyword, $locale): void {
             $q->whereRaw("JSON_EXTRACT(name, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
                 ->orWhereRaw("JSON_EXTRACT(description, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
                 ->orWhereRaw("JSON_EXTRACT(content, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"]);

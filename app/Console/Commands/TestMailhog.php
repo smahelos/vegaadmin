@@ -41,7 +41,7 @@ class TestMailhog extends Command
         $this->info('MAIL_PORT: ' . config('mail.mailers.smtp.port'));
 
         try {
-            Mail::raw('Test email from VegaAdmin application at: ' . now(), function ($message) use ($recipients, $subject) {
+            Mail::raw('Test email from VegaAdmin application at: ' . now(), function ($message) use ($recipients, $subject): void {
                 $message->to($recipients)
                     ->subject($subject);
             });

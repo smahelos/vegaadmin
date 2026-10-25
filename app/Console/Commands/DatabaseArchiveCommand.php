@@ -142,7 +142,7 @@ class DatabaseArchiveCommand extends Command
     /**
      * Archive invoices with related products
      */
-    private function archiveInvoices($cutoffDate, $policy)
+    private function archiveInvoices($cutoffDate, $policy): void
     {
         $this->info('Archiving invoices with related products...');
 
@@ -212,7 +212,7 @@ class DatabaseArchiveCommand extends Command
         $tableName,
         $cutoffDate,
         $policy,
-    ) {
+    ): void {
         $this->info("Performing generic archiving for table: {$tableName}");
 
         // Simple deletion for non-critical tables

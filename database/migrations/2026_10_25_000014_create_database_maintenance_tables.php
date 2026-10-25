@@ -13,7 +13,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('archive_policies', function (Blueprint $table) {
+        Schema::create('archive_policies', function (Blueprint $table): void {
             $table->id();
             $table->string('table_name')->unique();
             $table->integer('retention_months')->default(36);
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('invoices_archive', function (Blueprint $table) {
+        Schema::create('invoices_archive', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('original_id');
             $table->unsignedBigInteger('user_id');
@@ -47,7 +47,7 @@ return new class extends Migration
             $table->index('issue_date', 'idx_archive_issue_date');
         });
 
-        Schema::create('invoice_products_archive', function (Blueprint $table) {
+        Schema::create('invoice_products_archive', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('original_invoice_id');
             $table->unsignedBigInteger('archive_invoice_id');
@@ -59,7 +59,7 @@ return new class extends Migration
             $table->index('original_invoice_id', 'idx_archive_products_original');
         });
 
-        Schema::create('database_health_alerts', function (Blueprint $table) {
+        Schema::create('database_health_alerts', function (Blueprint $table): void {
             $table->id();
             $table->string('alert_type');
             $table->enum('severity', [
@@ -77,7 +77,7 @@ return new class extends Migration
             $table->index(['resolved', 'created_at'], 'idx_alert_resolved_time');
         });
 
-        Schema::create('database_health_metrics', function (Blueprint $table) {
+        Schema::create('database_health_metrics', function (Blueprint $table): void {
             $table->id();
             $table->string('metric_name');
             $table->decimal(
@@ -99,7 +99,7 @@ return new class extends Migration
             $table->index(['status', 'measured_at'], 'idx_health_status_time');
         });
 
-        Schema::create('database_maintenance_logs', function (Blueprint $table) {
+        Schema::create('database_maintenance_logs', function (Blueprint $table): void {
             $table->id();
             $table->string('task_type');
             $table->string('table_name');
@@ -119,7 +119,7 @@ return new class extends Migration
             $table->index(['table_name', 'created_at'], 'idx_maintenance_table_date');
         });
 
-        Schema::create('mysql_optimization_logs', function (Blueprint $table) {
+        Schema::create('mysql_optimization_logs', function (Blueprint $table): void {
             $table->id();
             $table->string('setting_name');
             $table->string('current_value')->nullable();
@@ -137,7 +137,7 @@ return new class extends Migration
             $table->index(['setting_name', 'applied'], 'idx_optimization_setting_applied');
         });
 
-        Schema::create('performance_metrics', function (Blueprint $table) {
+        Schema::create('performance_metrics', function (Blueprint $table): void {
             $table->id();
             $table->string('metric_type');
             $table->string('table_name')->nullable();

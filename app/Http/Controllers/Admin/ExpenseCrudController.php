@@ -35,10 +35,8 @@ class ExpenseCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(Expense::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/expense');
@@ -63,10 +61,8 @@ class ExpenseCrudController extends CrudController
      * Define what happens when the List operation is loaded.
      *
      * @see  https://backpackforlaravel.com/docs/crud-operation-list-entries
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('expense_date')
             ->label(__('expenses.fields.expense_date'))
@@ -123,7 +119,7 @@ class ExpenseCrudController extends CrudController
         CRUD::filter('expense_date')
             ->type('datepicker_range')
             ->label(__('expenses.filters.date_range'))
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 $dates = json_decode($value);
                 CRUD::addClause(
                     'where',
@@ -164,10 +160,8 @@ class ExpenseCrudController extends CrudController
      * Define what happens when the Create operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-create
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ExpenseRequest::class);
 
@@ -294,20 +288,16 @@ class ExpenseCrudController extends CrudController
      * Define what happens when the Update operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-update
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
 
     /**
      * Configure the Show operation.
-     *
-     * @return void
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         // Re-use most of the same columns from list operation
         $this->setupListOperation();

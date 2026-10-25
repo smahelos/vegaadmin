@@ -111,7 +111,7 @@ class ProductRequest extends FormRequest
      *
      * @throws ValidationException
      */
-    protected function failedValidation(Validator $validator)
+    protected function failedValidation(Validator $validator): void
     {
         throw new ValidationException($validator,
             redirect()->back()

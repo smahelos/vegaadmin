@@ -10,12 +10,10 @@ trait HasFileUploads
 {
     /**
      * Handle file attribute upload
-     *
-     * @param  mixed  $value
      */
     protected function handleFileUpload(
         string $attribute,
-        $value,
+        mixed $value,
         string $path,
         array $options = [],
         ?string $context = null,

@@ -37,7 +37,7 @@ class ProductRepositoryTest extends TestCase
         $products = $this->productRepository->findUserProducts($this->user);
 
         $this->assertCount(3, $products);
-        $products->each(function ($product) {
+        $products->each(function ($product): void {
             $this->assertEquals($this->user->id, $product->user_id);
         });
     }

@@ -11,7 +11,7 @@ if (! function_exists('backpack_auth')) {
      *
      * @return StatefulGuard|Guard Auth guard for Backpack
      */
-    function backpack_auth()
+    function backpack_auth(): StatefulGuard|Guard
     {
         return Auth::guard(backpack_guard_name());
     }

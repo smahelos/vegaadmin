@@ -21,7 +21,7 @@ final class PermissionCatalogSync
         $roleClass = $this->registrar->getRoleClass();
 
         // Without model events: App\Models\Permission clears the whole cache on every save
-        Model::withoutEvents(function () use ($permissionClass, $roleClass) {
+        Model::withoutEvents(function () use ($permissionClass, $roleClass): void {
             $permissions = [];
             foreach (PermissionCatalog::PERMISSIONS as $guard => $names) {
                 foreach ($names as $name) {

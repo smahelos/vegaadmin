@@ -19,7 +19,7 @@ class DropdownLink extends Component
      *
      * @param  string  $href  Link target URL
      */
-    public function __construct($href)
+    public function __construct(string $href)
     {
         $this->href = $href;
     }

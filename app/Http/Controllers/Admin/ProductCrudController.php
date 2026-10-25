@@ -66,7 +66,7 @@ class ProductCrudController extends CrudController
                 'label' => __('products.filters.active_only'),
             ],
             false,
-            function () {
+            function (): void {
                 CRUD::addClause(
                     'where',
                     'is_active',
@@ -81,7 +81,7 @@ class ProductCrudController extends CrudController
             ->values(
                 User::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'user_id',
@@ -95,7 +95,7 @@ class ProductCrudController extends CrudController
             ->values(
                 Supplier::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'supplier_id',

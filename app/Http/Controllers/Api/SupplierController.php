@@ -25,9 +25,8 @@ class SupplierController extends Controller
      * Admins can access any supplier
      *
      * @param  int  $id  Supplier ID
-     * @return JsonResponse
      */
-    public function getSupplierAdmin($id)
+    public function getSupplierAdmin(int $id): JsonResponse
     {
         try {
             $user = $this->getBackpackUser();
@@ -57,9 +56,8 @@ class SupplierController extends Controller
      * Users can only access their own suppliers
      *
      * @param  int  $id  Supplier ID
-     * @return JsonResponse
      */
-    public function getSupplier($id)
+    public function getSupplier(int $id): JsonResponse
     {
         try {
             $user = $this->getFrontendUser();
@@ -83,10 +81,8 @@ class SupplierController extends Controller
 
     /**
      * Get list of suppliers for authenticated user
-     *
-     * @return JsonResponse
      */
-    public function getSuppliersAdmin()
+    public function getSuppliersAdmin(): JsonResponse
     {
         $user = $this->getBackpackUser();
 
@@ -101,10 +97,8 @@ class SupplierController extends Controller
 
     /**
      * Get list of suppliers for authenticated user
-     *
-     * @return JsonResponse
      */
-    public function getSuppliers()
+    public function getSuppliers(): JsonResponse
     {
         $user = $this->getFrontendUser();
 
@@ -119,10 +113,8 @@ class SupplierController extends Controller
 
     /**
      * Get default supplier for the authenticated user
-     *
-     * @return JsonResponse
      */
-    public function getDefaultSupplier()
+    public function getDefaultSupplier(): JsonResponse
     {
         try {
             // Find default supplier

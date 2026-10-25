@@ -19,7 +19,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Configure the CrudPanel object
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(DatabaseMaintenanceLog::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/database-maintenance-log');
@@ -39,7 +39,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Define what happens when the List operation is loaded
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('task_type')
             ->label(__('admin/database.maintenance_logs.fields.task_type'))
@@ -99,7 +99,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Define what happens when the Show operation is loaded
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         CRUD::column('task_type')
             ->label(__('admin/database.maintenance_logs.fields.task_type'))

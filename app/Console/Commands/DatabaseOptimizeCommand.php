@@ -93,7 +93,7 @@ class DatabaseOptimizeCommand extends Command
         $tableName,
         $analyze = false,
         $repair = false,
-    ) {
+    ): void {
         $this->info("\n🔧 Optimizing table: {$tableName}");
 
         // Log maintenance task
@@ -186,7 +186,7 @@ class DatabaseOptimizeCommand extends Command
         $analyze,
         $repair,
         &$results,
-    ) {
+    ): void {
         // Repair table if requested
         if ($repair) {
             $this->line('  🔨 Repairing table...');

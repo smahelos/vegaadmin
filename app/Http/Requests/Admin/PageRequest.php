@@ -205,7 +205,7 @@ class PageRequest extends FormRequest
      */
     public function withValidator($validator): void
     {
-        $validator->after(function ($validator) {
+        $validator->after(function ($validator): void {
             // Ensure at least one name translation is provided
             $names = $this->input('name', []);
             $hasName = false;

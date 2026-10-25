@@ -13,7 +13,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('page_categories', function (Blueprint $table) {
+        Schema::create('page_categories', function (Blueprint $table): void {
             $table->id();
             $table->json('name');
             $table->json('slug');
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('pages', function (Blueprint $table) {
+        Schema::create('pages', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('parent_id')->nullable()->index()->constrained('pages')->nullOnDelete();
             $table->foreignId('category_id')->nullable()->index()->constrained('page_categories')->nullOnDelete();
