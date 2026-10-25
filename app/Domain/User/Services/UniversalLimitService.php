@@ -221,32 +221,6 @@ class UniversalLimitService implements UniversalLimitServiceInterface
     }
 
     /**
-     * Get all usage statistics for user across all entities
-     */
-    public function getAllUsageStatistics(?int $userId): array
-    {
-        $result = [];
-
-        foreach ($this->entityLimitRepository->getAllEntityTypes() as $entityType) {
-            foreach (array_keys($this->entityLimitRepository->getAllMetricTypes()) as $metricType) {
-                foreach (array_keys($this->entityLimitRepository->getAllPeriodTypes()) as $periodType) {
-                    $stats = $this->getUsageStatistics(
-                        $userId,
-                        $entityType,
-                        $metricType,
-                        $periodType,
-                    );
-                    if ($stats['limit'] > 0) {
-                        $result[$entityType][$metricType][$periodType] = $stats;
-                    }
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
      * Reset usage for given combination
      */
     public function resetUsage(

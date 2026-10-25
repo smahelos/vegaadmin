@@ -4,7 +4,6 @@ namespace App\Domain\User\Contracts;
 
 use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\DTO\UserWriteData;
-use App\Domain\User\ValueObjects\UserEmail;
 use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
 
@@ -23,11 +22,6 @@ interface UserWriteRepositoryInterface
     public function create(UserWriteData $data): UserDTO;
 
     /**
-     * Update user by ID with write data.
-     */
-    public function updateById(UserId $id, UserWriteData $data): bool;
-
-    /**
      * Update profile with write data.
      */
     public function updateProfile(UserId $id, UserWriteData $data): bool;
@@ -38,19 +32,4 @@ interface UserWriteRepositoryInterface
      * @throws \Exception
      */
     public function updatePassword(UserId $userId, UserPassword $password): bool;
-
-    /**
-     * Soft delete user
-     */
-    public function softDeleteUser(UserId $userId): bool;
-
-    /**
-     * Restore soft deleted user
-     */
-    public function restoreUser(UserId $userId): bool;
-
-    /**
-     * Change user email
-     */
-    public function changeEmail(UserId $userId, UserEmail $newEmail): bool;
 }

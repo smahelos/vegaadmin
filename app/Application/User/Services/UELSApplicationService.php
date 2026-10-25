@@ -3,15 +3,12 @@
 namespace App\Application\User\Services;
 
 use App\Application\User\Contracts\UELSApplicationServiceInterface;
-use App\Domain\User\Contracts\PermissionLimitResolverInterface;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use Illuminate\Support\Collection;
 
 class UELSApplicationService implements UELSApplicationServiceInterface
 {
     public function __construct(
         private readonly UniversalLimitService $limitService,
-        private readonly PermissionLimitResolverInterface $permissionResolver,
     ) {}
 
     public function getEntityLimitInfo(?int $userId, string $entityType): array
@@ -48,11 +45,5 @@ class UELSApplicationService implements UELSApplicationServiceInterface
             $entityType,
             $metricType,
         );
-    }
-
-    public function getUserPermissionLimits(?int $userId, string $entityType): Collection
-    {
-        // Domain returns array; adapt to Collection for controllers/consumers in Application layer
-        return collect($this->permissionResolver->getUserPermissionLimits($userId, $entityType));
     }
 }

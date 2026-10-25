@@ -19,29 +19,6 @@ interface UserPermissionServiceInterface
     public function getUserPermissions(int $userId, string $guard = 'web'): array;
 
     /**
-     * Check if user has specific permission.
-     *
-     * @return bool True if user has permission
-     */
-    public function hasPermission(
-        int $userId,
-        string $permission,
-        string $guard = 'web',
-    ): bool;
-
-    /**
-     * Check if user has any of the given permissions.
-     *
-     * @param  array  $permissions  Array of permission names
-     * @return bool True if user has at least one permission
-     */
-    public function hasAnyPermission(
-        int $userId,
-        array $permissions,
-        string $guard = 'web',
-    ): bool;
-
-    /**
      * Check if user exists.
      *
      * @return bool True if user exists

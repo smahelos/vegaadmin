@@ -30,21 +30,4 @@ class EntityLimitChecker
             $value,
         );
     }
-
-    /**
-     * Get usage statistics for user & entity combination.
-     */
-    public function stats(
-        ?int $userId,
-        string $entityType,
-        string $limitType = 'count',
-        string $periodType = 'monthly',
-    ): ?array {
-        return $this->limits->getUsageStatistics(
-            $userId,
-            $entityType,
-            $limitType,
-            $periodType,
-        );
-    }
 }

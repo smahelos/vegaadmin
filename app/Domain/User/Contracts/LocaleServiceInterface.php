@@ -5,35 +5,6 @@ namespace App\Domain\User\Contracts;
 interface LocaleServiceInterface
 {
     /**
-     * Get locale
-     */
-    public function getLocale(): string;
-
-    /**
-     * Get available locales from config.
-     *
-     * @return array<string>
-     */
-    public function getAvailableLocales(): array;
-
-    /**
-     * Get fallback locale from config.
-     */
-    public function getFallbackLocale(): string;
-
-    /**
-     * Get country locale map from config.
-     *
-     * @return array<string>
-     */
-    public function getCountryLocaleMap(): array;
-
-    /**
-     * Set application locale and update session.
-     */
-    public function setLocale(string $locale): void;
-
-    /**
      * Map country code to preferred locale using configuration.
      * Falls back to app.fallback_locale when not found or empty.
      */
