@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Analytics\DTO;
 
 use App\Domain\Analytics\DTO\UserStatisticsDTO;
-use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -47,40 +46,6 @@ final class UserStatisticsDTOTest extends TestCase
         ], array_keys($arr));
         $this->assertSame(0, $arr['invoice_count']);
         $this->assertSame(0.0, $arr['total_amount']);
-    }
-
-    #[Test]
-    public function to_formatted_array_uses_formatter(): void
-    {
-        $dto = UserStatisticsDTO::fromArray([
-            'invoice_count' => 1,
-            'client_count' => 1,
-            'suppliers_count' => 0,
-            'total_amount' => 10,
-        ], 'CZK');
-        $fakeFormatter = new class implements MoneyFormatterInterface
-        {
-            public function format(
-                Money $money,
-                ?string $locale = null,
-                ?int $minFraction = null,
-                ?int $maxFraction = null,
-            ): string {
-                return 'X';
-            }
-
-            public function formatWithCode(
-                Money $money,
-                ?string $locale = null,
-                ?int $minFraction = null,
-                ?int $maxFraction = null,
-            ): string {
-                return '10.00 CZK';
-            }
-        };
-        $formatted = $dto->toFormattedArray($fakeFormatter);
-        $this->assertSame(10.0, $formatted['total_amount']);
-        $this->assertSame('10.00 CZK', $formatted['total_amount_formatted']);
     }
 
     #[Test]

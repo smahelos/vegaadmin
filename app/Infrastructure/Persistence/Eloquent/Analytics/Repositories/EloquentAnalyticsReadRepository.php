@@ -2,13 +2,12 @@
 
 namespace App\Infrastructure\Persistence\Eloquent\Analytics\Repositories;
 
-use App\Application\Analytics\Contracts\AnalyticsReadRepository;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\DB;
 
-class EloquentAnalyticsReadRepository implements AnalyticsReadRepository
+class EloquentAnalyticsReadRepository
 {
     public function getUserStats(int $userId): array
     {

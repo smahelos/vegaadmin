@@ -102,21 +102,6 @@ class DashboardService implements DashboardServiceInterface
         return $this->cacheService->invalidateTags(['analytics.user.' . $userId]);
     }
 
-    /** {@inheritDoc} */
-    public function getDashboardData(UserId $userId): array
-    {
-        $stats = $this->getUserStatistics($userId);
-        $monthly = $this->getMonthlyStatistics($userId);
-        $clients = $this->getClientsWithInvoiceTotals($userId);
-
-        // Domain returns pure DTO/collections; formatting belongs to Application layer.
-        return [
-            'statistics' => $stats,
-            'monthly_stats' => $monthly,
-            'clients' => $clients,
-        ];
-    }
-
     /**
      * Aggregate base statistics (no caching inside; invoked by cache wrapper).
      *

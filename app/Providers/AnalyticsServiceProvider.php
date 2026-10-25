@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Application\Analytics\Contracts\AnalyticsReadRepository;
 use App\Application\Analytics\Contracts\ApiStatisticsApplicationServiceInterface;
 use App\Application\Analytics\Contracts\ApiStatisticsRepository;
 use App\Application\Analytics\Contracts\ClientTotalPresenterInterface;
@@ -18,7 +17,6 @@ use App\Domain\Analytics\Contracts\AnalyticsDtoReadRepository;
 use App\Domain\Analytics\Contracts\DashboardServiceInterface;
 use App\Domain\Analytics\Services\DashboardService;
 use App\Infrastructure\Persistence\Eloquent\Analytics\Repositories\EloquentAnalyticsDtoReadRepository;
-use App\Infrastructure\Persistence\Eloquent\Analytics\Repositories\EloquentAnalyticsReadRepository;
 use App\Infrastructure\Persistence\Eloquent\Analytics\Repositories\EloquentApiStatisticsRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -53,11 +51,6 @@ class AnalyticsServiceProvider extends ServiceProvider
     private function registerInfrastructure(): void
     {
         // Analytics repositories
-        $this->app->bind(
-            AnalyticsReadRepository::class,
-            EloquentAnalyticsReadRepository::class,
-        );
-
         $this->app->bind(
             AnalyticsDtoReadRepository::class,
             EloquentAnalyticsDtoReadRepository::class,

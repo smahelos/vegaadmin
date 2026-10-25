@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-25T18:56:09+00:00",
+    "generated_at": "2026-10-25T22:34:16+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -171,10 +171,6 @@
                 {
                     "abstract": "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface",
                     "concrete": "App\\Domain\\Analytics\\Services\\DashboardService"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\AnalyticsReadRepository",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsReadRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Analytics\\Contracts\\AnalyticsDtoReadRepository",

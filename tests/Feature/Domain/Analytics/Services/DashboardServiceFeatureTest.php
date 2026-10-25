@@ -123,35 +123,6 @@ class DashboardServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function dashboard_data_aggregates_all_segments(): void
-    {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'client_id' => $client->id,
-            'payment_amount' => 42,
-        ]);
-
-        $data = $this->service->getDashboardData(UserId::fromInt($user->id));
-        $this->assertArrayHasKey('statistics', $data);
-        $this->assertArrayHasKey('monthly_stats', $data);
-        $this->assertArrayHasKey('clients', $data);
-
-        // Domain service returns only raw DTOs, no formatted data
-        $this->assertArrayNotHasKey('statistics_formatted', $data);
-        $this->assertArrayNotHasKey('monthly_stats_formatted', $data);
-        $this->assertArrayNotHasKey('clients_formatted', $data);
-
-        $this->assertSame(1, $data['statistics']->invoiceCount);
-        $this->assertInstanceOf(Money::class, $data['statistics']->totalAmount);
-
-        // Test that monthly_stats and clients are arrays (not Collections)
-        $this->assertIsArray($data['monthly_stats']);
-        $this->assertIsArray($data['clients']);
-    }
-
-    #[Test]
     public function statistics_are_isolated_per_user(): void
     {
         $userA = User::factory()->create();
