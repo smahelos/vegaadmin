@@ -385,35 +385,6 @@ class SupplierController extends Controller
     }
 
     /**
-     * Set supplier as default
-     *
-     * @return RedirectResponse
-     */
-    public function setDefault(string $locale, int $id)
-    {
-        try {
-            // Get User
-            $user = Auth::user();
-
-            // Find supplier
-            $supplier = $this->partyService->findSupplier($user->id, $id);
-            $this->partyService->setSupplierDefault($user->id, $supplier->id);
-
-            return redirect()
-                ->route('frontend.suppliers', ['locale' => $locale])
-                ->with('success', __('suppliers.messages.set_default'));
-        } catch (ModelNotFoundException $e) {
-            return redirect()
-                ->route('frontend.suppliers', ['locale' => $locale])
-                ->with('error', __('suppliers.messages.error_set_default'));
-        } catch (\Exception $e) {
-            return redirect()
-                ->route('frontend.suppliers', ['locale' => $locale])
-                ->with('error', __('suppliers.messages.error_set_default'));
-        }
-    }
-
-    /**
      * Get current user's products limits
      *
      * @param  User|null  $user

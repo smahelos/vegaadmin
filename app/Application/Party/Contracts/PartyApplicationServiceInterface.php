@@ -83,9 +83,6 @@ interface PartyApplicationServiceInterface
     /** Delete client if allowed (returns false if blocked) */
     public function deleteClient(int $userId, int $clientId): bool;
 
-    /** Set supplied client as default */
-    public function setClientDefault(int $userId, int $clientId): void;
-
     /**
      * Create or resolve supplier and indicate if created.
      *
@@ -105,9 +102,6 @@ interface PartyApplicationServiceInterface
 
     /** Delete supplier if allowed (returns false if blocked) */
     public function deleteSupplier(int $userId, int $supplierId): bool;
-
-    /** Set supplied supplier as default */
-    public function setSupplierDefault(int $userId, int $supplierId): void;
 
     /**
      * Get list of clients for dropdown (id => name)

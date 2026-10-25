@@ -297,39 +297,6 @@ class ClientController extends Controller
     }
 
     /**
-     * Set client as default
-     *
-     * @return RedirectResponse
-     */
-    public function setDefault(string $locale, int $id)
-    {
-        try {
-            // Get current logged user
-            $user = Auth::user();
-
-            // Get client using repository
-            $client = $this->partyService->findClient($user->id, $id);
-            $this->partyService->setClientDefault($user->id, $client->id);
-
-            return redirect()
-                ->route('frontend.clients', ['locale' => $locale])
-                ->with('success', __('clients.messages.updated'));
-        } catch (ModelNotFoundException $e) {
-            Log::error('Client not found for setting default #' . $id . ': ' . $e->getMessage());
-
-            return redirect()
-                ->route('frontend.clients', ['locale' => $locale])
-                ->with('error', __('clients.messages.error_update'));
-        } catch (\Exception $e) {
-            Log::error('Error setting client as default #' . $id . ': ' . $e->getMessage());
-
-            return redirect()
-                ->route('frontend.clients', ['locale' => $locale])
-                ->with('error', __('clients.messages.error_update'));
-        }
-    }
-
-    /**
      * Get current user's products limits
      *
      * @param  User|null  $user

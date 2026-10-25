@@ -72,7 +72,6 @@ Route::middleware([
             Route::get('/client/{id}/edit', [ClientController::class, 'edit'])->name('frontend.client.edit');
             Route::put('/client/{id}', [ClientController::class, 'update'])->name('frontend.client.update');
             Route::delete('/client/{id}', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
-            Route::get('/client/{id}/set-default', [ClientController::class, 'setDefault'])->name('frontend.client.set-default');
 
             // Suppliers
             Route::get('/supplier', [SupplierController::class, 'index'])->name('frontend.suppliers');
@@ -82,7 +81,6 @@ Route::middleware([
             Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('frontend.supplier.edit');
             Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('frontend.supplier.update');
             Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('frontend.supplier.destroy');
-            Route::get('/supplier/{id}/set-default', [SupplierController::class, 'setDefault'])->name('frontend.supplier.set-default');
 
             // Profile
             Route::get('/profile', [ProfileController::class, 'edit'])->name('frontend.profile.edit');
