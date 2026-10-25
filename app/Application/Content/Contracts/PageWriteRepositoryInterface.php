@@ -21,10 +21,4 @@ interface PageWriteRepositoryInterface
 {
     /** Create a new page. */
     public function create(array $attributes): Page;
-
-    /** Update page attributes by id. */
-    public function updateById(int $id, array $attributes): ?Page;
-
-    /** Delete page by id. */
-    public function deleteById(int $id): bool;
 }

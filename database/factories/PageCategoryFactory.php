@@ -51,24 +51,4 @@ class PageCategoryFactory extends Factory
             'description' => $descriptionData,
         ];
     }
-
-    /**
-     * Indicate that the category is active.
-     */
-    public function active(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'description' => 'Active category: ' . $this->faker->sentence(),
-        ]);
-    }
-
-    /**
-     * Indicate that the category is inactive.
-     */
-    public function inactive(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'description' => 'Inactive category: ' . $this->faker->sentence(),
-        ]);
-    }
 }

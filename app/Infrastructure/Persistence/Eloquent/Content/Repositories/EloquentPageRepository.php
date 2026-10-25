@@ -155,29 +155,4 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
         // Load relations to keep consistency with read DTOs (e.g., category)
         return $model->load(['category', 'children']);
     }
-
-    public function updateById(int $id, array $data): ?Page
-    {
-        $model = Page::query()->find($id);
-        if (! $model) {
-            return null;
-        }
-        if (! empty($data)) {
-            $model->fill($data);
-            $model->save();
-        }
-
-        // Load relations to keep consistency with read DTOs (e.g., category)
-        return $model->load(['category', 'children']);
-    }
-
-    public function deleteById(int $id): bool
-    {
-        $model = Page::query()->find($id);
-        if (! $model) {
-            return false;
-        }
-
-        return (bool) $model->delete();
-    }
 }

@@ -95,47 +95,4 @@ class PageFactory extends Factory
             'category_id' => $category->id,
         ]);
     }
-
-    /**
-     * Indicate that the page has a specific author.
-     */
-    public function byAuthor(User $author): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'published_by' => $author->id,
-        ]);
-    }
-
-    /**
-     * Indicate that the page has a main image.
-     */
-    public function withMainImage(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'main_image' => 'uploads/pages/main-image-' . $this->faker->uuid() . '.jpg',
-        ]);
-    }
-
-    /**
-     * Indicate that the page has a gallery of images.
-     */
-    public function withImageGallery(int $count = 3): static
-    {
-        $images = [];
-        for ($i = 0; $i < $count; $i++) {
-            $images[] = 'uploads/pages/gallery-image-' . $this->faker->uuid() . '.jpg';
-        }
-
-        return $this->state(fn (array $attributes) => [
-            'images' => json_encode($images),
-        ]);
-    }
-
-    /**
-     * Indicate that the page has both main image and gallery.
-     */
-    public function withAllImages(int $galleryCount = 3): static
-    {
-        return $this->withMainImage()->withImageGallery($galleryCount);
-    }
 }
