@@ -45,7 +45,7 @@ paths:
 Code is read far more often than written, and in an invoicing app a misread line costs money. Readability wins over brevity.
 
 - No nested ternaries, no clever one-liners, no chains that hide the steps. A well-named local variable or an early return beats packing logic into one expression.
-- No code without a purpose: unused parameters, variables, private methods and unreachable branches are deleted (Larastan reports most of them).
+- No code without a purpose: unused parameters, variables, methods, properties, constants and unreachable branches are deleted. Code that only tests call is unused too: delete it with its tests. `shipmonk/dead-code-detector` reports unused members in the Larastan run. Members that Backpack, Livewire, Blade components or laravel/ui reach by name are marked as used by the providers in `phpstan/DeadCode/`. A new framework convention of that kind gets a provider there, never `@api` or an ignore.
 
 ## Comments
 

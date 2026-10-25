@@ -8,6 +8,7 @@
     <file>database</file>
     <file>lang</file>
     <file>phpcs</file>
+    <file>phpstan</file>
     <file>public</file>
     <file>routes</file>
     <file>tests</file>

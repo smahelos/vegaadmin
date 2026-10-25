@@ -1,12 +1,17 @@
 includes:
     - vendor/larastan/larastan/extension.neon
     - vendor/tomasvotruba/type-coverage/config/extension.neon
+    - vendor/shipmonk/dead-code-detector/rules.neon
 
 parameters:
     level: 1
     paths:
         - app/
+        - bootstrap/app.php
+        - config/
         - database/
+        - phpstan/
+        - routes/
         - tests/
     # Every own property has a native type (.claude/rules/php.md, Types); properties declared by a parent
     # class (Eloquent $fillable, Command $signature, ...) are not counted. Return and parameter types are
@@ -16,3 +21,31 @@ parameters:
         return: 0
         param: 0
         constant: 0
+    # No unused method, property or constant (.claude/rules/php.md, Readability), including code only tests
+    # call; factories are test code. Members that Backpack, Livewire, Blade and laravel/ui reach by name are
+    # marked in phpstan/DeadCode.
+    shipmonkDeadCode:
+        usageExcluders:
+            tests:
+                enabled: true
+                devPaths:
+                    - %currentWorkingDirectory%/database/factories
+                    - %currentWorkingDirectory%/tests
+
+services:
+    -
+        class: Billex\PHPStan\DeadCode\BackpackUsageProvider
+        tags:
+            - shipmonk.deadCode.memberUsageProvider
+    -
+        class: Billex\PHPStan\DeadCode\BladeComponentUsageProvider
+        tags:
+            - shipmonk.deadCode.memberUsageProvider
+    -
+        class: Billex\PHPStan\DeadCode\LivewireUsageProvider
+        tags:
+            - shipmonk.deadCode.memberUsageProvider
+    -
+        class: Billex\PHPStan\DeadCode\RedirectsUsersUsageProvider
+        tags:
+            - shipmonk.deadCode.memberUsageProvider
