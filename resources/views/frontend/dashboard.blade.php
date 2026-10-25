@@ -123,9 +123,6 @@
         <div class="p-3">
             <div class="">
                 @if(!empty($monthlyStats))
-                    <!-- Store monthly stats data for JavaScript -->
-                    <div id="monthly-stats-data" class="hidden" data-stats="{{ json_encode($monthlyStats ?? []) }}"></div>
-
                     <!-- Main revenue chart (enhanced) -->
                     <div class="p-5 mb-8">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.monthly_invoices') }}</h3>
