@@ -24,7 +24,7 @@ class DatabaseOptimizeCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $tableName = $this->option('table');
         $analyze = $this->option('analyze');
@@ -63,7 +63,7 @@ class DatabaseOptimizeCommand extends Command
     /**
      * Get all tables in the database
      */
-    private function getAllTables()
+    private function getAllTables(): array
     {
         return $this->getMySQLTables();
     }
@@ -71,7 +71,7 @@ class DatabaseOptimizeCommand extends Command
     /**
      * Get all tables from MySQL
      */
-    private function getMySQLTables()
+    private function getMySQLTables(): array
     {
         $tables = DB::select("
             SELECT TABLE_NAME
@@ -90,10 +90,10 @@ class DatabaseOptimizeCommand extends Command
      * Optimize a specific table
      */
     private function optimizeTable(
-        $tableName,
-        $analyze = false,
-        $repair = false,
-    ) {
+        string $tableName,
+        bool $analyze = false,
+        bool $repair = false,
+    ): void {
         $this->info("\n🔧 Optimizing table: {$tableName}");
 
         // Log maintenance task
@@ -182,11 +182,11 @@ class DatabaseOptimizeCommand extends Command
      * Optimize MySQL table
      */
     private function optimizeMySQLTable(
-        $tableName,
-        $analyze,
-        $repair,
-        &$results,
-    ) {
+        string $tableName,
+        bool $analyze,
+        bool $repair,
+        array &$results,
+    ): void {
         // Repair table if requested
         if ($repair) {
             $this->line('  🔨 Repairing table...');
@@ -212,7 +212,7 @@ class DatabaseOptimizeCommand extends Command
     /**
      * Get table statistics
      */
-    private function getTableStats($tableName)
+    private function getTableStats(string $tableName): array
     {
         return $this->getMySQLTableStats($tableName);
     }
@@ -220,7 +220,7 @@ class DatabaseOptimizeCommand extends Command
     /**
      * Get MySQL table statistics
      */
-    private function getMySQLTableStats($tableName)
+    private function getMySQLTableStats(string $tableName): array
     {
         $stats = DB::selectOne('
             SELECT

@@ -13,12 +13,9 @@ class SyncArtisanCommands extends Command
 
     protected $description = 'Synchronize artisan commands with the database';
 
-    protected $commandsService;
-
-    public function __construct(ArtisanCommandsServiceInterface $commandsService)
+    public function __construct(private readonly ArtisanCommandsServiceInterface $commandsService)
     {
         parent::__construct();
-        $this->commandsService = $commandsService;
     }
 
     public function handle(): int

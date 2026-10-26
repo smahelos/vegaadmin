@@ -30,14 +30,14 @@ class ArtisanCommandCrudController extends CrudController
         $this->commandsService = $commandsService;
     }
 
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(ArtisanCommand::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/artisan-command');
         CRUD::setEntityNameStrings(__('artisan_commands.entity.singular'), __('artisan_commands.entity.plural'));
     }
 
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('name')->label(__('artisan_commands.fields.name'));
         CRUD::column('command')->label(__('artisan_commands.fields.command'));
@@ -53,7 +53,7 @@ class ArtisanCommandCrudController extends CrudController
         CRUD::column('sort_order')->label(__('artisan_commands.fields.sort_order'));
     }
 
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ArtisanCommandRequest::class);
 
@@ -106,7 +106,7 @@ class ArtisanCommandCrudController extends CrudController
             ->hint(__('artisan_commands.hints.sort_order'));
     }
 
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }

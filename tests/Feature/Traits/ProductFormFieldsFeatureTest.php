@@ -51,20 +51,12 @@ class ProductFormFieldsFeatureTest extends TestCase
         // Arrange
         $category = ProductCategory::factory()->create(['name' => 'Test Category']);
         $tax = Tax::factory()->create(['name' => 'Test Tax']);
-        $supplier = Supplier::factory()->create(['name' => 'Test Supplier']);
 
         $productCategories = [$category->id => $category->name];
         $taxRates = [$tax->id => $tax->name];
-        $currencies = ['EUR' => 'EUR', 'USD' => 'USD'];
-        $suppliers = [$supplier->id => $supplier->name];
 
         // Act
-        $result = $this->getProductFields(
-            $productCategories,
-            $taxRates,
-            $currencies,
-            $suppliers,
-        );
+        $result = $this->getProductFields($productCategories, $taxRates);
 
         // Assert
         $this->assertIsArray($result);
@@ -240,8 +232,6 @@ class ProductFormFieldsFeatureTest extends TestCase
         $testData = [
             [1 => 'Category 1'],
             [1 => 'Tax 1'],
-            ['EUR' => 'EUR'],
-            [1 => 'Supplier 1'],
         ];
 
         // Act

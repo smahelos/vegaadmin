@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -77,7 +78,7 @@ class EntityLimitUsage extends Model
     /**
      * Scope to current period
      */
-    public function scopeCurrentPeriod($query)
+    public function scopeCurrentPeriod(Builder $query): Builder
     {
         $now = now();
 
@@ -96,41 +97,9 @@ class EntityLimitUsage extends Model
     /**
      * Scope by user (including null for anonymous)
      */
-    public function scopeForUser($query, ?int $userId)
+    public function scopeForUser(Builder $query, ?int $userId): Builder
     {
         return $query->where('user_id', $userId);
-    }
-
-    /**
-     * Scope by entity type
-     */
-    public function scopeForEntity($query, string $entityType)
-    {
-        return $query->where('entity_type', $entityType);
-    }
-
-    /**
-     * Scope by metric type
-     */
-    public function scopeByMetricType($query, string $metricType)
-    {
-        return $query->where('metric_type', $metricType);
-    }
-
-    /**
-     * Scope by period type
-     */
-    public function scopeByPeriodType($query, string $periodType)
-    {
-        return $query->where('period_type', $periodType);
-    }
-
-    /**
-     * Scope for anonymous users
-     */
-    public function scopeForAnonymous($query)
-    {
-        return $query->whereNull('user_id');
     }
 
     /*

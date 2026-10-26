@@ -27,15 +27,15 @@ class PageCategory extends Model
     /**
      * Boot the model
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
-        static::creating(function ($model) {
+        static::creating(function ($model): void {
             $model->generateSlugForAllLocales();
         });
 
-        static::updating(function ($model) {
+        static::updating(function ($model): void {
             $model->generateSlugForAllLocales();
         });
     }
@@ -43,7 +43,7 @@ class PageCategory extends Model
     /**
      * Generate slugs for all locales
      */
-    protected function generateSlugForAllLocales()
+    protected function generateSlugForAllLocales(): void
     {
         $locales = config('app.available_locales', [
             'cs',

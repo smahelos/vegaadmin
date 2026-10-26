@@ -38,9 +38,6 @@ class InvoiceListBySupplier extends Component
     #[Url(as: 'direction')]
     public bool $orderAsc = false;
 
-    #[Url(keep: true)]
-    public int $page = 1;
-
     public ?string $errorMessage = null;
 
     /**
@@ -109,7 +106,7 @@ class InvoiceListBySupplier extends Component
                 ->where('supplier_id', $this->supplierId);
 
             if (! empty($this->search)) {
-                $query->where(function ($q) {
+                $query->where(function ($q): void {
                     $q->where(
                         'invoice_vs',
                         'like',
@@ -124,7 +121,7 @@ class InvoiceListBySupplier extends Component
             }
 
             if (! empty($this->status)) {
-                $query->whereHas('paymentStatus', function ($q) {
+                $query->whereHas('paymentStatus', function ($q): void {
                     $q->where('name', $this->status);
                 });
             }

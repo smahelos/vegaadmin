@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('artisan_command_categories', function (Blueprint $table) {
+        Schema::create('artisan_command_categories', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('artisan_commands', function (Blueprint $table) {
+        Schema::create('artisan_commands', function (Blueprint $table): void {
             $table->id();
             $table->string('command')->unique();
             $table->text('signature')->nullable();
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('cron_tasks', function (Blueprint $table) {
+        Schema::create('cron_tasks', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->string('command');

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Traits\HasRoles;
@@ -71,10 +72,8 @@ class Invoice extends Model
 
     /**
      * Get the payment method associated with the invoice
-     *
-     * @return BelongsTo
      */
-    public function paymentMethod()
+    public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
@@ -82,7 +81,7 @@ class Invoice extends Model
     /**
      * Get the products related to this invoice
      */
-    public function products()
+    public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'invoice_products')
             ->withPivot([
@@ -112,7 +111,7 @@ class Invoice extends Model
     /**
      * Get the user that owns the invoice
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -132,26 +131,16 @@ class Invoice extends Model
     */
     /**
      * Get translated payment status name
-     *
-     * @return string
      */
-    public function getPaymentStatusNameAttribute()
+    public function getPaymentStatusNameAttribute(): string
     {
         return $this->paymentStatus ? $this->paymentStatus->translated_name : __('invoices.placeholders.not_available');
     }
 
     /**
-     * Get payment status slug
-     */
-    public function getPaymentStatusSlugAttribute()
-    {
-        return $this->paymentStatus ? $this->paymentStatus->slug : 'unknown';
-    }
-
-    /**
      * Get client name with fallback for unknown client
      */
-    public function getClientNameAttribute()
+    public function getClientNameAttribute(): string
     {
         // Check if the relation is loaded
         if ($this->relationLoaded('client') && $this->client) {
@@ -168,10 +157,8 @@ class Invoice extends Model
 
     /**
      * Get CSS class for payment status display with fallback
-     *
-     * @return string
      */
-    public function getStatusColorClassAttribute()
+    public function getStatusColorClassAttribute(): string
     {
         return $this->paymentStatus?->color ?: 'gray';
     }
@@ -300,7 +287,7 @@ class Invoice extends Model
      * Ensure payment_amount is always stored as a string with 2 decimals.
      * This avoids implicit float to decimal conversion issues with Laravel's decimal cast.
      */
-    public function setPaymentAmountAttribute($value): void
+    public function setPaymentAmountAttribute(float|int|string|null $value): void
     {
         // Allow null explicitly
         if ($value === null || $value === '') {

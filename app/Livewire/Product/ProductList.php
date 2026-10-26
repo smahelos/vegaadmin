@@ -48,12 +48,6 @@ class ProductList extends Component
     public bool $orderAsc = false;
 
     /**
-     * Current page for pagination
-     */
-    #[Url(keep: true)]
-    public int $page = 1;
-
-    /**
      * Error message to display to user
      */
     public ?string $errorMessage = null;
@@ -114,7 +108,7 @@ class ProductList extends Component
                 ->withCount('invoices');
 
             if (! empty($this->search)) {
-                $query->where(function ($q) {
+                $query->where(function ($q): void {
                     $q->where(
                         'name',
                         'like',

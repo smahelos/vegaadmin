@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('subscription_plans', function (Blueprint $table) {
+        Schema::create('subscription_plans', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->index(['is_active', 'billing_period']);
         });
 
-        Schema::create('subscription_plan_features', function (Blueprint $table) {
+        Schema::create('subscription_plan_features', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
@@ -43,7 +43,7 @@ return new class extends Migration
             $table->index('slug');
         });
 
-        Schema::create('subscription_plan_subscription_plan_feature', function (Blueprint $table) {
+        Schema::create('subscription_plan_subscription_plan_feature', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('subscription_plan_id')
                 ->constrained(indexName: 'sp_spf_plan_foreign')
@@ -56,7 +56,7 @@ return new class extends Migration
             $table->unique(['subscription_plan_id', 'subscription_plan_feature_id'], 'sp_spf_unique');
         });
 
-        Schema::create('subscriptions', function (Blueprint $table) {
+        Schema::create('subscriptions', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->foreignId('subscription_plan_id')->constrained()->restrictOnDelete();
@@ -84,7 +84,7 @@ return new class extends Migration
             $table->index(['status', 'next_billing_at']);
         });
 
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('payments', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('subscription_id')->constrained()->restrictOnDelete();
             $table->string('gateway');

@@ -45,42 +45,6 @@ class PaymentFeatureTest extends TestCase
     }
 
     #[Test]
-    public function payment_completed_scope_returns_only_completed_payments(): void
-    {
-        $completedPayment = Payment::factory()->create(['status' => 'completed']);
-        $pendingPayment = Payment::factory()->create(['status' => 'pending']);
-
-        $completedPayments = Payment::completed()->get();
-
-        $this->assertCount(1, $completedPayments);
-        $this->assertEquals($completedPayment->id, $completedPayments->first()->id);
-    }
-
-    #[Test]
-    public function payment_failed_scope_returns_only_failed_payments(): void
-    {
-        $completedPayment = Payment::factory()->create(['status' => 'completed']);
-        $failedPayment = Payment::factory()->create(['status' => 'failed']);
-
-        $failedPayments = Payment::failed()->get();
-
-        $this->assertCount(1, $failedPayments);
-        $this->assertEquals($failedPayment->id, $failedPayments->first()->id);
-    }
-
-    #[Test]
-    public function payment_pending_scope_returns_only_pending_payments(): void
-    {
-        $completedPayment = Payment::factory()->create(['status' => 'completed']);
-        $pendingPayment = Payment::factory()->create(['status' => 'pending']);
-
-        $pendingPayments = Payment::pending()->get();
-
-        $this->assertCount(1, $pendingPayments);
-        $this->assertEquals($pendingPayment->id, $pendingPayments->first()->id);
-    }
-
-    #[Test]
     public function payment_is_completed_returns_correct_boolean(): void
     {
         $completedPayment = Payment::factory()->create(['status' => 'completed']);

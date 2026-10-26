@@ -25,63 +25,20 @@ class RegisterController extends Controller
     use UserFormFields;
 
     /**
-     * Bank service instance
-     *
-     * @var BankApplicationServiceInterface
-     */
-    protected $bankService;
-
-    /**
-     * Country service instance
-     *
-     * @var CountryApplicationServiceInterface
-     */
-    protected $countryService;
-
-    /**
-     * Locale service instance
-     *
-     * @var LocaleApplicationServiceInterface
-     */
-    protected $localeService;
-
-    /**
-     * Party service facade instance
-     *
-     * @var PartyApplicationServiceInterface
-     */
-    protected $partyService;
-
-    /**
-     * UELS application service (limits & usage) instance
-     *
-     * @var UELSApplicationServiceInterface
-     */
-    protected $uelsService;
-
-    /**
      * Constructor
      */
     public function __construct(
-        BankApplicationServiceInterface $bankService,
-        CountryApplicationServiceInterface $countryService,
-        LocaleApplicationServiceInterface $localeService,
-        PartyApplicationServiceInterface $partyService,
-        UELSApplicationServiceInterface $uelsService,
-    ) {
-        $this->bankService = $bankService;
-        $this->countryService = $countryService;
-        $this->localeService = $localeService;
-        $this->partyService = $partyService;
-        $this->uelsService = $uelsService;
-    }
+        private readonly BankApplicationServiceInterface $bankService,
+        private readonly CountryApplicationServiceInterface $countryService,
+        private readonly LocaleApplicationServiceInterface $localeService,
+        private readonly PartyApplicationServiceInterface $partyService,
+        private readonly UELSApplicationServiceInterface $uelsService,
+    ) {}
 
     /**
      * Show registration form with user fields
-     *
-     * @return View
      */
-    public function showRegistrationForm()
+    public function showRegistrationForm(): View
     {
         $userFields = $this->getUserFields();
         $passwordFields = $this->getPasswordFields();
@@ -106,10 +63,8 @@ class RegisterController extends Controller
 
     /**
      * Register a new user with related supplier
-     *
-     * @return RedirectResponse
      */
-    public function register(RegistrationRequest $request)
+    public function register(RegistrationRequest $request): RedirectResponse
     {
         $validatedData = $request->validated();
 

@@ -214,7 +214,7 @@ class ManageUserPermissions extends Command
     /**
      * Find user by ID or email
      */
-    private function findUser($input)
+    private function findUser(string $input): ?User
     {
         if (is_numeric($input)) {
             $user = User::find($input);

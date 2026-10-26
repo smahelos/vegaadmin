@@ -29,10 +29,8 @@ class StatusCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(Status::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/status');
@@ -59,10 +57,8 @@ class StatusCrudController extends CrudController
 
     /**
      * Setup list view columns
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('name')->label(__('statuses.fields.name'));
         CRUD::column('slug')->label(__('statuses.fields.slug'));
@@ -98,7 +94,7 @@ class StatusCrudController extends CrudController
             function () {
                 return StatusCategory::pluck('name', 'id')->toArray();
             },
-            function ($value) {
+            function ($value): void {
                 CRUD::addClause(
                     'where',
                     'category_id',
@@ -121,10 +117,8 @@ class StatusCrudController extends CrudController
 
     /**
      * Setup create form fields
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(StatusRequest::class);
 
@@ -164,10 +158,8 @@ class StatusCrudController extends CrudController
 
     /**
      * Setup update form fields
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }

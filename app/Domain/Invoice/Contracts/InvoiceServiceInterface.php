@@ -21,8 +21,6 @@ interface InvoiceServiceInterface
     /**
      * Set invoice pdf template
      *
-     * @param  InvoiceId  $id  Invoice ID
-     * @param  string  $template  Template name
      * @return bool Success status
      */
     public function setInvoiceTemplate(InvoiceId $id, string $template): bool;
@@ -31,7 +29,6 @@ interface InvoiceServiceInterface
      * Change invoice status
      *
      * @param  UserId  $userId  Owner user id
-     * @param  InvoiceId  $invoiceId  Invoice id
      * @param  int  $statusId  New status id
      */
     public function changeInvoiceStatus(
@@ -66,7 +63,6 @@ interface InvoiceServiceInterface
      * Update an invoice for a user including on-the-fly client/supplier resolution and product replacement.
      *
      * @param  UserId  $userId  Owner user id
-     * @param  InvoiceId  $invoiceId  Invoice id
      * @param  array<string,mixed>  $data  Validated invoice attributes
      * @param  list<InvoiceProductWriteData>  $invoiceProducts
      */
@@ -81,7 +77,6 @@ interface InvoiceServiceInterface
      * Delete an invoice for a user including related products.
      *
      * @param  UserId  $userId  Owner user id
-     * @param  InvoiceId  $invoiceId  Invoice id
      */
     public function deleteInvoice(UserId $userId, InvoiceId $invoiceId): void;
 

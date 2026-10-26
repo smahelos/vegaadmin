@@ -13,7 +13,6 @@ interface MoneyFormatterInterface
     /**
      * Format money using currency symbol when available (fallback to currency code).
      *
-     * @param  Money  $money  Money value object
      * @param  string|null  $locale  Locale like cs_CZ, en_US (optional)
      * @param  int|null  $minFraction  Minimum fraction digits to display (null = default 2)
      * @param  int|null  $maxFraction  Maximum fraction digits to display (null = default 2, max 8)

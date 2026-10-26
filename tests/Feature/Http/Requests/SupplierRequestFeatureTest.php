@@ -89,7 +89,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $request = new SupplierRequest;
         $validator = Validator::make(
@@ -103,7 +103,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $requiredFields = [
             'name',
@@ -132,7 +132,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_email()
+    public function validation_fails_with_invalid_email(): void
     {
         $invalidEmails = [
             'not-an-email',
@@ -158,7 +158,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_string_fields_exceed_max_length()
+    public function validation_fails_when_string_fields_exceed_max_length(): void
     {
         $fieldsWithMaxLength = [
             'name' => 256,          // max:255
@@ -194,7 +194,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_nullable_fields_empty()
+    public function validation_passes_with_nullable_fields_empty(): void
     {
         // Note: bank_code and swift are conditional, not truly nullable
         $nullableFields = [
@@ -232,7 +232,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_boolean_values()
+    public function validation_fails_with_invalid_boolean_values(): void
     {
         $invalidBooleans = [
             'invalid',
@@ -259,7 +259,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_boolean_values()
+    public function validation_passes_with_valid_boolean_values(): void
     {
         $validBooleans = [
             true,
@@ -286,7 +286,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function conditional_bank_validation_rules()
+    public function conditional_bank_validation_rules(): void
     {
         // Test bank_code is required when account_number is provided
         $data = $this->validSupplierData;
@@ -319,7 +319,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_with_authenticated_user_via_http()
+    public function authorization_with_authenticated_user_via_http(): void
     {
         $this->actingAs($this->user);
 
@@ -334,7 +334,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_with_unauthenticated_user_via_http()
+    public function authorization_fails_with_unauthenticated_user_via_http(): void
     {
         // Don't authenticate user
         $request = Request::create(
@@ -379,7 +379,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_with_actual_http_request()
+    public function validation_with_actual_http_request(): void
     {
         $this->actingAs($this->user);
 
@@ -395,7 +395,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function edge_cases_with_whitespace_and_special_characters()
+    public function edge_cases_with_whitespace_and_special_characters(): void
     {
         // Test with whitespace in name (should be valid)
         $dataWithWhitespace = $this->validSupplierData;
@@ -438,7 +438,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function maximum_boundary_values_for_length_constraints()
+    public function maximum_boundary_values_for_length_constraints(): void
     {
         $fieldsWithExactMaxLength = [
             'name' => 255,
@@ -474,7 +474,7 @@ class SupplierRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function bank_account_validation_combinations()
+    public function bank_account_validation_combinations(): void
     {
         // Test 1: Both account_number and bank_code provided (should pass)
         $data = $this->validSupplierData;

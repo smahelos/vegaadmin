@@ -13,6 +13,8 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Supplier management controller
@@ -31,10 +33,8 @@ class SupplierCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(Supplier::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/supplier');
@@ -43,10 +43,8 @@ class SupplierCrudController extends CrudController
 
     /**
      * Setup list view columns
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         // Add filters
         CRUD::filter('user_id')
@@ -55,7 +53,7 @@ class SupplierCrudController extends CrudController
             ->values(
                 User::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'user_id',
@@ -92,10 +90,8 @@ class SupplierCrudController extends CrudController
 
     /**
      * Setup create form fields
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(SupplierRequest::class);
         CRUD::setFromDb();
@@ -113,10 +109,8 @@ class SupplierCrudController extends CrudController
 
     /**
      * Setup update form fields
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
@@ -134,7 +128,7 @@ class SupplierCrudController extends CrudController
         }
     }
 
-    public function store()
+    public function store(): JsonResponse|RedirectResponse
     {
         $this->beforeEntityStore();
 

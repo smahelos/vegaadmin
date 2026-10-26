@@ -19,7 +19,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Configure the CrudPanel object
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(DatabaseMaintenanceLog::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/database-maintenance-log');
@@ -39,7 +39,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Define what happens when the List operation is loaded
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('task_type')
             ->label(__('admin/database.maintenance_logs.fields.task_type'))
@@ -99,7 +99,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Define what happens when the Show operation is loaded
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         CRUD::column('task_type')
             ->label(__('admin/database.maintenance_logs.fields.task_type'))
@@ -192,7 +192,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Format task results based on task type
      */
-    private function formatTaskResults($taskType, $results)
+    private function formatTaskResults(string $taskType, array $results): string
     {
         switch ($taskType) {
             case 'optimize':
@@ -209,7 +209,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Format optimize task results
      */
-    private function formatOptimizeResults($results)
+    private function formatOptimizeResults(array $results): string
     {
         $html = '<div class="maintenance-results">';
 
@@ -293,7 +293,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Format archive task results
      */
-    private function formatArchiveResults($results)
+    private function formatArchiveResults(array $results): string
     {
         $html = '<div class="maintenance-results">';
         $html .= '<h6 class="text-warning">' . __('admin/database.maintenance_logs.labels.archive_results') . '</h6>';
@@ -315,7 +315,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Format monitor task results
      */
-    private function formatMonitorResults($results)
+    private function formatMonitorResults(array $results): string
     {
         $html = '<div class="maintenance-results">';
         $html .= '<h6 class="text-info">' . __('admin/database.maintenance_logs.labels.monitor_results') . '</h6>';
@@ -339,7 +339,7 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     /**
      * Format generic task results
      */
-    private function formatGenericResults($results)
+    private function formatGenericResults(array $results): string
     {
         $html = '<div class="maintenance-results">';
         $html .= '<h6 class="text-secondary">' . __('admin/database.maintenance_logs.labels.task_results') . '</h6>';

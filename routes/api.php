@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['api.require.backpack', 'refresh.backpack.session'])
     ->prefix('admin')
     ->name('api.admin.')
-    ->group(function () {
+    ->group(function (): void {
         Route::get('/user', [UserController::class, 'getUsersAdmin'])->name('users');
         Route::get('/user/search', [UserController::class, 'searchUsersAdmin'])->name('users.search');
         Route::get('/user/{id}', [UserController::class, 'getUserAdmin'])->whereNumber('id')->name('user');
@@ -40,7 +40,7 @@ Route::middleware(['api.require.backpack', 'refresh.backpack.session'])
 // Frontend API endpoints - require authentication and frontend API access
 Route::middleware(['api.require.frontend', 'refresh.frontend.session'])
     ->name('api.')
-    ->group(function () {
+    ->group(function (): void {
         // Clients
         Route::get('/client', [ClientController::class, 'getClients'])->name('clients');
         Route::get('/client/default', [ClientController::class, 'getDefaultClient'])->name('client.default');
@@ -74,7 +74,7 @@ Route::middleware(['api.require.frontend', 'refresh.frontend.session'])
 // Public API endpoints - no authentication required (rate limited)
 Route::middleware('throttle:60,1')
     ->name('api.')
-    ->group(function () {
+    ->group(function (): void {
         // Countries and currencies
         Route::get('/countries', [CountryController::class, 'getCountries'])->name('countries');
         Route::get('/countries/{code}', [CountryController::class, 'getCountry'])->name('country');
@@ -87,7 +87,7 @@ Route::middleware('throttle:60,1')
         Route::get('/ares-lookup', [AresLookupController::class, 'lookup'])->name('ares-lookup');
 
         // UELS - Universal Entity Limit System
-        Route::middleware('auth:web')->group(function () {
+        Route::middleware('auth:web')->group(function (): void {
             Route::get('/uels/{entity}', [UELSController::class, 'getEntityData'])->name('uels.entity');
             Route::get('/uels', [UELSController::class, 'getAllEntitiesData'])->name('uels.all');
         });
@@ -95,7 +95,7 @@ Route::middleware('throttle:60,1')
 
 // Session control API endpoints; the session comes from statefulApi() in bootstrap/app.php
 Route::name('api.')
-    ->group(function () {
+    ->group(function (): void {
         Route::get('/auth-check', [SessionController::class, 'checkAuth'])->name('auth-check');
         Route::post('/session-refresh', [SessionController::class, 'refreshSession'])->name('session-refresh');
     });

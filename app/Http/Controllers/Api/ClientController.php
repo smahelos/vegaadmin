@@ -25,9 +25,8 @@ class ClientController extends Controller
      * Admins can access any client.
      *
      * @param  int  $id  Client ID
-     * @return JsonResponse
      */
-    public function getClientAdmin($id)
+    public function getClientAdmin(int $id): JsonResponse
     {
         try {
             $user = $this->getBackpackUser();
@@ -59,9 +58,8 @@ class ClientController extends Controller
      * Get client data by ID
      *
      * @param  int  $id  Client ID
-     * @return JsonResponse
      */
-    public function getClient($id)
+    public function getClient(int $id): JsonResponse
     {
         try {
             $user = $this->getFrontendUser();
@@ -83,10 +81,8 @@ class ClientController extends Controller
 
     /**
      * Get list of clients for authenticated user
-     *
-     * @return JsonResponse
      */
-    public function getClientsAdmin()
+    public function getClientsAdmin(): JsonResponse
     {
         $user = $this->getBackpackUser();
         if (! $user) {
@@ -104,10 +100,8 @@ class ClientController extends Controller
 
     /**
      * Get list of clients for authenticated user
-     *
-     * @return JsonResponse
      */
-    public function getClients()
+    public function getClients(): JsonResponse
     {
         $user = $this->getFrontendUser();
         if (! $user) {
@@ -120,10 +114,8 @@ class ClientController extends Controller
 
     /**
      * Get default client for the authenticated user
-     *
-     * @return JsonResponse
      */
-    public function getDefaultClient()
+    public function getDefaultClient(): JsonResponse
     {
         try {
             // Find default client

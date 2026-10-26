@@ -73,7 +73,7 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function user_has_many_clients_relationship()
+    public function user_has_many_clients_relationship(): void
     {
         // Initially no clients
         $this->assertInstanceOf(Collection::class, $this->user->clients);
@@ -107,7 +107,7 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function user_has_many_suppliers_relationship()
+    public function user_has_many_suppliers_relationship(): void
     {
         // Initially no suppliers
         $this->assertInstanceOf(Collection::class, $this->user->suppliers);
@@ -141,7 +141,7 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function is_admin_returns_true_with_admin_role()
+    public function is_admin_returns_true_with_admin_role(): void
     {
         // Assign admin role to user
         $this->user->assignRole($this->adminRole);
@@ -153,7 +153,7 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function is_admin_returns_false_without_admin_role()
+    public function is_admin_returns_false_without_admin_role(): void
     {
         // Assign non-admin role to user
         $this->user->assignRole($this->userRole);
@@ -165,14 +165,14 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function is_admin_returns_false_with_no_roles()
+    public function is_admin_returns_false_with_no_roles(): void
     {
         // User has no roles assigned
         $this->assertFalse($this->user->is_admin());
     }
 
     #[Test]
-    public function user_can_have_both_clients_and_suppliers()
+    public function user_can_have_both_clients_and_suppliers(): void
     {
         // Create both clients and suppliers
         $client = Client::factory()->create([
@@ -198,7 +198,7 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function user_deletion_behavior_with_related_models()
+    public function user_deletion_behavior_with_related_models(): void
     {
         // Create related models
         $client = Client::factory()->create([
@@ -224,7 +224,7 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function user_role_assignment_and_checking()
+    public function user_role_assignment_and_checking(): void
     {
         // Initially no roles
         $this->assertFalse($this->user->hasRole($this->adminRole));
@@ -253,7 +253,7 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function multiple_users_with_different_roles()
+    public function multiple_users_with_different_roles(): void
     {
         // Create another user
         $secondUser = User::factory()->create([

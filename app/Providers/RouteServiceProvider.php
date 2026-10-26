@@ -29,7 +29,7 @@ class RouteServiceProvider extends ServiceProvider
         // Register macro for localized routes
         $this->registerLocalizedRouteMacro();
 
-        $this->routes(function () {
+        $this->routes(function (): void {
             Route::middleware('api')
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
@@ -59,7 +59,7 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function registerLocalizedRouteMacro(): void
     {
-        Route::macro('localized', function ($group) {
+        Route::macro('localized', function ($group): void {
             $availableLocales = config('app.available_locales', [
                 'cs',
                 'en',

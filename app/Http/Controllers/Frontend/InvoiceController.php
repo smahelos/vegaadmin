@@ -40,10 +40,8 @@ class InvoiceController extends Controller
 
     /**
      * Display paginated list of invoices for authenticated user
-     *
-     * @return View
      */
-    public function index()
+    public function index(): View
     {
         $limitsData = $this->resolveLimits();
 
@@ -52,10 +50,8 @@ class InvoiceController extends Controller
 
     /**
      * Show form for creating a new invoice
-     *
-     * @return View
      */
-    public function create(Request $request)
+    public function create(Request $request): View
     {
         $dto = $this->invoiceFormService->prepareCreateData(Auth::user()->id, $request);
 
@@ -64,10 +60,8 @@ class InvoiceController extends Controller
 
     /**
      * Show form for creating a new invoice for guest user
-     *
-     * @return View
      */
-    public function createForGuest()
+    public function createForGuest(): View
     {
         $data = $this->guestInvoiceApplicationService->prepareGuestCreateData();
         $data['userLoggedIn'] = false;
@@ -79,9 +73,8 @@ class InvoiceController extends Controller
      * Show form for editing an invoice
      *
      * @param  int  $id  Invoice ID
-     * @return View|RedirectResponse
      */
-    public function edit(string $locale, int $id)
+    public function edit(string $locale, int $id): View|RedirectResponse
     {
         try {
             $dto = $this->invoiceFormService->prepareEditData(
@@ -99,10 +92,8 @@ class InvoiceController extends Controller
 
     /**
      * Store a new invoice
-     *
-     * @return RedirectResponse
      */
-    public function store(InvoiceRequest $request)
+    public function store(InvoiceRequest $request): RedirectResponse
     {
         $payload = $this->invoiceRequestAssembler->assemble(Auth::user(), $request);
         // Let ValidationException bubble up to trigger redirect with errors
@@ -125,10 +116,8 @@ class InvoiceController extends Controller
 
     /**
      * Store invoice for guest user using cache
-     *
-     * @return JsonResponse|RedirectResponse
      */
-    public function storeGuest(InvoiceRequest $request)
+    public function storeGuest(InvoiceRequest $request): JsonResponse|RedirectResponse
     {
         try {
             $payload = $this->invoiceRequestAssembler->assemble(
@@ -162,9 +151,8 @@ class InvoiceController extends Controller
      * Display invoice details
      *
      * @param  int  $id  Invoice ID
-     * @return View|RedirectResponse|JsonResponse
      */
-    public function show(string $locale, int $id)
+    public function show(string $locale, int $id): View|RedirectResponse|JsonResponse
     {
         try {
             $dto = $this->invoiceFormService->prepareShowData(Auth::user()->id, $id);
@@ -184,13 +172,12 @@ class InvoiceController extends Controller
      * Generate and download invoice PDF
      *
      * @param  int  $id  Invoice ID
-     * @return Response|RedirectResponse
      */
     public function download(
         string $locale,
         int $id,
         Request $request,
-    ) {
+    ): Response|RedirectResponse {
         $result = $this->invoicePdfApplicationService->generate(
             Auth::user()->id,
             $id,
@@ -207,10 +194,8 @@ class InvoiceController extends Controller
 
     /**
      * Generate and download invoice PDF using token (for guests)
-     *
-     * @return Response|RedirectResponse
      */
-    public function downloadWithToken(Request $request)
+    public function downloadWithToken(Request $request): Response|RedirectResponse
     {
         $result = $this->invoicePdfApplicationService->generate(
             null,
@@ -230,13 +215,12 @@ class InvoiceController extends Controller
      * Update an existing invoice
      *
      * @param  int  $id  Invoice ID
-     * @return RedirectResponse
      */
     public function update(
         InvoiceRequest $request,
         string $locale,
         int $id,
-    ) {
+    ): RedirectResponse {
         $payload = $this->invoiceRequestAssembler->assemble(Auth::user(), $request);
         // Let ValidationException bubble up to trigger redirect with errors
         $result = $this->invoiceMutationService->update(
@@ -275,9 +259,8 @@ class InvoiceController extends Controller
      * Mark invoice as paid
      *
      * @param  int  $id  Invoice ID
-     * @return RedirectResponse
      */
-    public function markAsPaid(string $locale, int $id)
+    public function markAsPaid(string $locale, int $id): RedirectResponse
     {
         $user = Auth::user();
         $result = $user ? $this->invoiceFrontendActions->markAsPaid($user->id, $id) : null;
@@ -293,15 +276,13 @@ class InvoiceController extends Controller
      * Set invoice pdf template
      *
      * @param  int  $id  Invoice ID
-     * @param  string  $template  Template name
-     * @return RedirectResponse
      */
     public function setTemplate(
         string $locale,
         int $id,
         Request $request,
         string $template = 'default',
-    ) {
+    ): RedirectResponse {
         $requestTemplate = $request->get('template', $template);
         if ($requestTemplate !== $template) {
             $template = $requestTemplate;
@@ -348,7 +329,7 @@ class InvoiceController extends Controller
         string $locale,
         int $id,
         Request $request,
-    ) {
+    ): RedirectResponse {
         $user = Auth::user();
         if (! $user) {
             return back()->with('error', __('users.auth.unauthenticated'));

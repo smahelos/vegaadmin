@@ -60,22 +60,6 @@ class Subscription extends Model
     }
 
     /**
-     * Scope for active subscriptions
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('status', 'active');
-    }
-
-    /**
-     * Scope for expired subscriptions
-     */
-    public function scopeExpired($query)
-    {
-        return $query->where('status', 'expired');
-    }
-
-    /**
      * Check if subscription is active
      */
     public function isActive(): bool

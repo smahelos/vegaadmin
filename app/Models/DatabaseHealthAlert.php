@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -44,33 +45,9 @@ class DatabaseHealthAlert extends Model
     ];
 
     /**
-     * Get severity badge
-     */
-    public function getSeverityBadgeAttribute()
-    {
-        $badges = [
-            'info' => '<span class="badge text-bg-info">Info</span>',
-            'warning' => '<span class="badge text-bg-warning">Warning</span>',
-            'critical' => '<span class="badge text-bg-danger">Critical</span>',
-        ];
-
-        return $badges[$this->severity] ?? '<span class="badge text-bg-light">Unknown</span>';
-    }
-
-    /**
-     * Get resolved status badge
-     */
-    public function getResolvedBadgeAttribute()
-    {
-        return $this->resolved
-            ? '<span class="badge text-bg-success">Resolved</span>'
-            : '<span class="badge text-bg-secondary">Active</span>';
-    }
-
-    /**
      * Scope for unresolved alerts
      */
-    public function scopeUnresolved($query)
+    public function scopeUnresolved(Builder $query): Builder
     {
         return $query->where('resolved', false);
     }
@@ -78,35 +55,15 @@ class DatabaseHealthAlert extends Model
     /**
      * Scope for specific severity
      */
-    public function scopeSeverity($query, $severity)
+    public function scopeSeverity(Builder $query, string $severity): Builder
     {
         return $query->where('severity', $severity);
     }
 
     /**
-     * Scope for alert type
-     */
-    public function scopeAlertType($query, $alertType)
-    {
-        return $query->where('alert_type', $alertType);
-    }
-
-    /**
-     * Scope for recent alerts (last 7 days)
-     */
-    public function scopeRecent($query)
-    {
-        return $query->where(
-            'created_at',
-            '>=',
-            now()->subWeek(),
-        );
-    }
-
-    /**
      * Mark alert as resolved
      */
-    public function markResolved()
+    public function markResolved(): void
     {
         $this->update([
             'resolved' => true,

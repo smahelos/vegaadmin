@@ -61,7 +61,7 @@ abstract class BaseEntityRequest extends FormRequest
     /**
      * Handle authorization failure by converting limit exceptions to redirect with flash message
      */
-    protected function failedAuthorization()
+    protected function failedAuthorization(): void
     {
         $previous = $this->exception ?? null;
         if ($previous instanceof EntityLimitExceededException) {
@@ -183,14 +183,6 @@ abstract class BaseEntityRequest extends FormRequest
         $unlimitedPermission = 'frontend.unlimited_access.' . $this->getEntityType();
 
         return $user && $user->can($unlimitedPermission);
-    }
-
-    /**
-     * Override the current user method to use standard Laravel Auth
-     */
-    protected function getCurrentUser()
-    {
-        return Auth::user();
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -43,56 +44,14 @@ class DatabaseHealthMetric extends Model
     ];
 
     /**
-     * Get status badge
-     */
-    public function getStatusBadgeAttribute()
-    {
-        $badges = [
-            'good' => '<span class="badge text-bg-success">Good</span>',
-            'warning' => '<span class="badge text-bg-warning">Warning</span>',
-            'critical' => '<span class="badge text-bg-danger">Critical</span>',
-        ];
-
-        return $badges[$this->status] ?? '<span class="badge text-bg-light">Unknown</span>';
-    }
-
-    /**
-     * Get formatted metric value with unit
-     */
-    public function getFormattedValueAttribute()
-    {
-        if ($this->metric_unit) {
-            return $this->metric_value . ' ' . $this->metric_unit;
-        }
-
-        return $this->metric_value;
-    }
-
-    /**
      * Scope for recent metrics (last 24 hours)
      */
-    public function scopeRecent($query)
+    public function scopeRecent(Builder $query): Builder
     {
         return $query->where(
             'measured_at',
             '>=',
             now()->subDay(),
         );
-    }
-
-    /**
-     * Scope for specific status
-     */
-    public function scopeStatus($query, $status)
-    {
-        return $query->where('status', $status);
-    }
-
-    /**
-     * Scope for metric type
-     */
-    public function scopeMetricType($query, $metricName)
-    {
-        return $query->where('metric_name', $metricName);
     }
 }

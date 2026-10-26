@@ -43,30 +43,6 @@ class Payment extends Model
     }
 
     /**
-     * Scope for completed payments
-     */
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', 'completed');
-    }
-
-    /**
-     * Scope for failed payments
-     */
-    public function scopeFailed($query)
-    {
-        return $query->where('status', 'failed');
-    }
-
-    /**
-     * Scope for pending payments
-     */
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
-
-    /**
      * Check if payment is completed
      */
     public function isCompleted(): bool

@@ -38,9 +38,6 @@ interface QrPaymentProviderInterface
     /**
      * Validate and format account number/IBAN for this country
      *
-     * @param  string|null  $accountNumber  Account number
-     * @param  string|null  $bankCode  Bank code
-     * @param  string|null  $iban  IBAN
      * @return string|null Formatted account identifier or null if invalid
      */
     public function formatAccountIdentifier(

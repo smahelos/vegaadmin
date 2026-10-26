@@ -33,11 +33,8 @@ interface UniversalLimitServiceInterface
      * Returns true on successful persistence (or safe no-op), false if a persistence error occurred or permission missing.
      *
      * @param  int|null  $userId  User ID (null for anonymous users)
-     * @param  string  $entityType  Entity type
-     * @param  string  $metricType  Metric type
      * @param  string  $periodType  Period type
      * @param  string  $guard  Guard name for permission checking
-     * @param  int|float  $value  Value to record
      * @return bool True on success, false on failure
      */
     public function recordUsage(
@@ -52,10 +49,6 @@ interface UniversalLimitServiceInterface
     /**
      * Reset usage for the given combination in the current period. Returns true if any records were deleted.
      *
-     * @param  int|null  $userId  User ID
-     * @param  string  $entityType  Entity type
-     * @param  string  $metricType  Metric type
-     * @param  string  $periodType  Period type
      * @return bool True if records were deleted
      */
     public function resetUsage(
@@ -67,12 +60,6 @@ interface UniversalLimitServiceInterface
 
     /**
      * Get usage statistics (never null). Unified shape consumed by UI.
-     *
-     * @param  int|null  $userId  User ID
-     * @param  string  $entityType  Entity type
-     * @param  string  $metricType  Metric type
-     * @param  string  $periodType  Period type
-     * @return array Usage statistics
      */
     public function getUsageStatistics(
         ?int $userId,
@@ -83,11 +70,6 @@ interface UniversalLimitServiceInterface
 
     /**
      * Get the best (largest) period type allowed for user & entity.
-     *
-     * @param  int|null  $userId  User ID
-     * @param  string  $entityType  Entity type
-     * @param  string  $metricType  Metric type
-     * @return string Best period type
      */
     public function getBestPeriodType(
         ?int $userId,
@@ -98,8 +80,6 @@ interface UniversalLimitServiceInterface
     /**
      * Rich aggregated info for widgets/dashboards.
      *
-     * @param  int|null  $userId  User ID
-     * @param  string  $entityType  Entity type
      * @return array Entity limit information
      */
     public function getEntityLimitInfo(?int $userId, string $entityType): array;
@@ -107,8 +87,6 @@ interface UniversalLimitServiceInterface
     /**
      * Check if user can create specific entity type (any metric/period).
      *
-     * @param  int|null  $userId  User ID
-     * @param  string  $entityType  Entity type
      * @return bool True if user can create entity
      */
     public function canUserCreateEntity(?int $userId, string $entityType): bool;

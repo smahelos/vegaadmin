@@ -58,40 +58,6 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     }
 
     #[Test]
-    public function scope_alert_type_filters_correctly(): void
-    {
-
-        DatabaseHealthAlert::factory()->disk()->create();
-        $memoryAlert = DatabaseHealthAlert::factory()->memory()->create();
-
-        $results = DatabaseHealthAlert::alertType('memory')->get();
-
-        $this->assertCount(1, $results);
-        $this->assertEquals($memoryAlert->id, $results->first()->id);
-        $this->assertEquals('memory', $results->first()->alert_type);
-    }
-
-    #[Test]
-    public function scope_recent_filters_correctly(): void
-    {
-
-        // Create old alert
-        DatabaseHealthAlert::factory()->create([
-            'created_at' => now()->subDays(10),
-        ]);
-
-        // Create recent alert
-        $recentAlert = DatabaseHealthAlert::factory()->create([
-            'created_at' => now()->subDays(3),
-        ]);
-
-        $results = DatabaseHealthAlert::recent()->get();
-
-        $this->assertCount(1, $results);
-        $this->assertEquals($recentAlert->id, $results->first()->id);
-    }
-
-    #[Test]
     public function mark_resolved_updates_alert_correctly(): void
     {
 
@@ -106,38 +72,6 @@ class DatabaseHealthAlertFeatureTest extends TestCase
         $this->assertTrue($alert->resolved);
         $this->assertNotNull($alert->resolved_at);
         $this->assertInstanceOf(Carbon::class, $alert->resolved_at);
-    }
-
-    #[Test]
-    public function severity_badge_accessor_works_correctly(): void
-    {
-
-        $infoAlert = DatabaseHealthAlert::factory()->info()->create();
-        $warningAlert = DatabaseHealthAlert::factory()->warning()->create();
-        $criticalAlert = DatabaseHealthAlert::factory()->critical()->create();
-
-        $this->assertStringContainsString('text-bg-info', $infoAlert->severity_badge);
-        $this->assertStringContainsString('Info', $infoAlert->severity_badge);
-
-        $this->assertStringContainsString('text-bg-warning', $warningAlert->severity_badge);
-        $this->assertStringContainsString('Warning', $warningAlert->severity_badge);
-
-        $this->assertStringContainsString('text-bg-danger', $criticalAlert->severity_badge);
-        $this->assertStringContainsString('Critical', $criticalAlert->severity_badge);
-    }
-
-    #[Test]
-    public function resolved_badge_accessor_works_correctly(): void
-    {
-
-        $resolvedAlert = DatabaseHealthAlert::factory()->resolved()->create();
-        $unresolvedAlert = DatabaseHealthAlert::factory()->unresolved()->create();
-
-        $this->assertStringContainsString('text-bg-success', $resolvedAlert->resolved_badge);
-        $this->assertStringContainsString('Resolved', $resolvedAlert->resolved_badge);
-
-        $this->assertStringContainsString('text-bg-secondary', $unresolvedAlert->resolved_badge);
-        $this->assertStringContainsString('Active', $unresolvedAlert->resolved_badge);
     }
 
     #[Test]

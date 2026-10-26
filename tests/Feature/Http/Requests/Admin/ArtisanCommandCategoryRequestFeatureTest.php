@@ -22,7 +22,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $validData = [
             'name' => 'Test Category',
@@ -38,7 +38,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $invalidData = [];
 
@@ -51,7 +51,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_long_name()
+    public function validation_fails_with_long_name(): void
     {
         $invalidData = [
             'name' => str_repeat('a', 256),
@@ -66,7 +66,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_long_slug()
+    public function validation_fails_with_long_slug(): void
     {
         $invalidData = [
             'name' => 'Test Category',
@@ -81,7 +81,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_duplicate_slug()
+    public function validation_fails_with_duplicate_slug(): void
     {
         ArtisanCommandCategory::factory()->create(['slug' => 'existing-slug']);
 
@@ -98,7 +98,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_same_slug_for_update()
+    public function validation_passes_with_same_slug_for_update(): void
     {
         $category = ArtisanCommandCategory::factory()->create(['slug' => 'existing-slug']);
 
@@ -133,7 +133,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_minimal_required_data()
+    public function validation_passes_with_minimal_required_data(): void
     {
         $validData = [
             'name' => 'Minimal Category',
@@ -147,7 +147,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_nullable_fields_set_to_null()
+    public function validation_passes_with_nullable_fields_set_to_null(): void
     {
         $validData = [
             'name' => 'Test Category',
@@ -162,7 +162,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_boolean_is_active()
+    public function validation_fails_with_invalid_boolean_is_active(): void
     {
         $invalidData = [
             'name' => 'Test Category',
@@ -178,7 +178,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_boolean_values_for_is_active()
+    public function validation_passes_with_boolean_values_for_is_active(): void
     {
         $validData1 = [
             'name' => 'Test Category 1',
@@ -202,7 +202,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_passes_when_authenticated()
+    public function authorization_passes_when_authenticated(): void
     {
         // Ensure full admin test environment (roles & permissions) is prepared
         $this->setUpAdminTestEnvironment();
@@ -213,14 +213,14 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_when_not_authenticated()
+    public function authorization_fails_when_not_authenticated(): void
     {
         $request = new ArtisanCommandCategoryRequest;
         $this->assertFalse($request->authorize());
     }
 
     #[Test]
-    public function request_has_custom_attributes()
+    public function request_has_custom_attributes(): void
     {
         $request = new ArtisanCommandCategoryRequest;
         $attributes = $request->attributes();
@@ -233,7 +233,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_without_optional_fields()
+    public function validation_passes_without_optional_fields(): void
     {
         $validData = [
             'name' => 'Simple Category',
@@ -247,7 +247,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_different_string_types()
+    public function validation_passes_with_different_string_types(): void
     {
         $validData = [
             'name' => 'Category with Numbers 123',
@@ -262,7 +262,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function slug_is_auto_generated_when_missing()
+    public function slug_is_auto_generated_when_missing(): void
     {
         $data = [
             'name' => 'Auto Slug Category',

@@ -30,8 +30,6 @@ interface LocaleServiceInterface
 
     /**
      * Set application locale and update session.
-     *
-     * @param  string  $locale  Locale to set
      */
     public function setLocale(string $locale): void;
 

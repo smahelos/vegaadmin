@@ -60,7 +60,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $request = new RegistrationRequest;
         $validator = Validator::make(
@@ -74,7 +74,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $requiredFields = [
             'name',
@@ -107,7 +107,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_email_format()
+    public function validation_fails_with_invalid_email_format(): void
     {
         $invalidData = $this->validRegistrationData;
         $invalidData['email'] = 'invalid-email-format';
@@ -124,7 +124,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_duplicate_email()
+    public function validation_fails_with_duplicate_email(): void
     {
         User::factory()->create(['email' => 'existing@example.com']);
 
@@ -146,7 +146,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_short_password()
+    public function validation_fails_with_short_password(): void
     {
         $invalidData = $this->validRegistrationData;
         $invalidData['password'] = '123';
@@ -164,7 +164,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_unconfirmed_password()
+    public function validation_fails_with_unconfirmed_password(): void
     {
         $invalidData = $this->validRegistrationData;
         $invalidData['password'] = 'password123';
@@ -182,7 +182,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_minimal_required_data()
+    public function validation_passes_with_minimal_required_data(): void
     {
         $minimalData = [
             'name' => $this->faker->name,
@@ -207,7 +207,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_bank_code_missing_with_account_number()
+    public function validation_fails_when_bank_code_missing_with_account_number(): void
     {
         $invalidData = $this->validRegistrationData;
         $invalidData['account_number'] = '1234567890';
@@ -225,7 +225,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_swift_missing_with_iban()
+    public function validation_fails_when_swift_missing_with_iban(): void
     {
         $invalidData = $this->validRegistrationData;
         $invalidData['iban'] = 'CZ1234567890123456';
@@ -243,7 +243,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_without_optional_bank_fields()
+    public function validation_passes_without_optional_bank_fields(): void
     {
         $dataWithoutBank = $this->validRegistrationData;
         unset($dataWithoutBank['account_number']);
@@ -264,7 +264,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_too_long_strings()
+    public function validation_fails_with_too_long_strings(): void
     {
         $fieldsWithLimits = [
             'name' => str_repeat('a', 256), // max 255
@@ -299,7 +299,7 @@ class RegistrationRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorize_always_returns_true()
+    public function authorize_always_returns_true(): void
     {
         $request = new RegistrationRequest;
 

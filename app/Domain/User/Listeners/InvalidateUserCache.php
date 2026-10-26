@@ -9,29 +9,12 @@ use App\Domain\User\Events\UserDataChanged;
 class InvalidateUserCache
 {
     /**
-     * Cache service instance
-     *
-     * @var CacheServiceInterface
-     */
-    protected $cacheService;
-
-    /**
-     * Dashboard service instance
-     *
-     * @var AnalyticsDashboardServiceInterface
-     */
-    protected $dashboardService;
-
-    /**
      * Create the event listener
      */
     public function __construct(
-        CacheServiceInterface $cacheService,
-        AnalyticsDashboardServiceInterface $dashboardService,
-    ) {
-        $this->cacheService = $cacheService;
-        $this->dashboardService = $dashboardService;
-    }
+        private readonly CacheServiceInterface $cacheService,
+        private readonly AnalyticsDashboardServiceInterface $dashboardService,
+    ) {}
 
     /**
      * Handle the event

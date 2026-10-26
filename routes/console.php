@@ -56,7 +56,7 @@ try {
             $event->appendOutputTo(storage_path("logs/cron-{$task->id}.log"));
 
             // Aktualizovat čas posledního běhu a výstup
-            $event->after(function () use ($task) {
+            $event->after(function () use ($task): void {
                 $task->last_run = now();
                 $task->last_output = file_exists(storage_path("logs/cron-{$task->id}.log"))
                     ? file_get_contents(storage_path("logs/cron-{$task->id}.log"))
@@ -69,6 +69,6 @@ try {
     Log::error('Chyba při načítání cron úloh: ' . $e->getMessage());
 }
 
-Artisan::command('inspire', function () {
+Artisan::command('inspire', function (): void {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');

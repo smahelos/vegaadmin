@@ -76,48 +76,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_status_badge_attribute_works(): void
-    {
-
-        $goodMetric = DatabaseHealthMetric::factory()->good()->create();
-        $warningMetric = DatabaseHealthMetric::factory()->warning()->create();
-        $criticalMetric = DatabaseHealthMetric::factory()->critical()->create();
-
-        $this->assertStringContainsString('text-bg-success', $goodMetric->getStatusBadgeAttribute());
-        $this->assertStringContainsString('Good', $goodMetric->getStatusBadgeAttribute());
-
-        $this->assertStringContainsString('text-bg-warning', $warningMetric->getStatusBadgeAttribute());
-        $this->assertStringContainsString('Warning', $warningMetric->getStatusBadgeAttribute());
-
-        $this->assertStringContainsString('text-bg-danger', $criticalMetric->getStatusBadgeAttribute());
-        $this->assertStringContainsString('Critical', $criticalMetric->getStatusBadgeAttribute());
-
-        // Test unknown status by creating a metric and manually setting invalid status
-        $unknownMetric = new DatabaseHealthMetric;
-        $unknownMetric->status = 'unknown'; // This won't be saved, just for testing accessor
-        $this->assertStringContainsString('text-bg-light', $unknownMetric->getStatusBadgeAttribute());
-        $this->assertStringContainsString('Unknown', $unknownMetric->getStatusBadgeAttribute());
-    }
-
-    #[Test]
-    public function get_formatted_value_attribute_works(): void
-    {
-
-        $metricWithUnit = DatabaseHealthMetric::factory()->create([
-            'metric_value' => '50.25',
-            'metric_unit' => 'GB',
-        ]);
-
-        $metricWithoutUnit = DatabaseHealthMetric::factory()->create([
-            'metric_value' => '75.5',
-            'metric_unit' => null,
-        ]);
-
-        $this->assertEquals('50.2500 GB', $metricWithUnit->getFormattedValueAttribute());
-        $this->assertEquals('75.5000', $metricWithoutUnit->getFormattedValueAttribute());
-    }
-
-    #[Test]
     public function scope_recent_works(): void
     {
 
@@ -144,50 +102,6 @@ class DatabaseHealthMetricFeatureTest extends TestCase
         $this->assertCount(2, $recentMetrics);
         $this->assertTrue($recentMetrics->contains($recentMetric1));
         $this->assertTrue($recentMetrics->contains($recentMetric2));
-    }
-
-    #[Test]
-    public function scope_status_works(): void
-    {
-
-        DatabaseHealthMetric::factory()->good()->create();
-        DatabaseHealthMetric::factory()->good()->create();
-        DatabaseHealthMetric::factory()->warning()->create();
-        DatabaseHealthMetric::factory()->critical()->create();
-
-        $goodMetrics = DatabaseHealthMetric::status('good')->get();
-        $warningMetrics = DatabaseHealthMetric::status('warning')->get();
-        $criticalMetrics = DatabaseHealthMetric::status('critical')->get();
-
-        $this->assertCount(2, $goodMetrics);
-        $this->assertCount(1, $warningMetrics);
-        $this->assertCount(1, $criticalMetrics);
-
-        foreach ($goodMetrics as $metric) {
-            $this->assertEquals('good', $metric->status);
-        }
-    }
-
-    #[Test]
-    public function scope_metric_type_works(): void
-    {
-
-        DatabaseHealthMetric::factory()->databaseSize()->create();
-        DatabaseHealthMetric::factory()->databaseSize()->create();
-        DatabaseHealthMetric::factory()->queryPerformance()->create();
-        DatabaseHealthMetric::factory()->connectionCount()->create();
-
-        $databaseSizeMetrics = DatabaseHealthMetric::metricType('database_size')->get();
-        $queryPerformanceMetrics = DatabaseHealthMetric::metricType('query_performance')->get();
-        $connectionCountMetrics = DatabaseHealthMetric::metricType('connection_count')->get();
-
-        $this->assertCount(2, $databaseSizeMetrics);
-        $this->assertCount(1, $queryPerformanceMetrics);
-        $this->assertCount(1, $connectionCountMetrics);
-
-        foreach ($databaseSizeMetrics as $metric) {
-            $this->assertEquals('database_size', $metric->metric_name);
-        }
     }
 
     #[Test]
@@ -297,31 +211,5 @@ class DatabaseHealthMetricFeatureTest extends TestCase
         ]);
         $this->assertNull($metric->metric_unit);
         $this->assertNull($metric->recommendation);
-    }
-
-    #[Test]
-    public function chained_scopes_work_correctly(): void
-    {
-
-        // Create various metrics
-        DatabaseHealthMetric::factory()->recent()->good()->databaseSize()->create();
-        DatabaseHealthMetric::factory()->recent()->warning()->databaseSize()->create();
-        DatabaseHealthMetric::factory()->create([
-            'measured_at' => now()->subDays(2),
-            'status' => 'good',
-            'metric_name' => 'database_size',
-        ]);
-
-        // Test chained scopes
-        $recentGoodDatabaseMetrics = DatabaseHealthMetric::recent()
-            ->status('good')
-            ->metricType('database_size')
-            ->get();
-
-        $this->assertCount(1, $recentGoodDatabaseMetrics);
-        $metric = $recentGoodDatabaseMetrics->first();
-        $this->assertEquals('good', $metric->status);
-        $this->assertEquals('database_size', $metric->metric_name);
-        $this->assertTrue($metric->measured_at->isAfter(now()->subDay()));
     }
 }

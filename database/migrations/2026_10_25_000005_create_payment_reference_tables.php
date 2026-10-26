@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('payment_methods', function (Blueprint $table) {
+        Schema::create('payment_methods', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('banks', function (Blueprint $table) {
+        Schema::create('banks', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->string('code', 10)->unique();
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('taxes', function (Blueprint $table) {
+        Schema::create('taxes', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->decimal(

@@ -24,10 +24,8 @@ class TaxCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(Tax::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/tax');
@@ -36,10 +34,8 @@ class TaxCrudController extends CrudController
 
     /**
      * Define what happens when the List operation is loaded.
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('name')->label(__('taxes.fields.name'));
         CRUD::column('rate')->label(__('taxes.fields.rate'))->type('number')->suffix('%');
@@ -49,10 +45,8 @@ class TaxCrudController extends CrudController
 
     /**
      * Define what happens when the Create operation is loaded.
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(TaxRequest::class);
 
@@ -62,10 +56,8 @@ class TaxCrudController extends CrudController
 
     /**
      * Define what happens when the Update operation is loaded.
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }

@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('clients', function (Blueprint $table) {
+        Schema::create('clients', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->string('ico')->nullable();
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->index(['user_id', 'email'], 'idx_clients_user_email_search');
         });
 
-        Schema::create('suppliers', function (Blueprint $table) {
+        Schema::create('suppliers', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->string('ico')->nullable();

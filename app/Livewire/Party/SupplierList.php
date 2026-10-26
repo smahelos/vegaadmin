@@ -5,6 +5,7 @@ namespace App\Livewire\Party;
 use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
 use App\Models\Supplier;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
@@ -17,7 +18,7 @@ class SupplierList extends Component
     use Sorts;
 
     #[Url]
-    public $search = '';
+    public string $search = '';
 
     #[Url(as: 'sort')]
     public string $orderBy = 'created_at';
@@ -25,12 +26,9 @@ class SupplierList extends Component
     #[Url(as: 'direction')]
     public bool $orderAsc = false;
 
-    #[Url(keep: true)]
-    public $page = 1;
+    public ?string $errorMessage = null;
 
-    public $errorMessage = null;
-
-    public function updatingSearch()
+    public function updatingSearch(): void
     {
         $this->resetPage();
     }
@@ -60,14 +58,14 @@ class SupplierList extends Component
         return 'created_at';
     }
 
-    public function render()
+    public function render(): View
     {
         try {
             $query = Supplier::where('user_id', Auth::id())
                 ->withCount('invoices');
 
             if ($this->search) {
-                $query->where(function ($q) {
+                $query->where(function ($q): void {
                     $q->where(
                         'name',
                         'like',

@@ -57,10 +57,8 @@ class ExpenseCategoryRequest extends FormRequest
 
     /**
      * Prepare the data for validation.
-     *
-     * @return void
      */
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         // Generate slug if not provided
         if (empty($this->slug)) {

@@ -16,14 +16,14 @@ return new class extends Migration
     {
         DB::table('invoices')->whereNull('tax_point_date')->update(['tax_point_date' => DB::raw('issue_date')]);
 
-        Schema::table('invoices', function (Blueprint $table) {
+        Schema::table('invoices', function (Blueprint $table): void {
             $table->date('tax_point_date')->nullable(false)->change();
         });
     }
 
     public function down(): void
     {
-        Schema::table('invoices', function (Blueprint $table) {
+        Schema::table('invoices', function (Blueprint $table): void {
             $table->date('tax_point_date')->nullable()->change();
         });
     }

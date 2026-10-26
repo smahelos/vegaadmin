@@ -70,7 +70,6 @@ interface EntityLimitUsageRepositoryInterface
      * Check if user has permission to create/access the given entity type.
      * This moves User loading and permission checking to Infrastructure layer.
      *
-     * @param  int  $userId  User ID
      * @param  string  $entityType  Entity type (invoice, client, etc.)
      * @param  string  $guard  Guard name for permission checking
      * @return bool True if user has permission
@@ -84,7 +83,6 @@ interface EntityLimitUsageRepositoryInterface
     /**
      * Check if user exists.
      *
-     * @param  int  $userId  User ID
      * @return bool True if user exists
      */
     public function userExists(int $userId): bool;

@@ -11,6 +11,7 @@ use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use App\Domain\User\Contracts\Locale;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocument;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,7 +30,7 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
         PrintableInvoiceData $data,
         ?string $template = null,
         ?string $locale = null,
-    ) {
+    ): PdfDocument {
         $templateName = $this->getTemplateName($template ?? $data->template ?? 'default');
         $locale ??= $this->currentLocale->getLocale();
 

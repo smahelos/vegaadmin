@@ -3,11 +3,9 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Middleware to check if user has admin access via roles with 'backpack' guard
@@ -17,10 +15,9 @@ class RequireBackpackAccess
     /**
      * Handle an incoming request.
      *
-     * @param  Closure(Request): (Response|RedirectResponse)  $next
-     * @return Response|RedirectResponse
+     * @param  Closure(Request): Response  $next
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         // Check if user is authenticated with backpack guard
         if (! backpack_auth()->check()) {
@@ -93,10 +90,8 @@ class RequireBackpackAccess
 
     /**
      * Handle unauthorized access
-     *
-     * @return Response|JsonResponse|RedirectResponse
      */
-    private function respondToUnauthorizedRequest(Request $request, bool $isAuthenticated = false)
+    private function respondToUnauthorizedRequest(Request $request, bool $isAuthenticated = false): Response
     {
         if ($request->ajax() || $request->wantsJson()) {
             $statusCode = $isAuthenticated ? 403 : 401;

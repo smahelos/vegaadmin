@@ -72,10 +72,8 @@ class ProductListSelect extends Component
 
     /**
      * Handle incoming selected product IDs from external sources
-     *
-     * @param  mixed  $params
      */
-    public function handleSetSelectedProductIds($params): void
+    public function handleSetSelectedProductIds(mixed $params): void
     {
         // If it's an array with 'ids' key, use that (for newer Livewire versions)
         if (is_array($params) && isset($params['ids']) && is_array($params['ids'])) {
@@ -206,8 +204,8 @@ class ProductListSelect extends Component
             // Explicit preloading of tax rates
             $query = Product::with(['tax'])
                 ->where('user_id', Auth::id())
-                ->when($searchTerm, function ($query) use ($searchTerm) {
-                    $query->where(function ($q) use ($searchTerm) {
+                ->when($searchTerm, function ($query) use ($searchTerm): void {
+                    $query->where(function ($q) use ($searchTerm): void {
                         $q->where(
                             'name',
                             'like',

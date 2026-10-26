@@ -12,6 +12,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Prologue\Alerts\Facades\Alert;
 
@@ -29,10 +30,8 @@ class EntityUsageCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         // Check permissions first
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
@@ -55,10 +54,8 @@ class EntityUsageCrudController extends CrudController
      * Define what happens when the List operation is loaded.
      *
      * @see  https://backpackforlaravel.com/docs/crud-operation-list-entries
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         // Add filters
         CRUD::filter('user_id')
@@ -67,7 +64,7 @@ class EntityUsageCrudController extends CrudController
             ->values(
                 User::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'user_id',
@@ -81,7 +78,7 @@ class EntityUsageCrudController extends CrudController
             ->values(
                 collect(EntityLimit::ENTITY_TYPES)->mapWithKeys(fn ($type) => [$type => __("entity_limits.entity_types.$type.singular")])->all(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'entity_type',
@@ -93,7 +90,7 @@ class EntityUsageCrudController extends CrudController
             ->type('select2')
             ->label(__('entity_limits.usages.fields.metric_type'))
             ->values(collect(EntityLimit::METRIC_TYPES)->keys()->mapWithKeys(fn ($type) => [$type => __("entity_limits.metric_types.$type")])->all())
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'metric_type',
@@ -105,7 +102,7 @@ class EntityUsageCrudController extends CrudController
             ->type('select2')
             ->label(__('entity_limits.usages.fields.period_type'))
             ->values(collect(EntityLimit::PERIOD_TYPES)->keys()->mapWithKeys(fn ($type) => [$type => __("entity_limits.periods.$type")])->all())
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'period_type',
@@ -120,7 +117,7 @@ class EntityUsageCrudController extends CrudController
                 'label' => __('entity_limits.usages.filters.period_range'),
             ],
             false,
-            function ($value) {
+            function ($value): void {
                 $dates = json_decode($value);
                 CRUD::addClause(
                     'where',
@@ -153,8 +150,8 @@ class EntityUsageCrudController extends CrudController
                 $query,
                 $column,
                 $searchTerm,
-            ) {
-                $query->orWhereHas('user', function ($q) use ($searchTerm) {
+            ): void {
+                $query->orWhereHas('user', function ($q) use ($searchTerm): void {
                     $q->where(
                         'name',
                         'like',
@@ -226,10 +223,8 @@ class EntityUsageCrudController extends CrudController
      * Define what happens when the Show operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-show
-     *
-     * @return void
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         $this->setupListOperation();
 
@@ -246,7 +241,7 @@ class EntityUsageCrudController extends CrudController
     /**
      * Reset usage for selected entity type and period
      */
-    public function resetUsage(Request $request)
+    public function resetUsage(Request $request): RedirectResponse
     {
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
             abort(403, 'Unauthorized action.');
@@ -283,7 +278,7 @@ class EntityUsageCrudController extends CrudController
     /**
      * Bulk reset usage for multiple users
      */
-    public function bulkResetUsage(Request $request)
+    public function bulkResetUsage(Request $request): RedirectResponse
     {
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
             abort(403, 'Unauthorized action.');
@@ -336,7 +331,7 @@ class EntityUsageCrudController extends CrudController
     /**
      * Helper method to format bytes into human readable format
      */
-    private function formatBytes($bytes, $precision = 2): string
+    private function formatBytes(float|int $bytes, int $precision = 2): string
     {
         $units = [
             'B',

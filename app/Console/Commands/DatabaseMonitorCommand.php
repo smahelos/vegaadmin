@@ -24,7 +24,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $metric = $this->option('metric');
         $store = $this->option('store');
@@ -58,7 +58,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Check database and table sizes
      */
-    private function checkDatabaseSize($store = false)
+    private function checkDatabaseSize(bool $store = false): void
     {
         $this->info("\n📊 Database Size Analysis:");
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -69,7 +69,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Check MySQL database size
      */
-    private function checkMySQLDatabaseSize($store = false)
+    private function checkMySQLDatabaseSize(bool $store = false): void
     {
         $sizes = DB::select("
             SELECT
@@ -135,7 +135,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Check index usage and efficiency
      */
-    private function checkIndexUsage($store = false)
+    private function checkIndexUsage(bool $store = false): void
     {
         $this->info('
 🔍 Index Usage Analysis:');
@@ -147,7 +147,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Check MySQL index usage
      */
-    private function checkMySQLIndexUsage($store = false)
+    private function checkMySQLIndexUsage(bool $store = false): void
     {
         // Get index statistics
         $indexes = DB::select("
@@ -205,7 +205,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Check for slow queries and performance issues
      */
-    private function checkSlowQueries($store = false)
+    private function checkSlowQueries(bool $store = false): void
     {
         $this->info("\n⚡ Query Performance Analysis:");
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -216,7 +216,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Check MySQL slow queries
      */
-    private function checkMySQLSlowQueries($store = false)
+    private function checkMySQLSlowQueries(bool $store = false): void
     {
         // Check if slow query log is enabled
         $slowLogStatus = DB::selectOne("SHOW VARIABLES LIKE 'slow_query_log'");
@@ -231,7 +231,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Perform query performance tests
      */
-    private function performQueryTests($store = false)
+    private function performQueryTests(bool $store = false): void
     {
         // Test query performance on main tables
         $this->info("\n📈 Testing Query Performance:");
@@ -273,7 +273,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Check database connections
      */
-    private function checkConnections($store = false)
+    private function checkConnections(bool $store = false): void
     {
         $this->info("\n🔗 Connection Analysis:");
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -284,7 +284,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Check MySQL connections
      */
-    private function checkMySQLConnections($store = false)
+    private function checkMySQLConnections(bool $store = false): void
     {
         $processlist = DB::select('SHOW PROCESSLIST');
         $connections = count($processlist);
@@ -315,7 +315,7 @@ class DatabaseMonitorCommand extends Command
     /**
      * Check user activity patterns
      */
-    private function checkUserActivity()
+    private function checkUserActivity(): void
     {
         $this->info("\n👥 User Activity Summary:");
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -374,12 +374,12 @@ class DatabaseMonitorCommand extends Command
      * Store metric in performance_metrics table
      */
     private function storeMetric(
-        $metricType,
-        $tableName,
-        $value,
-        $unit,
-        $metadata = [],
-    ) {
+        string $metricType,
+        ?string $tableName,
+        float|int|string $value,
+        string $unit,
+        array $metadata = [],
+    ): void {
         DB::table('performance_metrics')->insert([
             'metric_type' => $metricType,
             'table_name' => $tableName,

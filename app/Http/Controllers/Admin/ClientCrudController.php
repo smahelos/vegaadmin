@@ -15,6 +15,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 /**
  * Client management controller
@@ -34,10 +35,8 @@ class ClientCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(Client::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/client');
@@ -46,10 +45,8 @@ class ClientCrudController extends CrudController
 
     /**
      * Setup list view columns
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         // Add filters
         CRUD::filter('user_id')
@@ -58,7 +55,7 @@ class ClientCrudController extends CrudController
             ->values(
                 User::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'user_id',
@@ -85,10 +82,8 @@ class ClientCrudController extends CrudController
 
     /**
      * Setup create form fields
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ClientRequest::class);
         CRUD::setFromDb();
@@ -111,10 +106,8 @@ class ClientCrudController extends CrudController
 
     /**
      * Setup update form fields
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
@@ -136,7 +129,7 @@ class ClientCrudController extends CrudController
      * Override store to ensure user_id is set before persisting.
      * (Usage recording moved to model observer & event system.)
      */
-    public function store()
+    public function store(): JsonResponse|RedirectResponse
     {
         $this->beforeEntityStore();
 
@@ -147,9 +140,8 @@ class ClientCrudController extends CrudController
      * Returns client data as JSON by ID
      *
      * @param  int  $id  Client ID
-     * @return JsonResponse
      */
-    public function fetch($id)
+    public function fetch(int $id): JsonResponse
     {
         $client = Client::findOrFail($id);
 

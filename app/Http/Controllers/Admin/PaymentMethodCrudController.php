@@ -30,10 +30,8 @@ class PaymentMethodCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(PaymentMethod::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/payment-method');
@@ -42,10 +40,8 @@ class PaymentMethodCrudController extends CrudController
 
     /**
      * Setup list view columns
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('name')->label(__('payment_methods.fields.name'));
         CRUD::column('slug')->label(__('payment_methods.fields.slug'));
@@ -56,10 +52,8 @@ class PaymentMethodCrudController extends CrudController
 
     /**
      * Setup create form fields
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(PaymentMethodRequest::class);
 
@@ -68,10 +62,8 @@ class PaymentMethodCrudController extends CrudController
 
     /**
      * Setup update form fields
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }

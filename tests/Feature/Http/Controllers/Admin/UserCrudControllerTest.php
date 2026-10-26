@@ -34,11 +34,9 @@ class UserCrudControllerTest extends TestCase
 
     /**
      * Test that users with correct permissions can access the user list.
-     *
-     * @return void
      */
     #[Test]
-    public function admin_can_access_user_list()
+    public function admin_can_access_user_list(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
 
@@ -49,11 +47,9 @@ class UserCrudControllerTest extends TestCase
 
     /**
      * Test that users without correct permissions cannot access the user list.
-     *
-     * @return void
      */
     #[Test]
-    public function regular_user_cannot_access_user_list()
+    public function regular_user_cannot_access_user_list(): void
     {
         $this->actingAs($this->regularUser, 'backpack');
 
@@ -81,11 +77,9 @@ class UserCrudControllerTest extends TestCase
 
     /**
      * Test user creation process.
-     *
-     * @return void
      */
     #[Test]
-    public function admin_can_create_user()
+    public function admin_can_create_user(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
 
@@ -106,11 +100,9 @@ class UserCrudControllerTest extends TestCase
 
     /**
      * Test user update process.
-     *
-     * @return void
      */
     #[Test]
-    public function admin_can_update_user()
+    public function admin_can_update_user(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
 
@@ -138,11 +130,9 @@ class UserCrudControllerTest extends TestCase
 
     /**
      * Test user deletion process.
-     *
-     * @return void
      */
     #[Test]
-    public function admin_can_delete_user()
+    public function admin_can_delete_user(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
 
@@ -165,11 +155,9 @@ class UserCrudControllerTest extends TestCase
 
     /**
      * Test that password is correctly hashed when creating a user.
-     *
-     * @return void
      */
     #[Test]
-    public function password_is_hashed_when_creating_user()
+    public function password_is_hashed_when_creating_user(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
 

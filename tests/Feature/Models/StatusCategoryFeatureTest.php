@@ -15,7 +15,7 @@ class StatusCategoryFeatureTest extends TestCase
     use WithFaker;
 
     #[Test]
-    public function status_category_can_be_created_with_factory()
+    public function status_category_can_be_created_with_factory(): void
     {
         $statusCategory = StatusCategory::factory()->create();
 
@@ -28,7 +28,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_can_be_created_with_minimal_data()
+    public function status_category_can_be_created_with_minimal_data(): void
     {
         $statusCategory = StatusCategory::factory()->create([
             'name' => 'Test Category',
@@ -44,7 +44,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_can_be_created_with_all_fields()
+    public function status_category_can_be_created_with_all_fields(): void
     {
         $statusCategory = StatusCategory::factory()->create([
             'name' => 'Complete Category',
@@ -60,7 +60,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_has_timestamps()
+    public function status_category_has_timestamps(): void
     {
         $statusCategory = StatusCategory::factory()->create();
 
@@ -69,7 +69,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_slug_is_unique()
+    public function status_category_slug_is_unique(): void
     {
         StatusCategory::factory()->create(['slug' => 'unique-slug']);
 
@@ -78,7 +78,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_has_many_statuses_relationship()
+    public function status_category_has_many_statuses_relationship(): void
     {
         $statusCategory = StatusCategory::factory()->create();
         $relationship = $statusCategory->statuses();
@@ -89,7 +89,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_can_have_multiple_statuses()
+    public function status_category_can_have_multiple_statuses(): void
     {
         $statusCategory = StatusCategory::factory()->create();
 
@@ -105,7 +105,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_can_have_no_statuses()
+    public function status_category_can_have_no_statuses(): void
     {
         $statusCategory = StatusCategory::factory()->create();
 
@@ -113,7 +113,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_slug_mutator_converts_name_to_slug()
+    public function status_category_slug_mutator_converts_name_to_slug(): void
     {
         $statusCategory = new StatusCategory;
         $statusCategory->name = 'Test Category Name';
@@ -124,7 +124,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_slug_mutator_uses_provided_slug()
+    public function status_category_slug_mutator_uses_provided_slug(): void
     {
         $statusCategory = new StatusCategory;
         $statusCategory->name = 'Test Category Name';
@@ -135,7 +135,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_slug_mutator_handles_special_characters()
+    public function status_category_slug_mutator_handles_special_characters(): void
     {
         $statusCategory = new StatusCategory;
         $statusCategory->name = 'Speciální Kategorie';
@@ -147,7 +147,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_can_be_updated()
+    public function status_category_can_be_updated(): void
     {
         $statusCategory = StatusCategory::factory()->create([
             'name' => 'Original Name',
@@ -170,7 +170,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_can_be_deleted()
+    public function status_category_can_be_deleted(): void
     {
         $statusCategory = StatusCategory::factory()->create();
         $statusCategoryId = $statusCategory->id;
@@ -183,7 +183,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_deletion_sets_category_id_to_null_in_statuses()
+    public function status_category_deletion_sets_category_id_to_null_in_statuses(): void
     {
         $statusCategory = StatusCategory::factory()->create();
         $status = Status::factory()->create(['category_id' => $statusCategory->id]);
@@ -205,7 +205,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_factory_creates_unique_slugs()
+    public function status_category_factory_creates_unique_slugs(): void
     {
         $category1 = StatusCategory::factory()->create();
         $category2 = StatusCategory::factory()->create();
@@ -217,7 +217,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_name_and_description_can_contain_unicode()
+    public function status_category_name_and_description_can_contain_unicode(): void
     {
         $statusCategory = StatusCategory::factory()->create([
             'name' => 'Kategorie s česky',
@@ -232,7 +232,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_relationships_work_with_soft_deleted_statuses()
+    public function status_category_relationships_work_with_soft_deleted_statuses(): void
     {
         $statusCategory = StatusCategory::factory()->create();
         $status = Status::factory()->create(['category_id' => $statusCategory->id]);
@@ -253,7 +253,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_can_be_found_by_slug()
+    public function status_category_can_be_found_by_slug(): void
     {
         $statusCategory = StatusCategory::factory()->create(['slug' => 'findable-slug']);
 
@@ -264,7 +264,7 @@ class StatusCategoryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function status_category_attributes_are_properly_cast()
+    public function status_category_attributes_are_properly_cast(): void
     {
         $statusCategory = StatusCategory::factory()->create();
 

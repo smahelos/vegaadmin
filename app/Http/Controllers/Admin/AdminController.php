@@ -11,19 +11,11 @@ use App\Models\User;
 use App\Models\UserActivitySummary;
 use Backpack\CRUD\app\Http\Controllers\AdminController as BackpackAdminController;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Route;
+use Illuminate\View\View;
 
 class AdminController extends BackpackAdminController
 {
-    protected function setupDashboardRoutes(
-        $segment,
-        $routeName,
-        $controller,
-    ) {
-        Route::get($segment, $controller . '@dashboard')->name($routeName);
-    }
-
-    public function dashboard()
+    public function dashboard(): View
     {
         $this->data['title'] = trans('backpack::base.dashboard');
         $this->data['breadcrumbs'] = [
@@ -43,7 +35,7 @@ class AdminController extends BackpackAdminController
     /**
      * Get basic dashboard statistics
      */
-    private function getDashboardStats()
+    private function getDashboardStats(): array
     {
         try {
             $totalInvoices = Invoice::count();
@@ -111,7 +103,7 @@ class AdminController extends BackpackAdminController
      * Get user activity statistics using the user_activity_summary view
      * Moved from DatabaseDashboardController
      */
-    private function getUserActivityStats()
+    private function getUserActivityStats(): array
     {
         try {
             $totalUsers = UserActivitySummary::count();

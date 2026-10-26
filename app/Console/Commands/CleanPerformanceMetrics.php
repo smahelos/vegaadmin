@@ -104,7 +104,7 @@ class CleanPerformanceMetrics extends Command
     /**
      * Clean duplicate metrics
      */
-    private function cleanDuplicates($dryRun = false)
+    private function cleanDuplicates(bool $dryRun = false): int
     {
         $this->info('Cleaning duplicate metrics...');
 

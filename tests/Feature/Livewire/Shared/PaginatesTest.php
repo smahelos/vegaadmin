@@ -49,4 +49,15 @@ final class PaginatesTest extends TestCase
             ->assertSee('aria-current="page">2</span>', false)
             ->assertSee('<span class="font-medium">11</span>', false);
     }
+
+    #[Test]
+    public function page_from_the_url_that_is_not_a_number_shows_the_first_page(): void
+    {
+        $this->actingAs($this->user);
+
+        Livewire::withQueryParams(['page' => 'abc'])
+            ->test(ClientList::class)
+            ->assertOk()
+            ->assertSee('aria-current="page">1</span>', false);
+    }
 }

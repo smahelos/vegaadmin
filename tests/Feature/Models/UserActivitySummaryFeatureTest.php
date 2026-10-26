@@ -37,36 +37,6 @@ class UserActivitySummaryFeatureTest extends TestCase
     }
 
     #[Test]
-    public function scope_with_recent_activity_filters_correctly(): void
-    {
-
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-
-        // Create invoices for user2 to generate recent activity
-        Invoice::factory()->count(5)->create(['user_id' => $user2->id]);
-
-        $results = UserActivitySummary::withRecentActivity()->get();
-
-        // Check that the scope method works (filters based on invoices_last_30_days > 0)
-        $this->assertTrue(method_exists(UserActivitySummary::class, 'scopeWithRecentActivity'));
-    }
-
-    #[Test]
-    public function scope_high_activity_filters_correctly(): void
-    {
-
-        $this->assertTrue(method_exists(UserActivitySummary::class, 'scopeHighActivity'));
-    }
-
-    #[Test]
-    public function scope_inactive_filters_correctly(): void
-    {
-
-        $this->assertTrue(method_exists(UserActivitySummary::class, 'scopeInactive'));
-    }
-
-    #[Test]
     public function activity_level_accessor_returns_correct_values(): void
     {
 

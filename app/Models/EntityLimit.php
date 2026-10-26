@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
@@ -91,16 +92,16 @@ class EntityLimit extends Model
     /**
      * Boot method to clear cache when EntityLimit is saved/deleted
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
         // Clear cache when EntityLimit is saved or deleted
-        static::saved(function () {
+        static::saved(function (): void {
             Artisan::call('cache:clear');
         });
 
-        static::deleted(function () {
+        static::deleted(function (): void {
             Artisan::call('cache:clear');
         });
     }
@@ -114,7 +115,7 @@ class EntityLimit extends Model
     /**
      * Get the permission this limit is associated with
      */
-    public function permission()
+    public function permission(): ?Permission
     {
         // For special anonymous permission, return null
         if ($this->permission_name === self::ANONYMOUS_PERMISSION) {
@@ -128,12 +129,12 @@ class EntityLimit extends Model
      * Get usage records for this entity limit
      * Note: This is a conceptual relationship based on permission_name and entity_type
      */
-    public function usage()
+    public function usage(): Builder
     {
         // In new permission-based system, we don't have direct FK relationship
         // Usage is matched by permission_name and entity_type
         return EntityLimitUsage::where('entity_type', $this->entity_type)
-            ->whereHas('user.permissions', function ($query) {
+            ->whereHas('user.permissions', function ($query): void {
                 $query->where('name', $this->permission_name);
             });
     }
@@ -143,54 +144,6 @@ class EntityLimit extends Model
     | SCOPES
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * Scope to only active limits
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope by entity type
-     */
-    public function scopeForEntity($query, string $entityType)
-    {
-        return $query->where('entity_type', $entityType);
-    }
-
-    /**
-     * Scope by metric type
-     */
-    public function scopeByMetricType($query, string $metricType)
-    {
-        return $query->where('metric_type', $metricType);
-    }
-
-    /**
-     * Scope by period type
-     */
-    public function scopeByPeriod($query, string $periodType)
-    {
-        return $query->where('period_type', $periodType);
-    }
-
-    /**
-     * Scope by permission name
-     */
-    public function scopeByPermission($query, string $permissionName)
-    {
-        return $query->where('permission_name', $permissionName);
-    }
-
-    /**
-     * Scope for anonymous user limits
-     */
-    public function scopeForAnonymous($query)
-    {
-        return $query->where('permission_name', self::ANONYMOUS_PERMISSION);
-    }
 
     /*
     |--------------------------------------------------------------------------

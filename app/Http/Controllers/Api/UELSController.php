@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Application\User\Contracts\UELSApplicationServiceInterface;
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -254,12 +255,8 @@ class UELSController extends Controller
 
     /**
      * Summary of findKey
-     *
-     * @param  mixed  $array
-     * @param  mixed  $keySearch
-     * @return bool
      */
-    public function findKey($keySearch, $array)
+    public function findKey(mixed $keySearch, mixed $array): bool
     {
         foreach ($array as $key => $item) {
             if ($key == $keySearch) {
@@ -485,7 +482,7 @@ class UELSController extends Controller
     /**
      * Get recent activity for an entity (placeholder for future implementation)
      */
-    private function getRecentActivity($user, string $entity): array
+    private function getRecentActivity(?Authenticatable $user, string $entity): array
     {
         // TODO: Implement recent activity tracking
         // For now, return empty array

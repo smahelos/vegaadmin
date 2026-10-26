@@ -27,9 +27,8 @@ class UserController extends Controller
      * Admins can access any user.
      *
      * @param  int  $id  User ID
-     * @return JsonResponse
      */
-    public function getUserAdmin($id)
+    public function getUserAdmin(int $id): JsonResponse
     {
         try {
             // Authenticate via backpack guard
@@ -60,10 +59,8 @@ class UserController extends Controller
 
     /**
      * Get list of users for authenticated user
-     *
-     * @return JsonResponse
      */
-    public function getUsersAdmin()
+    public function getUsersAdmin(): JsonResponse
     {
         $user = function_exists('backpack_auth') ? backpack_auth()->user() : null;
         if (! $user) {

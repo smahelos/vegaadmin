@@ -111,7 +111,7 @@ class TaxesServiceFeatureTest extends TestCase
         $result1 = $this->service->getAllTaxes();
 
         // Delete the tax from database without firing observers (to avoid cache invalidation)
-        Model::withoutEvents(function () use ($tax) {
+        Model::withoutEvents(function () use ($tax): void {
             $tax->delete();
         });
 
@@ -137,7 +137,7 @@ class TaxesServiceFeatureTest extends TestCase
         $result1 = $this->service->getAllTaxesForSelect();
 
         // Delete the tax from database without firing observers (to avoid cache invalidation)
-        Model::withoutEvents(function () use ($tax) {
+        Model::withoutEvents(function () use ($tax): void {
             $tax->delete();
         });
 
@@ -162,7 +162,7 @@ class TaxesServiceFeatureTest extends TestCase
 
         // Before TTL: add new tax but expect cached result (no new key)
         $this->travel(4)->minutes();
-        Model::withoutEvents(function () {
+        Model::withoutEvents(function (): void {
             Tax::factory()->create(['name' => 'New Tax', 'slug' => 'new-tax']);
         });
         $beforeExpire = $this->service->getAllTaxes();

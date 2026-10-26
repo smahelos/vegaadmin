@@ -222,9 +222,9 @@ class ProductRequestFeatureTest extends TestCase
         $request->setMethod('PUT');
         $routeMock = new class($existingProduct)
         {
-            public function __construct(private $product) {}
+            public function __construct(private Product $product) {}
 
-            public function parameter($name)
+            public function parameter(string $name): int
             {
                 return $this->product->id;
             }

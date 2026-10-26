@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('file_hashes', function (Blueprint $table) {
+        Schema::create('file_hashes', function (Blueprint $table): void {
             $table->id();
             $table->string('disk', 50);
             $table->string('path', 512);

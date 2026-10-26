@@ -135,21 +135,6 @@ class StatusFeatureTest extends TestCase
     }
 
     #[Test]
-    public function can_query_active_statuses(): void
-    {
-        $activeStatus1 = Status::factory()->active()->create();
-        $activeStatus2 = Status::factory()->active()->create();
-        $inactiveStatus = Status::factory()->inactive()->create();
-
-        $activeStatuses = Status::active()->get();
-
-        $this->assertCount(2, $activeStatuses);
-        $this->assertTrue($activeStatuses->contains($activeStatus1));
-        $this->assertTrue($activeStatuses->contains($activeStatus2));
-        $this->assertFalse($activeStatuses->contains($inactiveStatus));
-    }
-
-    #[Test]
     public function can_query_statuses_by_category(): void
     {
         $category1 = StatusCategory::factory()->create();
@@ -188,19 +173,6 @@ class StatusFeatureTest extends TestCase
         $invoicesRelation = $status->invoices();
 
         $this->assertInstanceOf(HasMany::class, $invoicesRelation);
-    }
-
-    #[Test]
-    public function can_perform_bulk_operations(): void
-    {
-        $category = StatusCategory::factory()->create();
-
-        Status::factory()->count(5)->create(['category_id' => $category->id, 'is_active' => true]);
-
-        Status::where('category_id', $category->id)->update(['is_active' => false]);
-
-        $this->assertEquals(0, Status::active()->count());
-        $this->assertEquals(5, Status::where('is_active', false)->count());
     }
 
     #[Test]

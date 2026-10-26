@@ -10,10 +10,8 @@ class ApiBackpackController extends Controller
 {
     /**
      * Get currently authenticated user
-     *
-     * @return User|null
      */
-    protected function getAuthenticatedUser()
+    protected function getAuthenticatedUser(): ?User
     {
         // Check all guards and return first authenticated user
         // Try backpack_auth() helper function first, which is most accurate
@@ -38,10 +36,8 @@ class ApiBackpackController extends Controller
 
     /**
      * Return logging context information
-     *
-     * @return array
      */
-    protected function getLogContext(array $additionalContext = [])
+    protected function getLogContext(array $additionalContext = []): array
     {
         $user = $this->getAuthenticatedUser();
         $session = session();

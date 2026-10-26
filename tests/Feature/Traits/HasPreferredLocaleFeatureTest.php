@@ -100,7 +100,7 @@ class TestLocaleModel
 
     public array $attributes = [];
 
-    public function __get($key)
+    public function __get(string $key): ?string
     {
         return $this->attributes[$key] ?? null;
     }

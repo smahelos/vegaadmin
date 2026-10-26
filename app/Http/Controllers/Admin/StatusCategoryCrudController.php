@@ -29,7 +29,7 @@ class StatusCategoryCrudController extends CrudController
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(StatusCategory::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/status-category');
@@ -52,7 +52,7 @@ class StatusCategoryCrudController extends CrudController
     /**
      * Define what happens when the List operation is loaded.
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('name')->label(__('statuses.categories.fields.name'));
         CRUD::column('slug')->label(__('statuses.categories.fields.slug'));
@@ -88,7 +88,7 @@ class StatusCategoryCrudController extends CrudController
     /**
      * Define what happens when the Create operation is loaded.
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(StatusCategoryRequest::class);
 
@@ -109,7 +109,7 @@ class StatusCategoryCrudController extends CrudController
     /**
      * Define what happens when the Update operation is loaded.
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
@@ -117,7 +117,7 @@ class StatusCategoryCrudController extends CrudController
     /**
      * Define what happens when the Show operation is loaded.
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         $this->setupListOperation();
 

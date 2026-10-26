@@ -98,7 +98,7 @@ class DashboardServiceFeatureTest extends TestCase
         $this->assertContains(now()->format('Y-m'), $months);
         $this->assertContains(now()->subMonth()->format('Y-m'), $months);
         // Ensure each total is Money
-        $collection->each(function ($dto) {
+        $collection->each(function ($dto): void {
             $this->assertInstanceOf(Money::class, $dto->total);
         });
     }

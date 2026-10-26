@@ -9,6 +9,7 @@ use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
+use App\Domain\Payment\DTO\QrPaymentPayload;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -655,12 +656,12 @@ class InvoicePdfServiceFeatureTest extends TestCase
         app()->bind(QrPaymentServiceInterface::class, function () {
             return new class implements QrPaymentServiceInterface
             {
-                public function generateQrCodeBase64($payload): ?string
+                public function generateQrCodeBase64(QrPaymentPayload $payload): ?string
                 {
                     throw new \RuntimeException('QR fail test');
                 }
 
-                public function hasRequiredPaymentInfo($payload): bool
+                public function hasRequiredPaymentInfo(QrPaymentPayload $payload): bool
                 {
                     return true; // not relevant for exception path
                 }

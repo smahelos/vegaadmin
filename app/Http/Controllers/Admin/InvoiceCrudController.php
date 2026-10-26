@@ -21,6 +21,8 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\CRUD\app\Library\Widget;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -54,10 +56,8 @@ class InvoiceCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(Invoice::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/invoice');
@@ -66,10 +66,8 @@ class InvoiceCrudController extends CrudController
 
     /**
      * Setup list view columns
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         // Add filters
         CRUD::filter('user_id')
@@ -78,7 +76,7 @@ class InvoiceCrudController extends CrudController
             ->values(
                 User::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'user_id',
@@ -92,7 +90,7 @@ class InvoiceCrudController extends CrudController
             ->values(
                 Status::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'payment_status_id',
@@ -107,7 +105,7 @@ class InvoiceCrudController extends CrudController
                 'label' => __('invoices.fields.tax_point_date'),
             ],
             false,
-            function ($value) {
+            function ($value): void {
                 $dates = json_decode($value);
                 CRUD::addClause(
                     'where',
@@ -167,10 +165,8 @@ class InvoiceCrudController extends CrudController
 
     /**
      * Setup create form fields
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(InvoiceRequest::class);
 
@@ -431,7 +427,7 @@ class InvoiceCrudController extends CrudController
     /**
      * Override store only to set user before persisting. Usage recorded via observer.
      */
-    public function store()
+    public function store(): JsonResponse|RedirectResponse
     {
         $this->beforeEntityStore();
 
@@ -440,10 +436,8 @@ class InvoiceCrudController extends CrudController
 
     /**
      * Setup update form fields
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         CRUD::setValidation(InvoiceRequest::class);
 

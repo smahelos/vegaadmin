@@ -20,32 +20,15 @@ class ProductController extends Controller
     use AuthorizesRequests;
     use ProductFormFields; // Frontend limits handled via observers now
 
-    /**
-     * Product service instance
-     *
-     * @var ProductApplicationServiceInterface
-     */
-    protected $productService;
-
-    /**
-     * Universal Entity Limit application service
-     *
-     * @var UELSService
-     */
-    protected $limitService;
-
     public function __construct(
-        ProductApplicationServiceInterface $productService,
-        UELSService $limitService,
-    ) {
-        $this->productService = $productService;
-        $this->limitService = $limitService;
-    }
+        private readonly ProductApplicationServiceInterface $productService,
+        private readonly UELSService $limitService,
+    ) {}
 
     /**
      * Display a listing of the user's products.
      */
-    public function index()
+    public function index(): View
     {
         // get current logged user's product limits
         $limitsData = $this->getProductsLimitStats();
@@ -57,7 +40,7 @@ class ProductController extends Controller
     /**
      * Show the form for creating a new product.
      */
-    public function create()
+    public function create(): View
     {
         // Get form data from service
         $formData = $this->productService->getFormData();
@@ -78,7 +61,7 @@ class ProductController extends Controller
     /**
      * Store a newly created product in storage.
      */
-    public function store(ProductRequest $request)
+    public function store(ProductRequest $request): RedirectResponse
     {
         $validatedData = $request->validated();
         $user = Auth::user();
@@ -124,10 +107,8 @@ class ProductController extends Controller
 
     /**
      * Display the specified product.
-     *
-     * @return View
      */
-    public function show(string $locale, int $id)
+    public function show(string $locale, int $id): View
     {
         $user = Auth::user();
 
@@ -144,10 +125,8 @@ class ProductController extends Controller
 
     /**
      * Show the form for editing the specified product.
-     *
-     * @return View
      */
-    public function edit(string $locale, int $id)
+    public function edit(string $locale, int $id): View
     {
         $user = Auth::user();
 
@@ -174,14 +153,12 @@ class ProductController extends Controller
 
     /**
      * Update the specified product in storage.
-     *
-     * @return RedirectResponse
      */
     public function update(
         ProductRequest $request,
         string $locale,
         int $id,
-    ) {
+    ): RedirectResponse {
         try {
             $user = Auth::user();
 
@@ -233,10 +210,8 @@ class ProductController extends Controller
 
     /**
      * Remove the specified product from storage.
-     *
-     * @return RedirectResponse
      */
-    public function destroy(string $locale, int $id)
+    public function destroy(string $locale, int $id): RedirectResponse
     {
         $user = Auth::user();
 
@@ -252,10 +227,8 @@ class ProductController extends Controller
 
     /**
      * Get current user's products limits
-     *
-     * @param  User|null  $user
      */
-    public function getProductsLimitStats($user = null): array
+    public function getProductsLimitStats(?User $user = null): array
     {
         if ($user === null) {
             $user = Auth::user();

@@ -30,10 +30,8 @@ class EntityLimitCrudController extends CrudController
 
     /**
      * Configure the CrudPanel object. Apply settings to all operations.
-     *
-     * @return void
      */
-    public function setup()
+    public function setup(): void
     {
         // Check permissions first
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
@@ -56,10 +54,8 @@ class EntityLimitCrudController extends CrudController
      * Define what happens when the List operation is loaded.
      *
      * @see  https://backpackforlaravel.com/docs/crud-operation-list-entries
-     *
-     * @return void
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         // Define columns for list view
         CRUD::column('permission_name')
@@ -116,10 +112,8 @@ class EntityLimitCrudController extends CrudController
      * Define what happens when the Create operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-create
-     *
-     * @return void
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(EntityLimitRequest::class);
 
@@ -183,10 +177,8 @@ class EntityLimitCrudController extends CrudController
      * Define what happens when the Update operation is loaded.
      *
      * @see https://backpackforlaravel.com/docs/crud-operation-update
-     *
-     * @return void
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
@@ -194,7 +186,7 @@ class EntityLimitCrudController extends CrudController
     /**
      * Helper method to format bytes into human readable format
      */
-    private function formatBytes($bytes, $precision = 2): string
+    private function formatBytes(float|int $bytes, int $precision = 2): string
     {
         $units = [
             'B',

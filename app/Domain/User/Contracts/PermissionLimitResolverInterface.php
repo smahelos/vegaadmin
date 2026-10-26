@@ -28,24 +28,17 @@ interface PermissionLimitResolverInterface
     /**
      * Get all limits for a user across all entity types
      *
-     * @param  int|null  $userId  User ID
      * @return array Format: ['entity_type' => ['metric_type' => ['period_type' => limit_value]]]
      */
     public function getAllUserLimits(?int $userId): array;
 
     /**
      * Get limits for specific entity type across all metrics and periods
-     *
-     * @param  int|null  $userId  User ID
-     * @param  string  $entityType  Entity type
-     * @return array Limits for entity
      */
     public function getEntityLimits(?int $userId, string $entityType): array;
 
     /**
      * Clear cache for a specific user
-     *
-     * @param  int  $userId  User ID
      */
     public function clearUserCache(int $userId): void;
 
@@ -57,8 +50,6 @@ interface PermissionLimitResolverInterface
     /**
      * Check if user can create entity (has any permission that allows it)
      *
-     * @param  int|null  $userId  User ID
-     * @param  string  $entityType  Entity type
      * @return bool True if user can create entity
      */
     public function canUserCreateEntity(?int $userId, string $entityType): bool;
@@ -66,8 +57,6 @@ interface PermissionLimitResolverInterface
     /**
      * Get user's permissions with their corresponding limits for an entity
      *
-     * @param  int|null  $userId  User ID
-     * @param  string  $entityType  Entity type
      * @return array<int, array{permission:string, limits: array<string, array<string, int>>}>
      */
     public function getUserPermissionLimits(?int $userId, string $entityType): array;

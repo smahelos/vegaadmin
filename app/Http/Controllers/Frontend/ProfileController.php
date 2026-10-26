@@ -18,26 +18,14 @@ class ProfileController extends Controller
     use UserFormFields;
 
     /**
-     * User service instance
-     *
-     * @var UserApplicationServiceInterface
-     */
-    protected $userService;
-
-    /**
      * Constructor
      */
-    public function __construct(UserApplicationServiceInterface $userService)
-    {
-        $this->userService = $userService;
-    }
+    public function __construct(private readonly UserApplicationServiceInterface $userService) {}
 
     /**
      * Show form for editing user profile
-     *
-     * @return View|RedirectResponse
      */
-    public function edit()
+    public function edit(): View|RedirectResponse
     {
         try {
             // Get authenticated user as full model instance
@@ -58,10 +46,8 @@ class ProfileController extends Controller
 
     /**
      * Update user profile
-     *
-     * @return RedirectResponse
      */
-    public function update(UserRequest $request)
+    public function update(UserRequest $request): RedirectResponse
     {
         try {
             // Get authenticated user
@@ -86,10 +72,8 @@ class ProfileController extends Controller
 
     /**
      * Update only user password
-     *
-     * @return RedirectResponse
      */
-    public function updatePassword(PasswordUpdateRequest $request)
+    public function updatePassword(PasswordUpdateRequest $request): RedirectResponse
     {
         try {
             // Get authenticated user

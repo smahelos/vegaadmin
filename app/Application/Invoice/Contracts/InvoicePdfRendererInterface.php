@@ -9,12 +9,10 @@ interface InvoicePdfRendererInterface
 {
     /**
      * Render DomPDF from printable invoice data, with chosen template and locale.
-     *
-     * @return PDF
      */
     public function render(
         PrintableInvoiceData $data,
         ?string $template = null,
         ?string $locale = null,
-    );
+    ): PDF;
 }

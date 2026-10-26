@@ -24,10 +24,7 @@ class ClientList extends Component
     use Sorts;
 
     #[Url]
-    public $search = '';
-
-    #[Url]
-    public $status = '';
+    public string $search = '';
 
     #[Url(as: 'sort')]
     public string $orderBy = 'created_at';
@@ -35,19 +32,10 @@ class ClientList extends Component
     #[Url(as: 'direction')]
     public bool $orderAsc = false;
 
-    #[Url(keep: true)]
-    public $page = 1;
-
-    public $errorMessage = null;
+    public ?string $errorMessage = null;
 
     /** Reset pagination when search term is updated */
     public function updatingSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    /** Reset pagination when status filter is updated */
-    public function updatingStatus(): void
     {
         $this->resetPage();
     }
@@ -56,7 +44,6 @@ class ClientList extends Component
     public function resetFilters(): void
     {
         $this->search = '';
-        $this->status = '';
         $this->resetPage();
     }
 
@@ -88,7 +75,7 @@ class ClientList extends Component
                 ->withCount('invoices');
 
             if (! empty($this->search)) {
-                $query->where(function ($q) {
+                $query->where(function ($q): void {
                     $q->where(
                         'name',
                         'like',

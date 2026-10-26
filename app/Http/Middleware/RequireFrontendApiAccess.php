@@ -36,7 +36,7 @@ class RequireFrontendApiAccess
     /**
      * Return unauthorized response
      */
-    private function unauthorized(Request $request)
+    private function unauthorized(Request $request): Response
     {
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -51,7 +51,7 @@ class RequireFrontendApiAccess
     /**
      * Return forbidden response
      */
-    private function forbidden(Request $request)
+    private function forbidden(Request $request): Response
     {
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Permission\Traits\HasRoles;
 
 class PaymentMethod extends Model
@@ -27,17 +28,9 @@ class PaymentMethod extends Model
     |--------------------------------------------------------------------------
     */
     /**
-     * Many-to-many relationship with invoices
-     */
-    public function invoices()
-    {
-        return $this->belongsToMany('App\Models\Invoice', 'invoices');
-    }
-
-    /**
      * Get the expenses in this payment method.
      */
-    public function expenses()
+    public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class, 'payment_method_id');
     }

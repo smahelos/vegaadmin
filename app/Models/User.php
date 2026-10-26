@@ -6,6 +6,7 @@ use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -65,7 +66,7 @@ class User extends Authenticatable
     /**
      * Get the invoices associated with the user through clients
      */
-    public function invoices()
+    public function invoices(): HasManyThrough
     {
         return $this->hasManyThrough(Invoice::class, Client::class);
     }
@@ -97,7 +98,7 @@ class User extends Authenticatable
     /**
      * Get user's active subscription
      */
-    public function activeSubscription()
+    public function activeSubscription(): ?Subscription
     {
         return $this->subscriptions()->where('status', 'active')->first();
     }
@@ -151,7 +152,7 @@ class User extends Authenticatable
     /**
      * Get preferred locale of the user
      */
-    public function preferredLocale()
+    public function preferredLocale(): string
     {
         return $this->getPreferredLocale();
     }

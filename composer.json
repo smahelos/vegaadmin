@@ -34,7 +34,8 @@
         "nunomaduro/collision": "^8.6",
         "phpunit/phpunit": "^11.5.3",
         "slevomat/coding-standard": "^8.31",
-        "squizlabs/php_codesniffer": "^4.0"
+        "squizlabs/php_codesniffer": "^4.0",
+        "tomasvotruba/type-coverage": "^2.5"
     },
     "autoload": {
         "files": [

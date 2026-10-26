@@ -227,7 +227,7 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
 
         // Mock exception
         Http::fake([
-            'open.er-api.com/*' => function () {
+            'open.er-api.com/*' => function (): void {
                 throw new \Exception('Connection timeout');
             },
         ]);
@@ -326,7 +326,7 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     {
         // Mock API timeout
         Http::fake([
-            'open.er-api.com/*' => function () {
+            'open.er-api.com/*' => function (): void {
                 throw new \Exception('Connection timeout');
             },
         ]);

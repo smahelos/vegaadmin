@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\UploadedFile;
 
 class Page extends Model
 {
@@ -54,11 +55,11 @@ class Page extends Model
     /**
      * Boot method - handle auto sorting and published_by assignment
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
-        static::creating(function ($page) {
+        static::creating(function ($page): void {
             // Auto-assign sort_order if not provided
             if (is_null($page->sort_order)) {
                 $maxOrder = static::where('parent_id', $page->parent_id)
@@ -73,7 +74,7 @@ class Page extends Model
             }
         });
 
-        static::updating(function ($page) {
+        static::updating(function ($page): void {
             // Auto-assign published_by if published and not already set
             if ($page->published && ! $page->published_by && auth()->check()) {
                 $page->published_by = auth()->id();
@@ -321,7 +322,7 @@ class Page extends Model
     /**
      * Handle main_image upload
      */
-    public function setMainImageAttribute($value)
+    public function setMainImageAttribute(UploadedFile|string|null $value): void
     {
         $this->handleFileUpload(
             'main_image',
@@ -352,7 +353,7 @@ class Page extends Model
     /**
      * Handle images (gallery) upload
      */
-    public function setImagesAttribute($value)
+    public function setImagesAttribute(UploadedFile|string|null $value): void
     {
         $this->handleFileUpload(
             'images',
@@ -420,7 +421,7 @@ class Page extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('published', true)
-            ->where(function ($q) {
+            ->where(function ($q): void {
                 $q->where(
                     'publishing_start',
                     '<=',
@@ -428,7 +429,7 @@ class Page extends Model
                 )
                     ->orWhereNull('publishing_start');
             })
-            ->where(function ($q) {
+            ->where(function ($q): void {
                 $q->where(
                     'publishing_end',
                     '>=',
@@ -441,7 +442,7 @@ class Page extends Model
     /**
      * Scope for pages by category
      */
-    public function scopeByCategory(Builder $query, $categoryId): Builder
+    public function scopeByCategory(Builder $query, int $categoryId): Builder
     {
         return $query->where('category_id', $categoryId);
     }
@@ -498,10 +499,8 @@ class Page extends Model
 
     /**
      * Get URL to the receipt file
-     *
-     * @return string|null
      */
-    public function getFileUrl(string $attribute = 'pages', $index = null)
+    public function getFileUrl(string $attribute = 'pages', ?int $index = null): ?string
     {
         return $this->getAttributeFileUrl($attribute, $index);
     }

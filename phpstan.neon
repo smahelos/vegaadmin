@@ -1,5 +1,6 @@
 includes:
     - vendor/larastan/larastan/extension.neon
+    - vendor/tomasvotruba/type-coverage/config/extension.neon
 
 parameters:
     level: 1
@@ -7,3 +8,11 @@ parameters:
         - app/
         - database/
         - tests/
+    # Every own property has a native type (.claude/rules/php.md, Types); properties declared by a parent
+    # class (Eloquent $fillable, Command $signature, ...) are not counted. Return and parameter types are
+    # enforced by PHP_CodeSniffer (phpcs.xml), typed class constants need PHP 8.3.
+    type_coverage:
+        property: 100
+        return: 0
+        param: 0
+        constant: 0

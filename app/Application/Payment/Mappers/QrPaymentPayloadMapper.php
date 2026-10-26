@@ -45,7 +45,7 @@ class QrPaymentPayloadMapper
      *
      * @param  mixed  $data  Invoice-like object or array
      */
-    public function fromArray($data): QrPaymentPayload
+    public function fromArray(mixed $data): QrPaymentPayload
     {
         // Safely extract properties from object or array
         $amount = $this->safeGetProperty($data, 'payment_amount') ?? 0;
@@ -69,10 +69,9 @@ class QrPaymentPayloadMapper
      * Safely get property from object or array without triggering errors
      *
      * @param  mixed  $object  Invoice object or array
-     * @param  string  $property  Property name
      * @return mixed Property value or null
      */
-    private function safeGetProperty($object, string $property): mixed
+    private function safeGetProperty(mixed $object, string $property): mixed
     {
         // Check object properties
         if (is_object($object)) {

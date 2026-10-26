@@ -16,6 +16,8 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 
 class ProductCrudController extends CrudController
 {
@@ -66,7 +68,7 @@ class ProductCrudController extends CrudController
                 'label' => __('products.filters.active_only'),
             ],
             false,
-            function () {
+            function (): void {
                 CRUD::addClause(
                     'where',
                     'is_active',
@@ -81,7 +83,7 @@ class ProductCrudController extends CrudController
             ->values(
                 User::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'user_id',
@@ -95,7 +97,7 @@ class ProductCrudController extends CrudController
             ->values(
                 Supplier::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value) {
+            ->whenActive(function ($value): void {
                 CRUD::addClause(
                     'where',
                     'supplier_id',
@@ -267,7 +269,7 @@ class ProductCrudController extends CrudController
     /**
      * Override store only for user assignment; usage recorded by ProductObserver.
      */
-    public function store()
+    public function store(): JsonResponse|RedirectResponse
     {
         $this->beforeEntityStore();
 

@@ -136,7 +136,7 @@ class PaymentApplicationServiceFeatureTest extends TestCase
         $this->app->bind(QrPaymentServiceInterface::class, function () {
             return new class implements QrPaymentServiceInterface
             {
-                public function generateQrCodeBase64($invoice): ?string
+                public function generateQrCodeBase64(QrPaymentPayload $payload): ?string
                 {
                     return null;
                 }
@@ -144,16 +144,6 @@ class PaymentApplicationServiceFeatureTest extends TestCase
                 public function hasRequiredPaymentInfo(QrPaymentPayload $payload): bool
                 {
                     return false;
-                }
-
-                public function generateQrStringForCountry($invoice, string $countryCode): ?string
-                {
-                    return null;
-                }
-
-                public function getSupportedCountries(): array
-                {
-                    return [];
                 }
             };
         });

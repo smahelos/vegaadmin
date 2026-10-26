@@ -67,7 +67,6 @@ interface CacheServiceInterface
     /**
      * Build a standardized user-related key (namespaced by user id).
      *
-     * @param  int  $userId  ID of the user.
      * @param  string  $suffix  Suffix describing cached content.
      * @return string Generated cache key (e.g. user_15_profile_stats).
      */

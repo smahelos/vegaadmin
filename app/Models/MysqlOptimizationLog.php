@@ -40,20 +40,4 @@ class MysqlOptimizationLog extends Model
     protected $casts = [
         'applied' => 'boolean',
     ];
-
-    /**
-     * Scope for high priority items
-     */
-    public function scopeHighPriority($query)
-    {
-        return $query->where('priority', 'high');
-    }
-
-    /**
-     * Scope for unapplied items
-     */
-    public function scopeUnapplied($query)
-    {
-        return $query->where('applied', false);
-    }
 }

@@ -60,7 +60,7 @@ class RequireBackpackApiAccess
     /**
      * Return unauthorized response
      */
-    private function unauthorized(Request $request)
+    private function unauthorized(Request $request): Response
     {
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
@@ -75,7 +75,7 @@ class RequireBackpackApiAccess
     /**
      * Return forbidden response
      */
-    private function forbidden(Request $request)
+    private function forbidden(Request $request): Response
     {
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([

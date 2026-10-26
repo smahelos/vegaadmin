@@ -28,7 +28,7 @@ class DatabaseHealthCheckCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
         $this->info('🏥 Starting database health check...');
 
@@ -71,7 +71,7 @@ class DatabaseHealthCheckCommand extends Command
     /**
      * Collect various health metrics
      */
-    private function collectHealthMetrics()
+    private function collectHealthMetrics(): array
     {
         $metrics = [];
 
@@ -161,7 +161,7 @@ class DatabaseHealthCheckCommand extends Command
     /**
      * Create alert for critical metrics
      */
-    private function createAlert($metric)
+    private function createAlert(array $metric): void
     {
         $severity = $metric['status'] === 'critical' ? 'critical' : 'warning';
 
@@ -183,7 +183,7 @@ class DatabaseHealthCheckCommand extends Command
     /**
      * Get status icon for display
      */
-    private function getStatusIcon($status)
+    private function getStatusIcon(string $status): string
     {
         return match ($status) {
             'good' => '✅',

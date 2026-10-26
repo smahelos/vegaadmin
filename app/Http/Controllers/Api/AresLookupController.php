@@ -12,10 +12,8 @@ class AresLookupController extends Controller
 {
     /**
      * Lookup company information using ICO in ARES API
-     *
-     * @return JsonResponse
      */
-    public function lookup(Request $request)
+    public function lookup(Request $request): JsonResponse
     {
         $ico = $request->query('ico');
 

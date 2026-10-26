@@ -86,55 +86,6 @@ class CronTaskFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_frequency_name_attribute_works(): void
-    {
-        $dailyTask = CronTask::factory()->daily()->create();
-        $weeklyTask = CronTask::factory()->weekly()->create();
-        $monthlyTask = CronTask::factory()->monthly()->create();
-        $customTask = CronTask::factory()->custom()->create();
-
-        // These will return translation keys or fallback to original value
-        $this->assertIsString($dailyTask->getFrequencyNameAttribute());
-        $this->assertIsString($weeklyTask->getFrequencyNameAttribute());
-        $this->assertIsString($monthlyTask->getFrequencyNameAttribute());
-        $this->assertIsString($customTask->getFrequencyNameAttribute());
-
-        // Test accessor via magic method
-        $this->assertIsString($dailyTask->frequency_name);
-    }
-
-    #[Test]
-    public function get_day_of_week_name_attribute_works(): void
-    {
-        $mondayTask = CronTask::factory()->weekly()->create(['day_of_week' => 1]);
-        $fridayTask = CronTask::factory()->weekly()->create(['day_of_week' => 5]);
-        $nullTask = CronTask::factory()->daily()->create(['day_of_week' => null]);
-
-        $this->assertIsString($mondayTask->getDayOfWeekNameAttribute());
-        $this->assertIsString($fridayTask->getDayOfWeekNameAttribute());
-        $this->assertNull($nullTask->getDayOfWeekNameAttribute());
-
-        // Test accessor via magic method
-        $this->assertIsString($mondayTask->day_of_week_name);
-    }
-
-    #[Test]
-    public function get_formatted_run_at_attribute_works(): void
-    {
-        $taskWithTime = CronTask::factory()->daily()->create(['run_at' => '15:30:00']);
-        $taskWithoutTime = CronTask::factory()->custom()->create(['run_at' => null]);
-
-        $this->assertIsString($taskWithTime->getFormattedRunAtAttribute());
-        $this->assertStringContainsString('15:30', $taskWithTime->getFormattedRunAtAttribute());
-        $this->assertNull($taskWithoutTime->getFormattedRunAtAttribute());
-
-        // Test accessor via magic method - run_at is Carbon object, formatted_run_at is string
-        $this->assertInstanceOf(Carbon::class, $taskWithTime->run_at);
-        $this->assertIsString($taskWithTime->formatted_run_at);
-        $this->assertEquals('15:30', $taskWithTime->formatted_run_at);
-    }
-
-    #[Test]
     public function get_base_command_attribute_works(): void
     {
         $simpleCommand = CronTask::factory()->withCommand('cache:clear')->create();

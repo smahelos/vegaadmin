@@ -7,31 +7,10 @@ use Illuminate\View\View;
 
 class ResponsiveNavLink extends Component
 {
-    /**
-     * Link target URL
-     *
-     * @var string
-     */
-    public $href;
-
-    /**
-     * Whether the link is active
-     *
-     * @var bool
-     */
-    public $active;
-
-    /**
-     * Create a new component instance
-     *
-     * @param  string  $href  Link target URL
-     * @param  bool  $active  Whether link is currently active
-     */
-    public function __construct($href, $active = false)
-    {
-        $this->href = $href;
-        $this->active = $active;
-    }
+    public function __construct(
+        public string $href,
+        public bool $active = false,
+    ) {}
 
     /**
      * Render the responsive nav link component

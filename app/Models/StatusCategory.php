@@ -5,6 +5,7 @@ namespace App\Models;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class StatusCategory extends Model
@@ -40,7 +41,7 @@ class StatusCategory extends Model
     /**
      * Get all statuses in this category
      */
-    public function statuses()
+    public function statuses(): HasMany
     {
         return $this->hasMany(Status::class, 'category_id');
     }
@@ -65,7 +66,7 @@ class StatusCategory extends Model
     /**
      * Ensure slug is properly formatted
      */
-    public function setSlugAttribute($value)
+    public function setSlugAttribute(?string $value): void
     {
         $this->attributes['slug'] = Str::slug($value ?: $this->name);
     }

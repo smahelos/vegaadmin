@@ -90,7 +90,7 @@ class UELSPermissionChangeListener implements ShouldQueue
     /**
      * Clear cache for the affected user
      */
-    private function clearUserCache($event): void
+    private function clearUserCache(PermissionAttached|PermissionDetached|RoleAttached|RoleDetached $event): void
     {
         // Check if the model is a User model (not Role)
         if ($event->model instanceof User && $event->model->id) {
@@ -101,7 +101,7 @@ class UELSPermissionChangeListener implements ShouldQueue
     /**
      * Entry point for Laravel event dispatcher
      */
-    public function handle($event): void
+    public function handle(PermissionAttached|PermissionDetached|RoleAttached|RoleDetached $event): void
     {
         switch (get_class($event)) {
             case PermissionAttached::class:

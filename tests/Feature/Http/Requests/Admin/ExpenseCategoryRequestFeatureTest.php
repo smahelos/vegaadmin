@@ -29,7 +29,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $validData = [
             'name' => 'Test Category',
@@ -46,7 +46,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $invalidData = [];
 
@@ -59,7 +59,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_short_name()
+    public function validation_fails_with_short_name(): void
     {
         $invalidData = [
             'name' => 'A',
@@ -74,7 +74,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_long_name()
+    public function validation_fails_with_long_name(): void
     {
         $invalidData = [
             'name' => str_repeat('a', 256),
@@ -89,7 +89,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_duplicate_slug()
+    public function validation_fails_with_duplicate_slug(): void
     {
         ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
 
@@ -106,7 +106,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_same_slug_for_update()
+    public function validation_passes_with_same_slug_for_update(): void
     {
         $category = ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
 
@@ -124,7 +124,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_minimal_required_data()
+    public function validation_passes_with_minimal_required_data(): void
     {
         $validData = [
             'name' => 'Minimal Category',
@@ -138,7 +138,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_boolean_is_active()
+    public function validation_fails_with_invalid_boolean_is_active(): void
     {
         $invalidData = [
             'name' => 'Test Category',
@@ -154,7 +154,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_boolean_values_for_is_active()
+    public function validation_passes_with_boolean_values_for_is_active(): void
     {
         $validData1 = [
             'name' => 'Test Category',
@@ -178,7 +178,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_without_permission()
+    public function authorization_fails_without_permission(): void
     {
         // Create user without permission for this specific test
         $userWithoutPermission = User::factory()->create();
@@ -189,14 +189,14 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_when_not_authenticated()
+    public function authorization_fails_when_not_authenticated(): void
     {
         $request = new ExpenseCategoryRequest;
         $this->assertFalse($request->authorize());
     }
 
     #[Test]
-    public function authorization_passes_with_correct_permission()
+    public function authorization_passes_with_correct_permission(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
 
@@ -205,7 +205,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function request_has_custom_attributes()
+    public function request_has_custom_attributes(): void
     {
         $request = new ExpenseCategoryRequest;
         $attributes = $request->attributes();
@@ -218,7 +218,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_too_long_color()
+    public function validation_fails_with_too_long_color(): void
     {
         $invalidData = [
             'name' => 'Test Category',

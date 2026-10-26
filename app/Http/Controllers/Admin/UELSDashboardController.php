@@ -7,9 +7,12 @@ use App\Models\EntityLimit;
 use App\Models\EntityLimitUsage;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Class UELSDashboardController
@@ -20,7 +23,7 @@ class UELSDashboardController extends CrudController
     /**
      * Show the UELS dashboard
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         // Check permissions
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
@@ -213,7 +216,7 @@ class UELSDashboardController extends CrudController
     /**
      * Get limit analysis for specific user (AJAX endpoint)
      */
-    public function getUserLimitAnalysis(Request $request)
+    public function getUserLimitAnalysis(Request $request): JsonResponse
     {
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -287,7 +290,7 @@ class UELSDashboardController extends CrudController
     /**
      * Bulk reset usage (AJAX endpoint)
      */
-    public function bulkResetUsage(Request $request)
+    public function bulkResetUsage(Request $request): JsonResponse
     {
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -388,7 +391,7 @@ class UELSDashboardController extends CrudController
     /**
      * Export usage data (CSV)
      */
-    public function exportUsageData(Request $request)
+    public function exportUsageData(Request $request): StreamedResponse
     {
         if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
             abort(403, 'Unauthorized action.');
@@ -443,7 +446,7 @@ class UELSDashboardController extends CrudController
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $callback = function () use ($usages) {
+        $callback = function () use ($usages): void {
             $file = fopen('php://output', 'w');
 
             // CSV header

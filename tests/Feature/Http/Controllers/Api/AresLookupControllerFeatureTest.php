@@ -92,7 +92,7 @@ class AresLookupControllerFeatureTest extends TestCase
     public function exception_returns_general_error(): void
     {
         Http::fake([
-            'https://ares.gov.cz/*' => function () {
+            'https://ares.gov.cz/*' => function (): void {
                 throw new \Exception('Boom');
             },
         ]);

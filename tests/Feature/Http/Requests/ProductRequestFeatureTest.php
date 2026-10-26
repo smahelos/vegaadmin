@@ -128,7 +128,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_data()
+    public function validation_passes_with_valid_data(): void
     {
         $request = new ProductRequest;
         $validator = Validator::make($this->validProductData, $request->rules());
@@ -138,7 +138,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function slug_generation_during_validation_preparation()
+    public function slug_generation_during_validation_preparation(): void
     {
         $data = $this->validProductData;
         $data['name'] = 'Test Product Name';
@@ -162,7 +162,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_required_fields_missing()
+    public function validation_fails_when_required_fields_missing(): void
     {
         $requiredFields = [
             'name',
@@ -183,7 +183,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_price_values()
+    public function validation_fails_with_invalid_price_values(): void
     {
         $invalidPrices = [
             'not-a-number',
@@ -205,7 +205,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_currency_values()
+    public function validation_fails_with_invalid_currency_values(): void
     {
         $invalidCurrencies = [
             'GBP',
@@ -228,7 +228,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_currency_values()
+    public function validation_passes_with_valid_currency_values(): void
     {
         $validCurrencies = [
             'CZK',
@@ -248,7 +248,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_string_fields_exceed_max_length()
+    public function validation_fails_when_string_fields_exceed_max_length(): void
     {
         $fieldsWithMaxLength = [
             'name' => 256,      // max:255
@@ -268,7 +268,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_when_name_is_too_short()
+    public function validation_fails_when_name_is_too_short(): void
     {
         $data = $this->validProductData;
         $data['name'] = 'a'; // Less than min:2
@@ -281,7 +281,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_nullable_fields_empty()
+    public function validation_passes_with_nullable_fields_empty(): void
     {
         $nullableFields = [
             'slug',
@@ -303,7 +303,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_boolean_values()
+    public function validation_fails_with_invalid_boolean_values(): void
     {
         $invalidBooleans = [
             'invalid',
@@ -329,7 +329,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_valid_boolean_values()
+    public function validation_passes_with_valid_boolean_values(): void
     {
         $validBooleans = [
             true,
@@ -355,7 +355,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function foreign_key_validation()
+    public function foreign_key_validation(): void
     {
         // Test invalid tax_id
         $data = $this->validProductData;
@@ -378,7 +378,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function image_upload_validation()
+    public function image_upload_validation(): void
     {
         Storage::fake('public');
 
@@ -412,7 +412,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_with_authenticated_user_via_http()
+    public function authorization_with_authenticated_user_via_http(): void
     {
         $this->actingAs($this->user);
 
@@ -427,7 +427,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_fails_with_unauthenticated_user_via_http()
+    public function authorization_fails_with_unauthenticated_user_via_http(): void
     {
         // Don't authenticate user
         $request = Request::create(
@@ -441,7 +441,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function slug_uniqueness_validation()
+    public function slug_uniqueness_validation(): void
     {
         // Create a product of the user with a specific slug
         Product::factory()->create([
@@ -462,7 +462,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_with_actual_http_request()
+    public function validation_with_actual_http_request(): void
     {
         $this->actingAs($this->user);
 
@@ -478,7 +478,7 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function custom_attributes_are_applied()
+    public function custom_attributes_are_applied(): void
     {
         $data = []; // Empty data to trigger validation errors
 

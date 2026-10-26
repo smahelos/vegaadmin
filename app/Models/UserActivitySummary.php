@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -81,54 +82,16 @@ class UserActivitySummary extends Model
     /**
      * Get the primary key for the model.
      * Using user_id as primary key for this view
-     *
-     * @return string
      */
-    public function getKeyName()
+    public function getKeyName(): string
     {
         return 'user_id';
     }
 
     /**
-     * Scope for users with recent activity (invoices in last 30 days)
-     */
-    public function scopeWithRecentActivity($query)
-    {
-        return $query->where(
-            'invoices_last_30_days',
-            '>',
-            0,
-        );
-    }
-
-    /**
-     * Scope for users with high activity (more than 20 invoices in last 30 days)
-     */
-    public function scopeHighActivity($query)
-    {
-        return $query->where(
-            'invoices_last_30_days',
-            '>',
-            20,
-        );
-    }
-
-    /**
-     * Scope for inactive users (no invoices in last 30 days)
-     */
-    public function scopeInactive($query)
-    {
-        return $query->where(
-            'invoices_last_30_days',
-            '=',
-            0,
-        );
-    }
-
-    /**
      * Get activity level as string
      */
-    public function getActivityLevelAttribute()
+    public function getActivityLevelAttribute(): string
     {
         if ($this->invoices_last_30_days >= 20) {
             return 'high';
@@ -144,7 +107,7 @@ class UserActivitySummary extends Model
     /**
      * Get activity level badge class
      */
-    public function getActivityBadgeClassAttribute()
+    public function getActivityBadgeClassAttribute(): string
     {
         return match ($this->activity_level) {
             'high' => 'success',
@@ -158,7 +121,7 @@ class UserActivitySummary extends Model
     /**
      * Get formatted activity level text
      */
-    public function getFormattedActivityLevelAttribute()
+    public function getFormattedActivityLevelAttribute(): string
     {
         return match ($this->activity_level) {
             'high' => __('admin.user_activity.high_activity'),
@@ -172,7 +135,7 @@ class UserActivitySummary extends Model
     /**
      * Get relationship to User model
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }

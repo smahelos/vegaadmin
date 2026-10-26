@@ -31,11 +31,11 @@ class SubscriptionPlanFeature extends Model
     /**
      * Boot the model
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
-        static::creating(function ($model) {
+        static::creating(function ($model): void {
             if (empty($model->slug)) {
                 $model->slug = $model->generateSlug($model->name);
             }
@@ -51,22 +51,6 @@ class SubscriptionPlanFeature extends Model
             SubscriptionPlan::class,
             'subscription_plan_subscription_plan_feature',
         );
-    }
-
-    /**
-     * Scope for active features
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope for ordered features
-     */
-    public function scopeOrdered($query)
-    {
-        return $query->orderBy('sort_order')->orderBy('name');
     }
 
     /**

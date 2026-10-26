@@ -63,7 +63,7 @@ class ApiAuthenticationTest extends TestCase
     }
 
     #[Test]
-    public function frontend_user_can_access_frontend_api()
+    public function frontend_user_can_access_frontend_api(): void
     {
         // Create frontend user with role
         $user = User::factory()->create();
@@ -78,7 +78,7 @@ class ApiAuthenticationTest extends TestCase
     }
 
     #[Test]
-    public function admin_user_can_access_all_apis()
+    public function admin_user_can_access_all_apis(): void
     {
         // Create admin user with role
         $user = User::factory()->create();
@@ -93,7 +93,7 @@ class ApiAuthenticationTest extends TestCase
     }
 
     #[Test]
-    public function guard_separation_is_enforced()
+    public function guard_separation_is_enforced(): void
     {
         // Create users with different guards
         $backpackUser = User::factory()->create();
@@ -114,7 +114,7 @@ class ApiAuthenticationTest extends TestCase
     }
 
     #[Test]
-    public function role_permissions_are_correctly_assigned()
+    public function role_permissions_are_correctly_assigned(): void
     {
         $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $backendUserRole = Role::where('name', 'backend_user')->where('guard_name', 'backpack')->first();

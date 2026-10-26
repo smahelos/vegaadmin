@@ -10,16 +10,16 @@ class Role extends BaseRole
     /**
      * Boot method to clear cache when Role is saved/deleted
      */
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
 
         // Clear cache when Role is saved or deleted
-        static::saved(function () {
+        static::saved(function (): void {
             Artisan::call('cache:clear');
         });
 
-        static::deleted(function () {
+        static::deleted(function (): void {
             Artisan::call('cache:clear');
         });
     }

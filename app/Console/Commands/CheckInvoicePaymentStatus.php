@@ -33,7 +33,7 @@ class CheckInvoicePaymentStatus extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ClockInterface $clock)
+    public function handle(ClockInterface $clock): int
     {
         $daysBefore = (int) $this->option('days-before');
         $daysAfter = (int) $this->option('days-after');
@@ -54,7 +54,7 @@ class CheckInvoicePaymentStatus extends Command
         try {
             // 1. Invoices that are due in the next X days
             // Get all unpaid invoices and filter by due date in PHP (database-agnostic)
-            $upcomingDueInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses) {
+            $upcomingDueInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses): void {
                 $query->whereIn('slug', $unpaidStatuses);
             })
                 ->get()
@@ -66,7 +66,7 @@ class CheckInvoicePaymentStatus extends Command
             }
 
             // 2. invoices that are due today
-            $dueTodayInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses) {
+            $dueTodayInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses): void {
                 $query->whereIn('slug', $unpaidStatuses);
             })
                 ->get()
@@ -78,7 +78,7 @@ class CheckInvoicePaymentStatus extends Command
             }
 
             // 3. Invoices that are overdue (e.g. 1 day after due date)
-            $overdueInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses) {
+            $overdueInvoices = Invoice::whereHas('paymentStatus', function ($query) use ($unpaidStatuses): void {
                 $query->whereIn('slug', $unpaidStatuses);
             })
                 ->get()
@@ -104,7 +104,7 @@ class CheckInvoicePaymentStatus extends Command
     /**
      * Send reminder for upcoming due invoice
      */
-    private function sendUpcomingReminder(Invoice $invoice, DateTimeImmutable $today)
+    private function sendUpcomingReminder(Invoice $invoice, DateTimeImmutable $today): void
     {
         // Get the invoice with its relations
         $invoice->load(['supplier', 'client']);
@@ -141,7 +141,7 @@ class CheckInvoicePaymentStatus extends Command
     /**
      * Send reminder for invoice due today
      */
-    private function sendDueTodayReminder(Invoice $invoice)
+    private function sendDueTodayReminder(Invoice $invoice): void
     {
         // Get the invoice with its relations
         $invoice->load(['supplier', 'client']);
@@ -176,7 +176,7 @@ class CheckInvoicePaymentStatus extends Command
     /**
      * Send reminder for overdue invoice
      */
-    private function sendOverdueReminder(Invoice $invoice, DateTimeImmutable $today)
+    private function sendOverdueReminder(Invoice $invoice, DateTimeImmutable $today): void
     {
         // Get the invoice with its relations
         $invoice->load(['supplier', 'client']);

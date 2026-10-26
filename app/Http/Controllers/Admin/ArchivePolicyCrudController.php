@@ -26,7 +26,7 @@ class ArchivePolicyCrudController extends CrudController
     /**
      * Configure the CrudPanel object
      */
-    public function setup()
+    public function setup(): void
     {
         CRUD::setModel(ArchivePolicy::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/archive-policy');
@@ -39,7 +39,7 @@ class ArchivePolicyCrudController extends CrudController
     /**
      * Define what happens when the List operation is loaded
      */
-    protected function setupListOperation()
+    protected function setupListOperation(): void
     {
         CRUD::column('table_name')
             ->label(__('admin/database.archive_policies.fields.table_name'))
@@ -66,7 +66,7 @@ class ArchivePolicyCrudController extends CrudController
     /**
      * Define what happens when the Create operation is loaded
      */
-    protected function setupCreateOperation()
+    protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ArchivePolicyRequest::class);
 
@@ -118,7 +118,7 @@ class ArchivePolicyCrudController extends CrudController
     /**
      * Define what happens when the Update operation is loaded
      */
-    protected function setupUpdateOperation()
+    protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
     }
@@ -126,7 +126,7 @@ class ArchivePolicyCrudController extends CrudController
     /**
      * Define what happens when the Show operation is loaded
      */
-    protected function setupShowOperation()
+    protected function setupShowOperation(): void
     {
         $this->setupListOperation();
 

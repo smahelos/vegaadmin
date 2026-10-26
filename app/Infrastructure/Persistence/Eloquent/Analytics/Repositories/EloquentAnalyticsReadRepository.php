@@ -48,7 +48,7 @@ class EloquentAnalyticsReadRepository implements AnalyticsReadRepository
     public function getClientsWithTotals(int $userId): array
     {
         $clients = Client::where('user_id', $userId)
-            ->with(['invoices' => function ($query) {
+            ->with(['invoices' => function ($query): void {
                 $query->select('client_id', DB::raw('SUM(payment_amount) as total'))
                     ->groupBy('client_id');
             }])
