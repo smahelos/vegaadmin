@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Client;
 use App\Models\EntityLimit;
 use App\Models\Invoice;
@@ -51,8 +53,8 @@ class InvoiceLogoUploadTest extends TestCase
         }
 
         // Create related models
-        $this->paymentMethod = PaymentMethod::factory()->create();
-        $this->paymentStatus = Status::factory()->create();
+        $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
+        $this->paymentStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
         $this->supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
         $this->client = Client::factory()->create(['user_id' => $this->user->id]);
 
@@ -104,6 +106,7 @@ class InvoiceLogoUploadTest extends TestCase
                 'tax_rate' => '0',
             ]]),
             'issue_date' => now()->toDateString(),
+            'tax_point_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Test invoice description',
             'invoice_logo' => $logoFile,
@@ -156,6 +159,7 @@ class InvoiceLogoUploadTest extends TestCase
                 'tax_rate' => '0',
             ]]),
             'issue_date' => now()->toDateString(),
+            'tax_point_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Test invoice description',
             'invoice_logo' => $invalidFile,
@@ -196,6 +200,7 @@ class InvoiceLogoUploadTest extends TestCase
                 'tax_rate' => '0',
             ]]),
             'issue_date' => now()->toDateString(),
+            'tax_point_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Test invoice description',
             'invoice_logo' => $oversizedFile,
@@ -245,6 +250,7 @@ class InvoiceLogoUploadTest extends TestCase
                 'tax_rate' => '0',
             ]]),
             'issue_date' => now()->toDateString(),
+            'tax_point_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Updated invoice description',
             'invoice_logo' => $newLogoFile,
@@ -286,6 +292,7 @@ class InvoiceLogoUploadTest extends TestCase
                 'tax_rate' => '0',
             ]]),
             'issue_date' => now()->toDateString(),
+            'tax_point_date' => now()->toDateString(),
             'due_in' => 30,
             'invoice_text' => 'Test invoice without logo',
             // No invoice_logo field

@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Money\Enums\Currency;
@@ -374,7 +375,7 @@ final class DevelopmentDataSeeder extends Seeder
                         'client_id' => $client->id,
                         'supplier_id' => $supplier->id,
                         'payment_method_id' => $paymentMethods[$this->random->getInt(0, count($paymentMethods) - 1)],
-                        'payment_status_id' => $this->statusId('invoice-statuses', $this->invoiceStatus($issueDate, $today)),
+                        'payment_status_id' => $this->statusId('invoice-statuses', $this->invoiceStatus($issueDate, $today)->value),
                         'payment_currency' => $currency->value,
                     ],
                     $this->invoiceLines($products, $currency),
@@ -416,20 +417,23 @@ final class DevelopmentDataSeeder extends Seeder
         return $lines;
     }
 
-    private function invoiceStatus(DateTimeImmutable $issueDate, DateTimeImmutable $today): string
+    /**
+     * Unpaid invoices past their due date show as overdue.
+     */
+    private function invoiceStatus(DateTimeImmutable $issueDate, DateTimeImmutable $today): InvoiceStatus
     {
         $dueDate = $issueDate->modify('+' . self::DUE_IN_DAYS . ' days');
         $roll = $this->random->getInt(1, 100);
 
         if ($dueDate >= $today) {
-            return $roll <= 30 ? 'paid' : 'pending';
+            return $roll <= 30 ? InvoiceStatus::PAID : InvoiceStatus::PENDING;
         }
 
         return match (true) {
-            $roll <= 75 => 'paid',
-            $roll <= 85 => 'partially-paid',
-            $roll <= 95 => 'overdue',
-            default => 'cancelled',
+            $roll <= 75 => InvoiceStatus::PAID,
+            $roll <= 85 => InvoiceStatus::PARTIALLY_PAID,
+            $roll <= 95 => InvoiceStatus::PENDING,
+            default => InvoiceStatus::CANCELLED,
         };
     }
 

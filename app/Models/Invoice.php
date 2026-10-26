@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,31 +53,6 @@ class Invoice extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
-    /**
-     * Many-to-many relationship with clients
-     */
-    public function clients()
-    {
-        return $this->belongsToMany('App\Models\Client', 'clients');
-    }
-
-    /**
-     * Many-to-many relationship with suppliers
-     */
-    public function suppliers()
-    {
-        return $this->belongsToMany('App\Models\Supplier', 'suppliers');
-    }
-
-    /**
-     * Many-to-many relationship with statuses
-     */
-    public function statuses()
-    {
-        return $this->belongsToMany('App\Models\Status', 'statuses')
-            ->withPivot('name', 'slug');
-    }
-
     /**
      * Get the client associated with the invoice
      */
@@ -155,24 +131,6 @@ class Invoice extends Model
     |--------------------------------------------------------------------------
     */
     /**
-     * Legacy alias for backward compatibility with code using paymentMethods()
-     *
-     * @return Collection
-     */
-    public function paymentMethods()
-    {
-        if ($this->relationLoaded('paymentMethod') && $this->paymentMethod) {
-            return collect([$this->paymentMethod]);
-        } elseif ($this->payment_method_id) {
-            $paymentMethod = $this->paymentMethod()->first();
-
-            return collect([$paymentMethod]);
-        }
-
-        return collect([]);
-    }
-
-    /**
      * Get translated payment status name
      *
      * @return string
@@ -215,41 +173,45 @@ class Invoice extends Model
      */
     public function getStatusColorClassAttribute()
     {
-        if (! $this->paymentStatus) {
-            return 'gray';
-        }
+        return $this->paymentStatus?->color ?: 'gray';
+    }
 
-        // Prioritize color from database if exists
-        if ($this->paymentStatus->color) {
-            return $this->paymentStatus->color;
-        }
+    protected function dueDate(): Attribute
+    {
+        return Attribute::get(function (): ?CarbonImmutable {
+            if ($this->issue_date === null || $this->due_in === null) {
+                return null;
+            }
+            $dueDate = InvoiceDueDate::fromIssueDateAndDays($this->issue_date->toDateTimeImmutable(), $this->due_in);
 
-        $colorMap = [
-            'paid' => 'green',
-            'pending' => 'yellow',
-            'overdue' => 'red',
-            'partially_paid' => 'blue',
-            'canceled' => 'gray',
-            'unknown' => 'gray',
-        ];
+            return CarbonImmutable::instance($dueDate->date());
+        });
+    }
 
-        $slug = $this->getPaymentStatusSlugAttribute();
-
-        return $colorMap[$slug] ?? 'gray';
+    protected function paid(): Attribute
+    {
+        return Attribute::get(fn (): bool => $this->invoiceStatus() === InvoiceStatus::PAID);
     }
 
     /**
-     * Calculate due date based on issue date and due days
-     *
-     * @return Carbon|null
+     * Overdue is not stored: an unpaid invoice turns overdue the day after its due date.
      */
-    public function getDueDateAttribute()
+    protected function overdue(): Attribute
     {
-        if ($this->issue_date && $this->due_in) {
-            return Carbon::parse($this->issue_date)->addDays($this->due_in);
-        }
+        return Attribute::get(function (): bool {
+            $status = $this->invoiceStatus();
+            if ($status === null || ! $status->isUnpaid() || $this->issue_date === null || $this->due_in === null) {
+                return false;
+            }
+            $dueDate = InvoiceDueDate::fromIssueDateAndDays($this->issue_date->toDateTimeImmutable(), $this->due_in);
 
-        return null;
+            return $dueDate->daysUntil(CarbonImmutable::today()->toDateTimeImmutable()) < 0;
+        });
+    }
+
+    private function invoiceStatus(): ?InvoiceStatus
+    {
+        return InvoiceStatus::tryFrom($this->paymentStatus?->slug ?? '');
     }
 
     /*

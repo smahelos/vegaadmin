@@ -16,7 +16,7 @@
         </a>
 
         <!-- Button for marking as paid - show only if not paid -->
-        @if($invoice->payment_status_slug != 'paid')
+        @if(! $invoice->paid)
         <form method="POST" class="col-span-1 md:col-span-none inline-block"
             action="{{ route('frontend.invoice.mark-as-paid', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}">
             @csrf
@@ -106,7 +106,7 @@
                                 <div class="text-xs text-gray-500 dark:text-gray-400">{{ __('invoices.fields.due_date')
                                     }}</div>
                                 <div class="font-medium dark:text-white">{{
-                                    \Carbon\Carbon::parse($invoice->issue_date)->addDays((int)$invoice->due_in)->format(\App\Infrastructure\Shared\Support\DateHelper::format())
+                                    $invoice->due_date->format(\App\Infrastructure\Shared\Support\DateHelper::format())
                                     }}</div>
                             </div>
                         </div>

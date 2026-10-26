@@ -9,8 +9,12 @@ use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Time\Contracts\ClockInterface;
+use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
+use App\Domain\User\Contracts\Locale;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -41,7 +45,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
         $this->tempFactory = app(TemporaryInvoicePrintDataFactoryInterface::class);
         $this->invoiceDtoRepo = app(InvoiceDtoReadRepositoryInterface::class);
         // Deterministic fake for missing template scenario
-        $this->rendererMissingTemplate = new class(app(MoneyFormatterInterface::class), app(QrPaymentServiceInterface::class), app(QrPaymentPayloadMapper::class)) extends InvoicePdfRenderer
+        $this->rendererMissingTemplate = new class(app(MoneyFormatterInterface::class), app(QrPaymentServiceInterface::class), app(QrPaymentPayloadMapper::class), app(DateFormatterInterface::class), app(ClockInterface::class), app(Locale::class)) extends InvoicePdfRenderer
         {
             protected function templateFileExists(string $template): bool
             {
@@ -55,12 +59,6 @@ class InvoicePdfServiceFeatureTest extends TestCase
     // No special tearDown needed as we are not mocking DomPDF facade now
 
     #[Test]
-    public function renderer_can_be_instantiated(): void
-    {
-        $this->assertInstanceOf(InvoicePdfRenderer::class, $this->renderer);
-    }
-
-    #[Test]
     public function generate_pdf_works_with_complete_invoice_data(): void
     {
         // Create test data
@@ -72,7 +70,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
 
         $client = Client::factory()->create();
 
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
 
         $invoice = Invoice::factory()->create([
@@ -106,7 +104,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
     {
         $supplier = Supplier::factory()->create();
         $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
 
         $invoice = Invoice::factory()->create([
@@ -197,7 +195,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
         ];
 
         $printData = $this->tempFactory->fromArray($invoiceData);
-        $this->assertNotNull($printData->due_date);
+        $this->assertSame('2024-01-31', $printData->due_date?->date()->format('Y-m-d'));
         Pdf::shouldReceive('loadView')->once()->andReturnSelf();
         $this->renderer->render(
             $printData,
@@ -276,7 +274,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
         ]);
 
         $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
 
         $invoice = Invoice::factory()->create([
@@ -352,7 +350,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
     {
         $supplier = Supplier::factory()->create();
         $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
         $invoice = Invoice::factory()->create([
             'supplier_id' => $supplier->id,
@@ -402,7 +400,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
     {
         $client = Client::factory()->create();
         $supplier = Supplier::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $paymentStatus = Status::factory()->create();
         $invoice = Invoice::factory()->create([
             'client_id' => $client->id,
@@ -427,7 +425,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
     {
         $client = Client::factory()->create();
         $supplier = Supplier::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $paymentStatus = Status::factory()->create();
 
         // Create invoice with specific template
@@ -480,7 +478,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'bank_code' => '0100',
         ]);
         $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
 
         $invoice = Invoice::factory()->create([
@@ -619,7 +617,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
         // Prepare invoice with a template that our overridden service reports as missing.
         $supplier = Supplier::factory()->create();
         $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
         $invoice = Invoice::factory()->create([
             'supplier_id' => $supplier->id,
@@ -677,7 +675,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'bank_code' => '0100',
         ]);
         $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create();
         $invoice = Invoice::factory()->create([
             'supplier_id' => $supplier->id,

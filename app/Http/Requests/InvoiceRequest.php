@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\Shared\Unit\Enums\Unit;
+use App\Http\Requests\Rules\InvoiceStatusId;
 use App\Http\Requests\Rules\UniquePerUser;
 use Closure;
 use Illuminate\Contracts\Validation\Validator;
@@ -106,9 +108,12 @@ final class InvoiceRequest extends BaseEntityRequest
             'payment_method_id' => 'required|exists:payment_methods,id',
             'payment_currency' => ['required', Rule::enum(Currency::class)],
             'issue_date' => 'required|date',
-            'tax_point_date' => 'nullable|date',
-            'due_in' => 'required|integer|min:1',
-            'payment_status_id' => 'required|exists:statuses,id',
+            'tax_point_date' => 'required|date',
+            'due_in' => 'required|integer|min:1|max:' . InvoiceDueDate::MAX_DAYS,
+            'payment_status_id' => [
+                'required',
+                InvoiceStatusId::rule(),
+            ],
 
             // Issuer details
             'supplier_id' => [

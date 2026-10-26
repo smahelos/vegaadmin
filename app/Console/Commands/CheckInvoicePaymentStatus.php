@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Shared\Notifications\DTO\Recipient;
+use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Models\Invoice;
-use App\Models\Status;
-use App\Models\StatusCategory;
-use Carbon\Carbon;
+use DateTimeImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -32,23 +33,21 @@ class CheckInvoicePaymentStatus extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(ClockInterface $clock)
     {
         $daysBefore = (int) $this->option('days-before');
         $daysAfter = (int) $this->option('days-after');
-        $today = Carbon::today();
+        $today = $clock->now();
         $count = [
             'upcoming' => 0,
             'due_today' => 0,
             'overdue' => 0,
         ];
 
-        // Get statuses from database and exclude 'paid' and 'cancelled'
-        $paidStatusSlugs = ['paid', 'cancelled'];
-        $unpaidStatuses = Status::whereNotIn('slug', $paidStatusSlugs)
-            ->where('category_id', StatusCategory::where('slug', 'invoice-payment')->first()->id ?? null)
-            ->pluck('slug')
-            ->toArray();
+        $unpaidStatuses = array_map(
+            static fn (InvoiceStatus $status): string => $status->value,
+            InvoiceStatus::unpaid(),
+        );
 
         $this->info('Checking invoice for payment reminder...');
 
@@ -59,14 +58,10 @@ class CheckInvoicePaymentStatus extends Command
                 $query->whereIn('slug', $unpaidStatuses);
             })
                 ->get()
-                ->filter(function ($invoice) use ($today, $daysBefore) {
-                    $dueDate = Carbon::parse($invoice->issue_date)->addDays($invoice->due_in);
-
-                    return $dueDate->equalTo($today->copy()->addDays($daysBefore));
-                });
+                ->filter(fn (Invoice $invoice): bool => $this->dueDate($invoice)->daysUntil($today) === $daysBefore);
 
             foreach ($upcomingDueInvoices as $invoice) {
-                $this->sendUpcomingReminder($invoice);
+                $this->sendUpcomingReminder($invoice, $today);
                 $count['upcoming']++;
             }
 
@@ -75,11 +70,7 @@ class CheckInvoicePaymentStatus extends Command
                 $query->whereIn('slug', $unpaidStatuses);
             })
                 ->get()
-                ->filter(function ($invoice) use ($today) {
-                    $dueDate = Carbon::parse($invoice->issue_date)->addDays($invoice->due_in);
-
-                    return $dueDate->equalTo($today);
-                });
+                ->filter(fn (Invoice $invoice): bool => $this->dueDate($invoice)->daysUntil($today) === 0);
 
             foreach ($dueTodayInvoices as $invoice) {
                 $this->sendDueTodayReminder($invoice);
@@ -91,14 +82,10 @@ class CheckInvoicePaymentStatus extends Command
                 $query->whereIn('slug', $unpaidStatuses);
             })
                 ->get()
-                ->filter(function ($invoice) use ($today, $daysAfter) {
-                    $dueDate = Carbon::parse($invoice->issue_date)->addDays($invoice->due_in);
-
-                    return $dueDate->equalTo($today->copy()->subDays($daysAfter));
-                });
+                ->filter(fn (Invoice $invoice): bool => $this->dueDate($invoice)->daysUntil($today) === -$daysAfter);
 
             foreach ($overdueInvoices as $invoice) {
-                $this->sendOverdueReminder($invoice);
+                $this->sendOverdueReminder($invoice, $today);
                 $count['overdue']++;
             }
 
@@ -107,6 +94,8 @@ class CheckInvoicePaymentStatus extends Command
         } catch (\Exception $e) {
             $this->error('Error while checking invoices: ' . $e->getMessage());
             Log::error('Error while checking invoices: ' . $e->getMessage(), ['exception' => $e]);
+
+            return Command::FAILURE;
         }
 
         return Command::SUCCESS;
@@ -115,7 +104,7 @@ class CheckInvoicePaymentStatus extends Command
     /**
      * Send reminder for upcoming due invoice
      */
-    private function sendUpcomingReminder(Invoice $invoice)
+    private function sendUpcomingReminder(Invoice $invoice, DateTimeImmutable $today)
     {
         // Get the invoice with its relations
         $invoice->load(['supplier', 'client']);
@@ -131,7 +120,7 @@ class CheckInvoicePaymentStatus extends Command
                 $invoice,
                 recipientType: 'supplier',
                 locale: $locale,
-                daysLeft: now()->diffInDays(Carbon::parse($invoice->issue_date)->addDays($invoice->due_in), false),
+                daysLeft: $this->dueDate($invoice)->daysUntil($today),
             );
         }
 
@@ -144,7 +133,7 @@ class CheckInvoicePaymentStatus extends Command
                 $invoice,
                 recipientType: 'client',
                 locale: $locale,
-                daysLeft: now()->diffInDays(Carbon::parse($invoice->issue_date)->addDays($invoice->due_in), false),
+                daysLeft: $this->dueDate($invoice)->daysUntil($today),
             );
         }
     }
@@ -187,7 +176,7 @@ class CheckInvoicePaymentStatus extends Command
     /**
      * Send reminder for overdue invoice
      */
-    private function sendOverdueReminder(Invoice $invoice)
+    private function sendOverdueReminder(Invoice $invoice, DateTimeImmutable $today)
     {
         // Get the invoice with its relations
         $invoice->load(['supplier', 'client']);
@@ -203,7 +192,7 @@ class CheckInvoicePaymentStatus extends Command
                 $invoice,
                 recipientType: 'supplier',
                 locale: $locale,
-                daysOverdue: Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->diffInDays(now()),
+                daysOverdue: -$this->dueDate($invoice)->daysUntil($today),
             );
         }
 
@@ -216,19 +205,14 @@ class CheckInvoicePaymentStatus extends Command
                 $invoice,
                 recipientType: 'client',
                 locale: $locale,
-                daysOverdue: Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->diffInDays(now()),
+                daysOverdue: -$this->dueDate($invoice)->daysUntil($today),
             );
         }
+    }
 
-        // Actually change the status of the invoice to 'overdue'
-        if ($invoice->payment_status_slug !== 'overdue') {
-            $overdueStatus = Status::where('slug', 'overdue')->first();
-            if ($overdueStatus) {
-                $invoice->payment_status_id = $overdueStatus->id;
-                $invoice->save();
-                $this->info("Invoice status #{$invoice->invoice_vs} changed to 'overdue'");
-            }
-        }
+    private function dueDate(Invoice $invoice): InvoiceDueDate
+    {
+        return InvoiceDueDate::fromIssueDateAndDays($invoice->issue_date->toDateTimeImmutable(), $invoice->due_in);
     }
 
     /**
@@ -246,7 +230,7 @@ class CheckInvoicePaymentStatus extends Command
         $notifier = app(InvoiceReminderNotifierInterface::class);
         $payload = new InvoiceReminderPayload(
             invoiceNumber: $invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->format('Y-m-d')),
+            dueDate: $this->dueDate($invoice)->date(),
             daysLeft: $daysLeft,
             daysOverdue: $daysOverdue,
             recipientType: $recipientType,

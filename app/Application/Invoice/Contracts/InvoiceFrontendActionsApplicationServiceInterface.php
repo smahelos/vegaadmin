@@ -4,6 +4,7 @@ namespace App\Application\Invoice\Contracts;
 
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Models\User;
 
 /**
@@ -26,13 +27,10 @@ interface InvoiceFrontendActionsApplicationServiceInterface
         string $template,
     ): InvoiceActionResult;
 
-    /**
-     * Change invoice status by slug (e.g. paid, sent, canceled).
-     */
     public function changeStatus(
         int $userId,
         int $invoiceId,
-        string $statusSlug,
+        InvoiceStatus $status,
     ): InvoiceActionResult;
 
     /**

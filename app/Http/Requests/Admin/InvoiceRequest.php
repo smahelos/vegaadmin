@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Http\Requests\Rules\InvoiceStatusId;
+
 class InvoiceRequest extends BaseEntityRequest
 {
     /**
@@ -36,13 +39,16 @@ class InvoiceRequest extends BaseEntityRequest
             'invoice_vs' => 'required|string|max:255',
             'invoice_ks' => 'nullable|string|max:255',
             'invoice_ss' => 'nullable|string|max:255',
-            'due_in' => 'required|numeric|min:1',
+            'due_in' => 'required|integer|min:1|max:' . InvoiceDueDate::MAX_DAYS,
             'payment_method_id' => 'required|exists:payment_methods,id',
             'payment_amount' => 'required|numeric|min:0',
-            'payment_status' => 'required|string|max:100',
+            'payment_status_id' => [
+                'required',
+                InvoiceStatusId::rule(),
+            ],
             'payment_currency' => 'required|string|max:100',
             'issue_date' => 'required|date',
-            'tax_point_date' => 'nullable|date',
+            'tax_point_date' => 'required|date',
             'ico' => 'nullable|string|max:20',
             'dic' => 'nullable|string|max:30',
             'street' => 'required|string|max:255',
@@ -67,7 +73,7 @@ class InvoiceRequest extends BaseEntityRequest
             'due_in' => __('invoices.fields.due_in'),
             'payment_method_id' => __('invoices.fields.payment_method_id'),
             'payment_amount' => __('invoices.fields.payment_amount'),
-            'payment_status' => __('invoices.fields.status'),
+            'payment_status_id' => __('invoices.fields.status'),
             'payment_currency' => __('invoices.fields.payment_currency'),
             'issue_date' => __('invoices.fields.issue_date'),
             'tax_point_date' => __('invoices.fields.tax_point_date'),

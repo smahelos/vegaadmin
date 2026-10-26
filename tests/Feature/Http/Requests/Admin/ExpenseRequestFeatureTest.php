@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Http\Requests\Admin\ExpenseRequest;
 use App\Models\EntityLimit;
@@ -112,7 +113,7 @@ class ExpenseRequestFeatureTest extends TestCase
             'currency' => 'czk',
             'supplier_id' => Supplier::factory()->create()->id,
             'category_id' => ExpenseCategory::factory()->create()->id,
-            'payment_method_id' => PaymentMethod::factory()->create()->id,
+            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
             'reference_number' => ' REF-2024-001 ',
             'description' => 'Test expense description',
             'tax_amount' => 315.10,

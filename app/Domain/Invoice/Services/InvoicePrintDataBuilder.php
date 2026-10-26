@@ -6,9 +6,13 @@ use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\PrintableInvoiceData;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemData;
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
 use App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface;
 use App\Domain\Party\ValueObjects\PartyId;
+use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
+use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 
@@ -21,14 +25,15 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
     public function __construct(
         private readonly SupplierDtoReadRepositoryInterface $supplierRepo,
         private readonly ClientDtoReadRepositoryInterface $clientRepo,
+        private readonly PaymentMethodDtoReadRepositoryInterface $paymentMethods,
     ) {}
 
     public function build(InvoiceDTO $invoice): PrintableInvoiceData
     {
         // Compute dates
         $issue = $this->toImmutableDate($invoice->issue_date);
-        $taxPoint = $this->toImmutableDate($invoice->created_at ?? null); // if tax_point_date is elsewhere, adjust later
-        $due = $this->computeDueDate($issue, $invoice->due_in);
+        $taxPoint = $this->toImmutableDate($invoice->tax_point_date);
+        $due = $this->dueDate($issue, $invoice->due_in);
 
         // Items: expect array items with name, quantity, unit, price, tax_rate, tax_amount, total_price
         $items = [];
@@ -65,7 +70,6 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
             issue_date: $issue,
             tax_point_date: $taxPoint,
             due_date: $due,
-            due_in: $invoice->due_in,
             currency: strtoupper($invoice->currency ?? 'CZK'),
             template: $invoice->template,
             invoice_logo: $invoice->logo,
@@ -100,8 +104,18 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
             invoice_vs: $invoice->number,
             invoice_ks: $invoice->constant_code,
             invoice_ss: $invoice->payment_reference,
-            notes: null,
+            paymentMethod: $this->paymentMethod($invoice->payment_method_id),
+            notes: $invoice->invoice_text,
         );
+    }
+
+    private function paymentMethod(?int $id): ?PaymentMethodCode
+    {
+        if ($id === null) {
+            return null;
+        }
+
+        return $this->paymentMethods->findById(PaymentMethodId::fromInt($id))?->code;
     }
 
     private function toImmutableDate(?string $date): ?\DateTimeImmutable
@@ -116,12 +130,12 @@ class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         }
     }
 
-    private function computeDueDate(?\DateTimeImmutable $issue, ?int $dueIn): ?\DateTimeImmutable
+    private function dueDate(?\DateTimeImmutable $issue, ?int $dueIn): ?InvoiceDueDate
     {
         if (! $issue || $dueIn === null) {
             return null;
         }
 
-        return $issue->modify('+' . (int) $dueIn . ' days');
+        return InvoiceDueDate::fromIssueDateAndDays($issue, $dueIn);
     }
 }

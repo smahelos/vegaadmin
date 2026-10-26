@@ -20,7 +20,6 @@ use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
 use App\Domain\User\ValueObjects\UserId;
 
 final class InvoiceService implements InvoiceServiceInterface
@@ -30,7 +29,6 @@ final class InvoiceService implements InvoiceServiceInterface
         private readonly InvoiceDtoWriteRepositoryInterface $invoiceWriteRepository,
         private readonly InvoiceDtoReadRepositoryInterface $invoiceReadRepository,
         private readonly InvoiceProductDtoWriteRepositoryInterface $invoiceProductRepository,
-        private readonly StatusDtoRepositoryInterface $statusRepository,
         // Domain service responsible for resolving/creating parties
         private readonly InvoicePartyServiceInterface $partyService,
     ) {}
@@ -41,22 +39,6 @@ final class InvoiceService implements InvoiceServiceInterface
     public function saveInvoiceProducts(InvoiceId $invoiceId, array $products): void
     {
         $this->invoiceProductRepository->bulkCreate($invoiceId, $products);
-    }
-
-    /**
-     * Mark invoice as paid
-     *
-     * @param  InvoiceId  $id  Invoice ID
-     */
-    public function markInvoiceAsPaid(InvoiceId $id): bool
-    {
-        // Security (ownership) enforced at application layer; domain performs pure update.
-        $paidStatusId = $this->statusRepository->findIdBySlug('paid');
-        if (! $paidStatusId) {
-            return false;
-        }
-
-        return $this->invoiceWriteRepository->markAsPaid($id, $paidStatusId);
     }
 
     /**

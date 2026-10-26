@@ -174,40 +174,4 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
             'name' => $statusDto->name,
         ];
     }
-
-    /**
-     * Mark invoice as paid
-     */
-    public function markAsPaid(InvoiceId $invoiceId, UserId $userId): InvoiceDTO
-    {
-        $paidStatusId = $this->statusRepository->findIdBySlug('paid');
-
-        if (! $paidStatusId) {
-            throw new \Exception('Paid status not found in system');
-        }
-
-        return $this->changeStatus(
-            $invoiceId,
-            StatusId::fromInt($paidStatusId),
-            $userId,
-        );
-    }
-
-    /**
-     * Mark invoice as unpaid
-     */
-    public function markAsUnpaid(InvoiceId $invoiceId, UserId $userId): InvoiceDTO
-    {
-        $unpaidStatusId = $this->statusRepository->findIdBySlug('unpaid');
-
-        if (! $unpaidStatusId) {
-            throw new \Exception('Unpaid status not found in system');
-        }
-
-        return $this->changeStatus(
-            $invoiceId,
-            StatusId::fromInt($unpaidStatusId),
-            $userId,
-        );
-    }
 }

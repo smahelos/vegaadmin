@@ -200,7 +200,6 @@ return [
     'generated_at' => 'Generated at',
     'defaults' => [
         'invoice_text' => 'Billing for services',
-        'payment_method' => 'Bank transfer',
     ],
     'sections' => [
         'invoice_details' => 'Invoice Details',

@@ -380,13 +380,11 @@ app()->setLocale($locale);
                 <div class="col-left">
                     <div class="info-row">
                         <span class="info-label">{{ __('invoices.fields.issue_date') }}:</span>
-                        <span class="info-value">{{ \Carbon\Carbon::parse($invoice->issue_date)->format('d.m.Y')
-                            }}</span>
+                        <span class="info-value">{{ $invoice->issue_date }}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">{{ __('invoices.fields.tax_point_date') }}:</span>
-                        <span class="info-value">{{ \Carbon\Carbon::parse($invoice->tax_point_date)->format('d.m.Y')
-                            }}</span>
+                        <span class="info-value">{{ $invoice->tax_point_date }}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">{{ __('invoices.fields.due_in') }}:</span>
@@ -394,18 +392,17 @@ app()->setLocale($locale);
                     </div>
                     <div class="info-row">
                         <span class="info-label red">{{ __('invoices.fields.due_date') }}:</span>
-                        <span class="info-value red">{{ \Carbon\Carbon::parse($invoice->due_date)->format('d.m.Y')
-                            }}</span>
+                        <span class="info-value red">{{ $invoice->due_date }}</span>
                     </div>
                 </div>
 
                 <div class="col-right">
+                    @if($paymentMethod)
                     <div class="info-row">
                         <span class="info-label">{{ __('invoices.fields.payment_method') }}:</span>
-                        <span class="info-value">
-                            {{ $paymentMethod->name ?? __('payment_methods.methods.bankaccount') }}
-                        </span>
+                        <span class="info-value">{{ __('payment_methods.methods.' . $paymentMethod->value) }}</span>
                     </div>
+                    @endif
 
                     @if($invoice->invoice_vs)
                     <div class="info-row">
@@ -591,7 +588,7 @@ app()->setLocale($locale);
         </div>
 
         <div class="footer">
-            <p>{{ __('invoices.generated_at') }}: {{ now()->format('d.m.Y H:i') }}</p>
+            <p>{{ __('invoices.generated_at') }}: {{ $generatedAt }}</p>
             <p>{{ __('invoices.messages.thank_you_pdf') }}</p>
         </div>
     </div>

@@ -3,6 +3,8 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -107,12 +109,13 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
 
         return [
             'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::factory()->create()->id,
+            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
             'payment_amount' => 20,
             'payment_currency' => 'EUR',
             'issue_date' => now()->format('Y-m-d'),
+            'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
-            'payment_status_id' => Status::factory()->create()->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             'name' => 'Supp ' . uniqid(),
             'street' => 'Street',
             'city' => 'City',
@@ -159,5 +162,21 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
             'template' => 'invalid-template',
         ]);
         $response->assertSessionHasErrors('template');
+    }
+
+    #[Test]
+    public function batch_actions_rejects_unknown_status(): void
+    {
+        $this->actingAs($this->user);
+        $invoice = app(InvoiceMutationApplicationServiceInterface::class)
+            ->create(
+                $this->user->id,
+                $this->baseData(),
+                [],
+            )->invoice;
+        $response = $this->post(route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]), [
+            'status' => 'overdue',
+        ]);
+        $response->assertSessionHasErrors('status');
     }
 }

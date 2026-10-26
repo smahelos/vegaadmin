@@ -7,7 +7,11 @@ use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use App\Domain\Invoice\DTO\PrintableInvoiceData;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
+use App\Domain\Shared\Time\Contracts\ClockInterface;
+use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
+use App\Domain\User\Contracts\Locale;
 use Barryvdh\DomPDF\Facade\Pdf;
+use DateTimeImmutable;
 use Illuminate\Support\Facades\Auth;
 
 class InvoicePdfRenderer implements InvoicePdfRendererInterface
@@ -16,6 +20,9 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
         private readonly MoneyFormatterInterface $moneyFormatter,
         private readonly QrPaymentServiceInterface $qrPaymentService,
         private readonly QrPaymentPayloadMapper $qrPaymentMapper,
+        private readonly DateFormatterInterface $dateFormatter,
+        private readonly ClockInterface $clock,
+        private readonly Locale $currentLocale,
     ) {}
 
     public function render(
@@ -24,6 +31,7 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
         ?string $locale = null,
     ) {
         $templateName = $this->getTemplateName($template ?? $data->template ?? 'default');
+        $locale ??= $this->currentLocale->getLocale();
 
         // Prepare formatted monetary values
         $paymentAmountFormatted = $this->moneyFormatter->format($data->total_amount, $locale);
@@ -49,10 +57,10 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'invoice_vs' => $data->number,
             'invoice_ss' => $data->invoice_ss,
             'invoice_ks' => $data->invoice_ks,
-            'issue_date' => $data->issue_date?->format('Y-m-d'),
-            'tax_point_date' => $data->tax_point_date?->format('Y-m-d'),
-            'due_in' => $data->due_in,
-            'due_date' => $data->due_date?->format('Y-m-d'),
+            'issue_date' => $this->formatDate($data->issue_date, $locale),
+            'tax_point_date' => $this->formatDate($data->tax_point_date, $locale),
+            'due_in' => $data->due_date?->days,
+            'due_date' => $this->formatDate($data->due_date?->date(), $locale),
             'payment_amount' => $data->total_amount->toFloat(),
             'payment_currency' => $data->currency,
             'invoice_text' => $data->notes,
@@ -120,10 +128,11 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'user' => Auth::user(),
             'client' => $client,
             'supplier' => $supplier,
-            'paymentMethod' => null, // left null; app can enrich if needed
+            'paymentMethod' => $data->paymentMethod,
             'qrCode' => $qrCode,
             'hasQrCode' => $hasQr,
             'locale' => $locale,
+            'generatedAt' => $this->dateFormatter->formatDateTime($this->clock->now(), $locale),
             'paymentAmountFormatted' => $paymentAmountFormatted,
             'subtotalFormatted' => $subtotalFormatted,
             'taxFormatted' => $taxFormatted,
@@ -135,6 +144,15 @@ class InvoicePdfRenderer implements InvoicePdfRendererInterface
         ];
 
         return Pdf::loadView($templateName, $viewData);
+    }
+
+    private function formatDate(?DateTimeImmutable $date, string $locale): ?string
+    {
+        if ($date === null) {
+            return null;
+        }
+
+        return $this->dateFormatter->formatDate($date, $locale);
     }
 
     private function getTemplateName(?string $template): string

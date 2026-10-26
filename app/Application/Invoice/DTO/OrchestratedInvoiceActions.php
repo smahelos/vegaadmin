@@ -2,6 +2,8 @@
 
 namespace App\Application\Invoice\DTO;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
+
 /**
  * Immutable command object representing a batch of lightweight frontend actions
  * to perform on an Invoice. Encapsulates normalization (e.g. mark_paid overrides status)
@@ -12,7 +14,7 @@ class OrchestratedInvoiceActions
 {
     public readonly ?string $template;
 
-    public readonly ?string $status; // Final resolved status (mark_paid => paid)
+    public readonly ?InvoiceStatus $status; // Final resolved status (mark_paid => paid)
 
     public readonly bool $markPaidRequested; // Raw request flag before normalization
 
@@ -20,7 +22,7 @@ class OrchestratedInvoiceActions
 
     private function __construct(
         ?string $template,
-        ?string $status,
+        ?InvoiceStatus $status,
         bool $markPaidRequested,
         bool $includeInvoice,
     ) {
@@ -33,15 +35,15 @@ class OrchestratedInvoiceActions
     /**
      * Factory from raw associative array (e.g. validated controller payload).
      * Normalization rules:
-     *  - mark_paid=true forces status to 'paid' regardless of provided status
+     *  - mark_paid=true forces status to paid regardless of provided status
      *  - empty strings are coerced to null
      */
     public static function fromArray(array $actions, bool $includeInvoice = false): self
     {
         $template = isset($actions['template']) && $actions['template'] !== '' ? (string) $actions['template'] : null;
         $markPaid = (bool) ($actions['mark_paid'] ?? false);
-        $rawStatus = isset($actions['status']) && $actions['status'] !== '' ? (string) $actions['status'] : null;
-        $resolvedStatus = $markPaid ? 'paid' : $rawStatus; // precedence
+        $rawStatus = isset($actions['status']) && $actions['status'] !== '' ? InvoiceStatus::from((string) $actions['status']) : null;
+        $resolvedStatus = $markPaid ? InvoiceStatus::PAID : $rawStatus; // precedence
 
         return new self(
             $template,

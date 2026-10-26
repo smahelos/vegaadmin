@@ -5,9 +5,9 @@ namespace App\Console\Commands;
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Models\Invoice;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 /**
@@ -204,7 +204,7 @@ class TestInvoiceReminder extends Command
         $notifier = app(InvoiceReminderNotifierInterface::class);
         $payload = new InvoiceReminderPayload(
             invoiceNumber: $invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(Carbon::parse($invoice->issue_date)->addDays($invoice->due_in)->format('Y-m-d')),
+            dueDate: InvoiceDueDate::fromIssueDateAndDays($invoice->issue_date->toDateTimeImmutable(), $invoice->due_in)->date(),
             recipientType: $recipientType,
             locale: $locale,
         );

@@ -3,21 +3,17 @@
 namespace App\Domain\Shared\Status\ValueObjects;
 
 /**
- * Enum of allowed status slugs synchronized with `statuses.slug` records.
+ * Enum of allowed expense status slugs synchronized with `statuses.slug` records; invoice
+ * statuses are App\Domain\Invoice\Enums\InvoiceStatus.
  * IMPORTANT: Keep in sync with the statuses in ReferenceDataSeeder.
  */
 enum StatusCode: string
 {
     case APPROVED = 'approved';
-    case CANCELLED = 'cancelled';
     case CANCELLED_EXPENSE = 'cancelled-expense';
     case DRAFT = 'draft';
     case IN_REVIEW = 'in-review';
-    case OVERDUE = 'overdue';
-    case PAID = 'paid';
     case PAID_EXPENSE = 'paid-expense';
-    case PARTIALLY_PAID = 'partially-paid';
-    case PENDING = 'pending';
     case REJECTED = 'rejected';
 
     /**
@@ -27,15 +23,10 @@ enum StatusCode: string
     {
         return match ($this) {
             self::APPROVED => 'Approved',
-            self::CANCELLED => 'Cancelled',
             self::CANCELLED_EXPENSE => 'Cancelled Expense',
             self::DRAFT => 'Draft',
             self::IN_REVIEW => 'In Review',
-            self::OVERDUE => 'Overdue',
-            self::PAID => 'Paid',
             self::PAID_EXPENSE => 'Paid Expense',
-            self::PARTIALLY_PAID => 'Partially Paid',
-            self::PENDING => 'Pending',
             self::REJECTED => 'Rejected',
         };
     }

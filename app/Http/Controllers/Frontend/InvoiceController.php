@@ -10,6 +10,7 @@ use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InvoiceRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -19,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -278,12 +280,7 @@ class InvoiceController extends Controller
     public function markAsPaid(string $locale, int $id)
     {
         $user = Auth::user();
-        // Directly reuse changeStatus orchestraci (sjednocení s markAsPaid -> changeStatus('paid'))
-        $result = $user ? $this->invoiceFrontendActions->changeStatus(
-            $user->id,
-            $id,
-            'paid',
-        ) : null;
+        $result = $user ? $this->invoiceFrontendActions->markAsPaid($user->id, $id) : null;
         $ok = $result?->status === InvoiceActionStatus::SUCCESS;
 
         return back()->with(
@@ -326,7 +323,7 @@ class InvoiceController extends Controller
      * Non-fatal failures accumulate; any sub-action failure returns FAILURE with aggregated errors.
      * Just prepared method for future AJAX support (currently only form POST).
      * To use it, you need to call this method via AJAX or standard form POST.
-     * Example payload: { "template": "modern", "status": "sent", "mark_paid": true }
+     * Example payload: { "template": "modern", "status": "partially-paid", "mark_paid": true }
      * Example JS:
      *
      *  const batchActions = {
@@ -370,8 +367,7 @@ class InvoiceController extends Controller
             ],
             'status' => [
                 'sometimes',
-                'string',
-                'max:50',
+                Rule::enum(InvoiceStatus::class),
             ],
             'mark_paid' => ['sometimes', 'boolean'],
         ];

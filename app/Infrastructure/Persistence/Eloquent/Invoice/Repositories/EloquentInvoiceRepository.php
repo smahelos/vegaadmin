@@ -86,17 +86,6 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
             ->all();
     }
 
-    public function markAsPaid(int $id, int $paidStatusId): bool
-    {
-        $invoice = Invoice::find($id);
-        if (! $invoice) {
-            return false;
-        }
-        $invoice->payment_status_id = $paidStatusId;
-
-        return (bool) $invoice->save();
-    }
-
     public function setTemplate(int $id, string $template): bool
     {
         $invoice = Invoice::find($id);
@@ -162,37 +151,6 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
         return Invoice::where('user_id', $userId)
             ->where('invoice_vs', $number)
             ->exists();
-    }
-
-    public function findOverdueForUser(int $userId): array
-    {
-        $now = date('Y-m-d');
-
-        return Invoice::where('user_id', $userId)
-            ->where(
-                'due_date',
-                '<',
-                $now,
-            )
-            ->whereHas('paymentStatus', function ($query) {
-                $query->where('slug', 'unpaid');
-            })
-            ->orderBy('due_date', 'asc')
-            ->with(['invoiceProducts'])
-            ->get()
-            ->all();
-    }
-
-    public function findUnpaidForUser(int $userId): array
-    {
-        return Invoice::where('user_id', $userId)
-            ->whereHas('paymentStatus', function ($query) {
-                $query->where('slug', 'unpaid');
-            })
-            ->orderBy('due_date', 'asc')
-            ->with(['invoiceProducts'])
-            ->get()
-            ->all();
     }
 
     public function getUserInvoiceCount(int $userId): int

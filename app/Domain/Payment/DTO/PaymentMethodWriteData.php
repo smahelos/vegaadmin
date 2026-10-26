@@ -2,11 +2,13 @@
 
 namespace App\Domain\Payment\DTO;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
+
 class PaymentMethodWriteData
 {
     public function __construct(
         public readonly string $name,
-        public readonly string $slug,
+        public readonly PaymentMethodCode $code,
         public readonly ?string $description,
         public readonly bool $is_active = true,
     ) {}
@@ -15,7 +17,7 @@ class PaymentMethodWriteData
     {
         return new self(
             name: $data['name'],
-            slug: $data['slug'],
+            code: PaymentMethodCode::from($data['slug']),
             description: $data['description'] ?? null,
             is_active: (bool) ($data['is_active'] ?? true),
         );
@@ -25,7 +27,7 @@ class PaymentMethodWriteData
     {
         return [
             'name' => $this->name,
-            'slug' => $this->slug,
+            'slug' => $this->code->value,
             'description' => $this->description,
             'is_active' => $this->is_active,
         ];

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\ArchivePolicy;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
@@ -161,6 +162,7 @@ class AdminCrudSmokeTest extends TestCase
                 'period_end' => now()->endOfMonth(),
                 'current_value' => 1,
             ]),
+            PaymentMethod::class => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail(),
             Permission::class => Permission::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
             Role::class => Role::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
             default => $model::factory()->create(),

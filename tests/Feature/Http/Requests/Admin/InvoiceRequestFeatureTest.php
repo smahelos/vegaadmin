@@ -2,16 +2,21 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\InvoiceRequest;
 use App\Models\Client;
 use App\Models\EntityLimit;
 use App\Models\PaymentMethod;
+use App\Models\Status;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -35,6 +40,8 @@ class InvoiceRequestFeatureTest extends TestCase
 
     private PaymentMethod $paymentMethod;
 
+    private int $pendingStatusId;
+
     /**
      * Set up test environment.
      */
@@ -52,7 +59,8 @@ class InvoiceRequestFeatureTest extends TestCase
         $this->invoiceUser = User::factory()->create();
         $this->client = Client::factory()->create();
         $this->supplier = Supplier::factory()->create();
-        $this->paymentMethod = PaymentMethod::factory()->create();
+        $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
+        $this->pendingStatusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id;
 
         $this->limitService = app(UniversalLimitService::class);
 
@@ -78,7 +86,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1500.50,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
             'tax_point_date' => '2024-01-15',
@@ -108,9 +116,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -134,9 +143,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -151,6 +161,18 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
+    public function validation_fails_with_an_expense_status(): void
+    {
+        $request = new InvoiceRequest;
+        $validator = Validator::make(
+            ['payment_status_id' => Status::where('slug', 'paid-expense')->firstOrFail()->id],
+            $request->rules(),
+        );
+
+        $this->assertArrayHasKey('payment_status_id', $validator->errors()->toArray());
+    }
+
+    #[Test]
     public function validation_fails_with_missing_required_fields(): void
     {
         $request = new InvoiceRequest;
@@ -162,7 +184,7 @@ class InvoiceRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('due_in', $validator->errors()->toArray());
         $this->assertArrayHasKey('payment_method_id', $validator->errors()->toArray());
         $this->assertArrayHasKey('payment_amount', $validator->errors()->toArray());
-        $this->assertArrayHasKey('payment_status', $validator->errors()->toArray());
+        $this->assertArrayHasKey('payment_status_id', $validator->errors()->toArray());
         $this->assertArrayHasKey('payment_currency', $validator->errors()->toArray());
         $this->assertArrayHasKey('issue_date', $validator->errors()->toArray());
         $this->assertArrayHasKey('street', $validator->errors()->toArray());
@@ -181,9 +203,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -208,9 +231,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -234,9 +258,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => 99999, // Non-existent payment method
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -260,9 +285,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -278,17 +304,19 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_negative_due_in(): void
+    #[DataProvider('dueInOutOfRange')]
+    public function validation_fails_with_due_in_outside_one_to_maximum_days(int $dueIn): void
     {
         $invalidData = [
             'client_id' => $this->client->id,
             'invoice_vs' => 'INV2024001',
-            'due_in' => 0, // Below minimum of 1
+            'due_in' => $dueIn,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -303,6 +331,17 @@ class InvoiceRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('due_in', $validator->errors()->toArray());
     }
 
+    /**
+     * @return array<string, array{int}>
+     */
+    public static function dueInOutOfRange(): array
+    {
+        return [
+            'zero' => [0],
+            'above maximum' => [InvoiceDueDate::MAX_DAYS + 1],
+        ];
+    }
+
     #[Test]
     public function validation_fails_with_negative_payment_amount(): void
     {
@@ -312,9 +351,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => -100.00, // Negative amount
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -338,9 +378,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => 'invalid-date',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -367,10 +408,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
-            'tax_point_date' => null,
+            'tax_point_date' => '2024-01-15',
             'ico' => null,
             'dic' => null,
             'street' => '123 Business Street',
@@ -409,9 +450,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -440,9 +482,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 1000.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => '123 Business Street',
             'city' => 'Prague',
             'zip' => '11000',
@@ -503,9 +546,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 100.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => 'S',
             'city' => 'C',
             'zip' => '11000',
@@ -539,9 +583,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 120.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-16',
+            'tax_point_date' => '2024-01-16',
             'street' => 'S',
             'city' => 'C',
             'zip' => '11000',
@@ -567,9 +612,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 100.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => 'S',
             'city' => 'C',
             'zip' => '11000',
@@ -604,9 +650,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 200.00,
-            'payment_status' => 'paid',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => 'S',
             'city' => 'C',
             'zip' => '11000',
@@ -652,9 +699,10 @@ class InvoiceRequestFeatureTest extends TestCase
             'due_in' => 30,
             'payment_method_id' => $this->paymentMethod->id,
             'payment_amount' => 300.00,
-            'payment_status' => 'pending',
+            'payment_status_id' => $this->pendingStatusId,
             'payment_currency' => 'CZK',
             'issue_date' => '2024-01-15',
+            'tax_point_date' => '2024-01-15',
             'street' => 'S',
             'city' => 'C',
             'zip' => '11000',

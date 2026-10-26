@@ -130,13 +130,13 @@ class AdminSelect2FieldsTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $invoice = Invoice::factory()->create([
             'user_id' => $this->adminUser->id,
-            'tax_point_date' => null,
+            'tax_point_date' => '2026-09-30',
             'due_in' => 21,
         ]);
 
         $content = $this->get("/admin/invoice/{$invoice->id}/edit")->assertOk()->getContent();
 
-        $this->assertStringContainsString('name="tax_point_date" value="" data-datepicker-value', $content);
+        $this->assertStringContainsString('name="tax_point_date" value="2026-09-30" data-datepicker-value', $content);
         $this->assertMatchesRegularExpression('/<option value="21"\s+selected/', $content);
     }
 

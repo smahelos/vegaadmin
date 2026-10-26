@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\Client;
 use App\Models\EntityLimit;
@@ -50,8 +52,8 @@ class InvoiceCrudControllerTest extends TestCase
         // Create required related entities
         $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
         $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $paymentMethod = PaymentMethod::factory()->create();
-        $status = Status::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
+        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
 
         // Check initial usage
         $initialCheck = $this->limitService->checkLimit(
@@ -130,8 +132,8 @@ class InvoiceCrudControllerTest extends TestCase
         // Create required related entities
         $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
         $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $paymentMethod = PaymentMethod::factory()->create();
-        $status = Status::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
+        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
 
         // First invoice creation - should succeed
         $checkBeforeFirst = $this->limitService->checkLimit(
@@ -187,7 +189,7 @@ class InvoiceCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
         $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $vs = (string) random_int(100000, 999999);
 
         $this->post('/admin/invoice', [
@@ -197,9 +199,10 @@ class InvoiceCrudControllerTest extends TestCase
             'due_in' => 14,
             'payment_method_id' => $paymentMethod->id,
             'payment_amount' => 1000,
-            'payment_status' => 'unpaid',
+            'payment_status_id' => $pendingStatusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             'payment_currency' => 'CZK',
             'issue_date' => '2026-10-01',
+            'tax_point_date' => '2026-10-01',
             'street' => 'Main 1',
             'city' => 'Praha',
             'zip' => '11000',
@@ -208,7 +211,11 @@ class InvoiceCrudControllerTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect();
 
-        $this->assertDatabaseHas('invoices', ['invoice_vs' => $vs, 'user_id' => $this->adminUser->id]);
+        $this->assertDatabaseHas('invoices', [
+            'invoice_vs' => $vs,
+            'user_id' => $this->adminUser->id,
+            'payment_status_id' => $pendingStatusId,
+        ]);
     }
 
     #[Test]
@@ -217,13 +224,13 @@ class InvoiceCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
         $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $paymentMethod = PaymentMethod::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $invoice = Invoice::factory()->create([
             'user_id' => $this->adminUser->id,
             'client_id' => $client->id,
             'supplier_id' => $supplier->id,
             'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => Status::factory()->create()->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
         ]);
         $otherUser = User::factory()->create();
 
@@ -236,9 +243,10 @@ class InvoiceCrudControllerTest extends TestCase
             'due_in' => 14,
             'payment_method_id' => $paymentMethod->id,
             'payment_amount' => 1000,
-            'payment_status' => 'unpaid',
+            'payment_status_id' => $pendingStatusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             'payment_currency' => 'CZK',
             'issue_date' => '2026-10-01',
+            'tax_point_date' => '2026-10-01',
             'street' => 'Main 1',
             'city' => 'Praha',
             'zip' => '11000',
@@ -261,7 +269,7 @@ class InvoiceCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $client = Client::factory()->create(['user_id' => $this->adminUser->id, 'name' => 'Client ' . uniqid()]);
         $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id, 'name' => 'Supplier ' . uniqid()]);
-        $paymentMethod = PaymentMethod::factory()->create(['name' => 'Method ' . uniqid()]);
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $status = Status::factory()->create(['name' => 'Status ' . uniqid()]);
         $invoice = Invoice::factory()->create([
             'user_id' => $this->adminUser->id,

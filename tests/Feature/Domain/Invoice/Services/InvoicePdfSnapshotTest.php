@@ -4,8 +4,10 @@ namespace Tests\Feature\Domain\Invoice\Services;
 
 use App\Application\Invoice\Services\InvoicePdfRenderer;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -54,8 +56,8 @@ class InvoicePdfSnapshotTest extends TestCase
             'name' => 'Snapshot Supplier s.r.o.',
         ]);
         $client = Client::factory()->create(['name' => 'Snapshot Client a.s.']);
-        $paymentMethod = PaymentMethod::factory()->create(['name' => 'Bank Transfer']);
-        $status = Status::factory()->create();
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
+        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
 
         $invoice = Invoice::factory()->create([
             'supplier_id' => $supplier->id,
@@ -65,9 +67,14 @@ class InvoicePdfSnapshotTest extends TestCase
             'invoice_vs' => 'SNAP-001',
             'invoice_ks' => '0308',
             'invoice_ss' => '1234',
+            'invoice_text' => 'Snapshot invoice text',
             'payment_amount' => 1234.56,
             'payment_currency' => 'EUR',
+            'issue_date' => '2026-03-05',
+            'tax_point_date' => '2026-03-04',
+            'due_in' => 14,
         ]);
+        $this->travelTo(new \DateTimeImmutable('2026-03-20 14:07'));
 
         $templates = [
             'default',
@@ -128,6 +135,43 @@ class InvoicePdfSnapshotTest extends TestCase
         $this->assertTrue(true); // all matched
     }
 
+    #[Test]
+    public function prints_dates_in_the_language_of_the_pdf(): void
+    {
+        $invoice = Invoice::factory()->create([
+            'supplier_id' => Supplier::factory()->create([
+                'account_number' => '',
+                'bank_code' => '',
+                'iban' => '',
+            ])->id,
+            'client_id' => Client::factory()->create()->id,
+            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail()->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
+            'issue_date' => '2026-03-05',
+            'tax_point_date' => '2026-03-04',
+            'due_in' => 14,
+        ]);
+        $this->travelTo(new \DateTimeImmutable('2026-03-20 14:07'));
+
+        $german = $this->renderTemplate(
+            $invoice,
+            'default',
+            'de',
+        );
+        $english = $this->renderTemplate(
+            $invoice,
+            'default',
+            'en',
+        );
+
+        $this->assertStringContainsString('05.03.2026', $german);
+        $this->assertStringContainsString('04.03.2026', $german);
+        $this->assertStringContainsString('19.03.2026', $german);
+        $this->assertStringContainsString('20.03.2026, 14:07', $german);
+        $this->assertStringContainsString('Mar 5, 2026', $english);
+        $this->assertStringContainsString('Mar 19, 2026', $english);
+    }
+
     private function renderTemplate(
         Invoice $invoice,
         string $template,
@@ -186,27 +230,10 @@ class InvoicePdfSnapshotTest extends TestCase
             '<DATETIME>',
             $html,
         );
-        // Replace standalone dates in format dd.mm.YYYY (e.g. due dates, issue dates) with placeholder
+        // Normalize supplier/client numeric lines (street, zip+city, ICO, DIC) to reduce snapshot churn;
+        // the footer keeps its generation time, which the test pins
         $html = preg_replace(
-            '/\b\d{2}\.\d{2}\.\d{4}\b/',
-            '<DATE>',
-            $html,
-        );
-        // Replace generation time (HH:MM) following a date placeholder
-        $html = preg_replace(
-            '/<DATE> \d{2}:\d{2}\b/',
-            '<DATE> <TIME>',
-            $html,
-        );
-        // Replace Czech due_in value pattern (robust) "NN ... dní" with placeholder
-        $html = preg_replace(
-            '/<span class="info-value">\s*\d+[^<]*dní\s*<\/span>/',
-            '<span class="info-value"><DUE_IN></span>',
-            $html,
-        );
-        // Normalize supplier/client numeric lines (street, zip+city, ICO, DIC) to reduce snapshot churn
-        $html = preg_replace(
-            '/<p>[^<]*\d[^<]*<\/p>/',
+            '/<p>(?!Vygenerováno:)[^<]*\d[^<]*<\/p>/u',
             '<p><NUMERIC_LINE/></p>',
             $html,
         );

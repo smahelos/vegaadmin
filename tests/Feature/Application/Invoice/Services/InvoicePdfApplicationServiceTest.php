@@ -7,6 +7,8 @@ use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
@@ -117,12 +119,13 @@ class InvoicePdfApplicationServiceTest extends TestCase
     {
         return [
             'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::factory()->create()->id,
+            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
             'payment_amount' => 100,
             'payment_currency' => 'EUR',
             'issue_date' => now()->format('Y-m-d'),
+            'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
-            'payment_status_id' => Status::factory()->create()->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             'name' => 'Supplier ' . uniqid(),
             'street' => 'Main',
             'city' => 'City',

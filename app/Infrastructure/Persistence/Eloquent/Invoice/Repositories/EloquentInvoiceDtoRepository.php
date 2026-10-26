@@ -68,11 +68,6 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         $this->invoiceRepository->deleteById($id->getValue());
     }
 
-    public function markAsPaid(InvoiceId $id, int $paidStatusId): bool
-    {
-        return $this->invoiceRepository->markAsPaid($id->getValue(), $paidStatusId);
-    }
-
     public function setTemplate(InvoiceId $id, string $template): bool
     {
         return $this->invoiceRepository->setTemplate($id->getValue(), $template);
@@ -105,20 +100,6 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
     public function existsWithNumber(UserId $userId, string $number): bool
     {
         return $this->invoiceRepository->existsWithNumber($userId->toInt(), $number);
-    }
-
-    public function findOverdueForUser(UserId $userId): array
-    {
-        $models = $this->invoiceRepository->findOverdueForUser($userId->toInt());
-
-        return array_map(fn ($m) => $this->mapper->toDto($m), $models);
-    }
-
-    public function findUnpaidForUser(UserId $userId): array
-    {
-        $models = $this->invoiceRepository->findUnpaidForUser($userId->toInt());
-
-        return array_map(fn ($m) => $this->mapper->toDto($m), $models);
     }
 
     public function getUserInvoiceCount(UserId $userId): int

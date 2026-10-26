@@ -5,6 +5,8 @@ namespace Tests\Feature\Application\Invoice;
 use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -121,12 +123,13 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
 
         return [
             'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::factory()->create()->id,
+            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
             'payment_amount' => 10,
             'payment_currency' => 'EUR',
             'issue_date' => now()->format('Y-m-d'),
+            'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
-            'payment_status_id' => Status::factory()->create()->id,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             'name' => 'Supp ' . uniqid(),
             'street' => 'Street',
             'city' => 'City',
@@ -162,29 +165,5 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
         $this->assertInvoiceSuccess($result, 'Orchestrate failed');
         $this->assertIsArray($result->data);
         $this->assertNotNull($result->invoice, 'Expected invoice to be attached when includeInvoice=true');
-    }
-
-    #[Test]
-    public function orchestrate_partial_fail_when_status_invalid_but_template_ok(): void
-    {
-        $create = $this->mutation->create(
-            $this->user->id,
-            $this->baseData(),
-            [],
-        );
-        $invoiceId = $create->invoice->id;
-        $result = $this->frontend->orchestrate(
-            $this->user->id,
-            $invoiceId,
-            OrchestratedInvoiceActions::fromArray([
-                'template' => 'modern',
-                'status' => 'nonexistent-status-slug',
-            ], includeInvoice: true),
-        );
-        $this->assertInvoiceFailure($result, 'Expected failure due to invalid status');
-        $this->assertIsArray($result->data);
-        $this->assertArrayHasKey('errors', $result->data);
-        $this->assertArrayHasKey('status', $result->data['errors']);
-        $this->assertNull($result->invoice, 'Invoice should not be attached on failure');
     }
 }

@@ -17,8 +17,6 @@ interface InvoiceDtoWriteRepositoryInterface
 
     public function delete(InvoiceId $id): void;
 
-    public function markAsPaid(InvoiceId $id, int $paidStatusId): bool;
-
     public function setTemplate(InvoiceId $id, string $template): bool;
 
     public function changeStatus(InvoiceId $id, int $statusId): bool;

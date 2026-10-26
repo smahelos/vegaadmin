@@ -28,7 +28,6 @@ return [
         'pending' => 'Ausstehend',
         'pending-payment' => 'Zahlung ausstehend',
         'rejected' => 'Abgelehnt',
-        'unpaid' => 'Unbezahlt',
     ],
     'filters' => [
         'category' => 'Nach Kategorie filtern',

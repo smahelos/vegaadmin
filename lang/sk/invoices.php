@@ -200,7 +200,6 @@ return [
     'generated_at' => 'Vygenerované',
     'defaults' => [
         'invoice_text' => 'Fakturácia služieb',
-        'payment_method' => 'Bankový prevod',
     ],
     'sections' => [
         'invoice_details' => 'Údaje o faktúre',

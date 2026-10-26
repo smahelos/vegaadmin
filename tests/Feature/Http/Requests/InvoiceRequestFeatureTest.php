@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Http\Requests;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Http\Requests\InvoiceRequest;
 use App\Models\Client;
 use App\Models\EntityLimit;
@@ -61,8 +64,8 @@ class InvoiceRequestFeatureTest extends TestCase
      */
     private function createRelatedModels(): void
     {
-        $this->paymentMethod = PaymentMethod::factory()->create();
-        $this->paymentStatus = Status::factory()->create();
+        $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
+        $this->paymentStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
         $this->supplier = Supplier::factory()->create();
         $this->client = Client::factory()->create();
         foreach (['12.00', '21.00'] as $rate) {
@@ -180,6 +183,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'payment_amount' => 1000.50,
             'payment_currency' => 'EUR',
             'issue_date' => $this->faker->date(),
+            'tax_point_date' => $this->faker->date(),
             'due_in' => 14,
             'payment_status_id' => $this->paymentStatus->id,
 
@@ -314,12 +318,13 @@ class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_zero_or_negative_due_in()
+    public function validation_fails_with_due_in_outside_one_to_maximum_days()
     {
         $invalidValues = [
             0,
             -1,
             -10,
+            InvoiceDueDate::MAX_DAYS + 1,
         ];
 
         foreach ($invalidValues as $value) {
@@ -379,6 +384,22 @@ class InvoiceRequestFeatureTest extends TestCase
             $this->assertTrue($validator->fails(), "Validation should fail for email: {$email}");
             $this->assertArrayHasKey('email', $validator->errors()->toArray());
         }
+    }
+
+    #[Test]
+    public function validation_fails_with_an_expense_status(): void
+    {
+        $invalidData = $this->validInvoiceData;
+        $invalidData['payment_status_id'] = Status::where('slug', 'paid-expense')->firstOrFail()->id;
+
+        $request = new InvoiceRequest;
+        $validator = Validator::make(
+            $invalidData,
+            $request->rules(),
+            $request->messages(),
+        );
+
+        $this->assertSame(['payment_status_id'], array_keys($validator->errors()->toArray()));
     }
 
     #[Test]
@@ -454,7 +475,6 @@ class InvoiceRequestFeatureTest extends TestCase
         $nullableFields = [
             'invoice_ks',
             'invoice_ss',
-            'tax_point_date',
             'email',
             'phone',
             'ico',
@@ -559,6 +579,7 @@ class InvoiceRequestFeatureTest extends TestCase
             'payment_amount' => 1000,
             'payment_currency' => 'CZK',
             'issue_date' => $this->faker->date(),
+            'tax_point_date' => $this->faker->date(),
             'due_in' => 14,
             'payment_status_id' => $this->paymentStatus->id,
 

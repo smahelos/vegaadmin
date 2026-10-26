@@ -8,6 +8,8 @@ use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoiceMutationPayload;
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\User;
@@ -60,8 +62,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     public function store_guest_creates_invoice_and_returns_json_success(): void
     {
         // Provide full valid payload to satisfy validation (guest create)
-        $paymentMethodId = PaymentMethod::factory()->create()->id;
-        $statusId = Status::factory()->create()->id;
+        $paymentMethodId = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id;
+        $statusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id;
         $invoiceData = [
             'invoice_vs' => 'GUEST-' . uniqid(),
             'payment_method_id' => $paymentMethodId,
@@ -76,6 +78,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
                 'tax_rate' => '0',
             ]]),
             'issue_date' => now()->format('Y-m-d'),
+            'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
             'payment_status_id' => $statusId,
             'name' => 'Supplier Test',
@@ -118,8 +121,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     public function store_guest_handles_exception_and_returns_error_json(): void
     {
         // Provide full valid payload to satisfy validation then simulate exception in service
-        $paymentMethodId = PaymentMethod::factory()->create()->id;
-        $statusId = Status::factory()->create()->id;
+        $paymentMethodId = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id;
+        $statusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id;
         $invoiceData = [
             'invoice_vs' => 'GUEST-' . uniqid(),
             'payment_method_id' => $paymentMethodId,
@@ -134,6 +137,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
                 'tax_rate' => '0',
             ]]),
             'issue_date' => now()->format('Y-m-d'),
+            'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 7,
             'payment_status_id' => $statusId,
             'name' => 'Supp X',

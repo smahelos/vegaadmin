@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Traits;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields;
 use App\Models\Client;
 use App\Models\PaymentMethod;
@@ -39,7 +40,7 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         // Arrange
         $client = Client::factory()->create(['name' => 'Test Client']);
         $supplier = Supplier::factory()->create(['name' => 'Test Supplier']);
-        $paymentMethod = PaymentMethod::factory()->create(['name' => 'Cash']);
+        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
         $status = Status::factory()->create(['name' => 'Paid']);
 
         $clients = [$client->id => $client->name];

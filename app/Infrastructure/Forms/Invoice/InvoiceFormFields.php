@@ -100,6 +100,7 @@ trait InvoiceFormFields
                 'type' => 'date',
                 'hint' => __('invoices.hints.tax_point_date'),
                 'default' => date('Y-m-d'),
+                'required' => true,
             ],
             [
                 'name' => 'payment_method_id',

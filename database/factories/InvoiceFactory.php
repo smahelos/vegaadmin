@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -37,7 +38,7 @@ class InvoiceFactory extends Factory
             'user_id' => User::factory(),
             'supplier_id' => Supplier::factory(),
             'payment_status_id' => Status::factory(),
-            'payment_method_id' => PaymentMethod::factory(),
+            'payment_method_id' => fn (): int => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->value('id'),
             'payment_amount' => random_int(100, 10000),
             'payment_currency' => 'CZK',
             'invoice_text' => random_int(0, 1) ? 'Test invoice text' : null,

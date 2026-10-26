@@ -15,6 +15,7 @@ use App\Models\Status;
 use App\Models\User;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\Fakes\Shared\FixedClock;
 use Tests\TestCase;
 
 final class EloquentApiStatisticsRepositoryTest extends TestCase
@@ -31,7 +32,8 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     {
         parent::setUp();
 
-        $this->repository = $this->app->make(EloquentApiStatisticsRepository::class);
+        // The pending invoice below is due on this day
+        $this->repository = $this->repositoryOn('2026-02-03');
         $this->user = User::factory()->create();
         $this->client = Client::factory()->create(['user_id' => $this->user->id, 'name' => 'Alfa']);
         $this->otherClient = Client::factory()->create(['user_id' => $this->user->id, 'name' => 'Beta']);
@@ -157,6 +159,26 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     }
 
     #[Test]
+    public function invoice_status_counts_unpaid_invoices_past_their_due_date_as_overdue(): void
+    {
+        $rows = $this->repositoryOn('2026-02-04')->invoiceStatus(
+            UserId::fromInt($this->user->id),
+            new DateTimeImmutable('2026-01-01'),
+            null,
+            [],
+        );
+
+        $counts = array_column(
+            $rows,
+            'count',
+            'status',
+        );
+        ksort($counts);
+
+        $this->assertSame(['overdue' => 1, 'paid' => 2], array_map('intval', $counts));
+    }
+
+    #[Test]
     public function payment_methods_sum_invoices_per_method(): void
     {
         $rows = $this->repository->paymentMethods(
@@ -207,6 +229,11 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         ], $this->numeric($rows, ['amount']));
     }
 
+    private function repositoryOn(string $today): EloquentApiStatisticsRepository
+    {
+        return new EloquentApiStatisticsRepository(new FixedClock(new DateTimeImmutable($today)));
+    }
+
     private function invoice(
         Client $client,
         string $issueDate,
@@ -217,6 +244,7 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
             'user_id' => $client->user_id,
             'client_id' => $client->id,
             'issue_date' => $issueDate,
+            'due_in' => 14,
             'payment_amount' => $amount,
             'payment_status_id' => Status::where('slug', $status)->value('id'),
             'payment_method_id' => PaymentMethod::where('slug', 'bankaccount')->value('id'),

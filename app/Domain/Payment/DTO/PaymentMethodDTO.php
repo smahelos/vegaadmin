@@ -2,12 +2,14 @@
 
 namespace App\Domain\Payment\DTO;
 
+use App\Domain\Payment\Enums\PaymentMethodCode;
+
 class PaymentMethodDTO
 {
     public function __construct(
         public readonly int $id,
         public readonly ?string $name,
-        public readonly ?string $slug,
+        public readonly PaymentMethodCode $code,
         public readonly ?string $description,
         public readonly bool $is_active,
         public readonly ?string $created_at,
@@ -20,7 +22,7 @@ class PaymentMethodDTO
         return new self(
             id: (int) $data['id'],
             name: $data['name'] ?? null,
-            slug: $data['slug'] ?? null,
+            code: $data['code'],
             description: $data['description'] ?? null,
             is_active: (bool) ($data['is_active'] ?? false),
             created_at: $data['created_at'] ?? null,
@@ -33,7 +35,7 @@ class PaymentMethodDTO
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'slug' => $this->slug,
+            'slug' => $this->code->value,
             'description' => $this->description,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at,
