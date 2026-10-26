@@ -1,0 +1,129 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Persistence\Eloquent\Party\Repositories;
+
+use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
+use App\Domain\Party\Contracts\ContactWriteRepositoryInterface;
+use App\Domain\Party\DTO\ContactDTO;
+use App\Domain\Party\DTO\ContactWriteData;
+use App\Domain\Party\DTO\PartyProfile;
+use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\ValueObjects\UserId;
+use App\Infrastructure\Persistence\Eloquent\Party\Mappers\EloquentContactMapper;
+use App\Models\Contact;
+use DateTimeImmutable;
+use Illuminate\Database\Eloquent\Builder;
+
+final class EloquentContactRepository implements ContactReadRepositoryInterface, ContactWriteRepositoryInterface
+{
+    public function __construct(
+        private readonly PartyRecords $records,
+    ) {}
+
+    public function findByIdForUser(ContactId $id, UserId $userId): ?ContactDTO
+    {
+        $contact = $this->ofUser($userId)
+            ->whereKey($id->value)
+            ->first();
+
+        return $contact === null ? null : EloquentContactMapper::toDTO($contact);
+    }
+
+    public function listActiveForUser(UserId $userId): array
+    {
+        return $this->list($this->ofUser($userId)->whereNull('archived_at'));
+    }
+
+    public function listArchivedForUser(UserId $userId): array
+    {
+        return $this->list($this->ofUser($userId)->whereNotNull('archived_at'));
+    }
+
+    public function countActiveForUser(UserId $userId): int
+    {
+        return Contact::query()
+            ->where('user_id', $userId->toInt())
+            ->whereNull('archived_at')
+            ->count();
+    }
+
+    public function listPossibleDuplicates(
+        UserId $userId,
+        PartyProfile $profile,
+        ?ContactId $except,
+    ): array {
+        $query = $this->records->possibleDuplicates(
+            Contact::query(),
+            $userId,
+            $profile,
+        );
+        if ($except !== null) {
+            $query->whereKeyNot($except->value);
+        }
+
+        return $this->list($query);
+    }
+
+    public function create(UserId $userId, ContactWriteData $data): ContactDTO
+    {
+        $contact = $this->records->save(
+            new Contact(['user_id' => $userId->toInt()]),
+            EloquentContactMapper::toAttributes($data),
+            $data->profile->address,
+        );
+
+        return EloquentContactMapper::toDTO($contact);
+    }
+
+    public function update(ContactId $id, ContactWriteData $data): ContactDTO
+    {
+        $contact = $this->records->save(
+            Contact::query()->findOrFail($id->value),
+            EloquentContactMapper::toAttributes($data),
+            $data->profile->address,
+        );
+
+        return EloquentContactMapper::toDTO($contact);
+    }
+
+    public function archive(ContactId $id, DateTimeImmutable $archived): void
+    {
+        Contact::query()
+            ->whereKey($id->value)
+            ->update(['archived_at' => $archived]);
+    }
+
+    public function restore(ContactId $id): void
+    {
+        Contact::query()
+            ->whereKey($id->value)
+            ->update(['archived_at' => null]);
+    }
+
+    /**
+     * @return Builder<Contact>
+     */
+    private function ofUser(UserId $userId): Builder
+    {
+        return Contact::query()
+            ->with('address')
+            ->where('user_id', $userId->toInt());
+    }
+
+    /**
+     * @param  Builder<Contact>  $query
+     * @return list<ContactDTO>
+     */
+    private function list(Builder $query): array
+    {
+        return $query
+            ->orderBy('name')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact))
+            ->values()
+            ->all();
+    }
+}

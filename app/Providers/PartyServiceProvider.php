@@ -12,8 +12,14 @@ use App\Application\Party\Mappers\SupplierArrayMapper;
 use App\Application\Party\Services\PartyApplicationService;
 use App\Application\Party\Services\PartyAuthorizationService;
 use App\Application\Party\Services\PartyInputValidationService;
+use App\Domain\Party\Contracts\BankAccountReadRepositoryInterface;
+use App\Domain\Party\Contracts\BankAccountWriteRepositoryInterface;
+use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
+use App\Domain\Party\Contracts\BusinessWriteRepositoryInterface;
 use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
 use App\Domain\Party\Contracts\ClientDtoWriteRepositoryInterface;
+use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
+use App\Domain\Party\Contracts\ContactWriteRepositoryInterface;
 use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
 use App\Domain\Party\Contracts\PartyCreationValidatorInterface;
 use App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface;
@@ -22,8 +28,11 @@ use App\Domain\Party\Services\InvoicePartyService;
 use App\Domain\Party\Validation\PartyCreationValidator;
 use App\Infrastructure\Persistence\Eloquent\Party\Observers\ClientObserver;
 use App\Infrastructure\Persistence\Eloquent\Party\Observers\SupplierObserver;
+use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentBankAccountRepository;
+use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentBusinessRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentClientDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentClientRepository;
+use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentContactRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentSupplierDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentSupplierRepository;
 use App\Models\Client;
@@ -65,6 +74,36 @@ class PartyServiceProvider extends ServiceProvider
      */
     private function registerInfrastructure(): void
     {
+        $this->app->bind(
+            BusinessReadRepositoryInterface::class,
+            EloquentBusinessRepository::class,
+        );
+
+        $this->app->bind(
+            BusinessWriteRepositoryInterface::class,
+            EloquentBusinessRepository::class,
+        );
+
+        $this->app->bind(
+            ContactReadRepositoryInterface::class,
+            EloquentContactRepository::class,
+        );
+
+        $this->app->bind(
+            ContactWriteRepositoryInterface::class,
+            EloquentContactRepository::class,
+        );
+
+        $this->app->bind(
+            BankAccountReadRepositoryInterface::class,
+            EloquentBankAccountRepository::class,
+        );
+
+        $this->app->bind(
+            BankAccountWriteRepositoryInterface::class,
+            EloquentBankAccountRepository::class,
+        );
+
         // Party repositories (Client & Supplier)
         $this->app->bind(
             ClientReadRepositoryInterface::class,

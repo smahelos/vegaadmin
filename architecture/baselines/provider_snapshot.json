@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-25T22:57:44+00:00",
+    "generated_at": "2026-10-26T17:52:37+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -309,6 +309,30 @@
                 {
                     "abstract": "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface",
                     "concrete": "App\\Domain\\Party\\Validation\\PartyCreationValidator"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\BusinessReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBusinessRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\BusinessWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBusinessRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\ContactReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\ContactWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\BankAccountReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBankAccountRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\BankAccountWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBankAccountRepository"
                 },
                 {
                     "abstract": "App\\Application\\Party\\Contracts\\ClientReadRepositoryInterface",
@@ -1020,6 +1044,38 @@
                 "method": "bind"
             }
         },
+        "App\\Domain\\Party\\Contracts\\BankAccountReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBankAccountRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\BankAccountWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBankAccountRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\BusinessReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBusinessRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\BusinessWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBusinessRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
         "App\\Domain\\Party\\Contracts\\ClientDtoReadRepositoryInterface": {
             "status": "ok",
             "actual": {
@@ -1032,6 +1088,22 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\ContactReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\ContactWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }
