@@ -52,7 +52,7 @@ docker exec BILLEX-app vendor/bin/phpstan analyse --memory-limit=4G      # Laras
 
 ## Architecture at a glance
 
-Layered DDD on Laravel, organised by bounded context (Analytics, Content, Invoice, Party = clients/suppliers, Payment, Product, User, Shared):
+Layered DDD on Laravel, organised by bounded context (Analytics, Content, Invoice, Party = businesses/contacts, Payment, Product, User, Shared):
 
 - `app/Domain/<Context>/` — business rules in plain PHP
 - `app/Application/<Context>/` — use cases called by controllers, Livewire and commands

@@ -23,8 +23,11 @@ paths:
 
 ## Entity limits (UELS)
 
-- Creating a limited entity (invoice, client, supplier, product, …) is allowed only within the user's configured limit; **no configured limit means creation is not allowed**. The one exception is a guest invoice, which is never stored and is only offered for download.
+- Creating a limited entity (invoice, business, contact, product, …) is allowed only within the user's configured limit; **no configured limit means creation is not allowed**. The one exception is a guest invoice, which is never stored and is only offered for download.
+- A limit belongs to the owner of the record, also when an admin creates it for another user.
+- Two kinds of limit: a **period limit** counts creations in a period (`entity_limit_usage`); a **capacity limit** (`metric_type` `active`, `period_type` `lifetime`: businesses, contacts) caps the active rows, so archiving frees a place and restoring takes one like creating.
 - Limits are plan configuration: `limit_*` permissions with their `entity_limits` rows, assigned through the plan's role. They are not catalog entries.
-- Admin users bypass limits through the catalog's `can_create_<entity>_unlimited` permissions.
-- The limit check runs once, in the application service that creates the entity, inside the same transaction as the insert. Usage is recorded by a handler of the entity's `…Created` domain event, so every creation path — frontend, admin, API — counts.
+- Admin users bypass period limits through the catalog's `can_create_<entity>_unlimited` permissions. Capacity limits have no bypass.
+- The limit check runs once, in the application service that creates the entity, inside the same transaction as the insert. A period limit's usage is recorded by a handler of the entity's `…Created` domain event, so every creation path — frontend, admin, API — counts.
+- A capacity limit is checked by a domain service the use cases share (creation, restoration, registration's first business): it locks the owner's `users` row (`SELECT … FOR UPDATE`), counts the active rows and lets the insert or restore run in the same transaction. No usage is recorded; the rows are the count.
 - Time and periods come from `ClockInterface` and the requested period; never `now()` inside the limit services.

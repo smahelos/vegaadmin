@@ -1,6 +1,10 @@
 # PRD: Moje firmy a kontakty
 
-Datum: 2026-10-26. Verze: 1.0. Stav: schválená produktová specifikace.
+Datum: 2026-10-26. Verze: 1.1. Stav: schválená produktová specifikace.
+
+Verze 1.1 (2026-10-26): oddíl 4 upřesněn podle technického návrhu —
+adresy firem i kontaktů sdílejí tabulku `addresses`, bankovní účty
+tabulku `bank_accounts`. Produktová rozhodnutí se nemění.
 
 Produktová rozhodnutí byla postupně odsouhlasena uživatelem. Závěrečné
 schválení zahrnuje také okrajová pravidla oddílu 10 a minimální úpravu
@@ -120,8 +124,10 @@ Země registrace je samostatný údaj. Při zadávání registračního čísla 
 může předvyplnit ze známé země adresy a uživatel ji může změnit.
 Pozdější změna adresy již uloženou zemi registrace sama nezmění.
 
-Adresy se od začátku ukládají samostatně: `contact_addresses` s FK
-`contact_id`, obdobně `business_addresses` s FK `business_id`.
+Adresy se od začátku ukládají samostatně v jedné tabulce `addresses`
+se skutečnými FK `business_id` a `contact_id`; každá adresa patří právě
+jednomu vlastníkovi, což hlídá i databáze (CHECK). Bankovní účty mají
+stejné uspořádání v tabulce `bank_accounts`.
 Model připouští více adres; první verze aplikačně umožní nejvýše jednu.
 Formulář zatím zobrazuje běžná adresní pole, nikoli správu seznamu adres.
 Kontakt a jeho adresa se ukládají konzistentně v jedné transakci.
