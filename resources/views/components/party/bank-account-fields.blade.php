@@ -4,15 +4,13 @@
 ])
 
 <div class="space-y-5">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <x-form.input model="account.label" :label="__('parties.bank_accounts.fields.label')"
+    <div class="grid grid-cols-1 md:grid-cols-10 gap-6">
+        <x-form.input class="md:col-span-5" model="account.label" :label="__('parties.bank_accounts.fields.label')"
             :hint="__('parties.bank_accounts.hints.label')" />
-        <x-form.select model="account.country" :label="__('parties.bank_accounts.fields.country')" :options="$countries" live />
+        <x-form.select class="md:col-span-5" model="account.country" :label="__('parties.bank_accounts.fields.country')" :options="$countries" live />
     </div>
-    <x-form.input model="account.iban" :label="__('parties.bank_accounts.fields.iban')"
-        :hint="__('parties.bank_accounts.hints.iban')" />
-    <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
-        <x-form.input class="md:col-span-3" model="account.number" :label="__('parties.bank_accounts.fields.number')"
+    <div class="grid grid-cols-1 md:grid-cols-10 gap-6">
+        <x-form.input class="md:col-span-4" model="account.number" :label="__('parties.bank_accounts.fields.number')"
             :hint="__('parties.bank_accounts.hints.number')" />
         @if ($bankOptions !== [])
             <x-form.select class="md:col-span-3" model="account.bankCode" :label="__('parties.bank_accounts.fields.bank_code')"
@@ -20,9 +18,11 @@
         @else
             <x-form.input class="md:col-span-3" model="account.bankCode" :label="__('parties.bank_accounts.fields.bank_code')" />
         @endif
+        <x-form.input class="md:col-span-3" model="account.bankName" :label="__('parties.bank_accounts.fields.bank_name')" />
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <x-form.input model="account.swift" :label="__('parties.bank_accounts.fields.swift')" />
-        <x-form.input model="account.bankName" :label="__('parties.bank_accounts.fields.bank_name')" />
+    <div class="grid grid-cols-1 md:grid-cols-10 gap-6">
+        <x-form.input class="md:col-span-5" model="account.iban" :label="__('parties.bank_accounts.fields.iban')"
+            :hint="__('parties.bank_accounts.hints.iban')" />
+        <x-form.input class="md:col-span-5" model="account.swift" :label="__('parties.bank_accounts.fields.swift')" />
     </div>
 </div>

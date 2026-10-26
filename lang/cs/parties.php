@@ -61,6 +61,8 @@ return [
         'status' => 'Stav',
     ],
     'sections' => [
+        'basic' => 'Základní údaje',
+        'billing' => 'Fakturační údaje',
         'address' => 'Fakturační adresa',
     ],
     'bank_accounts' => [

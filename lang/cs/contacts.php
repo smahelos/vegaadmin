@@ -23,9 +23,6 @@ return [
         'limit_exceeded' => 'Dosáhli jste limitu počtu aktivních kontaktů. Archivujte některý kontakt nebo si rozšiřte tarif.',
         'confirm_archive' => 'Opravdu chcete kontakt archivovat? Na nových dokladech nebude k dispozici.',
     ],
-    'sections' => [
-        'details' => 'Údaje kontaktu',
-    ],
     'titles' => [
         'index' => 'Kontakty',
         'create' => 'Nový kontakt',

@@ -19,6 +19,7 @@ return [
         'back_to_list' => 'Zurück zur Liste',
         'make_default' => 'Als Standard festlegen',
         'remove_logo' => 'Logo entfernen',
+        'upload_logo' => 'Logo hochladen',
     ],
     'messages' => [
         'created' => 'Die Firma wurde angelegt.',
@@ -35,7 +36,6 @@ return [
         'no_logo' => 'Die Firma hat kein Logo.',
     ],
     'sections' => [
-        'details' => 'Firmendaten',
         'first_bank_account' => 'Bankkonto',
     ],
     'titles' => [

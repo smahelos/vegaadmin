@@ -19,6 +19,7 @@ return [
         'back_to_list' => 'Back to list',
         'make_default' => 'Make default',
         'remove_logo' => 'Remove logo',
+        'upload_logo' => 'Upload logo',
     ],
     'messages' => [
         'created' => 'The business has been created.',
@@ -35,7 +36,6 @@ return [
         'no_logo' => 'The business has no logo.',
     ],
     'sections' => [
-        'details' => 'Business details',
         'first_bank_account' => 'Bank account',
     ],
     'titles' => [

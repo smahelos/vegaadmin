@@ -23,9 +23,6 @@ return [
         'limit_exceeded' => 'You have reached the limit of active contacts. Archive a contact or upgrade your plan.',
         'confirm_archive' => 'Do you really want to archive the contact? It will not be offered on new documents.',
     ],
-    'sections' => [
-        'details' => 'Contact details',
-    ],
     'titles' => [
         'index' => 'Contacts',
         'create' => 'New contact',

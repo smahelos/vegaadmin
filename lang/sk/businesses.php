@@ -19,6 +19,7 @@ return [
         'back_to_list' => 'Späť na zoznam',
         'make_default' => 'Nastaviť ako predvolenú',
         'remove_logo' => 'Odstrániť logo',
+        'upload_logo' => 'Nahrať logo',
     ],
     'messages' => [
         'created' => 'Firma bola vytvorená.',
@@ -35,7 +36,6 @@ return [
         'no_logo' => 'Firma nemá logo.',
     ],
     'sections' => [
-        'details' => 'Údaje firmy',
         'first_bank_account' => 'Bankový účet',
     ],
     'titles' => [

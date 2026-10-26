@@ -23,9 +23,6 @@ return [
         'limit_exceeded' => 'Sie haben die Höchstzahl aktiver Kontakte erreicht. Archivieren Sie einen Kontakt oder erweitern Sie Ihren Tarif.',
         'confirm_archive' => 'Möchten Sie den Kontakt wirklich archivieren? Für neue Belege steht er dann nicht zur Verfügung.',
     ],
-    'sections' => [
-        'details' => 'Kontaktdaten',
-    ],
     'titles' => [
         'index' => 'Kontakte',
         'create' => 'Neuer Kontakt',

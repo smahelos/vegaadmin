@@ -61,6 +61,8 @@ return [
         'status' => 'Status',
     ],
     'sections' => [
+        'basic' => 'Basic details',
+        'billing' => 'Billing details',
         'address' => 'Billing address',
     ],
     'bank_accounts' => [

@@ -61,6 +61,8 @@ return [
         'status' => 'Status',
     ],
     'sections' => [
+        'basic' => 'Grunddaten',
+        'billing' => 'Rechnungsdaten',
         'address' => 'Rechnungsadresse',
     ],
     'bank_accounts' => [

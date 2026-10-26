@@ -1,5 +1,5 @@
 <div>
-    <x-form.card class="mb-20" :title="__('parties.bank_accounts.entity.plural')">
+    <x-detail.card class="mb-20" :title="__('parties.bank_accounts.entity.plural')">
         <x-status-messages :error="$errorMessage" :success="$successMessage" />
 
         @if ($accounts === [])
@@ -12,10 +12,10 @@
                             <p class="font-medium text-gray-900 dark:text-white">
                                 {{ $bankAccount->label ?? __('parties.bank_accounts.entity.singular') }}
                                 @if ($defaultId !== null && $defaultId->equals($bankAccount->id))
-                                    <span class="ml-2 rounded-sm bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">{{ __('parties.bank_accounts.fields.default') }}</span>
+                                    <span class="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-800">{{ __('parties.bank_accounts.fields.default') }}</span>
                                 @endif
                                 @if ($bankAccount->isArchived())
-                                    <span class="ml-2 rounded-sm bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-700">{{ __('parties.statuses.archived') }}</span>
+                                    <span class="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-xs font-semibold text-gray-700">{{ __('parties.statuses.archived') }}</span>
                                 @endif
                             </p>
                             <p class="text-gray-700 dark:text-gray-300">{{ $bankAccount->account->formattedIban() }}</p>
@@ -24,23 +24,19 @@
                             @endif
                         </div>
                         @if ($canUpdate)
-                            <div class="flex flex-wrap gap-2 text-sm">
+                            <div class="flex flex-wrap gap-2">
                                 @if ($bankAccount->isArchived())
-                                    <button type="button" wire:click="restore({{ $bankAccount->id->value }})" class="text-green-600 hover:text-green-800">
-                                        <i class="fas fa-undo mr-1"></i>{{ __('parties.actions.restore') }}
-                                    </button>
+                                    <x-icon-button icon="fa-undo" tone="emerald" :label="__('parties.actions.restore')"
+                                        wire:click="restore({{ $bankAccount->id->value }})" />
                                 @else
-                                    <button type="button" wire:click="edit({{ $bankAccount->id->value }})" class="text-yellow-600 hover:text-yellow-800">
-                                        <i class="fas fa-pencil-alt mr-1"></i>{{ __('general.actions.edit') }}
-                                    </button>
+                                    <x-icon-button icon="fa-pencil-alt" tone="pink" :label="__('general.actions.edit')"
+                                        wire:click="edit({{ $bankAccount->id->value }})" />
                                     @if ($defaultId === null || ! $defaultId->equals($bankAccount->id))
-                                        <button type="button" wire:click="makeDefault({{ $bankAccount->id->value }})" class="text-[#490BF4] hover:text-indigo-800">
-                                            <i class="fas fa-star mr-1"></i>{{ __('parties.bank_accounts.actions.make_default') }}
-                                        </button>
+                                        <x-icon-button icon="fa-star" tone="yellow" :label="__('parties.bank_accounts.actions.make_default')"
+                                            wire:click="makeDefault({{ $bankAccount->id->value }})" />
                                     @endif
-                                    <button type="button" wire:click="archive({{ $bankAccount->id->value }})" class="text-gray-600 hover:text-gray-900 dark:text-gray-300">
-                                        <i class="fas fa-archive mr-1"></i>{{ __('parties.actions.archive') }}
-                                    </button>
+                                    <x-icon-button icon="fa-archive" tone="orange" :label="__('parties.actions.archive')"
+                                        wire:click="archive({{ $bankAccount->id->value }})" />
                                 @endif
                             </div>
                         @endif
@@ -89,5 +85,5 @@
                 </button>
             @endif
         @endif
-    </x-form.card>
+    </x-detail.card>
 </div>
