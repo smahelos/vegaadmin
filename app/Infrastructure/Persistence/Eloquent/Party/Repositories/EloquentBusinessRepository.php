@@ -9,7 +9,10 @@ use App\Domain\Party\Contracts\BusinessWriteRepositoryInterface;
 use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\DTO\PartyProfile;
+use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Party\Mappers\EloquentBusinessMapper;
 use App\Models\Business;
@@ -37,11 +40,6 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         return $this->list($this->ofUser($userId)->whereNull('archived_at'));
     }
 
-    public function listArchivedForUser(UserId $userId): array
-    {
-        return $this->list($this->ofUser($userId)->whereNotNull('archived_at'));
-    }
-
     public function countActiveForUser(UserId $userId): int
     {
         return Business::query()
@@ -57,6 +55,26 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
             ->value('default_business_id');
 
         return $id === null ? null : BusinessId::fromInt($id);
+    }
+
+    public function searchForUser(
+        UserId $userId,
+        PartySearch $search,
+        PageRequest $page,
+    ): PaginatedResult {
+        $found = $this->records->search(
+            Business::query(),
+            $userId,
+            $search,
+            $page,
+        );
+
+        return new PaginatedResult(
+            array_map(fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business), $found->items()),
+            $found->total(),
+            $found->perPage(),
+            $found->currentPage(),
+        );
     }
 
     public function listPossibleDuplicates(

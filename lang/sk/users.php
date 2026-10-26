@@ -20,6 +20,7 @@ return [
         'updated_at' => 'Aktualizované',
     ],
     'hints' => [
+        'business' => 'Údaje firmy, v mene ktorej budete vystavovať doklady. Názov a e-mail sa predvyplnia z prihlasovacích údajov, môžete ich zmeniť.',
         'password' => 'Aspoň 8 znakov',
         'password_confirmation' => 'Zadajte heslo znova pre potvrdenie',
         'current_password' => 'Potrebné na potvrdenie',
@@ -53,6 +54,7 @@ return [
         'system_name' => 'Fakturačný systém',
     ],
     'sections' => [
+        'business' => 'Vaša firma',
         'basic_info' => 'Základné údaje',
         'address' => 'Adresa',
         'change_password' => 'Zmena hesla',

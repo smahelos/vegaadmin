@@ -9,7 +9,6 @@ use App\Domain\Party\DTO\SupplierDTO;
 use App\Domain\Party\Exceptions\PartyCreationException;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Client;
-use App\Models\Invoice;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -176,40 +175,6 @@ class InvoicePartyServiceTest extends TestCase
     }
 
     #[Test]
-    public function resolve_or_create_client_with_flag_returns_existing_and_created_false(): void
-    {
-        $existing = Client::factory()->create(['user_id' => $this->user->id, 'name' => 'Keep']);
-        $result = $this->service->resolveOrCreateClientWithFlag(UserId::fromInt($this->user->id), ['client_id' => $existing->id, 'client_name' => 'Ignored']);
-        $this->assertFalse($result['created']);
-        $this->assertEquals($existing->id, $result['client']->id);
-    }
-
-    #[Test]
-    public function resolve_or_create_client_with_flag_creates_new_and_sets_created_true(): void
-    {
-        $result = $this->service->resolveOrCreateClientWithFlag(UserId::fromInt($this->user->id), ['client_name' => 'Flag Client']);
-        $this->assertTrue($result['created']);
-        $this->assertDatabaseHas('clients', ['id' => $result['client']->id, 'name' => 'Flag Client']);
-    }
-
-    #[Test]
-    public function resolve_or_create_supplier_with_flag_returns_existing_and_created_false(): void
-    {
-        $existing = Supplier::factory()->create(['user_id' => $this->user->id, 'name' => 'SuppKeep']);
-        $result = $this->service->resolveOrCreateSupplierWithFlag(UserId::fromInt($this->user->id), ['supplier_id' => $existing->id, 'name' => 'Ignored']);
-        $this->assertFalse($result['created']);
-        $this->assertEquals($existing->id, $result['supplier']->id);
-    }
-
-    #[Test]
-    public function resolve_or_create_supplier_with_flag_creates_new_and_sets_created_true(): void
-    {
-        $result = $this->service->resolveOrCreateSupplierWithFlag(UserId::fromInt($this->user->id), ['name' => 'Flag Supplier']);
-        $this->assertTrue($result['created']);
-        $this->assertDatabaseHas('suppliers', ['id' => $result['supplier']->id, 'name' => 'Flag Supplier']);
-    }
-
-    #[Test]
     public function default_client_or_first_returns_default_when_present(): void
     {
         $default = Client::factory()->create(['user_id' => $this->user->id, 'is_default' => true]);
@@ -287,87 +252,5 @@ class InvoicePartyServiceTest extends TestCase
         Supplier::factory()->create(); // other user
         $list = $this->appService->listSuppliers($this->user);
         $this->assertGreaterThanOrEqual(3, count($list));
-    }
-
-    #[Test]
-    public function delete_supplier_returns_false_when_linked_invoices_exist(): void
-    {
-        $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->create(['supplier_id' => $supplier->id]);
-        $result = $this->service->deleteSupplier($this->user->id, $supplier->fresh()->id);
-        $this->assertFalse($result);
-        $this->assertDatabaseHas('suppliers', ['id' => $supplier->id]);
-    }
-
-    #[Test]
-    public function delete_supplier_deletes_when_no_invoices(): void
-    {
-        $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
-        $result = $this->service->deleteSupplier($this->user->id, $supplier->id);
-        $this->assertTrue($result);
-        $this->assertDatabaseMissing('suppliers', ['id' => $supplier->id]);
-    }
-
-    #[Test]
-    public function delete_client_returns_false_when_linked_invoices_exist(): void
-    {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->create(['client_id' => $client->id]);
-        $result = $this->service->deleteClient($this->user->id, $client->fresh()->id);
-        $this->assertFalse($result);
-        $this->assertDatabaseHas('clients', ['id' => $client->id]);
-    }
-
-    #[Test]
-    public function delete_client_deletes_when_no_invoices(): void
-    {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-        $result = $this->service->deleteClient($this->user->id, $client->id);
-        $this->assertTrue($result);
-        $this->assertDatabaseMissing('clients', ['id' => $client->id]);
-    }
-
-    #[Test]
-    public function stores_clients_without_ico_as_null_so_one_user_can_have_several(): void
-    {
-        $userId = UserId::fromInt($this->user->id);
-        $first = $this->service->resolveOrCreateClient($userId, ['name' => 'First Client', 'ico' => '']);
-        $second = $this->service->resolveOrCreateClient($userId, ['name' => 'Second Client', 'ico' => ' ']);
-
-        $this->service->updateClient($first->id, ['name' => 'First Client Renamed', 'ico' => '']);
-        $this->service->updateClient($second->id, ['name' => 'Second Client Renamed', 'ico' => '']);
-
-        $this->assertDatabaseHas('clients', [
-            'id' => $first->id,
-            'name' => 'First Client Renamed',
-            'ico' => null,
-        ]);
-        $this->assertDatabaseHas('clients', [
-            'id' => $second->id,
-            'name' => 'Second Client Renamed',
-            'ico' => null,
-        ]);
-    }
-
-    #[Test]
-    public function stores_suppliers_without_ico_as_null_so_one_user_can_have_several(): void
-    {
-        $userId = UserId::fromInt($this->user->id);
-        $first = $this->service->resolveOrCreateSupplier($userId, ['name' => 'First Supplier', 'ico' => '']);
-        $second = $this->service->resolveOrCreateSupplier($userId, ['name' => 'Second Supplier', 'ico' => ' ']);
-
-        $this->service->updateSupplier($first->id, ['name' => 'First Supplier Renamed', 'ico' => '']);
-        $this->service->updateSupplier($second->id, ['name' => 'Second Supplier Renamed', 'ico' => '']);
-
-        $this->assertDatabaseHas('suppliers', [
-            'id' => $first->id,
-            'name' => 'First Supplier Renamed',
-            'ico' => null,
-        ]);
-        $this->assertDatabaseHas('suppliers', [
-            'id' => $second->id,
-            'name' => 'Second Supplier Renamed',
-            'ico' => null,
-        ]);
     }
 }

@@ -8,12 +8,10 @@ use App\Application\Party\Contracts\SupplierReadRepositoryInterface;
 use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
 use App\Domain\Party\DTO\ClientDTO;
 use App\Domain\Party\DTO\SupplierDTO;
-use App\Domain\User\ValueObjects\UserId;
 use App\Models\Client;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -29,7 +27,6 @@ class PartyApplicationService implements PartyApplicationServiceInterface
         private readonly ClientReadRepositoryInterface $clientsRead,
         private readonly SupplierReadRepositoryInterface $suppliersRead,
         private readonly PartyAuthorizationService $authService,
-        private readonly PartyInputValidationService $validationService,
     ) {}
 
     public function findClient(int $userId, int $id): Client
@@ -111,68 +108,6 @@ class PartyApplicationService implements PartyApplicationServiceInterface
     public function defaultSupplier(int $userId): ?SupplierDTO
     {
         return $this->partyService->defaultSupplier($userId);
-    }
-
-    public function resolveOrCreateClientWithFlag(int $userId, array $data): array
-    {
-        $this->validationService->validateClientBusinessRules($data, $userId);
-
-        return DB::transaction(fn () => $this->partyService->resolveOrCreateClientWithFlag(UserId::fromInt($userId), $data),
-        );
-    }
-
-    public function updateClient(int $clientId, array $data): Client
-    {
-        // For updates, we need to get user_id and exclude current client from uniqueness checks
-        $client = $this->findClient(auth()->user()->id, $clientId);
-        $this->validationService->validateClientBusinessRules(
-            $data,
-            $client->user_id,
-            $clientId,
-        );
-
-        DB::transaction(fn () => $this->partyService->updateClient($clientId, $data),
-        );
-
-        // Return the updated Client model
-        return $this->findClient(auth()->user()->id, $clientId);
-    }
-
-    public function deleteClient(int $userId, int $clientId): bool
-    {
-        return DB::transaction(fn () => $this->partyService->deleteClient($userId, $clientId),
-        );
-    }
-
-    public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array
-    {
-        $this->validationService->validateSupplierBusinessRules($data, $userId);
-
-        return DB::transaction(fn () => $this->partyService->resolveOrCreateSupplierWithFlag(UserId::fromInt($userId), $data),
-        );
-    }
-
-    public function updateSupplier(int $supplierId, array $data): Supplier
-    {
-        // For updates, we need to get user_id and exclude current supplier from uniqueness checks
-        $supplier = $this->findSupplier(auth()->user()->id, $supplierId);
-        $this->validationService->validateSupplierBusinessRules(
-            $data,
-            $supplier->user_id,
-            $supplierId,
-        );
-
-        DB::transaction(fn () => $this->partyService->updateSupplier($supplierId, $data),
-        );
-
-        // Return the updated Supplier model
-        return $this->findSupplier(auth()->user()->id, $supplierId);
-    }
-
-    public function deleteSupplier(int $userId, int $supplierId): bool
-    {
-        return DB::transaction(fn () => $this->partyService->deleteSupplier($userId, $supplierId),
-        );
     }
 
     /**

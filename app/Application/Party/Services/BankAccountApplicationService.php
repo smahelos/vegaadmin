@@ -148,6 +148,13 @@ final class BankAccountApplicationService
         return $this->accounts->listForOwner($owner);
     }
 
+    public function findDefaultId(UserId $userId, AccountOwner $owner): ?BankAccountId
+    {
+        $this->assertOwnedBy($userId, $owner);
+
+        return $this->accounts->findDefaultIdForOwner($owner);
+    }
+
     /**
      * @throws BusinessNotFoundException
      * @throws ContactNotFoundException

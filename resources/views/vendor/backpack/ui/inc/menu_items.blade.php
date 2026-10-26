@@ -22,8 +22,8 @@
 
 {{-- 2. Business Operations --}}
 @if(backpack_user()->hasPermissionTo('can_create_edit_invoice', 'backpack') ||
-backpack_user()->hasPermissionTo('can_create_edit_client', 'backpack') ||
-backpack_user()->hasPermissionTo('can_create_edit_supplier', 'backpack'))
+backpack_user()->hasPermissionTo('can_view_business', 'backpack') ||
+backpack_user()->hasPermissionTo('can_view_contact', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.business.title') }}" icon="la la-briefcase text-success">
     @if(backpack_user()->hasPermissionTo('can_create_edit_invoice', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.business.invoicing') }}" />
@@ -31,19 +31,19 @@ backpack_user()->hasPermissionTo('can_create_edit_supplier', 'backpack'))
         :link="backpack_url('invoice')" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_create_edit_client', 'backpack') ||
-    backpack_user()->hasPermissionTo('can_create_edit_supplier', 'backpack'))
+    @if(backpack_user()->hasPermissionTo('can_view_business', 'backpack') ||
+    backpack_user()->hasPermissionTo('can_view_contact', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.business.partners') }}" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_create_edit_client', 'backpack'))
-    <x-backpack::menu-dropdown-item title="{{ __('clients.entity.plural') }}" icon="la la-handshake"
-        :link="backpack_url('client')" />
+    @if(backpack_user()->hasPermissionTo('can_view_business', 'backpack'))
+    <x-backpack::menu-dropdown-item title="{{ __('businesses.entity.plural') }}" icon="la la-building"
+        :link="backpack_url('business')" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_create_edit_supplier', 'backpack'))
-    <x-backpack::menu-dropdown-item title="{{ __('suppliers.entity.plural') }}" icon="la la-truck"
-        :link="backpack_url('supplier')" />
+    @if(backpack_user()->hasPermissionTo('can_view_contact', 'backpack'))
+    <x-backpack::menu-dropdown-item title="{{ __('contacts.entity.plural') }}" icon="la la-address-book"
+        :link="backpack_url('contact')" />
     @endif
 </x-backpack::menu-dropdown>
 @endif

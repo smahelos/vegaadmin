@@ -13,13 +13,6 @@ interface CountryServiceInterface
     public function getCountriesForSelect(): array;
 
     /**
-     * Get mapping of country codes to country names (sorted by name asc).
-     *
-     * @return array<string, string>
-     */
-    public function getCountryCodesForSelect(): array;
-
-    /**
      * Get detailed country information by ISO alpha-2 code.
      * Returns null when the country cannot be found.
      *

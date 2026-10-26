@@ -16,34 +16,6 @@ interface InvoicePartyServiceInterface
 
     public function resolveOrCreateSupplier(UserId $userId, array $data): SupplierDTO; // ensures user ownership
 
-    /**
-     * Resolve or create supplier returning created flag.
-     *
-     * @return array{supplier: SupplierDTO, created: bool}
-     */
-    public function resolveOrCreateSupplierWithFlag(UserId $userId, array $data): array; // ['supplier'=>Supplier,'created'=>bool]
-
-    /**
-     * Resolve or create client but also return creation flag.
-     *
-     * @return array{client: ClientDTO, created: bool}
-     */
-    public function resolveOrCreateClientWithFlag(UserId $userId, array $data): array; // ['client'=>Client,'created'=>bool]
-
-    // Role/permission-aware find/list methods have been moved to Application layer
-
-    /** Update existing client */
-    public function updateClient(int $clientId, array $data): ClientDTO;
-
-    /** Update existing supplier (handles default logic) */
-    public function updateSupplier(int $supplierId, array $data): SupplierDTO;
-
-    /** Delete supplier if allowed (returns false if blocked by invoices) */
-    public function deleteSupplier(int $userId, int $supplierId): bool;
-
-    /** Delete client if allowed (returns false if blocked by invoices) */
-    public function deleteClient(int $userId, int $clientId): bool;
-
     // Role/permission-aware list methods moved to Application layer
 
     /** Default supplier resolution for user (admin unaffected) */

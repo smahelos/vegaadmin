@@ -1,0 +1,116 @@
+<?php
+
+return [
+    'fields' => [
+        'name' => 'Name',
+        'short_name' => 'Internal short name',
+        'registration_country' => 'Country of registration',
+        'company_number' => 'Company number',
+        'vat_number' => 'VAT number',
+        'email' => 'Email for documents',
+        'phone' => 'Phone',
+        'note' => 'Internal note',
+        'street' => 'Street and number',
+        'city' => 'Town / city',
+        'postal_code' => 'Postcode',
+        'country' => 'Country',
+        'owner' => 'Owner',
+    ],
+    'hints' => [
+        'short_name' => 'Used for searching and telling records apart; never printed on documents.',
+        'company_number' => 'A foreign company enters the number from its own register.',
+        'note' => 'Only for you; never copied to documents.',
+    ],
+    'placeholders' => [
+        'search' => 'Search by name, short name, company number, email or town',
+    ],
+    'actions' => [
+        'archive' => 'Archive',
+        'restore' => 'Restore',
+        'look_up_company' => 'Load from ARES',
+        'reset_filters' => 'Clear search',
+        'open_duplicate' => 'Open the existing record',
+        'save_anyway' => 'Save anyway',
+    ],
+    'messages' => [
+        'register_filled' => 'The details from ARES have been filled in. Please check them before saving.',
+        'register_not_found' => 'ARES has no entity with this company number.',
+        'register_unavailable' => 'ARES is not responding right now. Please try again later or fill in the details yourself.',
+        'register_czech_only' => 'Only a Czech company number can be loaded from ARES.',
+        'duplicate_blocking' => 'You already have a record with the same company number.',
+        'duplicate_blocking_archived' => 'You already have an archived record with the same company number; you can restore it.',
+        'duplicate_warning' => 'Similar records already exist. Check whether this is the same company or person:',
+        'duplicate_reasons' => [
+            'czech_company_number' => 'same company number',
+            'company_number' => 'same registration number and country',
+            'name' => 'same name',
+            'email' => 'same email',
+        ],
+    ],
+    'validation' => [
+        'missing_country' => 'Choose the country of registration.',
+        'czech_format' => 'A Czech company number has exactly 8 digits.',
+        'czech_checksum' => 'The Czech company number has an invalid check digit.',
+    ],
+    'statuses' => [
+        'archived' => 'Archived',
+    ],
+    'filters' => [
+        'active' => 'Active',
+        'archived' => 'Archived',
+        'status' => 'Status',
+    ],
+    'sections' => [
+        'address' => 'Billing address',
+    ],
+    'bank_accounts' => [
+        'entity' => [
+            'singular' => 'Bank account',
+            'plural' => 'Bank accounts',
+        ],
+        'fields' => [
+            'label' => 'Label',
+            'iban' => 'IBAN',
+            'number' => 'Account number',
+            'bank_code' => 'Bank code',
+            'country' => 'Account country',
+            'swift' => 'SWIFT/BIC',
+            'bank_name' => 'Bank name',
+            'default' => 'Default',
+            'new_default' => 'New default account',
+            'owner' => 'Account owner',
+        ],
+        'hints' => [
+            'label' => 'For example “Main” or “EUR”.',
+            'iban' => 'Enter the IBAN, or the account number with the bank code.',
+            'number' => 'Including any prefix, e.g. 19-2000145399.',
+        ],
+        'actions' => [
+            'add' => 'Add account',
+            'make_default' => 'Make default',
+        ],
+        'messages' => [
+            'none' => 'No bank account yet.',
+            'saved' => 'The bank account has been saved.',
+            'archived' => 'The bank account has been archived.',
+            'restored' => 'The bank account has been restored.',
+            'default_changed' => 'The default account has been changed.',
+            'default_archived' => 'An archived account cannot be the default.',
+            'default_required' => 'Choose another default account before archiving the default one.',
+            'choose_new_default' => 'This account is the default. Choose which of the other active accounts becomes the default.',
+        ],
+        'titles' => [
+            'create' => 'New bank account',
+            'edit' => 'Edit bank account',
+        ],
+        'validation' => [
+            'missing_details' => 'Enter the IBAN, or the account number with the bank code and country.',
+            'invalid_iban' => 'The IBAN is not valid.',
+            'invalid_number' => 'The account number is not valid.',
+            'invalid_bank_code' => 'The bank code is not valid.',
+            'local_number_not_supported' => 'Enter the IBAN for this country.',
+            'iban_mismatch' => 'The IBAN does not match the account number.',
+            'invalid_swift' => 'The SWIFT/BIC is not valid.',
+        ],
+    ],
+];

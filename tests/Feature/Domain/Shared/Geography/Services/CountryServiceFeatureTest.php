@@ -49,26 +49,6 @@ class CountryServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_country_codes_for_select_returns_sorted_data(): void
-    {
-        Http::fake(['restcountries.com/*' => Http::response([
-            [
-                'cca2' => 'SK',
-                'name' => ['common' => 'Slovakia'],
-                'flag' => '🇸🇰',
-            ],
-            [
-                'cca2' => 'CZ',
-                'name' => ['common' => 'Czech Republic'],
-                'flag' => '🇨🇿',
-            ],
-        ], 200)]);
-        $result = $this->service->getCountryCodesForSelect();
-        $keys = array_keys($result);
-        $this->assertLessThan(array_search('SK', $keys), array_search('CZ', $keys));
-    }
-
-    #[Test]
     public function get_country_by_code_returns_country_data(): void
     {
         Http::fake(['restcountries.com/v3.1/alpha/CZ' => Http::response([

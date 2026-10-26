@@ -10,6 +10,7 @@ use App\Domain\Party\DTO\ContactDTO;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\DTO\DuplicatePartyDTO;
 use App\Domain\Party\DTO\PartyProfile;
+use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\Events\ContactArchived;
 use App\Domain\Party\Events\ContactCreated;
 use App\Domain\Party\Events\ContactRestored;
@@ -20,6 +21,8 @@ use App\Domain\Party\Services\DuplicateFinder;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\Enums\EntityType;
 use App\Domain\User\ValueObjects\UserId;
@@ -102,19 +105,18 @@ final class ContactApplicationService
     }
 
     /**
-     * @return list<ContactDTO>
+     * @return PaginatedResult<ContactDTO>
      */
-    public function listActive(UserId $userId): array
-    {
-        return $this->contacts->listActiveForUser($userId);
-    }
-
-    /**
-     * @return list<ContactDTO>
-     */
-    public function listArchived(UserId $userId): array
-    {
-        return $this->contacts->listArchivedForUser($userId);
+    public function search(
+        UserId $userId,
+        PartySearch $search,
+        PageRequest $page,
+    ): PaginatedResult {
+        return $this->contacts->searchForUser(
+            $userId,
+            $search,
+            $page,
+        );
     }
 
     /**

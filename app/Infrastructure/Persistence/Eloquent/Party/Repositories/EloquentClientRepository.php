@@ -52,34 +52,4 @@ class EloquentClientRepository implements ClientReadRepositoryInterface, ClientW
     {
         return Client::where('id', $id)->where('user_id', $userId)->first();
     }
-
-    public function updateById(int $id, array $data): bool
-    {
-        $client = Client::find($id);
-        if (! $client) {
-            return false;
-        }
-
-        return (bool) $client->update($data);
-    }
-
-    public function deleteById(int $id): bool
-    {
-        $client = Client::find($id);
-        if (! $client) {
-            return false;
-        }
-
-        return (bool) $client->delete();
-    }
-
-    public function hasLinkedInvoices(int $id): bool
-    {
-        $client = Client::find($id);
-        if (! $client) {
-            return false;
-        }
-
-        return $client->invoices()->exists();
-    }
 }

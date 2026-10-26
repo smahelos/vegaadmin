@@ -7,7 +7,9 @@ use App\Models\ArchivePolicy;
 use App\Models\ArtisanCommand;
 use App\Models\ArtisanCommandCategory;
 use App\Models\Bank;
-use App\Models\Client;
+use App\Models\BankAccount;
+use App\Models\Business;
+use App\Models\Contact;
 use App\Models\CronTask;
 use App\Models\DatabaseMaintenanceLog;
 use App\Models\EntityLimit;
@@ -27,7 +29,6 @@ use App\Models\StatusCategory;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPlanFeature;
-use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -63,7 +64,9 @@ class AdminCrudSmokeTest extends TestCase
             'artisan-command-category' => ['artisan-command-category', ArtisanCommandCategory::class],
             'artisan-command' => ['artisan-command', ArtisanCommand::class],
             'bank' => ['bank', Bank::class],
-            'client' => ['client', Client::class],
+            'bank-account' => ['bank-account', BankAccount::class],
+            'business' => ['business', Business::class],
+            'contact' => ['contact', Contact::class],
             'cron-task' => ['cron-task', CronTask::class],
             'database-maintenance-log' => ['database-maintenance-log', DatabaseMaintenanceLog::class],
             'entity-limit' => ['entity-limit', EntityLimit::class],
@@ -85,7 +88,6 @@ class AdminCrudSmokeTest extends TestCase
             'subscription-plan-feature' => ['subscription-plan-feature', SubscriptionPlanFeature::class],
             'subscription-plan' => ['subscription-plan', SubscriptionPlan::class],
             'subscription' => ['subscription', Subscription::class],
-            'supplier' => ['supplier', Supplier::class],
             'tax' => ['tax', Tax::class],
             'user' => ['user', User::class],
         ];

@@ -6,7 +6,10 @@ namespace App\Domain\Party\Contracts;
 
 use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\PartyProfile;
+use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\ValueObjects\UserId;
 
 interface BusinessReadRepositoryInterface
@@ -22,9 +25,13 @@ interface BusinessReadRepositoryInterface
     public function listActiveForUser(UserId $userId): array;
 
     /**
-     * @return list<BusinessDTO> ordered by name
+     * @return PaginatedResult<BusinessDTO>
      */
-    public function listArchivedForUser(UserId $userId): array;
+    public function searchForUser(
+        UserId $userId,
+        PartySearch $search,
+        PageRequest $page,
+    ): PaginatedResult;
 
     public function countActiveForUser(UserId $userId): int;
 

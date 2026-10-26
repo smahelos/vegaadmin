@@ -6,7 +6,10 @@ namespace App\Domain\Party\Contracts;
 
 use App\Domain\Party\DTO\ContactDTO;
 use App\Domain\Party\DTO\PartyProfile;
+use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\ValueObjects\UserId;
 
 interface ContactReadRepositoryInterface
@@ -17,14 +20,13 @@ interface ContactReadRepositoryInterface
     public function findByIdForUser(ContactId $id, UserId $userId): ?ContactDTO;
 
     /**
-     * @return list<ContactDTO> ordered by name
+     * @return PaginatedResult<ContactDTO>
      */
-    public function listActiveForUser(UserId $userId): array;
-
-    /**
-     * @return list<ContactDTO> ordered by name
-     */
-    public function listArchivedForUser(UserId $userId): array;
+    public function searchForUser(
+        UserId $userId,
+        PartySearch $search,
+        PageRequest $page,
+    ): PaginatedResult;
 
     public function countActiveForUser(UserId $userId): int;
 

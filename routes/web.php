@@ -2,7 +2,8 @@
 
 use App\Http\Controllers\Frontend\Auth\LoginController;
 use App\Http\Controllers\Frontend\Auth\RegisterController;
-use App\Http\Controllers\Frontend\ClientController;
+use App\Http\Controllers\Frontend\BusinessController;
+use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\DashboardController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\InvoiceController;
@@ -11,7 +12,6 @@ use App\Http\Controllers\Frontend\PaymentController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\ProfileController;
 use App\Http\Controllers\Frontend\SubscriptionController;
-use App\Http\Controllers\Frontend\SupplierController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -60,23 +60,25 @@ Route::middleware([
             Route::put('/invoice/{id}/set-template/{template}', [InvoiceController::class, 'setTemplate'])->name('frontend.invoice.set-template');
             Route::post('/invoice/{id}/actions', [InvoiceController::class, 'batchActions'])->name('frontend.invoice.batch-actions');
 
-            // Clients
-            Route::get('/client', [ClientController::class, 'index'])->name('frontend.clients');
-            Route::get('/client/create', [ClientController::class, 'create'])->name('frontend.client.create');
-            Route::post('/client', [ClientController::class, 'store'])->name('frontend.client.store');
-            Route::get('/client/{id}', [ClientController::class, 'show'])->name('frontend.client.show');
-            Route::get('/client/{id}/edit', [ClientController::class, 'edit'])->name('frontend.client.edit');
-            Route::put('/client/{id}', [ClientController::class, 'update'])->name('frontend.client.update');
-            Route::delete('/client/{id}', [ClientController::class, 'destroy'])->name('frontend.client.destroy');
-
-            // Suppliers
-            Route::get('/supplier', [SupplierController::class, 'index'])->name('frontend.suppliers');
-            Route::get('/supplier/create', [SupplierController::class, 'create'])->name('frontend.supplier.create');
-            Route::post('/supplier', [SupplierController::class, 'store'])->name('frontend.supplier.store');
-            Route::get('/supplier/{id}', [SupplierController::class, 'show'])->name('frontend.supplier.show');
-            Route::get('/supplier/{id}/edit', [SupplierController::class, 'edit'])->name('frontend.supplier.edit');
-            Route::put('/supplier/{id}', [SupplierController::class, 'update'])->name('frontend.supplier.update');
-            Route::delete('/supplier/{id}', [SupplierController::class, 'destroy'])->name('frontend.supplier.destroy');
+            // Businesses and contacts
+            Route::resource('businesses', BusinessController::class)
+                ->only([
+                    'index',
+                    'create',
+                    'show',
+                    'edit',
+                ])
+                ->names('frontend.businesses')
+                ->whereNumber('business');
+            Route::resource('contacts', ContactController::class)
+                ->only([
+                    'index',
+                    'create',
+                    'show',
+                    'edit',
+                ])
+                ->names('frontend.contacts')
+                ->whereNumber('contact');
 
             // Profile
             Route::get('/profile', [ProfileController::class, 'edit'])->name('frontend.profile.edit');
@@ -103,8 +105,7 @@ Route::middleware([
         // Frontend Authentication Routes - pouze pro nepřihlášené uživatele
         Route::middleware('guest')->group(function (): void {
             // Registration
-            Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('frontend.register');
-            Route::post('/register', [RegisterController::class, 'register']);
+            Route::get('/register', [RegisterController::class, 'create'])->name('frontend.register');
 
             // Login
             Route::get('/login', [LoginController::class, 'showLoginForm'])->name('frontend.login');

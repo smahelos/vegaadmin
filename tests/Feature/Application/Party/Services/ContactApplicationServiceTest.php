@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace Tests\Feature\Application\Party\Services;
 
 use App\Application\Party\Services\ContactApplicationService;
+use App\Domain\Party\DTO\ContactDTO;
 use App\Domain\Party\DTO\ContactWriteData;
+use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\Enums\DuplicateReason;
+use App\Domain\Party\Enums\PartySort;
 use App\Domain\Party\Events\ContactCreated;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Geography\Enums\Country;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Models\Contact;
 use App\Models\User;
@@ -179,8 +183,8 @@ final class ContactApplicationServiceTest extends TestCase
 
         $this->contacts->archive($this->idOf($user), $contact->id);
 
-        $this->assertSame([], $this->contacts->listActive($this->idOf($user)));
-        $this->assertSame($contact->id->value, $this->contacts->listArchived($this->idOf($user))[0]->id->value);
+        $this->assertSame([], $this->listedIds($user, false));
+        $this->assertSame([$contact->id->value], $this->listedIds($user, true));
         $this->assertTrue($this->contacts->get($this->idOf($user), $contact->id)->isArchived());
     }
 
@@ -213,7 +217,7 @@ final class ContactApplicationServiceTest extends TestCase
             'name' => 'Secret',
             'archived_at' => null,
         ]);
-        $this->assertSame([], $this->contacts->listActive($this->idOf($stranger)));
+        $this->assertSame([], $this->listedIds($stranger, false));
     }
 
     #[Test]
@@ -227,6 +231,25 @@ final class ContactApplicationServiceTest extends TestCase
         $contact = $contacts->create($this->idOf($user), new ContactWriteData($this->profile(), null));
 
         Event::assertDispatched(ContactCreated::class, fn (ContactCreated $event): bool => $event->contactId->equals($contact->id));
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function listedIds(User $user, bool $archived): array
+    {
+        $result = $this->contacts->search(
+            $this->idOf($user),
+            new PartySearch(
+                null,
+                $archived,
+                PartySort::NAME,
+                true,
+            ),
+            new PageRequest,
+        );
+
+        return array_map(fn (ContactDTO $contact): int => $contact->id->value, $result->items());
     }
 
     private function assertLimitExceeded(callable $operation): void

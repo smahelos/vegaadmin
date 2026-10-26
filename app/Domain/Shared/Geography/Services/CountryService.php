@@ -196,25 +196,6 @@ class CountryService implements CountryServiceInterface
     }
 
     /**
-     * Code => name list sorted ascending by country name.
-     *
-     * @return array<string,string>
-     */
-    public function getCountryCodesForSelect(): array
-    {
-        $countries = $this->getAllCountries();
-        $result = [];
-        foreach ($countries as $country) {
-            if (isset($country['cca2'], $country['name']['common'])) {
-                $result[$country['cca2']] = $country['name']['common'];
-            }
-        }
-        asort($result);
-
-        return $result;
-    }
-
-    /**
      * Retrieve detailed country information by ISO alpha-2 code.
      * Uses cache per country for performance and resilience.
      * Returns null if the country cannot be retrieved.

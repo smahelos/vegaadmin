@@ -24,19 +24,19 @@
                         {{ __('general.navigation.invoices') }}
                     </x-nav-link>
 
-                    @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_client'))
-                    <x-nav-link :href="route('frontend.clients', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.client*')">
-                        {{ __('general.navigation.clients') }}
+                    @can('frontend.can_view_business')
+                    <x-nav-link :href="route('frontend.businesses.index', ['locale' => app()->getLocale()])"
+                        :active="request()->routeIs('frontend.businesses.*')">
+                        {{ __('businesses.titles.index') }}
                     </x-nav-link>
-                    @endif
+                    @endcan
 
-                    @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_supplier'))
-                    <x-nav-link :href="route('frontend.suppliers', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.supplier*')">
-                        {{ __('general.navigation.suppliers') }}
+                    @can('frontend.can_view_contact')
+                    <x-nav-link :href="route('frontend.contacts.index', ['locale' => app()->getLocale()])"
+                        :active="request()->routeIs('frontend.contacts.*')">
+                        {{ __('contacts.titles.index') }}
                     </x-nav-link>
-                    @endif
+                    @endcan
 
                     @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_product'))
                     <x-nav-link :href="route('frontend.products', ['locale' => app()->getLocale()])"
@@ -184,19 +184,19 @@
                 {{ __('general.navigation.invoices') }}
             </x-responsive-nav-link>
 
-            @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_client'))
-            <x-responsive-nav-link :href="route('frontend.clients', ['locale' => app()->getLocale()])"
-                :active="request()->routeIs('frontend.client*')">
-                {{ __('general.navigation.clients') }}
-            </x-responsive-nav-link>
-            @endif
+            @can('frontend.can_view_business')
+                    <x-responsive-nav-link :href="route('frontend.businesses.index', ['locale' => app()->getLocale()])"
+                        :active="request()->routeIs('frontend.businesses.*')">
+                        {{ __('businesses.titles.index') }}
+                    </x-responsive-nav-link>
+                    @endcan
 
-            @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_supplier'))
-            <x-responsive-nav-link :href="route('frontend.suppliers', ['locale' => app()->getLocale()])"
-                :active="request()->routeIs('frontend.supplier*')">
-                {{ __('general.navigation.suppliers') }}
-            </x-responsive-nav-link>
-            @endif
+            @can('frontend.can_view_contact')
+                    <x-responsive-nav-link :href="route('frontend.contacts.index', ['locale' => app()->getLocale()])"
+                        :active="request()->routeIs('frontend.contacts.*')">
+                        {{ __('contacts.titles.index') }}
+                    </x-responsive-nav-link>
+                    @endcan
 
             @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_product'))
             <x-responsive-nav-link :href="route('frontend.products', ['locale' => app()->getLocale()])"

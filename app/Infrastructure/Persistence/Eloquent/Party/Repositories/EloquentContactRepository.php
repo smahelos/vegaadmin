@@ -9,7 +9,10 @@ use App\Domain\Party\Contracts\ContactWriteRepositoryInterface;
 use App\Domain\Party\DTO\ContactDTO;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\DTO\PartyProfile;
+use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Party\Mappers\EloquentContactMapper;
 use App\Models\Contact;
@@ -31,22 +34,32 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
         return $contact === null ? null : EloquentContactMapper::toDTO($contact);
     }
 
-    public function listActiveForUser(UserId $userId): array
-    {
-        return $this->list($this->ofUser($userId)->whereNull('archived_at'));
-    }
-
-    public function listArchivedForUser(UserId $userId): array
-    {
-        return $this->list($this->ofUser($userId)->whereNotNull('archived_at'));
-    }
-
     public function countActiveForUser(UserId $userId): int
     {
         return Contact::query()
             ->where('user_id', $userId->toInt())
             ->whereNull('archived_at')
             ->count();
+    }
+
+    public function searchForUser(
+        UserId $userId,
+        PartySearch $search,
+        PageRequest $page,
+    ): PaginatedResult {
+        $found = $this->records->search(
+            Contact::query(),
+            $userId,
+            $search,
+            $page,
+        );
+
+        return new PaginatedResult(
+            array_map(fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact), $found->items()),
+            $found->total(),
+            $found->perPage(),
+            $found->currentPage(),
+        );
     }
 
     public function listPossibleDuplicates(

@@ -98,6 +98,8 @@ class EntityLimitExceededException extends Exception
         $entity = $this->limitData['entity_type'] ?? $this->limitData['entity'] ?? null;
 
         return match ($entity) {
+            'business' => 'businesses.messages.limit_exceeded',
+            'contact' => 'contacts.messages.limit_exceeded',
             'supplier' => 'suppliers.messages.limit_exceeded',
             'product' => 'products.messages.limit_exceeded',
             'invoice' => 'invoices.messages.limit_exceeded',

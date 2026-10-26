@@ -1,0 +1,116 @@
+<?php
+
+return [
+    'fields' => [
+        'name' => 'Název / jméno',
+        'short_name' => 'Interní zkratka',
+        'registration_country' => 'Země registrace',
+        'company_number' => 'IČO',
+        'vat_number' => 'DIČ',
+        'email' => 'E-mail pro doklady',
+        'phone' => 'Telefon',
+        'note' => 'Interní poznámka',
+        'street' => 'Ulice a číslo',
+        'city' => 'Město / obec',
+        'postal_code' => 'PSČ',
+        'country' => 'Země',
+        'owner' => 'Vlastník',
+    ],
+    'hints' => [
+        'short_name' => 'Slouží k vyhledávání a rozlišení, na doklady se netiskne.',
+        'company_number' => 'Zahraniční firma zadá číslo ze svého vlastního registru.',
+        'note' => 'Jen pro vás, na doklady se nepřenáší.',
+    ],
+    'placeholders' => [
+        'search' => 'Hledat podle názvu, zkratky, IČO, e-mailu nebo města',
+    ],
+    'actions' => [
+        'archive' => 'Archivovat',
+        'restore' => 'Obnovit',
+        'look_up_company' => 'Načíst z ARES',
+        'reset_filters' => 'Zrušit hledání',
+        'open_duplicate' => 'Otevřít existující záznam',
+        'save_anyway' => 'Přesto uložit',
+    ],
+    'messages' => [
+        'register_filled' => 'Údaje z ARES byly doplněny. Zkontrolujte je před uložením.',
+        'register_not_found' => 'ARES subjekt s tímto IČO nezná.',
+        'register_unavailable' => 'ARES teď neodpovídá. Zkuste to prosím později nebo vyplňte údaje ručně.',
+        'register_czech_only' => 'Z ARES lze načíst jen české IČO.',
+        'duplicate_blocking' => 'Záznam se stejným IČO už máte.',
+        'duplicate_blocking_archived' => 'Záznam se stejným IČO už máte v archivu, můžete ho obnovit.',
+        'duplicate_warning' => 'Podobné záznamy už existují. Zkontrolujte, zda nejde o stejnou firmu nebo osobu:',
+        'duplicate_reasons' => [
+            'czech_company_number' => 'stejné IČO',
+            'company_number' => 'stejné registrační číslo a země',
+            'name' => 'stejný název',
+            'email' => 'stejný e-mail',
+        ],
+    ],
+    'validation' => [
+        'missing_country' => 'Zvolte zemi registrace.',
+        'czech_format' => 'České IČO má přesně 8 číslic.',
+        'czech_checksum' => 'České IČO nemá platný kontrolní součet.',
+    ],
+    'statuses' => [
+        'archived' => 'Archivováno',
+    ],
+    'filters' => [
+        'active' => 'Aktivní',
+        'archived' => 'Archivované',
+        'status' => 'Stav',
+    ],
+    'sections' => [
+        'address' => 'Fakturační adresa',
+    ],
+    'bank_accounts' => [
+        'entity' => [
+            'singular' => 'Bankovní účet',
+            'plural' => 'Bankovní účty',
+        ],
+        'fields' => [
+            'label' => 'Označení',
+            'iban' => 'IBAN',
+            'number' => 'Číslo účtu',
+            'bank_code' => 'Kód banky',
+            'country' => 'Země účtu',
+            'swift' => 'SWIFT/BIC',
+            'bank_name' => 'Název banky',
+            'default' => 'Výchozí',
+            'new_default' => 'Nový výchozí účet',
+            'owner' => 'Vlastník účtu',
+        ],
+        'hints' => [
+            'label' => 'Například „Hlavní“ nebo „EUR“.',
+            'iban' => 'Vyplňte IBAN, nebo číslo účtu s kódem banky.',
+            'number' => 'Včetně případného předčíslí, např. 19-2000145399.',
+        ],
+        'actions' => [
+            'add' => 'Přidat účet',
+            'make_default' => 'Nastavit jako výchozí',
+        ],
+        'messages' => [
+            'none' => 'Zatím žádný bankovní účet.',
+            'saved' => 'Bankovní účet byl uložen.',
+            'archived' => 'Bankovní účet byl archivován.',
+            'restored' => 'Bankovní účet byl obnoven.',
+            'default_changed' => 'Výchozí účet byl změněn.',
+            'default_archived' => 'Archivovaný účet nemůže být výchozí.',
+            'default_required' => 'Před archivací výchozího účtu zvolte jiný výchozí účet.',
+            'choose_new_default' => 'Tento účet je výchozí. Zvolte, který z ostatních aktivních účtů bude výchozí.',
+        ],
+        'titles' => [
+            'create' => 'Nový bankovní účet',
+            'edit' => 'Upravit bankovní účet',
+        ],
+        'validation' => [
+            'missing_details' => 'Vyplňte IBAN, nebo číslo účtu s kódem banky a zemí.',
+            'invalid_iban' => 'IBAN není platný.',
+            'invalid_number' => 'Číslo účtu není platné.',
+            'invalid_bank_code' => 'Kód banky není platný.',
+            'local_number_not_supported' => 'Pro tuto zemi zadejte IBAN.',
+            'iban_mismatch' => 'IBAN neodpovídá číslu účtu.',
+            'invalid_swift' => 'SWIFT/BIC není platný.',
+        ],
+    ],
+];

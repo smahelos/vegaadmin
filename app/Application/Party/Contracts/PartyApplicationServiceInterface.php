@@ -64,32 +64,6 @@ interface PartyApplicationServiceInterface
     public function defaultSupplierOrFirst(int $userId): ?SupplierDTO;
 
     /**
-     * Create or resolve client and indicate if created.
-     *
-     * @return array{client: Client, created: bool}
-     */
-    public function resolveOrCreateClientWithFlag(int $userId, array $data): array;
-
-    /** Update existing client */
-    public function updateClient(int $clientId, array $data): Client;
-
-    /** Delete client if allowed (returns false if blocked) */
-    public function deleteClient(int $userId, int $clientId): bool;
-
-    /**
-     * Create or resolve supplier and indicate if created.
-     *
-     * @return array{supplier: Supplier, created: bool}
-     */
-    public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array;
-
-    /** Update existing supplier */
-    public function updateSupplier(int $supplierId, array $data): Supplier;
-
-    /** Delete supplier if allowed (returns false if blocked) */
-    public function deleteSupplier(int $userId, int $supplierId): bool;
-
-    /**
      * Get list of clients for dropdown (id => name)
      *
      * @return array<int,string>

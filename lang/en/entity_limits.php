@@ -28,6 +28,14 @@ return [
             'singular' => 'Invoice',
             'plural' => 'Invoices',
         ],
+        'business' => [
+            'singular' => 'Business',
+            'plural' => 'My businesses',
+        ],
+        'contact' => [
+            'singular' => 'Contact',
+            'plural' => 'Contacts',
+        ],
         'client' => [
             'singular' => 'Client',
             'plural' => 'Clients',
@@ -57,6 +65,7 @@ return [
         'count' => 'Count',
         'value' => 'Monetary value',
         'size' => 'File size',
+        'active' => 'Active records',
     ],
     'periods' => [
         'daily' => 'Daily',

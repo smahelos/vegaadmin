@@ -1,0 +1,116 @@
+<?php
+
+return [
+    'fields' => [
+        'name' => 'Name / Firma',
+        'short_name' => 'Interne Kurzbezeichnung',
+        'registration_country' => 'Registrierungsland',
+        'company_number' => 'Registernummer',
+        'vat_number' => 'USt-IdNr.',
+        'email' => 'E-Mail für Belege',
+        'phone' => 'Telefon',
+        'note' => 'Interne Notiz',
+        'street' => 'Straße und Hausnummer',
+        'city' => 'Ort',
+        'postal_code' => 'PLZ',
+        'country' => 'Land',
+        'owner' => 'Eigentümer',
+    ],
+    'hints' => [
+        'short_name' => 'Dient der Suche und Unterscheidung, wird nicht auf Belege gedruckt.',
+        'company_number' => 'Ein ausländisches Unternehmen gibt die Nummer aus seinem eigenen Register an.',
+        'note' => 'Nur für Sie, wird nicht auf Belege übernommen.',
+    ],
+    'placeholders' => [
+        'search' => 'Nach Name, Kurzbezeichnung, Registernummer, E-Mail oder Ort suchen',
+    ],
+    'actions' => [
+        'archive' => 'Archivieren',
+        'restore' => 'Wiederherstellen',
+        'look_up_company' => 'Aus ARES laden',
+        'reset_filters' => 'Suche zurücksetzen',
+        'open_duplicate' => 'Vorhandenen Eintrag öffnen',
+        'save_anyway' => 'Trotzdem speichern',
+    ],
+    'messages' => [
+        'register_filled' => 'Die Daten aus ARES wurden übernommen. Bitte prüfen Sie sie vor dem Speichern.',
+        'register_not_found' => 'ARES kennt keinen Rechtsträger mit dieser IČO.',
+        'register_unavailable' => 'ARES antwortet gerade nicht. Bitte versuchen Sie es später oder füllen Sie die Daten manuell aus.',
+        'register_czech_only' => 'Aus ARES lässt sich nur eine tschechische IČO laden.',
+        'duplicate_blocking' => 'Sie haben bereits einen Eintrag mit derselben IČO.',
+        'duplicate_blocking_archived' => 'Sie haben bereits einen archivierten Eintrag mit derselben IČO und können ihn wiederherstellen.',
+        'duplicate_warning' => 'Ähnliche Einträge sind bereits vorhanden. Prüfen Sie, ob es sich um dasselbe Unternehmen oder dieselbe Person handelt:',
+        'duplicate_reasons' => [
+            'czech_company_number' => 'dieselbe IČO',
+            'company_number' => 'dieselbe Registernummer und dasselbe Land',
+            'name' => 'derselbe Name',
+            'email' => 'dieselbe E-Mail',
+        ],
+    ],
+    'validation' => [
+        'missing_country' => 'Wählen Sie das Registrierungsland.',
+        'czech_format' => 'Eine tschechische IČO hat genau 8 Ziffern.',
+        'czech_checksum' => 'Die tschechische IČO hat keine gültige Prüfziffer.',
+    ],
+    'statuses' => [
+        'archived' => 'Archiviert',
+    ],
+    'filters' => [
+        'active' => 'Aktiv',
+        'archived' => 'Archiviert',
+        'status' => 'Status',
+    ],
+    'sections' => [
+        'address' => 'Rechnungsadresse',
+    ],
+    'bank_accounts' => [
+        'entity' => [
+            'singular' => 'Bankkonto',
+            'plural' => 'Bankkonten',
+        ],
+        'fields' => [
+            'label' => 'Bezeichnung',
+            'iban' => 'IBAN',
+            'number' => 'Kontonummer',
+            'bank_code' => 'Bankleitzahl',
+            'country' => 'Kontoland',
+            'swift' => 'SWIFT/BIC',
+            'bank_name' => 'Name der Bank',
+            'default' => 'Standard',
+            'new_default' => 'Neues Standardkonto',
+            'owner' => 'Kontoinhaber',
+        ],
+        'hints' => [
+            'label' => 'Zum Beispiel „Haupt“ oder „EUR“.',
+            'iban' => 'Geben Sie die IBAN oder die Kontonummer mit Bankleitzahl an.',
+            'number' => 'Einschließlich einer etwaigen Präfixnummer, z. B. 19-2000145399.',
+        ],
+        'actions' => [
+            'add' => 'Konto hinzufügen',
+            'make_default' => 'Als Standard festlegen',
+        ],
+        'messages' => [
+            'none' => 'Noch kein Bankkonto.',
+            'saved' => 'Das Bankkonto wurde gespeichert.',
+            'archived' => 'Das Bankkonto wurde archiviert.',
+            'restored' => 'Das Bankkonto wurde wiederhergestellt.',
+            'default_changed' => 'Das Standardkonto wurde geändert.',
+            'default_archived' => 'Ein archiviertes Konto kann nicht Standard sein.',
+            'default_required' => 'Wählen Sie vor dem Archivieren des Standardkontos ein anderes Standardkonto.',
+            'choose_new_default' => 'Dieses Konto ist das Standardkonto. Wählen Sie, welches der anderen aktiven Konten Standard wird.',
+        ],
+        'titles' => [
+            'create' => 'Neues Bankkonto',
+            'edit' => 'Bankkonto bearbeiten',
+        ],
+        'validation' => [
+            'missing_details' => 'Geben Sie die IBAN oder die Kontonummer mit Bankleitzahl und Land an.',
+            'invalid_iban' => 'Die IBAN ist ungültig.',
+            'invalid_number' => 'Die Kontonummer ist ungültig.',
+            'invalid_bank_code' => 'Die Bankleitzahl ist ungültig.',
+            'local_number_not_supported' => 'Geben Sie für dieses Land die IBAN an.',
+            'iban_mismatch' => 'Die IBAN passt nicht zur Kontonummer.',
+            'invalid_swift' => 'Der SWIFT/BIC-Code ist ungültig.',
+        ],
+    ],
+];

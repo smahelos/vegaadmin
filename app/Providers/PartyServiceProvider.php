@@ -11,13 +11,13 @@ use App\Application\Party\Mappers\ClientArrayMapper;
 use App\Application\Party\Mappers\SupplierArrayMapper;
 use App\Application\Party\Services\PartyApplicationService;
 use App\Application\Party\Services\PartyAuthorizationService;
-use App\Application\Party\Services\PartyInputValidationService;
 use App\Domain\Party\Contracts\BankAccountReadRepositoryInterface;
 use App\Domain\Party\Contracts\BankAccountWriteRepositoryInterface;
 use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\Contracts\BusinessWriteRepositoryInterface;
 use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
 use App\Domain\Party\Contracts\ClientDtoWriteRepositoryInterface;
+use App\Domain\Party\Contracts\CompanyRegistryInterface;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Party\Contracts\ContactWriteRepositoryInterface;
 use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
@@ -26,6 +26,7 @@ use App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface;
 use App\Domain\Party\Contracts\SupplierDtoWriteRepositoryInterface;
 use App\Domain\Party\Services\InvoicePartyService;
 use App\Domain\Party\Validation\PartyCreationValidator;
+use App\Infrastructure\Gateways\Party\AresCompanyRegistry;
 use App\Infrastructure\Persistence\Eloquent\Party\Observers\ClientObserver;
 use App\Infrastructure\Persistence\Eloquent\Party\Observers\SupplierObserver;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentBankAccountRepository;
@@ -104,6 +105,11 @@ class PartyServiceProvider extends ServiceProvider
             EloquentBankAccountRepository::class,
         );
 
+        $this->app->bind(
+            CompanyRegistryInterface::class,
+            AresCompanyRegistry::class,
+        );
+
         // Party repositories (Client & Supplier)
         $this->app->bind(
             ClientReadRepositoryInterface::class,
@@ -167,10 +173,6 @@ class PartyServiceProvider extends ServiceProvider
 
         $this->app->singleton(
             SupplierArrayMapper::class,
-        );
-
-        $this->app->singleton(
-            PartyInputValidationService::class,
         );
     }
 

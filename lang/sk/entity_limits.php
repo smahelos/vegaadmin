@@ -28,6 +28,14 @@ return [
             'singular' => 'Faktúra',
             'plural' => 'Faktúry',
         ],
+        'business' => [
+            'singular' => 'Firma',
+            'plural' => 'Moje firmy',
+        ],
+        'contact' => [
+            'singular' => 'Kontakt',
+            'plural' => 'Kontakty',
+        ],
         'client' => [
             'singular' => 'Klient',
             'plural' => 'Klienti',
@@ -57,6 +65,7 @@ return [
         'count' => 'Počet',
         'value' => 'Suma',
         'size' => 'Veľkosť súborov',
+        'active' => 'Aktívne záznamy',
     ],
     'periods' => [
         'daily' => 'Denne',

@@ -49,8 +49,8 @@ class EntityLimit extends Model
      */
     public const ENTITY_TYPES = [
         'invoice',
-        'client',
-        'supplier',
+        'business',
+        'contact',
         'product',
         'expense',
         'user',
@@ -64,6 +64,7 @@ class EntityLimit extends Model
         'count' => 'Count-based limit',
         'value' => 'Value-based limit (monetary)',
         'size' => 'Size-based limit (file size)',
+        'active' => 'Capacity limit (active records)',
     ];
 
     /**

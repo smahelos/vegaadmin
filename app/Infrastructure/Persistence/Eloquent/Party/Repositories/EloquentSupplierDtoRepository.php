@@ -59,19 +59,4 @@ class EloquentSupplierDtoRepository implements SupplierDtoReadRepositoryInterfac
         // $model->load(['category', 'children']);
         return Mapper::toSupplierDTO($model);
     }
-
-    public function updateById(PartyId $id, SupplierWriteData $data): bool
-    {
-        return $this->repo->updateById($id->toInt(), $data->toArray());
-    }
-
-    public function deleteById(PartyId $id): bool
-    {
-        return $this->repo->deleteById($id->toInt());
-    }
-
-    public function hasLinkedDocuments(PartyId $id): bool
-    {
-        return $this->repo->hasLinkedDocuments($id->toInt());
-    }
 }

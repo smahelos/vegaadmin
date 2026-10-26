@@ -20,6 +20,7 @@ return [
         'updated_at' => 'Aktualisiert',
     ],
     'hints' => [
+        'business' => 'Daten der Firma, in deren Namen Sie Belege ausstellen. Name und E-Mail werden aus den Anmeldedaten vorausgefüllt und lassen sich ändern.',
         'password' => 'Mindestens 8 Zeichen haben',
         'password_confirmation' => 'Geben Sie das Passwort erneut zur Bestätigung ein',
         'current_password' => 'Passwort zur Bestätigung',
@@ -53,6 +54,7 @@ return [
         'system_name' => 'Rechnungssystem',
     ],
     'sections' => [
+        'business' => 'Ihre Firma',
         'basic_info' => 'Grunddaten',
         'address' => 'Adresse',
         'change_password' => 'Passwort ändern',

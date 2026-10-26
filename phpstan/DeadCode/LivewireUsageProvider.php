@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Billex\PHPStan\DeadCode;
 
 use Livewire\Component;
+use Livewire\Form;
 use ReflectionMethod;
 use ReflectionProperty;
 use ShipMonk\PHPStan\DeadCode\Provider\ReflectionBasedMemberUsageProvider;
@@ -12,16 +13,33 @@ use ShipMonk\PHPStan\DeadCode\Provider\VirtualUsageData;
 
 /**
  * The browser calls a Livewire component's public methods as actions and reads and writes its public
- * properties; Livewire calls the lifecycle hooks by name (SupportLifecycleHooks), for traits with the
- * trait's name appended (mountPaginates).
+ * properties, also those of its form objects (wire:model="form.name"); Livewire calls the lifecycle hooks by
+ * name (SupportLifecycleHooks), for traits with the trait's name appended (mountPaginates), and reads the
+ * validation rules, messages and attribute names of components and form objects by name (HandlesValidation).
  */
 final class LivewireUsageProvider extends ReflectionBasedMemberUsageProvider
 {
     private const LIFECYCLE_HOOK = '/^(boot|booted|initialize|mount|hydrate|dehydrate|updating|updated|rendering|rendered|exception)/';
 
+    private const VALIDATION_METHODS = [
+        'rules',
+        'messages',
+        'validationAttributes',
+    ];
+
     protected function shouldMarkMethodAsUsed(ReflectionMethod $method): ?VirtualUsageData
     {
-        if (! $method->getDeclaringClass()->isSubclassOf(Component::class)) {
+        $class = $method->getDeclaringClass();
+        $validates = $class->isSubclassOf(Component::class) || $class->isSubclassOf(Form::class);
+        if ($validates && in_array(
+            $method->getName(),
+            self::VALIDATION_METHODS,
+            true,
+        )) {
+            return VirtualUsageData::withNote('Livewire validation read by name');
+        }
+
+        if (! $class->isSubclassOf(Component::class)) {
             return null;
         }
 
@@ -52,6 +70,8 @@ final class LivewireUsageProvider extends ReflectionBasedMemberUsageProvider
 
     private function isComponentState(ReflectionProperty $property): bool
     {
-        return $property->isPublic() && $property->getDeclaringClass()->isSubclassOf(Component::class);
+        $class = $property->getDeclaringClass();
+
+        return $property->isPublic() && ($class->isSubclassOf(Component::class) || $class->isSubclassOf(Form::class));
     }
 }

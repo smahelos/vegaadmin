@@ -2,9 +2,8 @@
 
 namespace Tests\Feature\Traits;
 
-use App\Domain\Shared\Geography\Services\CountryService;
+use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Infrastructure\Forms\Party\BankFormFields;
-use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -78,20 +77,15 @@ class BankFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_bank_fields_integrates_with_country_service(): void
+    public function get_bank_fields_offers_countries_named_in_the_app_locale(): void
     {
-        // Mock CountryService
-        $mockCountryService = $this->createMock(CountryService::class);
-        $mockCountryService->expects($this->once())
-            ->method('getCountryCodesForSelect')
-            ->willReturn(['cz' => 'Czech Republic', 'sk' => 'Slovakia']);
-
-        App::instance(CountryService::class, $mockCountryService);
+        app()->setLocale('cs');
 
         $fields = $this->traitInstance->callGetBankFields();
 
         $countryField = collect($fields)->firstWhere('name', 'country');
-        $this->assertEquals(['cz' => 'Czech Republic', 'sk' => 'Slovakia'], $countryField['options']);
+        $this->assertSame(app(CountryOptionsPresenter::class)->options('cs'), $countryField['options']);
+        $this->assertSame('Česko', $countryField['options']['CZ']);
     }
 
     #[Test]

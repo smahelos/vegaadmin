@@ -59,19 +59,4 @@ class EloquentClientDtoRepository implements ClientDtoReadRepositoryInterface, C
         // $model->load(['category', 'children']);
         return Mapper::toClientDTO($model);
     }
-
-    public function updateById(PartyId $id, ClientWriteData $data): bool
-    {
-        return $this->repo->updateById($id->toInt(), $data->toArray());
-    }
-
-    public function deleteById(PartyId $id): bool
-    {
-        return $this->repo->deleteById($id->toInt());
-    }
-
-    public function hasLinkedInvoices(PartyId $id): bool
-    {
-        return $this->repo->hasLinkedInvoices($id->toInt());
-    }
 }

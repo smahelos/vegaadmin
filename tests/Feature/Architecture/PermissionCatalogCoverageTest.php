@@ -29,6 +29,8 @@ class PermissionCatalogCoverageTest extends TestCase
             '/\b(?:can|hasPermissionTo|hasBackpackPermission|backpackUserHasPermission|checkPermissionTo)\(\s*(?:\(int\)\s*\$[\w>-]+\s*,\s*)?[\'"]((?:can_|backpack\.|frontend\.)[a-z_.]+)[\'"]/',
             // form requests: getRequiredPermission() { return 'x'; }
             '/function getRequiredPermission\(\): string\s*\{\s*return [\'"]([a-z_.]+)[\'"]/',
+            // any frontend permission named in code, such as the checks of Livewire components
+            '/[\'"](frontend\.can_[a-z_]+)[\'"]/',
         ];
 
         $missing = [];

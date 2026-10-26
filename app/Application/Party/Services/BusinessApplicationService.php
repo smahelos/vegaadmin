@@ -11,6 +11,7 @@ use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\DTO\DuplicatePartyDTO;
 use App\Domain\Party\DTO\PartyProfile;
+use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\Events\BusinessArchived;
 use App\Domain\Party\Events\BusinessRestored;
 use App\Domain\Party\Events\BusinessUpdated;
@@ -24,6 +25,8 @@ use App\Domain\Party\Services\DuplicateFinder;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Domain\User\Enums\EntityType;
@@ -156,19 +159,31 @@ final class BusinessApplicationService
     }
 
     /**
-     * @return list<BusinessDTO>
+     * @return PaginatedResult<BusinessDTO>
      */
-    public function listActive(UserId $userId): array
+    public function search(
+        UserId $userId,
+        PartySearch $search,
+        PageRequest $page,
+    ): PaginatedResult {
+        return $this->businesses->searchForUser(
+            $userId,
+            $search,
+            $page,
+        );
+    }
+
+    public function findDefaultId(UserId $userId): ?BusinessId
     {
-        return $this->businesses->listActiveForUser($userId);
+        return $this->businesses->findDefaultIdForUser($userId);
     }
 
     /**
      * @return list<BusinessDTO>
      */
-    public function listArchived(UserId $userId): array
+    public function listActive(UserId $userId): array
     {
-        return $this->businesses->listArchivedForUser($userId);
+        return $this->businesses->listActiveForUser($userId);
     }
 
     /**

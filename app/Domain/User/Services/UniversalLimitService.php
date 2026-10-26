@@ -2,6 +2,8 @@
 
 namespace App\Domain\User\Services;
 
+use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
+use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\PeriodServiceInterface;
@@ -9,6 +11,8 @@ use App\Domain\User\Contracts\EntityLimitRepositoryInterface;
 use App\Domain\User\Contracts\EntityLimitUsageRepositoryInterface;
 use App\Domain\User\Contracts\PermissionLimitResolverInterface;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
+use App\Domain\User\Enums\EntityType;
+use App\Domain\User\ValueObjects\UserId;
 
 /**
  * Universal Limit Service - Permission-based System
@@ -36,6 +40,8 @@ class UniversalLimitService implements UniversalLimitServiceInterface
 
     private readonly LogInterface $logger;
 
+    private const ACTIVE_METRIC = 'active';
+
     /**
      * Constructor
      */
@@ -46,6 +52,8 @@ class UniversalLimitService implements UniversalLimitServiceInterface
         ClockInterface $clock,
         PeriodServiceInterface $periodService,
         LogInterface $logger,
+        private readonly BusinessReadRepositoryInterface $businesses,
+        private readonly ContactReadRepositoryInterface $contacts,
     ) {
         $this->permissionResolver = $permissionResolver;
         $this->entityLimitRepository = $entityLimitRepository;
@@ -355,6 +363,15 @@ class UniversalLimitService implements UniversalLimitServiceInterface
     ): int|float {
         if (! $userId) {
             return 0;
+        }
+
+        // A capacity limit has no usage rows: the user's active records are the usage
+        if ($metricType === self::ACTIVE_METRIC) {
+            return match (EntityType::tryFrom($entityType)) {
+                EntityType::BUSINESS => $this->businesses->countActiveForUser(UserId::fromInt($userId)),
+                EntityType::CONTACT => $this->contacts->countActiveForUser(UserId::fromInt($userId)),
+                null => 0,
+            };
         }
 
         try {

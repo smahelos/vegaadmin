@@ -4,9 +4,7 @@ namespace Tests\Feature;
 
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Http\Requests\Admin\BaseEntityRequest;
-use App\Http\Requests\Admin\ClientRequest;
 use App\Http\Requests\Admin\InvoiceRequest;
-use App\Http\Requests\Admin\SupplierRequest;
 use App\Models\EntityLimit;
 use App\Models\User;
 use Illuminate\Support\Facades\Lang;
@@ -148,30 +146,6 @@ class EntityLimitSystemBasicTest extends TestCase
         $method = $reflection->getMethod('getRequiredPermission');
         $method->setAccessible(true);
         $this->assertEquals('can_create_edit_invoice', $method->invoke($request));
-    }
-
-    #[Test]
-    public function client_and_supplier_requests_work_correctly(): void
-    {
-        $this->actingAs($this->backendUser, 'backpack');
-
-        // Test ClientRequest
-        $clientRequest = new ClientRequest;
-        $this->assertInstanceOf(BaseEntityRequest::class, $clientRequest);
-
-        $reflection = new \ReflectionClass($clientRequest);
-        $method = $reflection->getMethod('getEntityType');
-        $method->setAccessible(true);
-        $this->assertEquals('client', $method->invoke($clientRequest));
-
-        // Test SupplierRequest
-        $supplierRequest = new SupplierRequest;
-        $this->assertInstanceOf(BaseEntityRequest::class, $supplierRequest);
-
-        $reflection = new \ReflectionClass($supplierRequest);
-        $method = $reflection->getMethod('getEntityType');
-        $method->setAccessible(true);
-        $this->assertEquals('supplier', $method->invoke($supplierRequest));
     }
 
     #[Test]

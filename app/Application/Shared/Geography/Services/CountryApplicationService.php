@@ -18,9 +18,4 @@ class CountryApplicationService implements CountryApplicationServiceInterface
     {
         return $this->countryService->getCountryByCode($code);
     }
-
-    public function getCountryCodesForSelect(): array
-    {
-        return $this->countryService->getCountryCodesForSelect();
-    }
 }

@@ -52,6 +52,24 @@ return [
             ],
             'hash_deduplication' => ['enabled' => true],
         ],
+        'business_logo' => [
+            'max_kb' => 2048, // 2 MB
+            'allowed_extensions' => [
+                'png',
+                'jpg',
+                'jpeg',
+                'webp',
+            ],
+            'allowed_mime_groups' => ['image/'],
+            'thumbnail' => [
+                'enabled' => true,
+                'width' => 300,
+                'height' => 300,
+                'path' => 'thumbnails',
+                'quality' => 85,
+            ],
+            'hash_deduplication' => ['enabled' => true],
+        ],
         'supplier_logo' => [
             'max_kb' => 2048, // 2 MB
             'allowed_extensions' => [

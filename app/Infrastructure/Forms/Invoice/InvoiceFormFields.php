@@ -2,12 +2,11 @@
 
 namespace App\Infrastructure\Forms\Invoice;
 
-use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
+use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Models\Client;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Supplier;
-use Illuminate\Support\Facades\App;
 
 trait InvoiceFormFields
 {
@@ -27,8 +26,7 @@ trait InvoiceFormFields
         array $statuses = [],
         array $currencies = [],
     ): array {
-        // Get country codes from CountryService
-        $countries = App::make(CountryServiceInterface::class)->getCountryCodesForSelect();
+        $countries = app(CountryOptionsPresenter::class)->options(app()->getLocale());
 
         // Default currencies if not provided
         if (empty($currencies)) {

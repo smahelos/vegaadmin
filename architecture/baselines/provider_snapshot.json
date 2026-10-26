@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-26T17:52:37+00:00",
+    "generated_at": "2026-10-26T21:02:39+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -82,6 +82,10 @@
                     "concrete": "App\\Infrastructure\\Shared\\Time\\IcuDateFormatter"
                 },
                 {
+                    "abstract": "App\\Domain\\Shared\\Geography\\Contracts\\CountryNamesInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Geography\\IntlCountryNames"
+                },
+                {
                     "abstract": "App\\Domain\\Shared\\Log\\Contracts\\LogInterface",
                     "concrete": "App\\Infrastructure\\Shared\\Log\\LaravelLogger"
                 },
@@ -136,10 +140,6 @@
                 {
                     "abstract": "App\\Application\\Shared\\Geography\\Contracts\\CountryApplicationServiceInterface",
                     "concrete": "App\\Application\\Shared\\Geography\\Services\\CountryApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Shared\\Geography\\Contracts\\LocaleApplicationServiceInterface",
-                    "concrete": "App\\Application\\Shared\\Geography\\Services\\LocaleApplicationService"
                 }
             ],
             "singleton": [
@@ -335,6 +335,10 @@
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBankAccountRepository"
                 },
                 {
+                    "abstract": "App\\Domain\\Party\\Contracts\\CompanyRegistryInterface",
+                    "concrete": "App\\Infrastructure\\Gateways\\Party\\AresCompanyRegistry"
+                },
+                {
                     "abstract": "App\\Application\\Party\\Contracts\\ClientReadRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository"
                 },
@@ -382,10 +386,6 @@
                 },
                 {
                     "abstract": "App\\Application\\Party\\Mappers\\SupplierArrayMapper",
-                    "concrete": "closure"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Services\\PartyInputValidationService",
                     "concrete": "closure"
                 }
             ]
@@ -459,10 +459,6 @@
                 {
                     "abstract": "App\\Application\\Payment\\Contracts\\PaymentApplicationServiceInterface",
                     "concrete": "App\\Application\\Payment\\Services\\PaymentApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Payment\\Contracts\\BankApplicationServiceInterface",
-                    "concrete": "App\\Application\\Payment\\Services\\BankApplicationService"
                 }
             ],
             "singleton": [
@@ -828,14 +824,6 @@
                 "method": "bind"
             }
         },
-        "App\\Application\\Payment\\Contracts\\BankApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Payment\\Services\\BankApplicationService",
-                "provider": "App\\Providers\\PaymentServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Application\\Payment\\Contracts\\PaymentApplicationServiceInterface": {
             "status": "ok",
             "actual": {
@@ -920,14 +908,6 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Application\\Shared\\Geography\\Services\\CountryApplicationService",
-                "provider": "App\\Providers\\SharedServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Shared\\Geography\\Contracts\\LocaleApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Shared\\Geography\\Services\\LocaleApplicationService",
                 "provider": "App\\Providers\\SharedServiceProvider",
                 "method": "bind"
             }
@@ -1088,6 +1068,14 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\CompanyRegistryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Gateways\\Party\\AresCompanyRegistry",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }
@@ -1328,6 +1316,14 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Shared\\File\\Processors\\GdImageProcessor",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Geography\\Contracts\\CountryNamesInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Geography\\IntlCountryNames",
                 "provider": "App\\Providers\\SharedServiceProvider",
                 "method": "bind"
             }

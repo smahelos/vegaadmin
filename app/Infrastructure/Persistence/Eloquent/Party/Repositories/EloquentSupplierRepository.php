@@ -4,8 +4,6 @@ namespace App\Infrastructure\Persistence\Eloquent\Party\Repositories;
 
 use App\Application\Party\Contracts\SupplierReadRepositoryInterface;
 use App\Application\Party\Contracts\SupplierWriteRepositoryInterface;
-use App\Models\Expense;
-use App\Models\Invoice;
 use App\Models\Supplier;
 
 class EloquentSupplierRepository implements SupplierReadRepositoryInterface, SupplierWriteRepositoryInterface
@@ -56,31 +54,5 @@ class EloquentSupplierRepository implements SupplierReadRepositoryInterface, Sup
     public function findByIdForUser(int $id, int $userId): ?Supplier
     {
         return Supplier::where('id', $id)->where('user_id', $userId)->first();
-    }
-
-    public function updateById(int $id, array $data): bool
-    {
-        $supplier = Supplier::find($id);
-        if (! $supplier) {
-            return false;
-        }
-
-        return (bool) $supplier->update($data);
-    }
-
-    public function deleteById(int $id): bool
-    {
-        $supplier = Supplier::find($id);
-        if (! $supplier) {
-            return false;
-        }
-
-        return (bool) $supplier->delete();
-    }
-
-    public function hasLinkedDocuments(int $id): bool
-    {
-        return Invoice::where('supplier_id', $id)->exists()
-            || Expense::where('supplier_id', $id)->exists();
     }
 }
