@@ -7,7 +7,6 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
 use App\Models\Status;
-use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +16,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ExpenseFactory extends Factory
 {
+    use DocumentParties;
+
     /**
      * The name of the factory's corresponding model.
      *
@@ -33,7 +34,7 @@ class ExpenseFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'supplier_id' => Supplier::factory(),
+            'business_id' => $this->businessOfUser(),
             'category_id' => ExpenseCategory::factory(),
             'expense_date' => $this->faker->dateTimeBetween('-1 year', 'now'),
             'amount' => $this->faker->randomFloat(
@@ -53,6 +54,8 @@ class ExpenseFactory extends Factory
             'tax_included' => $this->faker->boolean(),
             'status_id' => Status::factory(),
             'attachments' => null, // Will be handled by mutator if needed
+            ...$this->party('supplier'),
+            ...$this->party('customer'),
         ];
     }
 

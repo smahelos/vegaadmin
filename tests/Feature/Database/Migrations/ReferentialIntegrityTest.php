@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Database\Migrations;
 
-use App\Models\Client;
+use App\Models\BankAccount;
+use App\Models\Business;
+use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
@@ -13,13 +15,12 @@ use App\Models\Product;
 use App\Models\Status;
 use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPlanFeature;
-use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AssertsDatabaseRefusal;
 use Tests\TestCase;
 
 /**
@@ -29,21 +30,29 @@ use Tests\TestCase;
  */
 final class ReferentialIntegrityTest extends TestCase
 {
+    use AssertsDatabaseRefusal;
+
     #[Test]
-    public function an_invoice_keeps_its_parties_payment_method_status_and_owner(): void
+    public function an_invoice_keeps_its_business_contact_account_payment_method_status_and_owner(): void
     {
         $invoice = Invoice::factory()->create();
+        $business = Business::findOrFail($invoice->business_id);
+        $account = BankAccount::factory()->ownedBy($business)->create();
+        $contact = Contact::factory()->create(['user_id' => $invoice->user_id]);
+        $invoice->forceFill(['contact_id' => $contact->id, 'bank_account_id' => $account->id])->save();
 
-        $this->assertDeleteRefused(Client::findOrFail($invoice->client_id));
-        $this->assertDeleteRefused(Supplier::findOrFail($invoice->supplier_id));
+        $this->assertDeleteRefused($business);
+        $this->assertDeleteRefused($contact);
+        $this->assertDeleteRefused($account);
         $this->assertDeleteRefused($invoice->paymentMethod);
         $this->assertDeleteRefused(Status::findOrFail($invoice->payment_status_id));
         $this->assertForceDeleteRefused(User::findOrFail($invoice->user_id));
 
         $this->assertDatabaseHas('invoices', [
             'id' => $invoice->id,
-            'client_id' => $invoice->client_id,
-            'supplier_id' => $invoice->supplier_id,
+            'business_id' => $business->id,
+            'contact_id' => $contact->id,
+            'bank_account_id' => $account->id,
             'payment_method_id' => $invoice->payment_method_id,
             'payment_status_id' => $invoice->payment_status_id,
             'user_id' => $invoice->user_id,
@@ -92,11 +101,16 @@ final class ReferentialIntegrityTest extends TestCase
     }
 
     #[Test]
-    public function an_expense_keeps_its_supplier_category_payment_method_and_status(): void
+    public function an_expense_keeps_its_business_contact_account_category_payment_method_and_status(): void
     {
         $expense = Expense::factory()->create(['status_id' => Status::factory()]);
+        $contact = Contact::factory()->create(['user_id' => $expense->user_id]);
+        $account = BankAccount::factory()->ownedBy($contact)->create();
+        $expense->forceFill(['contact_id' => $contact->id, 'bank_account_id' => $account->id])->save();
 
-        $this->assertDeleteRefused(Supplier::findOrFail($expense->supplier_id));
+        $this->assertDeleteRefused(Business::findOrFail($expense->business_id));
+        $this->assertDeleteRefused($contact);
+        $this->assertDeleteRefused($account);
         $this->assertDeleteRefused($expense->category);
         $this->assertDeleteRefused($expense->paymentMethod);
         $this->assertDeleteRefused(Status::findOrFail($expense->status_id));
@@ -132,20 +146,14 @@ final class ReferentialIntegrityTest extends TestCase
     }
 
     #[Test]
-    public function company_numbers_and_slugs_are_unique_per_user(): void
+    public function product_slugs_are_unique_per_user(): void
     {
-        $client = Client::factory()->create();
-        $supplier = Supplier::factory()->create();
         $product = Product::factory()->create();
         $otherUser = User::factory()->create();
 
-        Client::factory()->create(['user_id' => $otherUser->id, 'ico' => $client->ico]);
-        Supplier::factory()->create(['user_id' => $otherUser->id, 'ico' => $supplier->ico]);
         Product::factory()->create(['user_id' => $otherUser->id, 'slug' => $product->slug]);
 
-        $this->assertInsertRefused(fn () => Client::factory()->create(['user_id' => $client->user_id, 'ico' => $client->ico]));
-        $this->assertInsertRefused(fn () => Supplier::factory()->create(['user_id' => $supplier->user_id, 'ico' => $supplier->ico]));
-        $this->assertInsertRefused(fn () => Product::factory()->create(['user_id' => $product->user_id, 'slug' => $product->slug]));
+        $this->assertRefused(fn () => Product::factory()->create(['user_id' => $product->user_id, 'slug' => $product->slug]), 1062);
     }
 
     private function assertDeleteRefused(Model $model): void
@@ -156,26 +164,5 @@ final class ReferentialIntegrityTest extends TestCase
     private function assertForceDeleteRefused(User $user): void
     {
         $this->assertRefused(fn () => $user->forceDelete(), 1451);
-    }
-
-    private function assertInsertRefused(callable $insert): void
-    {
-        $this->assertRefused($insert, 1062);
-    }
-
-    /**
-     * Runs the statement in a savepoint, so the refused statement leaves the test transaction usable.
-     */
-    private function assertRefused(callable $statement, int $mysqlErrorCode): void
-    {
-        try {
-            DB::transaction($statement);
-        } catch (QueryException $e) {
-            $this->assertSame($mysqlErrorCode, $e->errorInfo[1]);
-
-            return;
-        }
-
-        $this->fail('The database accepted a statement it must refuse');
     }
 }

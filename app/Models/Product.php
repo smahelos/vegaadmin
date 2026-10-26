@@ -24,7 +24,6 @@ class Product extends Model
         'currency',
         'tax_id',
         'category_id',
-        'supplier_id',
         'description',
         'is_default',
         'is_active',
