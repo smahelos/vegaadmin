@@ -94,18 +94,6 @@ class PartyInputValidationService
     }
 
     /**
-     * Sanitize string input to prevent XSS and other issues.
-     */
-    private function sanitizeString(?string $value): ?string
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        return trim(strip_tags($value));
-    }
-
-    /**
      * Check if shortcut is already used by another client for this user.
      */
     private function isShortcutDuplicateForUser(

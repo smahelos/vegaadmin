@@ -59,15 +59,4 @@ class DatabaseHealthAlert extends Model
     {
         return $query->where('severity', $severity);
     }
-
-    /**
-     * Mark alert as resolved
-     */
-    public function markResolved(): void
-    {
-        $this->update([
-            'resolved' => true,
-            'resolved_at' => now(),
-        ]);
-    }
 }

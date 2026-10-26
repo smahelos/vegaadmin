@@ -10,6 +10,4 @@ interface PaymentDtoWriteRepositoryInterface
     public function create(PaymentWriteData $attributes): PaymentDTO;
 
     public function updateById(int $paymentId, PaymentWriteData $attributes): PaymentDTO;
-
-    public function applyRefund(int $paymentId, float $amount): bool;
 }

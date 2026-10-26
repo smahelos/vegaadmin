@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\PageCategoryRequest;
 use App\Models\PageCategory;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -26,8 +25,6 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 class PageCategoryRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
-
-    private User $user;
 
     /**
      * Set up test environment.

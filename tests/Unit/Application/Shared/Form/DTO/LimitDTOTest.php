@@ -11,22 +11,18 @@ use PHPUnit\Framework\TestCase;
 final class LimitDTOTest extends TestCase
 {
     #[Test]
-    public function it_builds_from_array_and_exports(): void
+    public function exports_the_legacy_array_shape(): void
     {
-        $dto = LimitDTO::fromArray([
-            'limit' => 10,
-            'current_usage' => 3,
-            'allowed' => true,
-        ]);
-        $this->assertSame(10, $dto->limit);
-        $this->assertSame(3, $dto->currentUsage);
-        $this->assertTrue($dto->allowed);
+        $dto = new LimitDTO(
+            limit: 10,
+            currentUsage: 3,
+            allowed: true,
+        );
 
-        $arr = $dto->toArray();
         $this->assertSame([
             'limit' => 10,
             'current_usage' => 3,
             'allowed' => true,
-        ], $arr);
+        ], $dto->toArray());
     }
 }

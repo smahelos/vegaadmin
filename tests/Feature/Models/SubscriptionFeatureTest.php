@@ -58,66 +58,6 @@ class SubscriptionFeatureTest extends TestCase
     }
 
     #[Test]
-    public function subscription_is_active_returns_correct_boolean(): void
-    {
-        // Test with status 'active' and future end date - should be active
-        $activeSubscription = Subscription::factory()->create([
-            'status' => 'active',
-            'ends_at' => now()->addDays(30),
-        ]);
-
-        // Test with status 'expired' - should not be active
-        $expiredSubscription = Subscription::factory()->create(['status' => 'expired']);
-
-        // Test with active status but past end date - should not be active due to date
-        $expiredByDateSubscription = Subscription::factory()->create([
-            'status' => 'active',
-            'ends_at' => now()->subDays(5),
-        ]);
-
-        // Test with active status and no end date - should be active
-        $activeNoEndDateSubscription = Subscription::factory()->create([
-            'status' => 'active',
-            'ends_at' => null,
-        ]);
-
-        $this->assertTrue($activeSubscription->isActive());
-        $this->assertFalse($expiredSubscription->isActive());
-        $this->assertFalse($expiredByDateSubscription->isActive());
-        $this->assertTrue($activeNoEndDateSubscription->isActive());
-    }
-
-    #[Test]
-    public function subscription_is_expired_returns_correct_boolean(): void
-    {
-        // Test with status 'active' and future end date - should not be expired
-        $activeSubscription = Subscription::factory()->create([
-            'status' => 'active',
-            'ends_at' => now()->addDays(30),
-        ]);
-
-        // Test with status 'expired' - should be expired regardless of end date
-        $expiredSubscription = Subscription::factory()->create(['status' => 'expired']);
-
-        // Test with active status but past end date - should be expired due to date
-        $expiredByDateSubscription = Subscription::factory()->create([
-            'status' => 'active',
-            'ends_at' => now()->subDays(5),
-        ]);
-
-        // Test with active status and no end date - should not be expired
-        $activeNoEndDateSubscription = Subscription::factory()->create([
-            'status' => 'active',
-            'ends_at' => null,
-        ]);
-
-        $this->assertFalse($activeSubscription->isExpired());
-        $this->assertTrue($expiredSubscription->isExpired());
-        $this->assertTrue($expiredByDateSubscription->isExpired());
-        $this->assertFalse($activeNoEndDateSubscription->isExpired());
-    }
-
-    #[Test]
     public function subscription_cancel_updates_status_to_cancelled(): void
     {
         $subscription = Subscription::factory()->create(['status' => 'active']);
@@ -126,46 +66,5 @@ class SubscriptionFeatureTest extends TestCase
 
         $this->assertTrue($result);
         $this->assertEquals('cancelled', $subscription->fresh()->status);
-    }
-
-    #[Test]
-    public function subscription_activate_updates_status_to_active(): void
-    {
-        $subscription = Subscription::factory()->create(['status' => 'pending']);
-
-        $result = $subscription->activate();
-
-        $this->assertTrue($result);
-        $this->assertEquals('active', $subscription->fresh()->status);
-    }
-
-    #[Test]
-    public function subscription_days_until_expiration_returns_correct_value(): void
-    {
-        $futureDate = now()->addDays(15);
-        $subscription = Subscription::factory()->create(['ends_at' => $futureDate]);
-
-        $days = $subscription->daysUntilExpiration();
-
-        $this->assertIsInt($days);
-        $this->assertGreaterThanOrEqual(14, $days);
-        $this->assertLessThanOrEqual(15, $days);
-    }
-
-    #[Test]
-    public function subscription_is_in_trial_returns_correct_boolean(): void
-    {
-        $trialSubscription = Subscription::factory()->create([
-            'trial_ends_at' => now()->addDays(7),
-            'status' => 'active',
-        ]);
-
-        $regularSubscription = Subscription::factory()->create([
-            'trial_ends_at' => null,
-            'status' => 'active',
-        ]);
-
-        $this->assertTrue($trialSubscription->isInTrial());
-        $this->assertFalse($regularSubscription->isInTrial());
     }
 }

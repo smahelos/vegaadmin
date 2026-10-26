@@ -23,13 +23,6 @@ class EloquentSupplierDtoRepository implements SupplierDtoReadRepositoryInterfac
 {
     public function __construct(private readonly EloquentSupplierRepository $repo) {}
 
-    public function getSuppliersForDropdown(int $userId): array
-    {
-        $m = $this->repo->getSuppliersForDropdown($userId);
-
-        return $m ? $m : [];
-    }
-
     public function getDefaultSupplier(int $userId): ?SupplierDTO
     {
         $m = $this->repo->getDefaultSupplier($userId);
@@ -44,32 +37,11 @@ class EloquentSupplierDtoRepository implements SupplierDtoReadRepositoryInterfac
         return $m ? Mapper::toSupplierDTO($m) : null;
     }
 
-    public function findByIdAny(PartyId $id): ?SupplierDTO
-    {
-        $m = $this->repo->findByIdAny($id->toInt());
-
-        return $m ? Mapper::toSupplierDTO($m) : null;
-    }
-
     public function findByIdForUser(PartyId $id, UserId $userId): SupplierDTO
     {
         $m = $this->repo->findByIdForUser($id->toInt(), $userId->toInt());
 
         return Mapper::toSupplierDTO($m);
-    }
-
-    public function allForAdmin(): array
-    {
-        $col = $this->repo->allModelsForAdmin();
-
-        return $col->map(fn ($c) => Mapper::toSupplierDTO($c))->toArray();
-    }
-
-    public function allForUser(int $userId): array
-    {
-        $col = $this->repo->allModelsForUser($userId);
-
-        return $col->map(fn ($c) => Mapper::toSupplierDTO($c))->toArray();
     }
 
     public function firstForUser(int $userId): ?SupplierDTO
@@ -86,11 +58,6 @@ class EloquentSupplierDtoRepository implements SupplierDtoReadRepositoryInterfac
         // Load relations to keep consistency with read DTOs (e.g., category)
         // $model->load(['category', 'children']);
         return Mapper::toSupplierDTO($model);
-    }
-
-    public function unsetOthersDefault(PartyId $currentId, int $userId): void
-    {
-        $this->repo->unsetOthersDefault($currentId->toInt(), $userId);
     }
 
     public function updateById(PartyId $id, SupplierWriteData $data): bool

@@ -20,37 +20,4 @@ interface QrPaymentProviderInterface
      * @param  QrPaymentPayload  $payload  Payment data for validation
      */
     public function validatePaymentInfo(QrPaymentPayload $payload): bool;
-
-    /**
-     * Get the country code this provider supports
-     *
-     * @return string Country code (ISO 3166-1 alpha-2)
-     */
-    public function getCountryCode(): string;
-
-    /**
-     * Get supported currency codes for this country
-     *
-     * @return array Array of supported currency codes
-     */
-    public function getSupportedCurrencies(): array;
-
-    /**
-     * Validate and format account number/IBAN for this country
-     *
-     * @return string|null Formatted account identifier or null if invalid
-     */
-    public function formatAccountIdentifier(
-        ?string $accountNumber,
-        ?string $bankCode,
-        ?string $iban,
-    ): ?string;
-
-    /**
-     * Validate amount for this country's banking standards
-     *
-     * @param  float  $amount  Payment amount
-     * @param  string  $currency  Currency code
-     */
-    public function validateAmount(float $amount, string $currency): bool;
 }

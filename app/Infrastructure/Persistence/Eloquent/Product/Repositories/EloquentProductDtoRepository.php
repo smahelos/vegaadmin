@@ -27,13 +27,6 @@ class EloquentProductDtoRepository implements ProductDtoReadRepositoryInterface,
         private readonly EloquentProductMapper $mapper,
     ) {}
 
-    public function getDefaultProduct(UserId $userId): ?ProductDTO
-    {
-        $product = $this->productRepository->getDefaultProduct($userId->toInt());
-
-        return $product ? $this->mapper->toDto($product) : null;
-    }
-
     public function findByIdAny(ProductId $id): ?ProductDTO
     {
         $product = $this->productRepository->findByIdAny($id->getValue());
@@ -87,10 +80,5 @@ class EloquentProductDtoRepository implements ProductDtoReadRepositoryInterface,
 
             throw ProductInUseException::onInvoices($id, $e);
         }
-    }
-
-    public function deleteByUserId(int $userId): int
-    {
-        return $this->productRepository->deleteByUserId($userId);
     }
 }

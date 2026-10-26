@@ -7,7 +7,6 @@ use App\Application\Party\Contracts\SupplierWriteRepositoryInterface;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Supplier;
-use Illuminate\Support\Collection;
 
 class EloquentSupplierRepository implements SupplierReadRepositoryInterface, SupplierWriteRepositoryInterface
 {
@@ -39,11 +38,6 @@ class EloquentSupplierRepository implements SupplierReadRepositoryInterface, Sup
         return Supplier::create($data);
     }
 
-    public function unsetOthersDefault(int $currentId, int $userId): void
-    {
-        Supplier::where('user_id', $userId)->where('id', '!=', $currentId)->update(['is_default' => false]);
-    }
-
     public function allForAdmin(): array
     {
         return Supplier::all()->toArray();
@@ -52,16 +46,6 @@ class EloquentSupplierRepository implements SupplierReadRepositoryInterface, Sup
     public function allForUser(int $userId): array
     {
         return Supplier::where('user_id', $userId)->get()->toArray();
-    }
-
-    public function allModelsForAdmin(): Collection
-    {
-        return Supplier::all();
-    }
-
-    public function allModelsForUser(int $userId): Collection
-    {
-        return Supplier::where('user_id', $userId)->get();
     }
 
     public function firstForUser(int $userId): ?Supplier

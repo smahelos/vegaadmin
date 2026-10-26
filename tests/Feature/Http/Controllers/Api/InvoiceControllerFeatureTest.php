@@ -9,9 +9,6 @@ use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -181,36 +178,6 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
         return $invoice;
     }
 
-    public function getAll(UserId $userId): Collection
-    {
-        $result = [];
-        foreach ($this->invoices as $inv) {
-            if ((int) $inv->user_id === $userId->toInt()) {
-                $result[] = $this->convertToDto($inv);
-            }
-        }
-
-        return collect($result);
-    }
-
-    public function getAllWithFilters(UserId $userId, array $filters = []): Collection
-    {
-        return $this->getAll($userId);
-    }
-
-    public function getByCriteria(UserId $userId, array $criteria): Collection
-    {
-        return $this->getAll($userId);
-    }
-
-    public function getByDateRange(
-        UserId $userId,
-        \DateTime $from,
-        \DateTime $to,
-    ): Collection {
-        return $this->getAll($userId);
-    }
-
     public function getById(InvoiceId $invoiceId, UserId $userId): InvoiceDTO
     {
         if ($this->failOnId === $invoiceId->getValue()) {
@@ -222,33 +189,6 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
             }
         }
         throw new \Exception('Not found');
-    }
-
-    public function getRecent(UserId $userId, int $limit = 10): Collection
-    {
-        return $this->getAll($userId)->take($limit);
-    }
-
-    public function getWithSearch(
-        UserId $userId,
-        array $searchParams = [],
-        int $perPage = 15,
-    ): LengthAwarePaginator {
-        $items = $this->getAll($userId);
-
-        return new LengthAwarePaginator(
-            $items,
-            $items->count(),
-            $perPage,
-        );
-    }
-
-    public function search(
-        UserId $userId,
-        string $query,
-        array $fields = [],
-    ): Collection {
-        return $this->getAll($userId);
     }
 
     private function convertToDto(Invoice $inv): InvoiceDTO
@@ -277,109 +217,5 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
             logo: null,
             status: null,
         );
-    }
-
-    // Legacy methods for backward compatibility with test
-    public function fetchInvoiceForApi(int $userId, int $invoiceId): InvoiceDTO
-    {
-        return $this->getById(
-            InvoiceId::fromInt($invoiceId),
-            UserId::fromInt($userId),
-        );
-    }
-
-    public function listInvoicesForApi(int $userId): array
-    {
-        return $this->getAll(UserId::fromInt($userId))->toArray();
-    }
-
-    public function setInvoiceTemplate(
-        int $userId,
-        int $invoiceId,
-        string $template,
-    ): bool {
-        return false;
-    }
-
-    public function changeInvoiceStatus(
-        int $userId,
-        int $invoiceId,
-        string $statusSlug,
-    ): bool {
-        return false;
-    }
-
-    public function getInvoicesLimit(int $userId): array
-    {
-        return [
-            'limit' => 0,
-            'current_usage' => 0,
-            'allowed' => true,
-        ];
-    }
-
-    public function handleInvoiceLogoUpload(UploadedFile|string|null $file): ?string
-    {
-        return null;
-    }
-
-    public function findInvoiceForUser(int $userId, int $invoiceId): InvoiceDTO
-    {
-        $invoice = $this->fetchInvoiceForApi($userId, $invoiceId);
-        $data = InvoiceDTO::fromArray((array) $invoice);
-
-        return new InvoiceDTO(
-            id: $data->id,
-            user_id: $data->user_id,
-            client_id: $data->client_id,
-            supplier_id: $data->supplier_id,
-            number: $data->number,
-            payment_reference: $data->payment_reference,
-            constant_code: $data->constant_code,
-            issue_date: $data->issue_date,
-            tax_point_date: $data->tax_point_date,
-            due_in: $data->due_in,
-            subtotal: $data->subtotal,
-            total_tax: $data->total_tax,
-            total_amount: $data->total_amount,
-            payment_method_id: $data->payment_method_id,
-            invoice_text: $data->invoice_text,
-            currency: $data->currency,
-            template: $data->template,
-            items: $data->items,
-            created_at: $data->created_at,
-            updated_at: $data->updated_at,
-            logo: $data->logo,
-            status: $data->status,
-        );
-    }
-
-    public function getNextInvoiceNumber(int $userId): string
-    {
-        return 'INV-0001';
-    }
-
-    public function listInvoices(int $userId): array
-    {
-        return $this->listInvoicesForApi($userId);
-    }
-
-    public function listInvoicesForUser(int $userId): array
-    {
-        return $this->listInvoicesForApi($userId);
-    }
-
-    public function resolvePublishedModelByDto(?InvoiceDTO $dto): ?Invoice
-    {
-        if ($dto === null) {
-            return null;
-        }
-        foreach ($this->invoices as $inv) {
-            if ($inv->id === $dto->id) {
-                return $inv;
-            }
-        }
-
-        return null;
     }
 }

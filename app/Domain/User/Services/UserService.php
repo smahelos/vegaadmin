@@ -2,7 +2,6 @@
 
 namespace App\Domain\User\Services;
 
-use App\Domain\Party\ValueObjects\PartyId;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
@@ -11,7 +10,6 @@ use App\Domain\User\Contracts\UserServiceInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\DTO\UserWriteData;
-use App\Domain\User\ValueObjects\UserEmail;
 use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
 
@@ -52,30 +50,9 @@ class UserService implements UserServiceInterface
         return $this->userReadRepository->findUserById(UserId::fromInt($id));
     }
 
-    public function findUserByEmail(string $email): ?UserDTO
-    {
-        return $this->userReadRepository->findUserByEmail($email);
-    }
-
-    public function findBySupplierId(int $partyId): ?UserDTO
-    {
-        return $this->userReadRepository->findBySupplierId(PartyId::fromInt($partyId));
-    }
-
-    public function findByClientId(int $partyId): ?UserDTO
-    {
-        return $this->userReadRepository->findByClientId(PartyId::fromInt($partyId));
-    }
-
     public function create(array $data): UserDTO
     {
         return $this->transactionBoundary->transaction(fn () => $this->userWriteRepository->create(UserWriteData::fromArray($data)),
-        );
-    }
-
-    public function updateById(int $id, array $data): bool
-    {
-        return $this->transactionBoundary->transaction(fn () => $this->userWriteRepository->updateById(UserId::fromInt($id), UserWriteData::fromArray($data)),
         );
     }
 
@@ -89,38 +66,6 @@ class UserService implements UserServiceInterface
         return $this->userWriteRepository->updatePassword(UserId::fromInt($userId), UserPassword::fromPlainText($password));
     }
 
-    /**
-     * Soft delete user
-     */
-    public function softDeleteUser(int $userId): bool
-    {
-        return $this->userWriteRepository->softDeleteUser(UserId::fromInt($userId));
-    }
-
-    /**
-     * Restore soft deleted user
-     */
-    public function restoreUser(int $userId): bool
-    {
-        return $this->userWriteRepository->restoreUser(UserId::fromInt($userId));
-    }
-
-    /**
-     * Change user email
-     */
-    public function changeEmail(int $userId, string $newEmail): bool
-    {
-        return $this->userWriteRepository->changeEmail(UserId::fromInt($userId), UserEmail::fromString($newEmail));
-    }
-
-    /**
-     * Get user activity summary
-     */
-    public function getActivitySummary(int $userId): array
-    {
-        return $this->userReadRepository->getActivitySummary(UserId::fromInt($userId));
-    }
-
     /** {@inheritDoc} */
     public function getAllUsers(): array
     {
@@ -131,13 +76,5 @@ class UserService implements UserServiceInterface
     public function searchUsers(?string $term, PageRequest $page): PaginatedResult
     {
         return $this->userReadRepository->searchUsers($term, $page);
-    }
-
-    /**
-     * Check if email is unique
-     */
-    public function isEmailUnique(UserEmail $email, ?int $excludeUserId = null): bool
-    {
-        return $this->userReadRepository->isEmailUnique($email, $excludeUserId);
     }
 }

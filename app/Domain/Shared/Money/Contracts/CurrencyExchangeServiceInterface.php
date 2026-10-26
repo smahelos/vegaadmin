@@ -20,15 +20,6 @@ interface CurrencyExchangeServiceInterface
     public function getExchangeRate(string $fromCurrency, string $toCurrency): ?float;
 
     /**
-     * Get all exchange rates for a base currency.
-     * Invalid base codes should fallback internally to a default (USD).
-     *
-     * @param  string  $baseCurrency  ISO 4217 base currency code (default USD)
-     * @return array<string,float> Associative array: currency code => rate
-     */
-    public function getExchangeRates(string $baseCurrency = 'USD'): array;
-
-    /**
      * Convert monetary amount between currencies.
      * Returns null if conversion is not possible.
      *

@@ -43,61 +43,6 @@ class UserPasswordTest extends TestCase
     }
 
     #[Test]
-    public function creates_password_from_plain_text(): void
-    {
-        $password = UserPassword::fromPlainText('ValidPassword123');
-
-        $this->assertInstanceOf(UserPassword::class, $password);
-        $this->assertNotEmpty($password->getHash());
-        $this->assertNotEquals('ValidPassword123', $password->getHash());
-    }
-
-    #[Test]
-    public function verifies_correct_password(): void
-    {
-        $plainPassword = 'ValidPassword123';
-        $password = UserPassword::fromPlainText($plainPassword);
-
-        $this->assertTrue($password->verify($plainPassword));
-        $this->assertFalse($password->verify('WrongPassword'));
-    }
-
-    #[Test]
-    public function checks_rehash_needs(): void
-    {
-        $password = UserPassword::fromPlainText('ValidPassword123');
-
-        // New passwords typically don't need rehashing
-        $this->assertIsBool($password->needsRehash());
-    }
-
-    #[Test]
-    public function accepts_valid_complex_passwords(): void
-    {
-        $validPasswords = [
-            'Complex123!',
-            'Another456@',
-            'Different789#',
-            'StrongPass0$',
-        ];
-
-        foreach ($validPasswords as $plainPassword) {
-            $password = UserPassword::fromPlainText($plainPassword);
-            $this->assertInstanceOf(UserPassword::class, $password);
-            $this->assertTrue($password->verify($plainPassword));
-        }
-    }
-
-    #[Test]
-    public function creates_password_from_hash(): void
-    {
-        $hash = '$2y$10$example.hash.here';
-        $password = UserPassword::fromHash($hash);
-
-        $this->assertEquals($hash, $password->getHash());
-    }
-
-    #[Test]
     public function converts_to_string(): void
     {
         $password = UserPassword::fromPlainText('ValidPassword123');
@@ -113,14 +58,6 @@ class UserPasswordTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         UserPassword::fromPlainText('');
-    }
-
-    #[Test]
-    public function throws_exception_for_empty_hash(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-
-        UserPassword::fromHash('');
     }
 
     #[Test]

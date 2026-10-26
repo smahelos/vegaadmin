@@ -88,49 +88,6 @@ class InvoiceServiceFeatureTest extends TestCase
 
     // --- Ensure object properties ---
 
-    #[Test]
-    public function ensure_object_properties_sets_default_values(): void
-    {
-        $object = new \stdClass;
-        $properties = [
-            'due_in',
-            'payment_method_id',
-            'payment_status_id',
-            'payment_amount',
-            'custom_property',
-        ];
-        $this->service->ensureObjectProperties($object, $properties);
-        $this->assertEquals(14, $object->due_in);
-        $this->assertEquals(1, $object->payment_method_id);
-        $this->assertEquals(1, $object->payment_status_id);
-        $this->assertEquals(0, $object->payment_amount);
-        $this->assertEquals('', $object->custom_property);
-    }
-
-    #[Test]
-    public function ensure_object_properties_converts_existing_values(): void
-    {
-        $object = new \stdClass;
-        $object->due_in = '30';
-        $object->payment_method_id = '5';
-        $object->payment_status_id = '3';
-        $object->payment_amount = '150.50';
-        $object->custom_property = 'existing value';
-        $properties = [
-            'due_in',
-            'payment_method_id',
-            'payment_status_id',
-            'payment_amount',
-            'custom_property',
-        ];
-        $this->service->ensureObjectProperties($object, $properties);
-        $this->assertSame(30, $object->due_in);
-        $this->assertSame(5, $object->payment_method_id);
-        $this->assertSame(3, $object->payment_status_id);
-        $this->assertSame(150.5, $object->payment_amount);
-        $this->assertEquals('existing value', $object->custom_property);
-    }
-
     // --- Template handling ---
 
     #[Test]

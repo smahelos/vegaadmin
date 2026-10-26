@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\EntityLimit;
 use App\Models\EntityLimitUsage;
 use App\Models\User;
@@ -12,9 +11,6 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Prologue\Alerts\Facades\Alert;
 
 /**
  * Class EntityUsageCrudController
@@ -236,96 +232,6 @@ class EntityUsageCrudController extends CrudController
         CRUD::column('updated_at')
             ->label(__('entity_limits.usages.fields.updated_at'))
             ->type('datetime');
-    }
-
-    /**
-     * Reset usage for selected entity type and period
-     */
-    public function resetUsage(Request $request): RedirectResponse
-    {
-        if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'entity_type' => 'required|in:' . implode(',', EntityLimit::ENTITY_TYPES),
-            'metric_type' => 'required|in:' . implode(',', array_keys(EntityLimit::METRIC_TYPES)),
-            'period_type' => 'required|in:' . implode(',', array_keys(EntityLimit::PERIOD_TYPES)),
-        ]);
-
-        $limitService = app(UniversalLimitService::class);
-        $user = $request->user_id ? User::findOrFail($request->user_id) : null;
-
-        // Reset usage for specific entity type, metric type and period
-        $result = $limitService->resetUsage(
-            $user,
-            $request->entity_type,
-            $request->metric_type,
-            $request->period_type,
-        );
-
-        if ($result) {
-            $userLabel = $user ? $user->name : 'Anonymous';
-            Alert::success("Usage has been reset successfully for {$userLabel}.")->flash();
-        } else {
-            Alert::error('Failed to reset usage.')->flash();
-        }
-
-        return redirect()->back();
-    }
-
-    /**
-     * Bulk reset usage for multiple users
-     */
-    public function bulkResetUsage(Request $request): RedirectResponse
-    {
-        if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $request->validate([
-            'user_ids' => 'nullable|array',
-            'user_ids.*' => 'exists:users,id',
-            'entity_type' => 'required|in:' . implode(',', EntityLimit::ENTITY_TYPES),
-            'metric_type' => 'required|in:' . implode(',', array_keys(EntityLimit::METRIC_TYPES)),
-            'period_type' => 'required|in:' . implode(',', array_keys(EntityLimit::PERIOD_TYPES)),
-            'include_anonymous' => 'boolean',
-        ]);
-
-        $limitService = app(UniversalLimitService::class);
-        $successCount = 0;
-
-        // Reset for specific users if provided
-        if (! empty($request->user_ids)) {
-            foreach ($request->user_ids as $userId) {
-                $user = User::find($userId);
-                if ($user && $limitService->resetUsage(
-                    $user,
-                    $request->entity_type,
-                    $request->metric_type,
-                    $request->period_type,
-                )) {
-                    $successCount++;
-                }
-            }
-        }
-
-        // Reset for anonymous users if requested
-        if ($request->include_anonymous) {
-            if ($limitService->resetUsage(
-                null,
-                $request->entity_type,
-                $request->metric_type,
-                $request->period_type,
-            )) {
-                $successCount++;
-            }
-        }
-
-        Alert::success("Successfully reset usage for {$successCount} users/sessions.")->flash();
-
-        return redirect()->back();
     }
 
     /**

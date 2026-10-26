@@ -38,12 +38,6 @@ interface InvoicePartyServiceInterface
     /** Update existing supplier (handles default logic) */
     public function updateSupplier(int $supplierId, array $data): SupplierDTO;
 
-    /** Set supplied supplier as default (unsets others) */
-    public function setSupplierDefault(int $userId, int $supplierId): void;
-
-    /** Set supplied client as default (unsets others) */
-    public function setClientDefault(int $userId, int $clientId): void;
-
     /** Delete supplier if allowed (returns false if blocked by invoices) */
     public function deleteSupplier(int $userId, int $supplierId): bool;
 

@@ -101,6 +101,26 @@ class ExpenseCrudControllerTest extends TestCase
     }
 
     #[Test]
+    public function edit_form_lists_the_attachments_with_their_file_type_icon(): void
+    {
+        $expense = Expense::factory()->create([
+            'user_id' => $this->regularUser->id,
+            'supplier_id' => Supplier::factory()->create(['user_id' => $this->regularUser->id])->id,
+            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
+            'status_id' => $this->ensureStatus()->id,
+            'category_id' => ExpenseCategory::factory()->create()->id,
+            'attachments' => ['expenses/receipt.pdf'],
+        ]);
+
+        $response = $this->actingAs($this->regularUser, 'backpack')
+            ->get(backpack_url('expense/' . $expense->id . '/edit'));
+
+        $response->assertOk();
+        $response->assertSee('receipt.pdf');
+        $response->assertSee('la-file-pdf');
+    }
+
+    #[Test]
     public function expense_creation_respects_entity_limits(): void
     {
         $this->actingAs($this->regularUser, 'backpack');

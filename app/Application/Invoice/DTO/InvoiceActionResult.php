@@ -20,8 +20,6 @@ class InvoiceActionResult
         public readonly ?Invoice $invoice = null,
         /** PDF response when action generates a PDF. */
         public readonly ?Response $response = null,
-        /** Underlying error (not exposed to end-user, for logging/inspection in tests). */
-        public readonly ?\Throwable $error = null,
     ) {}
 
     /** Success factory */
@@ -41,23 +39,12 @@ class InvoiceActionResult
     }
 
     /** Failure factory */
-    public static function failure(
-        ?string $message = null,
-        ?\Throwable $error = null,
-        ?array $data = null,
-    ): self {
+    public static function failure(?string $message = null, ?array $data = null): self
+    {
         return new self(
             InvoiceActionStatus::FAILURE,
             $message,
             $data,
-            null,
-            null,
-            $error,
         );
-    }
-
-    public function isSuccess(): bool
-    {
-        return $this->status === InvoiceActionStatus::SUCCESS;
     }
 }

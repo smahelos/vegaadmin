@@ -17,8 +17,6 @@ class PaginatedResult
         private readonly int $total,
         private readonly int $perPage,
         private readonly int $currentPage,
-        private readonly int $lastPage,
-        private readonly bool $hasMore,
     ) {}
 
     /**
@@ -42,15 +40,5 @@ class PaginatedResult
     public function currentPage(): int
     {
         return $this->currentPage;
-    }
-
-    public function lastPage(): int
-    {
-        return $this->lastPage;
-    }
-
-    public function hasMore(): bool
-    {
-        return $this->hasMore;
     }
 }

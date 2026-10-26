@@ -60,15 +60,4 @@ class EloquentProductMapper
             'updated_at' => $model->getAttribute('updated_at'),
         ]);
     }
-
-    /**
-     * Convert array of Eloquent Product models to ProductDTO array.
-     *
-     * @param  Product[]  $products
-     * @return ProductDTO[]
-     */
-    public function toDtoArray(array $products): array
-    {
-        return array_map(fn (Product $product) => $this->toDto($product), $products);
-    }
 }

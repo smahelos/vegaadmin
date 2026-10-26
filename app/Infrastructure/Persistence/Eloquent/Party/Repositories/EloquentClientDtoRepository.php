@@ -23,13 +23,6 @@ class EloquentClientDtoRepository implements ClientDtoReadRepositoryInterface, C
 {
     public function __construct(private readonly EloquentClientRepository $repo) {}
 
-    public function getClientsForDropdown(int $userId): array
-    {
-        $m = $this->repo->getClientsForDropdown($userId);
-
-        return $m ? $m : [];
-    }
-
     public function getDefaultClient(int $userId): ?ClientDTO
     {
         $m = $this->repo->getDefaultClient($userId);
@@ -44,32 +37,11 @@ class EloquentClientDtoRepository implements ClientDtoReadRepositoryInterface, C
         return $m ? Mapper::toClientDTO($m) : null;
     }
 
-    public function findByIdAny(PartyId $id): ?ClientDTO
-    {
-        $m = $this->repo->findByIdAny($id->toInt());
-
-        return $m ? Mapper::toClientDTO($m) : null;
-    }
-
     public function findByIdForUser(PartyId $id, UserId $userId): ?ClientDTO
     {
         $m = $this->repo->findByIdForUser($id->toInt(), $userId->toInt());
 
         return $m ? Mapper::toClientDTO($m) : null;
-    }
-
-    public function allForAdmin(): array
-    {
-        $col = $this->repo->allModelsForAdmin();
-
-        return $col->map(fn ($c) => Mapper::toClientDTO($c))->toArray();
-    }
-
-    public function allForUser(int $userId): array
-    {
-        $col = $this->repo->allModelsForUser($userId);
-
-        return $col->map(fn ($c) => Mapper::toClientDTO($c))->toArray();
     }
 
     public function firstForUser(int $userId): ?ClientDTO
@@ -86,11 +58,6 @@ class EloquentClientDtoRepository implements ClientDtoReadRepositoryInterface, C
         // Load relations to keep consistency with read DTOs (e.g., category)
         // $model->load(['category', 'children']);
         return Mapper::toClientDTO($model);
-    }
-
-    public function unsetOthersDefault(PartyId $currentId, int $userId): void
-    {
-        $this->repo->unsetOthersDefault($currentId->toInt(), $userId);
     }
 
     public function updateById(PartyId $id, ClientWriteData $data): bool

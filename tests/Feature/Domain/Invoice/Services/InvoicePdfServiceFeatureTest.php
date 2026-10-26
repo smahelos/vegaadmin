@@ -16,6 +16,7 @@ use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use App\Domain\User\Contracts\Locale;
+use App\Domain\User\ValueObjects\UserId;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -85,7 +86,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
         ]);
 
         // Build PrintableInvoiceData and ensure renderer is invoked
-        $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
         $printData = $this->printDataBuilder->build($dto);
 
         Pdf::shouldReceive('loadView')->once()->with(
@@ -115,7 +116,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'payment_status_id' => $status->id,
         ]);
 
-        $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
         $printData = $this->printDataBuilder->build($dto);
 
         // Expect different locales to be passed through to view data
@@ -286,7 +287,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'payment_amount' => 1000,
         ]);
 
-        $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
         $printData = $this->printDataBuilder->build($dto);
         Pdf::shouldReceive('loadView')->once()->andReturnSelf();
         $this->renderer->render(
@@ -362,7 +363,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'payment_currency' => 'EUR',
         ]);
 
-        $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
         $printData = $this->printDataBuilder->build($dto);
 
         $formatted = [];
@@ -448,7 +449,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'Modern template should be selected',
         );
 
-        $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
         $printData = $this->printDataBuilder->build($dto);
         $captured = null;
         Pdf::shouldReceive('loadView')->once()->with(
@@ -491,7 +492,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'payment_currency' => 'CZK',
         ]);
 
-        $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
         $printData = $this->printDataBuilder->build($dto);
         $captured = null;
         Pdf::shouldReceive('loadView')->once()->with(
@@ -639,7 +640,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             }))
             ->andReturnSelf();
         // Build print data and invoke renderer (will not render real view thanks to facade mock).
-        $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
         $printData = $this->printDataBuilder->build($dto);
         $this->rendererMissingTemplate->render(
             $printData,
@@ -687,7 +688,7 @@ class InvoicePdfServiceFeatureTest extends TestCase
             'payment_currency' => 'CZK',
         ]);
 
-        $dto = $this->invoiceDtoRepo->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
         $printData = $this->printDataBuilder->build($dto);
         $captured = null;
         Pdf::shouldReceive('loadView')->once()->with(

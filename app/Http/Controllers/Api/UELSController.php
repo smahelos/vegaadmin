@@ -405,42 +405,6 @@ class UELSController extends Controller
     }
 
     /**
-     * Get user permissions and their associated limits
-     */
-    public function getPermissions(Request $request): JsonResponse
-    {
-        $user = $request->user();
-
-        try {
-            $permissionLimits = [];
-            $entities = [
-                'client',
-                'supplier',
-                'product',
-                'invoice',
-            ];
-
-            foreach ($entities as $entity) {
-                $userPermissionLimits = $this->uels->getUserPermissionLimits($user->id, $entity);
-                if ($userPermissionLimits->isNotEmpty()) {
-                    $permissionLimits[$entity] = $userPermissionLimits->toArray();
-                }
-            }
-
-            return response()->json([
-                'user_id' => $user?->id,
-                'user_name' => $user?->name ?? 'Anonymous',
-                'permission_limits' => $permissionLimits,
-                'timestamp' => now()->toISOString(),
-            ]);
-        } catch (Throwable $e) {
-            Log::error('Loading UELS permissions failed', ['exception' => $e]);
-
-            return response()->json(['message' => __('entity_limits.modal.error')], 500);
-        }
-    }
-
-    /**
      * Get status level based on usage percentage and permission
      */
     private function getStatusLevel(float $percentageUsed, bool $canCreate): string

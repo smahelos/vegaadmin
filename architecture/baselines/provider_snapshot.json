@@ -1,20 +1,11 @@
 {
-    "generated_at": "2026-10-25T18:56:09+00:00",
+    "generated_at": "2026-10-25T22:57:44+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
                 {
                     "abstract": "Backpack\\PermissionManager\\app\\Http\\Controllers\\UserCrudController",
                     "concrete": "App\\Http\\Controllers\\Admin\\UserCrudController"
-                }
-            ],
-            "singleton": []
-        },
-        "App\\Providers\\AuthServiceProvider": {
-            "bind": [
-                {
-                    "abstract": "App\\Application\\Auth\\Contracts\\AuthorizationServiceInterface",
-                    "concrete": "App\\Application\\Auth\\Services\\AuthorizationService"
                 }
             ],
             "singleton": []
@@ -30,10 +21,6 @@
         },
         "App\\Providers\\SharedServiceProvider": {
             "bind": [
-                {
-                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface",
-                    "concrete": "App\\Domain\\Shared\\Status\\Services\\StatusService"
-                },
                 {
                     "abstract": "App\\Domain\\Shared\\Money\\Contracts\\CurrencyExchangeServiceInterface",
                     "concrete": "closure"
@@ -127,10 +114,6 @@
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusDtoRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusCategoryDtoRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusCategoryDtoRepository"
-                },
-                {
                     "abstract": "App\\Domain\\Shared\\Tax\\Contracts\\TaxDtoReadRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Tax\\Repositories\\EloquentTaxDtoRepository"
                 },
@@ -171,10 +154,6 @@
                 {
                     "abstract": "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface",
                     "concrete": "App\\Domain\\Analytics\\Services\\DashboardService"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\AnalyticsReadRepository",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsReadRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Analytics\\Contracts\\AnalyticsDtoReadRepository",
@@ -638,14 +617,6 @@
             "actual": {
                 "implementation": "App\\Application\\Analytics\\Presenters\\UserStatisticsPresenter",
                 "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Auth\\Contracts\\AuthorizationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Auth\\Services\\AuthorizationService",
-                "provider": "App\\Providers\\AuthServiceProvider",
                 "method": "bind"
             }
         },
@@ -1353,26 +1324,10 @@
                 "method": "bind"
             }
         },
-        "App\\Domain\\Shared\\Status\\Contracts\\StatusCategoryDtoRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusCategoryDtoRepository",
-                "provider": "App\\Providers\\SharedServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Domain\\Shared\\Status\\Contracts\\StatusDtoRepositoryInterface": {
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusDtoRepository",
-                "provider": "App\\Providers\\SharedServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\Status\\Contracts\\StatusServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Domain\\Shared\\Status\\Services\\StatusService",
                 "provider": "App\\Providers\\SharedServiceProvider",
                 "method": "bind"
             }

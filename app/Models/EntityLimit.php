@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Artisan;
@@ -108,39 +107,6 @@ class EntityLimit extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | RELATIONS
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Get the permission this limit is associated with
-     */
-    public function permission(): ?Permission
-    {
-        // For special anonymous permission, return null
-        if ($this->permission_name === self::ANONYMOUS_PERMISSION) {
-            return null;
-        }
-
-        return Permission::where('name', $this->permission_name)->first();
-    }
-
-    /**
-     * Get usage records for this entity limit
-     * Note: This is a conceptual relationship based on permission_name and entity_type
-     */
-    public function usage(): Builder
-    {
-        // In new permission-based system, we don't have direct FK relationship
-        // Usage is matched by permission_name and entity_type
-        return EntityLimitUsage::where('entity_type', $this->entity_type)
-            ->whereHas('user.permissions', function ($query): void {
-                $query->where('name', $this->permission_name);
-            });
-    }
-
-    /*
-    |--------------------------------------------------------------------------
     | SCOPES
     |--------------------------------------------------------------------------
     */
@@ -157,56 +123,5 @@ class EntityLimit extends Model
     public function getIsAnonymousAttribute(): bool
     {
         return $this->permission_name === self::ANONYMOUS_PERMISSION;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | STATIC METHODS
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Get available permissions for entity limits (excluding system permissions)
-     */
-    public static function getAvailablePermissions(): array
-    {
-        $permissions = Permission::where('guard_name', 'backpack')
-            ->whereNotIn('name', ['backpack.access'])
-            ->pluck('name')
-            ->toArray();
-
-        // Add special anonymous permission
-        $permissions[] = self::ANONYMOUS_PERMISSION;
-
-        return $permissions;
-    }
-
-    /**
-     * Get entity types as options for forms
-     */
-    public static function getEntityTypeOptions(): array
-    {
-        $options = [];
-        foreach (self::ENTITY_TYPES as $type) {
-            $options[$type] = ucfirst($type);
-        }
-
-        return $options;
-    }
-
-    /**
-     * Get metric types as options for forms
-     */
-    public static function getMetricTypeOptions(): array
-    {
-        return self::METRIC_TYPES;
-    }
-
-    /**
-     * Get period types as options for forms
-     */
-    public static function getPeriodTypeOptions(): array
-    {
-        return self::PERIOD_TYPES;
     }
 }

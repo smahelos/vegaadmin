@@ -37,14 +37,4 @@ interface ProductServiceInterface
      * Find product by ID for specific user
      */
     public function findProductForUser(ProductId $productId, UserId $userId): ?ProductDTO;
-
-    /**
-     * Get default product for user
-     */
-    public function getDefaultProduct(UserId $userId): ?ProductDTO;
-
-    /**
-     * Get user's product count
-     */
-    public function getUserProductCount(UserId $userId): int;
 }

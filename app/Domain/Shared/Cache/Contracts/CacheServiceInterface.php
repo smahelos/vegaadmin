@@ -65,27 +65,10 @@ interface CacheServiceInterface
     public function invalidateTags(array $tags): bool;
 
     /**
-     * Build a standardized user-related key (namespaced by user id).
-     *
-     * @param  string  $suffix  Suffix describing cached content.
-     * @return string Generated cache key (e.g. user_15_profile_stats).
-     */
-    public function userKey(int $userId, string $suffix): string;
-
-    /**
      * Build a standardized global (system-wide) key.
      *
      * @param  string  $suffix  Suffix describing global content.
      * @return string Generated cache key (e.g. global_currencies_list).
      */
     public function globalKey(string $suffix): string;
-
-    /**
-     * Increment a numeric cache value by the specified amount.
-     *
-     * @param  string  $key  Cache key.
-     * @param  int  $amount  Amount to increment by (default 1).
-     * @return bool True on success, false otherwise.
-     */
-    public function increment(string $key, int $amount): bool;
 }

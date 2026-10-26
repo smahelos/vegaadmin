@@ -11,11 +11,6 @@ class UserId
         }
     }
 
-    public function equals(UserId $other): bool
-    {
-        return $this->value === $other->value;
-    }
-
     public static function fromInt(int $value): self
     {
         return new self($value);

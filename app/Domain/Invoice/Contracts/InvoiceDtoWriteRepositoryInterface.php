@@ -15,9 +15,5 @@ interface InvoiceDtoWriteRepositoryInterface
 
     public function update(InvoiceId $id, InvoiceWriteData $writeData): InvoiceDTO;
 
-    public function delete(InvoiceId $id): void;
-
     public function setTemplate(InvoiceId $id, string $template): bool;
-
-    public function changeStatus(InvoiceId $id, int $statusId): bool;
 }

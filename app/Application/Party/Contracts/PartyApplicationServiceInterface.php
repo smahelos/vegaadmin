@@ -70,13 +70,6 @@ interface PartyApplicationServiceInterface
      */
     public function resolveOrCreateClientWithFlag(int $userId, array $data): array;
 
-    /**
-     * Create or resolve client and indicate if created.
-     *
-     * @return array{client: Client, created: bool}
-     */
-    public function resolveOrCreateClient(int $userId, array $data): Client;
-
     /** Update existing client */
     public function updateClient(int $clientId, array $data): Client;
 
@@ -89,13 +82,6 @@ interface PartyApplicationServiceInterface
      * @return array{supplier: Supplier, created: bool}
      */
     public function resolveOrCreateSupplierWithFlag(int $userId, array $data): array;
-
-    /**
-     * Create or resolve supplier and indicate if created.
-     *
-     * @return array{supplier: Supplier, created: bool}
-     */
-    public function resolveOrCreateSupplier(int $userId, array $data): Supplier;
 
     /** Update existing supplier */
     public function updateSupplier(int $supplierId, array $data): Supplier;

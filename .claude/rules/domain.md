@@ -12,7 +12,7 @@ Business rules in plain PHP. Allowed dependencies: `architecture.md`.
 - A value object validates in its constructor or a named constructor (`fromString()`, `fromInt()`, `fromYearAndSequence()`) and throws a domain exception on invalid input; an instance is always valid.
 - Immutable: operations return a new instance (`$a->add($b)`), equality through `equals()`.
 - Identifiers are value objects (`InvoiceId`, `UserId`); a raw `int` id crosses into the Domain only at a named constructor.
-- A value object that exists is used: wherever its concept is computed or validated, the code goes through it (due date → `InvoiceDueDate`, invoice number → `InvoiceNumber`, IBAN → `BankAccount`). A value object with no caller is deleted.
+- A value object that exists is used: wherever its concept is computed or validated, the code goes through it (due date → `InvoiceDueDate`, invoice number → `InvoiceNumber`, amount → `Money`). A value object with no caller is deleted.
 
 ## Money and VAT
 

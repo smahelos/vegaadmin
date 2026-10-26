@@ -16,11 +16,6 @@ class PaymentMethodId
         return $this->value;
     }
 
-    public function equals(PaymentMethodId $other): bool
-    {
-        return $this->value === $other->value;
-    }
-
     public static function fromInt(int $value): self
     {
         return new self($value);

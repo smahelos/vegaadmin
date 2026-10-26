@@ -5,12 +5,9 @@ namespace App\Application\Party\Services;
 use App\Application\Party\Contracts\ClientReadRepositoryInterface;
 use App\Application\Party\Contracts\PartyApplicationServiceInterface;
 use App\Application\Party\Contracts\SupplierReadRepositoryInterface;
-use App\Application\Party\Mappers\ClientArrayMapper;
-use App\Application\Party\Mappers\SupplierArrayMapper;
 use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
 use App\Domain\Party\DTO\ClientDTO;
 use App\Domain\Party\DTO\SupplierDTO;
-use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Client;
 use App\Models\Supplier;
@@ -32,10 +29,7 @@ class PartyApplicationService implements PartyApplicationServiceInterface
         private readonly ClientReadRepositoryInterface $clientsRead,
         private readonly SupplierReadRepositoryInterface $suppliersRead,
         private readonly PartyAuthorizationService $authService,
-        private readonly ClientArrayMapper $clientMapper,
-        private readonly SupplierArrayMapper $supplierMapper,
         private readonly PartyInputValidationService $validationService,
-        private readonly UserReadRepositoryInterface $userReadRepository,
     ) {}
 
     public function findClient(int $userId, int $id): Client
@@ -119,14 +113,6 @@ class PartyApplicationService implements PartyApplicationServiceInterface
         return $this->partyService->defaultSupplier($userId);
     }
 
-    public function resolveOrCreateClient(int $userId, array $data): Client
-    {
-        $this->validationService->validateClientBusinessRules($data, $userId);
-
-        return DB::transaction(fn () => $this->partyService->resolveOrCreateClient(UserId::fromInt($userId), $data),
-        );
-    }
-
     public function resolveOrCreateClientWithFlag(int $userId, array $data): array
     {
         $this->validationService->validateClientBusinessRules($data, $userId);
@@ -155,14 +141,6 @@ class PartyApplicationService implements PartyApplicationServiceInterface
     public function deleteClient(int $userId, int $clientId): bool
     {
         return DB::transaction(fn () => $this->partyService->deleteClient($userId, $clientId),
-        );
-    }
-
-    public function resolveOrCreateSupplier(int $userId, array $data): Supplier
-    {
-        $this->validationService->validateSupplierBusinessRules($data, $userId);
-
-        return DB::transaction(fn () => $this->partyService->resolveOrCreateSupplier(UserId::fromInt($userId), $data),
         );
     }
 

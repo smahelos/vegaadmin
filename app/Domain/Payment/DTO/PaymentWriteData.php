@@ -26,29 +26,6 @@ class PaymentWriteData
     ) {}
 
     /**
-     * Create from associative array.
-     */
-    public static function fromArray(array $data): self
-    {
-        return new self(
-            subscription_id: isset($data['subscription_id']) ? (int) $data['subscription_id'] : null,
-            gateway_payment_id: isset($data['gateway_payment_id']) ? (int) $data['gateway_payment_id'] : null,
-            gateway: $data['gateway'] ?? null,
-            status: $data['status'] ?? null,
-            amount: $data['amount'] ?? null,
-            refunded_amount: $data['refunded_amount'] ?? null,
-            currency: $data['currency'] ?? null,
-            gateway_payment: $data['gateway_payment'] ?? null,
-            gateway_data: $data['gateway_data'] ?? null,
-            failure_reason: $data['failure_reason'] ?? null,
-            paid_at: $data['paid_at'] ?? null,
-            expires_at: $data['expires_at'] ?? null,
-            created_at: $data['created_at'] ?? null,
-            updated_at: $data['updated_at'] ?? null,
-        );
-    }
-
-    /**
      * Convert to associative array for infrastructure layer usage.
      * Filters out null values to avoid overwriting existing data with null during updates.
      */

@@ -22,14 +22,4 @@ interface DomainEvent
      * Get event payload data
      */
     public function getPayload(): array;
-
-    /**
-     * Get when the event occurred
-     */
-    public function getOccurredOn(): \DateTimeImmutable;
-
-    /**
-     * Get event metadata for debugging and serialization
-     */
-    public function getMetadata(): array;
 }

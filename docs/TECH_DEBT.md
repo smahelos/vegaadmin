@@ -16,20 +16,20 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 **B. Invoices**
 
-6. ~~What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".~~ Done 2026-10-25 (branch `ls-invoice-print`): the PDFs print the stored tax point date, invoice text and payment method (`PaymentMethodCode`) in the PDF language, the tax point date is required, due dates go through `InvoiceDueDate`, PDF dates through `DateFormatterInterface`; invoice statuses are the `InvoiceStatus` enum and overdue is derived from the due date, which also made the payment reminders work again. Left over: "VAT rates by the supplier's country", "Status labels are resolved in two places"; found on the way: "Dates outside the PDFs are formatted by hand", "Payment reminders query Eloquent in the console command"; the admin form could not save an invoice (its request required a field the form does not send), fixed on the branch.
-7. "Clients and suppliers mix the user's businesses with their contacts" and "Optional client and supplier fields cannot be cleared" with "Rename IČO and DIČ to `company_number` and `vat_number`", "Compose `PrintableInvoiceData` from `PartyPrintData`" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
+6. ~~What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".~~ Done 2026-10-25 (branch `ls-invoice-print`): the PDFs print the stored tax point date, invoice text and payment method (`PaymentMethodCode`) in the PDF language, the tax point date is required, due dates go through `InvoiceDueDate`, PDF dates through `DateFormatterInterface`; invoice statuses are the `InvoiceStatus` enum and overdue is derived from the due date, which also made the payment reminders work again. Left over: "VAT rates by the supplier's country", "Status labels are translated in the model"; found on the way: "Dates outside the PDFs are formatted by hand", "Payment reminders query Eloquent in the console command"; the admin form could not save an invoice (its request required a field the form does not send), fixed on the branch.
+7. "Clients and suppliers mix the user's businesses with their contacts" and "Optional client and supplier fields cannot be cleared" with "Rename IČO and DIČ to `company_number` and `vat_number`", "Build `PartyPrintDTO` for the parties of the print data" and the print DTO names from "Data class names and properties" — the party snapshot takes this shape and these names; PDF snapshots are regenerated once.
 8. "Issued invoices can be changed and deleted", with "Validate the variable symbol in QR payments" (numbering at issue is decided there) and "Clients, suppliers and products cannot be archived"; then "Expenses are not modelled as received documents", which shares the VAT lines, the VAT payer flag and the document tables (`docs/adr/D-044-document-tables.md`).
 9. "Currency conversion of invoice items happens in the browser" (ČNB rates) with "Resilience of external calls".
 
 **C. Payments and subscription plans**
 
 10. "Permission naming" — the plans grant permissions.
-11. Payments: "Payment notification route", "GoPay is called inside the database transaction", "Typed GoPay request with real customer data", "Move refund logic into `RefundState`", "Payment adapter guard checks nothing", "UELS dashboard bulk reset fails".
+11. Payments: "Payment notification route", "GoPay is called inside the database transaction", "Typed GoPay request with real customer data", "Subscription activation ignores the plan's duration", "Build refunds", "Payment adapter guard checks nothing", "UELS dashboard bulk reset fails".
 12. The subscription plans, with "Subscription screens with placeholder content".
 
 **D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
 
-13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field; Party: client mapper); "Move cache invalidation from observers to domain event handlers" after step 4.
+13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field); "Move cache invalidation from observers to domain event handlers" after step 4.
 14. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 
 **E. Before production and last**
@@ -62,22 +62,22 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 ### Issued invoices can be changed and deleted
 - **Where:** `InvoiceCrudApplicationService` (update, delete), frontend `InvoiceController` (edit, update, set-template, delete), `Admin\InvoiceCrudController` and `Admin\InvoiceRequest`, `InvoicePrintDataBuilder` (reads the current client and supplier), `InvoicePdfRenderer`, `app/Console/Commands/DatabaseArchiveCommand.php` and `archive_policies` (36 months), `Money` (no negative amounts)
 - **Problem:** an issued invoice is a tax document kept unchanged for 10 years (§ 34 and § 35 ZDPH; corrections through a corrective tax document, § 42 and § 45 ZDPH; § 35 ZÚ; to confirm with an accountant after the 2025 amendment). Today an invoice has no draft/issued state (`draft` is a payment status), can be edited in the frontend and the admin and is deleted for good (no `deleted_at`); the admin edits `payment_amount` without the lines, so the amount can disagree with them. It stores only `client_id` and `supplier_id`, so a later change of the party changes every old invoice; the PDF is rendered again from the current template and logo on every download. `db:archive` moves invoices and items older than 36 months out of the main tables and deletes clients and suppliers by the same policy.
-- **Fix (decided 2026-10-23, own branch, step 8 of the order of work):** a document life cycle separate from the payment status (draft → issued → cancelled by a corrective document); issuing assigns the number, stores a snapshot of the parties, bank account, lines, totals, currency, payment method, template and logo, and stores the rendered PDF with its hash, which later downloads return. The Domain refuses changes to an issued invoice; only its payment status changes. Corrections and cancellations are corrective tax documents (credit or debit note) linked to the invoice, with their own PDF; a cancellation can copy the invoice into a new draft. The admin shows the amount read-only. Invoices, corrective documents and their PDFs are kept for 10 years while the account exists (archiving them is the user's duty; "Erasing a user account"); who issued or cancelled a document and when is recorded. Open decisions: numbering at issue, a number series for corrective documents, negative `Money` or a sign by document type, existing invoices, VAT payers vs non-payers; keep or delete `InvoiceCrudApplicationService::delete()`, `getForEdit()`, `softDelete()` and `restore()`, which nothing calls (deleting drafts).
+- **Fix (decided 2026-10-23, own branch, step 8 of the order of work):** a document life cycle separate from the payment status (draft → issued → cancelled by a corrective document); issuing assigns the number, stores a snapshot of the parties, bank account, lines, totals, currency, payment method, template and logo, and stores the rendered PDF with its hash, which later downloads return. The Domain refuses changes to an issued invoice; only its payment status changes. Corrections and cancellations are corrective tax documents (credit or debit note) linked to the invoice, with their own PDF; a cancellation can copy the invoice into a new draft. The admin shows the amount read-only. Invoices, corrective documents and their PDFs are kept for 10 years while the account exists (archiving them is the user's duty; "Erasing a user account"); who issued or cancelled a document and when is recorded. Open decisions: numbering at issue, a number series for corrective documents, negative `Money` or a sign by document type, existing invoices, VAT payers vs non-payers; deleting drafts (the uncalled `delete()`, `getForEdit()`, `softDelete()` and `restore()` of `InvoiceCrudApplicationService` were deleted in commit "Delete unused invoice code", branch `ls-dead-code`).
 
 ### Expenses are not modelled as received documents
 - **Where:** `expenses` (`2026_10_25_000009_create_expense_tables.php`), `App\Models\Expense`, `ExpenseRequest` (frontend and admin), `Admin\ExpenseCrudController`, expense statuses in `ReferenceDataSeeder`
 - **Problem:** Billex is for VAT payers and non-payers alike, but an expense is one amount with an optional `tax_amount` and a `tax_included` flag. It has no document type, no VAT breakdown by rate, no taxable supply date (DUZP) or date of receipt (which decides the VAT deduction), no supplier's document number and no due date; its statuses (draft, in review, approved, rejected…) are an approval process for companies, not the payment state a sole trader needs. A document the user claims a VAT deduction from is kept for 10 years (§ 35 ZDPH).
 - **Fix (decided 2026-10-25, after "Issued invoices can be changed and deleted"):** an expense is a received document, stored as `docs/adr/D-044-document-tables.md` describes: a document type enum (received invoice and simplified tax document / receipt first; corrective document, advance invoice and the tax document for a received payment later as new cases), a VAT regime enum (standard first; reverse charge and acquisition from the EU later), VAT lines by rate shared with issued documents (a non-payer enters only the total), supplier's document number, issue date, DUZP, date of receipt, due date, attachment; a payment state (unpaid, paid) instead of the approval statuses; a VAT payer flag on the user (also an open decision of "Issued invoices can be changed and deleted"). The user still deletes an expense: it is their record of someone else's document. Every table or column only one document type needs is decided by the user (criteria in the ADR).
 
-### Status labels are resolved in two places
-- **Where:** `app/Domain/Shared/Status/ValueObjects/StatusCode.php` (`label()`), `StatusService::translateSlug()`, `App\Models\Status::getTranslatedNameAttribute()`
-- **Problem:** invoice statuses are the `InvoiceStatus` enum and expense statuses `StatusCode`, but `StatusCode::label()` returns hardcoded English as a fallback, and the model accessor translates the slug itself instead of going through `translateSlug()`.
-- **Fix:** labels only from `statuses.statuses.<slug>` (every case of both enums has the key), one resolver used by the model, the invoice mapper and the dashboard; delete `label()`. The expense statuses change with "Expenses are not modelled as received documents".
+### Status labels are translated in the model
+- **Where:** `App\Models\Status::getTranslatedNameAttribute()`
+- **Problem:** invoice statuses are the `InvoiceStatus` enum, expense statuses plain slugs in the `statuses` table: the expense counterpart `StatusCode` and the translation in `StatusService` had no caller and were deleted (branch `ls-dead-code`). The model accessor translates the slug itself, with a fallback to the stored name.
+- **Fix:** labels only from `statuses.statuses.<slug>` (every case has the key), resolved by one presenter used by the invoice mapper and the dashboard instead of the model. The expense statuses change with "Expenses are not modelled as received documents".
 
-### Compose `PrintableInvoiceData` from `PartyPrintData`
-- **Where:** `app/Domain/Invoice/DTO/PrintableInvoiceData.php`, `app/Domain/Party/DTO/PartyPrintData.php`
-- **Problem:** `PrintableInvoiceData` has ~40 flat `supplier_*` / `client_*` fields. `PartyPrintData` was created in the same commit to hold one party, but was never used.
-- **Fix:** `supplier: PartyPrintData`, `client: PartyPrintData`; update `InvoicePrintDataBuilder`, `TemporaryInvoicePrintDataFactory`, `InvoicePdfRenderer`, the PDF templates and snapshots.
+### Build `PartyPrintDTO` for the parties of the print data
+- **Where:** `app/Domain/Invoice/DTO/PrintableInvoiceData.php`
+- **Problem:** `PrintableInvoiceData` has ~40 flat `supplier_*` / `client_*` fields. A `PartyPrintData` drafted to hold one party was never used and was deleted (commit "Delete unused party code", branch `ls-dead-code`).
+- **Fix:** build `PartyPrintDTO` for one party, then `supplier: PartyPrintDTO`, `client: PartyPrintDTO`; update `InvoicePrintDataBuilder`, `TemporaryInvoicePrintDataFactory`, `InvoicePdfRenderer`, the PDF templates and snapshots.
 
 ### Currency conversion of invoice items happens in the browser
 - **Where:** `resources/js/currency-manager.js` (`getExchangeRate()`, `convertAmount()`), `resources/js/invoice-item-manager.js`, `app/Domain/Shared/Money/Services/CurrencyExchangeService.php`, `InvoiceRequestAssembler`, `/api/currencies/{exchange-rate,convert}`
@@ -106,15 +106,20 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** the transaction wraps `createPayment()` of the gateway. When a later step fails, the rollback deletes the local payment record, but the payment created at GoPay stays and its notification finds no record; the transaction also holds its locks for the whole HTTP call.
 - **Fix:** store the pending payment in one transaction, call the gateway outside it, then store the gateway id and status in a second transaction; a failed gateway call marks the payment failed. Move the use case to Application (`rules/application.md`).
 
-### Move refund logic into `RefundState`
-- **Where:** `app/Models/Payment.php::applyRefund()`, `app/Domain/Payment/ValueObjects/RefundState.php`
-- **Problem:** refund business logic (accumulation, partial/full status) lives in the Eloquent model; the value object is unused.
-- **Fix:** `RefundState` computes the new state, the repository only persists it.
+### Subscription activation ignores the plan's duration
+- **Where:** `app/Domain/Payment/Services/SubscriptionPaymentService.php` (activation after a paid notification), `app/Domain/Payment/DTO/SubscriptionPlanDTO.php`, `EloquentSubscriptionWriteRepository::activateById()`
+- **Problem:** the activation reads `$subscription->subscriptionPlan->duration_days ?? 0`, but the plan DTO has no `duration_days` (it has `billingPeriod` and `billingInterval`), so a paid subscription is activated with `ends_at = now()`. Larastan reports the undefined property from level 2. Found 2026-10-26 while checking the branch `ls-dead-code` at level 2.
+- **Fix:** compute the end from the plan's billing period and interval through the clock, with a test of the notification that activates a subscription. With the payments work (Order of work 11).
+
+### Build refunds
+- **Where:** `payments.refunded_amount`, statuses `refunded` and `partially_refunded` (`2026_10_25_000010_create_subscription_tables.php`, `lang/*/payments.php`), `app/Infrastructure/Providers/Payment/GoPayGateway.php`
+- **Problem:** Billex cannot refund a payment. A refund flow that nothing called (`RefundState`, `RefundResultDTO`, the refund use cases, the gateway's refund call and `Payment::applyRefund()` with the logic in the model) was deleted (commit "Delete unused payment code", branch `ls-dead-code`); the column and the statuses remain.
+- **Fix:** when refunds are needed: a `RefundState` value object computes the new state (accumulation, partial or full), the gateway refunds through the payment port, the repository only persists the result, returned as `RefundResult` (`rules/architecture.md`, Data classes).
 
 ### Typed GoPay request with real customer data
-- **Where:** `app/Infrastructure/Providers/Payment/GoPayGateway.php`, `app/Domain/Payment/ValueObjects/PaymentAmount.php`
-- **Problem:** `createPayment(array $paymentData)` is untyped and the amount is not checked against gateway limits. Without customer data the gateway sends a placeholder customer (`Test User`, `test@example.com`); `SubscriptionController` passes none.
-- **Fix:** a request DTO (amount as `PaymentAmount`, plan, customer, URLs) filled with the subscriber's real data. Do this with the subscription plans work.
+- **Where:** `app/Infrastructure/Providers/Payment/GoPayGateway.php`
+- **Problem:** `createPayment(array $paymentData)` is untyped and the amount is not checked against gateway limits; a `PaymentAmount` value object for the limits had no caller and was deleted with its `payment:limits` report (commit "Delete unused payment code", branch `ls-dead-code`). Without customer data the gateway sends a placeholder customer (`Test User`, `test@example.com`); `SubscriptionController` passes none.
+- **Fix:** build `PaymentAmount` (`Money` checked against the gateway's limits) and a request DTO (amount as `PaymentAmount`, plan, customer, URLs) filled with the subscriber's real data. Do this with the subscription plans work.
 
 ### Payment DTOs do not match the model casts
 - **Where:** `app/Domain/Payment/DTO/PaymentDTO.php`, `app/Domain/Payment/DTO/PaymentWriteData.php`, `app/Models/Payment.php`
@@ -126,10 +131,10 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** the variable symbol is not validated (Czech QR standard: max 10 digits); constant and specific symbols are not supported.
 - **Fix:** a `VariableSymbol` value object in the payload; add CS/SS if needed.
 
-### Validate bank accounts through `BankAccount`
-- **Where:** `app/Application/Party/Services/PartyInputValidationService.php::isValidIBANFormat()`, `app/Domain/Payment/ValueObjects/BankAccount.php`
-- **Problem:** IBAN is validated with a simplified regex (no mod-97 checksum); QR providers format accounts themselves.
-- **Fix:** validate and convert through the value object. It is stricter, so check existing supplier data first.
+### Build `BankAccount` and validate bank accounts through it
+- **Where:** `app/Application/Party/Services/PartyInputValidationService.php::isValidIBANFormat()`, `app/Domain/Payment/Providers/QrPayment/`
+- **Problem:** IBAN is validated with a simplified regex (no mod-97 checksum); QR providers format accounts themselves. A `BankAccount` value object with the checksum had no caller and was deleted (commit "Delete unused payment code", branch `ls-dead-code`).
+- **Fix:** build `BankAccount` (IBAN checksum, Czech account number and bank code, formatting) and validate and convert through it, also in the QR providers (`rules/payments.md`). It is stricter, so check existing supplier data first.
 
 ### Payment method request does not match the table
 - **Where:** `app/Http/Requests/Admin/PaymentMethodRequest.php`, table `payment_methods`
@@ -161,7 +166,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 ### Optional client and supplier fields cannot be cleared
 - **Where:** `app/Domain/Party/DTO/ClientWriteData.php`, `SupplierWriteData.php` (`toArray()`), `InvoicePartyService::updateClient()` / `updateSupplier()`, the frontend client and supplier edit forms
 - **Problem:** the write data drop every `null` so that an update changes only what was sent. The form sends an emptied field as `null` (`ConvertEmptyStringsToNull`), so emptying the IČO, DIČ, phone, e-mail or description of a client or supplier and saving keeps the old value. Found while normalising an empty IČO to `null` (PR #57).
-- **Fix:** an update carries the whole state of the form, with `null` meaning empty; `setClientDefault()` / `setSupplierDefault()` and `cloneWriteDto()` change only the flag in their own query instead of rewriting the record. An HTTP test empties each optional field. With the split into businesses and contacts (step 7).
+- **Fix:** an update carries the whole state of the form, with `null` meaning empty; setting the default changes only the flag in its own query (today `Client::saving()` and `Supplier::saving()` unset the user's other default). An HTTP test empties each optional field. With the split into businesses and contacts (step 7).
 
 ### Inactive banks are still offered
 - **Where:** `banks.active`, `app/Infrastructure/Persistence/Eloquent/Payment/Repositories/EloquentBankRepository.php` (`getAllBanks()`)
@@ -179,9 +184,14 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Fix:** delete the branch, then drop the allowlist.
 
 ### Admin list columns build display text by hand
-- **Where:** `app/Http/Controllers/Admin/{EntityUsage,EntityLimit,PerformanceMetric,DatabaseMaintenanceLog}CrudController.php`; badge accessors in `app/Models/{ArchivePolicy,DatabaseHealthAlert,DatabaseHealthMetric,DatabaseMaintenanceLog,MysqlOptimizationLog}.php`; hardcoded labels also in the `Client`, `Supplier`, `Product`, `Invoice`, `Status`, `Subscription` and `ExpenseCategory` CRUD controllers
-- **Problem:** amounts and sizes are formatted with `'€' . number_format(...)` and private `formatBytes()` helpers, ignoring the locale and the entity's currency. Labels and cell texts are hardcoded English (`->label('User')`, `'Anonymous'`, `'Pending'`). The maintenance results and performance metadata closures put MySQL output (`Msg_text`, storage engine, metadata values) into HTML unescaped. Models return badge HTML with English text (`getStatusBadgeAttribute()` and similar).
+- **Where:** `app/Http/Controllers/Admin/{EntityUsage,EntityLimit,PerformanceMetric,DatabaseMaintenanceLog}CrudController.php`; badge HTML and classes in `Status::getColorPreviewAttribute()` and `UserActivitySummary::getActivityBadgeClassAttribute()`; hardcoded labels also in the `Client`, `Supplier`, `Product`, `Invoice`, `Status`, `Subscription` and `ExpenseCategory` CRUD controllers
+- **Problem:** amounts and sizes are formatted with `'€' . number_format(...)` and private `formatBytes()` helpers, ignoring the locale and the entity's currency. Labels and cell texts are hardcoded English (`->label('User')`, `'Anonymous'`, `'Pending'`). The maintenance results and performance metadata closures put MySQL output (`Msg_text`, storage engine, metadata values) into HTML unescaped. Models return badge HTML (`getColorPreviewAttribute()`).
 - **Fix:** amounts through `MoneyFormatterInterface`, labels and texts as translation keys, every interpolated value through `e()` or a Blade column view, badge HTML out of the models into column views with the status as an enum (`rules/admin.md`, `rules/persistence.md`, `rules/translations.md`).
+
+### Database dashboard shows invented metrics
+- **Where:** `app/Http/Controllers/Admin/DatabaseDashboardController.php` (`generateSampleDataForMetricType()`, cleanup type `sample`, the `sample_metrics` count), `app/Console/Commands/CleanPerformanceMetrics.php`, `resources/views/admin/database/dashboard.blade.php`
+- **Problem:** when no metric of a type is stored, the performance chart shows random values labelled as sample data. The `sample` cleanup and the `sample_metrics` count look for rows marked `metadata.generated`, which nothing writes since the unrouted sample generator was deleted (branch `ls-dead-code`).
+- **Fix:** an empty state instead of random values; delete the `sample` cleanup type, the count and their translations.
 
 ### Admin dashboard formats revenue by hand
 - **Where:** `resources/views/vendor/backpack/ui/dashboard.blade.php` (monthly revenue card, revenue overview), `$dashboardStats` built for it
@@ -205,11 +215,6 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** `products.unit` exists and is copied into the invoice item when a product is picked, but no form sets it, so every product counts in pieces.
 - **Fix:** a unit select from `<x-unit-options />` (frontend) and the same option list in the admin, validated with `Rule::enum(Unit::class)`.
 
-### Product SKU
-- **Where:** `app/Domain/Product/ValueObjects/ProductSku.php`
-- **Problem:** value object prepared for a feature that does not exist yet (no `sku` column).
-- **Fix:** use it when SKU is added, or delete it.
-
 ## Analytics
 
 ### Dashboard statistics sum amounts across currencies
@@ -229,17 +234,17 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** the action passes a `User` model to `UniversalLimitService::resetUsage(?int $userId, …)` and ends with a `TypeError` (500). Its validation marks both checkboxes `accepted`, so resetting only anonymous usage or only users cannot be submitted at all.
 - **Fix:** pass the user id, make both options optional (at least one required), cover the action with a feature test. With the subscription plans work.
 
-### Dead reset actions and hardcoded units in the usage CRUD
-- **Where:** `app/Http/Controllers/Admin/EntityUsageCrudController.php` (`resetUsage()`, `bulkResetUsage()`, `formatBytes()`), `app/Http/Requests/Admin/EntityUsageRequest.php`, `resources/views/admin/uels-dashboard.blade.php`, `resources/js/uels-manager.js`
-- **Problem:** no route reaches the two reset actions, and the CRUD has no create or update operation, so `EntityUsageRequest` validates nothing; both still carry English flash messages. Value-based limits print a fixed `€` and sizes `KB`, the widget title in `uels-manager.js` prints the raw entity type and period slugs.
-- **Fix:** delete the unreachable actions and request, format amounts through `MoneyFormatterInterface` with the limit's currency, pass translated labels to the widget script.
+### Hardcoded units in the usage CRUD
+- **Where:** `app/Http/Controllers/Admin/EntityUsageCrudController.php` (`formatBytes()`), `resources/views/admin/uels-dashboard.blade.php`, `resources/js/uels-manager.js`
+- **Problem:** value-based limits print a fixed `€` and sizes `KB`, the widget title in `uels-manager.js` prints the raw entity type and period slugs. The unreachable reset actions and the request of the read-only CRUD were deleted (branch `ls-dead-code`).
+- **Fix:** format amounts through `MoneyFormatterInterface` with the limit's currency, pass translated labels to the widget script.
 
 ## Cross-cutting
 
 ### Move cache invalidation from observers to domain event handlers
 - **Where:** `app/Infrastructure/Persistence/Eloquent/*/Observers`, `app/Domain/Analytics/Events/AnalyticsDataChanged.php`, `app/Domain/Analytics/Events/Handlers/InvalidateAnalyticsCache.php`
-- **Problem:** events are not yet used as `.claude/rules/architecture.md` (Events) requires. Cache invalidation runs through observers → `UserDataChanged`; `AnalyticsDataChanged` is never published, so its registered handler never runs. Events `ClientDeleted`, `ClientSetAsDefault`, `SupplierDeleted`, `SupplierSetAsDefault`, `SupplierUpdated`, `ProductDeleted`, `ProductSetAsDefault`, `ProductUpdated` exist but are never published.
-- **Fix:** publish the entity events from the domain services, let the cache invalidation handle them as Laravel listeners (after the commit, `rules/architecture.md` Events; `InvalidateAnalyticsCache` is a domain handler today, which would run inside the transaction), then remove the observers and `AnalyticsDataChanged`.
+- **Problem:** events are not yet used as `.claude/rules/architecture.md` (Events) requires. Cache invalidation runs through observers → `UserDataChanged`; `AnalyticsDataChanged` is never published, so its registered handler never runs. Only the `*Created` events of invoices, clients, suppliers and products are published; the update, delete and set-as-default events nobody published were deleted (commit "Delete unpublished domain events and unread event accessors", branch `ls-dead-code`) and are added back with their publishers.
+- **Fix:** add and publish the entity events from the domain services, let the cache invalidation handle them as Laravel listeners (after the commit, `rules/architecture.md` Events; `InvalidateAnalyticsCache` is a domain handler today, which would run inside the transaction), then remove the observers and `AnalyticsDataChanged`.
 
 ### Dates outside the PDFs are formatted by hand
 - **Where:** `app/Infrastructure/Shared/Support/DateHelper.php` (formats for cs and en only), 15 views in `resources/views` (`->format('d.m.Y')`, `DateHelper::format()`, e.g. `frontend/invoices/show.blade.php`, the Livewire invoice lists), `app/Infrastructure/Notifications/Invoice/Messages/Invoice{Upcoming,Overdue,}DueReminder.php`
@@ -262,8 +267,8 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Fix (proposed 2026-10-25, to be reviewed by a lawyer, with the terms of service and the data processing agreement):** an application use case, not a cascade: the user requests erasure and receives an export of all their data (invoice PDFs, expenses, clients); the account is blocked at once; after the announced period the use case deletes their business data, credentials, tokens, logs and settings in dependency order; only Billex's documents for the subscription stay, with the minimum data about the user as customer.
 
 ### Resilience of external calls
-- **Where:** `app/Http/Controllers/Api/AresLookupController.php`, `app/Infrastructure/Shared/Http/Services/HttpClientService.php`, `app/Domain/Analytics/Services/BaseAnalyticsExternalService.php`, `config/analytics.php`
-- **Problem:** ARES is called with `Http::get()` directly from a controller without a timeout; exchange rates and countries go through `HttpClientService` without timeouts. A circuit breaker exists only in the unused Analytics base class.
+- **Where:** `app/Http/Controllers/Api/AresLookupController.php`, `app/Infrastructure/Shared/Http/Services/HttpClientService.php`, `config/analytics.php`
+- **Problem:** ARES is called with `Http::get()` directly from a controller without a timeout; exchange rates and countries go through `HttpClientService` without timeouts.
 - **Fix:** timeouts and a circuit breaker in `Shared` around `HttpClientService`; move the ARES call into a service.
 
 ### No error monitoring
@@ -277,7 +282,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Larastan level
 - **Where:** `phpstan.neon`
-- **Problem:** Larastan runs at level 1 (2026-10-23); level 2 reports about 1000 more errors, level 6 over 4000. One level applies to the whole codebase. Array value types are not checked yet: `phpcs.xml` leaves out Slevomat's `MissingTraversableTypeHintSpecification` (about 1150 signatures without `list<…>` / `array<string, …>`), which Larastan reports from level 6.
+- **Problem:** Larastan runs at level 1 (2026-10-23); level 2 reports about 770 more errors (2026-10-26; among them a call to a method that does not exist, which broke saving a default supplier until the branch `ls-dead-code`, and "Subscription activation ignores the plan's duration"), level 6 over 4000. One level applies to the whole codebase. Array value types are not checked yet: `phpcs.xml` leaves out Slevomat's `MissingTraversableTypeHintSpecification` (about 1150 signatures without `list<…>` / `array<string, …>`), which Larastan reports from level 6.
 - **Fix:** raise the level once the whole codebase passes the next one: levels 2–6 while the contexts are converted (Order of work 13), 7–10 (`max`) after that, one level per branch. No baseline file and no ignore comments.
 
 ### `strict_types` and `final`
@@ -292,7 +297,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ### Two sets of repositories
 - **Where:** 19 repository contracts in `app/Application/*/Contracts` returning Eloquent models (e.g. `InvoiceReadRepositoryInterface`), next to the Domain `*Dto*RepositoryInterface` ports
 - **Problem:** Application, controllers and Livewire work with models; the same entity has two persistence paths.
-- **Fix:** move every use to the Domain ports, delete the Application repositories and their implementations. Then, per `rules/persistence.md` (decided 2026-10-20): ports without `Dto` and always with `Interface` (`ClientReadRepositoryInterface`; today 24 ports incl. `BankDtoRepository`, `AnalyticsDtoReadRepository`); a read port for every read entity, a write port only where the Domain writes (unsplit today: `StatusDtoRepositoryInterface`, `StatusCategoryDtoRepositoryInterface`, `BankDtoRepository`, `ArtisanCommandsDtoRepositoryInterface`, `AnalyticsDtoReadRepository`); one `Eloquent<Entity>Repository` per entity implementing both (merge `EloquentPaymentDto{Read,Write}Repository`, `EloquentSubscriptionDto{Read,Write}Repository`).
+- **Fix:** move every use to the Domain ports, delete the Application repositories and their implementations. Then, per `rules/persistence.md` (decided 2026-10-20): ports without `Dto` and always with `Interface` (`ClientReadRepositoryInterface`; today 24 ports incl. `BankDtoRepository`, `AnalyticsDtoReadRepository`); a read port for every read entity, a write port only where the Domain writes (unsplit today: `StatusDtoRepositoryInterface`, `BankDtoRepository`, `ArtisanCommandsDtoRepositoryInterface`, `AnalyticsDtoReadRepository`); one `Eloquent<Entity>Repository` per entity implementing both (merge `EloquentPaymentDto{Read,Write}Repository`, `EloquentSubscriptionDto{Read,Write}Repository`).
 
 ### Framework and model dependencies outside Infrastructure
 - **Where:** `App\Models` in 37 Application files, 39 of 55 controllers and all 10 Livewire components; `Illuminate\Http` in 7 Application files; facades/helpers in 13 Application files (e.g. `Log` in `ApplicationUseCaseLogging`, `session()` in `InvoicePdfApplicationService`, `Cache` in `TemporaryInvoiceStore` — their tests have to boot Laravel); `config()` in `app/Domain/Shared/File/Config/FileUploadConfig.php`; `app/Domain/Payment/Services/SubscriptionPaymentService.php` imports `GoPayGateway`
@@ -305,11 +310,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ### Data class names and properties
 - **Where:** `app/*/*/DTO/`, `app/Domain/Shared/Money/Enum`, `app/Domain/Invoice/Notifications/Enums`, `app/Application/Shared/Form/Enum`
 - **Problem:** suffixes `DTO`/`Data`/`Payload`/`ResultDTO` mixed; 167 snake_case vs 75 camelCase properties, mixed within one class.
-- **Fix:** `PrintableInvoiceData` → `PrintableInvoiceDTO`, `PrintableInvoiceItemData` → `PrintableInvoiceItemDTO`, `PartyPrintData` → `PartyPrintDTO`, `QrPaymentPayload` → `QrPaymentDTO`, `InvoiceReminderPayload` → `InvoiceReminderDTO`, `RefundResultDTO` → `RefundResult`, `SubscriptionPaymentResultDTO` → `SubscriptionPaymentResult`; replace `InvoiceMutationPayload` with `InvoiceWriteData`; move `InvoiceActionStatus` to `Enums/`, rename every `Enum/` directory to `Enums/`; camelCase properties with `final readonly class`.
+- **Fix:** `PrintableInvoiceData` → `PrintableInvoiceDTO`, `PrintableInvoiceItemData` → `PrintableInvoiceItemDTO`, `QrPaymentPayload` → `QrPaymentDTO`, `InvoiceReminderPayload` → `InvoiceReminderDTO`, `SubscriptionPaymentResultDTO` → `SubscriptionPaymentResult`; replace `InvoiceMutationPayload` with `InvoiceWriteData`; move `InvoiceActionStatus` to `Enums/`, rename every `Enum/` directory to `Enums/`; camelCase properties with `final readonly class`.
 
 ### Value object accessors
-- **Where:** all 21 classes in `app/Domain/*/ValueObjects` and `app/Domain/Shared/*/ValueObjects`
-- **Problem:** private state read through four naming styles: `getValue()` (46 calls), `toInt()` (`UserId`, `PartyId`; 83 calls), `value()` (`ProductSku`), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, `BankAccount::getIban()`, …).
+- **Where:** all 13 classes in `app/Domain/*/ValueObjects` and `app/Domain/Shared/*/ValueObjects`
+- **Problem:** private state read through three naming styles: `getValue()` (46 calls), `toInt()` (`UserId`, `PartyId`; 83 calls), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, …).
 - **Fix (decided 2026-10-20):** `final readonly class` with public readonly properties for held state (`->value`, `->amount`, `->iban`), computed values as methods without `get` (`formattedIban()`, `year()`), per `rules/php.md`.
 
 ### Business logic in models
@@ -321,7 +326,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** one rule set per entity in form requests, business validation in value objects, limit check once in the application service (`rules/http.md`, `rules/permissions.md`).
 
 ### Directory layout
-- **Where:** `app/Infrastructure/Interfaces/`, `app/Infrastructure/Services/`, `app/Infrastructure/Providers/Payment/` (→ `Gateways/Payment/`), `app/Infrastructure/Forms/Products/` (→ `Product/`), `app/Application/Invoice/Services/Specialized/`, `app/Domain/Payment/Providers/QrPayment/`; contracts without the `Interface` suffix: `AnalyticsDtoReadRepository`, `Locale`, `BankDtoRepository`, `AnalyticsReadRepository`, `ApiStatisticsRepository`, `BankRepository`, `DomainEvent`, `Str`, `Config`
+- **Where:** `app/Infrastructure/Interfaces/`, `app/Infrastructure/Services/`, `app/Infrastructure/Providers/Payment/` (→ `Gateways/Payment/`), `app/Infrastructure/Forms/Products/` (→ `Product/`), `app/Application/Invoice/Services/Specialized/`, `app/Domain/Payment/Providers/QrPayment/`; contracts without the `Interface` suffix: `AnalyticsDtoReadRepository`, `Locale`, `BankDtoRepository`, `ApiStatisticsRepository`, `BankRepository`, `Str`, `Config`
 - **Fix:** per `rules/architecture.md` (Directory layout, Ports and interfaces); framework wrappers in `Domain/Shared` that are not ports (`Str`, `Config`, `Console`) are removed.
 
 ### Error handling
@@ -369,8 +374,3 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** 105 files in `app/`, `resources/`, `lang/`, `tests/` — properties, variables and parameters `$ico` / `$dic`, `->ico` / `->dic`, prefixed variants (`client_ico`, `client_dic`, `supplier_ico`, `supplier_dic`); DB columns `ico` / `dic` in `clients` and `suppliers` (indexes `idx_clients_user_ico`, `idx_suppliers_user_ico`); translation keys (`clients.fields.ico`, …)
 - **Problem:** the Czech abbreviations IČO (company registration number) and DIČ (VAT number) are used as identifiers in English code.
 - **Fix (decided 2026-10-20):** rename everything, the same name in every layer: PHP `companyNumber` / `vatNumber`, DB columns and indexes `company_number` / `vat_number`, request and form keys `client_company_number`, `supplier_vat_number`, …, translation keys `….company_number` / `….vat_number`. Not `company_id` / `vat_id`: the `_id` / `Id` suffix is reserved for entity identifiers and foreign keys, and `vat_id` or `client_company_id` would read as one.
-
-### Client mapper maps invoices as clients
-- **Where:** `app/Infrastructure/Persistence/Eloquent/Party/Mappers/EloquentClientMapper.php::toClientDTO()`
-- **Problem:** loaded `invoices` are passed to `toClientDTO()` itself.
-- **Fix:** map invoices with the invoice mapper (or drop them from `ClientDTO`).

@@ -2,7 +2,6 @@
 
 namespace App\Application\Payment\Contracts;
 
-use App\Application\Payment\DTO\RefundResultDTO;
 use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
 use App\Models\Payment;
 use App\Models\Subscription;
@@ -33,20 +32,6 @@ interface PaymentApplicationServiceInterface
      * @return array{success:bool, payment_id?:int, status?:string, error?:string}
      */
     public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO;
-
-    /**
-     * Verify payment status via gateway.
-     *
-     * @return array{success:bool, status?:string, amount?:float, currency?:string, error?:string}
-     */
-    public function verify(Payment $payment): SubscriptionPaymentResultDTO;
-
-    /**
-     * Refund a payment (full or partial). Amount null = remaining.
-     *
-     * @return array{success:bool, payment_id?:int, refunded_amount?:float, currency?:string, error?:string}
-     */
-    public function refund(Payment $payment, ?float $amount = null): RefundResultDTO;
 
     /**
      * List available payment gateways (delegated from domain service layer).

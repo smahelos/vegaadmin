@@ -206,58 +206,6 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
     }
 
     /**
-     * Get all limits for a user across all entity types
-     *
-     * @return array Format: ['entity_type' => ['metric_type' => ['period_type' => limit_value]]]
-     */
-    public function getAllUserLimits(?int $userId): array
-    {
-        $result = [];
-
-        foreach ($this->repo()->getAllEntityTypes() as $entityType) {
-            foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
-                foreach (array_keys($this->repo()->getAllPeriodTypes()) as $periodType) {
-                    $limit = $this->getUserLimit(
-                        $userId,
-                        $entityType,
-                        $metricType,
-                        $periodType,
-                    );
-                    if ($limit > 0) {
-                        $result[$entityType][$metricType][$periodType] = $limit;
-                    }
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get limits for specific entity type across all metrics and periods
-     */
-    public function getEntityLimits(?int $userId, string $entityType): array
-    {
-        $result = [];
-
-        foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
-            foreach (array_keys($this->repo()->getAllPeriodTypes()) as $periodType) {
-                $limit = $this->getUserLimit(
-                    $userId,
-                    $entityType,
-                    $metricType,
-                    $periodType,
-                );
-                if ($limit > 0) {
-                    $result[$metricType][$periodType] = $limit;
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
      * Clear cache for a specific user
      */
     public function clearUserCache(int $userId): void
@@ -276,15 +224,6 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
                 }
             }
         }
-    }
-
-    /**
-     * Clear cache for all users (use sparingly)
-     */
-    public function clearAllCache(): void
-    {
-        // Use cache tags to invalidate all UELS-related entries
-        $this->cache()->invalidateTags([self::CACHE_TAG]);
     }
 
     /**

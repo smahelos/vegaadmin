@@ -150,7 +150,7 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
     }
 
     #[Test]
-    public function can_set_template_and_mark_paid_and_change_status(): void
+    public function can_set_template_and_mark_paid(): void
     {
         $create = $this->mutation->create(
             $this->user->id,
@@ -170,15 +170,9 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
         $paid = $this->frontend->markAsPaid($this->user->id, $invoiceId);
         $this->assertInvoiceSuccess($paid, 'Mark paid failed');
 
-        $partiallyPaid = $this->frontend->changeStatus(
-            $this->user->id,
-            $invoiceId,
-            InvoiceStatus::PARTIALLY_PAID,
-        );
-        $this->assertInvoiceSuccess($partiallyPaid, 'Change status failed');
         $this->assertDatabaseHas('invoices', [
             'id' => $invoiceId,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PARTIALLY_PAID->value)->value('id'),
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PAID->value)->value('id'),
         ]);
     }
 

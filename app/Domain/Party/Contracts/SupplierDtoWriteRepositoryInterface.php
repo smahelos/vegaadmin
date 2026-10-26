@@ -13,8 +13,6 @@ interface SupplierDtoWriteRepositoryInterface
 {
     public function create(SupplierWriteData $data): SupplierDTO;
 
-    public function unsetOthersDefault(PartyId $currentId, int $userId): void;
-
     /** Update supplier by ID with provided attributes */
     public function updateById(PartyId $id, SupplierWriteData $data): bool;
 

@@ -27,57 +27,6 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         $this->entityLimitRepository = $entityLimitRepository;
     }
 
-    public function existsCurrentPeriod(
-        int $userId,
-        string $entityType,
-        string $metricType,
-        string $periodType,
-        \DateTimeImmutable $now,
-    ): bool {
-        $nowCarbon = CarbonImmutable::instance($now);
-
-        return DB::table('entity_limit_usage')
-            ->where('user_id', $userId)
-            ->where('entity_type', $entityType)
-            ->where('metric_type', $metricType)
-            ->where('period_type', $periodType)
-            ->where(
-                'period_start',
-                '<=',
-                $nowCarbon,
-            )
-            ->where(
-                'period_end',
-                '>',
-                $nowCarbon,
-            )
-            ->exists();
-    }
-
-    public function insertUsage(
-        int $userId,
-        string $entityType,
-        string $metricType,
-        string $periodType,
-        \DateTimeImmutable $periodStart,
-        \DateTimeImmutable $periodEnd,
-        float|int $currentValue = 0,
-    ): void {
-        $start = CarbonImmutable::instance($periodStart);
-        $end = CarbonImmutable::instance($periodEnd);
-        DB::table('entity_limit_usage')->insert([
-            'user_id' => $userId,
-            'entity_type' => $entityType,
-            'metric_type' => $metricType,
-            'period_type' => $periodType,
-            'period_start' => $start,
-            'period_end' => $end,
-            'current_value' => $currentValue,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    }
-
     public function getCurrentValue(
         int $userId,
         string $entityType,
@@ -254,20 +203,5 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         ]);
 
         return false;
-    }
-
-    /**
-     * Check if user exists.
-     */
-    public function userExists(int $userId): bool
-    {
-        $exists = User::where('id', $userId)->exists();
-
-        Log::debug('EntityLimitUsageRepository: User existence check', [
-            'user_id' => $userId,
-            'exists' => $exists,
-        ]);
-
-        return $exists;
     }
 }

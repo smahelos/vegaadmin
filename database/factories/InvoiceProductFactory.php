@@ -51,30 +51,4 @@ class InvoiceProductFactory extends Factory
             'total_price' => $line->total()->getAmount(),
         ];
     }
-
-    /**
-     * State for custom products (no product_id)
-     */
-    public function custom(): static
-    {
-        return $this->state(function (array $attributes) {
-            return [
-                'product_id' => null,
-                'is_custom_product' => true,
-                'name' => $this->faker->words(3, true),
-            ];
-        });
-    }
-
-    /**
-     * State for regular products (with product_id)
-     */
-    public function regular(): static
-    {
-        return $this->state(function (array $attributes) {
-            return [
-                'is_custom_product' => false,
-            ];
-        });
-    }
 }

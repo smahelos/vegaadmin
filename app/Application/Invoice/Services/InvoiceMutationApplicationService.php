@@ -37,12 +37,12 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
             $model = $this->resolvePublishedModelByDto($invoice);
 
             return InvoiceActionResult::success(message: 'invoices.messages.created', invoice: $model);
-        } catch (EntityLimitExceededException $e) {
-            return InvoiceActionResult::failure('invoices.messages.limit_exceeded', $e);
+        } catch (EntityLimitExceededException) {
+            return InvoiceActionResult::failure('invoices.messages.limit_exceeded');
         } catch (\Throwable $e) {
             Log::error('Invoice create failed: ' . $e->getMessage() . json_encode($e->getTrace()));
 
-            return InvoiceActionResult::failure('invoices.messages.create_failed', $e);
+            return InvoiceActionResult::failure('invoices.messages.create_failed');
         }
     }
 
@@ -68,12 +68,12 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
             $model = $this->resolvePublishedModelByDto($invoice);
 
             return InvoiceActionResult::success(message: 'invoices.messages.updated', invoice: $model);
-        } catch (EntityLimitExceededException $e) {
-            return InvoiceActionResult::failure('invoices.messages.limit_exceeded', $e);
+        } catch (EntityLimitExceededException) {
+            return InvoiceActionResult::failure('invoices.messages.limit_exceeded');
         } catch (\Throwable $e) {
             Log::error('Invoice update failed: ' . $e->getMessage());
 
-            return InvoiceActionResult::failure('invoices.messages.update_failed', $e);
+            return InvoiceActionResult::failure('invoices.messages.update_failed');
         }
     }
 

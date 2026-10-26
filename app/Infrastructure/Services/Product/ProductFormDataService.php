@@ -101,45 +101,4 @@ class ProductFormDataService implements ProductFormDataServiceInterface
             ['form_data', 'products'],
         );
     }
-
-    public function getAllSuppliersForUser(int $userId): array
-    {
-        $cacheKey = "product_suppliers:{$userId}";
-
-        return $this->cacheService->remember(
-            $cacheKey,
-            function () use ($userId) {
-                $query = Supplier::query();
-                $query->where('user_id', $userId);
-
-                $suppliers = $query->orderBy('name')->get();
-
-                $result = [];
-                foreach ($suppliers as $supplier) {
-                    $result[$supplier->id] = $supplier->name;
-                }
-
-                return $result;
-            },
-            60 * 5,
-            ['form_data', 'products'],
-        );
-    }
-
-    public function invalidateFormDataCache(): bool
-    {
-        return $this->cacheService->invalidateTags(['form_data', 'products']);
-    }
-
-    public function clearCategoriesCache(): void
-    {
-        // Delete cache for all categories
-        $categories = ProductCategory::pluck('slug')->toArray();
-        foreach ($categories as $slug) {
-            $this->cacheService->forget("products_by_category:{$slug}:0");
-            $this->cacheService->forget("products_by_category:{$slug}:1");
-        }
-
-        $this->cacheService->forget('product_categories');
-    }
 }

@@ -262,39 +262,6 @@ class PermissionLimitResolverTest extends TestCase
     }
 
     #[Test]
-    public function gets_all_user_limits(): void
-    {
-        // Create multiple limits for different entities
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'limit_value' => 10,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
-
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_invoice',
-            'entity_type' => 'client',
-            'limit_value' => 50,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
-
-        $user = User::factory()->create();
-        $user->givePermissionTo('can_create_edit_invoice');
-
-        $allLimits = $this->resolver->getAllUserLimits($user->id);
-
-        $this->assertArrayHasKey('invoice', $allLimits);
-        $this->assertArrayHasKey('client', $allLimits);
-        $this->assertEquals(10, $allLimits['invoice']['count']['monthly']);
-        $this->assertEquals(50, $allLimits['client']['count']['monthly']);
-    }
-
-    #[Test]
     public function gets_subscription_limits_overview(): void
     {
         EntityLimit::create([

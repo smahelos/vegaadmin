@@ -58,23 +58,6 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     }
 
     #[Test]
-    public function mark_resolved_updates_alert_correctly(): void
-    {
-
-        $alert = DatabaseHealthAlert::factory()->unresolved()->create();
-
-        $this->assertFalse($alert->resolved);
-        $this->assertNull($alert->resolved_at);
-
-        $alert->markResolved();
-
-        $alert->refresh();
-        $this->assertTrue($alert->resolved);
-        $this->assertNotNull($alert->resolved_at);
-        $this->assertInstanceOf(Carbon::class, $alert->resolved_at);
-    }
-
-    #[Test]
     public function casts_work_correctly(): void
     {
 

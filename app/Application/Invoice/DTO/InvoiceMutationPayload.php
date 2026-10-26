@@ -17,16 +17,12 @@ class InvoiceMutationPayload
     public function __construct(
         public array $validated,
         public array $products,
-        public ?string $logoPath = null,
-        public ?string $locale = null,
-        public bool $guest = false,
     ) {}
 
     /** Immutable clone with updated logo */
     public function withLogo(?string $logoPath): self
     {
         $clone = clone $this;
-        $clone->logoPath = $logoPath;
         if ($logoPath) {
             $clone->validated['invoice_logo'] = $logoPath;
         }

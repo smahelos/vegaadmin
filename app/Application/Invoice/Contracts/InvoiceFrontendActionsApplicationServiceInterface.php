@@ -4,7 +4,6 @@ namespace App\Application\Invoice\Contracts;
 
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
-use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Models\User;
 
 /**
@@ -25,12 +24,6 @@ interface InvoiceFrontendActionsApplicationServiceInterface
         int $userId,
         int $invoiceId,
         string $template,
-    ): InvoiceActionResult;
-
-    public function changeStatus(
-        int $userId,
-        int $invoiceId,
-        InvoiceStatus $status,
     ): InvoiceActionResult;
 
     /**

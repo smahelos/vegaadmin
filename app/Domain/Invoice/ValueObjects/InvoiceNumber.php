@@ -135,22 +135,6 @@ class InvoiceNumber
     }
 
     /**
-     * Format with separator
-     */
-    public function formatWithSeparator(string $separator = '-'): string
-    {
-        return $this->year . $separator . sprintf('%04d', $this->sequence);
-    }
-
-    /**
-     * Check if this number is from current year
-     */
-    public function isFromCurrentYear(): bool
-    {
-        return $this->year === (int) date('Y');
-    }
-
-    /**
      * Compare with another invoice number
      */
     public function isGreaterThan(InvoiceNumber $other): bool
@@ -168,13 +152,5 @@ class InvoiceNumber
     public function __toString(): string
     {
         return $this->number;
-    }
-
-    /**
-     * Check equality
-     */
-    public function equals(InvoiceNumber $other): bool
-    {
-        return $this->number === $other->getNumber();
     }
 }

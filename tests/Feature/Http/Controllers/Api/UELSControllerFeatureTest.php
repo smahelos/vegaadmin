@@ -18,8 +18,6 @@ class UELSControllerFeatureTest extends TestCase
 {
     private UniversalLimitServiceInterface $fakeService;
 
-    private PermissionLimitResolver $fakeResolver;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -28,7 +26,6 @@ class UELSControllerFeatureTest extends TestCase
         Route::middleware(['web', 'auth:web'])->group(function (): void {
             Route::get('/test/uels/{entity}', [UELSController::class, 'getEntityData']);
             Route::get('/test/uels-all', [UELSController::class, 'getAllEntitiesData']);
-            Route::get('/test/uels-permissions', [UELSController::class, 'getPermissions']);
         });
 
         // Bind fake PermissionLimitResolver as singleton with configurable permission limits
@@ -296,7 +293,6 @@ class UELSControllerFeatureTest extends TestCase
         });
         // Resolve now so we hold references
         $this->fakeService = $this->app->make(UniversalLimitServiceInterface::class);
-        $this->fakeResolver = $this->app->make(PermissionLimitResolver::class);
     }
 
     private function makeUser(): User
@@ -435,63 +431,5 @@ class UELSControllerFeatureTest extends TestCase
             'product',
             'invoice',
         ]]);
-    }
-
-    #[Test]
-    public function permissions_endpoint_requires_authentication(): void
-    {
-        $resp = $this->get('/test/uels-permissions');
-        $resp->assertStatus(302);
-    }
-
-    #[Test]
-    public function permissions_endpoint_returns_empty_when_no_limits(): void
-    {
-        $user = $this->makeUser();
-        $this->actingAs($user, 'web');
-        // leave permissionLimits empty
-        $resp = $this->getJson('/test/uels-permissions');
-        $resp->assertOk();
-        $this->assertEquals([], $resp->json('permission_limits'));
-    }
-
-    #[Test]
-    public function permissions_endpoint_returns_configured_limits(): void
-    {
-        $user = $this->makeUser();
-        $this->actingAs($user, 'web');
-        // Configure limits for client & product directly on anonymous instance
-        $resolver = $this->fakeResolver;
-        $setLimits = function (
-            object $resolver,
-            string $entity,
-            array $limits,
-        ): void {
-            if (property_exists($resolver, 'permissionLimits')) {
-                $resolver->permissionLimits[$entity] = $limits;
-            }
-        };
-        $setLimits($resolver, 'client', [
-            [
-                'permission' => 'client.create.daily.10',
-                'limit' => 10,
-                'period' => 'daily',
-                'metric' => 'count',
-            ],
-        ]);
-        $setLimits($resolver, 'product', [
-            [
-                'permission' => 'product.create.monthly.50',
-                'limit' => 50,
-                'period' => 'monthly',
-                'metric' => 'count',
-            ],
-        ]);
-        $resp = $this->getJson('/test/uels-permissions');
-        $resp->assertOk();
-        $this->assertArrayHasKey('client', $resp->json('permission_limits'));
-        $this->assertArrayHasKey('product', $resp->json('permission_limits'));
-        $this->assertEquals(10, $resp->json('permission_limits.client.0.limit'));
-        $this->assertEquals(50, $resp->json('permission_limits.product.0.limit'));
     }
 }

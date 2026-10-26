@@ -20,25 +20,6 @@ class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoReadReposi
         private readonly EloquentInvoiceProductMapper $mapper,
     ) {}
 
-    /**
-     * @return array<int, InvoiceProductDTO>
-     */
-    public function allForInvoice(InvoiceId $invoiceId): array
-    {
-        // Normalize invoice id in case raw int is provided by callers
-        $invoiceIdValue = $invoiceId instanceof InvoiceId ? $invoiceId->getValue() : (int) $invoiceId;
-
-        $products = $this->productRepository->allForInvoice($invoiceIdValue);
-
-        // productRepository returns array; map each row to DTO via model reconstruction isn't needed here
-        // but we prefer mapping from model to keep consistency, so adjust repository to return models in future if needed
-        // For now, convert array rows to DTO using fromArray normalization
-        return array_map(function (array $row) {
-            // Normalize monetary fields to Money via DTO factory
-            return InvoiceProductDTO::fromArray($row);
-        }, $products);
-    }
-
     public function create(InvoiceId $invoiceId, InvoiceProductWriteData $data): InvoiceProductDTO
     {
         $product = $this->productRepository->create($this->mapper->toAttributes($invoiceId, $data))->toArray();
@@ -59,10 +40,5 @@ class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoReadReposi
     public function deleteByInvoiceId(InvoiceId $invoiceId): void
     {
         $this->productRepository->deleteByInvoiceId($invoiceId->getValue());
-    }
-
-    public function listForInvoiceWithProduct(InvoiceId $invoiceId): array
-    {
-        return $this->productRepository->listForInvoiceWithProduct($invoiceId->getValue());
     }
 }

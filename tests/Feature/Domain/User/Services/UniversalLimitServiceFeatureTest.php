@@ -274,39 +274,6 @@ class UniversalLimitServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function reset_usage_clears_current_usage(): void
-    {
-        // Record some usage
-        $this->service->recordUsage(
-            $this->user->id,
-            'invoice',
-            'count',
-            'monthly',
-            'web',
-            1,
-        );
-
-        // Reset usage
-        $result = $this->service->resetUsage(
-            $this->user->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-
-        $this->assertTrue($result);
-
-        // Verify usage is cleared
-        $stats = $this->service->getUsageStatistics(
-            $this->user->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-        $this->assertEquals(0, $stats['current_usage']); // Changed from current_count
-    }
-
-    #[Test]
     public function check_limit_works_with_different_period_types(): void
     {
         // Create daily limit

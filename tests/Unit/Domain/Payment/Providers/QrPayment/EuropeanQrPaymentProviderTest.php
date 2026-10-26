@@ -21,12 +21,6 @@ final class EuropeanQrPaymentProviderTest extends TestCase
     }
 
     #[Test]
-    public function country_code_is_european(): void
-    {
-        $this->assertEquals('EU', $this->provider->getCountryCode());
-    }
-
-    #[Test]
     public function supported_currencies(): void
     {
         $currencies = $this->provider->getSupportedCurrencies();

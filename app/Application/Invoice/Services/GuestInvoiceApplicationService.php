@@ -4,8 +4,6 @@ namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
-use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
 use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
@@ -19,7 +17,6 @@ use App\Models\Status;
 use App\Models\Tax;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
-use Symfony\Component\HttpFoundation\Response;
 
 class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceInterface
 {
@@ -28,8 +25,6 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         private readonly Locale $locale,
         private readonly QrPaymentServiceInterface $qrPaymentService,
         private readonly BankServiceInterface $bankService,
-        private readonly InvoicePdfRendererInterface $invoicePdfRenderer,
-        private readonly TemporaryInvoicePrintDataFactoryInterface $tempPrintDataFactory,
         private readonly TemporaryInvoiceStoreInterface $temporaryInvoiceStore,
         private readonly QrPaymentPayloadMapper $qrPaymentMapper,
         private readonly InvoiceProductWriteDataAssembler $products,
@@ -138,46 +133,6 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
             'suppliers',
             'invoiceProducts',
             'fields',
-        );
-    }
-
-    public function generatePdfByToken(
-        ?string $token,
-        ?string $requestedLocale,
-        bool $preview = false,
-    ): Response {
-        if (! $token) {
-            $token = Session::get('last_guest_invoice_token');
-            if (! $token) {
-                abort(404, __('invoices.messages.not_found'));
-            }
-        }
-
-        Log::info('Starting PDF generation with token: ' . substr($token, 0, 8) . '...');
-        $invoiceData = $this->temporaryInvoiceStore->get($token);
-        if (! $invoiceData) {
-            abort(404, __('invoices.messages.expired'));
-        }
-
-        $printData = $this->tempPrintDataFactory->fromArray($invoiceData);
-        $pdf = $this->invoicePdfRenderer->render(
-            $printData,
-            $printData->template ?? null,
-            $requestedLocale,
-        );
-        $filename = 'faktura-' . ($invoiceData['invoice_vs'] ?? date('YmdHis')) . '.pdf';
-
-        if ($preview) {
-            return $pdf->stream($filename);
-        }
-
-        $locale = $this->locale->determineLocale($requestedLocale, $invoiceData['lang'] ?? null);
-        $response = $pdf->download($filename);
-
-        return $response->cookie(
-            'locale',
-            $locale,
-            60 * 24 * 30,
         );
     }
 

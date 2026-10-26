@@ -2,8 +2,6 @@
 
 namespace App\Application\User\Contracts;
 
-use Illuminate\Support\Collection;
-
 interface UELSApplicationServiceInterface
 {
     /**
@@ -34,9 +32,4 @@ interface UELSApplicationServiceInterface
         string $entityType,
         string $metricType = 'count',
     ): string;
-
-    /**
-     * Proxy to Domain PermissionLimitResolverInterface::getUserPermissionLimits
-     */
-    public function getUserPermissionLimits(?int $userId, string $entityType): Collection;
 }

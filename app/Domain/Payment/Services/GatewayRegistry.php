@@ -37,18 +37,8 @@ class GatewayRegistry implements GatewayRegistryInterface
         return array_keys($this->gateways);
     }
 
-    public function remove(string $name): void
-    {
-        unset($this->gateways[$name], $this->meta[$name]);
-    }
-
     public function metadata(string $name): ?array
     {
         return $this->meta[$name] ?? null;
-    }
-
-    public function allMetadata(): array
-    {
-        return $this->meta;
     }
 }

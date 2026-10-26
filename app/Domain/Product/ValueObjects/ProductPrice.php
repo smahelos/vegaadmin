@@ -61,24 +61,6 @@ class ProductPrice
     }
 
     /**
-     * Create from string
-     */
-    public static function fromString(string $value): self
-    {
-        $numericValue = (float) $value;
-
-        return new self($numericValue);
-    }
-
-    /**
-     * Check if equals to another ProductPrice
-     */
-    public function equals(ProductPrice $other): bool
-    {
-        return $this->value === $other->value;
-    }
-
-    /**
      * Check if price is zero
      */
     public function isZero(): bool
@@ -92,21 +74,5 @@ class ProductPrice
     public function add(ProductPrice $other): self
     {
         return new self($this->value + $other->value);
-    }
-
-    /**
-     * Subtract another price
-     */
-    public function subtract(ProductPrice $other): self
-    {
-        return new self($this->value - $other->value);
-    }
-
-    /**
-     * Multiply by quantity
-     */
-    public function multiply(float $multiplier): self
-    {
-        return new self($this->value * $multiplier);
     }
 }

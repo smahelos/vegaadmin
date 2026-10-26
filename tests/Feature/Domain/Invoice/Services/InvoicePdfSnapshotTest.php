@@ -8,6 +8,7 @@ use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\User\ValueObjects\UserId;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -181,7 +182,7 @@ class InvoicePdfSnapshotTest extends TestCase
         $repo = app(InvoiceDtoReadRepositoryInterface::class);
         $builder = app(InvoicePrintDataBuilder::class);
         $renderer = app(InvoicePdfRenderer::class);
-        $dto = $repo->findByIdAny(InvoiceId::fromInt($invoice->id));
+        $dto = $repo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
         $printData = $builder->build($dto);
 
         $captured = null;

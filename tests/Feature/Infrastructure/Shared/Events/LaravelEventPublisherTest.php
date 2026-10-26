@@ -91,8 +91,8 @@ final class LaravelEventPublisherTest extends TestCase
         Event::listen(FormDataChanged::class, function (): void {
             throw new RuntimeException('Cache is down');
         });
-        $domainEvents = $this->app->make(DomainEventDispatcher::class);
-        $domainEvents->clearDispatchedEvents();
+        $handler = $this->recordingHandler();
+        $this->app->make(DomainEventDispatcher::class)->register(FormDataChanged::class, $handler);
 
         $result = $this->transactions()->transaction(function (): string {
             $this->publisher()->publish(new FormDataChanged(1, 'products'));
@@ -101,7 +101,7 @@ final class LaravelEventPublisherTest extends TestCase
         });
 
         $this->assertSame('committed', $result);
-        $this->assertCount(1, $domainEvents->getDispatchedEvents());
+        $this->assertCount(1, $handler->transactionLevels);
         $this->assertCount(1, $log->entries);
         $this->assertSame('error', $log->entries[0]['level']);
         $this->assertSame('Domain event listener failed', $log->entries[0]['message']);
@@ -111,7 +111,25 @@ final class LaravelEventPublisherTest extends TestCase
     #[Test]
     public function domain_handlers_run_inside_the_transaction(): void
     {
-        $handler = new class implements DomainEventHandler
+        $handler = $this->recordingHandler();
+        $this->app->make(DomainEventDispatcher::class)->register(FormDataChanged::class, $handler);
+        $levelOutside = DB::transactionLevel();
+
+        $this->transactions()->transaction(function (): void {
+            $this->publisher()->publish(new FormDataChanged(1, 'products'));
+        });
+
+        $this->assertSame([$levelOutside + 1], $handler->transactionLevels);
+    }
+
+    /**
+     * A domain handler that records the transaction level of every event it handles.
+     *
+     * @return DomainEventHandler&object{transactionLevels: list<int>}
+     */
+    private function recordingHandler(): DomainEventHandler
+    {
+        return new class implements DomainEventHandler
         {
             /** @var list<int> */
             public array $transactionLevels = [];
@@ -131,14 +149,6 @@ final class LaravelEventPublisherTest extends TestCase
                 return 0;
             }
         };
-        $this->app->make(DomainEventDispatcher::class)->register(FormDataChanged::class, $handler);
-        $levelOutside = DB::transactionLevel();
-
-        $this->transactions()->transaction(function (): void {
-            $this->publisher()->publish(new FormDataChanged(1, 'products'));
-        });
-
-        $this->assertSame([$levelOutside + 1], $handler->transactionLevels);
     }
 
     private function publisher(): EventPublisherInterface

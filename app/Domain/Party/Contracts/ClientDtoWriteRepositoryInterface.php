@@ -13,8 +13,6 @@ interface ClientDtoWriteRepositoryInterface
 {
     public function create(ClientWriteData $data): ClientDTO;
 
-    public function unsetOthersDefault(PartyId $currentId, int $userId): void;
-
     /** Update client by ID with provided attributes */
     public function updateById(PartyId $id, ClientWriteData $data): bool;
 

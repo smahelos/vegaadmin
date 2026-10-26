@@ -25,31 +25,4 @@ class EloquentPaymentWriteRepository implements PaymentWriteRepositoryInterface
 
         return $model;
     }
-
-    /**
-     * Register a refunded amount (partial or full) updating status accordingly.
-     *
-     * @param  float  $amount  Amount refunded in this operation (>=0)
-     */
-    public function applyRefund(int $paymentId, float $amount): bool
-    {
-        if ($amount <= 0) {
-            return false;
-        }
-        $payment = Payment::query()->find($paymentId);
-        if (! $payment) {
-            return false;
-        }
-        $current = (float) ($payment->refunded_amount ?? 0.0);
-        $newTotal = round($current + $amount, 2);
-        $payment->refunded_amount = (string) $newTotal; // decimal cast expects stringable numeric
-        if ($newTotal + 0.0001 < (float) $payment->amount) {
-            $payment->status = 'partially_refunded';
-        } else {
-            $payment->status = 'refunded';
-            $payment->refunded_amount = (string) (float) $payment->amount; // clamp
-        }
-
-        return $payment->save();
-    }
 }

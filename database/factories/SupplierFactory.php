@@ -50,28 +50,4 @@ class SupplierFactory extends Factory
             'is_default' => true,
         ]);
     }
-
-    /**
-     * Indicate that the supplier has complete payment info.
-     */
-    public function withPaymentInfo(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'account_number' => $this->faker->numerify('##########'),
-            'bank_code' => $this->faker->numerify('####'),
-            'has_payment_info' => true,
-        ]);
-    }
-
-    /**
-     * Indicate that the supplier has IBAN payment info.
-     */
-    public function withIban(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'iban' => $this->faker->iban(),
-            'swift' => $this->faker->swiftBicNumber(),
-            'has_payment_info' => true,
-        ]);
-    }
 }

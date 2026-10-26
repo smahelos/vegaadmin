@@ -45,20 +45,6 @@ class ArtisanCommandsService implements ArtisanCommandsServiceInterface
     }
 
     /** {@inheritdoc} */
-    public function getAllCategories(bool $onlyActive = true): array
-    {
-        $cacheKey = "artisan_command_categories:{$onlyActive}";
-
-        return $this->cacheService->remember(
-            $cacheKey,
-            function () use ($onlyActive) {
-                return $this->dtoRepository->getAllCategories($onlyActive);
-            },
-            60 * 5,
-        );
-    }
-
-    /** {@inheritdoc} */
     public function clearCommandsCache(): void
     {
         $this->cacheService->forget('artisan_commands_list');

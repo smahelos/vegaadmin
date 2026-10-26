@@ -3,21 +3,15 @@
 namespace App\Application\Product\Services;
 
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
-use App\Application\Product\Contracts\ProductRepositoryInterface;
-use App\Application\Product\Mappers\ProductArrayMapper;
 use App\Domain\Product\Contracts\ProductServiceInterface as ProductDomainService;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\ValueObjects\ProductId;
-use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
-use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -30,11 +24,8 @@ class ProductApplicationService implements ProductApplicationServiceInterface
 {
     public function __construct(
         private readonly ProductDomainService $productDomainService,
-        private readonly ProductRepositoryInterface $productRepository,
         private readonly ProductAuthorizationService $authService,
-        private readonly ProductArrayMapper $productMapper,
         private readonly ProductInputValidationService $validationService,
-        private readonly CacheServiceInterface $cacheService,
         private readonly FileUploadServiceInterface $fileService,
         private readonly ProductFormDataServiceInterface $formDataService,
     ) {}
@@ -112,30 +103,6 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         return $product;
     }
 
-    public function listProducts(int $userId): Collection
-    {
-        return $this->authService->canAccessAnyProducts($userId)
-            ? $this->productRepository->allForAdmin()
-            : $this->productRepository->allForUser($userId);
-    }
-
-    public function getProductsDropdown(int $userId): array
-    {
-        return $this->authService->canAccessAnyProducts($userId)
-            ? $this->productRepository->getProductsForDropdown(0) // Admin sees all
-            : $this->productRepository->getProductsForDropdown($userId);
-    }
-
-    public function getDefaultProduct(int $userId): ?ProductDTO
-    {
-        return $this->productDomainService->getDefaultProduct(UserId::fromInt($userId));
-    }
-
-    public function getUserProductCount(int $userId): int
-    {
-        return $this->productDomainService->getUserProductCount(UserId::fromInt($userId));
-    }
-
     /**
      * Check if user can view product (without loading Eloquent model).
      */
@@ -180,35 +147,6 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         }
     }
 
-    public function handleProductImage(UploadedFile|string|null $image, ?string $oldImage = null): ?string
-    {
-        if (! $image) {
-            return $oldImage;
-        }
-        // Convert UploadedFile to VO to decouple Domain contract from framework
-        $value = $image instanceof UploadedFile ? IncomingFileFactory::fromUploadedFile($image) : $image;
-
-        return $this->fileService->handleFileUpload(
-            $value,
-            'image',
-            'products',
-            [
-                'createThumbnails' => true,
-                'thumbnailWidth' => 200,
-                'thumbnailHeight' => 200,
-                'randomizeFilename' => true,
-                'allowedFileTypes' => [
-                    'jpg',
-                    'jpeg',
-                    'png',
-                    'gif',
-                    'webp',
-                ],
-            ],
-            $oldImage,
-        );
-    }
-
     /**
      * Generate slug from name
      */
@@ -218,42 +156,10 @@ class ProductApplicationService implements ProductApplicationServiceInterface
     }
 
     /**
-     * Invalidate product form data cache
-     */
-    public function invalidateFormDataCache(): bool
-    {
-        return $this->formDataService->invalidateFormDataCache();
-    }
-
-    /**
      * Get all product categories
      */
     public function getAllCategories(): array
     {
         return $this->formDataService->getAllCategories();
-    }
-
-    /**
-     * Get all suppliers for the current user
-     */
-    public function getAllSuppliers(): array
-    {
-        return $this->formDataService->getAllSuppliers();
-    }
-
-    /**
-     * Get all suppliers for specific user (DTO version)
-     */
-    public function getAllSuppliersForUser(int $userId): array
-    {
-        return $this->formDataService->getAllSuppliersForUser($userId);
-    }
-
-    /**
-     * Delete cache for all categories
-     */
-    public function clearCategoriesCache(): void
-    {
-        $this->formDataService->clearCategoriesCache();
     }
 }

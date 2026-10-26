@@ -135,47 +135,4 @@ class EntityLimitUsage extends Model
     {
         return $this->period_start->format('M j, Y') . ' - ' . $this->period_end->format('M j, Y');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | STATIC METHODS
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Get usage summary for a user across all entities
-     */
-    public static function getUserUsageSummary(?int $userId): array
-    {
-        $usage = self::forUser($userId)
-            ->currentPeriod()
-            ->selectRaw('entity_type, metric_type, period_type, SUM(current_value) as total_usage')
-            ->groupBy([
-                'entity_type',
-                'metric_type',
-                'period_type',
-            ])
-            ->get();
-
-        $summary = [];
-        foreach ($usage as $item) {
-            $summary[$item->entity_type][$item->metric_type][$item->period_type] = $item->total_usage;
-        }
-
-        return $summary;
-    }
-
-    /**
-     * Clean up old usage records (older than 1 year)
-     */
-    public static function cleanupOldRecords(): int
-    {
-        $cutoffDate = now()->subYear();
-
-        return self::where(
-            'period_end',
-            '<',
-            $cutoffDate,
-        )->delete();
-    }
 }

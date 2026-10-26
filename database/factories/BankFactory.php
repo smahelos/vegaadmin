@@ -55,16 +55,6 @@ class BankFactory extends Factory
     }
 
     /**
-     * Set a specific country for the bank.
-     */
-    public function country(string $country): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'country' => $country,
-        ]);
-    }
-
-    /**
      * Create a Czech bank.
      */
     public function czech(): static

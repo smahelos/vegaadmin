@@ -63,22 +63,4 @@ class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
         $this->assertTrue($this->adapter->hasBackpackViewPermission($user->id, 'client'));
         $this->assertFalse($this->adapter->hasBackpackViewPermission($user->id, 'supplier'));
     }
-
-    #[Test]
-    public function can_access_any_clients_works_for_admin_or_view_permission(): void
-    {
-        $admin = User::factory()->create();
-        $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
-        $admin->assignRole($role);
-        $this->assertTrue($this->adapter->canAccessAnyClients($admin->id));
-
-        $viewer = User::factory()->create();
-        $viewer->givePermissionTo(
-            Permission::where('name', 'can_view_client')->where('guard_name', 'backpack')->first(),
-        );
-        $this->assertTrue($this->adapter->canAccessAnyClients($viewer->id));
-
-        $plain = User::factory()->create();
-        $this->assertFalse($this->adapter->canAccessAnyClients($plain->id));
-    }
 }

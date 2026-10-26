@@ -51,30 +51,6 @@ final class InvoiceService implements InvoiceServiceInterface
     }
 
     /**
-     * Ensure object has all required properties (with default values)
-     */
-    public function ensureObjectProperties(\stdClass $object, array $properties): void
-    {
-        foreach ($properties as $property) {
-            if (! property_exists($object, $property)) {
-                if ($property === 'due_in') {
-                    $object->$property = 14;
-                } elseif ($property === 'payment_method_id' || $property === 'payment_status_id') {
-                    $object->$property = 1;
-                } elseif ($property === 'payment_amount') {
-                    $object->$property = 0;
-                } else {
-                    $object->$property = '';
-                }
-            } elseif ($property === 'due_in' || $property === 'payment_method_id' || $property === 'payment_status_id') {
-                $object->$property = (int) $object->$property;
-            } elseif ($property === 'payment_amount') {
-                $object->$property = (float) $object->$property;
-            }
-        }
-    }
-
-    /**
      * Create invoice including on-the-fly client/supplier resolution and product persistence.
      * Security (ownership) is enforced by passing explicit $userId and scoping persistence there.
      */
@@ -195,20 +171,6 @@ final class InvoiceService implements InvoiceServiceInterface
     }
 
     /**
-     * Delete an invoice owned by a user
-     *
-     * @param  UserId  $userId  Owner user id
-     */
-    public function deleteInvoice(UserId $userId, InvoiceId $invoiceId): void
-    {
-        $invoice = $this->invoiceReadRepository->findByIdForUser($invoiceId, $userId);
-        if (! $invoice) {
-            throw new InvoiceNotFoundException('Invoice not accessible for user');
-        }
-        $this->invoiceWriteRepository->delete($invoiceId);
-    }
-
-    /**
      * Generate next available invoice number for a given user id.
      *
      * @param  int  $year  Current year for the invoice number
@@ -219,25 +181,6 @@ final class InvoiceService implements InvoiceServiceInterface
         $lastInvoiceNumber = $this->invoiceReadRepository->findLastInvoiceNumber($userId, (int) date('Y'));
 
         return InvoiceNumber::generateNext($lastInvoiceNumber)->getNumber();
-    }
-
-    /**
-     * Change invoice status
-     *
-     * @param  UserId  $userId  Owner user id
-     * @param  int  $statusId  New status id
-     */
-    public function changeInvoiceStatus(
-        UserId $userId,
-        InvoiceId $invoiceId,
-        int $statusId,
-    ): bool {
-        $invoice = $this->invoiceReadRepository->findByIdForUser($invoiceId, $userId);
-        if (! $invoice) {
-            throw new InvoiceNotFoundException('Invoice not accessible for user');
-        }
-
-        return $this->invoiceWriteRepository->changeStatus($invoiceId, $statusId);
     }
 
     /**

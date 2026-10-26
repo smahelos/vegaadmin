@@ -124,17 +124,6 @@ final class AnalyticsDataChangedTest extends TestCase
     }
 
     #[Test]
-    public function get_occurred_on_returns_immutable_datetime(): void
-    {
-        $event = new AnalyticsDataChanged(123);
-
-        $occurredOn = $event->getOccurredOn();
-
-        $this->assertInstanceOf(\DateTimeImmutable::class, $occurredOn);
-        $this->assertEquals($event->occurredOn, $occurredOn);
-    }
-
-    #[Test]
     public function event_with_all_change_types(): void
     {
         $changeTypes = [

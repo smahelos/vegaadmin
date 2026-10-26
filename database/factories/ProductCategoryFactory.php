@@ -30,15 +30,4 @@ class ProductCategoryFactory extends Factory
             'updated_at' => now(),
         ];
     }
-
-    /**
-     * Indicate that the category has a specific name.
-     */
-    public function withName(string $name): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'name' => $name,
-            'slug' => Str::slug($name) . '-' . random_int(1000, 9999),
-        ]);
-    }
 }

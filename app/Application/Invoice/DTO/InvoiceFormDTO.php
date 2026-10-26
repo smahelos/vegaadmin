@@ -17,11 +17,6 @@ class InvoiceFormDTO
         private readonly array $meta,
     ) {}
 
-    public function fields(): FieldSetDTO
-    {
-        return $this->fields;
-    }
-
     /**
      * Return legacy compatible array for blade merge.
      *

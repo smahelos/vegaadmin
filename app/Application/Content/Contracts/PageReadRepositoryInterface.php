@@ -21,24 +21,11 @@ use Illuminate\Database\Eloquent\Collection;
  */
 interface PageReadRepositoryInterface
 {
-    /** Find homepage by preferred slugs in given locale. */
-    public function findHomepageBySlugs(array $preferredSlugs, string $locale): ?Page;
-
     /** Return first published page as fallback homepage. */
     public function firstPublished(): ?Page;
 
-    /** Find published page by localized slug, eager loading common relations. */
-    public function findPublishedBySlug(string $slug, string $locale): ?Page;
-
     /** Find published page by id, eager loading common relations. */
     public function findPublishedById(int $id): ?Page;
-
-    /** Find published page by slug in any of provided locales (skipping one optionally). */
-    public function findPublishedBySlugInLocales(
-        string $slug,
-        array $locales,
-        ?string $skipLocale = null,
-    ): ?Page;
 
     /** Get root navigation pages with published children ordered by sort order. */
     public function getRootNavigationPages(): Collection;

@@ -39,27 +39,6 @@ class EloquentSubscriptionMapper
     }
 
     /**
-     * Convert PaymentMethodDTO to array for Eloquent model creation/update.
-     */
-    public function fromDto(SubscriptionDTO $dto): array
-    {
-        return [
-            'user_id' => $dto->user_id,
-            'subscription_plan_id' => $dto->subscription_plan_id,
-            'subscriptionPlan' => $dto->subscriptionPlan,
-            'status' => $dto->status,
-            'starts_at' => $dto->starts_at,
-            'ends_at' => $dto->ends_at,
-            'trial_ends_at' => $dto->trial_ends_at,
-            'next_billing_at' => $dto->next_billing_at,
-            'amount' => $dto->amount,
-            'currency' => $dto->currency,
-            'metadata' => $dto->metadata,
-            'created_at' => $dto->created_at,
-        ];
-    }
-
-    /**
      * The plan's data in the shape SubscriptionPlanDTO::fromArray() reads.
      *
      * @return array<string, mixed>

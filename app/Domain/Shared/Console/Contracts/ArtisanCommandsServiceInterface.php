@@ -28,14 +28,6 @@ interface ArtisanCommandsServiceInterface
     public function getCommandsByCategory(?string $categorySlug = null, bool $withoutCategory = false): array;
 
     /**
-     * Get list of command categories (slug => name).
-     *
-     * @param  bool  $onlyActive  Return only active categories.
-     * @return array<string,string> Mapping category slug => category name.
-     */
-    public function getAllCategories(bool $onlyActive = true): array;
-
-    /**
      * Clear cache for commands and categories.
      */
     public function clearCommandsCache(): void;

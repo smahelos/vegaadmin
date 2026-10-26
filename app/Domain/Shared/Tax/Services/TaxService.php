@@ -12,9 +12,6 @@ use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
  */
 class TaxService implements TaxServiceInterface
 {
-    /** Cache key for slug keyed taxes */
-    private const CACHE_TAXES = 'taxes';
-
     /** Cache key for id keyed taxes */
     private const CACHE_TAXES_SELECT = 'taxes_for_select';
 
@@ -29,21 +26,6 @@ class TaxService implements TaxServiceInterface
     /**
      * {@inheritDoc}
      */
-    public function getAllTaxes(): array
-    {
-        return $this->cacheService->remember(
-            self::CACHE_TAXES,
-            function () {
-                return $this->taxesReadRepository->getAllTaxes();
-            },
-            self::CACHE_TTL,
-            ['form_data', 'taxes'],
-        );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public function getAllTaxesForSelect(): array
     {
         return $this->cacheService->remember(
@@ -54,14 +36,5 @@ class TaxService implements TaxServiceInterface
             self::CACHE_TTL,
             ['form_data', 'taxes'],
         );
-    }
-
-    /**
-     * Clear all tax related cache entries.
-     */
-    public function clearCategoriesCache(): void
-    {
-        // Use tag invalidation to clear all related entries
-        $this->cacheService->invalidateTags(['form_data', 'taxes']);
     }
 }

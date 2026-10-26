@@ -34,32 +34,10 @@ class PaymentServiceProviderFeatureTest extends TestCase
     }
 
     #[Test]
-    public function subscription_payment_service_can_be_resolved(): void
-    {
-        $service = $this->app->make(SubscriptionPaymentServiceInterface::class);
-        $this->assertTrue(method_exists($service, 'processSubscriptionPayment'));
-        $this->assertTrue(method_exists($service, 'cancelSubscriptionPayment'));
-        $this->assertTrue(method_exists($service, 'verifySubscriptionPayment'));
-        $this->assertTrue(method_exists($service, 'getAvailableGateways'));
-        $this->assertTrue(method_exists($service, 'handlePaymentCallback'));
-    }
-
-    #[Test]
     public function service_provider_is_registered_in_application(): void
     {
         $providers = $this->app->getLoadedProviders();
         $this->assertArrayHasKey(PaymentServiceProvider::class, $providers);
-    }
-
-    #[Test]
-    public function gopay_gateway_can_be_resolved_and_configured(): void
-    {
-        $gateway = $this->app->make('payment.gateway.gopay');
-        $this->assertInstanceOf(GoPayGateway::class, $gateway);
-        $this->assertTrue(method_exists($gateway, 'createPayment'));
-        $this->assertTrue(method_exists($gateway, 'verifyPayment'));
-        $this->assertTrue(method_exists($gateway, 'cancelPayment'));
-        $this->assertTrue(method_exists($gateway, 'isAvailable'));
     }
 
     #[Test]

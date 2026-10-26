@@ -20,9 +20,6 @@ class DomainEventDispatcher
     /** @var array<string, DomainEventHandler[]> */
     private array $handlers = [];
 
-    /** @var DomainEvent[] */
-    private array $dispatchedEvents = [];
-
     private bool $isDispatching = false;
 
     public function __construct(
@@ -59,9 +56,6 @@ class DomainEventDispatcher
     {
         $startTime = microtime(true);
         $eventType = $event->getEventName();
-
-        // Store event for debugging and testing
-        $this->dispatchedEvents[] = $event;
 
         // Prevent infinite loops during event handling
         if ($this->isDispatching) {
@@ -149,37 +143,5 @@ class DomainEventDispatcher
             //     ]
             // );
         }
-    }
-
-    /**
-     * Get all dispatched events (useful for testing).
-     */
-    public function getDispatchedEvents(): array
-    {
-        return $this->dispatchedEvents;
-    }
-
-    /**
-     * Clear dispatched events history (useful for testing).
-     */
-    public function clearDispatchedEvents(): void
-    {
-        $this->dispatchedEvents = [];
-    }
-
-    /**
-     * Get registered handlers for debugging.
-     */
-    public function getHandlers(): array
-    {
-        return $this->handlers;
-    }
-
-    /**
-     * Check if any handlers are registered for event type.
-     */
-    public function hasHandlers(string $eventType): bool
-    {
-        return ! empty($this->handlers[$eventType]);
     }
 }

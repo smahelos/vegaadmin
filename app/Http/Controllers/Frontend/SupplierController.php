@@ -269,10 +269,7 @@ class SupplierController extends Controller
                 $validatedData['supplier_logo'] = $request->file('supplier_logo');
             }
 
-            // If setting this supplier as default, unset all others
-            if ($validatedData['is_default']) {
-                $this->partyService->setSupplierDefault($user->id, $supplier->id);
-            }
+            // Supplier::saving() unsets the user's other default supplier
             $this->partyService->updateSupplier($supplier->id, $validatedData);
 
             return redirect()

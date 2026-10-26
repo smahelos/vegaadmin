@@ -2,7 +2,6 @@
 
 namespace App\Domain\Analytics\DTO;
 
-use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 
 /**
@@ -70,23 +69,5 @@ class UserStatisticsDTO
             'suppliers_count' => $this->suppliersCount,
             'total_amount' => $this->totalAmount->toFloat(),
         ];
-    }
-
-    /**
-     * Return base array (backward compatibility) + formatted amount using MoneyFormatter.
-     *
-     * @param  MoneyFormatterInterface|null  $formatter  Optional injected formatter (else app() resolved)
-     * @param  string|null  $locale  Locale override
-     * @return array{invoice_count:int,client_count:int,suppliers_count:int,total_amount:float,total_amount_formatted:string}
-     */
-    public function toFormattedArray(?MoneyFormatterInterface $formatter = null, ?string $locale = null): array
-    {
-        if ($formatter === null) {
-            throw new \InvalidArgumentException('MoneyFormatterInterface instance is required for formatting in Domain DTO');
-        }
-        $base = $this->toArray();
-        $base['total_amount_formatted'] = $formatter->formatWithCode($this->totalAmount, $locale);
-
-        return $base;
     }
 }

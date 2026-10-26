@@ -77,12 +77,5 @@ class DomainEventsServiceProvider extends ServiceProvider
             ],
             app(InvalidateAnalyticsCache::class),
         );
-
-        // Future event handlers can be registered here as the system grows
-        // Example:
-        // $dispatcher->register(
-        //     [\App\Domain\Party\Events\ClientUpdated::class],
-        //     app(EmailNotificationHandler::class)
-        // );
     }
 }

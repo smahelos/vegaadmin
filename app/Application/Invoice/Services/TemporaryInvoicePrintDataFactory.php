@@ -36,7 +36,6 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
             unit: $product->unit,
             price: $product->price,
             tax_rate: (float) $product->taxRate,
-            tax_amount: $product->taxAmount(),
             line_total: $product->total(),
         ), $products);
         $totals = InvoiceTotals::fromProducts(Currency::from($currency), $products);

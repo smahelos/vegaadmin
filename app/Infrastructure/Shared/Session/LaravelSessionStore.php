@@ -19,9 +19,4 @@ class LaravelSessionStore implements SessionInterface
     {
         Session::put($key, $value);
     }
-
-    public function forget(string $key): void
-    {
-        Session::forget($key);
-    }
 }

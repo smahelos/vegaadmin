@@ -62,16 +62,6 @@ class EntityLimitFactory extends Factory
     }
 
     /**
-     * Indicate that the limit is inactive.
-     */
-    public function inactive(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_active' => false,
-        ]);
-    }
-
-    /**
      * Create a count-based limit.
      */
     public function countLimit(int $maxCount = 10): static
@@ -79,28 +69,6 @@ class EntityLimitFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'metric_type' => 'count',
             'limit_value' => $maxCount,
-        ]);
-    }
-
-    /**
-     * Create a value-based limit.
-     */
-    public function valueLimit(float $maxValue = 1000.00): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'metric_type' => 'value',
-            'limit_value' => $maxValue,
-        ]);
-    }
-
-    /**
-     * Create a size-based limit.
-     */
-    public function sizeLimit(int $maxSize = 1048576): static // 1MB default
-    {
-        return $this->state(fn (array $attributes) => [
-            'metric_type' => 'size',
-            'limit_value' => $maxSize,
         ]);
     }
 
@@ -122,36 +90,6 @@ class EntityLimitFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'period_type' => 'monthly',
-        ]);
-    }
-
-    /**
-     * Create a daily limit.
-     */
-    public function daily(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'period_type' => 'daily',
-        ]);
-    }
-
-    /**
-     * Create an unlimited limit (very high max values).
-     */
-    public function unlimited(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'limit_value' => 999999,
-        ]);
-    }
-
-    /**
-     * Create a strict limit (low max values).
-     */
-    public function strict(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'limit_value' => 1,
         ]);
     }
 }

@@ -77,15 +77,6 @@ class Subscription extends Model
     }
 
     /**
-     * Check if subscription is expired
-     */
-    public function isExpired(): bool
-    {
-        return $this->status === 'expired' ||
-               ($this->ends_at !== null && $this->ends_at < now());
-    }
-
-    /**
      * Get days until expiration
      */
     public function daysUntilExpiration(): ?int
@@ -103,22 +94,6 @@ class Subscription extends Model
     public function cancel(): bool
     {
         $this->status = 'cancelled';
-
-        return $this->save();
-    }
-
-    /**
-     * Activate subscription
-     */
-    public function activate(): bool
-    {
-        $this->status = 'active';
-        $this->starts_at = now();
-
-        // Set trial period if applicable
-        if ($this->subscriptionPlan->hasTrialPeriod()) {
-            $this->trial_ends_at = now()->addDays($this->subscriptionPlan->trial_days);
-        }
 
         return $this->save();
     }

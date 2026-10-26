@@ -7,14 +7,7 @@ use App\Domain\Payment\DTO\QrPaymentPayload;
 
 class CzechQrPaymentProvider implements QrPaymentProviderInterface
 {
-    public const COUNTRY_CODE = 'CZ';
-
     public const SUPPORTED_CURRENCIES = ['CZK'];
-
-    public function getCountryCode(): string
-    {
-        return self::COUNTRY_CODE;
-    }
 
     public function getSupportedCurrencies(): array
     {
@@ -84,10 +77,5 @@ class CzechQrPaymentProvider implements QrPaymentProviderInterface
         }
 
         return null;
-    }
-
-    public function validateAmount(float $amount, string $currency): bool
-    {
-        return $amount > 0 && in_array($currency, $this->getSupportedCurrencies());
     }
 }

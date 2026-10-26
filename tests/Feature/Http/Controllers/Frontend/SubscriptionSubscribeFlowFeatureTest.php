@@ -3,9 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Application\Payment\DTO\RefundResultDTO;
 use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
-use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
@@ -36,14 +34,6 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
                         amount: 50.00,
                         currency: 'EUR',
                         error: null,
-                        raw: [
-                            'success' => true,
-                            'payment_id' => 123,
-                            'status' => 'pending',
-                            'redirect_url' => 'https://pay.example.test/order/123',
-                            'amount' => 50.00,
-                            'currency' => 'EUR',
-                        ],
                     );
                 }
 
@@ -52,29 +42,6 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
                     return new SubscriptionPaymentResultDTO(
                         success: true,
                         status: 'pending',
-                        raw: ['success' => true],
-                    );
-                }
-
-                public function verify(Payment $payment): SubscriptionPaymentResultDTO
-                {
-                    return new SubscriptionPaymentResultDTO(
-                        success: true,
-                        status: 'pending',
-                        paymentId: $payment->id,
-                        raw: ['success' => true],
-                    );
-                }
-
-                public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
-                {
-                    return new RefundResultDTO(
-                        success: true,
-                        paymentId: $payment->id,
-                        refundedAmount: $amount ?? 0.0,
-                        currency: 'EUR',
-                        status: 'refunded',
-                        raw: ['success' => true],
                     );
                 }
 

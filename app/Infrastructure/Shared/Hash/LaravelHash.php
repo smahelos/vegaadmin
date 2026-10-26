@@ -18,14 +18,4 @@ class LaravelHash implements HashInterface
         // Delegate to Laravel's Hash facade
         return Hash::make($value);
     }
-
-    public function needsRehash(string $hashedValue): bool
-    {
-        return Hash::needsRehash($hashedValue);
-    }
-
-    public function verify(string $value, string $hashedValue): bool
-    {
-        return Hash::check($value, $hashedValue);
-    }
 }

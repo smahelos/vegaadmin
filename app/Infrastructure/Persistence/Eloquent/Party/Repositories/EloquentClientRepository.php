@@ -5,7 +5,6 @@ namespace App\Infrastructure\Persistence\Eloquent\Party\Repositories;
 use App\Application\Party\Contracts\ClientReadRepositoryInterface;
 use App\Application\Party\Contracts\ClientWriteRepositoryInterface;
 use App\Models\Client;
-use Illuminate\Support\Collection;
 
 class EloquentClientRepository implements ClientReadRepositoryInterface, ClientWriteRepositoryInterface
 {
@@ -34,11 +33,6 @@ class EloquentClientRepository implements ClientReadRepositoryInterface, ClientW
         return Client::create($data);
     }
 
-    public function unsetOthersDefault(int $currentId, int $userId): void
-    {
-        Client::where('user_id', $userId)->where('id', '!=', $currentId)->update(['is_default' => false]);
-    }
-
     public function allForAdmin(): array
     {
         return Client::all()->toArray();
@@ -47,16 +41,6 @@ class EloquentClientRepository implements ClientReadRepositoryInterface, ClientW
     public function allForUser(int $userId): array
     {
         return Client::where('user_id', $userId)->get()->toArray();
-    }
-
-    public function allModelsForAdmin(): Collection
-    {
-        return Client::all();
-    }
-
-    public function allModelsForUser(int $userId): Collection
-    {
-        return Client::where('user_id', $userId)->get();
     }
 
     public function firstForUser(int $userId): ?Client

@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\ExpenseCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 /**
  * @extends Factory<ExpenseCategory>
@@ -35,61 +34,5 @@ class ExpenseCategoryFactory extends Factory
             'color' => $this->faker->hexColor(),
             'is_active' => $this->faker->boolean(85), // 85% chance of being active
         ];
-    }
-
-    /**
-     * Indicate that the category is active.
-     */
-    public function active(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_active' => true,
-        ]);
-    }
-
-    /**
-     * Indicate that the category is inactive.
-     */
-    public function inactive(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_active' => false,
-        ]);
-    }
-
-    /**
-     * Create a category with a specific name and color.
-     */
-    public function withNameAndColor(string $name, ?string $color = null): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'name' => $name,
-            'slug' => Str::slug($name),
-            'color' => $color ?? $this->faker->hexColor(),
-        ]);
-    }
-
-    /**
-     * Create a category with common expense types.
-     */
-    public function office(): static
-    {
-        return $this->withNameAndColor('Office Supplies', '#3498db');
-    }
-
-    /**
-     * Create a travel expense category.
-     */
-    public function travel(): static
-    {
-        return $this->withNameAndColor('Travel Expenses', '#e74c3c');
-    }
-
-    /**
-     * Create a marketing expense category.
-     */
-    public function marketing(): static
-    {
-        return $this->withNameAndColor('Marketing', '#f39c12');
     }
 }

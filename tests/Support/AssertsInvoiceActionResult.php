@@ -15,7 +15,7 @@ trait AssertsInvoiceActionResult
         $this->assertEquals(
             InvoiceActionStatus::SUCCESS,
             $result->status,
-            ($message ?? 'Expected success') . ($result->error ? ' Error: ' . $result->error->getMessage() : ''),
+            $message ?? 'Expected success',
         );
     }
 

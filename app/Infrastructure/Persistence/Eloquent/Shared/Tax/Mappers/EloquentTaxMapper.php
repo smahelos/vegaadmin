@@ -27,18 +27,4 @@ class EloquentTaxMapper
             'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
         ]);
     }
-
-    /**
-     * Convert TaxDTO to array for Eloquent model creation/update.
-     */
-    public function fromDto(TaxDTO $dto): array
-    {
-        return [
-            'name' => $dto->name,
-            'slug' => $dto->slug,
-            'rate' => $dto->rate,
-            'description' => $dto->description,
-            'is_active' => $dto->is_active,
-        ];
-    }
 }

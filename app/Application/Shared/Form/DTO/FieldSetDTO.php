@@ -14,14 +14,6 @@ class FieldSetDTO
     ) {}
 
     /**
-     * @return FieldDTO[]
-     */
-    public function fields(): array
-    {
-        return $this->fields;
-    }
-
-    /**
      * Convert all fields to array form for existing blade expectations.
      *
      * @return array<int,array<string,mixed>>
@@ -29,19 +21,5 @@ class FieldSetDTO
     public function toArray(): array
     {
         return array_map(static fn (FieldDTO $f) => $f->toArray(), $this->fields);
-    }
-
-    /**
-     * Helper to find a field by name.
-     */
-    public function find(string $name): ?FieldDTO
-    {
-        foreach ($this->fields as $field) {
-            if ($field->name === $name) {
-                return $field;
-            }
-        }
-
-        return null;
     }
 }

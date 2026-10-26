@@ -3,9 +3,7 @@
 namespace Tests\Traits;
 
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Application\Payment\DTO\RefundResultDTO;
 use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
-use App\Models\Payment;
 use App\Models\Subscription;
 
 /**
@@ -38,16 +36,6 @@ trait WithSyntheticPaymentAppService
                 public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
                 {
                     return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
-                }
-
-                public function verify(Payment $payment): SubscriptionPaymentResultDTO
-                {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
-                }
-
-                public function refund(Payment $payment, ?float $amount = null): RefundResultDTO
-                {
-                    return RefundResultDTO::fromArray(['success' => false]);
                 }
 
                 public function getAvailableGateways(): array

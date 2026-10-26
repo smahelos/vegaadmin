@@ -21,12 +21,6 @@ final class SlovakQrPaymentProviderTest extends TestCase
     }
 
     #[Test]
-    public function country_code_is_slovak(): void
-    {
-        $this->assertEquals('SK', $this->provider->getCountryCode());
-    }
-
-    #[Test]
     public function supported_currencies(): void
     {
         $currencies = $this->provider->getSupportedCurrencies();

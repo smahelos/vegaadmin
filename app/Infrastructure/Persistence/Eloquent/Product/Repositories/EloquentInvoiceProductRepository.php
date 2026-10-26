@@ -25,12 +25,4 @@ class EloquentInvoiceProductRepository implements InvoiceProductReadRepositoryIn
     {
         InvoiceProduct::where('invoice_id', $invoiceId)->delete();
     }
-
-    public function listForInvoiceWithProduct(int $invoiceId): array
-    {
-        return InvoiceProduct::where('invoice_id', $invoiceId)
-            ->with(['product'])
-            ->get()
-            ->toArray();
-    }
 }

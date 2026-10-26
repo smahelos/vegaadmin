@@ -201,61 +201,6 @@ class GoPayGateway implements PaymentGatewayInterface
     }
 
     /**
-     * Refund payment
-     */
-    public function refundPayment(string $paymentId, ?float $amount = null): array
-    {
-        try {
-            $refundData = [];
-
-            if ($amount !== null) {
-                $refundData['amount'] = (int) ($amount * 100);
-            }
-
-            $response = $this->gopay->refundPayment($paymentId, $refundData);
-
-            if ($response->hasSucceed()) {
-                return [
-                    'success' => true,
-                    'data' => $response->json,
-                ];
-            }
-
-            return [
-                'success' => false,
-                'error' => 'Refund failed',
-                'data' => $response->json,
-            ];
-
-        } catch (\Exception $e) {
-            Log::error('GoPay refund failed', [
-                'payment_id' => $paymentId,
-                'amount' => $amount,
-                'error' => $e->getMessage(),
-            ]);
-
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
-            ];
-        }
-    }
-
-    /**
-     * Get payment status
-     */
-    public function getPaymentStatus(string $paymentId): string
-    {
-        $result = $this->verifyPayment($paymentId);
-
-        if ($result['success']) {
-            return $result['status'];
-        }
-
-        return 'unknown';
-    }
-
-    /**
      * Get supported currencies
      */
     public function getSupportedCurrencies(): array
@@ -264,17 +209,6 @@ class GoPayGateway implements PaymentGatewayInterface
             Currency::CZECH_CROWNS,
             Currency::EUROS,
         ];
-    }
-
-    /**
-     * Check if gateway is available
-     */
-    public function isAvailable(): bool
-    {
-        return config('services.gopay.enabled', false) &&
-               ! empty(config('services.gopay.goid')) &&
-               ! empty(config('services.gopay.client_id')) &&
-               ! empty(config('services.gopay.client_secret'));
     }
 
     /**

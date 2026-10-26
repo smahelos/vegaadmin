@@ -80,29 +80,6 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     /**
-     * Create permissions and roles for testing.
-     */
-    private function createPermissionsAndRoles(): void
-    {
-        // Create basic permissions
-        Permission::create(['name' => 'products.list', 'guard_name' => 'web']);
-        Permission::create(['name' => 'products.create', 'guard_name' => 'web']);
-        Permission::create(['name' => 'products.show', 'guard_name' => 'web']);
-        Permission::create(['name' => 'products.update', 'guard_name' => 'web']);
-        Permission::create(['name' => 'products.delete', 'guard_name' => 'web']);
-
-        // Create role with permissions
-        $role = Role::create(['name' => 'product_manager', 'guard_name' => 'web']);
-        $role->givePermissionTo([
-            'products.list',
-            'products.create',
-            'products.show',
-            'products.update',
-            'products.delete',
-        ]);
-    }
-
-    /**
      * Create a tax for testing.
      */
     private function createTax(): Tax

@@ -10,24 +10,6 @@ namespace App\Domain\User\Contracts;
  */
 interface EntityLimitUsageRepositoryInterface
 {
-    public function existsCurrentPeriod(
-        int $userId,
-        string $entityType,
-        string $metricType,
-        string $periodType,
-        \DateTimeImmutable $now,
-    ): bool;
-
-    public function insertUsage(
-        int $userId,
-        string $entityType,
-        string $metricType,
-        string $periodType,
-        \DateTimeImmutable $periodStart,
-        \DateTimeImmutable $periodEnd,
-        float|int $currentValue = 0,
-    ): void;
-
     /**
      * Get current usage value for a specific user/entity/metric within an exact period range.
      */
@@ -79,11 +61,4 @@ interface EntityLimitUsageRepositoryInterface
         string $entityType,
         string $guard = 'web',
     ): bool;
-
-    /**
-     * Check if user exists.
-     *
-     * @return bool True if user exists
-     */
-    public function userExists(int $userId): bool;
 }

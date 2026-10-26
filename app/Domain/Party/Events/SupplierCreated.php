@@ -46,21 +46,6 @@ class SupplierCreated implements DomainEvent
         $this->eventId = uniqid('user_', true);
     }
 
-    public function getSupplier(): SupplierDTO
-    {
-        return $this->supplier;
-    }
-
-    public function getAggregateId(): int
-    {
-        return $this->supplier->id;
-    }
-
-    public function getDomain(): string
-    {
-        return 'party';
-    }
-
     public function getPayload(): array
     {
         return [
@@ -87,19 +72,5 @@ class SupplierCreated implements DomainEvent
     public function getEventId(): string
     {
         return $this->eventId;
-    }
-
-    /** {@inheritDoc} */
-    public function getOccurredOn(): \DateTimeImmutable
-    {
-        return $this->occurredOn;
-    }
-
-    /**
-     * Get event metadata for debugging and serialization
-     */
-    public function getMetadata(): array
-    {
-        return $this->metadata;
     }
 }

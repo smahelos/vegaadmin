@@ -34,8 +34,6 @@ class ClientControllerFeatureTest extends TestCase
     use CreatesFrontendTestEnvironment;
     use WithFaker;
 
-    protected string $validEmail;
-
     protected array $validClientData;
 
     protected string $defaultLocale = 'cs';
@@ -421,6 +419,30 @@ class ClientControllerFeatureTest extends TestCase
             'id' => $client->id,
             'name' => 'Updated Client Name',
         ]);
+    }
+
+    #[Test]
+    public function update_makes_the_client_the_only_default(): void
+    {
+        $previousDefault = Client::factory()->create([
+            'user_id' => $this->user->id,
+            'is_default' => true,
+        ]);
+        $client = Client::factory()->create([
+            'user_id' => $this->user->id,
+            'is_default' => false,
+        ]);
+
+        $updateData = $this->validClientData;
+        $updateData['is_default'] = 1;
+
+        $response = $this->actingAs($this->user)
+            ->put($this->localizedRoute('frontend.client.update', $client->id), $updateData);
+
+        $response->assertRedirect($this->localizedRoute('frontend.clients'));
+        $response->assertSessionHas('success');
+        $this->assertTrue($client->fresh()->is_default);
+        $this->assertFalse($previousDefault->fresh()->is_default);
     }
 
     /**

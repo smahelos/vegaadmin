@@ -30,9 +30,4 @@ class EloquentPaymentDtoWriteRepository implements PaymentDtoWriteRepositoryInte
 
         return $m ? $this->mapper->toDto($m) : null;
     }
-
-    public function applyRefund(int $paymentId, float $amount): bool
-    {
-        return $this->paymentWriteRepository->applyRefund($paymentId, $amount);
-    }
 }

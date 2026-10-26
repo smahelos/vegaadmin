@@ -39,14 +39,6 @@ interface DashboardServiceInterface
     public function getClientsWithInvoiceTotals(UserId $userId): array;
 
     /**
-     * Get all dashboard data (aggregated wrapper call).
-     *
-     * @param  UserId  $userId  Authenticated user ID
-     * @return array{statistics:UserStatisticsDTO,monthly_stats:array<int, MonthlyStatDTO>,clients:array<int, ClientTotalDTO>} Consolidated dashboard payload
-     */
-    public function getDashboardData(UserId $userId): array;
-
-    /**
      * Invalidate all cached dashboard data for a user.
      *
      * @param  int  $userId  Authenticated user

@@ -47,18 +47,6 @@ interface UniversalLimitServiceInterface
     ): bool;
 
     /**
-     * Reset usage for the given combination in the current period. Returns true if any records were deleted.
-     *
-     * @return bool True if records were deleted
-     */
-    public function resetUsage(
-        ?int $userId,
-        string $entityType,
-        string $metricType = 'count',
-        string $periodType = 'daily',
-    ): bool;
-
-    /**
      * Get usage statistics (never null). Unified shape consumed by UI.
      */
     public function getUsageStatistics(

@@ -7,8 +7,6 @@ use Illuminate\Support\ServiceProvider;
 
 class BladeServiceProvider extends ServiceProvider
 {
-    private static bool $functionsRegistered = false;
-
     /**
      * Register any application services.
      */

@@ -3,7 +3,6 @@
 namespace App\Domain\Invoice\Events;
 
 use App\Domain\Invoice\DTO\InvoiceDTO;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Events\Contracts\DomainEvent;
 
 /**
@@ -46,21 +45,6 @@ class InvoiceCreated implements DomainEvent
         $this->eventId = uniqid('user_', true);
     }
 
-    public function getInvoice(): InvoiceDTO
-    {
-        return $this->invoice;
-    }
-
-    public function getAggregateId(): int
-    {
-        return $this->invoice->id instanceof InvoiceId ? $this->invoice->id->getValue() : (int) $this->invoice->id;
-    }
-
-    public function getDomain(): string
-    {
-        return 'invoice';
-    }
-
     public function getPayload(): array
     {
         return [
@@ -98,19 +82,5 @@ class InvoiceCreated implements DomainEvent
     public function getEventId(): string
     {
         return $this->eventId;
-    }
-
-    /** {@inheritDoc} */
-    public function getOccurredOn(): \DateTimeImmutable
-    {
-        return $this->occurredOn;
-    }
-
-    /**
-     * Get any additional metadata associated with the event.
-     */
-    public function getMetadata(): array
-    {
-        return $this->metadata;
     }
 }

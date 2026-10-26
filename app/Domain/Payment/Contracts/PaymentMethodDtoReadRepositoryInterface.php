@@ -25,9 +25,4 @@ interface PaymentMethodDtoReadRepositoryInterface
      * Find payment method by ID.
      */
     public function findById(PaymentMethodId $id): ?PaymentMethodDTO;
-
-    /**
-     * Find payment method by slug.
-     */
-    public function findBySlug(string $slug): ?PaymentMethodDTO;
 }

@@ -19,31 +19,9 @@ final class PartyId
         return new self($id);
     }
 
-    /**
-     * Attempt to parse from mixed input (string/int), returning null on invalid.
-     */
-    public static function tryFrom(mixed $value): ?self
-    {
-        if (is_int($value)) {
-            return $value > 0 ? new self($value) : null;
-        }
-        if (is_string($value) && ctype_digit($value)) {
-            $int = (int) $value;
-
-            return $int > 0 ? new self($int) : null;
-        }
-
-        return null;
-    }
-
     public function toInt(): int
     {
         return $this->id;
-    }
-
-    public function equals(self $other): bool
-    {
-        return $this->id === $other->id;
     }
 
     public function __toString(): string

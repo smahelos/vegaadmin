@@ -141,37 +141,6 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function is_admin_returns_true_with_admin_role(): void
-    {
-        // Assign admin role to user
-        $this->user->assignRole($this->adminRole);
-
-        // Refresh to ensure role is loaded
-        $this->user->refresh();
-
-        $this->assertTrue($this->user->is_admin());
-    }
-
-    #[Test]
-    public function is_admin_returns_false_without_admin_role(): void
-    {
-        // Assign non-admin role to user
-        $this->user->assignRole($this->userRole);
-
-        // Refresh to ensure role is loaded
-        $this->user->refresh();
-
-        $this->assertFalse($this->user->is_admin());
-    }
-
-    #[Test]
-    public function is_admin_returns_false_with_no_roles(): void
-    {
-        // User has no roles assigned
-        $this->assertFalse($this->user->is_admin());
-    }
-
-    #[Test]
     public function user_can_have_both_clients_and_suppliers(): void
     {
         // Create both clients and suppliers
@@ -250,33 +219,5 @@ class UserFeatureTest extends TestCase
 
         $this->assertFalse($this->user->hasRole($this->adminRole));
         $this->assertTrue($this->user->hasRole($this->userRole));
-    }
-
-    #[Test]
-    public function multiple_users_with_different_roles(): void
-    {
-        // Create another user
-        $secondUser = User::factory()->create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-        ]);
-
-        // Assign different roles
-        $this->user->assignRole($this->adminRole);
-        $secondUser->assignRole($this->userRole);
-
-        // Refresh both users
-        $this->user->refresh();
-        $secondUser->refresh();
-
-        // Assert different behaviors
-        $this->assertTrue($this->user->is_admin());
-        $this->assertFalse($secondUser->is_admin());
-
-        $this->assertTrue($this->user->hasRole($this->adminRole));
-        $this->assertTrue($secondUser->hasRole($this->userRole));
-
-        $this->assertFalse($this->user->hasRole($this->userRole));
-        $this->assertFalse($secondUser->hasRole($this->adminRole));
     }
 }

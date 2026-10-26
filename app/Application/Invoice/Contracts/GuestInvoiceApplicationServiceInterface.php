@@ -22,15 +22,6 @@ interface GuestInvoiceApplicationServiceInterface
     public function prepareGuestCreateData(): array;
 
     /**
-     * Generate (stream or download) invoice PDF by temporary token.
-     */
-    public function generatePdfByToken(
-        ?string $token,
-        ?string $requestedLocale,
-        bool $preview = false,
-    ): Response;
-
-    /**
      * Delete temporary invoice identified by token (if session token matches) and clear session markers.
      */
     public function deleteTemporary(string $token): bool;

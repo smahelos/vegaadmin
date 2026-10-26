@@ -31,8 +31,6 @@ class SupplierControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, WithFaker;
 
-    protected string $validEmail;
-
     protected array $validSupplierData;
 
     protected string $defaultLocale = 'cs';
@@ -555,6 +553,30 @@ class SupplierControllerFeatureTest extends TestCase
             'id' => $supplier->id,
             'name' => 'Updated Supplier Name',
         ]);
+    }
+
+    #[Test]
+    public function update_makes_the_supplier_the_only_default(): void
+    {
+        $previousDefault = Supplier::factory()->create([
+            'user_id' => $this->user->id,
+            'is_default' => true,
+        ]);
+        $supplier = Supplier::factory()->create([
+            'user_id' => $this->user->id,
+            'is_default' => false,
+        ]);
+
+        $updateData = $this->validSupplierData;
+        $updateData['is_default'] = 1;
+
+        $response = $this->actingAs($this->user)
+            ->put($this->localizedRoute('frontend.supplier.update', $supplier->id), $updateData);
+
+        $response->assertRedirect($this->localizedRoute('frontend.suppliers'));
+        $response->assertSessionHas('success');
+        $this->assertTrue($supplier->fresh()->is_default);
+        $this->assertFalse($previousDefault->fresh()->is_default);
     }
 
     /**

@@ -13,9 +13,4 @@ interface QrPaymentServiceInterface
      * @return string|null Base64 encoded QR code image
      */
     public function generateQrCodeBase64(QrPaymentPayload $payload): ?string;
-
-    /**
-     * Check if payment payload has all required information for QR payment
-     */
-    public function hasRequiredPaymentInfo(QrPaymentPayload $payload): bool;
 }

@@ -241,19 +241,6 @@ class CronTaskCrudController extends CrudController
             ->escaped(false);
     }
 
-    protected function setupOperationButtons(): void
-    {
-        CRUD::operation('list', function (): void {
-            CRUD::addButton(
-                'line',
-                'run_cron',
-                'view',
-                'admin.buttons.run_cron',
-                'end',
-            );
-        });
-    }
-
     public function run(RunCronTaskRequest $request, int $id): RedirectResponse
     {
         $task = CronTask::findOrFail($id);

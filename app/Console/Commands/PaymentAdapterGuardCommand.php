@@ -42,7 +42,6 @@ class PaymentAdapterGuardCommand extends Command
                 'createPayment',
                 'processPaymentReturn',
                 'verifyPayment',
-                'refundPayment',
                 'cancelPayment',
             ]);
             if (! empty($missingMethods)) {

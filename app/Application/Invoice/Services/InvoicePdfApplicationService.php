@@ -9,7 +9,6 @@ use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
-use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\Contracts\Locale;
 use App\Domain\User\ValueObjects\UserId;
@@ -19,7 +18,6 @@ use Illuminate\Support\Facades\Log;
 class InvoicePdfApplicationService implements InvoicePdfApplicationServiceInterface
 {
     public function __construct(
-        private readonly InvoiceServiceInterface $invoiceService,
         private readonly InvoiceDtoReadRepositoryInterface $invoiceDtoReadRepository,
         private readonly InvoicePrintDataBuilderInterface $printDataBuilder,
         private readonly InvoicePdfRendererInterface $invoicePdfRenderer,

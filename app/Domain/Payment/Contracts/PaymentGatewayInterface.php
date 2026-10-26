@@ -18,34 +18,14 @@ interface PaymentGatewayInterface
     public function processPaymentReturn(array $data): array;
 
     /**
-     * Verify payment status
-     */
-    public function verifyPayment(string $paymentId): array;
-
-    /**
      * Cancel payment
      */
     public function cancelPayment(string $paymentId): bool;
 
     /**
-     * Refund payment
-     */
-    public function refundPayment(string $paymentId, ?float $amount = null): array;
-
-    /**
-     * Get payment status
-     */
-    public function getPaymentStatus(string $paymentId): string;
-
-    /**
      * Get supported currencies
      */
     public function getSupportedCurrencies(): array;
-
-    /**
-     * Check if gateway is available
-     */
-    public function isAvailable(): bool;
 
     /**
      * Get gateway name
