@@ -127,15 +127,13 @@ final class PartyDetailsForm extends Form
     }
 
     /**
-     * Overwrites the name, VAT number and address with the register's data for the user to check; the VAT number
-     * stays as typed when the register has none.
+     * Overwrites the name, VAT number and address with the register's data for the user to check; a VAT number
+     * the register does not hold is cleared, so none is left over from the previous lookup.
      */
     private function fillFromRegister(RegisteredCompanyDTO $company): void
     {
         $this->name = $company->name;
-        if ($company->vatNumber !== null) {
-            $this->vatNumber = $company->vatNumber->value;
-        }
+        $this->vatNumber = $company->vatNumber?->value ?? '';
 
         if ($company->address !== null) {
             $this->street = $company->address->street ?? '';

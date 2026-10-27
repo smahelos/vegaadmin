@@ -114,4 +114,25 @@ final class RegistrationFormTest extends TestCase
             ->assertSet('party.vatNumber', '')
             ->assertSet('registerMessage', __('parties.messages.register_filled'));
     }
+
+    #[Test]
+    public function a_lookup_without_a_vat_number_clears_the_previous_one(): void
+    {
+        Http::fake([
+            'ares.gov.cz/*/45317054' => Http::response([
+                'obchodniJmeno' => 'Komerční banka, a.s.',
+                'dicSkDph' => 'CZ699001182',
+            ]),
+            'ares.gov.cz/*/27082440' => Http::response(['obchodniJmeno' => 'Bez DIČ a.s.']),
+        ]);
+
+        Livewire::test(RegistrationForm::class)
+            ->set('party.companyNumber', '45317054')
+            ->call('lookUpCompany')
+            ->assertSet('party.vatNumber', 'CZ699001182')
+            ->set('party.companyNumber', '27082440')
+            ->call('lookUpCompany')
+            ->assertHasNoErrors()
+            ->assertSet('party.vatNumber', '');
+    }
 }

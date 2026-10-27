@@ -42,12 +42,16 @@ final class AresCompanyRegistry implements CompanyRegistryInterface
             throw new CompanyRegistryUnavailableException($response->toException());
         }
 
-        $vatNumber = $response->json('dic');
+        // A member of a VAT group has no VAT number of its own and states the group's number on its documents.
+        $ownVatNumber = $response->json('dic');
+        $groupVatNumber = $response->json('dicSkDph');
+        $vatNumber = VatNumber::fromNullable(is_string($ownVatNumber) ? $ownVatNumber : null)
+            ?? VatNumber::fromNullable(is_string($groupVatNumber) ? $groupVatNumber : null);
         $seat = $response->json('sidlo');
 
         return new RegisteredCompanyDTO(
             $name,
-            VatNumber::fromNullable(is_string($vatNumber) ? $vatNumber : null),
+            $vatNumber,
             is_array($seat) ? $this->address($seat) : null,
         );
     }

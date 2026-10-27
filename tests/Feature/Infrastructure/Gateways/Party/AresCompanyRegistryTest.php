@@ -43,6 +43,37 @@ final class AresCompanyRegistryTest extends TestCase
     }
 
     #[Test]
+    public function a_member_of_a_vat_group_takes_the_group_vat_number(): void
+    {
+        Http::fake([
+            'ares.gov.cz/*' => Http::response([
+                'obchodniJmeno' => 'Komerční banka, a.s.',
+                'dicSkDph' => 'CZ699001182',
+            ]),
+        ]);
+
+        $company = (new AresCompanyRegistry)->findCzechCompany($this->number('45317054'));
+
+        $this->assertSame('CZ699001182', $company?->vatNumber?->value);
+    }
+
+    #[Test]
+    public function an_own_vat_number_wins_over_the_group_one(): void
+    {
+        Http::fake([
+            'ares.gov.cz/*' => Http::response([
+                'obchodniJmeno' => 'Člen skupiny',
+                'dic' => 'CZ27082440',
+                'dicSkDph' => 'CZ699001182',
+            ]),
+        ]);
+
+        $company = (new AresCompanyRegistry)->findCzechCompany($this->number('27082440'));
+
+        $this->assertSame('CZ27082440', $company?->vatNumber?->value);
+    }
+
+    #[Test]
     public function a_village_without_streets_is_addressed_by_its_part(): void
     {
         Http::fake([
