@@ -497,35 +497,35 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
     <div class="flex justify-end mb-10">
         <!-- Invoice items total sum -->
         <div class="grid grid-cols-12 mt-5 mb-4 pt-3">
-            <div class="col-span-10 text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2">
+            <div class="col-span-6 md:col-span-10 text-xl md:text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2">
                 {{ __('invoices.labels.total_without_tax') }}:</div>
-            <div class="col-span-2 font-bold text-3xl text-right pl-2 pt-2 dark:text-white"
+            <div class="col-span-6 md:col-span-2 font-bold text-xl md:text-3xl text-right whitespace-nowrap md:whitespace-normal pl-2 pt-2 dark:text-white"
                 id="invoice-items-total-without-tax">
                 0.00</div>
-            <div class="col-span-10 text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2">
+            <div class="col-span-6 md:col-span-10 text-xl md:text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2">
                 {{ __('invoices.labels.total_tax') }}:</div>
-            <div class="col-span-2 font-bold text-3xl text-right pl-2 pt-2 dark:text-white"
+            <div class="col-span-6 md:col-span-2 font-bold text-xl md:text-3xl text-right whitespace-nowrap md:whitespace-normal pl-2 pt-2 dark:text-white"
                 id="invoice-items-total-tax">
                 0.00</div>
             <div
-                class="col-span-10 text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2 mt-2 border-t-3 border-[#490BF4] dark:border-gray-700">
+                class="col-span-6 md:col-span-10 text-xl md:text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2 mt-2 border-t-3 border-[#490BF4] dark:border-gray-700">
                 {{ __('invoices.fields.total') }}:</div>
-            <div class="col-span-2 font-bold text-3xl text-right pl-2 pt-2 mt-2 border-t-3 border-[#490BF4] dark:border-gray-700 dark:text-white"
+            <div class="col-span-6 md:col-span-2 font-bold text-xl md:text-3xl text-right whitespace-nowrap md:whitespace-normal pl-2 pt-2 mt-2 border-t-3 border-[#490BF4] dark:border-gray-700 dark:text-white"
                 id="invoice-items-total">
                 0.00</div>
         </div>
     </div>
 
-    <div class="flex justify-between mc-20 md:mb-10">
-        <div class="flex space-x-4">
+    <div class="flex flex-wrap justify-between gap-4 mb-20 md:mb-10">
+        <div class="flex flex-wrap gap-4">
             <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
-                class="inline-flex justify-center py-6 px-12 border border-white dark:border-gray-700 shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-200 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                class="inline-flex justify-center px-6 py-4 md:px-12 md:py-6 border border-white dark:border-gray-700 shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-200 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                 {{ __('invoices.actions.cancel') }}
             </a>
 
             <!-- Template Settings Button -->
             <button type="button"
-                class="template-settings-btn inline-flex items-center px-6 py-6 border border-gray-300 dark:border-gray-600 shadow-xl shadow-gray-400/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-600 dark:hover:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200 cursor-pointer">
+                class="template-settings-btn inline-flex items-center px-4 py-4 md:px-6 md:py-6 border border-gray-300 dark:border-gray-600 shadow-xl shadow-gray-400/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-600 dark:hover:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200 cursor-pointer">
                 <i class="fas fa-cog mr-2"></i>
                 <span class="mr-2">{{ __('invoices.labels.template_settings') }}:</span>
                 <span class="template-name">{{ __('invoices.templates.' . ($invoice->template ?? 'default')) }}</span>
@@ -534,7 +534,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
 
         <div class="flex">
             <button type="submit"
-                class="inline-flex items-center px-12 py-6 border border-transparent rounded-sm dark:shadow-md shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 text-lg font-semibold text-white hover:text-white bg-[#490BF4] hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer transition-colors duration-200">
+                class="inline-flex items-center px-6 py-4 md:px-12 md:py-6 border border-transparent rounded-sm dark:shadow-md shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 text-lg font-semibold text-white hover:text-white bg-[#490BF4] hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer transition-colors duration-200">
                 <i class="fas fa-save mr-2"></i>
                 {{ __('invoices.actions.update') }}
             </button>
