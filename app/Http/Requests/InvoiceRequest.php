@@ -233,12 +233,11 @@ final class InvoiceRequest extends BaseEntityRequest
                 'integer',
                 Rule::exists('businesses', 'id')->where('user_id', $userId),
             ],
-            'bank_account_id' => [
-                Rule::requiredIf($bankTransfer),
-                'nullable',
+            'bank_account_id' => $bankTransfer ? [
+                'required',
                 'integer',
                 Rule::exists('bank_accounts', 'id')->where('business_id', $this->integer('business_id')),
-            ],
+            ] : ['exclude'],
             'contact_id' => [
                 'nullable',
                 'integer',

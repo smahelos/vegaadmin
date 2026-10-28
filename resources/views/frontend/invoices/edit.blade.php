@@ -1,5 +1,11 @@
 @extends('layouts.frontend')
 
+@use('App\Domain\Payment\Enums\PaymentMethodCode')
+{{-- Taken before the payment method options are replaced by their labels below --}}
+@php
+$bankTransferMethodId = array_search(PaymentMethodCode::BANK_ACCOUNT->value, $paymentMethods ?? [], true) ?: null;
+@endphp
+
 @php
 /**
 * Helper function for getting field by name
@@ -330,7 +336,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
     @endforeach
 
     <div class="mb-8">
-        <livewire:party.document-party-picker :invoice-id="$invoice->id" />
+        <livewire:party.document-party-picker :invoice-id="$invoice->id" :bank-transfer-method-id="$bankTransferMethodId" />
     </div>
 
     <!-- Section 4: Invoice description -->

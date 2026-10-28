@@ -54,6 +54,10 @@ final class DocumentPartyPicker extends Component
     #[Locked]
     public ?int $invoiceId = null;
 
+    /** The payment method the account is for; without it the account is always shown. */
+    #[Locked]
+    public ?int $bankTransferMethodId = null;
+
     public ?int $businessId = null;
 
     public ?int $bankAccountId = null;

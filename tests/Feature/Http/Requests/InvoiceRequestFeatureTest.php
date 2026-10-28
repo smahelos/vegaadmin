@@ -273,6 +273,34 @@ final class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
+    public function an_account_left_on_the_form_is_dropped_without_a_bank_transfer(): void
+    {
+        $cash = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
+        [, $accountOfAnotherBusiness] = $this->issuerOf($this->user);
+
+        $validator = $this->validator([
+            'payment_method_id' => $cash->id,
+            'bank_account_id' => $accountOfAnotherBusiness->id,
+        ] + $this->validInvoiceData);
+        $this->assertSame([], $validator->errors()->toArray());
+        $this->assertArrayNotHasKey('bank_account_id', $validator->validated());
+
+        $guestValidator = $this->validator(
+            $this->guestInvoiceInput([
+                'payment_method_id' => $cash->id,
+                'account_number' => 'not an account',
+                'invoice-products' => [$this->item()],
+            ]),
+            guest: true,
+        );
+        $this->assertSame([], $guestValidator->errors()->toArray());
+        $this->assertSame([], array_filter(
+            array_keys($guestValidator->validated()),
+            fn (string $key): bool => str_starts_with($key, 'account_'),
+        ));
+    }
+
+    #[Test]
     public function validation_fails_with_due_in_outside_one_to_maximum_days(): void
     {
         foreach ([

@@ -1,5 +1,11 @@
 @extends('layouts.frontend')
 
+@use('App\Domain\Payment\Enums\PaymentMethodCode')
+{{-- Taken before the payment method options are replaced by their labels below --}}
+@php
+$bankTransferMethodId = array_search(PaymentMethodCode::BANK_ACCOUNT->value, $paymentMethods ?? [], true) ?: null;
+@endphp
+
 @php
 /**
 * Helper for getting field by name
@@ -370,7 +376,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
 
     <div class="mb-8">
         <livewire:party.document-party-picker :guest="! $userLoggedIn" :business-id="$businessId ?? null"
-            :contact-id="$contactId ?? null" />
+            :contact-id="$contactId ?? null" :bank-transfer-method-id="$bankTransferMethodId" />
     </div>
 
     <!-- Section 4: Invoice Description -->

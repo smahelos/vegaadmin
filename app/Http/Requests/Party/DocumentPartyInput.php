@@ -112,18 +112,22 @@ final class DocumentPartyInput
     }
 
     /**
-     * A one-off account; nothing is validated when no account detail was entered and $required is false.
+     * A one-off account, needed only for a bank transfer: otherwise the account is left out of the validated input,
+     * so details the form hides never reach the document.
      *
      * @param  array<string, mixed>  $input  the whole request input
      * @return array<string, list<string|object>>
      */
-    public static function accountRules(array $input, bool $required): array
+    public static function accountRules(array $input, bool $bankTransfer): array
     {
-        $fields = self::fieldsOf($input, 'account_');
-        if (! $required && ! BankAccountInput::isFilled($fields)) {
-            return [];
+        if (! $bankTransfer) {
+            return array_fill_keys(
+                array_map(fn (string $field): string => 'account_' . $field, self::ACCOUNT_FIELDS),
+                ['exclude'],
+            );
         }
 
+        $fields = self::fieldsOf($input, 'account_');
         $rules = BankAccountInput::rules($fields, fn (string $field): string => 'account_' . $field);
         unset($rules['account_label']);
 

@@ -1,18 +1,29 @@
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+{{-- The account is only asked for a bank transfer, chosen in the payment method field of the surrounding invoice form --}}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6"
+    x-data="{
+        bankTransferMethodId: @js($bankTransferMethodId === null ? null : (string) $bankTransferMethodId),
+        paymentMethodId: document.getElementById('payment_method_id')?.value ?? null,
+        get paysByBankTransfer() {
+            return this.bankTransferMethodId === null || this.paymentMethodId === this.bankTransferMethodId;
+        },
+    }"
+    x-on:change.window="if ($event.target.id === 'payment_method_id') paymentMethodId = $event.target.value">
     @if ($guest)
         <x-form.card :title="__('invoices.sections.supplier')">
-            <div class="space-y-5">
+            <div class="flex flex-col gap-5">
                 <x-party.document-contact-fields form="supplier" names="supplier" />
                 <x-party.billing-fields :countries="$countries" :register-message="$supplierRegisterMessage" form="supplier"
                     look-up="lookUpSupplier" names="supplier" required />
 
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white pt-2">{{ __('invoices.sections.payment_info') }}</h3>
-                <x-party.bank-account-fields :bank-options="$banks" :countries="$countries" names="account" :labelled="false" />
+                <div x-show="paysByBankTransfer" class="space-y-5">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white pt-2">{{ __('invoices.sections.payment_info') }}</h3>
+                    <x-party.bank-account-fields :bank-options="$banks" :countries="$countries" names="account" :labelled="false" />
+                </div>
             </div>
         </x-form.card>
     @else
         <x-form.card :title="__('invoices.sections.supplier')">
-            <div class="space-y-5">
+            <div class="flex flex-col gap-5">
                 <x-form.select model="businessId" name="business_id" :label="__('invoices.fields.business_id')" :options="$businesses"
                     :placeholder="__('invoices.placeholders.select_business')" live required />
                 <input type="hidden" name="reload_business" value="{{ $reloadBusiness ? 1 : 0 }}">
@@ -45,19 +56,21 @@
                         @endunless
                     @endif
 
-                    @if ($accounts === [])
-                        <p class="text-sm text-gray-600 dark:text-gray-300">
-                            {{ __('invoices.messages.no_active_account') }}
-                            <a href="{{ route('frontend.businesses.show', ['locale' => app()->getLocale(), 'business' => $business->id->value]) }}"
-                                class="font-semibold underline">{{ __('invoices.actions.add_account') }}</a>
-                        </p>
-                    @else
-                        <x-form.select model="bankAccountId" name="bank_account_id" :label="__('invoices.fields.bank_account_id')"
-                            :options="$accounts" :placeholder="__('invoices.placeholders.select_account')" live />
-                        @if ($accountPreview)
-                            <x-party.account-profile :account="$accountPreview" />
+                    <div x-show="paysByBankTransfer" class="space-y-5">
+                        @if ($accounts === [])
+                            <p class="text-sm text-gray-600 dark:text-gray-300">
+                                {{ __('invoices.messages.no_active_account') }}
+                                <a href="{{ route('frontend.businesses.show', ['locale' => app()->getLocale(), 'business' => $business->id->value]) }}"
+                                    class="font-semibold underline">{{ __('invoices.actions.add_account') }}</a>
+                            </p>
+                        @else
+                            <x-form.select model="bankAccountId" name="bank_account_id" :label="__('invoices.fields.bank_account_id')"
+                                :options="$accounts" :placeholder="__('invoices.placeholders.select_account')" live />
+                            @if ($accountPreview)
+                                <x-party.account-profile :account="$accountPreview" />
+                            @endif
                         @endif
-                    @endif
+                    </div>
                 @endif
             </div>
         </x-form.card>
