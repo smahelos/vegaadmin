@@ -8,10 +8,10 @@
 ])
 
 <div class="space-y-5">
-    <div class="grid grid-cols-1 md:grid-cols-10 gap-6">
-        <x-form.select class="md:col-span-3" model="{{ $form }}.registrationCountry" :name="$names ? $names . '_registration_country' : null" :label="__('parties.fields.registration_country')"
-            :options="$countries" />
-        <div class="md:col-span-4">
+    <div class="flex flex-col md:flex-row gap-6">
+        <x-form.select class="md:w-44 md:shrink-0" model="{{ $form }}.registrationCountry" :name="$names ? $names . '_registration_country' : null" :label="__('parties.fields.registration_country')"
+            :options="$countries" short />
+        <div class="md:flex-1">
             <x-form.input model="{{ $form }}.companyNumber" :name="$names ? $names . '_company_number' : null" :label="__('parties.fields.company_number')"
                 :hint="__('parties.hints.company_number')">
                 <x-slot:append>
@@ -27,14 +27,15 @@
                 <p class="mt-2 text-sm text-green-600">{{ $registerMessage }}</p>
             @endif
         </div>
-        <x-form.input class="md:col-span-3" model="{{ $form }}.vatNumber" :name="$names ? $names . '_vat_number' : null" :label="__('parties.fields.vat_number')" />
+        <x-form.input class="md:flex-1" model="{{ $form }}.vatNumber" :name="$names ? $names . '_vat_number' : null" :label="__('parties.fields.vat_number')" />
     </div>
 
     <h3 class="text-lg font-semibold text-gray-900 dark:text-white pt-2">{{ __('parties.sections.address') }}</h3>
     <x-form.input model="{{ $form }}.street" :required="$required" :name="$names ? $names . '_street' : null" :label="__('parties.fields.street')" />
-    <div class="grid grid-cols-1 md:grid-cols-10 gap-6">
-        <x-form.input class="md:col-span-4" model="{{ $form }}.city" :required="$required" :name="$names ? $names . '_city' : null" :label="__('parties.fields.city')" />
-        <x-form.input class="md:col-span-3" model="{{ $form }}.postalCode" :required="$required" :name="$names ? $names . '_postal_code' : null" :label="__('parties.fields.postal_code')" />
-        <x-form.select class="md:col-span-3" model="{{ $form }}.country" :required="$required" :name="$names ? $names . '_country' : null" :label="__('parties.fields.country')" :options="$countries" />
+    <div class="flex flex-col md:flex-row gap-6">
+        <x-form.input class="md:flex-1" model="{{ $form }}.city" :required="$required" :name="$names ? $names . '_city' : null" :label="__('parties.fields.city')" />
+        <x-form.input class="md:w-36 md:shrink-0" model="{{ $form }}.postalCode" :required="$required" :name="$names ? $names . '_postal_code' : null" :label="__('parties.fields.postal_code')" />
+        <x-form.select class="md:w-20 md:shrink-0" model="{{ $form }}.country" :required="$required" :name="$names ? $names . '_country' : null" :label="__('parties.fields.country')"
+            :options="$countries" short />
     </div>
 </div>
