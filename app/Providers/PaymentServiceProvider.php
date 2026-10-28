@@ -11,7 +11,6 @@ use App\Application\Payment\Contracts\SubscriptionWriteRepositoryInterface;
 use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use App\Application\Payment\Services\PaymentApplicationService;
 use App\Domain\Payment\Contracts\BankDtoRepository;
-use App\Domain\Payment\Contracts\BankServiceInterface;
 use App\Domain\Payment\Contracts\GatewayRegistryInterface;
 use App\Domain\Payment\Contracts\PaymentDtoReadRepositoryInterface;
 use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
@@ -22,7 +21,6 @@ use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
-use App\Domain\Payment\Services\BankService;
 use App\Domain\Payment\Services\GatewayRegistry;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\Services\SubscriptionPaymentService;
@@ -68,11 +66,6 @@ class PaymentServiceProvider extends ServiceProvider
         $this->app->bind(
             SubscriptionPaymentServiceInterface::class,
             SubscriptionPaymentService::class,
-        );
-
-        $this->app->bind(
-            BankServiceInterface::class,
-            BankService::class,
         );
 
         $this->app->singleton(

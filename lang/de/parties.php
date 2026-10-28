@@ -51,6 +51,9 @@ return [
         'missing_country' => 'Wählen Sie das Registrierungsland.',
         'czech_format' => 'Eine tschechische IČO hat genau 8 Ziffern.',
         'czech_checksum' => 'Die tschechische IČO hat keine gültige Prüfziffer.',
+        'reference_archived' => 'Der ausgewählte Eintrag ist archiviert, wählen Sie einen anderen.',
+        'business_address_incomplete' => 'Die Adresse des Unternehmens ist unvollständig (Straße, Ort und PLZ).',
+        'contact_identity_changed' => 'Die ID-Nummer weicht vom ausgewählten Kontakt ab. Stellen Sie die Nummer des Kontakts wieder her oder entfernen Sie den Kontakt.',
     ],
     'statuses' => [
         'archived' => 'Archiviert',
@@ -75,7 +78,7 @@ return [
             'iban' => 'IBAN',
             'number' => 'Kontonummer',
             'bank_code' => 'Bankleitzahl',
-            'country' => 'Kontoland',
+            'country' => 'Land',
             'swift' => 'SWIFT/BIC',
             'bank_name' => 'Name der Bank',
             'default' => 'Standard',

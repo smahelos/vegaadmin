@@ -23,9 +23,9 @@
                     </th>
                     <th scope="col"
                         class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider hidden lg:table-cell">
-                        <div class="flex items-center cursor-pointer" wire:click="sortBy('client_id')">
-                            {{ __('invoices.fields.client_id') }}
-                            @if($orderBy === 'client_id')
+                        <div class="flex items-center cursor-pointer" wire:click="sortBy('customer_name')">
+                            {{ __('invoices.fields.customer') }}
+                            @if($orderBy === 'customer_name')
                                 <span class="ml-1">
                                     @if($orderAsc)
                                         <i class="fas fa-sort-up text-green-600"></i>
@@ -117,13 +117,13 @@
                     <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->invoice_vs }}
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
-                        @if($invoice->client)
-                        <a href="{{ route('frontend.client.show', ['id' => $invoice->client->id, 'locale' => app()->getLocale()]) }}"
+                        @if($invoice->contact_id)
+                        <a href="{{ route('frontend.contacts.show', ['locale' => app()->getLocale(), 'contact' => $invoice->contact_id]) }}"
                             class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                            {{ $invoice->client->name }}
+                            {{ $invoice->customer_name }}
                         </a>
                         @else
-                        <span class="text-gray-400">{{ __('invoices.placeholders.not_available') }}</span>
+                        {{ $invoice->customer_name }}
                         @endif
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">

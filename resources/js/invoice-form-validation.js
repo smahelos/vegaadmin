@@ -1,14 +1,12 @@
 // Invoice form validation
 // This module validates the invoice form fields before submission.
-// It checks if the supplier, client, and payment amount fields are filled out correctly.
+// It checks if the payment amount field is filled out correctly; the parties are validated by the server.
 // It also ensures that the payment amount is numeric.
 // If any validation fails, an alert is shown and the form submission is prevented.
 export default class InvoiceFormValidation {
     constructor(messages = {}) {
         this.form = null;
         this.messages = Object.assign({
-            supplierRequired: 'Supplier is required',
-            clientRequired: 'Client is required',
             amountRequired: 'Amount is required',
             amountNumeric: 'Amount must be numeric'
         }, messages);
@@ -33,34 +31,6 @@ export default class InvoiceFormValidation {
             return true;
         }
 
-        // Validate supplier
-        const supplierSelect = document.getElementById('supplier_id');
-        const supplierNameField = document.getElementById('name');
-        
-        let selectedSupplierId = null;
-        let supplierNameValue = '';
-        
-        if (supplierSelect) selectedSupplierId = supplierSelect.value;
-        if (supplierNameField) supplierNameValue = supplierNameField.value.trim();
-        
-        if (!this.validateRequired(selectedSupplierId || supplierNameValue, this.messages.supplierRequired, e)) {
-            return false;
-        }
-        
-        // Validate client
-        const clientSelect = document.getElementById('client_id');
-        const clientNameField = document.getElementById('client_name');
-        
-        let selectedClientId = null;
-        let clientNameValue = '';
-        
-        if (clientSelect) selectedClientId = clientSelect.value;
-        if (clientNameField) clientNameValue = clientNameField.value.trim();
-        
-        if (!this.validateRequired(selectedClientId || clientNameValue, this.messages.clientRequired, e)) {
-            return false;
-        }
-        
         // Validate amount
         const paymentAmount = document.getElementById('payment_amount');
 

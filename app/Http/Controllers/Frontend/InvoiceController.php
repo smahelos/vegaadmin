@@ -10,6 +10,7 @@ use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
+use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InvoiceRequest;
@@ -36,6 +37,7 @@ class InvoiceController extends Controller
         private readonly InvoiceRequestAssemblerInterface $invoiceRequestAssembler,
         private readonly InvoiceMutationApplicationServiceInterface $invoiceMutationService,
         private readonly InvoicePdfApplicationServiceInterface $invoicePdfApplicationService,
+        private readonly CountryOptionsPresenter $countries,
     ) {}
 
     /**
@@ -53,9 +55,13 @@ class InvoiceController extends Controller
      */
     public function create(Request $request): View
     {
-        $dto = $this->invoiceFormService->prepareCreateData(Auth::user()->id, $request);
+        $dto = $this->invoiceFormService->prepareCreateData(Auth::user()->id);
 
-        return view('frontend.invoices.create', $dto->toArray());
+        return view('frontend.invoices.create', [
+            ...$dto->toArray(),
+            'contactId' => $request->integer('contact_id') ?: null,
+            'businessId' => $request->integer('business_id') ?: null,
+        ]);
     }
 
     /**
@@ -100,6 +106,7 @@ class InvoiceController extends Controller
         $result = $this->invoiceMutationService->create(
             Auth::user()->id,
             $payload->validated,
+            $request->partySelection(),
             $payload->products,
         );
         if ($result->status === InvoiceActionStatus::FAILURE) {
@@ -123,6 +130,9 @@ class InvoiceController extends Controller
             $payload = $this->invoiceRequestAssembler->assemble($request);
             $response = $this->guestInvoiceApplicationService->storeGuestInvoice(
                 $payload->validated,
+                $request->oneOffParty('supplier'),
+                $request->oneOffParty('customer'),
+                $request->oneOffAccount(),
                 $request->get('lang'),
             );
 
@@ -153,7 +163,10 @@ class InvoiceController extends Controller
         try {
             $dto = $this->invoiceFormService->prepareShowData(Auth::user()->id, $id);
 
-            return view('frontend.invoices.show', $dto->toArray());
+            return view('frontend.invoices.show', [
+                ...$dto->toArray(),
+                'countries' => $this->countries->options($locale),
+            ]);
         } catch (ModelNotFoundException $e) {
             Log::warning('Invoice not found or unauthorized for show: ID=' . $id);
         } catch (\Exception $e) {
@@ -223,6 +236,7 @@ class InvoiceController extends Controller
             Auth::user()->id,
             $id,
             $payload->validated,
+            $request->partySelection(),
             $payload->products,
         );
         if ($result->status === InvoiceActionStatus::FAILURE) {

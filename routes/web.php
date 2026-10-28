@@ -6,6 +6,7 @@ use App\Http\Controllers\Frontend\BusinessController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\DashboardController;
 use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\InvoiceContactController;
 use App\Http\Controllers\Frontend\InvoiceController;
 use App\Http\Controllers\Frontend\PageController;
 use App\Http\Controllers\Frontend\PaymentController;
@@ -59,6 +60,12 @@ Route::middleware([
             Route::put('/invoice/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid'])->name('frontend.invoice.mark-as-paid');
             Route::put('/invoice/{id}/set-template/{template}', [InvoiceController::class, 'setTemplate'])->name('frontend.invoice.set-template');
             Route::post('/invoice/{id}/actions', [InvoiceController::class, 'batchActions'])->name('frontend.invoice.batch-actions');
+            Route::post('/invoices/{invoice}/save-to-contacts', [InvoiceContactController::class, 'saveToContacts'])
+                ->whereNumber('invoice')
+                ->name('frontend.invoices.save-to-contacts');
+            Route::post('/invoices/{invoice}/link-contact', [InvoiceContactController::class, 'linkContact'])
+                ->whereNumber('invoice')
+                ->name('frontend.invoices.link-contact');
 
             // Businesses and contacts
             Route::resource('businesses', BusinessController::class)

@@ -86,8 +86,6 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
 <form id="invoice-form" method="POST"
     action="{{ route('frontend.invoice.update', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}"
     enctype="multipart/form-data" data-user-logged-in="{{ $userLoggedIn ? 'true' : 'false' }}" data-is-editing="true"
-    data-supplier-required="{{ __('invoices.validation.supplier_required') }}"
-    data-client-required="{{ __('invoices.validation.client_required') }}"
     data-amount-required="{{ __('invoices.validation.amount_required') }}"
     data-amount-numeric="{{ __('invoices.validation.amount_numeric') }}"
     data-processing-text="{{ __('invoices.actions.processing') }}"
@@ -141,13 +139,13 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                                 @if ($invoice->invoice_logo)
                                 <img id="current-image-preview"
                                     src="{{ Storage::disk('public')->url($invoice->invoice_logo) }}"
-                                    alt="{{ $supplier->name }}" class="max-h-40 object-cover rounded-sm">
+                                    alt="{{ $invoice->supplier_name }}" class="max-h-40 object-cover rounded-sm">
                                 @else
                                 <p id="no-image-message" class="text-gray-500">{{ __('invoices.messages.no_image') }}
                                 </p>
                                 <img id="current-image-preview"
                                     src="{{ Storage::disk('public')->url('suppliers/logos/no_logo.png') }}"
-                                    alt="{{ $supplier->name }}" class="max-h-40 object-cover rounded-sm hidden">
+                                    alt="{{ $invoice->supplier_name }}" class="max-h-40 object-cover rounded-sm hidden">
                                 @endif
                             </div>
                         </div>
@@ -186,50 +184,6 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                                 :selected="old($field['name'], $invoice->payment_status_id)"
                                 required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$statuses"
                                 hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
-                        </div>
-
-                        @elseif($field['name'] === 'supplier_id')
-                        <!-- Supplier select -->
-                        <div class="md:col-span-4">
-                            <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $invoice->supplier_id)" required="true"
-                                :options="$suppliers" hint="{{ $field['hint'] }}" class="bg-[#FDFDFC] supplier-select"
-                                labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}" />
-                        </div>
-                        <div class="md:col-span-1">
-                            @if(isset($field['label']) && $field['label'] !== '')
-                            <label class="invisible block text-base font-medium text-gray-500 dark:text-gray-400 mb-2">
-                                {{ __('suppliers.actions.edit_short') }}
-                            </label>
-                            @endif
-                            <a href="{{ route('frontend.supplier.edit', ['id' => $invoice->supplier_id, 'locale' => app()->getLocale()]) }}"
-                                id="edit-supplier-link"
-                                class="inline-flex justify-center py-2 px-5 shadow-xl shadow-indigo-600/30 text-md font-semibold rounded-sm text-white bg-[#490BF4] hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 {{ empty($invoice->supplier_id) ? 'opacity-50 pointer-events-none' : '' }}">
-                                {{ __('suppliers.actions.edit_short') }}
-                            </a>
-                        </div>
-
-                        @elseif($field['name'] === 'client_id')
-                        <!-- Client select -->
-                        <div class="md:col-span-4">
-                            <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $invoice->client_id)" required="true" :options="$clients"
-                                hint="{{ $field['hint'] }}" class="bg-[#FDFDFC] client-select" labelClass=""
-                                allowsNull="true" placeholder="{{ $field['placeholder'] }}" />
-                        </div>
-                        <div class="md:col-span-1">
-                            @if(isset($field['label']) && $field['label'] !== '')
-                            <label class="invisible block text-base font-medium text-gray-500 dark:text-gray-400 mb-2">
-                                {{ __('clients.actions.edit_short') }}
-                            </label>
-                            @endif
-                            <a href="{{ route('frontend.client.edit', ['id' => $invoice->client_id ?? 1, 'locale' => app()->getLocale()]) }}"
-                                id="edit-client-link"
-                                class="inline-flex justify-center py-2 px-5 shadow-xl shadow-indigo-600/30 text-md font-semibold rounded-sm text-white bg-[#490BF4] hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 {{ empty($invoice->client_id) ? 'opacity-50 pointer-events-none' : '' }}">
-                                {{ __('clients.actions.edit_short') }}
-                            </a>
                         </div>
 
                         @elseif($field['name'] === 'payment_method_id')
@@ -274,35 +228,6 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                             :selected="old($field['name'], $invoice->due_in)"
                             required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$dueInOptions"
                             hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
-                    </div>
-
-                    @elseif($field['name'] === 'country')
-                    <div class="md:col-span-3 mb-5">
-                        <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            valueField="id" :selected="old($field['name'], $userInfo['country'] ?? 'CZ')"
-                            required="{{ isset($field['required']) ? $field['required'] : ''}}"
-                            :options="$field['options']" hint="{{ $field['hint'] }}" labelClass="" allowsNull="true"
-                            placeholder="{{ $field['placeholder'] }}"
-                            class="{{ in_array($field['name'], $supplierFields) ? 'bg-[#FDFDFC] supplier-field country-select' : '' }}" />
-                    </div>
-
-                    @elseif($field['name'] === 'client_country')
-                    <div class="md:col-span-3 mb-5">
-                        <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            valueField="id" :selected="old($field['name'], $userInfo['client_country'] ?? 'CZ')"
-                            required="{{ isset($field['required']) ? $field['required'] : ''}}"
-                            :options="$field['options']" hint="{{ $field['hint'] }}" labelClass="" allowsNull="true"
-                            placeholder="{{ $field['placeholder'] }}"
-                            class="{{ in_array($field['name'], $clientFields) ? 'bg-[#FDFDFC] client-field country-select' : '' }}" />
-                    </div>
-
-                    @elseif($field['name'] === 'bank_code')
-                    <div class="md:col-span-3">
-                        <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            :selected="old($field['name'], $invoice->bank_code ?? $defaultSupplier['bank_code'] ?? '')"
-                            required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$banks"
-                            placeholder="{{ __('suppliers.placeholders.bank_code') }}" hint="{{ $field['hint'] }}"
-                            class="bg-[#FDFDFC] supplier-field" labelClass="" />
                     </div>
 
                     @elseif($field['name'] === 'invoice_ks')
@@ -399,33 +324,13 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
             </div> <!-- close 5 col grid -->
         </div> <!-- close p-6 -->
     </div> <!-- close bg-white -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div
-            class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800">
-            <div class="p-6">
-                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">{{
-                    __('invoices.sections.seller_details') }}</h2>
-                <div>
+    @endif
 
-                    @elseif($field['name'] === 'swift')
-                </div>
-            </div>
-        </div>
-        <div
-            class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800">
-            <div class="p-6">
-                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">{{
-                    __('invoices.sections.client_details') }}</h2>
-                <div>
+    @endif
+    @endforeach
 
-                    @elseif($field['name'] === 'client_country')
-                </div>
-                @endif
-
-                @endif
-                @endforeach
-            </div>
-        </div>
+    <div class="mb-8">
+        <livewire:party.document-party-picker :invoice-id="$invoice->id" />
     </div>
 
     <!-- Section 4: Invoice description -->
@@ -799,14 +704,9 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
 
 @push('scripts')
 <script>
-    // Make bank options available to the bank-fields.js script
-    window.bankOptions = {{ Js::from($banksData) }};
-
     // Provide existing invoice data to the invoice-form.js script
     window.existingInvoiceData = @json($invoice->invoiceProductsData ?? []);
 </script>
-@vite('resources/js/bank-fields.js')
-@vite('resources/js/ares-lookup.js')
 @vite('resources/js/invoice-form.js')
 @vite('resources/js/image-preview.js')
 @vite('resources/js/template-selector.js')

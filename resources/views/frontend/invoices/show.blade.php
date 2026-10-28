@@ -71,278 +71,82 @@
 <!-- Main invoice information -->
 <div class="mb-6">
     <div class="space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Left column: Invoice information -->
+        <x-detail.card :title="__('invoices.sections.invoice_info')" :badge="$invoice->payment_status_name">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <div class="flex-1 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                    <x-detail.item accent="border-indigo-500" :label="__('invoices.fields.invoice_vs_long')">{{ $invoice['invoice_vs'] }}</x-detail.item>
+                    <x-detail.item accent="border-blue-500" :label="__('invoices.fields.issue_date')">
+                        {{ \Carbon\Carbon::parse($invoice->issue_date)->format(\App\Infrastructure\Shared\Support\DateHelper::format()) }}
+                    </x-detail.item>
+                    <x-detail.item accent="border-red-500" :label="__('invoices.fields.due_date')">
+                        {{ $invoice->due_date->format(\App\Infrastructure\Shared\Support\DateHelper::format()) }}
+                    </x-detail.item>
+                    <x-detail.item accent="border-gray-300" :label="__('invoices.fields.payment_method')">{{ $invoice->paymentMethod?->translated_name }}</x-detail.item>
+                    <x-detail.item accent="border-green-500" :label="__('invoices.fields.payment_amount')">
+                        {{ number_format((float)($paymentAmount->amount ?? ($invoice->payment_amount ?? 0)), 2, ',', ' ') }}
+                        {{ $paymentAmount->currency ?? ($invoice->payment_currency ?? 'CZK') }}
+                    </x-detail.item>
+                    <x-detail.item :accent="'border-' . $invoice->status_color_class . '-500'" :label="__('invoices.status.invoice_status')">{{ $invoice->payment_status_name }}</x-detail.item>
 
-            <div
-                class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800 p-6">
-                <div class="mb-4 border-b border-gray-200 dark:border-gray-700 pb-2 flex justify-between items-center">
-                    <h2 class="text-xl text-gray-900 dark:text-white font-semibold">{{
-                        __('invoices.sections.invoice_info') }}</h2>
-                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{{
-                        $invoice->payment_status_name }}</span>
-                </div>
-
-                <div class="space-y-4">
-                    <div class="flex border-b border-gray-100 dark:border-gray-700 pb-3">
-                        <div class="w-1/3 text-sm font-medium text-gray-600 dark:text-gray-400">{{
-                            __('invoices.fields.invoice_vs_long') }}
-                        </div>
-                        <div class="w-2/3 text-sm text-right font-bold dark:text-white">{{ $invoice['invoice_vs'] }}</div>
-                    </div>
-
-                    <div class="flex flex-wrap">
-                        <div class="w-full md:w-1/2 mb-4">
-                            <div class="border-l-4 border-blue-500 pl-3 py-1">
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                    __('invoices.fields.issue_date') }}</div>
-                                <div class="font-medium dark:text-white">{{
-                                    \Carbon\Carbon::parse($invoice->issue_date)->format(\App\Infrastructure\Shared\Support\DateHelper::format())
-                                    }}</div>
-                            </div>
-                        </div>
-                        <div class="w-full md:w-1/2 mb-4">
-                            <div class="border-l-4 border-red-500 pl-3 py-1">
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ __('invoices.fields.due_date')
-                                    }}</div>
-                                <div class="font-medium dark:text-white">{{
-                                    $invoice->due_date->format(\App\Infrastructure\Shared\Support\DateHelper::format())
-                                    }}</div>
-                            </div>
-                        </div>
-                        <div class="w-full md:w-1/2 mb-4">
-                            <div class="border-l-4 border-gray-300 pl-3 py-1">
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                    __('invoices.fields.payment_method') }}</div>
-                                <div class="font-medium dark:text-white">
-                                    @if($invoice->paymentMethod)
-                                    {{ $invoice->paymentMethod->translated_name }}
-                                    @else
-                                    <span class="text-gray-400">{{ __('invoices.placeholders.not_available') }}</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                        <div class="w-full md:w-1/2 mb-4">
-                            <div class="border-l-4 border-green-500 pl-3 py-1">
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                    __('invoices.fields.payment_amount') }}</div>
-
-                                <div class="font-medium dark:text-white">{{
-                                    number_format((float)($paymentAmount->amount ?? ($invoice->payment_amount ?? 0)),
-                                    2, ',', ' ') }} {{ $paymentAmount->currency ?? ($invoice->payment_currency ??
-                                    'CZK') }}</div>
-                            </div>
-                        </div>
-                        @if($invoice->supplier->account_number)
-                        <div class="w-full md:w-1/2 mb-4">
-                            <div class="border-l-4 border-orange-300 pl-3 py-1">
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                    __('suppliers.fields.account_number') }}</div>
-                                <div class="font-medium dark:text-white">{{ $invoice->supplier->account_number }}</div>
-                            </div>
-                        </div>
+                    <x-detail.item accent="border-gray-300" :label="__('invoices.fields.invoice_ks')">{{ $invoice->invoice_ks }}</x-detail.item>
+                    <x-detail.item accent="border-gray-300" :label="__('invoices.fields.invoice_ss')">{{ $invoice->invoice_ss }}</x-detail.item>
+                    @if($parties->account)
+                    <x-detail.item accent="border-orange-300" :label="__('parties.bank_accounts.fields.number')">
+                        @if($parties->account->account->number)
+                        {{ $parties->account->account->number }}/{{ $parties->account->account->bankCode }}
                         @endif
-                        @if($invoice->supplier->bank_name)
-                        <div class="w-full md:w-1/2 mb-4">
-                            <div class="border-l-4 border-purple-300 pl-3 py-1">
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                    __('suppliers.fields.bank_name') }}</div>
-                                <div class="font-medium dark:text-white">{{ $invoice->supplier->bank_name }}</div>
-                            </div>
-                        </div>
-                        @endif
-                        @if($invoice->supplier->iban)
-                        <div class="w-full md:w-1/2 mb-4">
-                            <div class="border-l-4 border-blue-300 pl-3 py-1">
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ __('suppliers.fields.iban') }}
-                                </div>
-                                <div class="font-medium dark:text-white">{{ $invoice->supplier->iban }}</div>
-                            </div>
-                        </div>
-                        @endif
-                        @if($invoice->supplier->swift)
-                        <div class="w-full grid grid-cols-1 md:grid-cols-2">
-                            <div class="w-full md:w-1/2 mb-4 col-span-1">
-                                <div class="border-l-4 border-red-300 pl-3 py-1">
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                        __('suppliers.fields.swift') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->supplier->swift }}</div>
-                                </div>
-                            </div>
-                            @endif
-                            @if($invoice->supplier->supplier_logo)
-                            <div class="w-full md:w-3/4 mb-4 col-span-1 row-span-3">
-                                <div class="border-l-4 border-red-300 pl-3 py-1">
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                        __('suppliers.fields.supplier_logo') }}</div>
-                                    <img src="{{ asset('storage/' . ltrim($invoice->supplier->supplier_logo, '/')) }}"
-                                        alt="{{ __('suppliers.fields.supplier_logo') }}" class="mt-1">
-                                </div>
-                            </div>
-                            @elseif($invoice->invoice_logo)
-                            <div class="w-full md:w-3/4 mb-4 col-span-1 row-span-3">
-                                <div class="border-l-4 border-red-300 pl-3 py-1">
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                        __('suppliers.fields.supplier_logo') }}</div>
-                                    <img src="{{ asset('storage/' . ltrim($invoice->invoice_logo, '/')) }}"
-                                        alt="{{ __('suppliers.fields.supplier_logo') }}" class="mt-1">
-                                </div>
-                            </div>
-                            @endif
-                            <div class="w-full md:w-1/2 mb-4 col-span-1">
-                                <div class="border-l-4 border-{{ $invoice->status_color_class }}-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">{{
-                                        __('invoices.status.invoice_status') }}</div>
-                                    <div class="font-medium dark:text-white">
-                                        @if($invoice->payment_status_name)
-                                        {{ $invoice->payment_status_name }}
-                                        @else
-                                        <span class="text-gray-400">{{ __('invoices.placeholders.not_available')
-                                            }}</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    @if($invoice->invoice_ks || $invoice->invoice_ss)
-                    <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
-                        <div class="flex flex-wrap text-sm">
-                            @if($invoice->invoice_ks)
-                            <div class="w-1/2">
-                                <span class="text-gray-600 dark:text-gray-400">{{ __('invoices.fields.invoice_ks')
-                                    }}:</span>
-                                <span class="font-medium dark:text-white">{{ $invoice->invoice_ks }}</span>
-                            </div>
-                            @endif
-                            @if($invoice->invoice_ss)
-                            <div class="w-1/2">
-                                <span class="text-gray-600 dark:text-gray-400">{{ __('invoices.fields.invoice_ss')
-                                    }}:</span>
-                                <span class="font-medium dark:text-white">{{ $invoice->invoice_ss }}</span>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
+                    </x-detail.item>
+                    <x-detail.item accent="border-purple-300" :label="__('parties.bank_accounts.fields.bank_name')">{{ $parties->account->bankName }}</x-detail.item>
+                    <x-detail.item accent="border-blue-300" :label="__('parties.bank_accounts.fields.iban')">{{ $parties->account->account->formattedIban() }}</x-detail.item>
+                    <x-detail.item accent="border-red-300" :label="__('parties.bank_accounts.fields.swift')">{{ $parties->account->account->swift }}</x-detail.item>
                     @endif
                 </div>
+                @if($invoice->invoice_logo)
+                <x-detail.item class="lg:w-48 lg:shrink-0" accent="border-red-300" :label="__('invoices.fields.invoice_logo')">
+                    <img src="{{ asset('storage/' . ltrim($invoice->invoice_logo, '/')) }}"
+                        alt="{{ __('invoices.fields.invoice_logo') }}" class="mt-1 max-h-24">
+                </x-detail.item>
+                @endif
             </div>
+        </x-detail.card>
 
-            <!-- Right column: Information about issuer and recipient -->
-            <div>
-                <!-- Supplier section -->
-                <div
-                    class=" bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800 p-6">
-                    <div
-                        class="mb-4 border-b border-gray-200 dark:border-gray-700 pb-2 flex justify-between items-center">
-                        <h2 class="text-xl text-gray-900 dark:text-white font-semibold">{{
-                            __('invoices.sections.supplier') }}</h2>
-                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{{
-                            __('invoices.tags.issuer') }}</span>
-                    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <x-detail.card :title="__('invoices.sections.supplier')" :badge="__('invoices.tags.issuer')">
+                <x-party.document-profile :party="$parties->supplier" :countries="$countries" />
+            </x-detail.card>
 
-                    <div class="space-y-4">
-                        <div class="flex flex-wrap">
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-green-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('invoices.fields.name') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->supplier->name }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-green-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('invoices.fields.street') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->supplier->street }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-orange-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('invoices.fields.city') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->supplier->city }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-orange-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('invoices.fields.zip') }} {{
-                                        __('general.joins.and') }} {{ __('invoices.fields.country') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->supplier->zip }}, {{ $invoice->supplier->country
-                                        }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-yellow-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('invoices.fields.ico') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->supplier->ico }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-yellow-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('invoices.fields.dic') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->supplier->dic }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <x-detail.card :title="__('invoices.sections.customer')" :badge="__('invoices.tags.recipient')" badge-tone="green">
+                <x-party.document-profile :party="$parties->customer" :countries="$countries" />
+
+                <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-900 dark:text-white">
+                    @if($contact)
+                    <a href="{{ route('frontend.contacts.show', ['locale' => app()->getLocale(), 'contact' => $contact->id->value]) }}"
+                        class="font-semibold underline">{{ __('invoices.actions.open_contact') }}</a>
+                    @if($contact->isArchived())
+                    <span class="text-gray-500 dark:text-gray-400">({{ __('parties.statuses.archived') }})</span>
+                    @endif
+                    @elseif($contactToLink)
+                    @can('frontend.can_create_edit_invoice')
+                    <form method="POST" action="{{ route('frontend.invoices.link-contact', ['locale' => app()->getLocale(), 'invoice' => $invoice->id]) }}">
+                        @csrf
+                        <input type="hidden" name="contact_id" value="{{ $contactToLink->id->value }}">
+                        <button type="submit" class="font-semibold underline cursor-pointer">
+                            {{ __('invoices.actions.link_contact', ['name' => $contactToLink->name]) }}
+                        </button>
+                    </form>
+                    @endcan
+                    @else
+                    @can('frontend.can_create_contact')
+                    @can('frontend.can_create_edit_invoice')
+                    <form method="POST" action="{{ route('frontend.invoices.save-to-contacts', ['locale' => app()->getLocale(), 'invoice' => $invoice->id]) }}">
+                        @csrf
+                        <button type="submit" class="font-semibold underline cursor-pointer">{{ __('invoices.actions.save_customer_to_contacts') }}</button>
+                    </form>
+                    @endcan
+                    @endcan
+                    @endif
                 </div>
-
-                <!-- Client section -->
-                <div
-                    class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800 p-6">
-                    <div
-                        class="mb-4 border-b border-gray-200 dark:border-gray-700 pb-2 flex justify-between items-center">
-                        <h2 class="text-xl text-gray-900 dark:text-white font-semibold">{{
-                            __('invoices.sections.client') }}</h2>
-                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">{{
-                            __('invoices.tags.recipient') }}</span>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="flex flex-wrap">
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-orange-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('clients.fields.name') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->client->name }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-orange-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('clients.fields.street') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->client->street }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-red-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('clients.fields.city') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->client->city }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-red-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('clients.fields.zip') }} {{
-                                        __('general.joins.and') }} {{ __('clients.fields.country') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->client->zip }}, {{
-                                        $invoice->client->country
-                                        }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-purple-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('clients.fields.ico') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->client->ico }}</div>
-                                </div>
-                            </div>
-                            <div class="w-full md:w-1/2 mb-4">
-                                <div class="border-l-4 border-purple-500 pl-3 py-1">
-                                    <div class="text-xs text-gray-500">{{ __('clients.fields.dic') }}</div>
-                                    <div class="font-medium dark:text-white">{{ $invoice->client->dic }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </x-detail.card>
         </div>
 
         <!-- Section for invoice items and note (only if exists) -->

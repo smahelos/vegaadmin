@@ -2,32 +2,23 @@
 
 namespace App\Infrastructure\Forms\Invoice;
 
-use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
-use App\Models\Client;
 use App\Models\PaymentMethod;
 use App\Models\Status;
-use App\Models\Supplier;
 
 trait InvoiceFormFields
 {
     /**
-     * Get invoice form field definitions
+     * Get invoice form field definitions; the parties come from the party picker
      *
-     * @param  array  $clients  Client options for dropdowns
-     * @param  array  $suppliers  Supplier options for dropdowns
      * @param  array  $paymentMethods  Payment method options for dropdowns
      * @param  array  $statuses  Status options for dropdowns
      * @param  array  $currencies  Currency options for dropdowns
      */
     protected function getInvoiceFields(
-        array $clients = [],
-        array $suppliers = [],
         array $paymentMethods = [],
         array $statuses = [],
         array $currencies = [],
     ): array {
-        $countries = app(CountryOptionsPresenter::class)->options(app()->getLocale());
-
         // Default currencies if not provided
         if (empty($currencies)) {
             $currencies = [
@@ -147,198 +138,6 @@ trait InvoiceFormFields
                 'label' => __('invoices.fields.invoice_text'),
                 'type' => 'textarea',
                 'hint' => __('invoices.hints.invoice_text'),
-            ],
-            // SUPPLIER data
-            [
-                'name' => 'supplier_id',
-                'label' => __('invoices.fields.supplier_id'),
-                'type' => 'select',
-                'options' => $suppliers,
-                'required' => true,
-                'entity' => 'supplier',
-                'attribute' => 'name',
-                'hint' => __('suppliers.hints.supplier'),
-                'placeholder' => __('invoices.placeholders.select_supplier'),
-                'model' => Supplier::class,
-            ],
-            [
-                'name' => 'name',
-                'label' => __('suppliers.fields.name'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.name'),
-                'required' => true,
-            ],
-            [
-                'name' => 'ico',
-                'label' => __('suppliers.fields.ico'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.ico'),
-            ],
-            [
-                'name' => 'dic',
-                'label' => __('suppliers.fields.dic'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.dic'),
-            ],
-            [
-                'name' => 'email',
-                'label' => __('suppliers.fields.email'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.email'),
-                'required' => true,
-            ],
-            [
-                'name' => 'phone',
-                'label' => __('suppliers.fields.phone'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.phone'),
-                'required' => false,
-            ],
-            [
-                'name' => 'street',
-                'label' => __('suppliers.fields.street'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.street'),
-                'required' => true,
-            ],
-            [
-                'name' => 'city',
-                'label' => __('suppliers.fields.city'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.city'),
-                'required' => true,
-            ],
-            [
-                'name' => 'zip',
-                'label' => __('suppliers.fields.zip'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.zip'),
-                'required' => true,
-            ],
-            [
-                'name' => 'country',
-                'label' => __('suppliers.fields.country'),
-                'default' => 'Česká republika',
-                'type' => 'select_from_array',
-                'options' => $countries,
-                'hint' => __('suppliers.hints.country'),
-                'placeholder' => __('general.placeholders.select_country'),
-                'required' => true,
-            ],
-            // Payment information
-            [
-                'name' => 'account_number',
-                'label' => __('suppliers.fields.account_number'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.account_number'),
-                'placeholder' => __('suppliers.placeholders.account_number'),
-            ],
-            [
-                'name' => 'bank_code',
-                'label' => __('suppliers.fields.bank_code'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.bank_code'),
-                'placeholder' => __('suppliers.placeholders.bank_code'),
-            ],
-            [
-                'name' => 'bank_name',
-                'label' => __('suppliers.fields.bank_name'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.bank_name'),
-                'placeholder' => __('suppliers.placeholders.bank_name'),
-            ],
-            [
-                'name' => 'iban',
-                'label' => __('suppliers.fields.iban'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.iban'),
-                'placeholder' => __('suppliers.placeholders.iban'),
-            ],
-            [
-                'name' => 'swift',
-                'label' => __('suppliers.fields.swift'),
-                'type' => 'text',
-                'hint' => __('suppliers.hints.swift'),
-                'placeholder' => __('suppliers.placeholders.swift'),
-            ],
-            // CLIENT data
-            [
-                'name' => 'client_id',
-                'label' => __('invoices.fields.client_id'),
-                'type' => 'select',
-                'options' => $clients,
-                'required' => true,
-                'entity' => 'client',
-                'attribute' => 'name',
-                'placeholder' => __('invoices.placeholders.select_client'),
-                'model' => Client::class,
-                'hint' => __('clients.hints.client'),
-            ],
-            [
-                'name' => 'client_name',
-                'label' => __('invoices.fields.client_name'),
-                'type' => 'text',
-                'hint' => __('clients.hints.name'),
-                'required' => true,
-            ],
-            [
-                'name' => 'client_ico',
-                'label' => __('clients.fields.ico'),
-                'type' => 'text',
-                'hint' => __('clients.hints.ico'),
-                'required' => false,
-            ],
-            [
-                'name' => 'client_dic',
-                'label' => __('clients.fields.dic'),
-                'type' => 'text',
-                'hint' => __('clients.hints.dic'),
-                'required' => false,
-            ],
-            [
-                'name' => 'client_email',
-                'label' => __('clients.fields.email'),
-                'type' => 'text',
-                'hint' => __('clients.hints.email'),
-                'required' => false,
-            ],
-            [
-                'name' => 'client_phone',
-                'label' => __('clients.fields.phone'),
-                'type' => 'text',
-                'hint' => __('clients.hints.phone'),
-                'required' => false,
-            ],
-            [
-                'name' => 'client_street',
-                'label' => __('clients.fields.street'),
-                'type' => 'text',
-                'hint' => __('clients.hints.street'),
-                'required' => true,
-            ],
-            [
-                'name' => 'client_city',
-                'label' => __('clients.fields.city'),
-                'type' => 'text',
-                'hint' => __('clients.hints.city'),
-                'required' => true,
-            ],
-            [
-                'name' => 'client_zip',
-                'label' => __('clients.fields.zip'),
-                'type' => 'text',
-                'hint' => __('clients.hints.zip'),
-                'required' => true,
-            ],
-            [
-                'name' => 'client_country',
-                'label' => __('clients.fields.country'),
-                'default' => 'Česká republika',
-                'type' => 'select_from_array',
-                'options' => $countries,
-                'hint' => __('clients.hints.country'),
-                'placeholder' => __('general.placeholders.select_country'),
-                'required' => true,
             ],
         ];
     }

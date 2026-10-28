@@ -134,8 +134,6 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
 
 <form id="invoice-form" method="POST" action="{{ $formAction }}" enctype="multipart/form-data"
     data-user-logged-in="{{ $userLoggedIn ? 'true' : 'false' }}"
-    data-supplier-required="{{ __('invoices.validation.supplier_required') }}"
-    data-client-required="{{ __('invoices.validation.client_required') }}"
     data-amount-required="{{ __('invoices.validation.amount_required') }}"
     data-amount-numeric="{{ __('invoices.validation.amount_numeric') }}"
     data-amount-positive="{{ __('invoices.validation.amount_positive') }}"
@@ -241,74 +239,6 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                                 hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                         </div>
 
-                        @elseif($field['name'] === 'supplier_id')
-                        @if($userLoggedIn)
-                        @php
-                        // userInfo data if exists
-                        $value = old($field['name'], $userInfo[$field['name']] ?? '');
-                        @endphp
-                        <!-- Supplier select -->
-                        <div class="md:col-span-4">
-                            <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $userInfo['supplier_id'] ?? '')" required="true"
-                                :options="$suppliers" hint="{{ $field['hint'] }}" class="bg-[#FDFDFC] supplier-select"
-                                labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}" />
-                        </div>
-
-                        <div class="md:col-span-1">
-                            @if(isset($field['label']) && $field['label'] !== '')
-                            <label class="invisible block text-base font-medium text-gray-900 dark:text-white mb-2">
-                                {{ __('suppliers.actions.edit_short') }}
-                            </label>
-                            @endif
-                            @php
-                            $supplierId = $userInfo['supplier_id'] ?? null;
-                            $supplierEditUrl = $supplierId ? route('frontend.supplier.edit', ['locale' =>
-                            app()->getLocale(), 'id' => $supplierId]) : '#';
-                            @endphp
-                            <a href="{{ $supplierEditUrl }}" id="edit-supplier-link"
-                                class="inline-flex justify-center py-2 px-5 shadow-sm dark:shadow-none shadow-indigo-600/30 text-md font-semibold rounded-sm text-white bg-[#490BF4] hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 {{ empty($supplierId) ? 'pointer-events-none opacity-50' : '' }}">
-                                {{ __('suppliers.actions.edit_short') }}
-                            </a>
-                        </div>
-                        @endif
-
-                        @elseif($field['name'] === 'client_id')
-                        @if($userLoggedIn)
-                        @php
-                        // clientInfo data if exists
-                        $value = old($field['name'], $clientInfo[$field['name']] ?? '');
-                        // editLink Route
-                        if(isset($userInfo['client_id']) && $userInfo['client_id'] !== '') {
-                        $editLinkRoute = route('frontend.client.edit',
-                        ['id' => $userInfo['client_id'], 'locale' => app()->getLocale()]
-                        );
-                        } else {
-                        $editLinkRoute = '#';
-                        }
-                        @endphp
-                        <!-- Client select -->
-                        <div class="md:col-span-4">
-                            <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $clientInfo['client_id'] ?? '')" required="true"
-                                :options="$clients" hint="{{ $field['hint'] }}" class="bg-[#FDFDFC] client-select"
-                                labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}" />
-                        </div>
-                        <div class="md:col-span-1">
-                            @if(isset($field['label']) && $field['label'] !== '')
-                            <label class="invisible block text-base font-medium text-gray-900 dark:text-white mb-2">
-                                {{ __('clients.actions.edit_short') }}
-                            </label>
-                            @endif
-                            <a href="{{ $editLinkRoute }}" id="edit-client-link"
-                                class="inline-flex justify-center py-2 px-5 shadow-sm dark:shadow-none shadow-indigo-600/30 text-md font-semibold rounded-sm bg-[#490BF4] hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 {{ empty($invoice->client_id) ? 'pointer-events-none' : '' }}">
-                                {{ __('clients.actions.edit_short') }}
-                            </a>
-                        </div>
-                        @endif
-
                         @elseif($field['name'] === 'payment_method_id')
                         <!-- Payment method -->
                         <div class="md:col-span-1">
@@ -349,35 +279,6 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                             :selected="old($field['name'], '7')"
                             required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$dueInOptions"
                             hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
-                    </div>
-
-                    @elseif($field['name'] === 'country')
-                    <div class="md:col-span-3 mb-5">
-                        <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            valueField="id" :selected="old($field['name'], $userInfo['country'] ?? 'CZ')"
-                            required="{{ isset($field['required']) ? $field['required'] : ''}}"
-                            :options="$field['options']" hint="{{ $field['hint'] }}" labelClass="" allowsNull="true"
-                            placeholder="{{ $field['placeholder'] }}"
-                            class="{{ in_array($field['name'], $supplierFields) ? 'bg-[#FDFDFC] supplier-field country-select' : '' }}" />
-                    </div>
-
-                    @elseif($field['name'] === 'client_country')
-                    <div class="md:col-span-3 mb-5">
-                        <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            valueField="id" :selected="old($field['name'], $userInfo['client_country'] ?? 'CZ')"
-                            required="{{ isset($field['required']) ? $field['required'] : ''}}"
-                            :options="$field['options']" hint="{{ $field['hint'] }}" labelClass="" allowsNull="true"
-                            placeholder="{{ $field['placeholder'] }}"
-                            class="{{ in_array($field['name'], $clientFields) ? 'bg-[#FDFDFC] client-field country-select' : '' }}" />
-                    </div>
-
-                    @elseif($field['name'] === 'bank_code')
-                    <div class="md:col-span-3">
-                        <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            :selected="old($field['name'], $invoice->bank_code ?? $defaultSupplier->bank_code ?? '')"
-                            required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$banks"
-                            placeholder="{{ __('suppliers.placeholders.bank_code') }}" hint="{{ $field['hint'] }}"
-                            class="bg-[#FDFDFC] supplier-field" labelClass="" />
                     </div>
 
                     @elseif($field['name'] === 'invoice_ks')
@@ -462,33 +363,14 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
             </div> <!-- close 5 col grid -->
         </div> <!-- close p-6 -->
     </div> <!-- close bg-white -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div
-            class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800">
-            <div class="p-6">
-                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">{{
-                    __('invoices.sections.seller_details') }}</h2>
-                <div>
+    @endif
 
-                    @elseif($field['name'] === 'swift')
-                </div>
-            </div>
-        </div>
-        <div
-            class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-20 dark:shadow-gray-900/30 dark:bg-gray-800">
-            <div class="p-6">
-                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">{{
-                    __('invoices.sections.client_details') }}</h2>
-                <div>
+    @endif
+    @endforeach
 
-                    @elseif($field['name'] === 'client_country')
-                </div>
-                @endif
-
-                @endif
-                @endforeach
-            </div>
-        </div>
+    <div class="mb-8">
+        <livewire:party.document-party-picker :guest="! $userLoggedIn" :business-id="$businessId ?? null"
+            :contact-id="$contactId ?? null" />
     </div>
 
     <!-- Section 4: Invoice Description -->
@@ -1016,12 +898,6 @@ function addClassToNumOfWordsInStrByClass(selectClass, addClass, numWords = 1, s
     console.log('New HTML:', newHTML);
 }
 </script>
-<script>
-    // Make bank options available to the bank-fields.js script
-    window.bankOptions = {{ Js::from($banksData) }};
-</script>
-@vite('resources/js/bank-fields.js')
-@vite('resources/js/ares-lookup.js')
 @vite('resources/js/invoice-form.js')
 @vite('resources/js/image-preview.js')
 @vite('resources/js/template-selector.js')

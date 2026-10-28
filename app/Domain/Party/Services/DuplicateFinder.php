@@ -52,12 +52,7 @@ final class DuplicateFinder
     {
         $number = $profile->registrationNumber;
         $existingNumber = $existing->registrationNumber;
-        if (
-            $number !== null &&
-            $existingNumber !== null &&
-            $number->country === $existingNumber->country &&
-            $number->number === $existingNumber->number
-        ) {
+        if ($number !== null && $existingNumber !== null && $number->equals($existingNumber)) {
             return $number->isCzech() ? DuplicateReason::CZECH_COMPANY_NUMBER : DuplicateReason::COMPANY_NUMBER;
         }
 

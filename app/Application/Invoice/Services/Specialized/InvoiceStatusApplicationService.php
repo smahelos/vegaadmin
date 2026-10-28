@@ -4,6 +4,7 @@ namespace App\Application\Invoice\Services\Specialized;
 
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface;
+use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Status\ValueObjects\StatusId;
@@ -17,6 +18,7 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
 {
     public function __construct(
         private InvoiceReadRepositoryInterface $invoiceReadRepository,
+        private InvoiceDtoReadRepositoryInterface $invoices,
     ) {}
 
     /**
@@ -38,6 +40,7 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
         $invoice->payment_status_id = $statusId->getValue();
         $invoice->save();
 
-        return InvoiceDTO::fromArray($invoice->toArray());
+        return $this->invoices->findByIdForUser($invoiceId, $userId)
+            ?? throw new ModelNotFoundException('Invoice not found or access denied');
     }
 }

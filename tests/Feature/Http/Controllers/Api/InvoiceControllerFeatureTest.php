@@ -5,6 +5,9 @@ namespace Tests\Feature\Http\Controllers\Api;
 use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\DTO\DocumentParties;
+use App\Domain\Party\DTO\DocumentPartyDTO;
+use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
@@ -196,8 +199,14 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
         return new InvoiceDTO(
             id: InvoiceId::fromInt((int) $inv->id),
             user_id: (int) $inv->user_id,
-            client_id: null,
-            supplier_id: null,
+            parties: new DocumentParties(
+                BusinessId::fromInt(1),
+                null,
+                null,
+                $this->party('Dodavatel s.r.o.'),
+                $this->party('Odběratel s.r.o.'),
+                null,
+            ),
             number: null,
             payment_reference: null,
             constant_code: null,
@@ -216,6 +225,18 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
             updated_at: null,
             logo: null,
             status: null,
+        );
+    }
+
+    private function party(string $name): DocumentPartyDTO
+    {
+        return new DocumentPartyDTO(
+            $name,
+            null,
+            null,
+            null,
+            null,
+            null,
         );
     }
 }

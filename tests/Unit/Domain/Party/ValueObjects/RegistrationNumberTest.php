@@ -72,4 +72,13 @@ final class RegistrationNumberTest extends TestCase
         $this->assertNull(RegistrationNumber::fromParts(Country::CZ, '  '));
         $this->assertNull(RegistrationNumber::fromParts(null, null));
     }
+
+    #[Test]
+    public function numbers_are_equal_only_from_the_same_register(): void
+    {
+        $czech = RegistrationNumber::fromParts(Country::CZ, '27074358');
+
+        $this->assertTrue($czech?->equals(RegistrationNumber::fromParts(Country::CZ, ' 27074358 ') ?? $this->fail('Empty number')));
+        $this->assertFalse($czech?->equals(RegistrationNumber::fromParts(Country::SK, '27074358') ?? $this->fail('Empty number')));
+    }
 }

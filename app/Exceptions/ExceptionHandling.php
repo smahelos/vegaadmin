@@ -2,14 +2,20 @@
 
 namespace App\Exceptions;
 
+use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;
 use App\Domain\Party\Exceptions\BankAccountNotFoundException;
 use App\Domain\Party\Exceptions\BusinessArchivedException;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
+use App\Domain\Party\Exceptions\ContactIdentityChangedException;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\Exceptions\DefaultBankAccountRequiredException;
 use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
+use App\Domain\Party\Exceptions\IncompleteBusinessAddressException;
+use App\Domain\Party\ValueObjects\BankAccountId;
+use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use Illuminate\Auth\AuthenticationException;
@@ -20,6 +26,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Prologue\Alerts\Facades\Alert;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
@@ -62,8 +69,9 @@ class ExceptionHandling
             return self::back($request, __($e->getMessageKey(), $e->getContext()));
         });
 
-        // Another user's business, contact or account is answered like a missing one
+        // Another user's invoice, business, contact or account is answered like a missing one
         foreach ([
+            InvoiceNotFoundException::class,
             BusinessNotFoundException::class,
             ContactNotFoundException::class,
             BankAccountNotFoundException::class,
@@ -71,18 +79,35 @@ class ExceptionHandling
             $exceptions->map($notFound, fn (Throwable $e): NotFoundHttpException => new NotFoundHttpException('', $e));
         }
 
-        // A Czech company number another record of the user has already
-        $exceptions->render(function (DuplicateCompanyNumberException $e, Request $request): JsonResponse|RedirectResponse {
-            $message = __('parties.messages.duplicate_blocking');
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => $message,
-                    'errors' => ['company_number' => [$message]],
-                ], 422);
-            }
+        // A Czech company number another record of the user has already; on an invoice the customer saved to
+        // the contacts has it
+        $exceptions->render(fn (DuplicateCompanyNumberException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            self::isInvoiceRoute($request) ? 'customer_company_number' : 'company_number',
+            __('parties.messages.duplicate_blocking'),
+        ));
 
-            return back()->withInput()->withErrors(['company_number' => $message]);
-        });
+        // The parties of a document: a new archived reference, a business without an address to print, a customer
+        // that is no longer the selected contact
+        $exceptions->render(fn (ArchivedReferenceSelectedException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            match (true) {
+                $e->reference instanceof BusinessId => 'business_id',
+                $e->reference instanceof BankAccountId => 'bank_account_id',
+                default => 'contact_id',
+            },
+            __('parties.validation.reference_archived'),
+        ));
+        $exceptions->render(fn (IncompleteBusinessAddressException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            'business_id',
+            __('parties.validation.business_address_incomplete'),
+        ));
+        $exceptions->render(fn (ContactIdentityChangedException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            'customer_company_number',
+            __('parties.validation.contact_identity_changed'),
+        ));
 
         // Archiving a default needs another default first; an archived record cannot become one
         $exceptions->render(fn (DefaultBusinessRequiredException $e, Request $request): JsonResponse|RedirectResponse => self::back(
@@ -136,6 +161,10 @@ class ExceptionHandling
                 if ($e instanceof ModelNotFoundException || $e instanceof EntityLimitExceededException) {
                     return null; // handled above
                 }
+                // A denied permission and another user's invoice keep their 403 and 404
+                if ($e instanceof HttpExceptionInterface) {
+                    return null;
+                }
                 // Let Laravel handle validation exceptions to preserve session error bag
                 if ($e instanceof ValidationException) {
                     return null;
@@ -160,6 +189,24 @@ class ExceptionHandling
         }
 
         return str_starts_with($routeName, 'frontend.invoice') || $routeName === 'frontend.invoices';
+    }
+
+    /**
+     * Back to the form with a validation error on one field, or Laravel's 422 for JSON.
+     */
+    private static function invalid(
+        Request $request,
+        string $field,
+        string $message,
+    ): JsonResponse|RedirectResponse {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'errors' => [$field => [$message]],
+            ], 422);
+        }
+
+        return back()->withInput()->withErrors([$field => $message]);
     }
 
     /**

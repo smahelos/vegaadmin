@@ -20,7 +20,6 @@ return [
     ],
     'status' => [
         'no_email' => 'E-mail není uveden',
-        'unknown_client' => 'Neznámý klient',
         'no_clients' => 'Zatím nemáte žádné klienty',
         'no_suppliers' => 'Zatím nemáte žádné dodavatele',
         'no_invoices' => 'Zatím nemáte žádné faktury',

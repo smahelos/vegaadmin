@@ -20,7 +20,6 @@ return [
     ],
     'status' => [
         'no_email' => 'E-Mail nicht angegeben',
-        'unknown_client' => 'Unbekannter Kunde',
         'no_clients' => 'Sie haben noch keine Kunden',
         'no_suppliers' => 'Sie haben noch keine Lieferanten',
         'no_invoices' => 'Sie haben noch keine Rechnungen',

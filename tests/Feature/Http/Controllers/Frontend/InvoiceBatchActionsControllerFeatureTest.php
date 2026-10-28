@@ -2,13 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
-use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
-use App\Models\PaymentMethod;
-use App\Models\Status;
-use App\Models\StatusCategory;
+use App\Models\Invoice;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -97,49 +92,11 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
         $this->app->instance(UniversalLimitServiceInterface::class, $fakeLimit);
     }
 
-    private function baseData(): array
-    {
-        Status::firstOrCreate(['slug' => 'paid'], [
-            'name' => 'Paid',
-            'category_id' => StatusCategory::factory()->create()->id,
-            'color' => 'bg-green-100 text-green-800',
-            'description' => 'Paid status',
-            'is_active' => true,
-        ]);
-
-        return [
-            'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
-            'payment_amount' => 20,
-            'payment_currency' => 'EUR',
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->format('Y-m-d'),
-            'due_in' => 14,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-            'name' => 'Supp ' . uniqid(),
-            'street' => 'Street',
-            'city' => 'City',
-            'zip' => '10000',
-            'country' => 'CZ',
-            'client_name' => 'Client ' . uniqid(),
-            'client_street' => 'C St',
-            'client_city' => 'C City',
-            'client_zip' => '99999',
-            'client_country' => 'CZ',
-            'invoice_text' => 'Txt',
-        ];
-    }
-
     #[Test]
     public function batch_actions_template_and_mark_paid_success(): void
     {
         $this->actingAs($this->user);
-        $invoice = app(InvoiceMutationApplicationServiceInterface::class)
-            ->create(
-                $this->user->id,
-                $this->baseData(),
-                [],
-            )->invoice;
+        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
         $response = $this->post(route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]), [
             'template' => 'modern',
             'mark_paid' => true,
@@ -152,12 +109,7 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
     public function batch_actions_rejects_invalid_template(): void
     {
         $this->actingAs($this->user);
-        $invoice = app(InvoiceMutationApplicationServiceInterface::class)
-            ->create(
-                $this->user->id,
-                $this->baseData(),
-                [],
-            )->invoice;
+        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
         $response = $this->post(route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]), [
             'template' => 'invalid-template',
         ]);
@@ -168,12 +120,7 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
     public function batch_actions_rejects_unknown_status(): void
     {
         $this->actingAs($this->user);
-        $invoice = app(InvoiceMutationApplicationServiceInterface::class)
-            ->create(
-                $this->user->id,
-                $this->baseData(),
-                [],
-            )->invoice;
+        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
         $response = $this->post(route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]), [
             'status' => 'overdue',
         ]);

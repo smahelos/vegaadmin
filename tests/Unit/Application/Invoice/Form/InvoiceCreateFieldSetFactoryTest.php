@@ -15,27 +15,13 @@ final class InvoiceCreateFieldSetFactoryTest extends TestCase
     {
         $factory = new InvoiceCreateFieldSetFactory;
         $set = $factory->build(
-            clients: ['1' => 'Client A'],
-            suppliers: ['2' => 'Supplier B'],
             paymentMethods: ['3' => 'bank_transfer'],
             statuses: ['4' => 'paid'],
             currencies: ['CZK' => 'CZK'],
         );
 
-        $arr = $set->toArray();
-        $this->assertGreaterThan(5, count($arr)); // ensure fields present
-        $first = $arr[0];
-        $this->assertArrayHasKey('name', $first);
-        $this->assertArrayHasKey('type', $first);
-
-        // Ensure key invoice field exists
-        $found = false;
-        foreach ($arr as $f) {
-            if ($f['name'] === 'invoice_vs') {
-                $found = true;
-                break;
-            }
-        }
-        $this->assertTrue($found, 'Expected invoice_vs field');
+        $fields = $set->toArray();
+        $this->assertGreaterThan(5, count($fields));
+        $this->assertContains('invoice_vs', array_column($fields, 'name'));
     }
 }

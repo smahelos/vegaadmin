@@ -7,8 +7,12 @@
         @else
             <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                 @foreach ($accounts as $bankAccount)
-                    <li wire:key="account-{{ $bankAccount->id->value }}" class="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                        <div class="text-sm">
+                    <li wire:key="account-{{ $bankAccount->id->value }}" @class([
+                        'px-3 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3',
+                        'bg-green-50 dark:bg-green-900/30' => $editing && $editingId === $bankAccount->id->value,
+                        'bg-gray-100 dark:bg-gray-700/50' => $bankAccount->isArchived(),
+                    ])>
+                        <div @class(['text-sm', 'opacity-60' => $bankAccount->isArchived()])>
                             <p class="font-medium text-gray-900 dark:text-white">
                                 {{ $bankAccount->label ?? __('parties.bank_accounts.entity.singular') }}
                                 @if ($defaultId !== null && $defaultId->equals($bankAccount->id))

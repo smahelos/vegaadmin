@@ -20,15 +20,11 @@ class InvoiceCreateFieldSetFactory
      * Build FieldSetDTO from legacy trait output.
      */
     public function build(
-        array $clients,
-        array $suppliers,
         array $paymentMethods,
         array $statuses,
         array $currencies = [],
     ): FieldSetDTO {
         $raw = $this->getInvoiceFields(
-            $clients,
-            $suppliers,
             $paymentMethods,
             $statuses,
             $currencies,
@@ -61,8 +57,6 @@ class InvoiceCreateFieldSetFactory
      * definition sufficient for unit tests. In normal app runtime, delegate to the trait.
      */
     protected function getInvoiceFields(
-        array $clients = [],
-        array $suppliers = [],
         array $paymentMethods = [],
         array $statuses = [],
         array $currencies = [],
@@ -70,8 +64,6 @@ class InvoiceCreateFieldSetFactory
         try {
             // Attempt to call the original trait implementation (requires Laravel container)
             return $this->traitGetInvoiceFields(
-                $clients,
-                $suppliers,
                 $paymentMethods,
                 $statuses,
                 $currencies,

@@ -5,24 +5,21 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
-use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Models\Client;
+use App\Models\Contact;
 use App\Models\EntityLimit;
 use App\Models\Invoice;
-use App\Models\PaymentMethod;
 use App\Models\Status;
-use App\Models\Supplier;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
+use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
 class InvoiceControllerFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment;
+    use BuildsInvoiceInput, CreatesFrontendTestEnvironment;
 
     private Invoice $invoice;
 
@@ -267,11 +264,7 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        // Create required related entities
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-        $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
+        [$business, $account] = $this->issuerOf($this->user);
 
         // Check initial usage
         $initialCheck = $this->limitService->checkLimit(
@@ -282,32 +275,7 @@ class InvoiceControllerFeatureTest extends TestCase
         );
         $initialUsage = $initialCheck['current_usage'] ?? 0;
 
-        $invoiceData = [
-            'invoice_vs' => 'INV-' . uniqid(),
-            'client_id' => $client->id,
-            'supplier_id' => $supplier->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->format('Y-m-d'),
-            'due_in' => 30,
-            'payment_amount' => 100.00,
-            'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([[
-                'name' => 'Service',
-                'quantity' => '1',
-                'unit' => 'pieces',
-                'price' => '100',
-                'currency' => 'CZK',
-                'tax_rate' => '0',
-            ]]),
-            'street' => 'Test Street 123',
-            'city' => 'Test City',
-            'zip' => '12345',
-            'country' => 'CZ',
-            'invoice_text' => 'Test invoice text',
-            'user_id' => $this->user->id,
-        ];
+        $invoiceData = $this->invoiceInput($business, $account);
 
         // Act
         $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $invoiceData);
@@ -345,12 +313,6 @@ class InvoiceControllerFeatureTest extends TestCase
             'permission_name' => 'frontend.can_create_edit_invoice',
         ])->update(['limit_value' => 1]);
 
-        // Create required related entities
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-        $supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
-
         // First invoice creation - should succeed
         $checkBeforeFirst = $this->limitService->checkLimit(
             $this->user->id,
@@ -360,13 +322,7 @@ class InvoiceControllerFeatureTest extends TestCase
         );
         $this->assertTrue($checkBeforeFirst['allowed']);
 
-        $invoice1 = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'client_id' => $client->id,
-            'supplier_id' => $supplier->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-        ]);
+        $invoice1 = Invoice::factory()->create(['user_id' => $this->user->id]);
         $result = $this->limitService->recordUsage(
             $this->user->id,
             'invoice',
@@ -499,15 +455,25 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function store_refuses_a_new_client_with_a_company_number_the_user_already_has(): void
+    public function store_refuses_to_save_a_customer_whose_company_number_is_in_the_contacts(): void
     {
-        $existing = Client::factory()->create(['user_id' => $this->user->id]);
+        $this->user->givePermissionTo(['frontend.can_create_contact', 'limit_active_contacts_basic']);
+        $existing = Contact::factory()->create(['user_id' => $this->user->id, 'company_number' => '27082440']);
+        [$business, $account] = $this->issuerOf($this->user);
+        $invoiceData = $this->invoiceInput(
+            $business,
+            $account,
+            [
+                'customer_registration_country' => 'CZ',
+                'customer_company_number' => $existing->company_number,
+                'save_customer_to_contacts' => '1',
+            ],
+        );
 
         $this->actingAs($this->user, 'web')
-            ->post(route('frontend.invoice.store', ['locale' => 'cs']), [
-                'client_name' => 'New client ' . uniqid(),
-                'client_ico' => $existing->ico,
-            ])
-            ->assertSessionHasErrors('client_ico');
+            ->post(route('frontend.invoice.store', ['locale' => 'cs']), $invoiceData)
+            ->assertSessionHasErrors('customer_company_number');
+        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $invoiceData['invoice_vs']]);
+        $this->assertSame(1, Contact::where('user_id', $this->user->id)->count());
     }
 }

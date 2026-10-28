@@ -2,12 +2,10 @@
 
 namespace Tests\Feature\Providers;
 
-use App\Domain\Payment\Contracts\BankServiceInterface;
 use App\Domain\Payment\Contracts\GatewayRegistryInterface;
 use App\Domain\Payment\Contracts\PaymentGatewayInterface;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
-use App\Domain\Payment\Services\BankService;
 use App\Domain\Payment\Services\GatewayRegistry;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\Services\SubscriptionPaymentService;
@@ -53,7 +51,6 @@ class PaymentServiceProviderFeatureTest extends TestCase
     public function provider_boot_method_executes_without_errors(): void
     {
         $this->assertInstanceOf(QrPaymentService::class, $this->app->make(QrPaymentServiceInterface::class));
-        $this->assertInstanceOf(BankService::class, $this->app->make(BankServiceInterface::class));
         $this->assertInstanceOf(GatewayRegistry::class, $this->app->make(GatewayRegistryInterface::class));
     }
 
@@ -66,7 +63,6 @@ class PaymentServiceProviderFeatureTest extends TestCase
         $interfaces = class_implements($gateway);
         $this->assertContains(PaymentGatewayInterface::class, $interfaces);
         $this->assertInstanceOf(QrPaymentService::class, $this->app->make(QrPaymentServiceInterface::class));
-        $this->assertInstanceOf(BankService::class, $this->app->make(BankServiceInterface::class));
         $this->assertInstanceOf(GatewayRegistry::class, $this->app->make(GatewayRegistryInterface::class));
     }
 }

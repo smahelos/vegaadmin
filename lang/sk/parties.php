@@ -51,6 +51,9 @@ return [
         'missing_country' => 'Zvoľte krajinu registrácie.',
         'czech_format' => 'České IČO má presne 8 číslic.',
         'czech_checksum' => 'České IČO nemá platný kontrolný súčet.',
+        'reference_archived' => 'Vybraný záznam je archivovaný, vyberte iný.',
+        'business_address_incomplete' => 'Firma nemá vyplnenú celú adresu (ulicu, mesto a PSČ).',
+        'contact_identity_changed' => 'IČO sa líši od vybraného kontaktu. Vráťte IČO kontaktu, alebo kontakt odoberte.',
     ],
     'statuses' => [
         'archived' => 'Archivované',
@@ -75,7 +78,7 @@ return [
             'iban' => 'IBAN',
             'number' => 'Číslo účtu',
             'bank_code' => 'Kód banky',
-            'country' => 'Krajina účtu',
+            'country' => 'Krajina',
             'swift' => 'SWIFT/BIC',
             'bank_name' => 'Názov banky',
             'default' => 'Predvolený',

@@ -9,11 +9,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/js/bank-fields.js',
-                'resources/js/ares-lookup.js',
                 'resources/js/invoice-form.js',
-                'resources/js/supplier-form-data.js',
-                'resources/js/client-form-data.js',
                 'resources/js/slug-generator.js',
                 'resources/js/product-selector.js',
                 'resources/js/image-preview.js',

@@ -5,6 +5,7 @@ namespace App\Domain\Invoice\Contracts;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\User\ValueObjects\UserId;
 
 interface InvoiceServiceInterface
@@ -35,7 +36,7 @@ interface InvoiceServiceInterface
     // public function ensureObjectProperties(\stdClass $object, array $properties): void;
 
     /**
-     * Create an invoice for a user including on-the-fly client/supplier resolution and product persistence.
+     * Create an invoice for a user with its parties and lines.
      *
      * @param  UserId  $userId  Owner user id
      * @param  array<string,mixed>  $data  Validated invoice attributes
@@ -44,11 +45,12 @@ interface InvoiceServiceInterface
     public function createInvoice(
         UserId $userId,
         array $data,
+        DocumentParties $parties,
         array $invoiceProducts,
     ): InvoiceDTO;
 
     /**
-     * Update an invoice for a user including on-the-fly client/supplier resolution and product replacement.
+     * Update an invoice for a user with its parties, replacing its lines.
      *
      * @param  UserId  $userId  Owner user id
      * @param  array<string,mixed>  $data  Validated invoice attributes
@@ -58,6 +60,7 @@ interface InvoiceServiceInterface
         UserId $userId,
         InvoiceId $invoiceId,
         array $data,
+        DocumentParties $parties,
         array $invoiceProducts,
     ): InvoiceDTO;
 

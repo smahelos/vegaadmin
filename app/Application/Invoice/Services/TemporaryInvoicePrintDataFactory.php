@@ -9,6 +9,8 @@ use App\Domain\Invoice\DTO\PrintableInvoiceItemData;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
+use App\Domain\Party\DTO\DocumentAccountDTO;
+use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Shared\Money\Enums\Currency;
@@ -40,6 +42,13 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
         ), $products);
         $totals = InvoiceTotals::fromProducts(Currency::from($currency), $products);
 
+        /** @var DocumentPartyDTO $supplier */
+        $supplier = $invoiceData['supplier'];
+        /** @var DocumentPartyDTO $customer */
+        $customer = $invoiceData['customer'];
+        /** @var DocumentAccountDTO|null $account */
+        $account = $invoiceData['account'] ?? null;
+
         // Use a positive sentinel ID for temporary invoices to satisfy InvoiceId validation
         return new PrintableInvoiceData(
             id: InvoiceId::fromInt(1),
@@ -54,30 +63,30 @@ class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDataFacto
             subtotal: $totals->subtotal,
             total_tax: $totals->tax,
             total_amount: $totals->total(),
-            supplier_name: $invoiceData['name'] ?? null,
-            supplier_email: $invoiceData['email'] ?? null,
-            supplier_phone: $invoiceData['phone'] ?? null,
-            supplier_street: $invoiceData['street'] ?? null,
-            supplier_city: $invoiceData['city'] ?? null,
-            supplier_zip: $invoiceData['zip'] ?? null,
-            supplier_country: $invoiceData['country'] ?? null,
-            supplier_ico: $invoiceData['ico'] ?? null,
-            supplier_dic: $invoiceData['dic'] ?? null,
+            supplier_name: $supplier->name,
+            supplier_email: $supplier->email,
+            supplier_phone: $supplier->phone,
+            supplier_street: $supplier->address?->street,
+            supplier_city: $supplier->address?->city,
+            supplier_zip: $supplier->address?->postalCode,
+            supplier_country: $supplier->address?->country->value,
+            supplier_ico: $supplier->registrationNumber?->number,
+            supplier_dic: $supplier->vatNumber?->value,
             supplier_logo: $invoiceData['invoice_logo'] ?? null,
-            account_number: $invoiceData['account_number'] ?? null,
-            bank_code: $invoiceData['bank_code'] ?? null,
-            bank_name: $invoiceData['bank_name'] ?? null,
-            iban: $invoiceData['iban'] ?? null,
-            swift: $invoiceData['swift'] ?? null,
-            client_name: $invoiceData['client_name'] ?? null,
-            client_email: $invoiceData['client_email'] ?? null,
-            client_phone: $invoiceData['client_phone'] ?? null,
-            client_street: $invoiceData['client_street'] ?? null,
-            client_city: $invoiceData['client_city'] ?? null,
-            client_zip: $invoiceData['client_zip'] ?? null,
-            client_country: $invoiceData['client_country'] ?? null,
-            client_ico: $invoiceData['client_ico'] ?? null,
-            client_dic: $invoiceData['client_dic'] ?? null,
+            account_number: $account?->account->number,
+            bank_code: $account?->account->bankCode,
+            bank_name: $account?->bankName,
+            iban: $account?->account->iban,
+            swift: $account?->account->swift,
+            client_name: $customer->name,
+            client_email: $customer->email,
+            client_phone: $customer->phone,
+            client_street: $customer->address?->street,
+            client_city: $customer->address?->city,
+            client_zip: $customer->address?->postalCode,
+            client_country: $customer->address?->country->value,
+            client_ico: $customer->registrationNumber?->number,
+            client_dic: $customer->vatNumber?->value,
             invoice_vs: $invoiceData['invoice_vs'] ?? null,
             invoice_ks: $invoiceData['invoice_ks'] ?? null,
             invoice_ss: $invoiceData['invoice_ss'] ?? null,

@@ -2,7 +2,8 @@
 
 namespace App\Application\Invoice\Contracts;
 
-use Symfony\Component\HttpFoundation\Response;
+use App\Domain\Party\DTO\DocumentAccountDTO;
+use App\Domain\Party\DTO\DocumentPartyDTO;
 
 interface GuestInvoiceApplicationServiceInterface
 {
@@ -12,7 +13,13 @@ interface GuestInvoiceApplicationServiceInterface
      * @param  array<string,mixed>  $validatedData  validated request input, items under 'invoice-products'
      * @return array<string,mixed>
      */
-    public function storeGuestInvoice(array $validatedData, ?string $requestedLocale): array;
+    public function storeGuestInvoice(
+        array $validatedData,
+        DocumentPartyDTO $supplier,
+        DocumentPartyDTO $customer,
+        ?DocumentAccountDTO $account,
+        ?string $requestedLocale,
+    ): array;
 
     /**
      * Prepare data needed to render guest create invoice form.

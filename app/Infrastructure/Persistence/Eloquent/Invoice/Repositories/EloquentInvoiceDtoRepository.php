@@ -8,8 +8,10 @@ use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
+use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
+use App\Models\Invoice;
 
 /**
  * Eloquent implementation of Invoice DTO repositories.
@@ -54,6 +56,11 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
     public function setTemplate(InvoiceId $id, string $template): bool
     {
         return $this->invoiceRepository->setTemplate($id->getValue(), $template);
+    }
+
+    public function linkContact(InvoiceId $id, ContactId $contactId): void
+    {
+        Invoice::query()->whereKey($id->getValue())->update(['contact_id' => $contactId->value]);
     }
 
     public function findLastInvoiceNumber(UserId $userId, int $year): ?string

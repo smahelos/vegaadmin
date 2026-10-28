@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Application\Invoice\Services\Specialized;
 
 use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
+use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Domain\Invoice\DTO\InvoiceProductDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\DTO\DocumentPartyDTO;
+use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
@@ -42,6 +45,21 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
                     'payment_currency' => 'CZK',
                     'payment_status_id' => $invoice->payment_status_id,
                 ],
+                new InvoicePartySelection(
+                    BusinessId::fromInt($invoice->business_id),
+                    null,
+                    null,
+                    new DocumentPartyDTO(
+                        'Odběratel s.r.o.',
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                    ),
+                    false,
+                    false,
+                ),
                 [new InvoiceProductWriteData(
                     'New line',
                     '1',

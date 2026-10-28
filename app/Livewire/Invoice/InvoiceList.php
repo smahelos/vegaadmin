@@ -68,7 +68,7 @@ class InvoiceList extends Component
         return [
             'created_at' => 'created_at',
             'invoice_vs' => 'invoice_vs',
-            'client_id' => 'client_id',
+            'customer_name' => 'customer_name',
             'payment_amount' => 'payment_amount',
             'payment_method_id' => 'payment_method_id',
             'payment_status_id' => 'payment_status_id',
@@ -88,7 +88,6 @@ class InvoiceList extends Component
     {
         try {
             $query = Invoice::with([
-                'client',
                 'paymentMethod',
                 'paymentStatus',
             ])
@@ -101,13 +100,11 @@ class InvoiceList extends Component
                         'like',
                         "%{$this->search}%",
                     )
-                        ->orWhereHas('client', function ($q): void {
-                            $q->where(
-                                'name',
-                                'like',
-                                "%{$this->search}%",
-                            );
-                        });
+                        ->orWhere(
+                            'customer_name',
+                            'like',
+                            "%{$this->search}%",
+                        );
                 });
             }
 
@@ -118,15 +115,7 @@ class InvoiceList extends Component
             }
 
             // Special handling for different sorting fields
-            if ($this->sortKey() === 'client_id') {
-                // Using subquery to sort by client name while maintaining eager loading
-                $query->orderBy(function ($query): void {
-                    $query->select('name')
-                        ->from('clients')
-                        ->whereColumn('clients.id', 'invoices.client_id')
-                        ->limit(1);
-                }, $this->sortDirection());
-            } elseif ($this->sortKey() === 'due_date') {
+            if ($this->sortKey() === 'due_date') {
                 // Special handling for due_date which is calculated from issue_date + due_in
                 $query->orderByRaw('DATE_ADD(issue_date, INTERVAL due_in DAY) ' . $this->sortDirection());
             } else {

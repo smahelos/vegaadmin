@@ -3,7 +3,7 @@
 namespace Tests\Feature\Livewire\Invoice;
 
 use App\Livewire\Invoice\InvoiceList;
-use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\Status;
 use App\Models\User;
@@ -37,17 +37,12 @@ class InvoiceListFeatureTest extends TestCase
     {
         $otherUser = User::factory()->create();
 
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-        $otherClient = Client::factory()->create(['user_id' => $otherUser->id]);
-
         $userInvoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
         ]);
 
         $otherUserInvoice = Invoice::factory()->create([
             'user_id' => $otherUser->id,
-            'client_id' => $otherClient->id,
         ]);
 
         $this->actingAs($this->user);
@@ -62,17 +57,13 @@ class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function component_handles_search_by_invoice_vs(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-
         $invoice1 = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
             'invoice_vs' => 'INV-2024-001',
         ]);
 
         $invoice2 = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
             'invoice_vs' => 'INV-2024-002',
         ]);
 
@@ -87,26 +78,16 @@ class InvoiceListFeatureTest extends TestCase
     }
 
     #[Test]
-    public function component_handles_search_by_client_name(): void
+    public function component_handles_search_by_customer_name(): void
     {
-        $client1 = Client::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'ACME Corporation',
-        ]);
-
-        $client2 = Client::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'XYZ Company',
-        ]);
-
         $invoice1 = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client1->id,
+            'customer_name' => 'ACME Corporation',
         ]);
 
-        $invoice2 = Invoice::factory()->create([
+        Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client2->id,
+            'customer_name' => 'XYZ Company',
         ]);
 
         $this->actingAs($this->user);
@@ -122,20 +103,16 @@ class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function component_filters_by_status(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-
         $paidStatus = Status::factory()->create(['name' => 'paid']);
         $pendingStatus = Status::factory()->create(['name' => 'pending']);
 
         $paidInvoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
             'payment_status_id' => $paidStatus->id,
         ]);
 
         $pendingInvoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
             'payment_status_id' => $pendingStatus->id,
         ]);
 
@@ -152,10 +129,8 @@ class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function sort_by_toggles_order_direction_for_same_field(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
         Invoice::factory()->count(3)->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);
@@ -176,10 +151,8 @@ class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function sort_by_sets_new_field_with_ascending_order(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
         Invoice::factory()->count(3)->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);
@@ -192,49 +165,35 @@ class InvoiceListFeatureTest extends TestCase
     }
 
     #[Test]
-    public function component_handles_special_client_sorting(): void
+    public function component_sorts_by_customer_name(): void
     {
-        $clientA = Client::factory()->create([
+        Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Alpha Client',
+            'customer_name' => 'Beta Client',
         ]);
 
-        $clientB = Client::factory()->create([
+        Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Beta Client',
-        ]);
-
-        $invoiceA = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'client_id' => $clientA->id,
-        ]);
-
-        $invoiceB = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'client_id' => $clientB->id,
+            'customer_name' => 'Alpha Client',
         ]);
 
         $this->actingAs($this->user);
 
         $component = Livewire::test(InvoiceList::class)
-            ->call('sortBy', 'client_id');
+            ->call('sortBy', 'customer_name');
 
         $invoices = $component->viewData('invoices');
 
-        // Should be sorted by client name (Alpha first when ascending)
-        $this->assertEquals('Alpha Client', $invoices->first()->client->name);
-        $this->assertEquals('Beta Client', $invoices->last()->client->name);
+        $this->assertEquals('Alpha Client', $invoices->first()->customer_name);
+        $this->assertEquals('Beta Client', $invoices->last()->customer_name);
     }
 
     #[Test]
     public function component_handles_special_due_date_sorting(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-
         // Invoice with earlier due date (issue_date + due_in)
         $invoice1 = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
             'issue_date' => now()->subDays(10),
             'due_in' => 7, // Due 3 days ago
         ]);
@@ -242,7 +201,6 @@ class InvoiceListFeatureTest extends TestCase
         // Invoice with later due date
         $invoice2 = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
             'issue_date' => now()->subDays(5),
             'due_in' => 14, // Due in 9 days
         ]);
@@ -321,10 +279,8 @@ class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function component_passes_correct_data_to_view(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
         $invoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);
@@ -336,22 +292,32 @@ class InvoiceListFeatureTest extends TestCase
     }
 
     #[Test]
-    public function component_eager_loads_relationships(): void
+    public function component_links_customer_to_contact_when_invoice_has_one(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-        $invoice = Invoice::factory()->create([
+        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
+
+        Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
+            'customer_name' => 'Linked Customer',
+        ]);
+
+        Invoice::factory()->create([
+            'user_id' => $this->user->id,
+            'customer_name' => 'One-off Customer',
         ]);
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(InvoiceList::class);
-        $invoices = $component->viewData('invoices');
+        $contactUrl = route('frontend.contacts.show', [
+            'locale' => app()->getLocale(),
+            'contact' => $contact->id,
+        ]);
 
-        // Verify that relationships are eager loaded
-        $this->assertNotNull($invoices->first()->client);
-        $this->assertEquals($client->name, $invoices->first()->client->name);
+        Livewire::test(InvoiceList::class)
+            ->assertSee('Linked Customer')
+            ->assertSee('One-off Customer')
+            ->assertSeeHtml('href="' . $contactUrl . '"');
     }
 
     #[Test]
@@ -385,10 +351,8 @@ class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function component_handles_empty_search_and_status(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
         $invoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);

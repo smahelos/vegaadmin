@@ -6,16 +6,13 @@
     },
     "controllers": [
         "Http/Controllers/Api/ApiBackpackController.php",
-        "Http/Controllers/Api/AresLookupController.php",
-        "Http/Controllers/Api/ClientController.php",
         "Http/Controllers/Api/CountryController.php",
         "Http/Controllers/Api/CurrencyController.php",
         "Http/Controllers/Api/InvoiceController.php",
         "Http/Controllers/Api/SessionController.php",
         "Http/Controllers/Api/StatisticsController.php",
-        "Http/Controllers/Api/SupplierController.php",
         "Http/Controllers/Api/UELSController.php",
         "Http/Controllers/Api/UserController.php"
     ],
-    "generated_at": "2026-10-16T10:37:23+00:00"
+    "generated_at": "2026-10-27T09:11:30+00:00"
 }

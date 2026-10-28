@@ -11,6 +11,7 @@
         "Http/Controllers/Frontend/ContactController.php",
         "Http/Controllers/Frontend/DashboardController.php",
         "Http/Controllers/Frontend/HomeController.php",
+        "Http/Controllers/Frontend/InvoiceContactController.php",
         "Http/Controllers/Frontend/InvoiceController.php",
         "Http/Controllers/Frontend/PageController.php",
         "Http/Controllers/Frontend/PaymentController.php",
@@ -18,5 +19,5 @@
         "Http/Controllers/Frontend/ProfileController.php",
         "Http/Controllers/Frontend/SubscriptionController.php"
     ],
-    "generated_at": "2026-10-26T21:03:15+00:00"
+    "generated_at": "2026-10-27T09:11:29+00:00"
 }

@@ -51,6 +51,9 @@ return [
         'missing_country' => 'Choose the country of registration.',
         'czech_format' => 'A Czech company number has exactly 8 digits.',
         'czech_checksum' => 'The Czech company number has an invalid check digit.',
+        'reference_archived' => 'The selected record is archived, choose another one.',
+        'business_address_incomplete' => 'The business address is incomplete (street, city and postcode).',
+        'contact_identity_changed' => 'The company number differs from the selected contact. Restore the contact\'s number or remove the contact.',
     ],
     'statuses' => [
         'archived' => 'Archived',
@@ -75,7 +78,7 @@ return [
             'iban' => 'IBAN',
             'number' => 'Account number',
             'bank_code' => 'Bank code',
-            'country' => 'Account country',
+            'country' => 'Country',
             'swift' => 'SWIFT/BIC',
             'bank_name' => 'Bank name',
             'default' => 'Default',

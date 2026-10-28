@@ -3,6 +3,7 @@
 namespace App\Domain\Invoice\DTO;
 
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Shared\Money\ValueObjects\Money;
 
 class InvoiceDTO
@@ -16,8 +17,7 @@ class InvoiceDTO
     public function __construct(
         public readonly InvoiceId $id,
         public readonly int $user_id,
-        public readonly ?int $client_id,
-        public readonly ?int $supplier_id,
+        public readonly DocumentParties $parties,
         public readonly ?string $number,
         public readonly ?string $payment_reference,
         public readonly ?string $constant_code,
@@ -82,8 +82,7 @@ class InvoiceDTO
         return new self(
             id: $data['id'] instanceof InvoiceId ? $data['id'] : InvoiceId::fromInt((int) $data['id']),
             user_id: (int) ($data['user_id'] ?? 0),
-            client_id: isset($data['client_id']) ? (int) $data['client_id'] : null,
-            supplier_id: isset($data['supplier_id']) ? (int) $data['supplier_id'] : null,
+            parties: $data['parties'],
             number: $data['number'] ?? null,
             payment_reference: $data['payment_reference'] ?? null,
             constant_code: $data['constant_code'] ?? null,

@@ -3,6 +3,7 @@
 namespace App\Application\Invoice\Contracts;
 
 use App\Application\Invoice\DTO\InvoiceActionResult;
+use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 
 interface InvoiceMutationApplicationServiceInterface
@@ -14,6 +15,7 @@ interface InvoiceMutationApplicationServiceInterface
     public function create(
         int $userId,
         array $data,
+        InvoicePartySelection $parties,
         array $products,
     ): InvoiceActionResult;
 
@@ -25,6 +27,7 @@ interface InvoiceMutationApplicationServiceInterface
         int $userId,
         int $invoiceId,
         array $data,
+        InvoicePartySelection $parties,
         array $products,
     ): InvoiceActionResult;
 }

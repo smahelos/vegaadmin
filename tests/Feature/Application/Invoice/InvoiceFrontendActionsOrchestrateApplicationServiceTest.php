@@ -3,14 +3,11 @@
 namespace Tests\Feature\Application\Invoice;
 
 use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
 use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
-use App\Models\PaymentMethod;
+use App\Models\Invoice;
 use App\Models\Status;
-use App\Models\StatusCategory;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -22,8 +19,6 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
     use AssertsInvoiceActionResult;
 
     private InvoiceFrontendActionsApplicationServiceInterface $frontend;
-
-    private InvoiceMutationApplicationServiceInterface $mutation;
 
     private User $user;
 
@@ -107,53 +102,20 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
         };
         $this->app->instance(UniversalLimitServiceInterface::class, $fakeLimit);
         $this->frontend = app(InvoiceFrontendActionsApplicationServiceInterface::class);
-        $this->mutation = app(InvoiceMutationApplicationServiceInterface::class);
     }
 
-    private function baseData(): array
+    private function pendingInvoiceId(): int
     {
-        // Ensure paid status exists for potential mark paid result message
-        Status::firstOrCreate(['slug' => 'paid'], [
-            'name' => 'Paid',
-            'category_id' => StatusCategory::factory()->create()->id,
-            'color' => 'bg-green-100 text-green-800',
-            'description' => 'Paid status',
-            'is_active' => true,
-        ]);
-
-        return [
-            'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
-            'payment_amount' => 10,
-            'payment_currency' => 'EUR',
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->format('Y-m-d'),
-            'due_in' => 14,
+        return Invoice::factory()->create([
+            'user_id' => $this->user->id,
             'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-            'name' => 'Supp ' . uniqid(),
-            'street' => 'Street',
-            'city' => 'City',
-            'zip' => '10000',
-            'country' => 'CZ',
-            'client_name' => 'Client ' . uniqid(),
-            'client_street' => 'C St',
-            'client_city' => 'C City',
-            'client_zip' => '99999',
-            'client_country' => 'CZ',
-            'invoice_text' => 'Txt',
-        ];
+        ])->id;
     }
 
     #[Test]
     public function can_orchestrate_template_and_mark_paid(): void
     {
-        $create = $this->mutation->create(
-            $this->user->id,
-            $this->baseData(),
-            [],
-        );
-        $this->assertInvoiceSuccess($create, 'Create failed');
-        $invoiceId = $create->invoice->id;
+        $invoiceId = $this->pendingInvoiceId();
         $result = $this->frontend->orchestrate(
             $this->user->id,
             $invoiceId,

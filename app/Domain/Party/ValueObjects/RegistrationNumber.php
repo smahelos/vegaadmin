@@ -47,6 +47,11 @@ final readonly class RegistrationNumber
         return $this->country === Country::CZ;
     }
 
+    public function equals(self $other): bool
+    {
+        return $this->country === $other->country && $this->number === $other->number;
+    }
+
     /**
      * Eight digits, the last one a mod-11 check digit; missing leading zeros are not added.
      */
