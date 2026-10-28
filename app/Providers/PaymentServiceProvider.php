@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Application\Payment\Contracts\BankRepository;
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
 use App\Application\Payment\Contracts\PaymentReadRepositoryInterface;
 use App\Application\Payment\Contracts\PaymentWriteRepositoryInterface;
@@ -25,7 +24,6 @@ use App\Domain\Payment\Services\GatewayRegistry;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\Services\SubscriptionPaymentService;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentBankDtoRepository;
-use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentBankRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentDtoReadRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentDtoWriteRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentMethodDtoRepository;
@@ -130,11 +128,6 @@ class PaymentServiceProvider extends ServiceProvider
         $this->app->bind(
             PaymentMethodDtoWriteRepositoryInterface::class,
             EloquentPaymentMethodDtoRepository::class,
-        );
-
-        $this->app->bind(
-            BankRepository::class,
-            EloquentBankRepository::class,
         );
 
         $this->app->bind(

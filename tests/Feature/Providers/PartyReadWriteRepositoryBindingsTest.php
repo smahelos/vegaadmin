@@ -15,9 +15,7 @@ class PartyReadWriteRepositoryBindingsTest extends TestCase
     private array $interfaces = [
         // Align with current architecture: DTO repositories are the domain contracts
         'App\\Domain\\Party\\Contracts\\ClientDtoReadRepositoryInterface',
-        'App\\Domain\\Party\\Contracts\\ClientDtoWriteRepositoryInterface',
         'App\\Domain\\Party\\Contracts\\SupplierDtoReadRepositoryInterface',
-        'App\\Domain\\Party\\Contracts\\SupplierDtoWriteRepositoryInterface',
     ];
 
     #[Test]

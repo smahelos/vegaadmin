@@ -164,19 +164,9 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Fix (decided 2026-10-25, refined 2026-10-26, `docs/adr/D-045-businesses-and-contacts.md`, step 7):** `Business` (`businesses`, "Moje firmy") replaces `suppliers`, `Contact` (`contacts`, "Kontakty") replaces `clients` and also holds the suppliers of received documents. One shared address book per user, document-derived roles, optional email/phone, explicit saving of one-off counterparties, separate addresses and multiple bank accounts with one common default. Archive/restore businesses and contacts in this branch; plans count active records. Only Czech IČO duplicates block in version 1; foreign matches warn. Remove `products.supplier_id` for a shared user catalogue. The original ADR questions, edge behaviour and minimal current-expense scope are resolved in the approved version 1.0 of `docs/PRD_BUSINESSES_AND_CONTACTS.md`. This is a plan, not a completed conversion.
 
 ### Clients, suppliers and products cannot be archived
-- **Where:** `clients`, `suppliers`, `products` (no `deleted_at`), `InvoicePartyService::deleteClient()` / `deleteSupplier()`, `ProductService::deleteProduct()`, the restricting foreign keys of `invoices`, `invoice_products` and `expenses`, the unique indexes `(user_id, ico)` and `(user_id, slug)`
+- **Where:** `clients`, `suppliers`, `products` (no `deleted_at`), `ProductService::deleteProduct()`, the restricting foreign keys of `invoices`, `invoice_products` and `expenses`, the unique indexes `(user_id, ico)` and `(user_id, slug)`
 - **Problem:** documents keep their client, supplier and product (foreign keys restrict deleting them), so a user cannot remove a client they have invoiced from their lists; the delete is refused with a message. Soft deletes would collide with the unique indexes: a new client with the IČO of an archived one is refused.
 - **Fix (decided 2026-10-25, refined 2026-10-26):** business/contact archiving (an `archived_at` column, not Laravel soft deletes, so the unique key on the Czech IČO keeps covering archived records) and restore move to step 7 with their new model (`docs/PRD_BUSINESSES_AND_CONTACTS.md`); product archiving stays in step 8. Archived records disappear from new selections and remain in the archive, on documents and in statistics. Matching an archived Czech registration identity offers explicit restoration without silently changing its state or data. Archive frees active-count capacity; restore requires capacity. The last active business may be archived, with history retained and further issuing requiring an active business. Domain methods throw exceptions instead of returning `false` (`rules/domain.md`).
-
-### Optional client and supplier fields cannot be cleared
-- **Where:** `app/Domain/Party/DTO/ClientWriteData.php`, `SupplierWriteData.php` (`toArray()`), `InvoicePartyService::updateClient()` / `updateSupplier()`, the frontend client and supplier edit forms
-- **Problem:** the write data drop every `null` so that an update changes only what was sent. The form sends an emptied field as `null` (`ConvertEmptyStringsToNull`), so emptying the IČO, DIČ, phone, e-mail or description of a client or supplier and saving keeps the old value. Found while normalising an empty IČO to `null` (PR #57).
-- **Fix:** an update carries the whole state of the form, with `null` meaning empty; setting the default changes only the flag in its own query (today `Client::saving()` and `Supplier::saving()` unset the user's other default). An HTTP test empties each optional field. With the split into businesses and contacts (step 7).
-
-### Inactive banks are still offered
-- **Where:** `banks.active`, `app/Infrastructure/Persistence/Eloquent/Payment/Repositories/EloquentBankRepository.php` (`getAllBanks()`)
-- **Problem:** the admin can mark a bank inactive, but the bank list for supplier forms filters only by country, so the flag changes nothing.
-- **Fix:** list only active banks for the supplier forms (the admin list keeps all), or drop the column.
 
 ### Expense detail has no attachment links
 - **Where:** `app/Http/Controllers/Admin/ExpenseCrudController.php` (`setupShowOperation()`)
@@ -295,7 +285,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** add `declare(strict_types=1)` and `final` (except abstract bases and Eloquent models, `rules/php.md`); the test suite catches the coercions this exposes.
 
 ### Transaction boundaries
-- **Where:** `ProductApplicationService`, `PartyApplicationService` (`DB::transaction()`), `app/Domain/User/Services/UserService.php` (`create()`, `updateById()`), `SubscriptionPaymentService`, `app/Infrastructure/Persistence/Eloquent/Shared/Database/EloquentTransactionBoundary.php` (not `final`)
+- **Where:** `ProductApplicationService` (`DB::transaction()`), `app/Domain/User/Services/UserService.php` (`create()`, `updateById()`), `SubscriptionPaymentService`, `app/Infrastructure/Persistence/Eloquent/Shared/Database/EloquentTransactionBoundary.php` (not `final`)
 - **Problem:** use cases open transactions through the facade instead of `TransactionBoundaryInterface`; Domain services open transactions themselves, `UserService` around a single write.
 - **Fix:** per `rules/application.md`: the application service opens the transaction through the port when the use case writes more than one record; single writes need none.
 

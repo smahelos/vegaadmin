@@ -3,13 +3,9 @@
 namespace App\Infrastructure\Persistence\Eloquent\Party\Repositories;
 
 use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
-use App\Domain\Party\Contracts\ClientDtoWriteRepositoryInterface;
 use App\Domain\Party\DTO\ClientDTO;
-use App\Domain\Party\DTO\ClientWriteData;
 use App\Domain\Party\ValueObjects\PartyId;
-use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Party\Mappers\EloquentClientMapper as Mapper;
-use App\Models\Client;
 
 /**
  * DTO read repository implemented over Eloquent models.
@@ -19,44 +15,14 @@ use App\Models\Client;
  * - Maps models to domain DTOs via EloquentPageMapper
  * - Intended for Domain services to avoid Eloquent dependencies
  */
-class EloquentClientDtoRepository implements ClientDtoReadRepositoryInterface, ClientDtoWriteRepositoryInterface
+class EloquentClientDtoRepository implements ClientDtoReadRepositoryInterface
 {
     public function __construct(private readonly EloquentClientRepository $repo) {}
-
-    public function getDefaultClient(int $userId): ?ClientDTO
-    {
-        $m = $this->repo->getDefaultClient($userId);
-
-        return $m ? Mapper::toClientDTO($m) : null;
-    }
 
     public function findById(PartyId $id): ?ClientDTO
     {
         $m = $this->repo->findById($id->toInt());
 
         return $m ? Mapper::toClientDTO($m) : null;
-    }
-
-    public function findByIdForUser(PartyId $id, UserId $userId): ?ClientDTO
-    {
-        $m = $this->repo->findByIdForUser($id->toInt(), $userId->toInt());
-
-        return $m ? Mapper::toClientDTO($m) : null;
-    }
-
-    public function firstForUser(int $userId): ?ClientDTO
-    {
-        $m = $this->repo->firstForUser($userId);
-
-        return $m ? Mapper::toClientDTO($m) : null;
-    }
-
-    public function create(ClientWriteData $data): ClientDTO
-    {
-        $model = Client::create($data->toArray());
-
-        // Load relations to keep consistency with read DTOs (e.g., category)
-        // $model->load(['category', 'children']);
-        return Mapper::toClientDTO($model);
     }
 }

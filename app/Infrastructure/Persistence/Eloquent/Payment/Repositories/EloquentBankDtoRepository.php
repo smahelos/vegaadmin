@@ -11,26 +11,8 @@ use App\Models\Bank;
 class EloquentBankDtoRepository implements BankDtoRepository
 {
     public function __construct(
-        private readonly EloquentBankRepository $banksRepository,
         private readonly EloquentBankMapper $mapper,
     ) {}
-
-    /**
-     * Get all banks
-     */
-    public function getAllBanks(
-        string $country = 'CZ',
-        string $orderBy = 'created_at',
-        string $orderDirection = 'asc',
-    ): array {
-        $banks = $this->banksRepository->getAllBanks(
-            $country,
-            $orderBy,
-            $orderDirection,
-        );
-
-        return array_map(fn ($bank) => $this->mapper->toDto($bank), $banks);
-    }
 
     public function listActiveForCountry(Country $country): array
     {

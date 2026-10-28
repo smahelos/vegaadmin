@@ -6,9 +6,6 @@ use App\Domain\Analytics\Events\AnalyticsDataChanged;
 use App\Domain\Analytics\Events\Handlers\InvalidateAnalyticsCache;
 use App\Domain\Invoice\Events\Handlers\UsageRecordingHandler as InvoiceUsageRecordingHandler;
 use App\Domain\Invoice\Events\InvoiceCreated;
-use App\Domain\Party\Events\ClientCreated;
-use App\Domain\Party\Events\Handlers\UsageRecordingHandler as PartyUsageRecordingHandler;
-use App\Domain\Party\Events\SupplierCreated;
 use App\Domain\Product\Events\Handlers\UsageRecordingHandler as ProductUsageRecordingHandler;
 use App\Domain\Product\Events\ProductCreated;
 use App\Domain\Shared\Events\DomainEventDispatcher;
@@ -45,15 +42,6 @@ class DomainEventsServiceProvider extends ServiceProvider
      */
     private function registerEventHandlers(DomainEventDispatcher $dispatcher): void
     {
-        // Usage Recording Handler - handles client/supplier creation usage tracking
-        $dispatcher->register(
-            [
-                ClientCreated::class,
-                SupplierCreated::class,
-            ],
-            app(PartyUsageRecordingHandler::class),
-        );
-
         // Usage Recording Handler - handles product creation usage tracking
         $dispatcher->register(
             [

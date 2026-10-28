@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-26T21:02:39+00:00",
+    "generated_at": "2026-10-28T10:39:57+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -303,14 +303,6 @@
         "App\\Providers\\PartyServiceProvider": {
             "bind": [
                 {
-                    "abstract": "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface",
-                    "concrete": "App\\Domain\\Party\\Services\\InvoicePartyService"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface",
-                    "concrete": "App\\Domain\\Party\\Validation\\PartyCreationValidator"
-                },
-                {
                     "abstract": "App\\Domain\\Party\\Contracts\\BusinessReadRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBusinessRepository"
                 },
@@ -339,56 +331,15 @@
                     "concrete": "App\\Infrastructure\\Gateways\\Party\\AresCompanyRegistry"
                 },
                 {
-                    "abstract": "App\\Application\\Party\\Contracts\\ClientReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Contracts\\ClientWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository"
-                },
-                {
                     "abstract": "App\\Domain\\Party\\Contracts\\ClientDtoReadRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Party\\Contracts\\ClientDtoWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Contracts\\SupplierReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Contracts\\SupplierWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository"
-                },
-                {
                     "abstract": "App\\Domain\\Party\\Contracts\\SupplierDtoReadRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierDtoWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Contracts\\PartyApplicationServiceInterface",
-                    "concrete": "App\\Application\\Party\\Services\\PartyApplicationService"
                 }
             ],
-            "singleton": [
-                {
-                    "abstract": "App\\Application\\Party\\Services\\PartyAuthorizationService",
-                    "concrete": "closure"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Mappers\\ClientArrayMapper",
-                    "concrete": "closure"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Mappers\\SupplierArrayMapper",
-                    "concrete": "closure"
-                }
-            ]
+            "singleton": []
         },
         "App\\Providers\\PaymentServiceProvider": {
             "bind": [
@@ -399,10 +350,6 @@
                 {
                     "abstract": "App\\Domain\\Payment\\Contracts\\SubscriptionPaymentServiceInterface",
                     "concrete": "App\\Domain\\Payment\\Services\\SubscriptionPaymentService"
-                },
-                {
-                    "abstract": "App\\Domain\\Payment\\Contracts\\BankServiceInterface",
-                    "concrete": "App\\Domain\\Payment\\Services\\BankService"
                 },
                 {
                     "abstract": "App\\Application\\Payment\\Contracts\\PaymentWriteRepositoryInterface",
@@ -443,10 +390,6 @@
                 {
                     "abstract": "App\\Domain\\Payment\\Contracts\\PaymentMethodDtoWriteRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentMethodDtoRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Payment\\Contracts\\BankRepository",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentBankRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Payment\\Contracts\\BankDtoRepository",
@@ -784,46 +727,6 @@
                 "method": "bind"
             }
         },
-        "App\\Application\\Party\\Contracts\\ClientReadRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Party\\Contracts\\ClientWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Party\\Contracts\\PartyApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Party\\Services\\PartyApplicationService",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Party\\Contracts\\SupplierReadRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Party\\Contracts\\SupplierWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Application\\Payment\\Contracts\\PaymentApplicationServiceInterface": {
             "status": "ok",
             "actual": {
@@ -1064,14 +967,6 @@
                 "method": "bind"
             }
         },
-        "App\\Domain\\Party\\Contracts\\ClientDtoWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Domain\\Party\\Contracts\\CompanyRegistryInterface": {
             "status": "ok",
             "actual": {
@@ -1096,43 +991,11 @@
                 "method": "bind"
             }
         },
-        "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Domain\\Party\\Services\\InvoicePartyService",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Domain\\Party\\Validation\\PartyCreationValidator",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Domain\\Party\\Contracts\\SupplierDtoReadRepositoryInterface": {
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository",
                 "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Party\\Contracts\\SupplierDtoWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Payment\\Contracts\\BankServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Domain\\Payment\\Services\\BankService",
-                "provider": "App\\Providers\\PaymentServiceProvider",
                 "method": "bind"
             }
         },
