@@ -1,15 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
-use App\Infrastructure\Shared\File\Factories\IncomingFileFactory;
 use App\Infrastructure\Shared\File\Traits\HasFileUploads;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Http\UploadedFile;
 
 class Expense extends Model
 {
@@ -80,11 +79,21 @@ class Expense extends Model
     ];
 
     /**
-     * Get the supplier associated with this expense.
+     * The business whose purchase this document records.
      */
-    public function supplier(): BelongsTo
+    public function business(): BelongsTo
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(Business::class);
+    }
+
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class);
+    }
+
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(BankAccount::class);
     }
 
     /**
@@ -127,56 +136,6 @@ class Expense extends Model
         return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
 
-    /**
-     * Handle multiple files upload for attachments
-     */
-    public function setAttachmentsAttribute(mixed $value): void
-    {
-        $fileUploadService = app(FileUploadServiceInterface::class);
-        $current = $this->attachments ?? [];
-
-        // Handle removals
-        if (request()->has('attachments_removed')) {
-            $removed = json_decode(request()->input('attachments_removed'), true) ?? [];
-            foreach ($removed as $file) {
-                $fileUploadService->deleteFile($file, 'public');
-                $current = array_values(array_filter($current, fn ($f) => $f !== $file));
-            }
-        }
-
-        // Process new uploads via context aware service (context: attachment)
-        if (request()->hasFile('attachments')) {
-            $destinationPath = 'expenses/attachments/' . ($this->id ?? uniqid());
-            foreach (request()->file('attachments') as $file) {
-                $stored = $fileUploadService->handleFileUpload(
-                    $file instanceof UploadedFile ? IncomingFileFactory::fromUploadedFile($file) : $file,
-                    'attachments',
-                    $destinationPath,
-                    [
-                        'disk' => 'public',
-                        'randomizeFilename' => false, // unique ensured by generateUniqueFilename in service when sanitize true
-                        'sanitizeFilename' => true,
-                        'createThumbnails' => false,
-                    ],
-                    null,
-                    'attachment',
-                );
-                if ($stored) {
-                    $current[] = $stored;
-                }
-            }
-        }
-
-        if (is_array($value) && isset($value[0]) && is_string($value[0])) {
-            $this->attributes['attachments'] = json_encode($value);
-        } else {
-            $this->attributes['attachments'] = json_encode(array_values($current));
-        }
-    }
-
-    /**
-     * Get URL to the receipt file
-     */
     public function getFileUrl(string $attribute = 'attachments', ?int $index = null): ?string
     {
         return $this->getAttributeFileUrl($attribute, $index);

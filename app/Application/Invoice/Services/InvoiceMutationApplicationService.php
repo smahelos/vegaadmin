@@ -8,6 +8,7 @@ use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountNotFoundException;
@@ -16,6 +17,7 @@ use App\Domain\Party\Exceptions\ContactIdentityChangedException;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\Exceptions\IncompleteBusinessAddressException;
+use App\Domain\Party\Exceptions\IncompleteDocumentPartyException;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
@@ -48,13 +50,15 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
 
             return InvoiceActionResult::success(message: 'invoices.messages.created', invoice: $model);
         } catch (
+            InvoiceNotFoundException|
             ArchivedReferenceSelectedException|
             BankAccountNotFoundException|
             BusinessNotFoundException|
             ContactIdentityChangedException|
             ContactNotFoundException|
             DuplicateCompanyNumberException|
-            IncompleteBusinessAddressException $e
+            IncompleteBusinessAddressException|
+            IncompleteDocumentPartyException $e
         ) {
             // The exception handler answers these as validation errors or a 404
             throw $e;
@@ -76,7 +80,7 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
         int $invoiceId,
         array $data,
         InvoicePartySelection $parties,
-        array $products,
+        ?array $products,
     ): InvoiceActionResult {
         try {
             $invoice = $this->invoiceCrud->update(
@@ -92,13 +96,15 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
 
             return InvoiceActionResult::success(message: 'invoices.messages.updated', invoice: $model);
         } catch (
+            InvoiceNotFoundException|
             ArchivedReferenceSelectedException|
             BankAccountNotFoundException|
             BusinessNotFoundException|
             ContactIdentityChangedException|
             ContactNotFoundException|
             DuplicateCompanyNumberException|
-            IncompleteBusinessAddressException $e
+            IncompleteBusinessAddressException|
+            IncompleteDocumentPartyException $e
         ) {
             // The exception handler answers these as validation errors or a 404
             throw $e;

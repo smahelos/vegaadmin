@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-28T10:39:57+00:00",
+    "generated_at": "2026-10-29T07:25:19+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -224,6 +224,14 @@
                 {
                     "abstract": "App\\Domain\\Invoice\\Contracts\\InvoicePrintDataBuilderInterface",
                     "concrete": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\ExpenseReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\ExpenseWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Invoice\\Notifications\\Contracts\\InvoiceReminderNotifierInterface",
@@ -884,6 +892,22 @@
             "actual": {
                 "implementation": "App\\Domain\\Content\\Services\\PageService",
                 "provider": "App\\Providers\\ContentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\ExpenseReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\ExpenseWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
         },

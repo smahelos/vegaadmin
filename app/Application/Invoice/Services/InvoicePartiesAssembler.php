@@ -6,7 +6,6 @@ namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Application\Party\Services\BankAccountApplicationService;
-use App\Application\Party\Services\BusinessApplicationService;
 use App\Application\Party\Services\ContactApplicationService;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\DTO\DocumentAccountDTO;
@@ -33,9 +32,10 @@ use App\Domain\User\ValueObjects\UserId;
 final class InvoicePartiesAssembler
 {
     public function __construct(
-        private readonly BusinessApplicationService $businesses,
+        private readonly DocumentBusinessAssembler $businesses,
         private readonly ContactApplicationService $contacts,
         private readonly BankAccountApplicationService $accounts,
+        private readonly DocumentCounterpartyAssembler $counterparties,
     ) {}
 
     /**
@@ -62,24 +62,34 @@ final class InvoicePartiesAssembler
             $stored->businessId->equals($selection->businessId);
         $copyBusiness = ! $keepBusiness;
 
-        $supplier = $keepBusiness
-            ? $stored->supplier
-            : $this->supplier(
+        $supplier = $this->businesses->assemble(
+            $userId,
+            $selection->businessId,
+            $stored,
+            $selection->reloadBusiness,
+            true,
+        );
+
+        $customer = $selection->customer;
+        $contactId = $selection->contactId;
+        if ($contactId !== null) {
+            $customer = $this->counterparties->assemble(
                 $userId,
-                $selection->businessId,
-                $stored,
+                $contactId,
+                $customer,
+                $stored?->contactId,
+                $selection->copyContact,
             );
+        } elseif ($selection->saveCustomerToContacts) {
+            $contactId = $this->saveToContacts($userId, $customer);
+        }
 
         return new DocumentParties(
             businessId: $selection->businessId,
-            contactId: $this->contactId(
-                $userId,
-                $selection,
-                $stored,
-            ),
+            contactId: $contactId,
             bankAccountId: $selection->bankAccountId,
             supplier: $supplier,
-            customer: $selection->customer,
+            customer: $customer,
             account: $this->account(
                 $userId,
                 $selection,
@@ -87,24 +97,6 @@ final class InvoicePartiesAssembler
                 $copyBusiness,
             ),
         );
-    }
-
-    private function supplier(
-        UserId $userId,
-        BusinessId $businessId,
-        ?DocumentParties $stored,
-    ): DocumentPartyDTO {
-        $business = $this->businesses->get($userId, $businessId);
-        if ($business->isArchived() && ! $this->isStored($businessId, $stored?->businessId)) {
-            throw new ArchivedReferenceSelectedException($businessId);
-        }
-
-        $supplier = DocumentPartyDTO::fromProfile($business->profile);
-        if (! $supplier->hasCompleteAddress()) {
-            throw new IncompleteBusinessAddressException($businessId);
-        }
-
-        return $supplier;
     }
 
     /**
@@ -135,27 +127,6 @@ final class InvoicePartiesAssembler
         }
 
         return DocumentAccountDTO::fromBankAccount($account);
-    }
-
-    private function contactId(
-        UserId $userId,
-        InvoicePartySelection $selection,
-        ?DocumentParties $stored,
-    ): ?ContactId {
-        $contactId = $selection->contactId;
-        if ($contactId === null) {
-            return $selection->saveCustomerToContacts ? $this->saveToContacts($userId, $selection->customer) : null;
-        }
-
-        $contact = $this->contacts->get($userId, $contactId);
-        if ($contact->isArchived() && ! $this->isStored($contactId, $stored?->contactId)) {
-            throw new ArchivedReferenceSelectedException($contactId);
-        }
-        if (! $selection->customer->hasIdentityOf($contact->profile)) {
-            throw new ContactIdentityChangedException($contactId);
-        }
-
-        return $contactId;
     }
 
     private function saveToContacts(UserId $userId, DocumentPartyDTO $customer): ContactId

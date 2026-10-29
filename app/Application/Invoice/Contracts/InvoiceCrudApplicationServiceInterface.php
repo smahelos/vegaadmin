@@ -33,6 +33,6 @@ interface InvoiceCrudApplicationServiceInterface
         InvoiceId $invoiceId,
         array $data,
         InvoicePartySelection $parties,
-        array $products,
+        ?array $products,
     ): InvoiceDTO;
 }

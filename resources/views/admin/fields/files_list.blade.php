@@ -77,17 +77,17 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
 @push('crud_fields_styles')
 <style>
     .file-upload-area {
-        border: 2px dashed #ccc;
+        border: 2px dashed var(--tblr-border-color);
         padding: 20px;
         text-align: center;
-        background-color: #f8f9fa;
+        background-color: var(--tblr-bg-surface-secondary);
         border-radius: 4px;
         transition: all 0.3s;
     }
 
     .file-upload-area.active {
-        border-color: #4CAF50;
-        background-color: #f0f9f0;
+        border-color: var(--tblr-primary);
+        background-color: var(--tblr-primary-lt);
     }
 
     .upload-button {
@@ -100,7 +100,7 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
     }
 
     .file-item:hover {
-        background-color: #f8f9fa;
+        background-color: var(--tblr-bg-surface-secondary);
     }
 
     .progress {

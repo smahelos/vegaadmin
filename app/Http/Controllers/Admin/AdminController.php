@@ -1,26 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Client;
+use App\Models\Business;
+use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Subscription;
-use App\Models\Supplier;
 use App\Models\User;
 use App\Models\UserActivitySummary;
 use Backpack\CRUD\app\Http\Controllers\AdminController as BackpackAdminController;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
-class AdminController extends BackpackAdminController
+final class AdminController extends BackpackAdminController
 {
     public function dashboard(): View
     {
-        $this->data['title'] = trans('backpack::base.dashboard');
+        $this->data['title'] = __('backpack::base.dashboard');
         $this->data['breadcrumbs'] = [
-            trans('backpack::crud.admin') => backpack_url('dashboard'),
-            trans('backpack::base.dashboard') => false,
+            __('backpack::crud.admin') => backpack_url('dashboard'),
+            __('backpack::base.dashboard') => false,
         ];
 
         // Get basic statistics
@@ -39,8 +41,8 @@ class AdminController extends BackpackAdminController
     {
         try {
             $totalInvoices = Invoice::count();
-            $totalClients = Client::count();
-            $totalSuppliers = Supplier::count();
+            $totalContacts = Contact::whereNull('archived_at')->count();
+            $totalBusinesses = Business::whereNull('archived_at')->count();
             $totalProducts = Product::count();
             $totalUsers = User::count();
 
@@ -50,7 +52,7 @@ class AdminController extends BackpackAdminController
                 '>=',
                 now()->subDays(30),
             )->count();
-            $recentClients = Client::where(
+            $recentContacts = Contact::whereNull('archived_at')->where(
                 'created_at',
                 '>=',
                 now()->subDays(30),
@@ -71,12 +73,12 @@ class AdminController extends BackpackAdminController
 
             return [
                 'total_invoices' => $totalInvoices,
-                'total_clients' => $totalClients,
-                'total_suppliers' => $totalSuppliers,
+                'total_contacts' => $totalContacts,
+                'total_businesses' => $totalBusinesses,
                 'total_products' => $totalProducts,
                 'total_users' => $totalUsers,
                 'recent_invoices' => $recentInvoices,
-                'recent_clients' => $recentClients,
+                'recent_contacts' => $recentContacts,
                 'total_revenue' => $totalRevenue,
                 'monthly_revenue' => $monthlyRevenue,
                 'total_subscriptions' => $subscriptions,
@@ -86,12 +88,12 @@ class AdminController extends BackpackAdminController
 
             return [
                 'total_invoices' => 0,
-                'total_clients' => 0,
-                'total_suppliers' => 0,
+                'total_contacts' => 0,
+                'total_businesses' => 0,
                 'total_products' => 0,
                 'total_users' => 0,
                 'recent_invoices' => 0,
-                'recent_clients' => 0,
+                'recent_contacts' => 0,
                 'total_revenue' => 0,
                 'monthly_revenue' => 0,
                 'total_subscriptions' => 0,

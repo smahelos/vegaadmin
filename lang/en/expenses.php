@@ -1,11 +1,19 @@
 <?php
 
 return [
+    'sections' => [
+        'document' => 'Document details',
+        'amounts' => 'Amounts, VAT and currency',
+        'status' => 'Status and category',
+        'other' => 'Other details and attachments',
+    ],
     'entity' => [
         'singular' => 'Expense',
         'plural' => 'Expenses',
     ],
     'fields' => [
+        'supplier' => 'Supplier',
+        'customer' => 'Customer',
         'expense_date' => 'Date',
         'amount' => 'Amount',
         'currency' => 'Currency',
@@ -26,6 +34,10 @@ return [
         'reference_number' => 'E.g. invoice number, receipt number, etc.',
         'attachments' => 'Upload files related to this expense (images, PDFs, documents).',
         'tax_included' => 'Check if tax is already included in the total amount',
+    ],
+    'messages' => [
+        'created' => 'Expense created.',
+        'updated' => 'Expense updated.',
     ],
     'filters' => [
         'date_range' => 'Date Range',

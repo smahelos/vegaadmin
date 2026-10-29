@@ -62,7 +62,7 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
         InvoiceId $invoiceId,
         array $data,
         InvoicePartySelection $parties,
-        array $products,
+        ?array $products,
     ): InvoiceDTO {
         return $this->transaction->transaction(function () use ($userId, $invoiceId, $data, $parties, $products): InvoiceDTO {
             $stored = $this->invoices->findByIdForUser($invoiceId, $userId)

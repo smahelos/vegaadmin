@@ -224,6 +224,10 @@ return [
         'invoice_text' => 'Fakturace služeb',
     ],
     'sections' => [
+        'document' => 'Údaje dokladu',
+        'amounts' => 'Částka a měna',
+        'status' => 'Stav faktury',
+        'other' => 'Text a logo faktury',
         'invoice_details' => 'Údaje o faktuře',
         'invoice_info' => 'Informace o faktuře',
         'seller_details' => 'Údaje o vystaviteli',

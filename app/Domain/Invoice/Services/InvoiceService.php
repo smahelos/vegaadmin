@@ -16,6 +16,7 @@ use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Party\DTO\DocumentParties;
+use App\Domain\Product\Contracts\InvoiceProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\Money\Enums\Currency;
@@ -29,6 +30,7 @@ final class InvoiceService implements InvoiceServiceInterface
         private readonly InvoiceDtoWriteRepositoryInterface $invoiceWriteRepository,
         private readonly InvoiceDtoReadRepositoryInterface $invoiceReadRepository,
         private readonly InvoiceProductDtoWriteRepositoryInterface $invoiceProductRepository,
+        private readonly InvoiceProductDtoReadRepositoryInterface $invoiceProductReader,
     ) {}
 
     /**
@@ -82,7 +84,7 @@ final class InvoiceService implements InvoiceServiceInterface
         InvoiceId $invoiceId,
         array $data,
         DocumentParties $parties,
-        array $invoiceProducts,
+        ?array $invoiceProducts,
     ): InvoiceDTO {
         $invoice = $this->invoiceReadRepository->findByIdForUser($invoiceId, $userId);
         if (! $invoice) {
@@ -90,11 +92,15 @@ final class InvoiceService implements InvoiceServiceInterface
         }
 
         $data['user_id'] = $userId->toInt();
-        $data['total_amount'] = $this->totalOf($data, $invoiceProducts);
+        $data['total_amount'] = $invoiceProducts === null
+            ? $this->storedTotal($invoiceId, $data)
+            : $this->totalOf($data, $invoiceProducts);
         $invoice = $this->invoiceWriteRepository->update($invoice->id, InvoiceWriteData::fromArray($data, $parties));
 
-        $this->invoiceProductRepository->deleteByInvoiceId($invoiceId);
-        $this->saveInvoiceProducts($invoiceId, $invoiceProducts);
+        if ($invoiceProducts !== null) {
+            $this->invoiceProductRepository->deleteByInvoiceId($invoiceId);
+            $this->saveInvoiceProducts($invoiceId, $invoiceProducts);
+        }
 
         return $invoice;
     }
@@ -113,13 +119,32 @@ final class InvoiceService implements InvoiceServiceInterface
     }
 
     /**
-     * The invoice amount is always the sum of its lines; an amount typed into the form is ignored.
+     * Line items determine the amount when present; a document without lines carries its entered amount.
      *
      * @param  array<string, mixed>  $data
      * @param  list<InvoiceProductWriteData>  $products
      */
     private function totalOf(array $data, array $products): Money
     {
+        if ($products === []) {
+            return Money::fromString((string) ($data['payment_amount'] ?? '0'), (string) $data['payment_currency']);
+        }
+
         return InvoiceTotals::fromProducts(Currency::from((string) $data['payment_currency']), $products)->total();
+    }
+
+    /** @param array<string, mixed> $data */
+    private function storedTotal(InvoiceId $invoiceId, array $data): Money
+    {
+        $lines = $this->invoiceProductReader->amountsForInvoice($invoiceId);
+        if ($lines === []) {
+            return $this->totalOf($data, []);
+        }
+        $totals = InvoiceTotals::zero(Currency::from((string) $data['payment_currency']));
+        foreach ($lines as $line) {
+            $totals = $totals->withLine($line->total->subtract($line->tax), $line->tax);
+        }
+
+        return $totals->total();
     }
 }

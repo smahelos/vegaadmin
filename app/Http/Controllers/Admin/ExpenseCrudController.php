@@ -1,15 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Invoice\Services\ExpenseApplicationService;
+use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Domain\Invoice\ValueObjects\ExpenseId;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ExpenseRequest;
+use App\Infrastructure\Forms\Invoice\ExpenseFormFields;
+use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
-use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\StatusCategory;
-use App\Models\Supplier;
-use App\Models\Tax;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
@@ -19,13 +24,15 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\CRUD\app\Library\Widget;
+use Illuminate\Http\RedirectResponse;
+use Prologue\Alerts\Facades\Alert;
 
 /**
  * Class ExpenseCrudController
  *
  * @property-read CrudPanel $crud
  */
-class ExpenseCrudController extends CrudController
+final class ExpenseCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;
@@ -45,15 +52,16 @@ class ExpenseCrudController extends CrudController
             __('expenses.entity.plural'),
         );
 
-        // Only allow access if user has permission (using backpack guard)
-        $user = backpack_user();
-        if (! $user || ! backpack_user()->hasPermissionTo('can_create_edit_expense', 'backpack')) {
-            CRUD::denyAccess([
-                'list',
-                'create',
-                'update',
-                'delete',
-            ]);
+        foreach ([
+            'list' => 'view',
+            'show' => 'view',
+            'create' => 'create',
+            'update' => 'update',
+            'delete' => 'delete',
+        ] as $operation => $permission) {
+            if (backpack_user()?->can('can_' . $permission . '_expense') !== true) {
+                CRUD::denyAccess($operation);
+            }
         }
     }
 
@@ -71,10 +79,8 @@ class ExpenseCrudController extends CrudController
         CRUD::column('reference_number')
             ->label(__('expenses.fields.reference_number'));
 
-        CRUD::column('supplier')
-            ->label(__('expenses.fields.supplier_id'))
-            ->type('relationship')
-            ->attribute('name');
+        CRUD::column('supplier_name')->type('text')->label(__('expenses.fields.supplier'));
+        CRUD::column('customer_name')->type('text')->label(__('expenses.fields.customer'));
 
         CRUD::column('category')
             ->label(__('expenses.fields.category_id'))
@@ -135,10 +141,11 @@ class ExpenseCrudController extends CrudController
                 );
             });
 
-        CRUD::filter('supplier_id')
+        CRUD::filter('contact_id')
             ->type('select2')
-            ->label(__('expenses.fields.supplier_id'))
-            ->values(Supplier::pluck('name', 'id')->toArray());
+            ->label(__('invoices.fields.contact_id'))
+            ->values(Contact::pluck('name', 'id')->toArray())
+            ->whenActive(fn ($value) => CRUD::addClause('where', 'contact_id', $value));
 
         CRUD::filter('category_id')
             ->type('select2')
@@ -164,124 +171,50 @@ class ExpenseCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ExpenseRequest::class);
-
+        CRUD::addFields(ExpenseFormFields::fields(
+            app(CountryOptionsPresenter::class)->options(app()->getLocale()),
+            CRUD::getCurrentOperation() === 'update' ? CRUD::getCurrentEntry() : null,
+        ));
         Widget::add()->type('script')->content(asset('assets/js/admin/forms/expense-tax-calculator.js'));
+    }
 
-        // Basic information
-        CRUD::field('expense_date')
-            ->label(__('expenses.fields.expense_date'))
-            ->type('datepicker')
-            ->wrapper(['class' => 'form-group col-md-6']);
+    public function store(ExpenseApplicationService $expenses): RedirectResponse
+    {
+        $this->crud->hasAccessOrFail('create');
+        $request = $this->validatedRequest();
+        $expense = $expenses->create(
+            UserId::fromInt((int) $request->validated('user_id')),
+            $request->toWriteData(),
+            UserId::fromInt((int) backpack_user()->id),
+        );
+        Alert::success(__('expenses.messages.created'))->flash();
+        $this->crud->setSaveAction();
 
-        CRUD::field('reference_number')
-            ->label(__('expenses.fields.reference_number'))
-            ->hint(__('expenses.hints.reference_number'))
-            ->wrapper(['class' => 'form-group col-md-6']);
+        return $this->crud->performSaveAction($expense->id->value);
+    }
 
-        // Amount and currency
-        CRUD::field('amount')
-            ->label(__('expenses.fields.amount'))
-            ->type('number')
-            ->attributes(['step' => '0.01'])
-            ->wrapper(['class' => 'form-group col-md-6']);
+    public function update(ExpenseApplicationService $expenses): RedirectResponse
+    {
+        $this->crud->hasAccessOrFail('update');
+        $request = $this->validatedRequest();
+        $expense = $expenses->update(
+            UserId::fromInt((int) $request->validated('user_id')),
+            ExpenseId::fromInt((int) $this->crud->getCurrentEntryId()),
+            $request->toWriteData(),
+            UserId::fromInt((int) backpack_user()->id),
+        );
+        Alert::success(__('expenses.messages.updated'))->flash();
+        $this->crud->setSaveAction();
 
-        CRUD::field('currency')
-            ->label(__('expenses.fields.currency'))
-            ->type('select2_from_array')
-            ->options([
-                'CZK' => 'CZK',
-                'EUR' => 'EUR',
-                'USD' => 'USD',
-            ])
-            ->wrapper(['class' => 'form-group col-md-6']);
+        return $this->crud->performSaveAction($expense->id->value);
+    }
 
-        // Related entities
-        CRUD::field('supplier_id')
-            ->label(__('expenses.fields.supplier_id'))
-            ->type('relationship')
-            ->model(Supplier::class)
-            ->attribute('name')
-            ->wrapper(['class' => 'form-group col-md-6']);
+    private function validatedRequest(): ExpenseRequest
+    {
+        $request = $this->crud->validateRequest();
+        abort_unless($request instanceof ExpenseRequest, 500);
 
-        CRUD::field('category_id')
-            ->label(__('expenses.fields.category_id'))
-            ->type('relationship')
-            ->model(ExpenseCategory::class)
-            ->attribute('name')
-            ->wrapper(['class' => 'form-group col-md-6']);
-
-        CRUD::field('payment_method_id')
-            ->label(__('expenses.fields.payment_method_id'))
-            ->type('relationship')
-            ->entity('paymentMethod')
-            ->model(PaymentMethod::class)
-            ->attribute('name')
-            ->wrapper(['class' => 'form-group col-md-6']);
-
-        CRUD::field('status_id')
-            ->label(__('expenses.fields.status_id'))
-            ->type('relationship')
-            ->model(Status::class)
-            ->attribute('name')
-            ->options(function ($query) {
-                // Get the category ID for 'expense'
-                $categoryId = StatusCategory::where('slug', 'expense-statuses')->first()->id ?? null;
-
-                // Return only active statuses for the category
-                return $query->where('category_id', $categoryId)->where('is_active', 1)->get();
-            })
-            ->wrapper(['class' => 'form-group col-md-6']);
-
-        // Additional info
-        CRUD::field('description')
-            ->label(__('expenses.fields.description'))
-            ->type('textarea');
-
-        $this->crud->addField([
-            'name' => 'attachments',
-            'label' => __('expenses.fields.attachments'),
-            'type' => 'files_list',
-            'upload' => true,
-            'disk' => 'public',
-            'accept' => 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt',
-            'wrapper' => [
-                'class' => 'form-group col-md-12',
-            ],
-            'hint' => __('expenses.hints.attachments'),
-        ]);
-
-        $taxes = Tax::all();
-        $options = [];
-        foreach ($taxes as $tax) {
-            // Format: "DPH 21%" with data-rate attribute containing the rate value
-            $options[$tax->rate] = "{$tax->name}";
-        }
-        CRUD::field('tax_rate')
-            ->label(__('expenses.fields.tax_rate'))
-            ->type('select_from_array')
-            ->options($options)
-            ->wrapper(['class' => 'form-group col-md-3']);
-
-        $this->crud->addField([
-            'name' => 'tax_included',
-            'label' => __('expenses.fields.tax_included'),
-            'type' => 'checkbox',
-            'default' => true,
-            'wrapper' => [
-                'class' => 'form-group col-md-3 mt-5 tax_included_parent',
-            ],
-        ]);
-
-        CRUD::field('tax_amount')
-            ->label(__('expenses.fields.tax_amount'))
-            ->type('number')
-            ->attributes(['step' => '0.01'])
-            ->wrapper(['class' => 'form-group col-md-6']);
-
-        // Set user_id automatically to current user
-        CRUD::field('user_id')
-            ->type('hidden')
-            ->value(backpack_user()->id);
+        return $request;
     }
 
     /**

@@ -224,6 +224,10 @@ return [
         'invoice_text' => 'Abrechnung für Dienstleistungen',
     ],
     'sections' => [
+        'document' => 'Belegdaten',
+        'amounts' => 'Betrag und Währung',
+        'status' => 'Rechnungsstatus',
+        'other' => 'Rechnungstext und Logo',
         'invoice_details' => 'Rechnungsdetails',
         'invoice_info' => 'Rechnungsinformationen',
         'seller_details' => 'Angaben zum Aussteller',

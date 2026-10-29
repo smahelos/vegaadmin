@@ -53,7 +53,7 @@ class ExpenseFactory extends Factory
             ),
             'tax_included' => $this->faker->boolean(),
             'status_id' => Status::factory(),
-            'attachments' => null, // Will be handled by mutator if needed
+            'attachments' => [],
             ...$this->party('supplier'),
             ...$this->party('customer'),
         ];

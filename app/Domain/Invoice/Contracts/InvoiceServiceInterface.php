@@ -61,7 +61,7 @@ interface InvoiceServiceInterface
         InvoiceId $invoiceId,
         array $data,
         DocumentParties $parties,
-        array $invoiceProducts,
+        ?array $invoiceProducts,
     ): InvoiceDTO;
 
     public function generateInvoiceNumber(UserId $userId, int $year): string;

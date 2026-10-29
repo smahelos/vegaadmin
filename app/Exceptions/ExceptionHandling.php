@@ -2,6 +2,8 @@
 
 namespace App\Exceptions;
 
+use App\Domain\Invoice\Exceptions\ExpenseAccessDeniedException;
+use App\Domain\Invoice\Exceptions\ExpenseNotFoundException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;
@@ -14,6 +16,7 @@ use App\Domain\Party\Exceptions\DefaultBankAccountRequiredException;
 use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\Exceptions\IncompleteBusinessAddressException;
+use App\Domain\Party\Exceptions\IncompleteDocumentPartyException;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Product\Exceptions\ProductInUseException;
@@ -26,6 +29,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Prologue\Alerts\Facades\Alert;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
@@ -46,6 +50,14 @@ class ExceptionHandling
 
             return null;
         });
+
+        $exceptions->render(fn (IncompleteDocumentPartyException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            'contact_id',
+            __('parties.messages.incomplete_document_address'),
+        ));
+
+        $exceptions->map(ExpenseAccessDeniedException::class, fn (ExpenseAccessDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e));
 
         // Entity limit exceeded
         $exceptions->render(function (EntityLimitExceededException $e, $request) {
@@ -72,6 +84,7 @@ class ExceptionHandling
         // Another user's invoice, business, contact or account is answered like a missing one
         foreach ([
             InvoiceNotFoundException::class,
+            ExpenseNotFoundException::class,
             BusinessNotFoundException::class,
             ContactNotFoundException::class,
             BankAccountNotFoundException::class,

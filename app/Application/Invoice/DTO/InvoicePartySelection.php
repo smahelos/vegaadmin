@@ -22,5 +22,6 @@ final readonly class InvoicePartySelection
         public DocumentPartyDTO $customer,
         public bool $saveCustomerToContacts,
         public bool $reloadBusiness,
+        public bool $copyContact = false,
     ) {}
 }

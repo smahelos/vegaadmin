@@ -30,6 +30,8 @@ use App\Application\Invoice\Services\Specialized\InvoiceListingApplicationServic
 use App\Application\Invoice\Services\Specialized\InvoiceStatusApplicationService;
 use App\Application\Invoice\Services\TemporaryInvoicePrintDataFactory;
 use App\Application\Invoice\Services\TemporaryInvoiceStore;
+use App\Domain\Invoice\Contracts\ExpenseReadRepositoryInterface;
+use App\Domain\Invoice\Contracts\ExpenseWriteRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
@@ -40,6 +42,7 @@ use App\Domain\Invoice\Services\InvoiceService;
 use App\Infrastructure\Notifications\Invoice\LaravelInvoiceReminderNotifier;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\TaxObserver;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentExpenseRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceRepository;
 use App\Models\Invoice;
@@ -81,6 +84,9 @@ class InvoiceServiceProvider extends ServiceProvider
      */
     private function registerInfrastructure(): void
     {
+        $this->app->bind(ExpenseReadRepositoryInterface::class, EloquentExpenseRepository::class);
+        $this->app->bind(ExpenseWriteRepositoryInterface::class, EloquentExpenseRepository::class);
+
         // Invoice reminders notifier
         $this->app->bind(
             InvoiceReminderNotifierInterface::class,

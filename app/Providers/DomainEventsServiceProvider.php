@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Domain\Analytics\Events\AnalyticsDataChanged;
 use App\Domain\Analytics\Events\Handlers\InvalidateAnalyticsCache;
+use App\Domain\Invoice\Events\ExpenseCreated;
 use App\Domain\Invoice\Events\Handlers\UsageRecordingHandler as InvoiceUsageRecordingHandler;
 use App\Domain\Invoice\Events\InvoiceCreated;
 use App\Domain\Product\Events\Handlers\UsageRecordingHandler as ProductUsageRecordingHandler;
@@ -54,6 +55,7 @@ class DomainEventsServiceProvider extends ServiceProvider
         $dispatcher->register(
             [
                 InvoiceCreated::class,
+                ExpenseCreated::class,
             ],
             app(InvoiceUsageRecordingHandler::class),
         );

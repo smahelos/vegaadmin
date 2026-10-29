@@ -224,6 +224,10 @@ return [
         'invoice_text' => 'Billing for services',
     ],
     'sections' => [
+        'document' => 'Document details',
+        'amounts' => 'Amount and currency',
+        'status' => 'Invoice status',
+        'other' => 'Invoice text and logo',
         'invoice_details' => 'Invoice Details',
         'invoice_info' => 'Invoice Information',
         'seller_details' => 'Seller Details',

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ContactCrudController;
 use App\Http\Controllers\Admin\CronTaskCrudController;
 use App\Http\Controllers\Admin\DatabaseDashboardController;
 use App\Http\Controllers\Admin\DatabaseMaintenanceLogCrudController;
+use App\Http\Controllers\Admin\DocumentPartyCrudController;
 use App\Http\Controllers\Admin\EntityLimitCrudController;
 use App\Http\Controllers\Admin\EntityUsageCrudController;
 use App\Http\Controllers\Admin\ExpenseCategoryCrudController;
@@ -46,6 +47,9 @@ Route::group([
         (array) config('backpack.base.middleware_key', 'admin'),
     ),
 ], function (): void { // custom admin routes
+    Route::get('document-parties/businesses', [DocumentPartyCrudController::class, 'businesses'])->name('admin.document-parties.businesses');
+    Route::get('document-parties/contacts', [DocumentPartyCrudController::class, 'contacts'])->name('admin.document-parties.contacts');
+    Route::get('document-parties/accounts', [DocumentPartyCrudController::class, 'accounts'])->name('admin.document-parties.accounts');
     Route::crud('invoice', InvoiceCrudController::class);
     Route::crud('business', BusinessCrudController::class);
     Route::post('business/{id}/archive', [BusinessCrudController::class, 'archive'])->whereNumber('id')->name('admin.businesses.archive');

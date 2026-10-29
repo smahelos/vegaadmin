@@ -28,6 +28,6 @@ interface InvoiceMutationApplicationServiceInterface
         int $invoiceId,
         array $data,
         InvoicePartySelection $parties,
-        array $products,
+        ?array $products,
     ): InvoiceActionResult;
 }

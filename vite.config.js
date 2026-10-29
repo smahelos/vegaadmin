@@ -9,6 +9,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/admin/document-form.js',
                 'resources/js/invoice-form.js',
                 'resources/js/slug-generator.js',
                 'resources/js/product-selector.js',

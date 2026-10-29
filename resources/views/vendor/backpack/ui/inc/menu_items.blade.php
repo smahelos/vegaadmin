@@ -49,17 +49,22 @@ backpack_user()->hasPermissionTo('can_view_contact', 'backpack'))
 @endif
 
 {{-- 3. Financial Management --}}
-@if(backpack_user()->hasPermissionTo('can_create_edit_expense', 'backpack') ||
+@if(backpack_user()->hasPermissionTo('can_view_expense', 'backpack') ||
+backpack_user()->hasPermissionTo('can_create_edit_expense', 'backpack') ||
 backpack_user()->hasPermissionTo('can_create_edit_tax', 'backpack') ||
 backpack_user()->hasPermissionTo('can_create_edit_bank', 'backpack') ||
 backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.finance.title') }}" icon="la la-coins text-warning">
-    @if(backpack_user()->hasPermissionTo('can_create_edit_expense', 'backpack'))
+    @if(backpack_user()->canAny(['can_view_expense', 'can_create_edit_expense']))
     <x-backpack::menu-dropdown-header title="{{ __('admin.finance.expenses') }}" />
+    @if(backpack_user()->can('can_view_expense'))
     <x-backpack::menu-dropdown-item title="{{ __('expenses.entity.plural') }}" icon="la la-receipt"
         :link="backpack_url('expense')" />
+    @endif
+    @if(backpack_user()->can('can_create_edit_expense'))
     <x-backpack::menu-dropdown-item title="{{ __('expenses.categories.entity.plural') }}" icon="la la-tags"
         :link="backpack_url('expense-category')" />
+    @endif
     @endif
 
     @if(backpack_user()->hasPermissionTo('can_create_edit_tax', 'backpack') ||

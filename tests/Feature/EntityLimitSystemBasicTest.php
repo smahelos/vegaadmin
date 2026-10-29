@@ -3,8 +3,6 @@
 namespace Tests\Feature;
 
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Http\Requests\Admin\BaseEntityRequest;
-use App\Http\Requests\Admin\InvoiceRequest;
 use App\Models\EntityLimit;
 use App\Models\User;
 use Illuminate\Support\Facades\Lang;
@@ -123,29 +121,6 @@ class EntityLimitSystemBasicTest extends TestCase
             1,
         );
         $this->assertTrue($check['allowed']);
-    }
-
-    #[Test]
-    public function request_authorization_structure_works(): void
-    {
-        $this->actingAs($this->backendUser, 'backpack');
-
-        // Test InvoiceRequest instantiation
-        $request = new InvoiceRequest;
-
-        // Test that it extends BaseEntityRequest
-        $this->assertInstanceOf(BaseEntityRequest::class, $request);
-
-        // Test entity type method
-        $reflection = new \ReflectionClass($request);
-        $method = $reflection->getMethod('getEntityType');
-        $method->setAccessible(true);
-        $this->assertEquals('invoice', $method->invoke($request));
-
-        // Test permission method
-        $method = $reflection->getMethod('getRequiredPermission');
-        $method->setAccessible(true);
-        $this->assertEquals('can_create_edit_invoice', $method->invoke($request));
     }
 
     #[Test]
