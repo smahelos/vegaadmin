@@ -34,6 +34,7 @@
         <x-detail.card :title="__('parties.sections.basic')" :badge="__('contacts.entity.singular')">
             <x-party.basic-profile :profile="$contact->profile">
                 <x-detail.item class="md:col-span-2" accent="border-yellow-500" :label="__('contacts.fields.contact_person')">{{ $contact->contactPerson }}</x-detail.item>
+                <x-party.logo-profile :logo="$contact->logo" />
             </x-party.basic-profile>
         </x-detail.card>
         <x-detail.card :title="__('parties.sections.billing')">

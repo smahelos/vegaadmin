@@ -179,6 +179,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                     @endif
 
                     @if($field['name'] === 'invoice_logo')
+                    @guest
                     <!-- Supplier logo -->
                     <div class="md:col-span-1">
                         <label for="invoice_logo"
@@ -204,8 +205,9 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                    @endguest
                     <!-- Start 4 col parent grid -->
-                    <div class="md:col-span-4 grid grid-cols-1">
+                    <div @class(['grid grid-cols-1', 'md:col-span-4' => !auth()->check(), 'md:col-span-6' => auth()->check()])>
 
                         @elseif($field['name'] === 'invoice_vs')
                         <!-- Invoice number -->

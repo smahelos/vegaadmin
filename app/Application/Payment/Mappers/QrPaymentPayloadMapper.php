@@ -1,89 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Payment\Mappers;
 
+use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
+use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Payment\DTO\QrPaymentPayload;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Models\Invoice;
 
-/**
- * Maps between Invoice models and QrPaymentPayload DTOs.
- * This isolates application layer from domain implementation details.
- */
-class QrPaymentPayloadMapper
+final class QrPaymentPayloadMapper
 {
-    /**
-     * Convert generic object/array to QrPaymentPayload DTO
-     * This maintains compatibility with guest invoices and other data sources
-     *
-     * @param  mixed  $data  Invoice-like object or array
-     */
-    public function fromArray(mixed $data): QrPaymentPayload
-    {
-        // Safely extract properties from object or array
-        $amount = $this->safeGetProperty($data, 'payment_amount') ?? 0;
-        $currency = $this->safeGetProperty($data, 'payment_currency') ?? 'CZK';
-
-        // Create Money value object
-        $money = Money::fromString((string) $amount, $currency);
-
+    public function fromSnapshot(
+        ?string $number,
+        Money $amount,
+        ?DocumentAccountDTO $account,
+        ?string $message,
+    ): QrPaymentPayload {
         return new QrPaymentPayload(
-            variableSymbol: $this->safeGetProperty($data, 'invoice_vs'),
-            amount: $money,
-            accountNumber: $this->safeGetProperty($data, 'account_number'),
-            bankCode: $this->safeGetProperty($data, 'bank_code'),
-            iban: $this->safeGetProperty($data, 'iban'),
-            countryCode: $this->safeGetProperty($data, 'country_code'),
-            message: $this->safeGetProperty($data, 'invoice_text'),
+            variableSymbol: $number,
+            amount: $amount,
+            accountNumber: $account?->account->number,
+            bankCode: $account?->account->bankCode,
+            iban: $account?->account->iban,
+            countryCode: $account?->account->country->value,
+            message: $message,
         );
     }
 
-    /**
-     * Safely get property from object or array without triggering errors
-     *
-     * @param  mixed  $object  Invoice object or array
-     * @return mixed Property value or null
-     */
-    private function safeGetProperty(mixed $object, string $property): mixed
+    public function fromPrintableInvoice(PrintableInvoiceDTO $invoice): QrPaymentPayload
     {
-        // Check object properties
-        if (is_object($object)) {
-            // 1. Check property directly
-            if (isset($object->$property) && $object->$property !== '') {
-                return $object->$property;
-            }
-
-            // 2. Check property under supplier
-            if (isset($object->supplier) && isset($object->supplier->$property) && $object->supplier->$property !== '') {
-                return $object->supplier->$property;
-            }
-
-            // 3. Check property under supplier_PROPERTY pattern
-            $supplierProperty = 'supplier_' . $property;
-            if (isset($object->$supplierProperty) && $object->$supplierProperty !== '') {
-                return $object->$supplierProperty;
-            }
-        }
-
-        // Check array keys
-        if (is_array($object)) {
-            if (isset($object[$property]) && $object[$property] !== '') {
-                return $object[$property];
-            }
-
-            // Check supplier property under supplier_PROPERTY pattern
-            $supplierProperty = 'supplier_' . $property;
-            if (isset($object[$supplierProperty]) && $object[$supplierProperty] !== '') {
-                return $object[$supplierProperty];
-            }
-        }
-
-        // Special case - return numeric values including 0
-        if ((is_object($object) && isset($object->$property) && is_numeric($object->$property)) ||
-            (is_array($object) && isset($object[$property]) && is_numeric($object[$property]))) {
-            return is_object($object) ? $object->$property : $object[$property];
-        }
-
-        return null;
+        return $this->fromSnapshot(
+            $invoice->variableSymbol,
+            $invoice->totalAmount,
+            $invoice->account,
+            $invoice->notes,
+        );
     }
 }

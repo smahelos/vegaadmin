@@ -38,6 +38,7 @@ final class DocumentPartyOptionResource extends JsonResource
             'id' => $this->option->id,
             'name' => $this->option->label,
             'profile' => [
+                'logo_url' => $this->option->logo === null ? null : asset('storage/' . $this->option->logo),
                 'name' => $this->option->profile?->name,
                 'registration_country' => $this->option->profile?->registrationNumber?->country->value,
                 'company_number' => $this->option->profile?->registrationNumber?->number,

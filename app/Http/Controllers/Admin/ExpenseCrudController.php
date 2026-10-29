@@ -232,6 +232,7 @@ final class ExpenseCrudController extends CrudController
      */
     protected function setupShowOperation(): void
     {
+        CRUD::column('supplier_logo')->type('image')->disk('public')->label(__('parties.fields.supplier_logo'));
         // Re-use most of the same columns from list operation
         $this->setupListOperation();
 

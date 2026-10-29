@@ -17,7 +17,7 @@ use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
- * The logo uploaded with an invoice is validated and stored on the public disk.
+ * An authenticated invoice takes the selected business logo and keeps its own file.
  */
 final class InvoiceLogoUploadTest extends TestCase
 {
@@ -54,70 +54,38 @@ final class InvoiceLogoUploadTest extends TestCase
     }
 
     #[Test]
-    public function invoice_can_be_created_with_logo_upload(): void
+    public function a_signed_in_invoice_uses_a_private_copy_of_the_selected_business_logo(): void
     {
+        Storage::disk('public')->put('parties/logo.png', 'business logo contents');
+        $this->business->update(['logo' => 'parties/logo.png']);
         $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $this->invoiceData('TEST001', [
-            'invoice_logo' => UploadedFile::fake()->image('invoice_logo.png', 100, 100)->size(1000),
+            'invoice_logo' => UploadedFile::fake()->image('unrelated.png'),
         ]));
-
-        $response->assertRedirect(route('frontend.invoices', ['locale' => 'cs']));
-        $invoice = Invoice::where('invoice_vs', 'TEST001')->firstOrFail();
-        $this->assertSame($this->business->id, $invoice->business_id);
-        $this->assertStringContainsString('invoices/logos', (string) $invoice->invoice_logo);
-        $this->assertTrue(Storage::disk('public')->exists((string) $invoice->invoice_logo));
-    }
-
-    #[Test]
-    public function invoice_creation_fails_with_invalid_logo_format(): void
-    {
-        $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $this->invoiceData('TEST002', [
-            'invoice_logo' => UploadedFile::fake()->create('document.pdf', 1000),
-        ]));
-
-        $response->assertSessionHasErrors('invoice_logo');
-        $this->assertDatabaseMissing('invoices', ['invoice_vs' => 'TEST002']);
-    }
-
-    #[Test]
-    public function invoice_creation_fails_with_oversized_logo(): void
-    {
-        $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $this->invoiceData('TEST003', [
-            'invoice_logo' => UploadedFile::fake()->image('large_logo.png', 100, 100)->size(3000),
-        ]));
-
-        $response->assertSessionHasErrors('invoice_logo');
-        $this->assertDatabaseMissing('invoices', ['invoice_vs' => 'TEST003']);
-    }
-
-    #[Test]
-    public function invoice_can_be_updated_with_logo_upload(): void
-    {
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'business_id' => $this->business->id,
-        ]);
-
-        $response = $this->put(
-            route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
-            $this->invoiceData($invoice->invoice_vs, [
-                'invoice_logo' => UploadedFile::fake()->image('updated_logo.png', 100, 100)->size(800),
-            ]),
-        );
-
         $response->assertRedirect();
-        $response->assertSessionHasNoErrors();
-        $invoice->refresh();
-        $this->assertStringContainsString('invoices/logos', (string) $invoice->invoice_logo);
-        $this->assertTrue(Storage::disk('public')->exists((string) $invoice->invoice_logo));
+        $invoice = Invoice::where('invoice_vs', 'TEST001')->sole();
+        $this->assertNotSame($this->business->logo, $invoice->supplier_logo);
+        $this->assertSame('business logo contents', Storage::disk('public')->get($invoice->supplier_logo));
+        Storage::disk('public')->delete($this->business->logo);
+        $this->business->update(['logo' => null]);
+        $this->get(route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]))
+            ->assertOk()->assertSee('wire:click="reloadBusinessData"', false);
+        $copy = $invoice->supplier_logo;
+        $this->put(route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]), $this->invoiceData('TEST001'))
+            ->assertRedirect();
+        $this->assertSame($copy, $invoice->fresh()->supplier_logo);
+        $this->assertSame('business logo contents', Storage::disk('public')->get($copy));
+        $this->put(route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]), $this->invoiceData('TEST001', ['reload_business' => '1']))
+            ->assertRedirect();
+        $this->assertNull($invoice->fresh()->supplier_logo);
+        Storage::disk('public')->assertMissing($copy);
     }
 
     #[Test]
-    public function invoice_can_be_created_without_logo(): void
+    public function the_authenticated_forms_offer_the_business_logo_without_a_document_upload(): void
     {
-        $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $this->invoiceData('TEST004'));
-
-        $response->assertRedirect(route('frontend.invoices', ['locale' => 'cs']));
-        $this->assertNull(Invoice::where('invoice_vs', 'TEST004')->firstOrFail()->invoice_logo);
+        $this->get(route('frontend.invoice.create', ['locale' => 'cs']))->assertOk()->assertDontSee('name="invoice_logo"', false);
+        $invoice = Invoice::factory()->create(['user_id' => $this->user->id, 'business_id' => $this->business->id]);
+        $this->get(route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]))->assertOk()->assertDontSee('name="invoice_logo"', false);
     }
 
     /**

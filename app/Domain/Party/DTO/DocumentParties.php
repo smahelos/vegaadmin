@@ -21,5 +21,19 @@ final readonly class DocumentParties
         public DocumentPartyDTO $supplier,
         public DocumentPartyDTO $customer,
         public ?DocumentAccountDTO $account,
+        public ?string $supplierLogo = null,
     ) {}
+
+    public function withSupplierLogo(?string $logo): self
+    {
+        return new self(
+            $this->businessId,
+            $this->contactId,
+            $this->bankAccountId,
+            $this->supplier,
+            $this->customer,
+            $this->account,
+            $logo,
+        );
+    }
 }

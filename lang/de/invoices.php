@@ -227,7 +227,7 @@ return [
         'document' => 'Belegdaten',
         'amounts' => 'Betrag und Währung',
         'status' => 'Rechnungsstatus',
-        'other' => 'Rechnungstext und Logo',
+        'other' => 'Rechnungstext und Vorlage',
         'invoice_details' => 'Rechnungsdetails',
         'invoice_info' => 'Rechnungsinformationen',
         'seller_details' => 'Angaben zum Aussteller',

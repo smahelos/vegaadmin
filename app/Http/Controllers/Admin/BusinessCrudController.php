@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Party\Services\BusinessApplicationService;
-use App\Application\Party\Services\BusinessLogoApplicationService;
+use App\Application\Party\Services\PartyLogoApplicationService;
+use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\ValueObjects\BusinessId;
-use App\Domain\Shared\File\DTO\IncomingFile;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\BusinessRequest;
+use App\Infrastructure\Forms\Party\PartyFormFields;
 use App\Models\Business;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
@@ -20,7 +21,6 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\UploadedFile;
 use Prologue\Alerts\Facades\Alert;
 
 /**
@@ -34,6 +34,7 @@ final class BusinessCrudController extends CrudController
     use CreateOperation;
     use ListOperation;
     use ShowOperation;
+    use StoresPartyLogo;
     use UpdateOperation;
 
     public function setup(): void
@@ -45,41 +46,42 @@ final class BusinessCrudController extends CrudController
         );
     }
 
-    public function store(BusinessApplicationService $businesses, BusinessLogoApplicationService $logos): RedirectResponse
+    public function store(BusinessApplicationService $businesses, PartyLogoApplicationService $logos): RedirectResponse
     {
         $request = $this->validatedRequest();
-        $business = $businesses->create(
-            UserId::fromInt((int) $request->validated('user_id')),
-            new BusinessWriteData($request->profile(), $this->storeLogo($request, $logos, null)),
+        $business = $this->withStoredLogo(
+            $request,
+            $logos,
             null,
+            fn (?string $logo): BusinessDTO => $businesses->create(
+                UserId::fromInt((int) $request->validated('user_id')),
+                new BusinessWriteData($request->profile(), $logo),
+                null,
+            ),
         );
 
-        Alert::success(trans('backpack::crud.insert_success'))->flash();
+        Alert::success(__('backpack::crud.insert_success'))->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($business->id->value);
     }
 
-    public function update(BusinessApplicationService $businesses, BusinessLogoApplicationService $logos): RedirectResponse
+    public function update(BusinessApplicationService $businesses, PartyLogoApplicationService $logos): RedirectResponse
     {
         $request = $this->validatedRequest();
         $entry = $this->entry();
-        $logo = $this->storeLogo(
+        $this->withStoredLogo(
             $request,
             $logos,
             $entry->logo,
+            fn (?string $logo): BusinessDTO => $businesses->update(
+                $this->ownerOf($entry),
+                BusinessId::fromInt($entry->id),
+                new BusinessWriteData($request->profile(), $logo),
+            ),
         );
 
-        $businesses->update(
-            $this->ownerOf($entry),
-            BusinessId::fromInt($entry->id),
-            new BusinessWriteData($request->profile(), $logo),
-        );
-        if ($entry->logo !== null && $entry->logo !== $logo) {
-            $logos->delete($entry->logo);
-        }
-
-        Alert::success(trans('backpack::crud.update_success'))->flash();
+        Alert::success(__('backpack::crud.update_success'))->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($entry->id);
@@ -136,7 +138,7 @@ final class BusinessCrudController extends CrudController
         CRUD::column('phone')->label(__('parties.fields.phone'));
         CRUD::column('note')->label(__('parties.fields.note'));
         CRUD::column('logo')
-            ->label(__('businesses.fields.logo'))
+            ->label(__('parties.fields.logo'))
             ->type('image')
             ->disk('public');
     }
@@ -158,10 +160,7 @@ final class BusinessCrudController extends CrudController
 
     private function addLogoField(): void
     {
-        CRUD::field('logo')
-            ->label(__('businesses.fields.logo'))
-            ->type('upload')
-            ->hint(__('businesses.hints.logo'));
+        CRUD::addFields(PartyFormFields::logo());
     }
 
     private function validatedRequest(): BusinessRequest
@@ -178,24 +177,5 @@ final class BusinessCrudController extends CrudController
         abort_unless($entry instanceof Business, 404);
 
         return $entry;
-    }
-
-    private function storeLogo(
-        BusinessRequest $request,
-        BusinessLogoApplicationService $logos,
-        ?string $current,
-    ): ?string {
-        $file = $request->file('logo');
-        if (! $file instanceof UploadedFile) {
-            return $current;
-        }
-
-        return $logos->store(new IncomingFile(
-            $file->getClientOriginalName(),
-            strtolower($file->getClientOriginalExtension()),
-            (string) $file->getMimeType(),
-            (int) $file->getSize(),
-            (string) $file->getRealPath(),
-        ));
     }
 }

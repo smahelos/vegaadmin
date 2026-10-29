@@ -127,41 +127,8 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                     @endif
 
                     @if($field['name'] === 'invoice_logo')
-                    <!-- Invoice logo -->
-                    <div class="md:col-span-1">
-                        <label for="invoice_logo"
-                            class="flex flex-col items-center justify-center w-full h-40 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500  transition-colors duration-200 mb-7">
-                            <div class="flex flex-col items-center justify-center p-3">
-                                <p class="mb-2 text-lg font-semibold text-[#490BF4] dark:text-gray-200">{{
-                                    __('invoices.labels.upload_logo') }}</p>
-                                <p class="mt-1 text-sm text-gray-500 wrap-break-word">
-                                    {{ __('invoices.hints.invoice_logo') }}
-                                </p>
-                            </div>
-                            <input id="invoice_logo" name="invoice_logo" type="file" class="hidden image-input" />
-                        </label>
-                        <div class="">
-                            <div id="image-preview-container">
-                                @if ($invoice->invoice_logo)
-                                <img id="current-image-preview"
-                                    src="{{ Storage::disk('public')->url($invoice->invoice_logo) }}"
-                                    alt="{{ $invoice->supplier_name }}" class="max-h-40 object-cover rounded-sm">
-                                @else
-                                <p id="no-image-message" class="text-gray-500">{{ __('invoices.messages.no_image') }}
-                                </p>
-                                <img id="current-image-preview"
-                                    src="{{ Storage::disk('public')->url('suppliers/logos/no_logo.png') }}"
-                                    alt="{{ $invoice->supplier_name }}" class="max-h-40 object-cover rounded-sm hidden">
-                                @endif
-                            </div>
-                        </div>
-
-                        @error('invoice_logo')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
                     <!-- Start 4 col parent grid -->
-                    <div class="md:col-span-4 grid grid-cols-1">
+                    <div class="md:col-span-6 grid grid-cols-1">
 
                         @elseif($field['name'] === 'invoice_vs')
                         <!-- Invoice number -->

@@ -6,19 +6,15 @@ use App\Domain\Party\Contracts\BankAccountReadRepositoryInterface;
 use App\Domain\Party\Contracts\BankAccountWriteRepositoryInterface;
 use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\Contracts\BusinessWriteRepositoryInterface;
-use App\Domain\Party\Contracts\ClientDtoReadRepositoryInterface;
 use App\Domain\Party\Contracts\CompanyRegistryInterface;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Party\Contracts\ContactWriteRepositoryInterface;
-use App\Domain\Party\Contracts\SupplierDtoReadRepositoryInterface;
 use App\Infrastructure\Gateways\Party\AresCompanyRegistry;
 use App\Infrastructure\Persistence\Eloquent\Party\Observers\ClientObserver;
 use App\Infrastructure\Persistence\Eloquent\Party\Observers\SupplierObserver;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentBankAccountRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentBusinessRepository;
-use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentClientDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentContactRepository;
-use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentSupplierDtoRepository;
 use App\Models\Client;
 use App\Models\Supplier;
 use Illuminate\Support\ServiceProvider;
@@ -75,16 +71,6 @@ class PartyServiceProvider extends ServiceProvider
             AresCompanyRegistry::class,
         );
 
-        // Party repositories (Client & Supplier)
-        $this->app->bind(
-            ClientDtoReadRepositoryInterface::class,
-            EloquentClientDtoRepository::class,
-        );
-
-        $this->app->bind(
-            SupplierDtoReadRepositoryInterface::class,
-            EloquentSupplierDtoRepository::class,
-        );
     }
 
     public function boot(): void

@@ -36,5 +36,7 @@ final readonly class ExpenseWriteData
         public ?int $statusId,
         public array $uploads = [],
         public array $removedAttachments = [],
+        public ?IncomingFile $supplierLogo = null,
+        public bool $removeSupplierLogo = false,
     ) {}
 }

@@ -14,6 +14,7 @@
                     <x-form.input model="contactPerson" :label="__('contacts.fields.contact_person')"
                         :hint="__('contacts.hints.contact_person')" />
                 </x-party.basic-fields>
+                <x-party.logo-fields :logo="$logo" :current-logo="$currentLogo" :remove-logo="$removeLogo" />
             </x-form.card>
 
             <x-form.card :title="__('parties.sections.billing')">

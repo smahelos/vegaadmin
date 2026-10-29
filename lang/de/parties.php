@@ -2,6 +2,8 @@
 
 return [
     'fields' => [
+        'logo' => 'Logo',
+        'supplier_logo' => 'Lieferantenlogo',
         'name' => 'Name / Firma',
         'short_name' => 'Interne Kurzbezeichnung',
         'registration_country' => 'Registrierungsland',
@@ -17,6 +19,9 @@ return [
         'owner' => 'Eigentümer',
     ],
     'hints' => [
+        'logo' => 'PNG, JPG oder WebP bis 2 MB. Jeder Beleg behält eine eigene Kopie.',
+        'invoice_supplier_logo' => 'Das Lieferantenlogo wird vom ausgewählten eigenen Unternehmen kopiert. Eine gespeicherte Rechnung behält ihre Kopie; beim Neuladen der Firmendaten wird auch das aktuelle Logo übernommen.',
+        'expense_supplier_logo' => 'Das Lieferantenlogo wird vom Kontakt kopiert. Ohne Kontakt können Sie das Logo eines einmaligen Lieferanten nur für diese Ausgabe hochladen.',
         'document_business_account' => 'Das Konto gehört zum ausgewählten eigenen Unternehmen (Lieferanten). Ein Kontowechsel kopiert die aktuellen Daten in die Rechnung; andernfalls bleibt die gespeicherte Kopie erhalten.',
         'document_contact_account' => 'Das Konto gehört zum ausgewählten Kontakt (Lieferanten). Ohne Kontoauswahl können Sie unten ein optionales einmaliges Konto nur für diese Ausgabe eingeben.',
         'document_business_snapshot' => 'Daten des ausgewählten eigenen Unternehmens auf diesem Beleg. Ein Unternehmenswechsel lädt die aktuellen Daten; bei demselben Unternehmen bleibt die gespeicherte Kopie erhalten.',
@@ -34,6 +39,8 @@ return [
         'search' => 'Nach Name, Kurzbezeichnung, Registernummer, E-Mail oder Ort suchen',
     ],
     'actions' => [
+        'upload_logo' => 'Logo hochladen',
+        'remove_logo' => 'Logo entfernen',
         'archive' => 'Archivieren',
         'restore' => 'Wiederherstellen',
         'look_up_company' => 'Aus ARES laden',
@@ -42,6 +49,7 @@ return [
         'save_anyway' => 'Trotzdem speichern',
     ],
     'messages' => [
+        'no_logo' => 'Kein Logo.',
         'document_profile_loading' => 'Kontaktdaten werden geladen…',
         'document_profile_unavailable' => 'Die Kontaktdaten konnten nicht geladen werden. Wählen Sie den Kontakt erneut aus.',
         'incomplete_document_address' => 'Der Kontakt hat keine vollständige Belegadresse. Ergänzen Sie sie in den Kontakten.',

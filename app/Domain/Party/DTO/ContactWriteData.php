@@ -12,5 +12,6 @@ final readonly class ContactWriteData
     public function __construct(
         public PartyProfile $profile,
         public ?string $contactPerson,
+        public ?string $logo = null,
     ) {}
 }

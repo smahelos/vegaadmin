@@ -15,5 +15,6 @@ final readonly class DocumentPartyOptionDTO
         public ?bool $isDefault = null,
         public ?DocumentPartyDTO $profile = null,
         public ?DocumentAccountDTO $account = null,
+        public ?string $logo = null,
     ) {}
 }

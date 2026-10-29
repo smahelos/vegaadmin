@@ -38,6 +38,10 @@
                         </div>
                     @elseif ($reloadBusiness)
                         <p class="text-sm text-green-600">{{ __('invoices.messages.business_reloaded') }}</p>
+                    @elseif ($invoiceId !== null)
+                        <button type="button" wire:click="reloadBusinessData" class="text-left text-sm font-semibold underline cursor-pointer text-indigo-600 dark:text-indigo-400">
+                            {{ __('invoices.actions.reload_business') }}
+                        </button>
                     @endif
 
                     @if ($supplierPreview)
@@ -46,6 +50,10 @@
                             <p class="text-sm text-gray-600 dark:text-gray-300">{{ $supplierPreview->email }}</p>
                             <p class="text-sm text-gray-600 dark:text-gray-300">{{ $supplierPreview->phone }}</p>
                         </div>
+                        @if ($supplierLogo)
+                            <img src="{{ asset('storage/' . $supplierLogo) }}" alt="{{ __('parties.fields.supplier_logo') }}" class="mb-4 max-h-24 object-contain">
+                        @endif
+                        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">{{ __('parties.hints.invoice_supplier_logo') }}</p>
                         <x-party.billing-profile :profile="$supplierPreview" :countries="$countries" />
                         @unless ($supplierPreview->hasCompleteAddress())
                             <p class="text-sm text-red-600">

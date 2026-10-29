@@ -22,8 +22,8 @@ class InvoiceUpcomingDueReminder extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $dueDate = $this->payload->dueDate->format('d.m.Y');
-        $viewName = $this->payload->recipientType === 'client'
-            ? 'emails.invoices.reminders.upcoming_due_client'
+        $viewName = $this->payload->recipientType === 'customer'
+            ? 'emails.invoices.reminders.upcoming_due_customer'
             : 'emails.invoices.reminders.upcoming_due_supplier';
 
         return (new MailMessage)
@@ -32,7 +32,7 @@ class InvoiceUpcomingDueReminder extends Notification implements ShouldQueue
                 'invoiceNumber' => $this->payload->invoiceNumber,
                 'dueDate' => $dueDate,
                 'daysLeft' => $this->payload->daysLeft,
-                'greeting' => __('invoices.reminders.greeting', ['name' => $notifiable->name ?? '']),
+                'greeting' => __('invoices.reminders.greeting', ['name' => $this->payload->recipientName !== '' ? $this->payload->recipientName : ($notifiable->name ?? '')]),
                 'locale' => $this->locale,
             ]);
     }

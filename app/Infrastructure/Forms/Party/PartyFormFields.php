@@ -9,6 +9,25 @@ namespace App\Infrastructure\Forms\Party;
  */
 final class PartyFormFields
 {
+    /** @return list<array<string, mixed>> */
+    public static function logo(): array
+    {
+        return [
+            [
+                'name' => 'logo',
+                'label' => __('parties.fields.logo'),
+                'type' => 'party_logo',
+                'upload' => true,
+                'hint' => __('parties.hints.logo'),
+            ],
+            [
+                'name' => 'remove_logo',
+                'label' => __('parties.actions.remove_logo'),
+                'type' => 'checkbox',
+            ],
+        ];
+    }
+
     /**
      * @param  array<string, string>  $countries  country name by code
      * @param  array<string, string|null>  $values  current values of fields the model does not hold as attributes

@@ -34,6 +34,7 @@ final class DocumentPartyCrudControllerTest extends TestCase
             'vat_number' => 'ATU12345678',
             'email' => 'billing@example.test',
             'phone' => '+43123456789',
+            'logo' => 'parties/contact-logo.png',
             'note' => 'Private note',
             'contact_person' => 'Private contact person',
         ]);
@@ -49,6 +50,7 @@ final class DocumentPartyCrudControllerTest extends TestCase
         $response = $this->getJson(route('admin.document-parties.contacts', ['user_id' => $this->regularUser->id]));
 
         $response->assertOk()->assertJsonPath('data.0.profile', [
+            'logo_url' => asset('storage/parties/contact-logo.png'),
             'name' => $contact->name,
             'registration_country' => 'AT',
             'company_number' => 'FN 123456',

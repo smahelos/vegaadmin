@@ -132,7 +132,7 @@ final class InvoiceRequest extends BaseEntityRequest
             'invoice_text' => 'nullable|string',
 
             // Ensure only allowed file types are accepted; allow SVG as image format
-            'invoice_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize,
+            'invoice_logo' => $this->isGuestStore() ? 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize : ['exclude'],
 
             'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
 

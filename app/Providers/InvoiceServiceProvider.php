@@ -21,7 +21,6 @@ use App\Application\Invoice\Services\GuestInvoiceApplicationService;
 use App\Application\Invoice\Services\InvoiceFrontendActionsApplicationService;
 use App\Application\Invoice\Services\InvoiceMutationApplicationService;
 use App\Application\Invoice\Services\InvoicePdfApplicationService;
-use App\Application\Invoice\Services\InvoicePdfRenderer;
 use App\Application\Invoice\Services\InvoiceRequestAssembler;
 use App\Application\Invoice\Services\Specialized\InvoiceCrudApplicationService;
 use App\Application\Invoice\Services\Specialized\InvoiceFormApplicationService;
@@ -30,11 +29,13 @@ use App\Application\Invoice\Services\Specialized\InvoiceListingApplicationServic
 use App\Application\Invoice\Services\Specialized\InvoiceStatusApplicationService;
 use App\Application\Invoice\Services\TemporaryInvoicePrintDataFactory;
 use App\Application\Invoice\Services\TemporaryInvoiceStore;
+use App\Domain\Invoice\Contracts\DocumentLogoStorageInterface;
 use App\Domain\Invoice\Contracts\ExpenseReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\ExpenseWriteRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
+use App\Domain\Invoice\Contracts\InvoiceReminderReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
@@ -44,7 +45,10 @@ use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\TaxObserver;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentExpenseRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceDtoRepository;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceReminderRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceRepository;
+use App\Infrastructure\Renderers\Invoice\InvoicePdfRenderer;
+use App\Infrastructure\Storage\Invoice\PublicDocumentLogoStorage;
 use App\Models\Invoice;
 use App\Models\Tax;
 use Illuminate\Support\ServiceProvider;
@@ -84,8 +88,11 @@ class InvoiceServiceProvider extends ServiceProvider
      */
     private function registerInfrastructure(): void
     {
+        $this->app->bind(DocumentLogoStorageInterface::class, PublicDocumentLogoStorage::class);
         $this->app->bind(ExpenseReadRepositoryInterface::class, EloquentExpenseRepository::class);
         $this->app->bind(ExpenseWriteRepositoryInterface::class, EloquentExpenseRepository::class);
+
+        $this->app->bind(InvoiceReminderReadRepositoryInterface::class, EloquentInvoiceReminderRepository::class);
 
         // Invoice reminders notifier
         $this->app->bind(

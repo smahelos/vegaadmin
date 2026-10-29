@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Party;
 
 use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Services\PartyLogoApplicationService;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
@@ -25,6 +26,7 @@ final class ContactForm extends Component
     use ActsForUser;
     use ChecksPartyDuplicates;
     use EditsPartyDetails;
+    use EditsPartyLogo;
     use ProvidesPartyOptions;
 
     public PartyDetailsForm $party;
@@ -51,9 +53,10 @@ final class ContactForm extends Component
         $this->contactId = $contactId;
         $this->party->fillFromProfile($contact->profile);
         $this->contactPerson = $contact->contactPerson ?? '';
+        $this->currentLogo = $contact->logo;
     }
 
-    public function save(ContactApplicationService $contacts): void
+    public function save(ContactApplicationService $contacts, PartyLogoApplicationService $logos): void
     {
         $creating = $this->contactId === null;
         $this->requirePermission($creating ? 'frontend.can_create_contact' : 'frontend.can_update_contact');
@@ -68,8 +71,14 @@ final class ContactForm extends Component
         }
 
         $contactPerson = trim($this->contactPerson);
-        $data = new ContactWriteData($profile, $contactPerson === '' ? null : $contactPerson);
+        $logo = $this->logoPath($logos);
+        $data = new ContactWriteData(
+            $profile,
+            $contactPerson === '' ? null : $contactPerson,
+            $logo,
+        );
 
+        $saved = false;
         try {
             $contact = $creating
                 ? $contacts->create($this->userId(), $data)
@@ -78,6 +87,7 @@ final class ContactForm extends Component
                     ContactId::fromInt($this->contactId),
                     $data,
                 );
+            $saved = true;
         } catch (EntityLimitExceededException) {
             $this->limitMessage = __('contacts.messages.limit_exceeded');
 
@@ -86,6 +96,14 @@ final class ContactForm extends Component
             $this->showBlockingDuplicate($e->existing);
 
             return;
+        } finally {
+            if (! $saved) {
+                $this->discardNewLogo($logos, $logo);
+            }
+        }
+
+        if ($this->currentLogo !== null && $this->currentLogo !== $logo) {
+            $logos->delete($this->currentLogo);
         }
 
         session()->flash('success', __($creating ? 'contacts.messages.created' : 'contacts.messages.updated'));
@@ -108,6 +126,12 @@ final class ContactForm extends Component
     protected function rules(): array
     {
         return [
+            'logo' => [
+                'nullable',
+                'image',
+                'mimes:png,jpg,jpeg,webp',
+                'max:2048',
+            ],
             'contactPerson' => [
                 'nullable',
                 'string',
@@ -121,7 +145,7 @@ final class ContactForm extends Component
      */
     protected function validationAttributes(): array
     {
-        return ['contactPerson' => __('contacts.fields.contact_person')];
+        return ['contactPerson' => __('contacts.fields.contact_person'), 'logo' => __('parties.fields.logo')];
     }
 
     protected function findDuplicates(PartyProfile $profile): array

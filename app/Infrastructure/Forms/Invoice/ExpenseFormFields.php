@@ -107,6 +107,7 @@ final class ExpenseFormFields
             AdminDocumentFormFields::businessPreview('customer', $document),
             AdminDocumentFormFields::section('counterparty', __('expenses.fields.supplier')),
             ...AdminDocumentFormFields::counterparty('supplier', $countries),
+            AdminDocumentFormFields::supplierLogo('contact', $document),
             AdminDocumentFormFields::section('account', __('parties.sections.supplier_account')),
             [
                 'name' => 'document_account_mode',

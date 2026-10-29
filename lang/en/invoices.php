@@ -227,7 +227,7 @@ return [
         'document' => 'Document details',
         'amounts' => 'Amount and currency',
         'status' => 'Invoice status',
-        'other' => 'Invoice text and logo',
+        'other' => 'Invoice text and template',
         'invoice_details' => 'Invoice Details',
         'invoice_info' => 'Invoice Information',
         'seller_details' => 'Seller Details',

@@ -24,6 +24,9 @@ final class AdminInvoiceFormFields
         $fields = [];
         $categoryId = StatusCategory::where('slug', 'invoice-statuses')->value('id');
         foreach ($this->getInvoiceFields() as $field) {
+            if ($field['name'] === 'invoice_logo') {
+                continue;
+            }
             $field['wrapper'] = ['class' => 'form-group col-12 col-md-6'];
             if ($field['name'] === 'payment_amount') {
                 $field['attributes'] = ['step' => '0.01'];
@@ -62,7 +65,6 @@ final class AdminInvoiceFormFields
         }
         $fields['invoice_vs']['wrapper'] = ['class' => 'form-group col-12'];
         $fields['invoice_text']['wrapper'] = ['class' => 'form-group col-12'];
-        $fields['invoice_logo']['wrapper'] = ['class' => 'form-group col-12'];
 
         return [
             AdminDocumentFormFields::section('selection', __('parties.sections.document_parties')),
@@ -77,6 +79,7 @@ final class AdminInvoiceFormFields
             $fields['invoice_ss'],
             AdminDocumentFormFields::section('business', __('invoices.fields.supplier')),
             AdminDocumentFormFields::businessPreview('supplier', $document),
+            AdminDocumentFormFields::supplierLogo('business', $document),
             AdminDocumentFormFields::section('counterparty', __('invoices.fields.customer')),
             ...AdminDocumentFormFields::counterparty('customer', $countries),
             AdminDocumentFormFields::section(
@@ -92,7 +95,6 @@ final class AdminInvoiceFormFields
             $fields['payment_status_id'],
             AdminDocumentFormFields::section('other', __('invoices.sections.other')),
             $fields['invoice_text'],
-            $fields['invoice_logo'],
             $fields['template'],
         ];
     }

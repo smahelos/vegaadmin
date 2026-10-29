@@ -101,10 +101,10 @@
                     <x-detail.item accent="border-red-300" :label="__('parties.bank_accounts.fields.swift')">{{ $parties->account->account->swift }}</x-detail.item>
                     @endif
                 </div>
-                @if($invoice->invoice_logo)
-                <x-detail.item class="lg:w-48 lg:shrink-0" accent="border-red-300" :label="__('invoices.fields.invoice_logo')">
-                    <img src="{{ asset('storage/' . ltrim($invoice->invoice_logo, '/')) }}"
-                        alt="{{ __('invoices.fields.invoice_logo') }}" class="mt-1 max-h-24">
+                @if($invoice->supplier_logo)
+                <x-detail.item class="lg:w-48 lg:shrink-0" accent="border-red-300" :label="__('parties.fields.supplier_logo')">
+                    <img src="{{ asset('storage/' . ltrim($invoice->supplier_logo, '/')) }}"
+                        alt="{{ __('parties.fields.supplier_logo') }}" class="mt-1 max-h-24">
                 </x-detail.item>
                 @endif
             </div>

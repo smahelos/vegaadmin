@@ -6,6 +6,7 @@ namespace App\Application\Invoice\Services\Specialized;
 
 use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoicePartySelection;
+use App\Application\Invoice\Services\DocumentLogoApplicationService;
 use App\Application\Invoice\Services\InvoicePartiesAssembler;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
@@ -13,6 +14,8 @@ use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
+use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\User\ValueObjects\UserId;
 
@@ -20,6 +23,8 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
 {
     public function __construct(
         private readonly InvoiceServiceInterface $invoiceService,
+        private readonly DocumentLogoApplicationService $logos,
+        private readonly BusinessReadRepositoryInterface $businesses,
         private readonly InvoiceDtoReadRepositoryInterface $invoices,
         private readonly InvoicePartiesAssembler $parties,
         private readonly TransactionBoundaryInterface $transaction,
@@ -37,16 +42,21 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
         InvoicePartySelection $parties,
         array $products,
     ): InvoiceDTO {
-        return $this->transaction->transaction(
-            fn (): InvoiceDTO => $this->invoiceService->createInvoice(
-                $userId,
-                $data,
-                $this->parties->assemble(
+        $business = $this->businesses->findByIdForUser($parties->businessId, $userId)
+            ?? throw new BusinessNotFoundException($parties->businessId);
+
+        return $this->logos->saveWithLogo(
+            null,
+            false,
+            $business->logo,
+            null,
+            fn (?string $logo): InvoiceDTO => $this->transaction->transaction(
+                fn (): InvoiceDTO => $this->invoiceService->createInvoice(
                     $userId,
-                    $parties,
-                    null,
+                    $data,
+                    $this->parties->assemble($userId, $parties, null)->withSupplierLogo($logo),
+                    $products,
                 ),
-                $products,
             ),
         );
     }
@@ -64,21 +74,26 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
         InvoicePartySelection $parties,
         ?array $products,
     ): InvoiceDTO {
-        return $this->transaction->transaction(function () use ($userId, $invoiceId, $data, $parties, $products): InvoiceDTO {
-            $stored = $this->invoices->findByIdForUser($invoiceId, $userId)
-                ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
+        $stored = $this->invoices->findByIdForUser($invoiceId, $userId)
+            ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
+        $business = $this->businesses->findByIdForUser($parties->businessId, $userId)
+            ?? throw new BusinessNotFoundException($parties->businessId);
+        $keep = ! $parties->reloadBusiness && $stored->parties->businessId->equals($parties->businessId);
 
-            return $this->invoiceService->updateInvoice(
-                $userId,
-                $invoiceId,
-                $data,
-                $this->parties->assemble(
+        return $this->logos->saveWithLogo(
+            $stored->parties->supplierLogo,
+            $keep,
+            $business->logo,
+            null,
+            fn (?string $logo): InvoiceDTO => $this->transaction->transaction(
+                fn (): InvoiceDTO => $this->invoiceService->updateInvoice(
                     $userId,
-                    $parties,
-                    $stored->parties,
+                    $invoiceId,
+                    $data,
+                    $this->parties->assemble($userId, $parties, $stored->parties)->withSupplierLogo($logo),
+                    $products,
                 ),
-                $products,
-            );
-        });
+            ),
+        );
     }
 }

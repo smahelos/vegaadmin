@@ -32,6 +32,7 @@ final class EloquentDocumentPartyOptionMapper
             $record->id,
             $record->name,
             profile: DocumentPartyDTO::fromProfile(EloquentPartyProfileMapper::toProfile($record)),
+            logo: $record->logo,
         );
     }
 

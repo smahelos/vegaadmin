@@ -37,6 +37,7 @@ class Expense extends Model
         'tax_amount',
         'tax_included',
         'status_id',
+        'supplier_logo',
         'supplier_name',
         'supplier_company_number',
         'supplier_registration_country',

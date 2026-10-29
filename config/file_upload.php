@@ -52,7 +52,7 @@ return [
             ],
             'hash_deduplication' => ['enabled' => true],
         ],
-        'business_logo' => [
+        'party_logo' => [
             'max_kb' => 2048, // 2 MB
             'allowed_extensions' => [
                 'png',
@@ -68,7 +68,7 @@ return [
                 'path' => 'thumbnails',
                 'quality' => 85,
             ],
-            'hash_deduplication' => ['enabled' => true],
+            'hash_deduplication' => ['enabled' => false],
         ],
         'supplier_logo' => [
             'max_kb' => 2048, // 2 MB

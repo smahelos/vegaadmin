@@ -43,7 +43,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
             daysOverdue: 21,
-            recipientType: 'client',
+            recipientType: 'customer',
         );
         $this->user->notify(new InvoiceOverdueReminder($payload));
 
@@ -117,7 +117,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
             daysOverdue: 21,
-            recipientType: 'client',
+            recipientType: 'customer',
         );
         $notification = new InvoiceOverdueReminder($payload);
 
@@ -126,7 +126,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $payloadProperty->setAccessible(true);
         /** @var InvoiceReminderPayload $inner */
         $inner = $payloadProperty->getValue($notification);
-        $this->assertEquals('client', $inner->recipientType);
+        $this->assertEquals('customer', $inner->recipientType);
     }
 
     #[Test]
@@ -157,7 +157,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
             daysOverdue: 21,
-            recipientType: 'client',
+            recipientType: 'customer',
         );
         $notification = new InvoiceOverdueReminder($payload);
         $notification->locale('en');
@@ -167,7 +167,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
         $viewProperty = $reflection->getProperty('view');
         $viewProperty->setAccessible(true);
 
-        $this->assertEquals('emails.invoices.reminders.overdue_client', $viewProperty->getValue($mailMessage));
+        $this->assertEquals('emails.invoices.reminders.overdue_customer', $viewProperty->getValue($mailMessage));
     }
 
     #[Test]
@@ -356,7 +356,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
             daysOverdue: 21,
-            recipientType: 'client',
+            recipientType: 'customer',
         );
         $this->user->notify(new InvoiceOverdueReminder($clientPayload));
 
@@ -379,7 +379,7 @@ class InvoiceOverdueReminderFeatureTest extends TestCase
                 /** @var InvoiceReminderPayload $payload */
                 $payload = $payloadProperty->getValue($notification);
 
-                return in_array($payload->recipientType, ['client', 'supplier']);
+                return in_array($payload->recipientType, ['customer', 'supplier']);
             },
         );
     }

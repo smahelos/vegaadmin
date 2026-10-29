@@ -76,6 +76,13 @@ final class ExpenseRequest extends FormRequest
             'attachments' => 'sometimes|nullable|array',
             'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt|max:10240',
             'attachments_removed' => 'nullable|json',
+            'supplier_logo' => $this->filled('contact_id') ? ['exclude'] : [
+                'nullable',
+                'image',
+                'mimes:png,jpg,jpeg,webp',
+                'max:2048',
+            ],
+            'remove_supplier_logo' => 'nullable|boolean',
         ];
     }
 
@@ -93,6 +100,7 @@ final class ExpenseRequest extends FormRequest
                 path: $file->getPathname(),
             );
         }
+        $logo = $this->file('supplier_logo');
         $removed = json_decode($data['attachments_removed'] ?? '[]', true);
 
         return new ExpenseWriteData(
@@ -112,13 +120,25 @@ final class ExpenseRequest extends FormRequest
             isset($data['status_id']) ? (int) $data['status_id'] : null,
             $uploads,
             is_array($removed) ? array_values(array_filter($removed, is_string(...))) : [],
+            supplierLogo: $this->filled('contact_id') || $logo === null ? null : new IncomingFile(
+                $logo->getClientOriginalName(),
+                $logo->getClientOriginalExtension(),
+                $logo->getMimeType() ?? 'application/octet-stream',
+                (int) $logo->getSize(),
+                $logo->getPathname(),
+            ),
+            removeSupplierLogo: $this->boolean('remove_supplier_logo'),
         );
     }
 
     /** @return array<string, string> */
     public function attributes(): array
     {
-        $attributes = [...DocumentPartyInput::attributes('supplier'), ...DocumentPartyInput::accountAttributes()];
+        $attributes = [
+            'supplier_logo' => __('parties.fields.supplier_logo'),
+            ...DocumentPartyInput::attributes('supplier'),
+            ...DocumentPartyInput::accountAttributes(),
+        ];
         foreach ([
             'expense_date',
             'amount',

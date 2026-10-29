@@ -1,15 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Invoice\Notifications\DTO;
 
-class InvoiceReminderPayload
+use DateTimeImmutable;
+
+final readonly class InvoiceReminderPayload
 {
     public function __construct(
-        public readonly string $invoiceNumber,
-        public readonly \DateTimeImmutable $dueDate,
-        public readonly ?int $daysLeft = null,
-        public readonly ?int $daysOverdue = null,
-        public readonly string $recipientType = 'supplier', // 'supplier'|'client'
-        public readonly ?string $locale = null,
+        public string $invoiceNumber,
+        public DateTimeImmutable $dueDate,
+        public ?int $daysLeft = null,
+        public ?int $daysOverdue = null,
+        public string $recipientType = 'supplier',
+        public ?string $locale = null,
+        public string $recipientName = '',
     ) {}
 }

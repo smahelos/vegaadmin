@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Domain\Party\DTO\PartyProfile;
 use App\Http\Requests\Party\PartyInput;
+use App\Http\Requests\Party\PartyLogoInput;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -25,14 +26,7 @@ final class BusinessRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = PartyInput::rules($this->all(), static fn (string $field): string => $field) + [
-            'logo' => [
-                'nullable',
-                'image',
-                'mimes:png,jpg,jpeg,webp',
-                'max:2048',
-            ],
-        ];
+        $rules = PartyInput::rules($this->all(), static fn (string $field): string => $field) + PartyLogoInput::rules();
 
         if ($this->isMethod('POST')) {
             $rules['user_id'] = [
@@ -52,7 +46,7 @@ final class BusinessRequest extends FormRequest
     {
         return PartyInput::attributes(static fn (string $field): string => $field) + [
             'user_id' => __('parties.fields.owner'),
-            'logo' => __('businesses.fields.logo'),
+            'logo' => __('parties.fields.logo'),
         ];
     }
 

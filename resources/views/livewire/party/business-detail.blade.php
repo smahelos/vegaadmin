@@ -57,13 +57,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         <x-detail.card :title="__('parties.sections.basic')" :badge="__('businesses.entity.singular')">
             <x-party.basic-profile :profile="$business->profile">
-                <x-detail.item class="md:col-span-2" accent="border-red-300" :label="__('businesses.fields.logo')">
-                    @if ($business->logo)
-                        <img src="{{ asset('storage/' . $business->logo) }}" alt="{{ __('businesses.fields.logo') }}" class="mt-1 max-h-37 object-contain">
-                    @else
-                        <span class="text-sm font-normal text-gray-500 dark:text-gray-400">{{ __('businesses.messages.no_logo') }}</span>
-                    @endif
-                </x-detail.item>
+                <x-party.logo-profile :logo="$business->logo" />
             </x-party.basic-profile>
         </x-detail.card>
         <x-detail.card :title="__('parties.sections.billing')">

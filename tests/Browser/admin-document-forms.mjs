@@ -41,6 +41,7 @@ try {
  const compareProfile=async(role,profile)=>{
    const result=await evaluate(`Object.fromEntries([...document.querySelectorAll('[name^="${role}_"]')].map(e=>[e.name.slice(${role.length+1}),{value:e.value,disabled:e.disabled}]))`);
    for(const [key,value] of Object.entries(profile)) {
+     if(key === 'logo_url') continue;
      assert(result[key]?.value===String(value ?? ''),`${role}.${key}: expected ${value}, got ${JSON.stringify(result[key])}`);
      assert(result[key]?.disabled,`${role}.${key} must be locked for a newly selected contact`);
    }
@@ -80,8 +81,10 @@ try {
    }
    await evaluate(`jQuery('[name=user_id]').val(${JSON.stringify(fixtures.owner)}).trigger('change');true`);
    await select('business_id',fixtures.businesses[0]);
+   assert(await evaluate('!document.querySelector("[name=invoice_logo]")'), 'Admin invoice must not offer its own logo upload');
    await select('contact_id',fixtures.contacts[0]);
    await compareProfile(role,fixtures.contacts[0].profile);
+   if(documentType==='expense') assert(await evaluate('document.querySelector("[name=supplier_logo]").disabled'), 'A contact-backed expense must use the contact logo');
    await select('contact_id',fixtures.contacts[1]);
    await compareProfile(role,fixtures.contacts[1].profile);
    // A programmatic selection (e.g. a validation redirect) must also fetch the complete profile by ID.
@@ -110,6 +113,7 @@ try {
      assert(uploadCheck.status===422 && !!uploadCheck.errors.amount,'Browser validation probe must not save a document');
      assert(!Object.keys(uploadCheck.errors).some(name=>name.startsWith('attachments')),'An empty upload must not fail attachment validation');
      await evaluate(`jQuery('[name=contact_id]').val(null).trigger('change');jQuery('[name=account_number]').val('2001234561');true`);
+     assert(await evaluate('!document.querySelector("[name=supplier_logo]").disabled'), 'A one-off expense must allow its supplier logo upload');
      assert(await evaluate('!document.querySelector("[name=supplier_name]").disabled && !document.querySelector("[name=account_number]").disabled'),'One-off supplier/account must remain editable');
      const accountFixture=await evaluate(`(async()=>{
        for(const contact of ${JSON.stringify(fixtures.contacts)}) {

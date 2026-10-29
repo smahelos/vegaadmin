@@ -1,712 +1,244 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Domain\Invoice\Services;
 
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
-use App\Application\Invoice\Services\InvoicePdfRenderer;
-use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
+use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\DTO\QrPaymentPayload;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
-use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\Shared\Time\Contracts\ClockInterface;
-use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
-use App\Domain\User\Contracts\Locale;
 use App\Domain\User\ValueObjects\UserId;
-use App\Models\Client;
+use App\Infrastructure\Renderers\Invoice\InvoicePdfRenderer;
+use App\Models\Business;
+use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
-use App\Models\Status;
-use App\Models\Supplier;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\View;
+use DOMDocument;
+use DOMXPath;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\RendersInvoicePdfHtml;
 use Tests\TestCase;
 
-class InvoicePdfServiceFeatureTest extends TestCase
+final class InvoicePdfServiceFeatureTest extends TestCase
 {
-    private InvoicePdfRenderer $renderer;
+    use RendersInvoicePdfHtml;
 
-    private InvoicePdfRenderer $rendererMissingTemplate;
-
-    private InvoicePrintDataBuilder $printDataBuilder;
-
-    private TemporaryInvoicePrintDataFactoryInterface $tempFactory;
-
-    private InvoiceDtoReadRepositoryInterface $invoiceDtoRepo;
-
-    protected function setUp(): void
+    /** @return array<string, array{string}> */
+    public static function templates(): array
     {
-        parent::setUp();
-        $this->renderer = app(InvoicePdfRenderer::class);
-        $this->printDataBuilder = app(InvoicePrintDataBuilder::class);
-        $this->tempFactory = app(TemporaryInvoicePrintDataFactoryInterface::class);
-        $this->invoiceDtoRepo = app(InvoiceDtoReadRepositoryInterface::class);
-        // Deterministic fake for missing template scenario
-        $this->rendererMissingTemplate = new class(app(MoneyFormatterInterface::class), app(QrPaymentServiceInterface::class), app(QrPaymentPayloadMapper::class), app(DateFormatterInterface::class), app(ClockInterface::class), app(Locale::class)) extends InvoicePdfRenderer
+        return [
+            'default' => ['default'],
+            'modern' => ['modern'],
+            'minimal' => ['minimal'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('templates')]
+    public function prints_saved_parties_and_account_even_after_sources_change(string $template): void
+    {
+        $invoice = $this->invoice();
+        Business::whereKey($invoice->business_id)->update([
+            'name' => 'Changed live business',
+            'logo' => 'missing.png',
+            'archived_at' => now(),
+        ]);
+        $contact = Contact::factory()->create([
+            'user_id' => $invoice->user_id,
+            'name' => 'Changed live contact',
+            'archived_at' => now(),
+        ]);
+        $invoice->update(['contact_id' => $contact->id]);
+        $html = $this->renderPdfHtml($this->printable($invoice), $template);
+        foreach ([
+            'Saved supplier',
+            'Saved customer',
+            'Saved street',
+            'Saved city',
+            '27074358',
+            'CZ27074358',
+            '2001234561',
+            '2010',
+            'Saved bank',
+        ] as $value) {
+            $this->assertStringContainsString($value, $html);
+        }
+        $this->assertStringNotContainsString('Changed live', $html);
+    }
+
+    #[Test]
+    public function qr_uses_the_saved_account_country_amount_and_symbols(): void
+    {
+        $qr = new class implements QrPaymentServiceInterface
         {
-            protected function templateFileExists(string $template): bool
+            public ?QrPaymentPayload $payload = null;
+
+            public function generateQrCodeBase64(QrPaymentPayload $payload): ?string
             {
-                // Simulate that only 'default' exists; others missing
-                return $template === 'default';
+                $this->payload = $payload;
+
+                return 'data:image/png;base64,cXItc25hcHNob3Q=';
             }
         };
-        View::addLocation(__DIR__ . '/../../Stubs/Views');
-    }
-
-    // No special tearDown needed as we are not mocking DomPDF facade now
-
-    #[Test]
-    public function generate_pdf_works_with_complete_invoice_data(): void
-    {
-        // Create test data
-        $supplier = Supplier::factory()->create([
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-            'iban' => 'CZ1234567890123456789',
-        ]);
-
-        $client = Client::factory()->create();
-
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
-
-        $invoice = Invoice::factory()->create([
-            'supplier_id' => $supplier->id,
-            'client_id' => $client->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-            'invoice_vs' => '2024001',
-            'payment_amount' => 1000,
-            'payment_currency' => 'CZK',
-        ]);
-
-        // Build PrintableInvoiceData and ensure renderer is invoked
-        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
-        $printData = $this->printDataBuilder->build($dto);
-
-        Pdf::shouldReceive('loadView')->once()->with(
-            \Mockery::on(fn ($tpl) => is_string($tpl) && str_starts_with($tpl, 'pdfs.templates.')),
-            \Mockery::on(fn ($data) => is_array($data) && isset($data['invoice'])),
-        )->andReturnSelf();
-
-        $this->renderer->render(
-            $printData,
-            $printData->template,
-            'cs',
-        );
+        $this->app->instance(QrPaymentServiceInterface::class, $qr);
+        $invoice = $this->invoice();
+        $html = $this->renderPdfHtml($this->printable($invoice));
+        $this->assertNotNull($qr->payload);
+        $this->assertSame('20260001', $qr->payload->variableSymbol);
+        $this->assertSame('1210', $qr->payload->amount->getAmount());
+        $this->assertSame('CZK', $qr->payload->amount->getCurrency());
+        $this->assertSame('2001234561', $qr->payload->accountNumber);
+        $this->assertSame('2010', $qr->payload->bankCode);
+        $this->assertSame('CZ', $qr->payload->countryCode);
+        $this->assertSame('Saved notes', $qr->payload->message);
+        $this->assertStringContainsString('data:image/png;base64,cXItc25hcHNob3Q=', $html);
     }
 
     #[Test]
-    public function generate_pdf_handles_locale_settings(): void
+    public function cash_does_not_generate_a_payment_qr_even_with_a_saved_account(): void
     {
-        $supplier = Supplier::factory()->create();
-        $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
+        $qr = $this->createMock(QrPaymentServiceInterface::class);
+        $qr->expects($this->never())->method('generateQrCodeBase64');
+        $this->app->instance(QrPaymentServiceInterface::class, $qr);
+        $invoice = $this->invoice();
+        $invoice->update(['payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->sole()->id]);
+        $html = $this->renderPdfHtml($this->printable($invoice));
+        $this->assertStringNotContainsString('data:image/png;base64,', $html);
+    }
 
-        $invoice = Invoice::factory()->create([
-            'supplier_id' => $supplier->id,
-            'client_id' => $client->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-        ]);
+    #[Test]
+    public function print_uses_only_the_document_logo_and_tolerates_a_missing_file(): void
+    {
+        Storage::fake('public');
+        $file = UploadedFile::fake()->image('logo.png');
+        Storage::disk('public')->put('documents/logos/saved.png', file_get_contents($file->getPathname()));
+        $invoice = $this->invoice();
+        $invoice->update(['supplier_logo' => 'documents/logos/saved.png']);
+        $html = $this->renderPdfHtml($this->printable($invoice));
+        $this->assertStringContainsString(Storage::disk('public')->path('documents/logos/saved.png'), $html);
+        Storage::disk('public')->delete('documents/logos/saved.png');
+        $html = $this->renderPdfHtml($this->printable($invoice));
+        $this->assertStringNotContainsString('documents/logos/saved.png', $html);
+    }
 
-        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
-        $printData = $this->printDataBuilder->build($dto);
-
-        // Expect different locales to be passed through to view data
-        $captured = [];
-        Pdf::shouldReceive('loadView')->twice()->with(
-            \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) {
-                $captured[] = $data['locale'] ?? null;
-
-                return true;
-            }),
-        )->andReturnSelf();
-
-        $this->renderer->render(
-            $printData,
-            null,
-            'cs',
+    #[Test]
+    public function prints_dates_and_money_in_the_requested_locale_and_restores_the_previous_locale(): void
+    {
+        $this->travelTo(now()->setDate(2026, 3, 20)->setTime(14, 7));
+        $invoice = $this->invoice();
+        $previous = app()->getLocale();
+        $print = $this->printable($invoice);
+        $german = $this->renderPdfHtml(
+            $print,
+            'default',
+            'de',
         );
-        $this->renderer->render(
-            $printData,
-            null,
+        $this->assertSame($previous, app()->getLocale());
+        $english = $this->renderPdfHtml(
+            $print,
+            'default',
             'en',
         );
-        $this->assertEquals(['cs', 'en'], $captured);
+        $this->assertSame($previous, app()->getLocale());
+        $this->assertStringContainsString('05.03.2026', $german);
+        $this->assertStringContainsString('19.03.2026', $german);
+        $this->assertStringContainsString('20.03.2026, 14:07', $german);
+        $this->assertStringContainsString('Mar 5, 2026', $english);
+        $this->assertStringContainsString(app(MoneyFormatterInterface::class)->format($print->totalAmount, 'en'), $english);
     }
 
     #[Test]
-    public function generate_pdf_from_data_processes_invoice_data(): void
+    #[DataProvider('templates')]
+    public function a_guest_prints_the_same_snapshot_shape_and_server_totals(string $template): void
     {
-        $invoiceData = [
-            'client_name' => 'Test Client',
-            'client_street' => 'Test Street 123',
-            'client_city' => 'Test City',
-            'client_zip' => '12345',
-            'client_country' => 'CZ',
-            'name' => 'Test Supplier',
-            'street' => 'Supplier Street 456',
-            'city' => 'Supplier City',
-            'zip' => '54321',
-            'country' => 'CZ',
-            'payment_method_id' => 1,
-            'payment_status_id' => 1,
-            'payment_currency' => 'CZK',
-            'invoice_vs' => '2024002',
-            'issue_date' => '2024-01-01',
-            'due_in' => 30,
-            'payment_amount' => 1200.00,
-            'invoice_text' => 'Test invoice description',
-            'lang' => 'cs',
-            'invoice-products' => [],
-        ];
-
-        // Build from array and render
-        $printData = $this->tempFactory->fromArray($invoiceData);
-        Pdf::shouldReceive('loadView')->once()->andReturnSelf();
-        $this->renderer->render(
-            $printData,
-            $printData->template,
-            $invoiceData['lang'],
-        );
-    }
-
-    #[Test]
-    public function generate_pdf_from_data_calculates_due_date_correctly(): void
-    {
-        $invoiceData = [
-            'client_name' => 'Test Client',
-            'name' => 'Test Supplier',
-            'payment_method_id' => 1,
-            'payment_status_id' => 1,
-            'payment_currency' => 'CZK',
-            'invoice_vs' => '2024003',
-            'issue_date' => '2024-01-01',
-            'due_in' => 30,
-            'payment_amount' => 1000.00,
-            'invoice_text' => 'Test invoice',
-            'invoice-products' => [],
-        ];
-
-        $printData = $this->tempFactory->fromArray($invoiceData);
-        $this->assertSame('2024-01-31', $printData->due_date?->date()->format('Y-m-d'));
-        Pdf::shouldReceive('loadView')->once()->andReturnSelf();
-        $this->renderer->render(
-            $printData,
-            null,
-            null,
-        );
-    }
-
-    #[Test]
-    public function generate_pdf_from_data_handles_minimal_required_data(): void
-    {
-        $invoiceData = [
-            'payment_method_id' => 1,
-            'payment_status_id' => 1,
-            'payment_currency' => 'CZK',
-            'invoice_vs' => '2024004',
-            'issue_date' => '2024-01-01',
+        $invoice = $this->invoice();
+        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
+        $print = app(TemporaryInvoicePrintDataFactoryInterface::class)->fromArray([
+            'supplier' => $dto->parties->supplier,
+            'customer' => $dto->parties->customer,
+            'account' => $dto->parties->account,
+            'invoice_vs' => '20260002',
+            'issue_date' => '2026-03-05',
+            'tax_point_date' => '2026-03-04',
             'due_in' => 14,
-            'payment_amount' => 500.00,
-            'invoice_text' => 'Minimal invoice',
-            'invoice-products' => [],
-        ];
-
-        $printData = $this->tempFactory->fromArray($invoiceData);
-        Pdf::shouldReceive('loadView')->once()->andReturnSelf();
-        $this->renderer->render(
-            $printData,
-            null,
-            null,
-        );
-    }
-
-    #[Test]
-    public function generate_pdf_from_data_respects_locale_preference(): void
-    {
-        $invoiceData = [
-            'client_name' => 'Test Client',
-            'name' => 'Test Supplier',
-            'payment_method_id' => 1,
-            'payment_status_id' => 1,
-            'payment_currency' => 'EUR',
-            'invoice_vs' => '2024005',
-            'issue_date' => '2024-01-01',
-            'due_in' => 30,
-            'payment_amount' => 1000.00,
-            'invoice_text' => 'Test invoice with locale',
-            'lang' => 'en',
-            'invoice-products' => [],
-        ];
-
-        $printData = $this->tempFactory->fromArray($invoiceData);
-        $captured = null;
-        Pdf::shouldReceive('loadView')->once()->with(
-            \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) {
-                $captured = $data['locale'];
-
-                return true;
-            }),
-        )->andReturnSelf();
-        $this->renderer->render(
-            $printData,
-            null,
-            'cs',
-        );
-        $this->assertEquals('cs', $captured);
-    }
-
-    #[Test]
-    public function generate_pdf_gracefully_handles_qr_code_errors(): void
-    {
-        $supplier = Supplier::factory()->create([
-            'account_number' => '',
-            'bank_code' => '',
-            'iban' => '',
-        ]);
-
-        $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
-
-        $invoice = Invoice::factory()->create([
-            'supplier_id' => $supplier->id,
-            'client_id' => $client->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-            'payment_amount' => 1000,
-        ]);
-
-        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
-        $printData = $this->printDataBuilder->build($dto);
-        Pdf::shouldReceive('loadView')->once()->andReturnSelf();
-        $this->renderer->render(
-            $printData,
-            null,
-            null,
-        );
-    }
-
-    #[Test]
-    public function service_dependencies_are_working(): void
-    {
-        // Test that dependencies are properly injected and accessible in renderer
-        $reflection = new \ReflectionClass($this->renderer);
-
-        $moneyFormatterProperty = $reflection->getProperty('moneyFormatter');
-        $moneyFormatterProperty->setAccessible(true);
-        $moneyFormatter = $moneyFormatterProperty->getValue($this->renderer);
-        $this->assertInstanceOf(MoneyFormatterInterface::class, $moneyFormatter);
-
-        $qrPaymentServiceProperty = $reflection->getProperty('qrPaymentService');
-        $qrPaymentServiceProperty->setAccessible(true);
-        $qrPaymentService = $qrPaymentServiceProperty->getValue($this->renderer);
-        $this->assertInstanceOf(QrPaymentServiceInterface::class, $qrPaymentService);
-    }
-
-    #[Test]
-    public function get_template_name_returns_correct_values(): void
-    {
-        $reflection = new \ReflectionClass($this->renderer);
-        $method = $reflection->getMethod('getTemplateName');
-        $method->setAccessible(true);
-
-        // Test valid templates (should return full Blade template path)
-        $this->assertEquals('pdfs.templates.default', $method->invoke($this->renderer, 'default'));
-        $this->assertEquals('pdfs.templates.modern', $method->invoke($this->renderer, 'modern'));
-        $this->assertEquals('pdfs.templates.minimal', $method->invoke($this->renderer, 'minimal'));
-
-        // Test invalid templates should return default
-        $this->assertEquals('pdfs.templates.default', $method->invoke($this->renderer, 'invalid'));
-        $this->assertEquals('pdfs.templates.default', $method->invoke($this->renderer, 'nonexistent'));
-        $this->assertEquals('pdfs.templates.default', $method->invoke($this->renderer, ''));
-        $this->assertEquals('pdfs.templates.default', $method->invoke($this->renderer, null));
-    }
-
-    #[Test]
-    public function get_template_name_falls_back_when_file_missing(): void
-    {
-        $reflection = new \ReflectionClass($this->rendererMissingTemplate);
-        $method = $reflection->getMethod('getTemplateName');
-        $method->setAccessible(true);
-        $resolved = $method->invoke($this->rendererMissingTemplate, 'modern');
-        $this->assertEquals(
-            'pdfs.templates.default',
-            $resolved,
-            'Should fall back to default when overridden file check returns false.',
-        );
-    }
-
-    #[Test]
-    public function locale_propagation_affects_money_formatting(): void
-    {
-        $supplier = Supplier::factory()->create();
-        $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
-        $invoice = Invoice::factory()->create([
-            'supplier_id' => $supplier->id,
-            'client_id' => $client->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-            'payment_amount' => 1234.56,
-            'payment_currency' => 'EUR',
-        ]);
-
-        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
-        $printData = $this->printDataBuilder->build($dto);
-
-        $formatted = [];
-        Pdf::shouldReceive('loadView')->twice()->with(
-            \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$formatted) {
-                $formatted[] = $data['paymentAmountFormatted'] ?? '';
-
-                return true;
-            }),
-        )->andReturnSelf();
-
-        $this->renderer->render(
-            $printData,
-            null,
-            'cs',
-        );
-        $this->renderer->render(
-            $printData,
-            null,
-            'en',
-        );
-
-        $this->assertCount(2, $formatted);
-        $this->assertNotEquals(
-            $formatted[0],
-            $formatted[1],
-            'Different locales should format differently',
-        );
-        $this->assertMatchesRegularExpression('/,\d{2}$/', $formatted[0]);
-        $this->assertMatchesRegularExpression('/\.\d{2}$/', $formatted[1]);
-    }
-
-    #[Test]
-    public function invalid_template_name_falls_back_in_generate_pdf(): void
-    {
-        $client = Client::factory()->create();
-        $supplier = Supplier::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $paymentStatus = Status::factory()->create();
-        $invoice = Invoice::factory()->create([
-            'client_id' => $client->id,
-            'supplier_id' => $supplier->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $paymentStatus->id,
-            'template' => 'nonexistent_unlikely_template_name',
-        ]);
-        $reflection = new \ReflectionClass($this->renderer);
-        $method = $reflection->getMethod('getTemplateName');
-        $method->setAccessible(true);
-        $resolved = $method->invoke($this->renderer, $invoice->template);
-        $this->assertEquals(
-            'pdfs.templates.default',
-            $resolved,
-            'Invalid template should fall back to default.',
-        );
-    }
-
-    #[Test]
-    public function invoice_with_template_generates_correct_pdf(): void
-    {
-        $client = Client::factory()->create();
-        $supplier = Supplier::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $paymentStatus = Status::factory()->create();
-
-        // Create invoice with specific template
-        $invoice = Invoice::factory()->create([
-            'client_id' => $client->id,
-            'supplier_id' => $supplier->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $paymentStatus->id,
-            'template' => 'modern',
-        ]);
-
-        $r = new \ReflectionClass($this->renderer);
-        $getTemplate = $r->getMethod('getTemplateName');
-        $getTemplate->setAccessible(true);
-        $template = $getTemplate->invoke($this->renderer, $invoice->template);
-        $this->assertEquals(
-            'pdfs.templates.modern',
-            $template,
-            'Modern template should be selected',
-        );
-
-        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
-        $printData = $this->printDataBuilder->build($dto);
-        $captured = null;
-        Pdf::shouldReceive('loadView')->once()->with(
-            'pdfs.templates.modern',
-            \Mockery::on(function ($data) use (&$captured) {
-                $captured = $data;
-
-                return true;
-            }),
-        )->andReturnSelf();
-        $this->renderer->render(
-            $printData,
-            $invoice->template,
-            'cs',
-        );
-        $this->assertIsArray($captured);
-        $this->assertArrayHasKey('invoice', $captured);
-        $this->assertArrayHasKey('supplier', $captured);
-        $this->assertArrayHasKey('paymentAmountFormatted', $captured);
-        $this->assertEquals('modern', $invoice->template);
-    }
-
-    #[Test]
-    public function generate_pdf_includes_formatted_amounts_in_html(): void
-    {
-        $supplier = Supplier::factory()->create([
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-        ]);
-        $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
-
-        $invoice = Invoice::factory()->create([
-            'supplier_id' => $supplier->id,
-            'client_id' => $client->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-            'payment_amount' => 1234.56,
             'payment_currency' => 'CZK',
+            'payment_method_id' => $invoice->payment_method_id,
+            'payment_amount' => '999999',
+            'invoice-products' => [[
+                'name' => 'Guest service',
+                'quantity' => '2.5',
+                'price' => '100',
+                'currency' => 'CZK',
+                'unit' => 'hours',
+                'tax_rate' => '21',
+            ]],
         ]);
+        $this->assertSame('250', $print->subtotal->getAmount());
+        $this->assertSame('52.5', $print->totalTax->getAmount());
+        $this->assertSame('302.5', $print->totalAmount->getAmount());
+        $html = $this->renderPdfHtml($print, $template);
+        $this->assertStringContainsString('Guest service', $html);
+        $dom = new DOMDocument;
+        @$dom->loadHTML($html);
+        $lastCell = (new DOMXPath($dom))->query("//tr[td[1][normalize-space()='Guest service']]/td[last()]")->item(0);
+        $this->assertNotNull($lastCell);
+        $this->assertSame(app(MoneyFormatterInterface::class)->format($print->totalAmount, 'cs'), trim($lastCell->textContent));
+        $this->assertStringContainsString('Saved supplier', $html);
+        $this->assertStringContainsString('Saved customer', $html);
+        $this->assertStringNotContainsString('999999', $html);
+    }
 
-        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
-        $printData = $this->printDataBuilder->build($dto);
-        $captured = null;
-        Pdf::shouldReceive('loadView')->once()->with(
-            \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) {
-                $captured = $data;
-
-                return true;
-            }),
-        )->andReturnSelf();
-        $this->renderer->render(
-            $printData,
-            null,
+    #[Test]
+    public function renders_a_downloadable_pdf_and_falls_back_from_an_unknown_template(): void
+    {
+        $print = $this->printable($this->invoice());
+        $pdf = app(InvoicePdfRenderer::class)->render(
+            $print,
+            'unknown-template',
             'cs',
         );
-
-        $this->assertArrayHasKey('paymentAmountFormatted', $captured);
-        $this->assertArrayHasKey('subtotalFormatted', $captured);
-        $this->assertArrayHasKey('taxFormatted', $captured);
-
-        $formatter = app(MoneyFormatterInterface::class);
-        $this->assertEquals($formatter->format($printData->total_amount, 'cs'), $captured['paymentAmountFormatted']);
-        $this->assertEquals($formatter->format($printData->subtotal, 'cs'), $captured['subtotalFormatted']);
-        $this->assertEquals($formatter->format($printData->total_tax, 'cs'), $captured['taxFormatted']);
-
-        foreach ([
-            'paymentAmountFormatted',
-            'subtotalFormatted',
-            'taxFormatted',
-        ] as $key) {
-            $this->assertMatchesRegularExpression('/^(?:Kč|[€$£¥₿]|[A-Z]{3} )/u', $captured[$key]);
-        }
+        $this->assertStringStartsWith('%PDF-', $pdf->output());
     }
 
-    #[Test]
-    public function temporary_invoice_data_builder_formats_amounts_and_line_items(): void
+    private function invoice(): Invoice
     {
-        $invoiceData = [
-            'client_name' => 'Temp Client',
-            'name' => 'Temp Supplier',
-            'payment_method_id' => 1,
-            'payment_status_id' => 1,
-            'payment_currency' => 'EUR',
-            'invoice_vs' => '2024999',
-            'issue_date' => '2024-02-01',
-            'due_in' => 10,
-            'payment_amount' => 2500.75,
-            'invoice_text' => 'Temp invoice',
-            'lang' => 'cs',
-            'invoice-products' => [
-                [
-                    'name' => 'Item A',
-                    'quantity' => 2,
-                    'unit' => 'pieces',
-                    'price' => 100,
-                    'currency' => 'EUR',
-                    'tax_rate' => 21,
-                    'tax_amount' => (100 * 2 * 21) / 100,
-                    'total_price' => (100 * 2) + ((100 * 2 * 21) / 100),
-                ],
-                [
-                    'name' => 'Item B',
-                    'quantity' => 1,
-                    'unit' => 'pieces',
-                    'price' => 50.5,
-                    'currency' => 'EUR',
-                    'tax_rate' => 21,
-                    'tax_amount' => (50.5 * 1 * 21) / 100,
-                    'total_price' => (50.5 * 1) + ((50.5 * 1 * 21) / 100),
-                ],
-            ],
-        ];
-
-        $printData = $this->tempFactory->fromArray($invoiceData);
-        $captured = null;
-        Pdf::shouldReceive('loadView')->once()->with(
-            \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) {
-                $captured = $data;
-
-                return true;
-            }),
-        )->andReturnSelf();
-        $this->renderer->render(
-            $printData,
-            $printData->template,
-            'cs',
-        );
-
-        $this->assertArrayHasKey('paymentAmountFormatted', $captured);
-        $this->assertArrayHasKey('subtotalFormatted', $captured);
-        $this->assertArrayHasKey('taxFormatted', $captured);
-        $this->assertArrayHasKey('invoiceProductsFormatted', $captured);
-        $this->assertCount(2, $captured['invoiceProductsFormatted']);
-
-        $formatter = app(MoneyFormatterInterface::class);
-        $currency = 'EUR';
-        // The amount comes from the lines (50.50 * 21 % = 10.605 rounds to 10.61), not from the typed 2500.75
-        $paymentMoney = Money::fromString('303.11', $currency);
-        $this->assertEquals($formatter->format($paymentMoney, 'cs'), $captured['paymentAmountFormatted']);
-        $this->assertSame('250.5', $printData->subtotal->getAmount());
-        $this->assertSame('52.61', $printData->total_tax->getAmount());
-        $this->assertSame('61.11', $printData->items[1]->line_total->getAmount());
-
-        foreach ($captured['invoiceProductsFormatted'] as $item) {
-            $this->assertArrayHasKey('price_formatted', $item);
-            $this->assertArrayHasKey('total_price_formatted', $item);
-            $this->assertMatchesRegularExpression('/^(?:Kč|[€$£¥₿]|[A-Z]{3} )/u', $item['price_formatted']);
-            $this->assertMatchesRegularExpression('/^(?:Kč|[€$£¥₿]|[A-Z]{3} )/u', $item['total_price_formatted']);
-        }
-
-        foreach ([
-            'paymentAmountFormatted',
-            'subtotalFormatted',
-            'taxFormatted',
-        ] as $key) {
-            $this->assertMatchesRegularExpression('/^(?:Kč|[€$£¥₿]|[A-Z]{3} )/u', $captured[$key]);
-        }
-    }
-
-    #[Test]
-    public function generate_pdf_uses_default_template_when_missing_specific_file(): void
-    {
-        // Prepare invoice with a template that our overridden service reports as missing.
-        $supplier = Supplier::factory()->create();
-        $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
-        $invoice = Invoice::factory()->create([
-            'supplier_id' => $supplier->id,
-            'client_id' => $client->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-            'template' => 'modern', // "modern" will be treated as missing by overridden templateFileExists
-        ]);
-
-        // Expect DomPDF facade to be invoked with the *default* template due to fallback.
-        Pdf::shouldReceive('loadView')
-            ->once()
-            ->with('pdfs.templates.default', \Mockery::on(function ($data) use ($invoice) {
-                // Basic shape assertions for passed view data.
-                return is_array($data)
-                    && isset($data['invoice'])
-                    && ($data['invoice']->invoice_vs === $invoice->invoice_vs || true);
-            }))
-            ->andReturnSelf();
-        // Build print data and invoke renderer (will not render real view thanks to facade mock).
-        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
-        $printData = $this->printDataBuilder->build($dto);
-        $this->rendererMissingTemplate->render(
-            $printData,
-            $invoice->template,
-            null,
-        );
-    }
-
-    #[Test]
-    public function qr_code_exception_sets_has_qr_code_false_and_logs_error(): void
-    {
-
-        // Bind throwing QR payment service
-        app()->bind(QrPaymentServiceInterface::class, function () {
-            return new class implements QrPaymentServiceInterface
-            {
-                public function generateQrCodeBase64(QrPaymentPayload $payload): ?string
-                {
-                    throw new \RuntimeException('QR fail test');
-                }
-
-                public function hasRequiredPaymentInfo(QrPaymentPayload $payload): bool
-                {
-                    return true; // not relevant for exception path
-                }
-            };
-        });
-
-        // Resolve fresh renderer with throwing dependency
-        $failingRenderer = app(InvoicePdfRenderer::class);
-
-        $supplier = Supplier::factory()->create([
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-        ]);
-        $client = Client::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
-        $invoice = Invoice::factory()->create([
-            'supplier_id' => $supplier->id,
-            'client_id' => $client->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-            'payment_amount' => 999.99,
+        return Invoice::factory()->create([
+            'invoice_vs' => '20260001',
+            'issue_date' => '2026-03-05',
+            'tax_point_date' => '2026-03-04',
+            'due_in' => 14,
+            'invoice_text' => 'Saved notes',
             'payment_currency' => 'CZK',
+            'payment_amount' => '1210',
+            'supplier_name' => 'Saved supplier',
+            'supplier_street' => 'Saved street',
+            'supplier_city' => 'Saved city',
+            'supplier_postal_code' => '11000',
+            'supplier_country' => 'CZ',
+            'supplier_company_number' => '27074358',
+            'supplier_registration_country' => 'CZ',
+            'supplier_vat_number' => 'CZ27074358',
+            'customer_name' => 'Saved customer',
+            'account_number' => '2001234561',
+            'account_bank_code' => '2010',
+            'account_country' => 'CZ',
+            'account_bank_name' => 'Saved bank',
         ]);
+    }
 
-        $dto = $this->invoiceDtoRepo->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
-        $printData = $this->printDataBuilder->build($dto);
-        $captured = null;
-        Pdf::shouldReceive('loadView')->once()->with(
-            \Mockery::type('string'),
-            \Mockery::on(function ($data) use (&$captured) {
-                $captured = $data;
+    private function printable(Invoice $invoice): PrintableInvoiceDTO
+    {
+        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
 
-                return true;
-            }),
-        )->andReturnSelf();
-        $failingRenderer->render(
-            $printData,
-            null,
-            'cs',
-        );
-
-        $this->assertArrayHasKey('qrCode', $captured);
-        $this->assertNull($captured['qrCode']);
-        $this->assertFalse($captured['hasQrCode']);
+        return app(InvoicePrintDataBuilder::class)->build($dto);
     }
 }

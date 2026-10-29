@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Invoice\Services;
+namespace App\Application\Party\Services;
 
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Domain\Shared\File\DTO\IncomingFile;
 use RuntimeException;
 
 /**
- * Logo files of invoices on the public disk; the invoice stores only the path.
+ * Logo files shared by businesses and contacts on the public disk.
  */
-final class InvoiceLogoApplicationService
+final class PartyLogoApplicationService
 {
     private const DISK = 'public';
 
-    private const CONTEXT = 'invoice_logo';
+    private const CONTEXT = 'party_logo';
 
     public function __construct(
         private readonly FileUploadServiceInterface $files,
@@ -29,7 +29,7 @@ final class InvoiceLogoApplicationService
         $path = $this->files->handleFileUpload(
             $file,
             self::CONTEXT,
-            'invoices/logos',
+            'parties/logos',
             [
                 'disk' => self::DISK,
                 'sanitizeFilename' => true,
@@ -40,5 +40,10 @@ final class InvoiceLogoApplicationService
         );
 
         return $path ?? throw new RuntimeException('The logo was not stored');
+    }
+
+    public function delete(string $path): void
+    {
+        $this->files->deleteFile($path, self::DISK);
     }
 }

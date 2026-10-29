@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Livewire\Party;
 
 use App\Application\Party\Services\BusinessApplicationService;
-use App\Application\Party\Services\BusinessLogoApplicationService;
+use App\Application\Party\Services\PartyLogoApplicationService;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
-use App\Domain\Shared\File\DTO\IncomingFile;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Party\Forms\BankAccountForm;
 use App\Livewire\Party\Forms\PartyDetailsForm;
@@ -19,8 +18,6 @@ use App\Livewire\Shared\ActsForUser;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Livewire\WithFileUploads;
 
 /**
  * Creates or edits one of the user's own businesses. A new business may get its first bank account right away,
@@ -31,8 +28,8 @@ final class BusinessForm extends Component
     use ActsForUser;
     use ChecksPartyDuplicates;
     use EditsPartyDetails;
+    use EditsPartyLogo;
     use ProvidesPartyOptions;
-    use WithFileUploads;
 
     public PartyDetailsForm $party;
 
@@ -40,12 +37,6 @@ final class BusinessForm extends Component
 
     #[Locked]
     public ?int $businessId = null;
-
-    public ?TemporaryUploadedFile $logo = null;
-
-    public ?string $currentLogo = null;
-
-    public bool $removeLogo = false;
 
     public ?string $limitMessage = null;
 
@@ -66,7 +57,7 @@ final class BusinessForm extends Component
         $this->currentLogo = $business->logo;
     }
 
-    public function save(BusinessApplicationService $businesses, BusinessLogoApplicationService $logos): void
+    public function save(BusinessApplicationService $businesses, PartyLogoApplicationService $logos): void
     {
         $creating = $this->businessId === null;
         $this->requirePermission($creating ? 'frontend.can_create_business' : 'frontend.can_update_business');
@@ -87,6 +78,7 @@ final class BusinessForm extends Component
         $logo = $this->logoPath($logos);
         $data = new BusinessWriteData($profile, $logo);
 
+        $saved = false;
         try {
             $business = $creating
                 ? $businesses->create(
@@ -99,16 +91,19 @@ final class BusinessForm extends Component
                     BusinessId::fromInt($this->businessId),
                     $data,
                 );
+            $saved = true;
         } catch (EntityLimitExceededException $e) {
-            $this->discardNewLogo($logos, $logo);
             $this->limitMessage = __('businesses.messages.limit_exceeded');
 
             return;
         } catch (DuplicateCompanyNumberException $e) {
-            $this->discardNewLogo($logos, $logo);
             $this->showBlockingDuplicate($e->existing);
 
             return;
+        } finally {
+            if (! $saved) {
+                $this->discardNewLogo($logos, $logo);
+            }
         }
 
         if ($this->currentLogo !== null && $this->currentLogo !== $logo) {
@@ -150,7 +145,7 @@ final class BusinessForm extends Component
      */
     protected function validationAttributes(): array
     {
-        return ['logo' => __('businesses.fields.logo')];
+        return ['logo' => __('parties.fields.logo')];
     }
 
     protected function findDuplicates(PartyProfile $profile): array
@@ -168,27 +163,5 @@ final class BusinessForm extends Component
             'locale' => app()->getLocale(),
             'business' => $id->value,
         ]);
-    }
-
-    private function logoPath(BusinessLogoApplicationService $logos): ?string
-    {
-        if ($this->logo !== null) {
-            return $logos->store(new IncomingFile(
-                $this->logo->getClientOriginalName(),
-                strtolower($this->logo->getClientOriginalExtension()),
-                (string) $this->logo->getMimeType(),
-                (int) $this->logo->getSize(),
-                (string) $this->logo->getRealPath(),
-            ));
-        }
-
-        return $this->removeLogo ? null : $this->currentLogo;
-    }
-
-    private function discardNewLogo(BusinessLogoApplicationService $logos, ?string $logo): void
-    {
-        if ($logo !== null && $logo !== $this->currentLogo) {
-            $logos->delete($logo);
-        }
     }
 }

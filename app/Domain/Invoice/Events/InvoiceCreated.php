@@ -62,7 +62,7 @@ class InvoiceCreated implements DomainEvent
             'total_amount' => $this->invoice->total_amount,
             'payment_currency' => $this->invoice->currency,
             'template' => $this->invoice->template,
-            'invoice_logo' => $this->invoice->logo,
+            'supplier_logo' => $this->invoice->parties->supplierLogo,
             'invoice_text' => $this->invoice->invoice_text,
             'business_id' => $this->invoice->parties->businessId->value,
             'contact_id' => $this->invoice->parties->contactId?->value,

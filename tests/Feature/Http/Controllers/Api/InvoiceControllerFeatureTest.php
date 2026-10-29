@@ -223,7 +223,6 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
             items: [],
             created_at: null,
             updated_at: null,
-            logo: null,
             status: null,
         );
     }

@@ -34,7 +34,6 @@ class InvoiceDTO
         public readonly array $items = [],
         public readonly ?string $created_at = null,
         public readonly ?string $updated_at = null,
-        public readonly ?string $logo = null,
         public readonly ?string $status = null,
     ) {}
 
@@ -99,7 +98,6 @@ class InvoiceDTO
             items: $data['items'] ?? [],
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,
-            logo: $data['logo'] ?? null,
             status: $data['status'] ?? null,
         );
     }

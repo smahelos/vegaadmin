@@ -29,6 +29,7 @@ class Contact extends Model
         'email',
         'phone',
         'contact_person',
+        'logo',
         'note',
         'default_bank_account_id',
         'archived_at',

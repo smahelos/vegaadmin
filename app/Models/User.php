@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,7 +15,6 @@ class User extends Authenticatable
 {
     use CrudTrait;
     use HasFactory, Notifiable;
-    use HasPreferredLocale;
     use HasRoles;
     use SoftDeletes;
 
@@ -118,14 +116,6 @@ class User extends Authenticatable
     | METHODS
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * Get preferred locale of the user
-     */
-    public function preferredLocale(): string
-    {
-        return $this->getPreferredLocale();
-    }
 
     /**
      * Get the casts array

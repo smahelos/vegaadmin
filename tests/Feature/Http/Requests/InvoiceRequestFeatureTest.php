@@ -467,7 +467,7 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         $file = UploadedFile::fake()->image('logo.png', 100, 100)->size(1000);
 
-        $this->assertSame([], $this->errors(['invoice_logo' => $file] + $this->validInvoiceData));
+        $this->assertSame([], $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
     }
 
     #[Test]
@@ -475,7 +475,7 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         $file = UploadedFile::fake()->create('document.pdf', 1000);
 
-        $this->assertArrayHasKey('invoice_logo', $this->errors(['invoice_logo' => $file] + $this->validInvoiceData));
+        $this->assertArrayHasKey('invoice_logo', $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
     }
 
     #[Test]
@@ -483,13 +483,13 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         $file = UploadedFile::fake()->image('logo.png', 100, 100)->size(3000);
 
-        $this->assertArrayHasKey('invoice_logo', $this->errors(['invoice_logo' => $file] + $this->validInvoiceData));
+        $this->assertArrayHasKey('invoice_logo', $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
     }
 
     #[Test]
     public function validation_passes_with_null_invoice_logo(): void
     {
-        $this->assertSame([], $this->errors(['invoice_logo' => null] + $this->validInvoiceData));
+        $this->assertSame([], $this->errors(['invoice_logo' => null] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
     }
 
     #[Test]
@@ -506,7 +506,7 @@ final class InvoiceRequestFeatureTest extends TestCase
 
             $this->assertSame(
                 [],
-                $this->errors(['invoice_logo' => $file] + $this->validInvoiceData),
+                $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true),
                 "Validation should pass with .{$format} format",
             );
         }

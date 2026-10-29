@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Http\Requests\Party\PartyInput;
+use App\Http\Requests\Party\PartyLogoInput;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -25,7 +26,7 @@ final class ContactRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = PartyInput::rules($this->all(), static fn (string $field): string => $field) + [
+        $rules = PartyInput::rules($this->all(), static fn (string $field): string => $field) + PartyLogoInput::rules() + [
             'contact_person' => [
                 'nullable',
                 'string',
@@ -52,6 +53,7 @@ final class ContactRequest extends FormRequest
         return PartyInput::attributes(static fn (string $field): string => $field) + [
             'user_id' => __('parties.fields.owner'),
             'contact_person' => __('contacts.fields.contact_person'),
+            'logo' => __('parties.fields.logo'),
         ];
     }
 

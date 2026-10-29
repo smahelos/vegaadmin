@@ -78,6 +78,19 @@ final class AdminDocumentFormFields
     }
 
     /** @return array<string, mixed> */
+    public static function supplierLogo(string $source, Invoice|Expense|null $document): array
+    {
+        return [
+            'name' => 'document_supplier_logo',
+            'type' => 'document_logo',
+            'source' => $source,
+            'logo_url' => $document?->supplier_logo === null ? null : asset('storage/' . $document->supplier_logo),
+            'upload' => $source === 'contact',
+            'wrapper' => ['class' => 'form-group col-12'],
+        ];
+    }
+
+    /** @return array<string, mixed> */
     public static function section(
         string $name,
         string $label,

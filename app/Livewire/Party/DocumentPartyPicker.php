@@ -206,6 +206,7 @@ final class DocumentPartyPicker extends Component
             'businesses' => $this->businessOptions($businesses->listActive($userId), $business),
             'business' => $business,
             'supplierPreview' => $this->supplierPreview($business, $stored),
+            'supplierLogo' => $this->keepsStoredBusiness($stored) ? $stored?->supplierLogo : $business?->logo,
             'businessChanged' => $this->businessChanged($business, $stored),
             'accounts' => $this->accountOptions($businessAccounts, $stored),
             'accountPreview' => $this->accountPreview($businessAccounts, $stored),
@@ -368,7 +369,7 @@ final class DocumentPartyPicker extends Component
         return $business !== null &&
             $stored !== null &&
             $this->keepsStoredBusiness($stored) &&
-            DocumentPartyDTO::fromProfile($business->profile) != $stored->supplier;
+            (DocumentPartyDTO::fromProfile($business->profile) != $stored->supplier || $business->logo !== null && $stored->supplierLogo === null);
     }
 
     private function keepsStoredBusiness(?DocumentParties $stored): bool

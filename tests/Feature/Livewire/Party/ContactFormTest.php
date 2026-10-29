@@ -9,6 +9,8 @@ use App\Models\Address;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -150,5 +152,31 @@ final class ContactFormTest extends TestCase
             'user_id' => $this->user->id,
             'company_number' => $companyNumber,
         ]);
+    }
+
+    #[Test]
+    public function uploads_replaces_and_removes_the_contact_source_logo(): void
+    {
+        Storage::fake('public');
+        Livewire::actingAs($this->user)->test(ContactForm::class)
+            ->set('party.name', 'Contact with a logo')
+            ->set('logo', UploadedFile::fake()->image('logo.png'))
+            ->call('save')->assertHasNoErrors();
+        $contact = Contact::where('user_id', $this->user->id)->where('name', 'Contact with a logo')->sole();
+        $first = $contact->logo;
+        $this->assertNotNull($first);
+        Storage::disk('public')->assertExists($first);
+        Livewire::actingAs($this->user)->test(ContactForm::class, ['contactId' => $contact->id])
+            ->set('logo', UploadedFile::fake()->image('different.png', 400, 150))
+            ->call('save')->assertHasNoErrors();
+        $second = $contact->fresh()->logo;
+        $this->assertNotNull($second);
+        $this->assertNotSame($first, $second);
+        Storage::disk('public')->assertMissing($first);
+        Storage::disk('public')->assertExists($second);
+        Livewire::actingAs($this->user)->test(ContactForm::class, ['contactId' => $contact->id])
+            ->set('removeLogo', true)->call('save')->assertHasNoErrors();
+        $this->assertNull($contact->fresh()->logo);
+        Storage::disk('public')->assertMissing($second);
     }
 }

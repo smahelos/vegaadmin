@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-29T07:25:19+00:00",
+    "generated_at": "2026-10-29T12:18:18+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -226,12 +226,20 @@
                     "concrete": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder"
                 },
                 {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\DocumentLogoStorageInterface",
+                    "concrete": "App\\Infrastructure\\Storage\\Invoice\\PublicDocumentLogoStorage"
+                },
+                {
                     "abstract": "App\\Domain\\Invoice\\Contracts\\ExpenseReadRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Invoice\\Contracts\\ExpenseWriteRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceReminderReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceReminderRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Invoice\\Notifications\\Contracts\\InvoiceReminderNotifierInterface",
@@ -275,7 +283,7 @@
                 },
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\InvoicePdfRendererInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\InvoicePdfRenderer"
+                    "concrete": "App\\Infrastructure\\Renderers\\Invoice\\InvoicePdfRenderer"
                 },
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\TemporaryInvoiceStoreInterface",
@@ -337,14 +345,6 @@
                 {
                     "abstract": "App\\Domain\\Party\\Contracts\\CompanyRegistryInterface",
                     "concrete": "App\\Infrastructure\\Gateways\\Party\\AresCompanyRegistry"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\ClientDtoReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierDtoReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository"
                 }
             ],
             "singleton": []
@@ -682,7 +682,7 @@
         "App\\Application\\Invoice\\Contracts\\InvoicePdfRendererInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\InvoicePdfRenderer",
+                "implementation": "App\\Infrastructure\\Renderers\\Invoice\\InvoicePdfRenderer",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
@@ -895,6 +895,14 @@
                 "method": "bind"
             }
         },
+        "App\\Domain\\Invoice\\Contracts\\DocumentLogoStorageInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Storage\\Invoice\\PublicDocumentLogoStorage",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
         "App\\Domain\\Invoice\\Contracts\\ExpenseReadRepositoryInterface": {
             "status": "ok",
             "actual": {
@@ -931,6 +939,14 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\InvoiceReminderReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceReminderRepository",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
@@ -983,14 +999,6 @@
                 "method": "bind"
             }
         },
-        "App\\Domain\\Party\\Contracts\\ClientDtoReadRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Domain\\Party\\Contracts\\CompanyRegistryInterface": {
             "status": "ok",
             "actual": {
@@ -1011,14 +1019,6 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Party\\Contracts\\SupplierDtoReadRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }

@@ -75,7 +75,7 @@ function initialize(form) {
     if (!contact.length || !business.length || !account.length) return;
 
     const role = contact.data('counterparty-role');
-    const partyFields = form.find(`[name^="${role}_"]`);
+    const partyFields = form.find(`[name^="${role}_"]`).not('[name="supplier_logo"]');
     const contactStatus = form.find('[data-document-contact-status]');
     partyFields.each(function () {
         $(this).data('document-required', $(this).closest('[bp-field-wrapper]').hasClass('required'));
@@ -96,6 +96,30 @@ function initialize(form) {
         lock: () => {},
         status: mode => { if (mode === 'manual') preview.find('[data-profile-key]').text('—'); },
     });
+
+    const logo = form.find('[data-document-logo]');
+    if (logo.length) {
+        const source = logo.data('logo-source') === 'business' ? business : contact;
+        const originalContact = String(contact.data('stored-reference-id') || '');
+        const draw = url => {
+            logo.find('img').attr('src', url || '').prop('hidden', !url);
+            logo.find('[data-no-logo]').prop('hidden', !!url);
+        };
+        bindSelection(source, {
+            read: () => ({logo_url: logo.find('img').attr('src') || ''}),
+            write: values => draw(values.logo_url),
+            lock: () => {
+                const selected = !!contact.val();
+                logo.find('[data-one-off-logo]').toggle(!selected).find('input').prop('disabled', selected);
+            },
+            status: mode => {
+                if (mode === 'manual') {
+                    const keepOneOff = !originalContact && source === contact;
+                    draw(keepOneOff ? logo.data('stored-logo') : '');
+                }
+            },
+        });
+    }
 
     const accountFields = form.find('[name^="account_"]');
     const accountMode = form.find('[data-document-account-mode]');

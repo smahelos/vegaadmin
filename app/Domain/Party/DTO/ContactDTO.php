@@ -18,6 +18,7 @@ final readonly class ContactDTO
         public ?string $contactPerson,
         public ?BankAccountId $defaultBankAccountId,
         public ?DateTimeImmutable $archived,
+        public ?string $logo = null,
     ) {}
 
     public function isArchived(): bool

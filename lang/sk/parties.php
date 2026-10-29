@@ -2,6 +2,8 @@
 
 return [
     'fields' => [
+        'logo' => 'Logo',
+        'supplier_logo' => 'Logo dodávateľa',
         'name' => 'Názov / meno',
         'short_name' => 'Interná skratka',
         'registration_country' => 'Krajina registrácie',
@@ -17,6 +19,9 @@ return [
         'owner' => 'Vlastník',
     ],
     'hints' => [
+        'logo' => 'PNG, JPG alebo WebP do 2 MB. Doklad si uchová vlastnú kópiu.',
+        'invoice_supplier_logo' => 'Logo dodávateľa sa kopíruje z vybranej Mojej firmy. Uložená faktúra si ponechá svoju kópiu; obnovenie údajov firmy načíta aj aktuálne logo.',
+        'expense_supplier_logo' => 'Logo dodávateľa sa kopíruje z kontaktu. Bez kontaktu môžete nahrať logo jednorazového dodávateľa iba pre tento výdavok.',
         'document_business_account' => 'Účet patrí vybranej Mojej firme (dodávateľovi). Pri zmene účtu sa jeho údaje skopírujú na faktúru; uložená snímka sa inak zachová.',
         'document_contact_account' => 'Účet patrí vybranému kontaktu (dodávateľovi). Bez výberu účtu môžete nižšie zadať jednorazový účet iba pre tento výdavok.',
         'document_business_snapshot' => 'Údaje vybranej Mojej firmy na tomto doklade. Zmena firmy načíta jej aktuálne údaje; pri úprave rovnakej firmy sa zachová uložená snímka.',
@@ -34,6 +39,8 @@ return [
         'search' => 'Hľadať podľa názvu, skratky, IČO, e-mailu alebo mesta',
     ],
     'actions' => [
+        'upload_logo' => 'Nahrať logo',
+        'remove_logo' => 'Odstrániť logo',
         'archive' => 'Archivovať',
         'restore' => 'Obnoviť',
         'look_up_company' => 'Načítať z ARES',
@@ -42,6 +49,7 @@ return [
         'save_anyway' => 'Napriek tomu uložiť',
     ],
     'messages' => [
+        'no_logo' => 'Bez loga.',
         'document_profile_loading' => 'Načítanie údajov kontaktu…',
         'document_profile_unavailable' => 'Údaje kontaktu sa nepodarilo načítať. Vyberte kontakt znova.',
         'incomplete_document_address' => 'Kontakt nemá úplnú adresu pre doklad. Doplňte ju v kontaktoch.',

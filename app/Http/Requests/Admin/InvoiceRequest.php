@@ -60,7 +60,6 @@ final class InvoiceRequest extends FormRequest
             'issue_date' => 'required|date',
             'tax_point_date' => 'required|date',
             'invoice_text' => 'nullable|string',
-            'invoice_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:2048',
             'template' => 'nullable|string|in:default,modern,minimal',
         ];
 
@@ -107,7 +106,6 @@ final class InvoiceRequest extends FormRequest
             'issue_date',
             'tax_point_date',
             'invoice_text',
-            'invoice_logo',
             'template',
         ] as $field) {
             $attributes[$field] = __('invoices.fields.' . $field);

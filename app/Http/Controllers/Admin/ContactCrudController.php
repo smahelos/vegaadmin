@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Services\PartyLogoApplicationService;
+use App\Domain\Party\DTO\ContactDTO;
+use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ContactRequest;
+use App\Infrastructure\Forms\Party\PartyFormFields;
 use App\Models\Contact;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
@@ -30,6 +34,7 @@ final class ContactCrudController extends CrudController
     use CreateOperation;
     use ListOperation;
     use ShowOperation;
+    use StoresPartyLogo;
     use UpdateOperation;
 
     public function setup(): void
@@ -41,28 +46,49 @@ final class ContactCrudController extends CrudController
         );
     }
 
-    public function store(ContactApplicationService $contacts): RedirectResponse
+    public function store(ContactApplicationService $contacts, PartyLogoApplicationService $logos): RedirectResponse
     {
         $request = $this->validatedRequest();
-        $contact = $contacts->create(UserId::fromInt((int) $request->validated('user_id')), $request->writeData());
+        $contact = $this->withStoredLogo(
+            $request,
+            $logos,
+            null,
+            fn (?string $logo): ContactDTO => $contacts->create(
+                UserId::fromInt((int) $request->validated('user_id')),
+                new ContactWriteData(
+                    $request->writeData()->profile,
+                    $request->writeData()->contactPerson,
+                    $logo,
+                ),
+            ),
+        );
 
-        Alert::success(trans('backpack::crud.insert_success'))->flash();
+        Alert::success(__('backpack::crud.insert_success'))->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($contact->id->value);
     }
 
-    public function update(ContactApplicationService $contacts): RedirectResponse
+    public function update(ContactApplicationService $contacts, PartyLogoApplicationService $logos): RedirectResponse
     {
         $request = $this->validatedRequest();
         $entry = $this->entry();
-        $contacts->update(
-            $this->ownerOf($entry),
-            ContactId::fromInt($entry->id),
-            $request->writeData(),
+        $this->withStoredLogo(
+            $request,
+            $logos,
+            $entry->logo,
+            fn (?string $logo): ContactDTO => $contacts->update(
+                $this->ownerOf($entry),
+                ContactId::fromInt($entry->id),
+                new ContactWriteData(
+                    $request->writeData()->profile,
+                    $request->writeData()->contactPerson,
+                    $logo,
+                ),
+            ),
         );
 
-        Alert::success(trans('backpack::crud.update_success'))->flash();
+        Alert::success(__('backpack::crud.update_success'))->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($entry->id);
@@ -99,6 +125,7 @@ final class ContactCrudController extends CrudController
         CRUD::column('phone')->label(__('parties.fields.phone'));
         CRUD::column('contact_person')->label(__('contacts.fields.contact_person'));
         CRUD::column('note')->label(__('parties.fields.note'));
+        CRUD::column('logo')->label(__('parties.fields.logo'))->type('image')->disk('public');
     }
 
     protected function setupCreateOperation(): void
@@ -107,6 +134,7 @@ final class ContactCrudController extends CrudController
         $this->addOwnerField();
         $this->addProfileFields();
         $this->addContactPersonField();
+        CRUD::addFields(PartyFormFields::logo());
     }
 
     protected function setupUpdateOperation(): void
@@ -114,6 +142,7 @@ final class ContactCrudController extends CrudController
         CRUD::setValidation(ContactRequest::class);
         $this->addProfileFields($this->entry()->address);
         $this->addContactPersonField();
+        CRUD::addFields(PartyFormFields::logo());
     }
 
     private function addContactPersonField(): void

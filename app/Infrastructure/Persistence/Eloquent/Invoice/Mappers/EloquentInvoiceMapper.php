@@ -54,7 +54,6 @@ class EloquentInvoiceMapper
             'created_at' => $model->getAttribute('created_at'),
             'updated_at' => $model->getAttribute('updated_at'),
             'status' => $status,
-            'logo' => $model->getAttribute('invoice_logo'),
         ]);
     }
 
@@ -100,9 +99,6 @@ class EloquentInvoiceMapper
         }
         if ($data->note !== null) {
             $attrs['invoice_text'] = $data->note;
-        }
-        if ($data->logo !== null) {
-            $attrs['invoice_logo'] = $data->logo;
         }
         if ($data->status !== null) {
             $attrs['payment_status_id'] = (int) $data->status;

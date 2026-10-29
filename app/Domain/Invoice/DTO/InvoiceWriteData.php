@@ -36,7 +36,6 @@ class InvoiceWriteData
         public readonly array $items = [],
         public readonly ?string $created_at = null,
         public readonly ?string $updated_at = null,
-        public readonly ?string $logo = null,
         public readonly ?string $status = null,
     ) {}
 
@@ -166,7 +165,6 @@ class InvoiceWriteData
             items: $data['items'] ?? [],
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,
-            logo: $data['logo'] ?? $data['invoice_logo'] ?? null,
             status: $data['status'] ?? (int) $data['payment_status_id'] ?? null,
         );
     }

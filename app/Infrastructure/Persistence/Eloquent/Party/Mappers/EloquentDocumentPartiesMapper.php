@@ -36,6 +36,7 @@ final class EloquentDocumentPartiesMapper
             supplier: self::toParty($document, 'supplier'),
             customer: self::toParty($document, 'customer'),
             account: self::toAccount($document),
+            supplierLogo: $document->getAttribute('supplier_logo'),
         );
     }
 
@@ -45,6 +46,7 @@ final class EloquentDocumentPartiesMapper
     public static function toAttributes(DocumentParties $parties): array
     {
         $attributes = [
+            'supplier_logo' => $parties->supplierLogo,
             'business_id' => $parties->businessId->value,
             'contact_id' => $parties->contactId?->value,
             'bank_account_id' => $parties->bankAccountId?->value,

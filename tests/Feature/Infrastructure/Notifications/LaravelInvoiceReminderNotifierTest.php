@@ -29,7 +29,7 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
             invoiceNumber: 'INV-1001',
             dueDate: new \DateTimeImmutable('2025-10-10'),
             daysLeft: 3,
-            recipientType: 'client',
+            recipientType: 'customer',
             locale: 'cs',
         );
 
@@ -125,7 +125,7 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
             invoiceNumber: 'INV-1003',
             dueDate: new \DateTimeImmutable('2025-09-30'),
             daysOverdue: 7,
-            recipientType: 'client',
+            recipientType: 'customer',
             locale: 'de',
         );
 

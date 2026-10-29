@@ -227,7 +227,7 @@ return [
         'document' => 'Údaje dokladu',
         'amounts' => 'Suma a mena',
         'status' => 'Stav faktúry',
-        'other' => 'Text a logo faktúry',
+        'other' => 'Text a šablóna faktúry',
         'invoice_details' => 'Údaje o faktúre',
         'invoice_info' => 'Informácie o faktúre',
         'seller_details' => 'Údaje o vystaviteľovi',

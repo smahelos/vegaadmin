@@ -22,8 +22,8 @@ class InvoiceOverdueReminder extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $dueDate = $this->payload->dueDate->format('d.m.Y');
-        $viewName = $this->payload->recipientType === 'client'
-            ? 'emails.invoices.reminders.overdue_client'
+        $viewName = $this->payload->recipientType === 'customer'
+            ? 'emails.invoices.reminders.overdue_customer'
             : 'emails.invoices.reminders.overdue_supplier';
 
         return (new MailMessage)
@@ -32,7 +32,7 @@ class InvoiceOverdueReminder extends Notification implements ShouldQueue
                 'invoiceNumber' => $this->payload->invoiceNumber,
                 'dueDate' => $dueDate,
                 'daysOverdue' => $this->payload->daysOverdue,
-                'greeting' => __('invoices.reminders.greeting', ['name' => $notifiable->name ?? '']),
+                'greeting' => __('invoices.reminders.greeting', ['name' => $this->payload->recipientName !== '' ? $this->payload->recipientName : ($notifiable->name ?? '')]),
                 'locale' => $this->locale,
             ]);
     }

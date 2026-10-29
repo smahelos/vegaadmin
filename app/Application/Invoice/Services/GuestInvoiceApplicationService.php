@@ -12,6 +12,7 @@ use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\Contracts\Locale;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -63,22 +64,19 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         Session::put('last_guest_invoice_number', $validatedData['invoice_vs'] ?? null);
         Session::put('last_guest_invoice_expires', now()->addMinutes(10)->timestamp);
 
-        $tempInvoice = new \stdClass;
-        foreach ($validatedData as $k => $v) {
-            $tempInvoice->$k = $v;
-        }
-        if (isset($tempInvoice->due_in)) {
-            $tempInvoice->due_in = (int) $tempInvoice->due_in;
-        }
-
         $qrCodeBase64 = null;
         try {
-            if (((! empty($tempInvoice->account_number) && ! empty($tempInvoice->bank_code)) || ! empty($tempInvoice->iban))) {
-                $qrPayload = $this->qrPaymentMapper->fromArray($tempInvoice);
+            if ($account !== null) {
+                $qrPayload = $this->qrPaymentMapper->fromSnapshot(
+                    $validatedData['invoice_vs'] ?? null,
+                    Money::fromString($validatedData['payment_amount'], $validatedData['payment_currency']),
+                    $account,
+                    $validatedData['invoice_text'] ?? null,
+                );
                 $qrCodeBase64 = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
             }
         } catch (\Exception $e) {
-            Log::error('Error while generating QR code: ' . $e->getMessage());
+            Log::error('Guest invoice QR generation failed', ['exception' => $e]);
         }
 
         return [

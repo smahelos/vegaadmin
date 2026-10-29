@@ -29,7 +29,7 @@ final class InvoicePrintDataBuilderTest extends TestCase
 
         $printData = app(InvoicePrintDataBuilder::class)->build($dto);
 
-        $this->assertSame('2026-09-30', $printData->tax_point_date?->format('Y-m-d'));
+        $this->assertSame('2026-09-30', $printData->taxPointDate?->format('Y-m-d'));
         $this->assertSame('Consulting in September', $printData->notes);
         $this->assertSame(PaymentMethodCode::CASH, $printData->paymentMethod);
     }

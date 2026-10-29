@@ -7,9 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
-use App\Application\Invoice\Services\InvoiceLogoApplicationService;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
-use App\Domain\Shared\File\DTO\IncomingFile;
 use App\Http\Requests\Admin\InvoiceRequest;
 use App\Infrastructure\Forms\Invoice\AdminInvoiceFormFields;
 use App\Models\Invoice;
@@ -25,7 +23,6 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\UploadedFile;
 use Prologue\Alerts\Facades\Alert;
 
 /**
@@ -139,6 +136,7 @@ final class InvoiceCrudController extends CrudController
 
     protected function setupShowOperation(): void
     {
+        CRUD::column('supplier_logo')->type('image')->disk('public')->label(__('parties.fields.supplier_logo'));
         CRUD::column('invoice_vs')->label(__('invoices.fields.invoice_vs'));
         CRUD::column('user_id')->type('select')->entity('user')->attribute('name')->model(User::class)
             ->label(__('invoices.fields.user_id'));
@@ -171,13 +169,13 @@ final class InvoiceCrudController extends CrudController
         $this->setupForm(false);
     }
 
-    public function store(InvoiceMutationApplicationServiceInterface $invoices, InvoiceLogoApplicationService $logos): RedirectResponse
+    public function store(InvoiceMutationApplicationServiceInterface $invoices): RedirectResponse
     {
         $this->crud->hasAccessOrFail('create');
         $request = $this->validatedRequest();
         $result = $invoices->create(
             (int) $request->validated('user_id'),
-            $this->invoiceData($request, $logos),
+            $request->validated(),
             $request->partySelection(),
             [],
         );
@@ -185,14 +183,14 @@ final class InvoiceCrudController extends CrudController
         return $this->mutationResponse($result);
     }
 
-    public function update(InvoiceMutationApplicationServiceInterface $invoices, InvoiceLogoApplicationService $logos): RedirectResponse
+    public function update(InvoiceMutationApplicationServiceInterface $invoices): RedirectResponse
     {
         $this->crud->hasAccessOrFail('update');
         $request = $this->validatedRequest();
         $result = $invoices->update(
             (int) $request->validated('user_id'),
             (int) $this->crud->getCurrentEntryId(),
-            $this->invoiceData($request, $logos),
+            $request->validated(),
             $request->partySelection(),
             null,
         );
@@ -215,25 +213,6 @@ final class InvoiceCrudController extends CrudController
         abort_unless($request instanceof InvoiceRequest, 500);
 
         return $request;
-    }
-
-    /** @return array<string, mixed> */
-    private function invoiceData(InvoiceRequest $request, InvoiceLogoApplicationService $logos): array
-    {
-        $data = $request->validated();
-        unset($data['invoice_logo']);
-        $file = $request->file('invoice_logo');
-        if ($file instanceof UploadedFile) {
-            $data['invoice_logo'] = $logos->store(new IncomingFile(
-                originalName: $file->getClientOriginalName(),
-                extension: $file->getClientOriginalExtension(),
-                mime: $file->getMimeType() ?? 'application/octet-stream',
-                sizeBytes: (int) $file->getSize(),
-                path: $file->getPathname(),
-            ));
-        }
-
-        return $data;
     }
 
     private function mutationResponse(InvoiceActionResult $result): RedirectResponse

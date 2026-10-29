@@ -27,6 +27,7 @@ final class EloquentContactMapper
                 ? null
                 : BankAccountId::fromInt($contact->default_bank_account_id),
             archived: $contact->archived_at,
+            logo: $contact->logo,
         );
     }
 
@@ -35,6 +36,6 @@ final class EloquentContactMapper
      */
     public static function toAttributes(ContactWriteData $data): array
     {
-        return EloquentPartyProfileMapper::toAttributes($data->profile) + ['contact_person' => $data->contactPerson];
+        return EloquentPartyProfileMapper::toAttributes($data->profile) + ['contact_person' => $data->contactPerson, 'logo' => $data->logo];
     }
 }
