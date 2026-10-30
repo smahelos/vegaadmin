@@ -22,32 +22,10 @@ return null;
 }
 
 /**
-* Generating classes for fields
-*/
-if (!function_exists('getCreateFieldClasses')) {
-function getCreateFieldClasses($fieldName, $supplierFields, $clientFields, $invoiceFields) {
-$classes = [];
-if(in_array($fieldName, $invoiceFields)) {
-$classes[] = 'bg-blue-50';
-}
-
-if(in_array($fieldName, $supplierFields)) {
-$classes[] = 'bg-[#FDFDFC] supplier-field';
-}
-
-if(in_array($fieldName, $clientFields)) {
-$classes[] = 'bg-[#FDFDFC] client-field';
-}
-
-return implode(' ', $classes);
-}
-}
-
-/**
 * Generating common attributes for input fields
 */
 if (!function_exists('renderCreateInputAttributes')) {
-function renderCreateInputAttributes($field, $supplierFields, $userInfo, $suggestedNumber = false) {
+function renderCreateInputAttributes($field, $suggestedNumber = false) {
 $attributes = [];
 // Field type
 $attributes[] = 'type="' . $field['type'] . '"';
@@ -73,9 +51,7 @@ $attributes[] = 'placeholder="' . $field['placeholder'] . '"';
 }
 
 // Value - different sources based on field type
-if(in_array($field['name'], $supplierFields)) {
-$attributes[] = 'value="' . old($field['name'], $userInfo[$field['name'] ?? ''] ?? '') . '"';
-} elseif($field['name'] === 'issue_date') {
+if($field['name'] === 'issue_date') {
 $attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
 } elseif($field['name'] === 'tax_point_date') {
 $attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
@@ -89,23 +65,11 @@ return implode(' ', $attributes);
 }
 }
 
-$invoiceFields = ['invoice_vs', 'invoice_ks', 'invoice_ss', 'issue_date', 'tax_point_date', 'payment_method_id',
-'due_in', 'payment_amount', 'payment_currency', 'payment_status'];
-$supplierFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country', 'ico', 'dic', 'account_number',
-'bank_code', 'bank_name', 'iban', 'swift', 'supplier_logo'];
-$clientFields = ['client_name', 'client_email', 'client_phone', 'client_street', 'client_city', 'client_zip',
-'client_country', 'client_ico', 'client_dic'];
 $fieldDescription = getCreateFieldByName($fields, 'invoice_text');
 
 // Fields to determine start and end of sections
-$sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id', 'supplier_id', 'email',
-'city', 'ico', 'account_number', 'iban', 'client_id', 'client_email', 'client_city', 'client_ico'];
-$sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency', 'supplier_id', 'phone', 'country',
-'dic', 'bank_name',
-'swift', 'client_id', 'client_phone', 'client_country', 'client_dic'];
-
-// Fields for special layout division
-$specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
+$sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id'];
+$sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
 
 $formAction = $userLoggedIn ? route('frontend.invoice.store', ['locale' => app()->getLocale()]) :
 route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
@@ -160,22 +124,8 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
             <div class="grid grid-cols-1 md:grid-cols-5 md:col-span-4 gap-6">
                 @foreach($fields as $field)
                 @if($field['name'] !== 'invoice_text' && $field['name'] !== 'template')
-                @php
-                $fieldClasses = getCreateFieldClasses($field['name'], $supplierFields, $clientFields, $invoiceFields);
-                @endphp
-
                 @if(in_array($field['name'], $sectionStartFields))
-                <div class="grid grid-cols-1
-                            @if(
-                                $field['name'] === 'payment_amount' ||
-                                $field['name'] === 'supplier_id' ||
-                                $field['name'] === 'client_id')md:grid-cols-5
-                            @elseif(
-                                $field['name'] === 'account_number' ||
-                                $field['name'] === 'city' ||
-                                $field['name'] === 'client_city')md:grid-cols-10
-                            @else md:grid-cols-4
-                            @endif gap-6 mb-5">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-5">
                     @endif
 
                     @if($field['name'] === 'invoice_logo')
@@ -196,8 +146,8 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                         <div class="">
                             <div id="image-preview-container" class="flex justify-between items-center">
                                 <img id="current-image-preview"
-                                    src="{{ Storage::disk('public')->url('suppliers/logos/no_logo.png') }}" alt=""
-                                    class="max-w-full max-h-20 object-cover rounded-sm m-auto">
+                                    src="" alt=""
+                                    class="hidden max-w-full max-h-20 object-cover rounded-sm m-auto">
                             </div>
                         </div>
 
@@ -218,7 +168,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                             </label>
                             <div class="grid grid-cols-10">
                                 <div class="col-span-9">
-                                    <input {!! renderCreateInputAttributes($field, $supplierFields, $userInfo ?? [],
+                                    <input {!! renderCreateInputAttributes($field,
                                         $suggestedNumber) !!}
                                         class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                                 </div>
@@ -294,13 +244,12 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                         <label for="{{ $field['name'] }}"
                             class="block text-base font-medium text-gray-900 dark:text-white mb-2">
                             {{ $field['label'] }}
-                            @if(isset($field['required']) && $field['required'] === true && $field['name'] !==
-                            'name' && $field['name'] !== 'client_name')
+                            @if(isset($field['required']) && $field['required'] === true)
                             <span class="text-red-500">*</span>
                             @endif
                         </label>
-                        <input {!! renderCreateInputAttributes($field, $supplierFields, $userInfo ?? []) !!}
-                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 {{ $fieldClasses }}">
+                        <input {!! renderCreateInputAttributes($field) !!}
+                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                         @if(isset($field['hint']) && $field['hint'] !== '')
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             {{ $field['hint'] }}
@@ -313,45 +262,16 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
 
                     @else
                     <!-- Other fields -->
-                    @php
-                    $containerId = '';
-                    if ($field['name'] === 'name') {
-                    $containerId = 'supplier_name_container';
-                    } elseif ($field['name'] === 'client_name') {
-                    $containerId = 'client_name_container';
-                    } else {
-                    $containerId = $field['name'] . '_container';
-                    }
-                    $marginClass = in_array($field['name'], ['name', 'street', 'client_name', 'client_street']) ?
-                    'mb-5' : '';
-
-                    $columnSpan = '';
-                    if(in_array($field['name'], ['account_number', 'city', 'client_city'])) {
-                    $columnSpan = 'md:col-span-4';
-                    } elseif(in_array($field['name'], ['bank_code', 'bank_name', 'zip', 'client_zip'])) {
-                    $columnSpan = 'md:col-span-3';
-                    } elseif(in_array($field['name'], ['ico', 'dic', 'email', 'phone', 'city', 'zip', 'iban', 'swift',
-                    'client_ico', 'client_dic', 'client_email', 'client_phone'])) {
-                    $columnSpan = 'md:col-span-2';
-                    } else {
-                    $columnSpan = 'md:col-span-1';
-                    }
-                    @endphp
-                    <div class="{{ $marginClass }} {{ $columnSpan }}" id="{{ $containerId }}">
+                    <div class="md:col-span-1" id="{{ $field['name'] }}_container">
                         <label for="{{ $field['name'] }}"
                             class="block text-base font-medium text-gray-900 dark:text-white mb-2">
                             {{ $field['label'] }}
-                            @if(isset($field['required']) && $field['required'] === true && $field['name'] !== 'name' &&
-                            $field['name'] !== 'client_name')
+                            @if(isset($field['required']) && $field['required'] === true)
                             <span class="text-red-500">*</span>
-                            @elseif($field['name'] === 'name')
-                            <span id="supplier-name-required" class="text-red-500">*</span>
-                            @elseif($field['name'] === 'client_name')
-                            <span class="text-red-500" id="client-name-required">*</span>
                             @endif
                         </label>
-                        <input {!! renderCreateInputAttributes($field, $supplierFields, $userInfo ?? []) !!}
-                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 {{ $fieldClasses }}">
+                        <input {!! renderCreateInputAttributes($field) !!}
+                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                         @if(isset($field['hint']) && $field['hint'] !== '')
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             {{ $field['hint'] }}

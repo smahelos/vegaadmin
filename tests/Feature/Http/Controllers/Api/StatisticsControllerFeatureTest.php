@@ -36,7 +36,7 @@ final class StatisticsControllerFeatureTest extends TestCase
     {
         return [
             'monthly revenue' => ['api.statistics.monthly-revenue'],
-            'client revenue' => ['api.statistics.client-revenue'],
+            'client revenue' => ['api.statistics.customer-revenue'],
             'invoice status' => ['api.statistics.invoice-status'],
             'payment methods' => ['api.statistics.payment-methods'],
             'revenue and expenses' => ['api.statistics.revenue-expenses'],
@@ -113,16 +113,16 @@ final class StatisticsControllerFeatureTest extends TestCase
         $call = $this->statistics->calls[0];
         $this->assertSame('2025-10-01', $call['from']->format('Y-m-d'));
         $this->assertNull($call['to']);
-        $this->assertSame([], $call['clientIds']);
+        $this->assertSame([], $call['contactIds']);
     }
 
     #[Test]
-    public function passes_the_period_dates_and_clients_to_the_query(): void
+    public function passes_the_period_dates_and_contacts_to_the_query(): void
     {
         $query = http_build_query([
             'time_range' => 'half_year',
             'date_to' => '2026-09-30',
-            'clients' => [3, 7],
+            'contacts' => [3, 7],
         ]);
 
         $this->actingAs($this->statisticsUser(), 'web')
@@ -132,19 +132,19 @@ final class StatisticsControllerFeatureTest extends TestCase
         $call = $this->statistics->calls[0];
         $this->assertSame('2026-04-01', $call['from']->format('Y-m-d'));
         $this->assertSame('2026-09-30', $call['to']?->format('Y-m-d'));
-        $this->assertSame([3, 7], array_map(static fn ($id): int => $id->toInt(), $call['clientIds']));
+        $this->assertSame([3, 7], array_map(static fn ($id): int => $id->value, $call['contactIds']));
     }
 
     #[Test]
     public function an_explicit_start_date_wins_over_the_period(): void
     {
         $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(route('api.statistics.client-revenue', [
+            ->getJson(route('api.statistics.customer-revenue', [
                 'time_range' => 'month',
                 'date_from' => '2026-01-15',
             ]))
             ->assertOk()
-            ->assertJsonPath('data.0.client_name', 'Acme');
+            ->assertJsonPath('data.0.customer_name', 'Acme');
 
         $this->assertSame('2026-01-15', $this->statistics->calls[0]['from']->format('Y-m-d'));
     }
@@ -175,7 +175,7 @@ final class StatisticsControllerFeatureTest extends TestCase
             'unknown period' => [['time_range' => '6month'], 'time_range'],
             'malformed date' => [['date_from' => '24.10.2026'], 'date_from'],
             'end before start' => [['date_from' => '2026-05-01', 'date_to' => '2026-04-30'], 'date_to'],
-            'client id not a number' => [['clients' => ['abc']], 'clients.0'],
+            'client id not a number' => [['contacts' => ['abc']], 'contacts.0'],
         ];
     }
 

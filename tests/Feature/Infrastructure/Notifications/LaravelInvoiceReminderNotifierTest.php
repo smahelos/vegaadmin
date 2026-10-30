@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Infrastructure\Notifications;
 
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder as InfraDue;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceOverdueReminder as InfraOverdue;
@@ -13,7 +17,7 @@ use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class LaravelInvoiceReminderNotifierTest extends TestCase
+final class LaravelInvoiceReminderNotifierTest extends TestCase
 {
     #[Test]
     public function sends_upcoming_due_via_on_demand_with_locale(): void
@@ -26,6 +30,10 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
             preferredLocale: 'cs',
         );
         $payload = new InvoiceReminderPayload(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: 'INV-1001',
             dueDate: new \DateTimeImmutable('2025-10-10'),
             daysLeft: 3,
@@ -76,6 +84,10 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
             preferredLocale: 'en',
         );
         $payload = new InvoiceReminderPayload(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: 'INV-1002',
             dueDate: new \DateTimeImmutable('2025-10-07'),
             recipientType: 'supplier',
@@ -122,6 +134,10 @@ class LaravelInvoiceReminderNotifierTest extends TestCase
             preferredLocale: 'de',
         );
         $payload = new InvoiceReminderPayload(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: 'INV-1003',
             dueDate: new \DateTimeImmutable('2025-09-30'),
             daysOverdue: 7,

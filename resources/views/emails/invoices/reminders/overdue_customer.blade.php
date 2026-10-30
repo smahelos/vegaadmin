@@ -7,7 +7,7 @@
     @endphp
 
     <p class="paragraph">
-        {{ __('invoices.reminders.overdue_intro_client', ['number' => $invoice->invoice_vs, 'days' => $daysOverdue]) }}
+        {{ __('invoices.reminders.overdue_intro_client', ['number' => $invoiceNumber, 'days' => $daysOverdue]) }}
     </p>
 
     <p class="paragraph">
@@ -20,15 +20,15 @@
                 {{ __('invoices.fields.invoice_vs') }}
             </th>
             <td style="text-align: right; padding: 8px; border-bottom: 1px solid #e8e5ef;">
-                {{ $invoice->invoice_vs }}
+                {{ $invoiceNumber }}
             </td>
         </tr>
         <tr>
             <th style="text-align: left; padding: 8px; border-bottom: 1px solid #e8e5ef;">
-                {{ __('invoices.fields.supplier_id') }}
+                {{ __('invoices.fields.supplier') }}
             </th>
             <td style="text-align: right; padding: 8px; border-bottom: 1px solid #e8e5ef;">
-                {{ $invoice->supplier->name }}
+                {{ $supplierName }}
             </td>
         </tr>
         <tr>
@@ -36,7 +36,7 @@
                 {{ __('invoices.fields.amount') }}
             </th>
             <td style="text-align: right; padding: 8px; border-bottom: 1px solid #e8e5ef; color: #e53e3e; font-weight: bold;">
-                {{ $invoice->payment_amount }} {{ $invoice->payment_currency }}
+                {{ $formattedAmount }}
             </td>
         </tr>
         <tr>
@@ -52,9 +52,9 @@
     <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
         <tr>
             <td align="center">
-                <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}" 
-                   class="button" 
-                   target="_blank" 
+                <a href="{{ $invoiceUrl }}"
+                   class="button"
+                   target="_blank"
                    rel="noopener">
                     {{ __('invoices.reminders.view_invoice') }}
                 </a>

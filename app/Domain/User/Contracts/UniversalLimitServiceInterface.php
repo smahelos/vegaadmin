@@ -14,7 +14,7 @@ interface UniversalLimitServiceInterface
      * Returns standardized associative structure with keys: allowed, current_usage, limit, remaining, entity_type, metric_type, period_type, reason.
      *
      * @param  int|null  $userId  User ID (null for anonymous users)
-     * @param  string  $entityType  Entity type (invoice, client, etc.)
+     * @param  string  $entityType  Entity type (invoice, contact, etc.)
      * @param  string  $metricType  Metric type (count, value, size)
      * @param  string  $periodType  Period type (daily, monthly, etc.)
      * @param  int|float  $value  Value to check against limit

@@ -40,6 +40,18 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         return $this->list($this->ofUser($userId)->whereNull('archived_at'));
     }
 
+    public function listLatestActiveForUser(UserId $userId, int $limit): array
+    {
+        return array_map(
+            fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business),
+            $this->records->latestActive(
+                Business::query(),
+                $userId,
+                $limit,
+            ),
+        );
+    }
+
     public function countActiveForUser(UserId $userId): int
     {
         return Business::query()

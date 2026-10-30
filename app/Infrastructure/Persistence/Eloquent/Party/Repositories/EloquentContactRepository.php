@@ -42,6 +42,18 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
             ->count();
     }
 
+    public function listLatestActiveForUser(UserId $userId, int $limit): array
+    {
+        return array_map(
+            fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact),
+            $this->records->latestActive(
+                Contact::query(),
+                $userId,
+                $limit,
+            ),
+        );
+    }
+
     public function searchForUser(
         UserId $userId,
         PartySearch $search,

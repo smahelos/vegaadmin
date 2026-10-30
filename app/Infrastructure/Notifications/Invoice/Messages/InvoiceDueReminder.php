@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Notifications\Invoice\Messages;
 
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
+use App\Infrastructure\Notifications\Invoice\InvoiceReminderMailFactory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class InvoiceDueReminder extends Notification implements ShouldQueue
+final class InvoiceDueReminder extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -21,18 +25,11 @@ class InvoiceDueReminder extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $dueDate = $this->payload->dueDate->format('d.m.Y');
-        $viewName = $this->payload->recipientType === 'customer'
-            ? 'emails.invoices.reminders.due_today_customer'
-            : 'emails.invoices.reminders.due_today_supplier';
-
-        return (new MailMessage)
-            ->subject(__('invoices.reminders.due_today_subject', ['number' => $this->payload->invoiceNumber]))
-            ->view($viewName, [
-                'invoiceNumber' => $this->payload->invoiceNumber,
-                'dueDate' => $dueDate,
-                'greeting' => __('invoices.reminders.greeting', ['name' => $this->payload->recipientName !== '' ? $this->payload->recipientName : ($notifiable->name ?? '')]),
-                'locale' => $this->locale,
-            ]);
+        return app(InvoiceReminderMailFactory::class)->create(
+            $this->payload,
+            InvoiceReminderType::DUE_TODAY,
+            $this->locale,
+            $notifiable->name ?? '',
+        );
     }
 }

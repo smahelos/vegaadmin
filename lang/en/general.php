@@ -22,8 +22,6 @@ return [
     'navigation' => [
         'dashboard' => 'Dashboard',
         'invoices' => 'Invoices',
-        'clients' => 'Clients',
-        'suppliers' => 'Suppliers',
         'profile' => 'Profile',
         'products' => 'Products',
         'create_invoice' => 'Create Invoice',
@@ -31,9 +29,7 @@ return [
         'language' => 'Language',
     ],
     'placeholders' => [
-        'select_client' => 'Select a client or create a new one...',
         'select_status' => 'Select status...',
-        'select_supplier' => 'Select a supplier or create a new one...',
         'select_country' => 'Select country...',
         'payment_method_select' => 'Select payment method',
         'due_in_select' => 'Select due date',
@@ -61,6 +57,7 @@ return [
         'next' => 'Next',
     ],
     'actions' => [
+        'view_all' => 'View all',
         'create' => 'Create',
         'edit' => 'Edit',
         'delete' => 'Delete',

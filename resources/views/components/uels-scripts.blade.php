@@ -13,11 +13,12 @@ Provides translations and auto-initialization for UELS widgets
     // Initialize UELS translations for JavaScript
 window.UELSTranslations = @js([
     'modal' => __('entity_limits.modal'),
-    'entities' => collect(['client', 'supplier', 'product', 'invoice'])
-        ->mapWithKeys(fn ($type) => [
-            $type => __("entity_limits.entity_types.$type.singular"),
-            $type.'s' => __("entity_limits.entity_types.$type.plural"),
-        ]),
+    'entities' => [
+        'business' => __('entity_limits.entity_types.business.plural'),
+        'contact' => __('entity_limits.entity_types.contact.plural'),
+        'product' => __('entity_limits.entity_types.product.plural'),
+        'invoice' => __('entity_limits.entity_types.invoice.plural'),
+    ],
     'status' => [
         'success' => __('entity_limits.statuses.success'),
         'warning' => __('entity_limits.statuses.warning'),

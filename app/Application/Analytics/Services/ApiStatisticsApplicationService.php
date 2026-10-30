@@ -23,17 +23,17 @@ final class ApiStatisticsApplicationService implements ApiStatisticsApplicationS
             $userId,
             $filter->start($this->clock->now()),
             $filter->to,
-            $filter->clientIds,
+            $filter->contactIds,
         );
     }
 
-    public function clientRevenue(UserId $userId, StatisticsFilter $filter): array
+    public function customerRevenue(UserId $userId, StatisticsFilter $filter): array
     {
-        return $this->statistics->clientRevenue(
+        return $this->statistics->customerRevenue(
             $userId,
             $filter->start($this->clock->now()),
             $filter->to,
-            $filter->clientIds,
+            $filter->contactIds,
         );
     }
 
@@ -43,7 +43,7 @@ final class ApiStatisticsApplicationService implements ApiStatisticsApplicationS
             $userId,
             $filter->start($this->clock->now()),
             $filter->to,
-            $filter->clientIds,
+            $filter->contactIds,
         );
     }
 
@@ -53,7 +53,7 @@ final class ApiStatisticsApplicationService implements ApiStatisticsApplicationS
             $userId,
             $filter->start($this->clock->now()),
             $filter->to,
-            $filter->clientIds,
+            $filter->contactIds,
         );
     }
 
@@ -64,7 +64,7 @@ final class ApiStatisticsApplicationService implements ApiStatisticsApplicationS
             $userId,
             $from,
             $filter->to,
-            $filter->clientIds,
+            $filter->contactIds,
         );
         $expenses = $this->statistics->expenses(
             $userId,

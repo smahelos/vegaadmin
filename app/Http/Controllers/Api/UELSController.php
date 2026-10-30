@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
 use App\Application\User\Contracts\UELSApplicationServiceInterface;
+use App\Domain\User\Enums\EntityType;
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\JsonResponse;
@@ -14,22 +17,23 @@ use Throwable;
  * API Controller for Universal Entity Limit System (UELS) - Permission-based
  * Provides frontend endpoints for retrieving entity limit and usage data
  */
-class UELSController extends Controller
+final class UELSController extends Controller
 {
-    public function __construct(private UELSApplicationServiceInterface $uels) {}
+    public function __construct(private readonly UELSApplicationServiceInterface $uels) {}
 
     /**
      * Get UELS data for specific entity type
      *
-     * @param  string  $entity  The entity type (client, supplier, product, invoice)
+     * @param  string  $entity  The entity type (business, contact, product, invoice)
      */
     public function getEntityData(Request $request, string $entity): JsonResponse
     {
         $user = $request->user();
+        $metricType = EntityType::tryFrom($entity) === null ? 'count' : 'active';
 
         $validEntities = [
-            'client',
-            'supplier',
+            'contact',
+            'business',
             'product',
             'invoice',
         ];
@@ -40,7 +44,6 @@ class UELSController extends Controller
         try {
             // Get comprehensive limit info for the entity
             $entityInfo = $this->uels->getEntityLimitInfo($user?->id, $entity);
-            // Some test doubles might provide 'has_permission' instead of 'can_create'; normalize here
             $canCreateEntity = (bool) ($entityInfo['can_create'] ?? ($entityInfo['has_permission'] ?? false));
 
             if (! $canCreateEntity) {
@@ -97,7 +100,7 @@ class UELSController extends Controller
                 $dailyStats = $this->uels->getUsageStatistics(
                     $user?->id,
                     $entity,
-                    'count',
+                    $metricType,
                     'daily',
                 ) ?? [];
             }
@@ -105,7 +108,7 @@ class UELSController extends Controller
                 $weeklyStats = $this->uels->getUsageStatistics(
                     $user?->id,
                     $entity,
-                    'count',
+                    $metricType,
                     'weekly',
                 ) ?? [];
             }
@@ -113,7 +116,7 @@ class UELSController extends Controller
                 $monthlyStats = $this->uels->getUsageStatistics(
                     $user?->id,
                     $entity,
-                    'count',
+                    $metricType,
                     'monthly',
                 ) ?? [];
             }
@@ -121,7 +124,7 @@ class UELSController extends Controller
                 $yearlyStats = $this->uels->getUsageStatistics(
                     $user?->id,
                     $entity,
-                    'count',
+                    $metricType,
                     'yearly',
                 ) ?? [];
             }
@@ -129,7 +132,7 @@ class UELSController extends Controller
                 $lifetimeStats = $this->uels->getUsageStatistics(
                     $user?->id,
                     $entity,
-                    'count',
+                    $metricType,
                     'lifetime',
                 ) ?? [];
             }
@@ -276,132 +279,26 @@ class UELSController extends Controller
     {
         $user = $request->user();
         $entities = [
-            'client',
-            'supplier',
+            'contact',
+            'business',
             'product',
             'invoice',
         ];
         $data = [];
-
-        try {
-            foreach ($entities as $entity) {
-                $entityInfo = $this->uels->getEntityLimitInfo($user->id, $entity);
-
-                if (! $entityInfo['has_permission']) {
-                    $data[$entity] = [
-                        'entity' => $entity,
-                        'current_usage' => 0,
-                        'limit' => 0,
-                        'remaining_count' => 0,
-                        'percentage_used' => 0,
-                        'is_at_limit' => true,
-                        'status' => 'no_permission',
-                    ];
-
-                    continue;
-                }
-
-                // Get usage statistics for different periods
-                $dailyStats = $this->uels->getUsageStatistics(
-                    $user->id,
-                    $entity,
-                    'count',
-                    'daily',
-                );
-                $weeklyStats = $this->uels->getUsageStatistics(
-                    $user->id,
-                    $entity,
-                    'count',
-                    'weekly',
-                );
-                $monthlyStats = $this->uels->getUsageStatistics(
-                    $user->id,
-                    $entity,
-                    'count',
-                    'monthly',
-                );
-                $yearlyStats = $this->uels->getUsageStatistics(
-                    $user->id,
-                    $entity,
-                    'count',
-                    'yearly',
-                );
-                $lifetimeStats = $this->uels->getUsageStatistics(
-                    $user->id,
-                    $entity,
-                    'count',
-                    'lifetime',
-                );
-
-                // Select primary stats from first available limit (prefer daily, then weekly, then monthly, then yearly, then lifetime)
-                $primaryStats = null;
-
-                // Find the stat with the highest effective limit (normalized to monthly basis)
-                $bestStats = null;
-                $highestEffectiveLimit = 0;
-
-                $statsWithPeriods = [
-                    'daily' => $dailyStats,
-                    'weekly' => $weeklyStats,
-                    'monthly' => $monthlyStats,
-                    'yearly' => $yearlyStats,
-                    'lifetime' => $lifetimeStats,
-                ];
-
-                foreach ($statsWithPeriods as $period => $stats) {
-                    if ($stats && $stats['limit'] > 0) {
-                        $effectiveLimit = $this->calculateEffectiveLimit($stats['limit'], $period);
-
-                        if ($effectiveLimit > $highestEffectiveLimit) {
-                            $highestEffectiveLimit = $effectiveLimit;
-                            $bestStats = $stats;
-                        }
-                    }
-                }
-
-                $primaryStats = $bestStats;
-
-                // If no limit > 0 found, use the first available stat as fallback
-                if (! $primaryStats) {
-                    $primaryStats = $dailyStats ?: $weeklyStats ?: $monthlyStats ?: $yearlyStats ?: $lifetimeStats;
-                }
-
-                if (! $primaryStats) {
-                    $data[$entity] = [
-                        'entity' => $entity,
-                        'current_usage' => 0,
-                        'limit' => -1,
-                        'remaining_count' => -1,
-                        'percentage_used' => 0,
-                        'is_at_limit' => false,
-                        'status' => 'unlimited',
-                    ];
-
-                    continue;
-                }
-
-                $data[$entity] = [
-                    'entity' => $entity,
-                    'current_usage' => $primaryStats['current_usage'],
-                    'limit' => $primaryStats['limit'],
-                    'remaining_count' => $primaryStats['remaining'],
-                    'percentage_used' => $primaryStats['usage_percentage'],
-                    'is_at_limit' => ! $primaryStats['can_create'],
-                    'status' => $this->getStatusLevel($primaryStats['usage_percentage'], $primaryStats['can_create']),
-                ];
+        foreach ($entities as $entity) {
+            $response = $this->getEntityData($request, $entity);
+            if ($response->getStatusCode() !== 200) {
+                return $response;
             }
-
-            return response()->json([
-                'entities' => $data,
-                'user_id' => $user?->id,
-                'user_name' => $user?->name ?? 'Anonymous',
-                'timestamp' => now()->toISOString(),
-            ]);
-        } catch (Throwable $e) {
-            Log::error('Loading UELS data failed', ['exception' => $e]);
-
-            return response()->json(['message' => __('entity_limits.modal.error')], 500);
+            $data[$entity] = $response->getData(true);
         }
+
+        return response()->json([
+            'entities' => $data,
+            'user_id' => $user?->id,
+            'user_name' => $user?->name,
+            'timestamp' => now()->toISOString(),
+        ]);
     }
 
     /**

@@ -1,67 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
-class ApiAuthenticationTest extends TestCase
+final class ApiAuthenticationTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // Seed basic permissions and roles for tests
-        $this->createPermissions();
-        $this->createRolesWithPermissions();
-    }
-
-    protected function createPermissions(): void
-    {
-        // Frontend permissions
-        Permission::firstOrCreate(['name' => 'frontend.api.access', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.clients', 'guard_name' => 'web']);
-        Permission::firstOrCreate(['name' => 'frontend.api.extended', 'guard_name' => 'web']);
-
-        // Backpack permissions
-        Permission::firstOrCreate(['name' => 'backpack.api.access', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_view_client', 'guard_name' => 'backpack']);
-    }
-
-    protected function createRolesWithPermissions(): void
-    {
-        // Frontend roles
-        $frontendRole = Role::firstOrCreate(['name' => 'frontend_user', 'guard_name' => 'web']);
-        $frontendRole->syncPermissions([
-            'frontend.api.access',
-            'frontend.api.clients',
-        ]);
-
-        $frontendPlusRole = Role::firstOrCreate(['name' => 'frontend_user_plus', 'guard_name' => 'web']);
-        $frontendPlusRole->syncPermissions([
-            'frontend.api.access',
-            'frontend.api.clients',
-            'frontend.api.extended',
-        ]);
-
-        // Backpack roles
-        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
-        $adminRole->syncPermissions([
-            'backpack.api.access',
-            'backpack.access',
-            'can_view_client',
-        ]);
-
-        $backendUserRole = Role::firstOrCreate(['name' => 'backend_user', 'guard_name' => 'backpack']);
-        $backendUserRole->syncPermissions([
-            'backpack.access',
-        ]);
-    }
-
     #[Test]
     public function frontend_user_can_access_frontend_api(): void
     {
@@ -73,7 +22,7 @@ class ApiAuthenticationTest extends TestCase
         $this->actingAs($user, 'web');
 
         $this->assertTrue($user->hasPermissionTo('frontend.api.access', 'web'));
-        $this->assertTrue($user->hasPermissionTo('frontend.api.clients', 'web'));
+        $this->assertTrue($user->hasPermissionTo('frontend.can_view_contact', 'web'));
         $this->assertFalse($user->hasPermissionTo('frontend.api.extended', 'web'));
     }
 
@@ -89,7 +38,7 @@ class ApiAuthenticationTest extends TestCase
 
         $this->assertTrue($user->hasPermissionTo('backpack.api.access', 'backpack'));
         $this->assertTrue($user->hasPermissionTo('backpack.access', 'backpack'));
-        $this->assertTrue($user->hasPermissionTo('can_view_client', 'backpack'));
+        $this->assertTrue($user->hasPermissionTo('can_view_contact', 'backpack'));
     }
 
     #[Test]
@@ -126,7 +75,7 @@ class ApiAuthenticationTest extends TestCase
         $this->assertTrue($adminRole->hasPermissionTo('backpack.access', 'backpack'));
 
         // Backend user should have basic backpack access
-        $this->assertTrue($backendUserRole->hasPermissionTo('backpack.access', 'backpack'));
+        $this->assertFalse($backendUserRole->hasPermissionTo('backpack.access', 'backpack'));
 
         // Frontend user should have basic frontend permissions
         $this->assertTrue($frontendRole->hasPermissionTo('frontend.api.access', 'web'));

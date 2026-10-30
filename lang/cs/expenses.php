@@ -17,7 +17,6 @@ return [
         'expense_date' => 'Datum',
         'amount' => 'Částka',
         'currency' => 'Měna',
-        'supplier_id' => 'Dodavatel',
         'category_id' => 'Kategorie',
         'payment_method_id' => 'Způsob platby',
         'reference_number' => 'Referenční číslo',

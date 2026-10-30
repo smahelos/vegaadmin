@@ -21,45 +21,12 @@ return null;
 }
 }
 
-/**
-* Generating classes for fields
-*/
-if (!function_exists('getEditFieldClasses')) {
-function getEditFieldClasses($fieldName, $supplierFields, $clientFields, $invoiceFields) {
-$classes = [];
-if(in_array($fieldName, $invoiceFields)) {
-$classes[] = 'bg-blue-50';
-}
-
-if(in_array($fieldName, $supplierFields)) {
-$classes[] = 'bg-[#FDFDFC] supplier-field';
-}
-
-if(in_array($fieldName, $clientFields)) {
-$classes[] = 'bg-[#FDFDFC] client-field';
-}
-
-return implode(' ', $classes);
-}
-}
-
-$invoiceFields = ['invoice_vs', 'invoice_ks', 'invoice_ss', 'issue_date', 'tax_point_date', 'payment_method_id',
-'due_in', 'payment_amount', 'payment_currency', 'payment_status_id'];
-$supplierFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country', 'ico', 'dic', 'account_number',
-'bank_code', 'bank_name', 'iban', 'swift'];
-$clientFields = ['client_name', 'client_email', 'client_phone', 'client_street', 'client_city', 'client_zip',
-'client_country', 'client_ico', 'client_dic'];
 $fieldDescription = getEditFieldByName($fields, 'invoice_text');
 
 // Fields for the start and end of the section
-$sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id', 'supplier_id', 'email',
-'city', 'ico', 'account_number', 'iban', 'client_id', 'client_email', 'client_city', 'client_ico'];
-$sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency', 'supplier_id', 'phone', 'country',
-'dic', 'bank_name',
-'swift', 'client_id', 'client_phone', 'client_country', 'client_dic'];
+$sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id'];
+$sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
 
-// Fields that require special layout
-$specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
 @endphp
 
 @section('content')
@@ -108,22 +75,8 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
             <div class="grid grid-cols-1 md:grid-cols-5 md:col-span-4 gap-6">
                 @foreach($fields as $field)
                 @if($field['name'] !== 'invoice_text' && $field['name'] !== 'template')
-                @php
-                $fieldClasses = getEditFieldClasses($field['name'], $supplierFields, $clientFields, $invoiceFields);
-                @endphp
-
                 @if(in_array($field['name'], $sectionStartFields))
-                <div class="grid grid-cols-1
-                            @if(
-                                $field['name'] === 'payment_amount' ||
-                                $field['name'] === 'supplier_id' ||
-                                $field['name'] === 'client_id')md:grid-cols-5
-                            @elseif(
-                                $field['name'] === 'account_number' ||
-                                $field['name'] === 'city' ||
-                                $field['name'] === 'client_city')md:grid-cols-10
-                            @else md:grid-cols-4
-                            @endif gap-6 mb-5">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-5">
                     @endif
 
                     @if($field['name'] === 'invoice_logo')
@@ -139,7 +92,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                             </label>
                             <input type="text" name="invoice_vs" id="invoice_vs" required
                                 value="{{ old('invoice_vs', $invoice->invoice_vs) }}"
-                                class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 {{ $fieldClasses }}">
+                                class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                             @if(isset($field['hint']) && $field['hint'] !== '')
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                 {{ $field['hint'] }}
@@ -208,8 +161,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                         <label for="{{ $field['name'] }}"
                             class="block text-base font-medium text-gray-900 dark:text-white mb-2">
                             {{ $field['label'] }}
-                            @if(isset($field['required']) && $field['required'] === true && $field['name'] !== 'name' &&
-                            $field['name'] !== 'client_name')
+                            @if(isset($field['required']) && $field['required'] === true)
                             <span class="text-red-500">*</span>
                             @endif
                         </label>
@@ -220,7 +172,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                             value="{{ old($field['name'], $invoice->{$field['name']}) }}" @endif
                             @if($field['name']==='payment_amount') readonly
                             @elseif(isset($field['required']) && $field['required']===true) required @endif
-                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 {{ $fieldClasses }}">
+                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                         @if(isset($field['hint']) && $field['hint'] !== '')
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             {{ $field['hint'] }}
@@ -233,41 +185,12 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
 
                     @else
                     <!-- Other fields -->
-                    @php
-                    $containerId = '';
-                    if ($field['name'] === 'name') {
-                    $containerId = 'supplier_name_container';
-                    } elseif ($field['name'] === 'client_name') {
-                    $containerId = 'client_name_container';
-                    }
-                    $marginClass = in_array($field['name'], ['name', 'street', 'client_name', 'client_street']) ?
-                    'mb-5' : '';
-
-                    $columnSpan = '';
-                    if(in_array($field['name'], ['account_number', 'city', 'client_city'])) {
-                    $columnSpan = 'md:col-span-4';
-                    } elseif(in_array($field['name'], ['bank_code', 'bank_name', 'zip', 'client_zip'])) {
-                    $columnSpan = 'md:col-span-3';
-                    } elseif(in_array($field['name'], ['ico', 'dic', 'email', 'phone', 'iban', 'swift', 'client_ico',
-                    'client_dic', 'client_email', 'client_phone'])) {
-                    $columnSpan = 'md:col-span-2';
-                    } else {
-                    $columnSpan = 'md:col-span-1';
-                    }
-                    @endphp
-                    <div class="{{ $marginClass }} {{ $columnSpan }}" id="{{ $containerId }}">
+                    <div class="md:col-span-1" id="{{ $field['name'] }}_container">
                         <label for="{{ $field['name'] }}"
                             class="block text-base font-medium text-gray-900 dark:text-white mb-2">
                             {{ $field['label'] }}
-                            @if(isset($field['required']) && $field['required'] === true && $field['name'] !== 'name' &&
-                            $field['name'] !== 'client_name')
+                            @if(isset($field['required']) && $field['required'] === true)
                             <span class="text-red-500">*</span>
-                            @elseif($field['name'] === 'name')
-                            <span id="supplier-name-required"
-                                class="text-red-500 {{ $invoice->supplier_id ? 'hidden' : '' }}">*</span>
-                            @elseif($field['name'] === 'client_name')
-                            <span class="text-red-500" id="client-name-required"
-                                class="{{ $invoice->client_id ? 'hidden' : '' }}">*</span>
                             @endif
                         </label>
                         <input type="{{ $field['type'] }}"
@@ -277,7 +200,7 @@ $specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
                             value="{{ old($field['name'], $invoice->{$field['name']}->format('Y-m-d')) }}" @else
                             value="{{ old($field['name'], $invoice->{$field['name']}) }}" @endif
                             @if(isset($field['required']) && $field['required']===true) required @endif
-                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 {{ $fieldClasses }}">
+                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                         @if(isset($field['hint']) && $field['hint'] !== '')
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             {{ $field['hint'] }}

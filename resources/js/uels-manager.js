@@ -289,13 +289,7 @@ class UELSManager {
      * Get display name for entity type
      */
     getEntityDisplayName(entityType) {
-        const names = {
-            'client': window.UELSTranslations?.entities?.clients || 'Clients',
-            'supplier': window.UELSTranslations?.entities?.suppliers || 'Suppliers', 
-            'product': window.UELSTranslations?.entities?.products || 'Products',
-            'invoice': window.UELSTranslations?.entities?.invoices || 'Invoices'
-        };
-        return names[entityType] || entityType;
+        return window.UELSTranslations.entities[entityType];
     }
 
     /**

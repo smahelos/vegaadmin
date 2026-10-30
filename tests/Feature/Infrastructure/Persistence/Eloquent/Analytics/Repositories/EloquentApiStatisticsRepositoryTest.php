@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure\Persistence\Eloquent\Analytics\Repositories;
 
-use App\Domain\Party\ValueObjects\PartyId;
+use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Analytics\Repositories\EloquentApiStatisticsRepository;
-use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -24,9 +24,9 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
 
     private User $user;
 
-    private Client $client;
+    private Contact $client;
 
-    private Client $otherClient;
+    private Contact $otherClient;
 
     protected function setUp(): void
     {
@@ -35,8 +35,8 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         // The pending invoice below is due on this day
         $this->repository = $this->repositoryOn('2026-02-03');
         $this->user = User::factory()->create();
-        $this->client = Client::factory()->create(['user_id' => $this->user->id, 'name' => 'Alfa']);
-        $this->otherClient = Client::factory()->create(['user_id' => $this->user->id, 'name' => 'Beta']);
+        $this->client = Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Alfa']);
+        $this->otherClient = Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Beta']);
 
         $this->invoice(
             $this->client,
@@ -64,7 +64,7 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
             'paid',
         );
         $this->invoice(
-            Client::factory()->create(),
+            Contact::factory()->create(),
             '2026-01-15',
             9000,
             'paid',
@@ -102,7 +102,7 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
             UserId::fromInt($this->user->id),
             new DateTimeImmutable('2026-01-01'),
             null,
-            [PartyId::fromInt($this->otherClient->id)],
+            [ContactId::fromInt($this->otherClient->id)],
         );
 
         $this->assertSame([
@@ -115,9 +115,9 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function client_revenue_ranks_clients_by_total(): void
+    public function customer_revenue_ranks_customers_by_total(): void
     {
-        $rows = $this->repository->clientRevenue(
+        $rows = $this->repository->customerRevenue(
             UserId::fromInt($this->user->id),
             new DateTimeImmutable('2026-01-01'),
             null,
@@ -126,13 +126,13 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
 
         $this->assertSame([
             [
-                'client_id' => $this->client->id,
-                'client_name' => 'Alfa',
+                'contact_id' => $this->client->id,
+                'customer_name' => 'Alfa',
                 'total' => 1500.0,
             ],
             [
-                'client_id' => $this->otherClient->id,
-                'client_name' => 'Beta',
+                'contact_id' => $this->otherClient->id,
+                'customer_name' => 'Beta',
                 'total' => 300.0,
             ],
         ], $this->numeric($rows, ['total']));
@@ -235,14 +235,14 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     }
 
     private function invoice(
-        Client $client,
+        Contact $client,
         string $issueDate,
         int $amount,
         string $status,
     ): void {
         Invoice::factory()->create([
             'user_id' => $client->user_id,
-            'client_id' => $client->id,
+            'contact_id' => $client->id,
             'issue_date' => $issueDate,
             'due_in' => 14,
             'payment_amount' => $amount,

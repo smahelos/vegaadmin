@@ -14,7 +14,7 @@ use Tests\TestCase;
  * Feature tests for Product Model
  *
  * Tests database relationships, business logic, and model behavior requiring database interactions
- * Tests product interactions with users, categories, taxes, suppliers and sluggable behavior
+ * Tests product interactions with users, categories, taxes and sluggable behavior
  */
 class ProductFeatureTest extends TestCase
 {

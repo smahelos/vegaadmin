@@ -9,7 +9,7 @@ use Illuminate\Validation\Rules\Unique;
 
 /**
  * Uniqueness among one user's records, matching the (user_id, column) unique indexes:
- * two users may each have a client with the same IČO or a product with the same slug.
+ * two users may each have a contact with the same company number or a product with the same slug.
  */
 final class UniquePerUser
 {

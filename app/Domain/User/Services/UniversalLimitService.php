@@ -18,7 +18,7 @@ use App\Domain\User\ValueObjects\UserId;
  * Universal Limit Service - Permission-based System
  *
  * Core business logic for entity limit checking and enforcement
- * across all application entities (invoices, clients, suppliers, etc.)
+ * across all application entities (invoices, businesses, contacts, etc.)
  *
  * Updated to use userId instead of User objects for clean Domain layer architecture.
  * This version uses PermissionLimitResolver for real-time permission-based limits.

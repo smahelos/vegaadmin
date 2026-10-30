@@ -109,4 +109,22 @@ final class PartyListTest extends TestCase
         Livewire::test(ContactList::class)->assertForbidden();
         Livewire::test(BusinessList::class)->assertForbidden();
     }
+
+    #[Test]
+    public function pagination_uses_the_shared_controls_and_resets_after_filtering(): void
+    {
+        for ($index = 1; $index <= 11; $index++) {
+            Contact::factory()->create([
+                'user_id' => $this->user->id,
+                'name' => sprintf('Contact %02d', $index),
+            ]);
+        }
+
+        Livewire::test(ContactList::class)
+            ->assertSee('Contact 01')->assertDontSee('Contact 11')
+            ->assertSee('aria-label="' . __('general.pagination.navigation') . '"', false)
+            ->call('setPage', 2)->assertSee('Contact 11')->assertDontSee('Contact 01')
+            ->set('search', 'Contact 01')->assertSee('Contact 01')
+            ->assertViewHas('contacts', fn ($contacts): bool => $contacts->currentPage() === 1 && $contacts->total() === 1);
+    }
 }

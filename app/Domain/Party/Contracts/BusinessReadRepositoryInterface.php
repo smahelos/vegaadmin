@@ -24,6 +24,9 @@ interface BusinessReadRepositoryInterface
      */
     public function listActiveForUser(UserId $userId): array;
 
+    /** @return list<BusinessDTO> newest first */
+    public function listLatestActiveForUser(UserId $userId, int $limit): array;
+
     /**
      * @return PaginatedResult<BusinessDTO>
      */

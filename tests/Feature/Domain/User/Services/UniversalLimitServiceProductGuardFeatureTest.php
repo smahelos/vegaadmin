@@ -86,8 +86,8 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
             {
                 return [
                     'invoice',
-                    'client',
-                    'supplier',
+                    'contact',
+                    'business',
                     'product',
                     'expense',
                 ];

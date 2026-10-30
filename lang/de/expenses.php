@@ -17,7 +17,6 @@ return [
         'expense_date' => 'Datum',
         'amount' => 'Betrag',
         'currency' => 'Währung',
-        'supplier_id' => 'Lieferant',
         'category_id' => 'Kategorie',
         'payment_method_id' => 'Zahlungsmethode',
         'reference_number' => 'Referenznummer',

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\App;
 trait ProductFormFields
 {
     /**
-     * Get client form fields definitions
+     * Get product form field definitions
      */
     protected function getProductFields(array $productCategories = [], array $taxRates = []): array
     {

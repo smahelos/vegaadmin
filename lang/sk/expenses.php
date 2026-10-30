@@ -17,7 +17,6 @@ return [
         'expense_date' => 'Dátum',
         'amount' => 'Čiastka',
         'currency' => 'Mena',
-        'supplier_id' => 'Dodávateľ',
         'category_id' => 'Kategória',
         'payment_method_id' => 'Spôsob platby',
         'reference_number' => 'Referenčné číslo',

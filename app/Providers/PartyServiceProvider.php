@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\Domain\Party\Contracts\BankAccountReadRepositoryInterface;
@@ -10,21 +12,17 @@ use App\Domain\Party\Contracts\CompanyRegistryInterface;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Party\Contracts\ContactWriteRepositoryInterface;
 use App\Infrastructure\Gateways\Party\AresCompanyRegistry;
-use App\Infrastructure\Persistence\Eloquent\Party\Observers\ClientObserver;
-use App\Infrastructure\Persistence\Eloquent\Party\Observers\SupplierObserver;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentBankAccountRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentBusinessRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentContactRepository;
-use App\Models\Client;
-use App\Models\Supplier;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * Composition root of the Party (clients & suppliers) bounded context.
+ * Composition root of the Party (businesses and contacts) bounded context.
  *
  * Wires the context's Domain, Infrastructure and Application layers in one place (ADR D-042).
  */
-class PartyServiceProvider extends ServiceProvider
+final class PartyServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
@@ -71,11 +69,5 @@ class PartyServiceProvider extends ServiceProvider
             AresCompanyRegistry::class,
         );
 
-    }
-
-    public function boot(): void
-    {
-        Client::observe(ClientObserver::class);
-        Supplier::observe(SupplierObserver::class);
     }
 }

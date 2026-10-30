@@ -22,11 +22,6 @@
     @vite('resources/js/app.js')
     @livewireScripts
 
-    <script>
-        window.translations = {
-            ares: @json(__('ares'))
-        };
-    </script>
 </body>
 
 </html>

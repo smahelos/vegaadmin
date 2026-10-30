@@ -19,7 +19,7 @@
                             <div>
                                 <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.invoices_count') }}
                                 </p>
-                                <p class="text-3xl font-semibold text-gray-800">{{ $invoiceCount }}</p>
+                                <p class="text-3xl font-semibold text-gray-800">{{ $dashboard->statistics->invoiceCount }}</p>
                             </div>
                         </div>
                     </div>
@@ -30,9 +30,9 @@
                                 <i class="fas fa-users text-xl"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.clients_count') }}
+                                <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.contacts_count') }}
                                 </p>
-                                <p class="text-3xl font-semibold text-gray-800">{{ $clientCount }}</p>
+                                <p class="text-3xl font-semibold text-gray-800">{{ $dashboard->statistics->contactCount }}</p>
                             </div>
                         </div>
                     </div>
@@ -43,9 +43,9 @@
                                 <i class="fas fa-users text-xl"></i>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.suppliers_count') }}
+                                <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.businesses_count') }}
                                 </p>
-                                <p class="text-3xl font-semibold text-gray-800">{{ $suppliersCount }}</p>
+                                <p class="text-3xl font-semibold text-gray-800">{{ $dashboard->statistics->businessCount }}</p>
                             </div>
                         </div>
                     </div>
@@ -58,32 +58,32 @@
                             <div>
                                 <p class="text-sm text-gray-500 dark:text-white font-medium">{{ __('dashboard.cards.total_amount') }}
                                 </p>
-                                <p class="text-1xl font-semibold text-gray-800">{{ number_format($totalAmount, 2, ',', '
-                                    ') }} {{ __('general.currency') }}</p>
+                                <p class="text-1xl font-semibold text-gray-800">{{ $dashboard->totalAmountFormatted }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                @if(!empty($clients))
                 <!-- Statistics filter controls -->
                 <div class="rounded-sm mb-6 flex flex-wrap gap-5 items-center">
-                    <div class="flex w-full gap-5">
+                    <div class="flex w-full flex-col gap-5 lg:flex-row">
 
-                        <div class="w-full">
-                            <label for="stats-client-filter" class="block text-base font-semibold text-gray-900 dark:text-white mb-1">{{
-                                __('dashboard.filters.clients') }}</label>
-                            <select id="stats-client-filter"
+                        @if($dashboard->contacts !== [])
+                        <div class="w-full min-w-0 lg:w-1/3">
+                            <label for="stats-contact-filter" class="block text-base font-semibold text-gray-900 dark:text-white mb-1">{{
+                                __('dashboard.filters.contacts') }}</label>
+                            <select id="stats-contact-filter"
                                 class="mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-700 focus:border-indigo-600 focus:ring-indigo-600 text-base dark:text-white bg-blue-50 dark:bg-gray-600 px-1 py-1"
                                 multiple>
-                                @foreach($clients as $client)
-                                <option class="@if($loop->iteration % 2 == 0)bg-blue-50 dark:bg-gray-600 @else bg-white dark:bg-gray-700 @endif px-2 py-1" value="{{ $client->clientId }}">{{ $client->clientName }}</option>
+                                @foreach($dashboard->contacts as $customer)
+                                <option class="@if($loop->iteration % 2 == 0)bg-blue-50 dark:bg-gray-600 @else bg-white dark:bg-gray-700 @endif px-2 py-1" value="{{ $customer->contactId->value }}">{{ $customer->customerName }}</option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <div class="grid md:grid-cols-3 min-w-2/3 bg-red-100 dark:bg-pink-700 rounded-sm p-5">
-                            <div class="flex gap-2 items-center cols-span-1">
+                        @endif
+                        <div class="grid w-full min-w-0 gap-4 bg-red-100 dark:bg-pink-700 rounded-sm p-5">
+                            <div class="min-w-0">
                                 <div>
                                     <label for="stats-timerange" class="block text-base font-semibold text-gray-900 dark:text-white mb-1">{{
                                         __('dashboard.filters.date_range') }}</label>
@@ -98,14 +98,14 @@
                                 </div>
                             </div>
 
-                            <div class="flex gap-2 items-center cols-span-2 custom-date-range">
-                                <div class="w-full md:min-w-2/2">
+                            <div class="grid min-w-0 gap-4 sm:grid-cols-2 custom-date-range">
+                                <div class="min-w-0">
                                     <label for="stats-date-from" class="block text-base font-semibold text-gray-700 dark:text-white mb-1">{{
                                         __('dashboard.filters.date_from') }}</label>
                                     <input type="date" id="stats-date-from"
                                         class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-500 dark:focus:border-indigo-500 dark:focus:ring-indigo-500" readonly>
                                 </div>
-                                <div class="w-full md:min-w-2/2">
+                                <div class="min-w-0">
                                     <label for="stats-date-to" class="block text-base font-semibold text-gray-700 dark:text-white mb-1">{{
                                         __('dashboard.filters.date_to') }}</label>
                                     <input type="date" id="stats-date-to"
@@ -115,7 +115,6 @@
                         </div>
                     </div>
                 </div>
-                @endif
             </div>
         </div>
     </div>
@@ -151,14 +150,14 @@
                     </div>
                 </div>
 
-                <!-- Revenue by client and Revenue vs Expenses -->
+                <!-- Revenue by customer and Revenue vs Expenses -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <!-- Revenue by client -->
+                    <!-- Revenue by customer -->
                     <div class="p-5">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.charts.revenue_by_client')
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.charts.revenue_by_customer')
                             }}</h3>
                         <div class="h-64">
-                            <canvas id="revenueByClientChart"></canvas>
+                            <canvas id="revenueByCustomerChart"></canvas>
                         </div>
                     </div>
 
@@ -188,23 +187,27 @@
                     </div>
                 </div>
 
-                <!-- Latest clients and suppliers -->
+                <!-- Latest contacts and businesses -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Latest clients -->
+                    <!-- Latest contacts -->
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_clients') }}</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_contacts') }}</h3>
                         <div class="rounded-sm overflow-hidden">
-                            <!-- Livewire component - Latest clients -->
-                            @livewire('party.client-list-latest')
+                            <!-- Livewire component - Latest contacts -->
+                            @can('frontend.can_view_contact')
+                            @livewire('party.party-list-latest', ['partyType' => 'contact'], key('latest-contacts'))
+                            @endcan
                         </div>
                     </div>
 
-                    <!-- Latest suppliers -->
+                    <!-- Latest businesses -->
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_suppliers') }}</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_businesses') }}</h3>
                         <div class="rounded-sm overflow-hidden">
-                            <!-- Livewire component - Latest suppliers -->
-                            @livewire('party.supplier-list-latest')
+                            <!-- Livewire component - Latest businesses -->
+                            @can('frontend.can_view_business')
+                            @livewire('party.party-list-latest', ['partyType' => 'business'], key('latest-businesses'))
+                            @endcan
                         </div>
                     </div>
                 </div>

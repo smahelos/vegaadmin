@@ -86,6 +86,10 @@ final class InvoiceReminderApplicationService
             $this->notifier->send(
                 $type,
                 new InvoiceReminderPayload(
+                    invoiceId: $invoice->id,
+                    total: $invoice->total,
+                    supplierName: $invoice->supplier->name,
+                    customerName: $invoice->customer->name,
                     invoiceNumber: $invoice->number,
                     dueDate: $invoice->dueDate->date(),
                     daysLeft: $type === InvoiceReminderType::UPCOMING_DUE ? max(0, $days) : null,

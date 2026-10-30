@@ -32,7 +32,7 @@ class UsageRecordingHandler implements DomainEventHandler
                 'invoice',
                 'count',
                 null, // Let service determine best period type
-                'web', // Use web guard for client/supplier creation
+                'web',
                 1,
             ),
             ExpenseCreated::class => $this->limitService->recordUsage(

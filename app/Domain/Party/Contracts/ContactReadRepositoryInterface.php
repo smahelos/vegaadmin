@@ -19,6 +19,9 @@ interface ContactReadRepositoryInterface
      */
     public function findByIdForUser(ContactId $id, UserId $userId): ?ContactDTO;
 
+    /** @return list<ContactDTO> newest first */
+    public function listLatestActiveForUser(UserId $userId, int $limit): array;
+
     /**
      * @return PaginatedResult<ContactDTO>
      */

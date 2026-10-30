@@ -36,14 +36,6 @@ return [
             'singular' => 'Kontakt',
             'plural' => 'Kontakte',
         ],
-        'client' => [
-            'singular' => 'Kunde',
-            'plural' => 'Kunden',
-        ],
-        'supplier' => [
-            'singular' => 'Lieferant',
-            'plural' => 'Lieferanten',
-        ],
         'product' => [
             'singular' => 'Produkt',
             'plural' => 'Produkte',

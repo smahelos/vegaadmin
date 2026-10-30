@@ -1,19 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Domain\Analytics;
 
-use App\Domain\Analytics\Contracts\AnalyticsDtoReadRepository;
+use App\Domain\Analytics\Contracts\AnalyticsReadRepositoryInterface;
 use App\Domain\Analytics\Services\DashboardService;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\User\ValueObjects\UserId;
-use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Invoice;
-use App\Models\Supplier;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class AnalyticsCacheInvalidationTest extends TestCase
+final class AnalyticsCacheInvalidationTest extends TestCase
 {
     /** Simple in-memory tagged cache fake for deterministic behavior. */
     private array $store = [];
@@ -124,36 +125,14 @@ class AnalyticsCacheInvalidationTest extends TestCase
     public function invalidate_user_cache_flushes_and_recomputes_statistics(): void
     {
         $cache = $this->makeFakeCacheService();
-        // Minimal repository using Eloquent to compute aggregates for this feature test
-        $repo = new class implements AnalyticsDtoReadRepository
-        {
-            public function getUserStats(int $userId): array
-            {
-                return [
-                    'invoice_count' => Invoice::where('user_id', $userId)->count(),
-                    'client_count' => Client::where('user_id', $userId)->count(),
-                    'suppliers_count' => Supplier::where('user_id', $userId)->count(),
-                    'total_amount' => (float) Invoice::where('user_id', $userId)->sum('payment_amount'),
-                ];
-            }
-
-            public function getMonthlyStats(int $userId, int $months): array
-            {
-                return [];
-            }
-
-            public function getClientsWithTotals(int $userId): array
-            {
-                return [];
-            }
-        };
+        $repo = app(AnalyticsReadRepositoryInterface::class);
         // Instantiate service directly to eliminate container timing side-effects
         $service = new DashboardService($cache, $repo);
         $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
+        $contact = Contact::factory()->create(['user_id' => $user->id]);
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 100.00,
             'issue_date' => now()->subMonth(),
         ]);
@@ -163,7 +142,7 @@ class AnalyticsCacheInvalidationTest extends TestCase
         // Add new invoice (cached value should remain stale until invalidation)
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 50.00,
             'issue_date' => now()->subDays(5),
         ]);

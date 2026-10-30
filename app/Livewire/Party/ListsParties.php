@@ -7,10 +7,8 @@ namespace App\Livewire\Party;
 use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\Enums\PartySort;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
-use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Url;
 
 /**
@@ -81,21 +79,5 @@ trait ListsParties
     protected function pageRequest(): PageRequest
     {
         return new PageRequest($this->getPage(), self::PER_PAGE);
-    }
-
-    /**
-     * @template T
-     *
-     * @param  PaginatedResult<T>  $result
-     * @return LengthAwarePaginator<int, T>
-     */
-    protected function paginator(PaginatedResult $result): LengthAwarePaginator
-    {
-        return new LengthAwarePaginator(
-            $result->items(),
-            $result->total(),
-            $result->perPage(),
-            $result->currentPage(),
-        );
     }
 }

@@ -1,7 +1,7 @@
 import {spawn} from 'node:child_process';
 import {writeFile} from 'node:fs/promises';
 // Read-only browser regression against the DevelopmentDataSeeder fixtures.
-// Run: node tests/Browser/admin-document-forms.mjs
+// Run: node tests/Browser/party-logos.mjs
 const base=process.env.BILLEX_BROWSER_URL || 'http://billex-dev.local';
 const chrome=spawn('/usr/bin/google-chrome',['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-proxy-server','--remote-debugging-port=9226','--user-data-dir=/tmp/billex-party-logo-chrome','about:blank'],{stdio:'ignore'});
 let ws;let id=0;const pending=new Map();
@@ -73,5 +73,20 @@ try {
    assert(await evaluate('!document.querySelector("[name=invoice_logo]")'),'Invoice edit must use its stored supplier logo');
    await screenshot('frontend-invoice-edit',true);
  }
+ await send('Network.clearBrowserCookies');
+ await go('/en/create-invoice');
+ await waitFor('!!document.querySelector("[name=invoice_logo]")');
+ await evaluate(`(async()=>{
+   const canvas=document.createElement('canvas');canvas.width=240;canvas.height=120;
+   canvas.getContext('2d').fillRect(0,0,240,120);
+   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+   const transfer=new DataTransfer();transfer.items.add(new File([blob],'guest-logo.png',{type:'image/png'}));
+   const input=document.querySelector('[name=invoice_logo]');input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));
+   return true;
+ })()`);
+ await waitFor('document.querySelector("#current-image-preview").naturalWidth === 240');
+ assert(await evaluate('getComputedStyle(document.querySelector("#current-image-preview")).display !== "none"'),'Guest logo preview must be visible');
+ await screenshot('guest-invoice',true);
+ assert(exceptions.length===0,'JavaScript exceptions: '+JSON.stringify(exceptions));
  console.log('Logo form browser checks passed; only temporary preview uploads were created, no records were saved.');
 } finally {ws?.close();chrome.kill();}

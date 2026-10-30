@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
@@ -11,7 +13,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
-class EntityLimitSystemBasicTest extends TestCase
+final class EntityLimitSystemBasicTest extends TestCase
 {
     protected User $user;
 
@@ -28,10 +30,10 @@ class EntityLimitSystemBasicTest extends TestCase
         $permission = Permission::where('name', 'can_create_edit_invoice')
             ->where('guard_name', 'backpack')
             ->first();
-        $permission2 = Permission::where('name', 'can_create_edit_client')
+        $permission2 = Permission::where('name', 'can_create_contact')
             ->where('guard_name', 'backpack')
             ->first();
-        $permission3 = Permission::where('name', 'can_create_edit_supplier')
+        $permission3 = Permission::where('name', 'can_create_business')
             ->where('guard_name', 'backpack')
             ->first();
 

@@ -25,8 +25,8 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         // Give frontend permissions to user (instead of backpack permissions)
         $permissions = [
             'frontend.can_create_edit_invoice',
-            'frontend.can_create_edit_client',
-            'frontend.can_create_edit_supplier',
+            'frontend.can_create_contact',
+            'frontend.can_create_business',
         ];
         foreach ($permissions as $permissionName) {
             $permission = Permission::where('name', $permissionName)

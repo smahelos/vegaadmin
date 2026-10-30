@@ -22,8 +22,6 @@ return [
     'navigation' => [
         'dashboard' => 'Prehľad',
         'invoices' => 'Faktúry',
-        'clients' => 'Klienti',
-        'suppliers' => 'Dodávatelia',
         'profile' => 'Profil',
         'products' => 'Produkty',
         'create_invoice' => 'Vytvoriť faktúru',
@@ -31,9 +29,7 @@ return [
         'language' => 'Jazyk',
     ],
     'placeholders' => [
-        'select_client' => 'Vyberte klienta alebo vytvorte nového...',
         'select_status' => 'Vyberte stav...',
-        'select_supplier' => 'Vyberte dodávateľa alebo vytvorte nového...',
         'select_country' => 'Vyberte krajinu...',
         'payment_method_select' => 'Vyberte spôsob platby',
         'due_in_select' => 'Vyberte splatnosť',
@@ -61,6 +57,7 @@ return [
         'next' => 'Ďalšia',
     ],
     'actions' => [
+        'view_all' => 'Zobraziť všetky',
         'create' => 'Vytvoriť',
         'edit' => 'Upraviť',
         'delete' => 'Vymazať',

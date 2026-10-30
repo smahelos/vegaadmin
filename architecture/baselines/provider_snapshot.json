@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-29T16:23:21+00:00",
+    "generated_at": "2026-10-30T11:00:13+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -152,12 +152,8 @@
         "App\\Providers\\AnalyticsServiceProvider": {
             "bind": [
                 {
-                    "abstract": "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface",
-                    "concrete": "App\\Domain\\Analytics\\Services\\DashboardService"
-                },
-                {
-                    "abstract": "App\\Domain\\Analytics\\Contracts\\AnalyticsDtoReadRepository",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsDtoReadRepository"
+                    "abstract": "App\\Domain\\Analytics\\Contracts\\AnalyticsReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsRepository"
                 },
                 {
                     "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsRepository",
@@ -166,22 +162,6 @@
                 {
                     "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsApplicationServiceInterface",
                     "concrete": "App\\Application\\Analytics\\Services\\ApiStatisticsApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\DashboardApplicationServiceInterface",
-                    "concrete": "App\\Application\\Analytics\\Services\\DashboardApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\UserStatisticsPresenterInterface",
-                    "concrete": "App\\Application\\Analytics\\Presenters\\UserStatisticsPresenter"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\MonthlyStatPresenterInterface",
-                    "concrete": "App\\Application\\Analytics\\Presenters\\MonthlyStatPresenter"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\ClientTotalPresenterInterface",
-                    "concrete": "App\\Application\\Analytics\\Presenters\\ClientTotalPresenter"
                 }
             ],
             "singleton": []
@@ -563,38 +543,6 @@
                 "method": "bind"
             }
         },
-        "App\\Application\\Analytics\\Contracts\\ClientTotalPresenterInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Analytics\\Presenters\\ClientTotalPresenter",
-                "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Analytics\\Contracts\\DashboardApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Analytics\\Services\\DashboardApplicationService",
-                "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Analytics\\Contracts\\MonthlyStatPresenterInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Analytics\\Presenters\\MonthlyStatPresenter",
-                "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Analytics\\Contracts\\UserStatisticsPresenterInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Analytics\\Presenters\\UserStatisticsPresenter",
-                "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Application\\Content\\Contracts\\PageApplicationServiceInterface": {
             "status": "ok",
             "actual": {
@@ -867,10 +815,10 @@
                 "method": "bind"
             }
         },
-        "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface": {
+        "App\\Domain\\Analytics\\Contracts\\AnalyticsReadRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Domain\\Analytics\\Services\\DashboardService",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsRepository",
                 "provider": "App\\Providers\\AnalyticsServiceProvider",
                 "method": "bind"
             }

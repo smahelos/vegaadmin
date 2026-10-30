@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\User\Exceptions;
 
 use Exception;
@@ -10,7 +12,7 @@ use Throwable;
  *
  * Thrown when user attempts to create entity but has reached their limit
  */
-class EntityLimitExceededException extends Exception
+final class EntityLimitExceededException extends Exception
 {
     private array $limitData;
 
@@ -100,10 +102,8 @@ class EntityLimitExceededException extends Exception
         return match ($entity) {
             'business' => 'businesses.messages.limit_exceeded',
             'contact' => 'contacts.messages.limit_exceeded',
-            'supplier' => 'suppliers.messages.limit_exceeded',
             'product' => 'products.messages.limit_exceeded',
             'invoice' => 'invoices.messages.limit_exceeded',
-            'client' => 'clients.messages.limit_exceeded',
             default => 'messages.entity_limit_exceeded',
         };
     }

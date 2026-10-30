@@ -30,6 +30,27 @@ final class PartyRecords
     private const DUPLICATE_KEY_ERROR = 1062;
 
     /**
+     * @template T of Business|Contact
+     *
+     * @param  Builder<T>  $query
+     * @return list<T>
+     */
+    public function latestActive(
+        Builder $query,
+        UserId $userId,
+        int $limit,
+    ): array {
+        return $query
+            ->with('address')
+            ->where('user_id', $userId->toInt())
+            ->whereNull('archived_at')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->get()->all();
+    }
+
+    /**
      * Saves the party with the given attributes and its address in one transaction, and turns a clash on the
      * Czech IČO key, which also catches concurrent inserts, into a domain exception that names the existing record.
      *

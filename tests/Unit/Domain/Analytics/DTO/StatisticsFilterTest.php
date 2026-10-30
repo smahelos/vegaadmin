@@ -19,7 +19,7 @@ final class StatisticsFilterTest extends TestCase
             period: StatisticsPeriod::QUARTER,
             from: null,
             to: null,
-            clientIds: [],
+            contactIds: [],
         );
 
         $this->assertSame('2026-07-01', $filter->start(new DateTimeImmutable('2026-10-24'))->format('Y-m-d'));
@@ -32,7 +32,7 @@ final class StatisticsFilterTest extends TestCase
             period: StatisticsPeriod::YEAR,
             from: new DateTimeImmutable('2026-05-15'),
             to: null,
-            clientIds: [],
+            contactIds: [],
         );
 
         $this->assertSame('2026-05-15', $filter->start(new DateTimeImmutable('2026-10-24'))->format('Y-m-d'));

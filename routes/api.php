@@ -48,7 +48,7 @@ Route::middleware(['api.require.frontend', 'refresh.frontend.session'])
 
         // Dashboard charts
         Route::get('/statistics/monthly-revenue', [StatisticsController::class, 'monthlyRevenue'])->name('statistics.monthly-revenue');
-        Route::get('/statistics/client-revenue', [StatisticsController::class, 'clientRevenue'])->name('statistics.client-revenue');
+        Route::get('/statistics/customer-revenue', [StatisticsController::class, 'customerRevenue'])->name('statistics.customer-revenue');
         Route::get('/statistics/invoice-status', [StatisticsController::class, 'invoiceStatus'])->name('statistics.invoice-status');
         Route::get('/statistics/payment-methods', [StatisticsController::class, 'paymentMethods'])->name('statistics.payment-methods');
         Route::get('/statistics/revenue-expenses', [StatisticsController::class, 'revenueExpenses'])->name('statistics.revenue-expenses');

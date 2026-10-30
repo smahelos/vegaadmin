@@ -157,7 +157,7 @@ class AdminCrudSmokeTest extends TestCase
         return match ($model) {
             EntityLimitUsage::class => EntityLimitUsage::create([
                 'user_id' => $this->adminUser->id,
-                'entity_type' => 'client',
+                'entity_type' => 'invoice',
                 'metric_type' => 'count',
                 'period_type' => 'monthly',
                 'period_start' => now()->startOfMonth(),
