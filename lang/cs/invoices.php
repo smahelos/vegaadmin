@@ -1,6 +1,18 @@
 <?php
 
 return [
+    'items' => [
+        'add_catalog' => 'Přidat z katalogu',
+        'add_custom' => 'Přidat vlastní položku',
+        'remove' => 'Odebrat položku',
+        'search' => 'Hledat v katalogu',
+        'subtotal' => 'Základ bez DPH',
+        'hint' => 'Množství a ceny upravují pouze tento doklad. Součty počítá server. Při změně měny zkontrolujte ceny i měnu každé položky; částky se nepřepočítávají kurzem. Bez položek lze zadat částku přímo.',
+        'loading' => 'Načítání…',
+        'error' => 'Údaje se nepodařilo načíst. Zkontrolujte položky a zkuste to znovu.',
+        'empty_catalog' => 'Žádné odpovídající produkty v této měně. Zkuste jiný název nebo přidejte vlastní položku.',
+        'owner_changed' => 'Vlastník se změnil. Položky byly vyprázdněny; vyberte produkty nového vlastníka.',
+    ],
     'entity' => [
         'singular' => 'Faktura',
         'plural' => 'Faktury',

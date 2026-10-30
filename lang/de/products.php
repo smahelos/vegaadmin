@@ -10,7 +10,6 @@ return [
         'description' => 'Beschreibung',
         'price' => 'Preis',
         'sku' => 'SKU',
-        'supplier_id' => 'Lieferant',
         'category_id' => 'Kategorie',
         'tax_id' => 'Steuer',
         'is_default' => 'Standardprodukt',
@@ -31,7 +30,6 @@ return [
         'description' => '',
         'price' => '',
         'sku' => '',
-        'supplier_id' => '',
         'category_id' => '',
         'tax_id' => '',
         'is_default' => '',
@@ -42,7 +40,6 @@ return [
     ],
     'placeholders' => [
         'select_category' => 'Kategorie auswählen',
-        'select_supplier' => 'Lieferant auswählen',
         'select_tax' => 'Steuer auswählen',
         'select_image' => 'Bild auswählen',
         'select_product' => 'Produkt auswählen',
@@ -103,7 +100,6 @@ return [
     'tags' => [
         'product' => 'Produkt',
         'invoice' => 'Rechnung',
-        'supplier' => 'Lieferant',
         'category' => 'Kategorie',
         'tax' => 'Steuer',
         'details' => 'Details',

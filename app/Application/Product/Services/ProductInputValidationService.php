@@ -83,12 +83,6 @@ class ProductInputValidationService
             ]);
         }
 
-        if (isset($data['supplier_id']) && ! empty($data['supplier_id']) && ! is_numeric($data['supplier_id'])) {
-            throw ValidationException::withMessages([
-                'supplier_id' => ['Supplier ID must be a valid number.'],
-            ]);
-        }
-
         if (isset($data['tax_id']) && ! empty($data['tax_id']) && ! is_numeric($data['tax_id'])) {
             throw ValidationException::withMessages([
                 'tax_id' => ['Tax ID must be a valid number.'],

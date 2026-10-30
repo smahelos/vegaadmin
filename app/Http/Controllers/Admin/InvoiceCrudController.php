@@ -177,7 +177,7 @@ final class InvoiceCrudController extends CrudController
             (int) $request->validated('user_id'),
             $request->validated(),
             $request->partySelection(),
-            [],
+            $request->products() ?? [],
         );
 
         return $this->mutationResponse($result);
@@ -192,7 +192,7 @@ final class InvoiceCrudController extends CrudController
             (int) $this->crud->getCurrentEntryId(),
             $request->validated(),
             $request->partySelection(),
-            null,
+            $request->products(),
         );
 
         return $this->mutationResponse($result);

@@ -22,23 +22,6 @@
                         </div>
                     </th>
                     <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider hidden md:table-cell">
-                        <div class="flex items-center cursor-pointer" wire:click="sortBy('supplier_id')">
-                            {{ __('invoices.fields.supplier_id') }}
-                            @if($orderBy === 'supplier_id')
-                                <span class="ml-1">
-                                    @if($orderAsc)
-                                        <i class="fas fa-sort-up text-green-600"></i>
-                                    @else
-                                        <i class="fas fa-sort-down text-green-600"></i>
-                                    @endif
-                                </span>
-                            @else
-                                <span class="ml-1"><i class="fas fa-sort text-gray-400"></i></span>
-                            @endif
-                        </div>
-                    </th>
-                    <th scope="col"
                         class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider">
                         <div class="flex items-center cursor-pointer" wire:click="sortBy('price')">
                             {{ __('products.fields.price') }}
@@ -135,7 +118,6 @@
                 @endphp
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $product->name }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">{{ $product->supplier->name ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $product->price ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $product->tax->name ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">{{ $product->category->name ?? '—' }}</td>

@@ -1,10 +1,10 @@
 {
     "summary": {
-        "total_controllers": 58,
-        "avg_loc": 152.6,
-        "avg_eloquent_static_calls": 0.84,
+        "total_controllers": 59,
+        "avg_loc": 150.15,
+        "avg_eloquent_static_calls": 0.81,
         "controllers_with_direct_db_calls": 2,
-        "timestamp": "2026-10-29T13:27:09+00:00"
+        "timestamp": "2026-10-29T16:24:59+00:00"
     },
     "controllers": {
         "Http/Controllers/Frontend/PageController.php": {
@@ -192,8 +192,8 @@
             "public_method_count": 0
         },
         "Http/Controllers/Admin/ProductCrudController.php": {
-            "loc": 249,
-            "eloquent_static_calls": 2,
+            "loc": 220,
+            "eloquent_static_calls": 1,
             "new_model_insts": 0,
             "db_facade_calls": 0,
             "constructor_domain_injections": 0,
@@ -422,6 +422,14 @@
             "db_facade_calls": 4,
             "constructor_domain_injections": 0,
             "public_method_count": 4
+        },
+        "Http/Controllers/Admin/InvoiceItemsController.php": {
+            "loc": 37,
+            "eloquent_static_calls": 0,
+            "new_model_insts": 0,
+            "db_facade_calls": 0,
+            "constructor_domain_injections": 0,
+            "public_method_count": 2
         },
         "Http/Controllers/Admin/ExpenseCategoryCrudController.php": {
             "loc": 105,

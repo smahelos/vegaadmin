@@ -180,6 +180,7 @@ final class InvoiceCrudControllerTest extends TestCase
             [
                 'user_id' => $this->regularUser->id,
                 'payment_amount' => '1234.56',
+                'invoice-products' => [],
             ],
         );
         $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
@@ -209,11 +210,17 @@ final class InvoiceCrudControllerTest extends TestCase
             'tax_amount' => '42',
             'total_price' => '242',
         ]);
-        $this->put('/admin/invoice/' . $invoice->id, $this->invoiceInput($business, $account, [
-            'user_id' => $this->regularUser->id,
-            'invoice_vs' => $invoice->invoice_vs,
-            'payment_amount' => '9999.99',
-        ]))->assertSessionHasNoErrors()->assertRedirect();
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            [
+                'user_id' => $this->regularUser->id,
+                'invoice_vs' => $invoice->invoice_vs,
+                'payment_amount' => '9999.99',
+            ],
+        );
+        unset($data['invoice-products']);
+        $this->put('/admin/invoice/' . $invoice->id, $data)->assertSessionHasNoErrors()->assertRedirect();
         $this->assertSame('242.00', $invoice->fresh()->payment_amount);
         $this->assertSame([$line->id], $invoice->invoiceProducts()->pluck('id')->all());
     }

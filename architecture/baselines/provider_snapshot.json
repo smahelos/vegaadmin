@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-29T12:18:18+00:00",
+    "generated_at": "2026-10-29T16:23:21+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -436,6 +436,10 @@
                 {
                     "abstract": "App\\Domain\\Product\\Validation\\ProductCreationValidator",
                     "concrete": "closure"
+                },
+                {
+                    "abstract": "App\\Domain\\Product\\Contracts\\CatalogProductReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentCatalogProductRepository"
                 },
                 {
                     "abstract": "App\\Application\\Product\\Contracts\\ProductRepositoryInterface",
@@ -1108,6 +1112,14 @@
             "actual": {
                 "implementation": "App\\Domain\\Payment\\Services\\SubscriptionPaymentService",
                 "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Product\\Contracts\\CatalogProductReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentCatalogProductRepository",
+                "provider": "App\\Providers\\ProductServiceProvider",
                 "method": "bind"
             }
         },

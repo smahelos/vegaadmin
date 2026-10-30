@@ -8,7 +8,6 @@ use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\ProductRequest;
 use App\Models\Product;
-use App\Models\Supplier;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
@@ -91,20 +90,6 @@ class ProductCrudController extends CrudController
                 );
             });
 
-        CRUD::filter('supplier_id')
-            ->type('select2')
-            ->label(__('products.fields.supplier_id'))
-            ->values(
-                Supplier::pluck('name', 'id')->toArray(),
-            )
-            ->whenActive(function ($value): void {
-                CRUD::addClause(
-                    'where',
-                    'supplier_id',
-                    $value,
-                );
-            });
-
         CRUD::column('user_id')
             ->type('integer')
             ->label(__('products.fields.user_id'))
@@ -116,12 +101,6 @@ class ProductCrudController extends CrudController
 
         CRUD::column('name')->label(__('products.fields.name'));
         CRUD::column('price')->label(__('products.fields.price'));
-        CRUD::column('supplier_id')
-            ->type('select_from_array')
-            ->label(__('products.fields.supplier_id'))
-            ->value(function ($entry) {
-                return $entry->supplier ? $entry->supplier->name : 'N/A';
-            });
         CRUD::column('category_id')
             ->type('select_from_array')
             ->label(__('products.fields.category_id'))
@@ -155,16 +134,6 @@ class ProductCrudController extends CrudController
             ->type('hidden')
             ->label(__('products.fields.user_id'))
             ->entity('user')
-            ->attribute('name')
-            ->options(function ($query) {
-                return $query->orderBy('name', 'ASC')->get();
-            });
-
-        CRUD::field('supplier_id')
-            ->type('select')
-            ->label(__('products.fields.supplier_id'))
-            ->entity('supplier')
-            ->model('App\Models\Supplier')
             ->attribute('name')
             ->options(function ($query) {
                 return $query->orderBy('name', 'ASC')->get();

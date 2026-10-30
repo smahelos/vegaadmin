@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\EntityUsageCrudController;
 use App\Http\Controllers\Admin\ExpenseCategoryCrudController;
 use App\Http\Controllers\Admin\ExpenseCrudController;
 use App\Http\Controllers\Admin\InvoiceCrudController;
+use App\Http\Controllers\Admin\InvoiceItemsController;
 use App\Http\Controllers\Admin\MysqlOptimizationLogCrudController;
 use App\Http\Controllers\Admin\PageCategoryCrudController;
 use App\Http\Controllers\Admin\PageCrudController;
@@ -50,6 +51,8 @@ Route::group([
     Route::get('document-parties/businesses', [DocumentPartyCrudController::class, 'businesses'])->name('admin.document-parties.businesses');
     Route::get('document-parties/contacts', [DocumentPartyCrudController::class, 'contacts'])->name('admin.document-parties.contacts');
     Route::get('document-parties/accounts', [DocumentPartyCrudController::class, 'accounts'])->name('admin.document-parties.accounts');
+    Route::get('invoice-items/catalog', [InvoiceItemsController::class, 'catalog'])->name('admin.invoice-items.catalog');
+    Route::post('invoice-items/preview', [InvoiceItemsController::class, 'preview'])->name('admin.invoice-items.preview');
     Route::crud('invoice', InvoiceCrudController::class);
     Route::crud('business', BusinessCrudController::class);
     Route::post('business/{id}/archive', [BusinessCrudController::class, 'archive'])->whereNumber('id')->name('admin.businesses.archive');

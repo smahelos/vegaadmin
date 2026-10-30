@@ -3,9 +3,7 @@
 namespace App\Infrastructure\Forms\Products;
 
 use App\Domain\Shared\Money\Contracts\CurrencyServiceInterface;
-use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
 use App\Models\ProductCategory;
-use App\Models\Supplier;
 use App\Models\Tax;
 use Illuminate\Support\Facades\App;
 
@@ -18,9 +16,6 @@ trait ProductFormFields
     {
         // Get currency codes from CurrencyService
         $currencies = App::make(CurrencyServiceInterface::class)->getAllCurrencies();
-
-        // Get suppliers from ProductService
-        $suppliers = App::make(ProductFormDataServiceInterface::class)->getAllSuppliers();
 
         // Default currencies if not provided
         if (empty($currencies)) {
@@ -86,18 +81,6 @@ trait ProductFormFields
                 'hint' => __('products.hints.currency'),
                 'placeholder' => __('products.placeholders.select_currency'),
                 'required' => true,
-            ],
-            [
-                'name' => 'supplier_id',
-                'label' => __('products.fields.supplier_id'),
-                'type' => 'select',
-                'options' => $suppliers,
-                'entity' => 'supplier',
-                'attribute' => 'name',
-                'hint' => __('products.hints.supplier_id'),
-                'model' => Supplier::class,
-                'placeholder' => __('products.placeholders.select_supplier'),
-                'required' => false,
             ],
             [
                 'name' => 'description',

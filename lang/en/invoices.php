@@ -1,6 +1,18 @@
 <?php
 
 return [
+    'items' => [
+        'add_catalog' => 'Add from catalog',
+        'add_custom' => 'Add custom item',
+        'remove' => 'Remove item',
+        'search' => 'Search catalog',
+        'subtotal' => 'Subtotal excluding VAT',
+        'hint' => 'Quantity and prices change this document only. Totals are calculated by the server. When changing currency, check the price and currency of each item; no exchange conversion is applied. Without items, enter the amount directly.',
+        'loading' => 'Loading…',
+        'error' => 'Could not load the data. Check the items and try again.',
+        'empty_catalog' => 'No matching products in this currency. Try another name or add a custom item.',
+        'owner_changed' => 'The owner changed. Items were cleared; select products of the new owner.',
+    ],
     'entity' => [
         'singular' => 'Invoice',
         'plural' => 'Invoices',

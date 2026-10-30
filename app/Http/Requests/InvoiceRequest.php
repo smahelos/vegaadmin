@@ -15,14 +15,11 @@ use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Shared\Money\Enums\Currency;
-use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
-use App\Domain\Shared\Unit\Enums\Unit;
+use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Party\DocumentPartyInput;
 use App\Http\Requests\Rules\InvoiceStatusId;
-use Closure;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Number;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -136,62 +133,17 @@ final class InvoiceRequest extends BaseEntityRequest
 
             'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
 
-            'invoice-products' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'invoice-products.*' => ['array'],
-            'invoice-products.*.name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-            'invoice-products.*.quantity' => [
-                'required',
-                'numeric',
-                'decimal:0,3',
-                'gt:0',
-                'max:99999.999',
-            ],
-            'invoice-products.*.unit' => ['nullable', Rule::enum(Unit::class)],
-            'invoice-products.*.price' => [
-                'required',
-                'numeric',
-                'decimal:0,2',
-                'min:0',
-                'max:99999999.99',
-            ],
-            'invoice-products.*.currency' => [
-                'required',
-                Rule::enum(Currency::class),
-                'same:payment_currency',
-            ],
-            'invoice-products.*.tax_rate' => [
-                'required',
-                'numeric',
-                $this->taxRateRule(),
-            ],
-            'invoice-products.*.product_id' => $this->isGuestStore()
-                ? ['prohibited']
-                : [
-                    'nullable',
-                    'integer',
-                    Rule::exists('products', 'id')->where('user_id', $this->user()?->getAuthIdentifier()),
-                ],
-            'invoice-products.*.category' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'invoice-products.*.description' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
         ];
 
-        return [...$rules, ...$this->partyRules()];
+        return [
+            ...$rules,
+            ...InvoiceItemInput::rules(
+                $this->user()?->getAuthIdentifier(),
+                $this->isGuestStore(),
+                true,
+            ),
+            ...$this->partyRules(),
+        ];
     }
 
     /**
@@ -300,74 +252,6 @@ final class InvoiceRequest extends BaseEntityRequest
         return DocumentPartyInput::account($this->validated());
     }
 
-    /**
-     * A line may carry only a rate the invoice form offers: 0 % or one of the VAT rates in the taxes table.
-     * The rates are loaded once, when the first numeric rate reaches the rule.
-     */
-    private function taxRateRule(): Closure
-    {
-        $allowed = null;
-
-        return function (
-            string $attribute,
-            mixed $value,
-            Closure $fail,
-        ) use (&$allowed): void {
-            if (! is_numeric($value)) {
-                return;
-            }
-            $allowed ??= $this->allowedTaxRates();
-            if (! in_array(
-                $this->normalizedRate((string) $value),
-                $allowed,
-                true,
-            )) {
-                $fail(__('invoices.validation.tax_rate', ['rates' => $this->formattedRates($allowed)]));
-            }
-        };
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function allowedTaxRates(): array
-    {
-        $rates = array_map(
-            fn (int|float|string $rate): string => $this->normalizedRate((string) $rate),
-            ['0', ...array_values(app(TaxDtoReadRepositoryInterface::class)->getDphRatesForDropdown())],
-        );
-        $rates = array_values(array_unique($rates));
-        sort($rates, SORT_NUMERIC);
-
-        return $rates;
-    }
-
-    /**
-     * @param  list<string>  $rates
-     */
-    private function formattedRates(array $rates): string
-    {
-        return implode(', ', array_map(
-            fn (string $rate): string => (string) Number::percentage(
-                (float) $rate,
-                maxPrecision: 2,
-                locale: app()->getLocale(),
-            ),
-            $rates,
-        ));
-    }
-
-    /** "21", "21.0" and "21.00" are the same rate. */
-    private function normalizedRate(string $rate): string
-    {
-        $rate = ltrim(trim($rate), '+');
-        if (str_contains($rate, '.')) {
-            $rate = rtrim(rtrim($rate, '0'), '.');
-        }
-
-        return $rate === '' ? '0' : $rate;
-    }
-
     private function isGuestStore(): bool
     {
         // Tests pass a plain object with a name property instead of an Illuminate route
@@ -399,16 +283,7 @@ final class InvoiceRequest extends BaseEntityRequest
             'invoice_text' => __('invoices.fields.invoice_text'),
             'invoice_logo' => __('invoices.fields.invoice_logo'),
             'template' => __('invoices.fields.template'),
-            'invoice-products' => __('invoices.fields.invoice_items'),
-            'invoice-products.*.name' => __('invoices.fields.item_name'),
-            'invoice-products.*.quantity' => __('invoices.fields.item_quantity'),
-            'invoice-products.*.unit' => __('invoices.fields.item_unit'),
-            'invoice-products.*.price' => __('invoices.fields.item_price'),
-            'invoice-products.*.currency' => __('invoices.fields.item_currency'),
-            'invoice-products.*.tax_rate' => __('invoices.fields.item_tax_rate'),
-            'invoice-products.*.product_id' => __('invoices.fields.item_product'),
-            'invoice-products.*.category' => __('invoices.fields.item_category'),
-            'invoice-products.*.description' => __('invoices.fields.item_description'),
+            ...InvoiceItemInput::attributes(),
             'business_id' => __('invoices.fields.business_id'),
             'bank_account_id' => __('invoices.fields.bank_account_id'),
             'contact_id' => __('invoices.fields.contact_id'),

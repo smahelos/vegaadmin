@@ -8,6 +8,7 @@ use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Application\Invoice\Services\DocumentLogoApplicationService;
 use App\Application\Invoice\Services\InvoicePartiesAssembler;
+use App\Application\Invoice\Services\InvoiceProductOwnership;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
@@ -24,6 +25,7 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
     public function __construct(
         private readonly InvoiceServiceInterface $invoiceService,
         private readonly DocumentLogoApplicationService $logos,
+        private readonly InvoiceProductOwnership $productOwnership,
         private readonly BusinessReadRepositoryInterface $businesses,
         private readonly InvoiceDtoReadRepositoryInterface $invoices,
         private readonly InvoicePartiesAssembler $parties,
@@ -42,6 +44,7 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
         InvoicePartySelection $parties,
         array $products,
     ): InvoiceDTO {
+        $this->productOwnership->assertOwned($userId, $products);
         $business = $this->businesses->findByIdForUser($parties->businessId, $userId)
             ?? throw new BusinessNotFoundException($parties->businessId);
 
@@ -76,6 +79,7 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
     ): InvoiceDTO {
         $stored = $this->invoices->findByIdForUser($invoiceId, $userId)
             ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
+        $this->productOwnership->assertOwned($userId, $products ?? []);
         $business = $this->businesses->findByIdForUser($parties->businessId, $userId)
             ?? throw new BusinessNotFoundException($parties->businessId);
         $keep = ! $parties->reloadBusiness && $stored->parties->businessId->equals($parties->businessId);

@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use App\Domain\Invoice\Exceptions\ExpenseAccessDeniedException;
 use App\Domain\Invoice\Exceptions\ExpenseNotFoundException;
+use App\Domain\Invoice\Exceptions\InvoiceAccessDeniedException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;
@@ -41,6 +42,8 @@ class ExceptionHandling
      */
     public static function registerCallbacks(Exceptions $exceptions): void
     {
+        $exceptions->map(InvoiceAccessDeniedException::class, fn (InvoiceAccessDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e));
+
         // Invoice model not found
         $exceptions->render(function (ModelNotFoundException $e, $request) {
             if (self::isInvoiceRoute($request)) {

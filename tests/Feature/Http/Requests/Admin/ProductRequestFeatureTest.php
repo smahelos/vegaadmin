@@ -8,7 +8,6 @@ use App\Http\Requests\Admin\ProductRequest;
 use App\Models\EntityLimit;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -34,8 +33,6 @@ class ProductRequestFeatureTest extends TestCase
 
     private Tax $tax;
 
-    private Supplier $supplier;
-
     private ProductCategory $category;
 
     /**
@@ -54,7 +51,6 @@ class ProductRequestFeatureTest extends TestCase
 
         $this->productUser = User::factory()->create();
         $this->tax = Tax::factory()->create();
-        $this->supplier = Supplier::factory()->create();
         $this->category = ProductCategory::factory()->create();
 
         // Initialize limit service
@@ -83,7 +79,6 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 99.99,
             'currency' => 'CZK',
             'tax_id' => $this->tax->id,
-            'supplier_id' => $this->supplier->id,
             'category_id' => $this->category->id,
             'description' => 'High-quality wireless headphones with noise cancellation',
             'is_default' => true,
@@ -305,24 +300,6 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_invalid_supplier_id(): void
-    {
-        $invalidData = [
-            'name' => 'Valid Product',
-            'user_id' => $this->productUser->id,
-            'price' => 10.00,
-            'currency' => 'CZK',
-            'supplier_id' => 99999, // Non-existent supplier
-        ];
-
-        $request = new ProductRequest;
-        $validator = Validator::make($invalidData, $request->rules());
-
-        $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('supplier_id', $validator->errors()->toArray());
-    }
-
-    #[Test]
     public function validation_fails_with_invalid_category_id(): void
     {
         $invalidData = [
@@ -433,7 +410,6 @@ class ProductRequestFeatureTest extends TestCase
             'price' => 10.00,
             'currency' => 'CZK',
             'tax_id' => null,
-            'supplier_id' => null,
             'category_id' => null,
             'description' => null,
             'image' => null,

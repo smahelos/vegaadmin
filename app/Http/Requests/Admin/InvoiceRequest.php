@@ -6,6 +6,8 @@ namespace App\Http\Requests\Admin;
 
 use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoicePartySelection;
+use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\ValueObjects\BankAccountId;
@@ -16,6 +18,7 @@ use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\User\ValueObjects\UserId;
+use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Http\Requests\Party\DocumentPartyInput;
 use App\Http\Requests\Rules\InvoiceStatusId;
@@ -69,7 +72,36 @@ final class InvoiceRequest extends FormRequest
             $this->filled('contact_id') && ! $this->keepsContact(),
         );
 
-        return [...$rules, ...$customerRules];
+        return [
+            ...$rules,
+            ...InvoiceItemInput::rules(
+                $this->integer('user_id'),
+                false,
+                false,
+            ),
+            ...$customerRules,
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $items = $this->input('invoice-products');
+        if (is_string($items)) {
+            $decoded = json_decode($items, true);
+            if (is_array($decoded)) {
+                $this->merge(['invoice-products' => $decoded]);
+            }
+        }
+    }
+
+    /** @return list<InvoiceProductWriteData>|null */
+    public function products(): ?array
+    {
+        if (! $this->has('invoice-products')) {
+            return null;
+        }
+
+        return app(InvoiceProductWriteDataAssembler::class)->fromValidated($this->validated('invoice-products'));
     }
 
     public function partySelection(): InvoicePartySelection
@@ -90,7 +122,7 @@ final class InvoiceRequest extends FormRequest
     /** @return array<string, string> */
     public function attributes(): array
     {
-        $attributes = DocumentPartyInput::attributes('customer');
+        $attributes = [...DocumentPartyInput::attributes('customer'), ...InvoiceItemInput::attributes()];
         foreach ([
             'user_id',
             'business_id',

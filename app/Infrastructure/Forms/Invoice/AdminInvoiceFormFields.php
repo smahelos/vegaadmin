@@ -89,6 +89,7 @@ final class AdminInvoiceFormFields
             ),
             ...AdminDocumentFormFields::accountFields($countries, false),
             AdminDocumentFormFields::section('amounts', __('invoices.sections.amounts')),
+            AdminInvoiceItemFields::field($document),
             $fields['payment_amount'],
             $fields['payment_currency'],
             AdminDocumentFormFields::section('status', __('invoices.sections.status')),

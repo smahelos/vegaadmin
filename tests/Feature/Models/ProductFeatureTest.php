@@ -4,7 +4,6 @@ namespace Tests\Feature\Models;
 
 use App\Models\Product;
 use App\Models\ProductCategory;
-use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -108,16 +107,6 @@ class ProductFeatureTest extends TestCase
 
         $this->assertInstanceOf(ProductCategory::class, $product->category);
         $this->assertEquals($category->id, $product->category->id);
-    }
-
-    #[Test]
-    public function belongs_to_supplier_relationship(): void
-    {
-        $supplier = Supplier::factory()->create();
-        $product = Product::factory()->create(['supplier_id' => $supplier->id]);
-
-        $this->assertInstanceOf(Supplier::class, $product->supplier);
-        $this->assertEquals($supplier->id, $product->supplier->id);
     }
 
     #[Test]
@@ -288,7 +277,6 @@ class ProductFeatureTest extends TestCase
         $this->assertEquals($data['name'], $product->name);
         $this->assertNull($product->tax_id);
         $this->assertNull($product->category_id);
-        $this->assertNull($product->supplier_id);
     }
 
     #[Test]

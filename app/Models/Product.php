@@ -107,14 +107,6 @@ class Product extends Model
     }
 
     /**
-     * Get the supplier, who sells the product.
-     */
-    public function supplier(): BelongsTo
-    {
-        return $this->belongsTo(Supplier::class);
-    }
-
-    /**
      * Get the tax applied to the product.
      */
     public function tax(): BelongsTo

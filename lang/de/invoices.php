@@ -1,6 +1,18 @@
 <?php
 
 return [
+    'items' => [
+        'add_catalog' => 'Aus Katalog hinzufügen',
+        'add_custom' => 'Eigene Position hinzufügen',
+        'remove' => 'Position entfernen',
+        'search' => 'Katalog durchsuchen',
+        'subtotal' => 'Zwischensumme ohne MwSt.',
+        'hint' => 'Menge und Preise ändern nur diesen Beleg. Der Server berechnet die Summen. Prüfen Sie bei einem Währungswechsel Preis und Währung jeder Position; es erfolgt keine Kursumrechnung. Ohne Positionen können Sie den Betrag direkt eingeben.',
+        'loading' => 'Wird geladen…',
+        'error' => 'Die Daten konnten nicht geladen werden. Prüfen Sie die Positionen und versuchen Sie es erneut.',
+        'empty_catalog' => 'Keine passenden Produkte in dieser Währung. Suchen Sie nach einem anderen Namen oder fügen Sie eine eigene Position hinzu.',
+        'owner_changed' => 'Der Eigentümer wurde geändert. Die Positionen wurden geleert; wählen Sie Produkte des neuen Eigentümers.',
+    ],
     'entity' => [
         'singular' => 'Rechnung',
         'plural' => 'Rechnungen',

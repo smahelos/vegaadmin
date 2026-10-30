@@ -10,6 +10,7 @@ use App\Application\Product\Mappers\ProductArrayMapper;
 use App\Application\Product\Services\ProductApplicationService;
 use App\Application\Product\Services\ProductAuthorizationService;
 use App\Application\Product\Services\ProductInputValidationService;
+use App\Domain\Product\Contracts\CatalogProductReadRepositoryInterface;
 use App\Domain\Product\Contracts\InvoiceProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
 use App\Domain\Product\Contracts\ProductDtoReadRepositoryInterface;
@@ -21,6 +22,7 @@ use App\Infrastructure\Authorization\Policies\Product\ProductPolicy;
 use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
 use App\Infrastructure\Persistence\Eloquent\Product\Observers\ProductCategoryObserver;
 use App\Infrastructure\Persistence\Eloquent\Product\Observers\ProductObserver;
+use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentCatalogProductRepository;
 use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentInvoiceProductDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentInvoiceProductRepository;
 use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentProductDtoRepository;
@@ -65,6 +67,8 @@ class ProductServiceProvider extends ServiceProvider
      */
     private function registerInfrastructure(): void
     {
+        $this->app->bind(CatalogProductReadRepositoryInterface::class, EloquentCatalogProductRepository::class);
+
         // Product repositories
         $this->app->bind(
             ProductRepositoryInterface::class,
