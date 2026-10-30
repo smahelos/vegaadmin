@@ -176,11 +176,11 @@
     </div>
     <div class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-10 dark:shadow-gray-900/30 dark:bg-gray-800">
         <div class="p-3">
-            <div class="">
+            <div class="p-5">
 
                 <!-- Latest invoices -->
                 <div class="mb-8">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_invoices') }}</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_invoices') }}</h3>
                     <div class="overflow-hidden">
                         <!-- Livewire component - Latest invoices -->
                         @livewire('invoice.invoice-list-recent')
@@ -191,7 +191,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Latest contacts -->
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_contacts') }}</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_contacts') }}</h3>
                         <div class="rounded-sm overflow-hidden">
                             <!-- Livewire component - Latest contacts -->
                             @can('frontend.can_view_contact')
@@ -202,7 +202,7 @@
 
                     <!-- Latest businesses -->
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_businesses') }}</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_businesses') }}</h3>
                         <div class="rounded-sm overflow-hidden">
                             <!-- Livewire component - Latest businesses -->
                             @can('frontend.can_view_business')

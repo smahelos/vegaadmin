@@ -163,7 +163,7 @@
         <div class="text-gray-400 mb-3">
             <i class="fas fa-users fa-3x"></i>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('products.titles.empty') }}</h3>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">{{ __('products.titles.empty') }}</h3>
         <p class="text-gray-500 mb-6">{{ __('products.titles.empty_message') }}</p>
         <a href="{{ route('frontend.product.create', ['locale' => app()->getLocale()]) }}"
             class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">

@@ -24,15 +24,18 @@
         </div>
         <div>
             <label for="invoice-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('invoices.fields.status') }}</label>
-            <select id="invoice-status" wire:model.live="status" class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200">
-                <option value="">{{ __('invoices.filters.all_statuses') }}</option>
-                @foreach($statuses as $invoiceStatus)
-                    <option value="{{ $invoiceStatus->value }}">{{ __('statuses.statuses.' . $invoiceStatus->value) }}</option>
-                @endforeach
-            </select>
+            <div class="mt-1 flex gap-2">
+                <select id="invoice-status" wire:model.live="status" class="form-select block min-w-0 w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200">
+                    <option value="">{{ __('invoices.filters.all_statuses') }}</option>
+                    @foreach($statuses as $invoiceStatus)
+                        <option value="{{ $invoiceStatus->value }}">{{ __('statuses.statuses.' . $invoiceStatus->value) }}</option>
+                    @endforeach
+                </select>
+                <x-icon-button icon="fa-filter-circle-xmark" :label="__('invoices.filters.reset')"
+                    wire:click="resetFilters" class="shrink-0" />
+            </div>
         </div>
     </div>
-    <button type="button" wire:click="resetFilters" class="mb-4 text-sm text-indigo-600 dark:text-indigo-400">{{ __('invoices.filters.reset') }}</button>
     @if(isset($invoices) && $invoices->count() > 0)
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -237,7 +240,7 @@
         <div class="text-gray-400 mb-3">
             <i class="fas fa-file-invoice fa-3x"></i>
         </div>
-        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('invoices.titles.empty') }}</h3>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">{{ __('invoices.titles.empty') }}</h3>
         <p class="text-gray-500 mb-6">{{ __('invoices.titles.empty_message') }}</p>
         <a href="{{ route('frontend.invoice.create', ['locale' => app()->getLocale()]) }}"
             class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
