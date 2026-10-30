@@ -92,6 +92,45 @@ final class BankAccountTest extends TestCase
         $this->assertNull($account->bankCode);
     }
 
+    /** @return iterable<string, array{Country, string}> */
+    public static function malformedLocalIbans(): iterable
+    {
+        foreach ([Country::CZ, Country::SK] as $country) {
+            yield $country->value . '-extra-digits' => [$country, '2010000000200123456100'];
+            yield $country->value . '-missing-digit' => [$country, '2010000000200123456'];
+            yield $country->value . '-non-numeric-bank-code' => [$country, '20A00000002001234561'];
+        }
+    }
+
+    #[Test]
+    #[DataProvider('malformedLocalIbans')]
+    public function a_valid_checksum_does_not_allow_a_malformed_local_iban(Country $country, string $bban): void
+    {
+        $digits = $bban . $country->value . '00';
+        $remainder = 0;
+        foreach (str_split($digits) as $character) {
+            $value = ctype_digit($character) ? $character : (string) (ord($character) - 55);
+            foreach (str_split($value) as $digit) {
+                $remainder = ($remainder * 10 + (int) $digit) % 97;
+            }
+        }
+        $iban = $country->value . str_pad(
+            (string) (98 - $remainder),
+            2,
+            '0',
+            STR_PAD_LEFT,
+        ) . $bban;
+        $this->expectException(InvalidBankAccountException::class);
+
+        BankAccount::fromParts(
+            $iban,
+            null,
+            null,
+            null,
+            null,
+        );
+    }
+
     /**
      * @return iterable<string, array{string|null, string|null, string|null, Country|null, string|null, BankAccountProblem}>
      */

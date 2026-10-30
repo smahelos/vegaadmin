@@ -113,6 +113,9 @@ final readonly class BankAccount
             $ibanCountry,
             $swift,
         );
+        if ($fromIban->iban !== $iban) {
+            throw new InvalidBankAccountException(BankAccountProblem::INVALID_IBAN);
+        }
 
         if ($number !== null || $bankCode !== null) {
             $given = self::fromLocalNumber(
@@ -207,6 +210,9 @@ final readonly class BankAccount
 
         $country = Country::tryFrom(substr($iban, 0, 2));
         if ($country === null || self::mod97(substr($iban, 4) . substr($iban, 0, 4)) !== 1) {
+            throw new InvalidBankAccountException(BankAccountProblem::INVALID_IBAN);
+        }
+        if (in_array($country, self::LOCAL_NUMBER_COUNTRIES, true) && preg_match('/^[A-Z]{2}[0-9]{22}$/D', $iban) !== 1) {
             throw new InvalidBankAccountException(BankAccountProblem::INVALID_IBAN);
         }
 
