@@ -10,7 +10,7 @@ use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
-use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\User\ValueObjects\UserId;
@@ -80,9 +80,9 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     {
         $qr = new class implements QrPaymentServiceInterface
         {
-            public ?QrPaymentPayload $payload = null;
+            public ?QrPaymentDTO $payload = null;
 
-            public function generateQrCodeBase64(QrPaymentPayload $payload): ?string
+            public function generateQrCodeBase64(QrPaymentDTO $payload): ?string
             {
                 $this->payload = $payload;
 
@@ -96,9 +96,9 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertSame('20260001', $qr->payload->variableSymbol);
         $this->assertSame('1210', $qr->payload->amount->getAmount());
         $this->assertSame('CZK', $qr->payload->amount->getCurrency());
-        $this->assertSame('2001234561', $qr->payload->accountNumber);
-        $this->assertSame('2010', $qr->payload->bankCode);
-        $this->assertSame('CZ', $qr->payload->countryCode);
+        $this->assertSame('2001234561', $qr->payload->account?->number);
+        $this->assertSame('2010', $qr->payload->account?->bankCode);
+        $this->assertSame('CZ', $qr->payload->account?->country->value);
         $this->assertSame('Saved notes', $qr->payload->message);
         $this->assertStringContainsString('data:image/png;base64,cXItc25hcHNob3Q=', $html);
     }

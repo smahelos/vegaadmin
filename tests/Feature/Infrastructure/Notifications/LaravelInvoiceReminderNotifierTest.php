@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Infrastructure\Notifications;
 
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -29,7 +29,7 @@ final class LaravelInvoiceReminderNotifierTest extends TestCase
             email: 'john@example.com',
             preferredLocale: 'cs',
         );
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
             total: Money::fromString('100', 'CZK'),
             supplierName: 'Saved supplier',
@@ -83,7 +83,7 @@ final class LaravelInvoiceReminderNotifierTest extends TestCase
             email: 'jane@example.com',
             preferredLocale: 'en',
         );
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
             total: Money::fromString('100', 'CZK'),
             supplierName: 'Saved supplier',
@@ -133,7 +133,7 @@ final class LaravelInvoiceReminderNotifierTest extends TestCase
             email: 'max@example.com',
             preferredLocale: 'de',
         );
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
             total: Money::fromString('100', 'CZK'),
             supplierName: 'Saved supplier',

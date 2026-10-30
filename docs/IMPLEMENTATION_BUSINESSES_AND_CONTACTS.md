@@ -1,6 +1,6 @@
 # Businesses and contacts — implementation and verification
 
-Working branch: `ls-businesses-contacts`, implementation based on `f8ec0a4a`. This checkpoint covers the dashboard conversion, final cleanup and reminder rendering fixes; it does not close step 7 or the final PR gate. Requirements remain in [PRD](PRD_BUSINESSES_AND_CONTACTS.md), [DESIGN](DESIGN_BUSINESSES_AND_CONTACTS.md) and [D-045](adr/D-045-businesses-and-contacts.md); this document records implementation status without changing those requirements.
+Working branch: `ls-businesses-contacts`, implementation based on `f8ec0a4a`. This implementation checkpoint includes the dashboard conversion, cleanup, invoice filters, typed QR accounts and reminder contracts. Technical verification and the remaining delivery boundary are recorded below. The user authorized local commits for the prepared implementation and focused dependency fix; pushing is not authorized. Requirements remain in [PRD](PRD_BUSINESSES_AND_CONTACTS.md), [DESIGN](DESIGN_BUSINESSES_AND_CONTACTS.md) and [D-045](adr/D-045-businesses-and-contacts.md); this document records implementation status without changing those requirements.
 
 ## Delivered paths
 
@@ -10,6 +10,9 @@ Working branch: `ls-businesses-contacts`, implementation based on `f8ec0a4a`. Th
 - Frontend and admin selectors scope records to their owner. Existing archived references remain identifiable; new choices use active records. Products belong to the user, and the admin invoice editor saves lines and computes totals through the application path.
 - Analytics includes archived sources and one-off customers. Revenue grouping uses contact identity, then registration number and country, then name. Dashboard projections use ids, DTOs and Money. Owner cache invalidation runs after commit.
 - Latest-party widgets show five active records ordered by `created_at DESC, id DESC`, with a View all link and no pagination or COUNT query. Paginated lists use the common `Paginates::paginator` conversion.
+- The common invoice list filters by business and contact, independently or together with stored-customer/number search and enum status. Reads use an application service, a Domain read port and typed projections. Options include owned archived sources; unknown/foreign references return 404, and filter changes reset pagination. Money and due dates use locale formatters.
+- QR providers consume the same validated `BankAccount` stored on the document. `QrPaymentDTO` carries it without decomposing/reparsing account strings. Decimal output rounds half up through Money and pads two places without float conversion; amounts rounding to zero produce no QR. Country selection uses the account country; the existing CZ/SK/EU format coverage is retained. `InvoiceReminderDTO` replaces the remaining reminder payload contract.
+- Default bank-account changes hold the owner lock in their transaction, like account archiving, so a concurrent archive cannot race the active-account check. Expenses require the own business name while invoices require its full address, matching DESIGN Q47.
 - Obsolete client/supplier permissions are removed from the catalog and existing grants by a dedicated migration. Its rollback restores definitions and system-role defaults; arbitrary grants of removed permissions are not recovered. Additive catalog sync continues to preserve unrelated permissions.
 - UELS API uses business/contact names and active lifetime counts. Monitoring queries use current tables. Invoice archival stores business/contact references and the full stored document data; it never erases businesses or contacts. This preserves the existing retention behavior pending step 8.
 - Old translation files, selectors, upload configuration and unused classes are removed. Document role names `supplier` / `customer` remain. Historical migrations retain old names for rollback; GoPay credentials and HTTP clients are unrelated to Party entities.
@@ -29,15 +32,15 @@ These are the principal regression locations for PRD A01–A29. A row identifies
 | A07 explicit saving, permissions and atomicity | `Application/Invoice/Services/InvoicePartiesAssemblerTest`, `Http/Controllers/Frontend/InvoiceControllerFeatureTest`, `Application/Invoice/Services/Specialized/InvoiceCrudApplicationServiceTest` |
 | A08 stored copies and explicit reload | `Application/Invoice/Services/InvoicePartiesAssemblerTest`, `Livewire/Party/DocumentPartyPickerTest`, `Http/Controllers/Admin/AdminDocumentSnapshotsTest` |
 | A09 address ownership | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/Services/ContactApplicationServiceTest` |
-| A10 account defaults and owner constraints | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/Services/BankAccountApplicationServiceTest` |
+| A10 account defaults and owner constraints | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/Services/BankAccountApplicationServiceTest`, `Domain/Party/Services/BankAccountDefaultSerializationTest` |
 | A11 account validation and archive | `tests/Unit/Domain/Payment/ValueObjects/BankAccountTest`, `Livewire/Party/BankAccountsTest`, `Application/Party/Services/BankAccountApplicationServiceTest` |
 | A12 issued-document roles and print | `Domain/Invoice/Services/InvoicePrintDataBuilderTest`, `Domain/Invoice/Services/InvoicePdfSnapshotTest`, `Domain/Invoice/Services/InvoicePdfServiceFeatureTest` |
-| A13 expense roles and external account | `Http/Controllers/Admin/ExpenseCrudControllerTest`, `Http/Controllers/Admin/DocumentSupplierLogoTest` |
+| A13 expense roles, optional own-business address and external account | `Http/Controllers/Admin/ExpenseCrudControllerTest`, `Http/Controllers/Admin/DocumentSupplierLogoTest` |
 | A14 archive, selections and history | `Application/Party/Services/ContactApplicationServiceTest`, `Http/Controllers/Admin/AdminDocumentSnapshotsTest`, `Infrastructure/Persistence/Eloquent/Analytics/Repositories/CustomerRevenueTest` |
 | A15 default and last business | `Application/Party/Services/BusinessApplicationServiceTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
 | A16 capacity, restoration and serialization | `Application/Party/Services/ContactApplicationServiceTest`, `Domain/Party/Services/CapacityLimitTest`, `Http/Controllers/Api/PartyCapacityTest` |
 | A17 downgrade without erasure | `Application/Party/Services/BusinessApplicationServiceTest`, `Application/Party/Services/ContactApplicationServiceTest` |
-| A18 ownership across boundaries | `Http/Controllers/Frontend/PartyPagesTest`, `Http/Controllers/Frontend/InvoiceContactControllerTest`, `Http/Controllers/Admin/DocumentPartyCrudControllerTest`, `Http/Controllers/Api/PartyCapacityTest` |
+| A18 ownership across boundaries and invoice filters | `Http/Controllers/Frontend/PartyPagesTest`, `Http/Controllers/Frontend/InvoiceContactControllerTest`, `Http/Controllers/Admin/DocumentPartyCrudControllerTest`, `Http/Controllers/Api/PartyCapacityTest`, `Livewire/Invoice/InvoiceListFeatureTest`, `Application/Invoice/Services/InvoiceListApplicationServiceTest` |
 | A19 admin and frontend invariants | `Http/Controllers/Admin/BusinessCrudControllerTest`, `Http/Controllers/Admin/ContactCrudControllerTest`, `Http/Controllers/Admin/InvoiceCrudControllerTest`, `Http/Controllers/Admin/ExpenseCrudControllerTest` |
 | A20 atomic registration and independent identity | `Application/User/Services/RegistrationApplicationServiceTest`, `Livewire/User/RegistrationFormTest` |
 | A21 business prefill and explicit customer | `Livewire/Party/DocumentPartyPickerTest`, `Http/Controllers/Frontend/InvoiceCreateControllerFeatureTest` |
@@ -56,8 +59,62 @@ Local logs are under `storage/app/tmp-step7/codex47-*`. They include migration r
 
 Browser checks cover dashboard charts and contact filtering, both latest-party widgets, frontend invoice create/edit, business/contact logo previews and guest invoice logo preview across desktop/mobile and light/dark layouts. They save no business records. PDF snapshots are checked, not regenerated by this cleanup.
 
-## Remaining boundaries
+## Source review against A01–A29
 
-Step 7 is not closed merely by the cleanup or green tests. The final gate requires reviewing the coverage and the complete branch. Composer audit still reports the existing `symfony/mime` advisory CVE-2026-45070, fixed in 7.4.22; dependency updates are outside this cleanup.
+The review compares the PRD with the actual storage, use cases and consumers, in addition to the tests listed above. File/class names below identify the owning implementation. This is a review of the delivered scope; it does not introduce step 8 requirements.
 
-Issue-time locking, immutable stored PDFs, product archiving and the full received-document model remain step 8. QR payload/provider conversion, the general DTO conversion, API/UELS resources, maintenance services and remaining frontend globals are tracked in [TECH_DEBT](TECH_DEBT.md). Financial aggregate semantics have not been changed to introduce currency conversion.
+| Scenario | Source invariant checked and review result |
+|---|---|
+| A01 | Products and contacts are scoped to `user_id`; `InvoiceProductOwnership` and the document assemblers do not assign them to a business. The two-business product regression uses real saves. |
+| A02 | `PartyInput` requires a name only; `EloquentPartyProfileMapper` and `PartyRecords::saveAddress` persist cleared optional values and delete an emptied address. |
+| A03 | `RegistrationNumber` requires a country for a filled number; `PartyDetailsForm::prefillRegistrationCountry` only fills an empty choice and never follows later address changes. |
+| A04 | Separate generated Czech unique keys include archived rows; `PartyRecords` maps 1062 to the existing party id. `DuplicateFinder` only blocks Czech identity and reports foreign/name/email warnings. |
+| A05 | `DocumentPartyPicker::contactResults` searches all active owned contacts; no role or previous-document condition exists. |
+| A06 | `DocumentParties` persists a nullable contact reference and full supplier/customer/account values; `InvoicePrintDataBuilder` reads these stored values, including guests. No implicit contact creation occurs. |
+| A07 | `InvoiceCrudApplicationService` wraps contact assembly, document and lines in one transaction. Request authorization checks saving to contacts; capacity and Czech uniqueness remain enforced. Added a late line-write failure regression proving contact, address, invoice and usage rollback. |
+| A08 | Invoice/expense assemblers retain stored party/account data for unchanged references; explicit business reload copies current data. Print and QR read stored account data even after the source account changes and is archived. |
+| A09 | `PartyRecords` manages one address through the owner's relation; separate owner foreign keys and the address CHECK reject invalid owners. |
+| A10 | One default pointer per owner and a composite FK prevent multiple/foreign defaults. First-account creation and default changes are serialized with archive/restore by the user lock. The new second-PDO regression failed before the `setDefault` transaction fix. No currency routing exists. |
+| A11 | `BankAccount` validates IBAN and supported CZ/SK notation once; account archival requires a replacement when other active accounts remain. Historical copies are independent. |
+| A12 | `InvoicePartiesAssembler` maps business to supplier and selected business account to payment; the customer is the contact/one-off copy. PDF snapshots and QR exercise this path. |
+| A13 | `ExpensePartiesAssembler` maps own business to customer and external contact/one-off to supplier, with the external account. Review found the invoice-only complete-address check also applied to the expense customer; the HTTP regression failed before restricting that check to invoice suppliers (DESIGN Q47). Existing expense statuses/calculations stay. |
+| A14 | New selections exclude archived sources; stored references remain readable. Invoice filter options explicitly include owned archived parties for history and never restore them. |
+| A15 | `BusinessApplicationService::archive` requires a replacement default if another active business exists; the last archive clears the pointer. A new invoice rejects an archived business. |
+| A16 | `CapacityLimit` locks the user before counting active rows. Create/restore run inside that transaction; no configured limit allows no creation. The existing second-PDO test proves serialization independently of the FK locks. |
+| A17 | Capacity runs on create/restore only; edits, existing-document use and archival do not require a free slot or erase records on downgrade. |
+| A18 | Scoped Party/document reads and composite FKs guard ownership; admin selectors scope to the record owner. The new list service validates filter ownership and invoice-view permission before reads; malformed ids are rejected at delivery. |
+| A19 | Party, invoice and expense delivery reuse the same Domain values and application paths. Admin operations check their granular permissions and apply the record owner's capacity. The remaining API consumers (selectors/UELS) are covered; a new public CRUD API is not part of DESIGN Q28. |
+| A20 | `RegistrationApplicationService` creates the login, plan role and first business/default/account in one transaction. `UserWriteData` contains login identity separately; no business synchronization appears in account update persistence. |
+| A21 | Picker startup reads `users.default_business_id`; contact is only explicitly selected/entered. There is no contact default or document-currency account routing. |
+| A22 | `CustomerRevenueQuery` left-joins owned contacts, including archive, and distinguishes contact, country/registration and name groups. Owner cache invalidation runs after commit. Currency aggregate semantics remain unchanged. |
+| A23 | Delivered Party/filter labels use cs/de/en/sk keys; PDF snapshots and all six reminder templates have locale checks. Browser verification covers the new filters in all four locales and both layouts/themes. Inherited unrelated UELS wording remains in its standardization scope. |
+| A24 | `linkContact` in the picker preserves entered fields; explicit reload fills them. The stored-invoice contact service only changes the reference, with duplicate, ownership, identity, capacity and request-permission checks. |
+| A25 | Expense/guest one-off accounts stay on the document and do not update the address book; document corrections preserve contact data. Sending documents by email does not yet exist and remains explicitly outside this delivery. Reminders use stored emails. |
+| A26 | Assemblers distinguish stored and new references; stored archived contact/account copies survive, while new archived selections fail. Added regressions for both account cases; the picker visibly marks archived sources. |
+| A27 | Business creation/restoration sets default only when no business is active. Restoration does not change independently archived account rows. |
+| A28 | Changing business forces its account ownership check while product lines remain a separate user-owned catalogue. Counterparty identity changes fail unless a matching contact or one-off selection is used. |
+| A29 | Business and Contact have separate uniqueness constraints and shared duplicate logic. Neither creation nor update copies or synchronizes the other entity kind. |
+
+## Verification of the final implementation
+
+Current verification artifacts use `storage/app/tmp-step7/codex49-*`; earlier `codex47-*` migration and browser evidence remains valid for unchanged paths. No schema change was added and no local `invoice` rebuild/seed was run. A final read-only check confirmed environment `local`, database `invoice`, and unchanged invoices/archive/businesses/contacts counts **4/0/15/33**. The full suite is required here because of the provider changes, DTO renames, seeder copy and the focused dependency update.
+
+The final run passed:
+
+- PHP_CodeSniffer, Pint and Larastan: exit 0 (`codex49-phpcs.log`, `codex49-pint-test.log`, `codex49-phpstan.log`).
+- Full MySQL suite: **2427 tests / 7767 assertions**, including **176 unit cases**, 0 failures/errors/skipped (`codex49-full.xml` / `.log`). The six pre-existing PHPUnit metadata deprecations remain; no tests were excluded. Provider tests were consolidated around validated accounts and real emitted amounts; old structural/no-op list tests were replaced with observable regressions.
+- All five architecture guards: passed (`codex49-guards.log`). The provider snapshot was regenerated for the invoice-list read port and removal of the unnecessary concrete QR-mapper binding; controller baselines did not change.
+- Composer audit: no advisories after updating only `symfony/mime` to 7.4.22 (`codex49-composer-audit.log`). npm audit at the CI high threshold passed with the existing four low findings (`codex49-npm-audit.log`).
+- Vite build: exit 0 (`codex49-build.log`); inherited Sass deprecation notices remain.
+- Browser: actual business/contact combination, empty results, reset and URL state passed in cs/de/en/sk, with desktop/mobile and light/dark screenshots (`codex49-browser.log`, `/tmp/billex49-invoices-*.png`). The Czech mobile dark screenshot was inspected. No business records were saved.
+- Queue restart signal sent after the reminder contract rename. Verification completed before the user authorized the local finalization commits; no push was performed.
+
+Regression sensitivity was checked explicitly: disabling both repository party predicates fails the invoice filter regression (`codex49-filters-red.log`, automatically restored afterward). The expense-address and default-account serialization regressions each failed before their fixes and pass in the full suite. The new late line-write failure also proves rollback of the newly created contact/address/document.
+
+## Delivery boundaries
+
+The six work-state tasks are implemented: invoice filters, BankAccount through QR, remaining QR/reminder DTO names, factory/copy cleanup, source review and the focused audit fix (`symfony/mime` 7.4.19 → 7.4.22; only that locked package changes). The final technical checks passed as recorded above. Technical verification for 4.8 is complete for the final implementation; final PR delivery still requires the specification documents below.
+
+PRD, DESIGN and ADR D-045 contain user-owned changes intentionally excluded from the checkpoint commit. They were preserved during this implementation; DESIGN is still untracked. They remain outside the authorized implementation finalization commits under the earlier scope restriction. The final PR must account for these documents explicitly; no PR or push is authorized by the current local-commit instruction. Local `.mcp.json`, `.swm/` and generated `build/` remain excluded as well. Local implementation commits are not an already delivered PR or a closed step 7.
+
+Issue-time locking, immutable stored PDFs, product archiving, variable-symbol/issue-time numbering and the full received-document model remain step 8. API/UELS resources, maintenance-service extraction, general DTO conversion and remaining frontend globals are broader standardization work in [TECH_DEBT](TECH_DEBT.md). Existing model-backed invoice DTO/write paths and the User permission adapter remain part of that conversion; the new list itself uses a read port and DTOs. Financial aggregate semantics have not been changed to introduce currency conversion.

@@ -6,7 +6,7 @@ use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
 use App\Domain\Payment\Contracts\PaymentGatewayInterface;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
-use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -136,12 +136,12 @@ class PaymentApplicationServiceFeatureTest extends TestCase
         $this->app->bind(QrPaymentServiceInterface::class, function () {
             return new class implements QrPaymentServiceInterface
             {
-                public function generateQrCodeBase64(QrPaymentPayload $payload): ?string
+                public function generateQrCodeBase64(QrPaymentDTO $payload): ?string
                 {
                     return null;
                 }
 
-                public function hasRequiredPaymentInfo(QrPaymentPayload $payload): bool
+                public function hasRequiredPaymentInfo(QrPaymentDTO $payload): bool
                 {
                     return false;
                 }

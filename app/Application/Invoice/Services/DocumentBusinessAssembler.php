@@ -33,7 +33,7 @@ final class DocumentBusinessAssembler
             return $supplier ? $stored->supplier : $stored->customer;
         }
         $party = DocumentPartyDTO::fromProfile($business->profile);
-        if (! $party->hasCompleteAddress()) {
+        if ($supplier && ! $party->hasCompleteAddress()) {
             throw new IncompleteBusinessAddressException($businessId);
         }
 

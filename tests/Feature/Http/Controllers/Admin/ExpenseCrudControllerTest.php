@@ -84,6 +84,23 @@ final class ExpenseCrudControllerTest extends TestCase
     }
 
     #[Test]
+    public function an_expenses_own_business_needs_no_address_and_keeps_its_optional_customer_fields(): void
+    {
+        [$business] = $this->issuerOf($this->adminUser);
+        Address::where('business_id', $business->id)->delete();
+        $data = $this->expenseInput($business);
+        $this->post('/admin/expense', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseHas('expenses', [
+            'reference_number' => $data['reference_number'],
+            'business_id' => $business->id,
+            'customer_name' => $business->name,
+            'customer_street' => null,
+            'customer_city' => null,
+            'supplier_name' => 'One-off supplier',
+        ]);
+    }
+
+    #[Test]
     public function a_new_contact_and_its_account_are_copied_and_typed_values_are_ignored(): void
     {
         [$business] = $this->issuerOf($this->adminUser);

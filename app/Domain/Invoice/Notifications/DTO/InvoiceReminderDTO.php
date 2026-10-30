@@ -8,7 +8,7 @@ use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use DateTimeImmutable;
 
-final readonly class InvoiceReminderPayload
+final readonly class InvoiceReminderDTO
 {
     public function __construct(
         public InvoiceId $invoiceId,

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Notifications\Invoice\Messages;
 
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Infrastructure\Notifications\Invoice\InvoiceReminderMailFactory;
 use Illuminate\Bus\Queueable;
@@ -16,7 +16,7 @@ final class InvoiceUpcomingDueReminder extends Notification implements ShouldQue
 {
     use Queueable;
 
-    public function __construct(private readonly InvoiceReminderPayload $payload) {}
+    public function __construct(private readonly InvoiceReminderDTO $payload) {}
 
     public function via(object $notifiable): array
     {

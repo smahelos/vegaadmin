@@ -121,12 +121,15 @@ final class BankAccountApplicationService
      */
     public function setDefault(UserId $userId, BankAccountId $id): void
     {
-        $account = $this->get($userId, $id);
-        if ($account->isArchived()) {
-            throw new BankAccountArchivedException($id);
-        }
+        $this->transactions->transaction(function () use ($userId, $id): void {
+            $this->users->lockForUpdate($userId);
+            $account = $this->get($userId, $id);
+            if ($account->isArchived()) {
+                throw new BankAccountArchivedException($id);
+            }
 
-        $this->accountWriter->setDefaultForOwner($account->owner, $id);
+            $this->accountWriter->setDefaultForOwner($account->owner, $id);
+        });
     }
 
     /**

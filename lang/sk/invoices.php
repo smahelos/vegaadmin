@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'filters' => [
+        'search' => 'Hľadať faktúru',
+        'all_businesses' => 'Všetky firmy',
+        'all_contacts' => 'Všetky kontakty',
+        'all_statuses' => 'Všetky stavy',
+        'archived' => 'Archivované',
+        'reset' => 'Zrušiť filtre',
+    ],
     'items' => [
         'add_catalog' => 'Pridať z katalógu',
         'add_custom' => 'Pridať vlastnú položku',

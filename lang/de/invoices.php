@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'filters' => [
+        'search' => 'Rechnungen suchen',
+        'all_businesses' => 'Alle Firmen',
+        'all_contacts' => 'Alle Kontakte',
+        'all_statuses' => 'Alle Status',
+        'archived' => 'Archiviert',
+        'reset' => 'Filter zurücksetzen',
+    ],
     'items' => [
         'add_catalog' => 'Aus Katalog hinzufügen',
         'add_custom' => 'Eigene Position hinzufügen',

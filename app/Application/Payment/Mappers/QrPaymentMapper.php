@@ -6,29 +6,26 @@ namespace App\Application\Payment\Mappers;
 
 use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
 use App\Domain\Party\DTO\DocumentAccountDTO;
-use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Domain\Shared\Money\ValueObjects\Money;
 
-final class QrPaymentPayloadMapper
+final class QrPaymentMapper
 {
     public function fromSnapshot(
         ?string $number,
         Money $amount,
         ?DocumentAccountDTO $account,
         ?string $message,
-    ): QrPaymentPayload {
-        return new QrPaymentPayload(
+    ): QrPaymentDTO {
+        return new QrPaymentDTO(
             variableSymbol: $number,
             amount: $amount,
-            accountNumber: $account?->account->number,
-            bankCode: $account?->account->bankCode,
-            iban: $account?->account->iban,
-            countryCode: $account?->account->country->value,
+            account: $account?->account,
             message: $message,
         );
     }
 
-    public function fromPrintableInvoice(PrintableInvoiceDTO $invoice): QrPaymentPayload
+    public function fromPrintableInvoice(PrintableInvoiceDTO $invoice): QrPaymentDTO
     {
         return $this->fromSnapshot(
             $invoice->variableSymbol,

@@ -6,7 +6,7 @@ namespace Tests\Feature\Console\Commands;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Models\Business;
@@ -137,7 +137,7 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         {
             public function send(
                 InvoiceReminderType $type,
-                InvoiceReminderPayload $payload,
+                InvoiceReminderDTO $payload,
                 Recipient $recipient,
             ): void {
                 throw new RuntimeException('The mail queue is unavailable');

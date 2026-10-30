@@ -6,7 +6,7 @@ use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
-use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
+use App\Application\Payment\Mappers\QrPaymentMapper;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\DocumentPartyDTO;
@@ -27,7 +27,7 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         private readonly Locale $locale,
         private readonly QrPaymentServiceInterface $qrPaymentService,
         private readonly TemporaryInvoiceStoreInterface $temporaryInvoiceStore,
-        private readonly QrPaymentPayloadMapper $qrPaymentMapper,
+        private readonly QrPaymentMapper $qrPaymentMapper,
         private readonly InvoiceProductWriteDataAssembler $products,
     ) {}
 

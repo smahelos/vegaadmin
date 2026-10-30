@@ -9,7 +9,7 @@ use App\Domain\Invoice\Contracts\InvoiceReminderReadRepositoryInterface;
 use App\Domain\Invoice\DTO\ReminderInvoiceDTO;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Notifications\DTO\Recipient;
@@ -85,7 +85,7 @@ final class InvoiceReminderApplicationService
             $locale = $this->locales->localeFromCountry($party->address?->country->value);
             $this->notifier->send(
                 $type,
-                new InvoiceReminderPayload(
+                new InvoiceReminderDTO(
                     invoiceId: $invoice->id,
                     total: $invoice->total,
                     supplierName: $invoice->supplier->name,

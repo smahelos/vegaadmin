@@ -7,7 +7,6 @@ use App\Application\Payment\Contracts\PaymentReadRepositoryInterface;
 use App\Application\Payment\Contracts\PaymentWriteRepositoryInterface;
 use App\Application\Payment\Contracts\SubscriptionReadRepositoryInterface;
 use App\Application\Payment\Contracts\SubscriptionWriteRepositoryInterface;
-use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
 use App\Application\Payment\Services\PaymentApplicationService;
 use App\Domain\Payment\Contracts\BankDtoRepository;
 use App\Domain\Payment\Contracts\GatewayRegistryInterface;
@@ -161,8 +160,5 @@ class PaymentServiceProvider extends ServiceProvider
             PaymentApplicationServiceInterface::class,
             PaymentApplicationService::class,
         );
-
-        // Application Payment mappers
-        $this->app->singleton(QrPaymentPayloadMapper::class);
     }
 }

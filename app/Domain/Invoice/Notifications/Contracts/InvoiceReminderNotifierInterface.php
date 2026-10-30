@@ -2,7 +2,7 @@
 
 namespace App\Domain\Invoice\Notifications\Contracts;
 
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Shared\Notifications\DTO\Recipient;
 
@@ -13,7 +13,7 @@ interface InvoiceReminderNotifierInterface
      */
     public function send(
         InvoiceReminderType $type,
-        InvoiceReminderPayload $payload,
+        InvoiceReminderDTO $payload,
         Recipient $recipient,
     ): void;
 }

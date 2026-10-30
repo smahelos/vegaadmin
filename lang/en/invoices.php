@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'filters' => [
+        'search' => 'Search invoices',
+        'all_businesses' => 'All businesses',
+        'all_contacts' => 'All contacts',
+        'all_statuses' => 'All statuses',
+        'archived' => 'Archived',
+        'reset' => 'Reset filters',
+    ],
     'items' => [
         'add_catalog' => 'Add from catalog',
         'add_custom' => 'Add custom item',

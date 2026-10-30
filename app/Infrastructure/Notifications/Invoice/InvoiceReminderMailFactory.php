@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Notifications\Invoice;
 
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
@@ -18,7 +18,7 @@ final class InvoiceReminderMailFactory
     ) {}
 
     public function create(
-        InvoiceReminderPayload $payload,
+        InvoiceReminderDTO $payload,
         InvoiceReminderType $type,
         ?string $locale,
         string $fallbackName,

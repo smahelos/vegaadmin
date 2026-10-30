@@ -185,6 +185,51 @@ final class InvoicePartiesAssemblerTest extends TestCase
         $this->assertSame(self::CUSTOMER_NUMBER, $contact->company_number);
     }
 
+    #[Test]
+    public function archived_contact_and_account_keep_the_working_documents_copies(): void
+    {
+        $business = $this->businessWithAddress();
+        $account = BankAccount::factory()->ownedBy($business)->create();
+        $contact = Contact::factory()->create(['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER]);
+        $selection = $this->selection(
+            $business,
+            account: $account,
+            contact: $contact,
+        );
+        $stored = $this->assembler->assemble(
+            $this->idOf($this->user),
+            $selection,
+            null,
+        );
+        $account->update(['archived_at' => now(), 'bank_name' => 'Changed source bank']);
+        $contact->update(['archived_at' => now(), 'name' => 'Changed source contact']);
+
+        $kept = $this->assembler->assemble(
+            $this->idOf($this->user),
+            $selection,
+            $stored,
+        );
+        $this->assertSame($stored->account, $kept->account);
+        $this->assertSame($stored->customer, $kept->customer);
+        $this->assertSame($account->id, $kept->bankAccountId?->value);
+        $this->assertSame($contact->id, $kept->contactId?->value);
+        $this->assertNotNull($account->fresh()->archived_at);
+        $this->assertNotNull($contact->fresh()->archived_at);
+    }
+
+    #[Test]
+    public function a_newly_selected_archived_account_is_refused_even_when_its_business_is_active(): void
+    {
+        $business = $this->businessWithAddress();
+        $account = BankAccount::factory()->ownedBy($business)->create(['archived_at' => now()]);
+        $this->expectException(ArchivedReferenceSelectedException::class);
+        $this->assembler->assemble(
+            $this->idOf($this->user),
+            $this->selection($business, account: $account),
+            null,
+        );
+    }
+
     /**
      * @param  array<string, string>  $attributes
      */

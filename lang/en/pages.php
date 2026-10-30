@@ -106,7 +106,7 @@ return [
         'instant_download' => 'Instant download',
         'instant_download_description' => 'Download the finished invoice as a PDF right away.',
         'secure' => 'Secure data',
-        'secure_description' => 'Only you can see your invoices, clients and products.',
+        'secure_description' => 'Only you can see your invoices, businesses, contacts and products.',
     ],
 
     'titles' => [

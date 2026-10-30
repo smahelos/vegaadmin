@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Renderers\Invoice;
 
 use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
-use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
+use App\Application\Payment\Mappers\QrPaymentMapper;
 use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
@@ -24,7 +24,7 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
     public function __construct(
         private readonly MoneyFormatterInterface $moneyFormatter,
         private readonly QrPaymentServiceInterface $qrPaymentService,
-        private readonly QrPaymentPayloadMapper $qrPaymentMapper,
+        private readonly QrPaymentMapper $qrPaymentMapper,
         private readonly DateFormatterInterface $dateFormatter,
         private readonly ClockInterface $clock,
         private readonly Locale $currentLocale,
