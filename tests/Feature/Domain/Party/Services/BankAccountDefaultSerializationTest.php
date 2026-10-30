@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Domain\Party\Services;
 
 use App\Application\Party\Services\BankAccountApplicationService;
+use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BankAccountId;
+use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\BankAccount;
 use App\Models\Contact;
@@ -30,7 +32,11 @@ final class BankAccountDefaultSerializationTest extends TestCase
         $account = BankAccount::factory()->ownedBy($contact)->create();
         $this->assertNull($this->lockError($connection, $userId));
 
-        app(BankAccountApplicationService::class)->setDefault(UserId::fromInt($userId), BankAccountId::fromInt($account->id));
+        app(BankAccountApplicationService::class)->setDefault(
+            UserId::fromInt($userId),
+            AccountOwner::contact(ContactId::fromInt($contact->id)),
+            BankAccountId::fromInt($account->id),
+        );
 
         $this->assertSame($account->id, $contact->fresh()->default_bank_account_id);
         $this->assertSame(1205, $this->lockError($connection, $userId));

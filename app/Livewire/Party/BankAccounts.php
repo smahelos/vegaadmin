@@ -77,7 +77,7 @@ final class BankAccounts extends Component
     {
         $this->requirePermission($this->permission('update'));
         $this->account->resetErrorBag();
-        $this->account->fillFromAccount($accounts->get($this->userId(), BankAccountId::fromInt($id)));
+        $this->account->fillFromAccount($accounts->getForOwner($this->userId(), $this->owner(), BankAccountId::fromInt($id)));
         $this->editingId = $id;
         $this->editing = true;
     }
@@ -105,6 +105,7 @@ final class BankAccounts extends Component
         } else {
             $accounts->update(
                 $this->userId(),
+                $this->owner(),
                 BankAccountId::fromInt($this->editingId),
                 $this->account->writeData(),
             );
@@ -126,6 +127,7 @@ final class BankAccounts extends Component
         try {
             $accounts->archive(
                 $this->userId(),
+                $this->owner(),
                 BankAccountId::fromInt($id),
                 $newDefault,
             );
@@ -146,7 +148,11 @@ final class BankAccounts extends Component
     public function restore(BankAccountApplicationService $accounts, int $id): void
     {
         $this->requirePermission($this->permission('update'));
-        $accounts->restore($this->userId(), BankAccountId::fromInt($id));
+        $accounts->restore(
+            $this->userId(),
+            $this->owner(),
+            BankAccountId::fromInt($id),
+        );
         $this->successMessage = __('parties.bank_accounts.messages.restored');
     }
 
@@ -157,7 +163,11 @@ final class BankAccounts extends Component
         $this->successMessage = null;
 
         try {
-            $accounts->setDefault($this->userId(), BankAccountId::fromInt($id));
+            $accounts->setDefault(
+                $this->userId(),
+                $this->owner(),
+                BankAccountId::fromInt($id),
+            );
         } catch (BankAccountArchivedException) {
             $this->errorMessage = __('parties.bank_accounts.messages.default_archived');
 

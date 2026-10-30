@@ -61,10 +61,15 @@ final class BankAccountApplicationService
 
     public function update(
         UserId $userId,
+        AccountOwner $owner,
         BankAccountId $id,
         BankAccountWriteData $data,
     ): BankAccountDTO {
-        $this->get($userId, $id);
+        $this->getForOwner(
+            $userId,
+            $owner,
+            $id,
+        );
 
         return $this->accountWriter->update($id, $data);
     }
@@ -78,12 +83,17 @@ final class BankAccountApplicationService
      */
     public function archive(
         UserId $userId,
+        AccountOwner $owner,
         BankAccountId $id,
         ?BankAccountId $newDefault,
     ): void {
-        $this->transactions->transaction(function () use ($userId, $id, $newDefault): void {
+        $this->transactions->transaction(function () use ($userId, $owner, $id, $newDefault): void {
             $this->users->lockForUpdate($userId);
-            $account = $this->get($userId, $id);
+            $account = $this->getForOwner(
+                $userId,
+                $owner,
+                $id,
+            );
             if ($account->isArchived()) {
                 return;
             }
@@ -100,11 +110,18 @@ final class BankAccountApplicationService
     /**
      * An account restored while its owner has no default account becomes the default.
      */
-    public function restore(UserId $userId, BankAccountId $id): void
-    {
-        $this->transactions->transaction(function () use ($userId, $id): void {
+    public function restore(
+        UserId $userId,
+        AccountOwner $owner,
+        BankAccountId $id,
+    ): void {
+        $this->transactions->transaction(function () use ($userId, $owner, $id): void {
             $this->users->lockForUpdate($userId);
-            $account = $this->get($userId, $id);
+            $account = $this->getForOwner(
+                $userId,
+                $owner,
+                $id,
+            );
             if (! $account->isArchived()) {
                 return;
             }
@@ -119,11 +136,18 @@ final class BankAccountApplicationService
     /**
      * @throws BankAccountArchivedException
      */
-    public function setDefault(UserId $userId, BankAccountId $id): void
-    {
-        $this->transactions->transaction(function () use ($userId, $id): void {
+    public function setDefault(
+        UserId $userId,
+        AccountOwner $owner,
+        BankAccountId $id,
+    ): void {
+        $this->transactions->transaction(function () use ($userId, $owner, $id): void {
             $this->users->lockForUpdate($userId);
-            $account = $this->get($userId, $id);
+            $account = $this->getForOwner(
+                $userId,
+                $owner,
+                $id,
+            );
             if ($account->isArchived()) {
                 throw new BankAccountArchivedException($id);
             }
@@ -139,6 +163,20 @@ final class BankAccountApplicationService
     {
         return $this->accounts->findByIdForUser($id, $userId)
             ?? throw new BankAccountNotFoundException($id);
+    }
+
+    public function getForOwner(
+        UserId $userId,
+        AccountOwner $owner,
+        BankAccountId $id,
+    ): BankAccountDTO {
+        $account = $this->get($userId, $id);
+        if ($account->owner->businessId?->value !== $owner->businessId?->value ||
+            $account->owner->contactId?->value !== $owner->contactId?->value) {
+            throw new BankAccountNotFoundException($id);
+        }
+
+        return $account;
     }
 
     /**

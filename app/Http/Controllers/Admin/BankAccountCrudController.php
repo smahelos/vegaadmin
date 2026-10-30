@@ -83,6 +83,7 @@ final class BankAccountCrudController extends CrudController
         $this->authorizeOwner($entry);
         $accounts->update(
             $this->userOf($entry),
+            $this->ownerOf($entry),
             BankAccountId::fromInt($entry->id),
             $request->writeData(),
         );
@@ -99,6 +100,7 @@ final class BankAccountCrudController extends CrudController
         $this->authorizeOwner($entry);
         $accounts->archive(
             $this->userOf($entry),
+            $this->ownerOf($entry),
             BankAccountId::fromInt($entry->id),
             null,
         );
@@ -111,7 +113,11 @@ final class BankAccountCrudController extends CrudController
     {
         $entry = BankAccount::query()->findOrFail($id);
         $this->authorizeOwner($entry);
-        $accounts->restore($this->userOf($entry), BankAccountId::fromInt($entry->id));
+        $accounts->restore(
+            $this->userOf($entry),
+            $this->ownerOf($entry),
+            BankAccountId::fromInt($entry->id),
+        );
         Alert::success(__('parties.bank_accounts.messages.restored'))->flash();
 
         return redirect()->back();
@@ -121,7 +127,11 @@ final class BankAccountCrudController extends CrudController
     {
         $entry = BankAccount::query()->findOrFail($id);
         $this->authorizeOwner($entry);
-        $accounts->setDefault($this->userOf($entry), BankAccountId::fromInt($entry->id));
+        $accounts->setDefault(
+            $this->userOf($entry),
+            $this->ownerOf($entry),
+            BankAccountId::fromInt($entry->id),
+        );
         Alert::success(__('parties.bank_accounts.messages.default_changed'))->flash();
 
         return redirect()->back();
@@ -230,6 +240,13 @@ final class BankAccountCrudController extends CrudController
         abort_if($owner === null, 404);
 
         return UserId::fromInt($owner->user_id);
+    }
+
+    private function ownerOf(BankAccount $entry): AccountOwner
+    {
+        return $entry->business_id !== null
+            ? AccountOwner::business(BusinessId::fromInt($entry->business_id))
+            : AccountOwner::contact(ContactId::fromInt($entry->contact_id));
     }
 
     private function isDefault(BankAccount $entry): bool

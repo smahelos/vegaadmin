@@ -76,6 +76,7 @@ final class BankAccountApplicationServiceTest extends TestCase
         try {
             $this->accounts->archive(
                 $this->ownerOf($business),
+                $owner,
                 $default->id,
                 null,
             );
@@ -85,6 +86,7 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->accounts->archive(
             $this->ownerOf($business),
+            $owner,
             $default->id,
             $other->id,
         );
@@ -106,12 +108,17 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->accounts->archive(
             $this->ownerOf($business),
+            $owner,
             $account->id,
             null,
         );
         $this->assertNull($business->fresh()?->default_bank_account_id);
 
-        $this->accounts->restore($this->ownerOf($business), $account->id);
+        $this->accounts->restore(
+            $this->ownerOf($business),
+            $owner,
+            $account->id,
+        );
         $this->assertSame($account->id->value, $business->fresh()?->default_bank_account_id);
     }
 
@@ -137,6 +144,7 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->accounts->archive(
             $this->ownerOf($business),
+            $owner,
             $default->id,
             BankAccountId::fromInt($foreign->id),
         );
@@ -150,7 +158,11 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->expectException(BankAccountArchivedException::class);
 
-        $this->accounts->setDefault($this->ownerOf($business), BankAccountId::fromInt($archived->id));
+        $this->accounts->setDefault(
+            $this->ownerOf($business),
+            AccountOwner::business(BusinessId::fromInt($business->id)),
+            BankAccountId::fromInt($archived->id),
+        );
     }
 
     #[Test]
@@ -172,7 +184,28 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->expectException(BankAccountNotFoundException::class);
 
-        $this->accounts->setDefault($stranger, BankAccountId::fromInt($account->id));
+        $this->accounts->setDefault(
+            $stranger,
+            AccountOwner::contact(ContactId::fromInt($contact->id)),
+            BankAccountId::fromInt($account->id),
+        );
+    }
+
+    #[Test]
+    public function updating_an_account_requires_its_selected_owner(): void
+    {
+        $business = Business::factory()->create();
+        $contact = Contact::factory()->create(['user_id' => $business->user_id]);
+        $account = BankAccount::factory()->ownedBy($business)->create();
+
+        $this->expectException(BankAccountNotFoundException::class);
+
+        $this->accounts->update(
+            $this->ownerOf($contact),
+            AccountOwner::contact(ContactId::fromInt($contact->id)),
+            BankAccountId::fromInt($account->id),
+            $this->czechAccount('1234567899', '0100'),
+        );
     }
 
     private function ownerOf(Business|Contact $party): UserId

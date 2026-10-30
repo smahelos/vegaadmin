@@ -12,6 +12,7 @@ use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsParties;
 use Tests\TestCase;
@@ -120,5 +121,52 @@ final class BankAccountsTest extends TestCase
             ->assertDontSee(__('parties.bank_accounts.actions.add'))
             ->call('add')
             ->assertForbidden();
+    }
+
+    /** @return iterable<string, array{string, string, string}> */
+    public static function otherOwners(): iterable
+    {
+        foreach (['business', 'contact'] as $context) {
+            foreach (['business', 'contact'] as $target) {
+                foreach ([
+                    'edit',
+                    'archive',
+                    'restore',
+                    'makeDefault',
+                ] as $action) {
+                    yield $context . '-' . $target . '-' . $action => [
+                        $context,
+                        $target,
+                        $action,
+                    ];
+                }
+            }
+        }
+    }
+
+    #[Test]
+    #[DataProvider('otherOwners')]
+    public function account_actions_reject_another_owner_even_within_the_same_user(
+        string $context,
+        string $target,
+        string $action,
+    ): void {
+        $this->user->removeRole('frontend_user');
+        $this->user->givePermissionTo([
+            'frontend.can_view_' . $context,
+            'frontend.can_update_' . $context,
+        ]);
+        $model = $context === 'business' ? Business::class : Contact::class;
+        $owner = $model::factory()->create(['user_id' => $this->user->id]);
+        $targetModel = $target === 'business' ? Business::class : Contact::class;
+        $otherOwner = $targetModel::factory()->create(['user_id' => $this->user->id]);
+        $account = BankAccount::factory()->ownedBy($otherOwner)->create([
+            'archived_at' => $action === 'restore' ? now() : null,
+        ]);
+
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => $context, 'ownerId' => $owner->id]);
+        $this->expectException(BankAccountNotFoundException::class);
+
+        $component->call($action, $account->id);
     }
 }
