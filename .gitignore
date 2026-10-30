@@ -37,3 +37,6 @@ robots.txt
 # Claude Code: personal settings and generated reports (the standard in .claude/ is shared)
 /.claude/settings.local.json*
 /.claude/reports/
+
+# Local working documents and AI artifacts; maintained project documentation lives in docs/
+/dev_docs/

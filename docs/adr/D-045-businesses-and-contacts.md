@@ -2,20 +2,23 @@
 
 Status: Accepted 2026-10-25
 Amended: 2026-10-26, product decisions for businesses, contacts and document parties; shared `addresses` and `bank_accounts` tables from the technical design (PRD 1.1).
-Product specification: [PRD: Moje firmy a kontakty](../PRD_BUSINESSES_AND_CONTACTS.md).
-This ADR records the target; the implementation remains planned.
+Product specification: [PRD: Moje firmy a kontakty](../prd/PRD_BUSINESSES_AND_CONTACTS.md).
+Technical design: [Businesses and Contacts](../design/DESIGN_BUSINESSES_AND_CONTACTS.md).
+Documentation reviewed: 2026-10-30, without changing the accepted decisions.
+Implementation and verification: [Businesses and Contacts](../prd/VERIFICATION_BUSINESSES_AND_CONTACTS.md).
+This ADR records the accepted model and its rationale. Its context describes the model before step 7; implementation status and evidence belong to VERIFICATION. The verification map records the implemented step 7 scope and its acceptance coverage.
 
 ## Context
 
-The Party context stores two kinds of records under the names client and supplier:
+Before step 7, the Party context stored two kinds of records under the names client and supplier:
 
-- **`suppliers`** is the user's own identity, the business that issues invoices. Registration creates a default one from the user's data (`RegisterController::register`). It carries the logo and the bank account printed on the invoice and used for the QR payment. A user may have several.
-- **`clients`** are the people and companies the user invoices.
-- **`expenses.supplier_id`** points to `suppliers` as well, though on a received document the supplier is the company the user pays, not the user. Received documents are planned (`docs/adr/D-044-document-tables.md`, TECH_DEBT "Expenses are not modelled as received documents") and need that company as a record of its own.
+- **`suppliers`** held the user's own identities, the businesses that issued invoices. Registration created a default one from the user's data (`RegisterController::register`). It carried the logo and the bank account printed on the invoice and used for the QR payment. A user could have several.
+- **`clients`** held the people and companies the user invoiced.
+- **`expenses.supplier_id`** pointed to `suppliers` as well, though on a received document the supplier is the company the user pays, not the user. The full received-document model remains follow-up work ([D-044](D-044-document-tables.md), TECH_DEBT "Expenses are not modelled as received documents") and needs that company as a record of its own.
 
 Supplier and customer are roles on a document, not kinds of companies. On an issued invoice the user's business is the supplier and the other company is the customer; on a received invoice it is the other way round. The same company is often both: the user buys printing from it and also invoices it for design work.
 
-The code duplicates the two kinds: 50 files come in 25 Client / Supplier pairs (models, repositories, mappers, ports, DTOs, write data, events, observers, controllers, requests, form fields, Livewire components), which `rules/architecture.md` calls a defect.
+The original code duplicated the two kinds: the design review identified 50 files in 25 Client / Supplier pairs (models, repositories, mappers, ports, DTOs, write data, events, observers, controllers, requests, form fields, Livewire components), which `rules/architecture.md` calls a defect.
 
 ## Decision
 
@@ -38,7 +41,7 @@ The code duplicates the two kinds: 50 files come in 25 Client / Supplier pairs (
 ## Rationale
 
 - **The model matches the documents.** A company that is both customer and supplier is one record with one company number, one lookup and one archive state.
-- **Received documents get a real counterparty.** Today an expense could only point to the user's own businesses.
+- **Received documents get a real counterparty.** The original expense model could only point to the user's own businesses.
 - **Document parties have one representation.** Step 7 stores the party and account data needed even without an address-book reference; step 8 freezes the whole issued document on top of it. Archiving covers business and contact rather than three overlapping address books.
 - **The business can grow on its own**: VAT payer status and numbering series belong to its own operational profile. Bank accounts are available for contacts as well, because received documents need external payment details.
 - **The duplicated pairs go away.** Two different entities need two sets of classes, but no longer two near-identical ones for the same concept.
@@ -56,8 +59,10 @@ The three original questions (contact selections, counting limits and the produc
 
 The PRD's final review also approved the edge behaviour and minimal adaptation of current expenses in step 7. No product scope decision remains open for this feature. Full received-document types, statuses and VAT behaviour remain step 8; detailed storage choices follow the accepted invariants without expanding this scope.
 
+The A01–A29 source review and regression map in VERIFICATION record the delivered Business/Contact paths, including current expenses, independent document party/account/logo copies, invoice filters and typed QR/reminder contracts. These copies prepare for step 8; they do not introduce the full issue-time lock or immutable stored PDF. Step 8 and the broader context conversion remain separate work.
+
 ## Consequences
 
-- Routes, translation files (`clients.php`, `suppliers.php` → `contacts.php`, `businesses.php`), permissions, admin CRUD, API endpoints, Livewire components and their tests are renamed in the step 7 branch. Billex is not in production, so no data is migrated and the development database is rebuilt.
-- `rules/architecture.md` (bounded contexts) and the context list in `CLAUDE.md` are reworded from client/supplier to business/contact in the same branch.
+- Routes, translation files (`clients.php`, `suppliers.php` → `contacts.php`, `businesses.php`), permissions, admin CRUD, used API paths, Livewire components and their tests were replaced or renamed in the step 7 branch. Document roles `supplier` / `customer` and unrelated external identifiers remain valid. Because Billex was not in production, the approved initial schema transition rebuilt the development database without migrating business data; that historical choice does not require another rebuild of current local data.
+- `rules/architecture.md` (bounded contexts) and the context list in `AGENTS.md` use business/contact in the same branch.
 - Step 7 stores document parties independently of the address book, including one-off counterparties and the specific payment account. Step 8 adds issue-time locking, complete snapshots and stored PDFs. No production data is changed by this documentation decision.

@@ -1,6 +1,6 @@
 # Layers — target shape by example
 
-One slice of the Party context (creating and reading a contact), written the way every layer should look. Rules behind it: `rules/architecture.md`, `rules/php.md`. The names show the target of step 7 and do not exist yet: `ContactId`, `ContactDTO`, `ContactWriteData`, the repository ports, `EloquentContactRepository`, `EloquentContactMapper`, the `Contact` model, `ContactApplicationService`, `StoreContactRequest`, `EntityType`, `EntityLimitExceededException`, `ContactNotFoundException` (`docs/PRD_BUSINESSES_AND_CONTACTS.md`). The address, the shared party profile and the duplicate check are left out to keep the slice short.
+One slice of the Party context (creating and reading a contact), written the way every layer should look. Rules behind it: `rules/architecture.md`, `rules/php.md`. The names illustrate the Business/Contact model of step 7: `ContactId`, `ContactDTO`, `ContactWriteData`, the repository ports, `EloquentContactRepository`, `EloquentContactMapper`, the `Contact` model, `ContactApplicationService`, `StoreContactRequest`, `EntityType`, `EntityLimitExceededException`, `ContactNotFoundException` (`docs/prd/PRD_BUSINESSES_AND_CONTACTS.md`). The address, the shared party profile and the duplicate check are left out to keep the slice short.
 
 ## Domain — value object, data classes, port
 

@@ -1,22 +1,33 @@
 # PRD: Moje firmy a kontakty
 
-Datum: 2026-10-26. Verze: 1.1. Stav: schválená produktová specifikace.
+Datum: 2026-10-26. Verze: 1.2. Stav: schválená produktová specifikace.
+Dokumentační revize: 2026-10-30, bez změny produktových rozhodnutí.
+Technický návrh: [DESIGN_BUSINESSES_AND_CONTACTS.md](../design/DESIGN_BUSINESSES_AND_CONTACTS.md).
+Rozhodnutí: [D-045](../adr/D-045-businesses-and-contacts.md).
+Stav implementace a ověření: [VERIFICATION_BUSINESSES_AND_CONTACTS.md](VERIFICATION_BUSINESSES_AND_CONTACTS.md).
 
 Verze 1.1 (2026-10-26): oddíl 4 upřesněn podle technického návrhu —
 adresy firem i kontaktů sdílejí tabulku `addresses`, bankovní účty
 tabulku `bank_accounts`. Produktová rozhodnutí se nemění.
 
+Verze 1.2 (2026-10-26): oddíl 7.1 doplňuje pravidla formulářů dokladů
+odsouhlasená při technickém návrhu; odstraněny věty platné jen pro
+přípravu specifikace.
+
 Produktová rozhodnutí byla postupně odsouhlasena uživatelem. Závěrečné
 schválení zahrnuje také okrajová pravidla oddílu 10 a minimální úpravu
 současných výdajů v oddílu 11. Otevřená produktová rozhodnutí pro tento
 rozsah nezůstávají; navazující funkcionality jsou výslovně oddělené.
-Dokument specifikuje plánovanou funkcionalitu, nikoli její implementovaný stav.
+Dokument určuje požadované chování a hranice kroku 7. Budoucí čas v požadavcích
+a postup v oddílu 14 nejsou seznamem dosud chybějící implementace. Skutečný
+implementovaný rozsah a mapa ověření A01–A29 jsou v doprovodné mapě VERIFICATION;
+schválená specifikace a záznam skutečného stavu mají odlišnou úlohu.
 
 ## 1. Problém a cíl
 
-Dnešní `suppliers` obsahuje vlastní firmy uživatele, `clients` jeho
-odběratele. `expenses.supplier_id` ale také odkazuje na vlastní firmy,
-přestože na přijatém dokladu potřebujeme externího dodavatele.
+Výchozí model před krokem 7 ukládal do `suppliers` vlastní firmy uživatele,
+do `clients` jeho odběratele. Vazba `expenses.supplier_id` ale také odkazovala
+na vlastní firmy, přestože na přijatém dokladu potřebujeme externího dodavatele.
 Dodavatel a odběratel jsou role na dokladu. Stejná protistrana musí být
 použitelná pro prodej i nákup bez kopírování kontaktu.
 
@@ -28,8 +39,9 @@ archivace, výchozí volby, limity a integrace do stávající aplikace.
 Billex zůstává modulárním monolitem podle D-042 a D-043: Laravel 12,
 PHP 8.3, MySQL, Backpack, Blade/Livewire/Alpine/Tailwind. Party zůstává
 jedním doménovým kontextem. Nové externí služby ani broker nevznikají.
-Projekt podle D-045 není v produkci; obchodní data se nemigrují a vývojová
-databáze se při implementaci přestaví. Tato session databázi nemění.
+Pro změnu modelu bylo podle D-045 schváleno přestavění vývojové databáze
+bez převodu obchodních dat, protože projekt není v produkci. Jde o výchozí
+implementační postup, nikoli o pokyn znovu přestavět existující lokální data.
 
 ## 2. Pojmy a vlastnictví
 
@@ -209,9 +221,9 @@ je rozhodující účet dodavatele zachycený na tomto dokladu; účet kontaktu
 slouží k předvyplnění. Jednorázový účet se do adresáře ukládá výslovně.
 Změna výchozího ani úprava účtu nepřepíše existující doklad nebo otevřený formulář.
 
-Implementace popíše podporované místní formáty a zachová stávající rozsah
-QR poskytovatelů. Uložení zahraničního účtu samo nerozšiřuje podporu QR
-na všechny země. Bankovní převody, napojení bank a opravy ostatních částí
+Technický návrh popisuje podporované místní formáty; implementace zachová
+stávající rozsah QR poskytovatelů. Uložení zahraničního účtu samo nerozšiřuje
+podporu QR na všechny země. Bankovní převody, napojení bank a opravy ostatních částí
 QR plateb, zejména číslování a variabilního symbolu, nejsou touto funkcionalitou.
 
 ### 6.2 Výchozí vlastní firma
@@ -246,6 +258,34 @@ Uložení stran a účtu patří již do této dodávky. Úplný životní cyklu
 uzamčení vystaveného dokladu, číslování při vystavení, opravné doklady
 a uchování výsledného PDF včetně šablony a loga patří navazujícímu kroku 8.
 Uložené údaje stran samy nejsou úplnou neměnností celého PDF.
+
+### 7.1 Formuláře dokladů
+
+- Povinné údaje stran faktury jsou v této dodávce stejné jako dnes:
+  název, ulice, město, PSČ a země dodavatele i odběratele. Platí stejně
+  pro vybraný kontakt, jednorázovou protistranu, frontend, administraci
+  i fakturu nepřihlášeného. IČO a DIČ se při vyplnění ukládají již nyní;
+  jejich povinnost podle daňového režimu a další náležitosti doplní krok 8.
+- Vlastní firma se na faktuře jen vybírá, údaje dodavatele se ručně
+  nepřepisují. Firma bez úplné adresy vyvolá validační chybu s odkazem
+  na její úpravu.
+- Účet vystavené faktury se vybírá jen z aktivních účtů vybrané firmy;
+  jednorázový účet ji nemá. Účet je povinný jen u platby bankovním
+  převodem, výchozí účet firmy se předvyplní.
+- Faktura bez kontaktu nabízí na detailu „Uložit do kontaktů“; při shodě
+  českého IČO „Propojit s existujícím kontaktem“. Obě akce nastaví jen
+  vazbu na kontakt, údaje dokladu nemění. Vystavená faktura se po kroku 8
+  nemění vůbec, ani vazbou na kontakt; akce pak zůstanou jen u nové
+  faktury a konceptu.
+- Odesílání dokladu e-mailem v aplikaci zatím není; pravidlo 10.3 platí,
+  až vznikne. Upomínky platby používají e-maily uložené na dokladu.
+- Faktura nepřihlášeného uživatele zadává dodavatele, odběratele i účet
+  jednorázově, bez výběru z adresáře a bez ukládání do kontaktů.
+- Administrace faktury a výdaje: uživatel, jeho aktivní firma a volitelně
+  jeho aktivní kontakt. Výběr nebo změna kontaktu převezme jeho údaje,
+  bez kontaktu se použijí zadané údaje protistrany; úprava beze změny
+  kontaktu je opravou údajů dokladu. Účet výdaje pochází z účtů kontaktu
+  nebo je jednorázový. „Uložit do kontaktů“ administrace nenabízí.
 
 ## 8. Archivace a obnova
 
@@ -298,7 +338,10 @@ Jde o aktuální kapacitu, nikoli počet vytvoření za rok.
 První firma z registrace se započítává; konfigurace registračního tarifu
 musí její vytvoření umožnit. Konkrétní tarifní hodnoty tento PRD neurčuje.
 Chybějící konfigurace nepovoluje založení ani obnovu podle pravidel UELS.
-Výslovná oprávnění k neomezenému vytváření zůstávají kontrolovanou výjimkou.
+Kapacitní limity firem a kontaktů nemají výjimku pro neomezené vytváření,
+ani v administraci; uplatní se limit vlastníka. Výjimky pro ostatní
+periodické limity zůstávají podle pravidel UELS. Toto upřesnění odpovídá
+odsouhlasenému technickému návrhu Q8–Q10.
 
 Při snížení tarifu se nic automaticky nemaže ani nearchivuje. Čtení,
 úpravy, archivace a používání existujících záznamů na dokladech pokračují.
@@ -375,6 +418,9 @@ V této dodávce se současné `expenses` upraví na vlastní firmu přes
 jednorázové údaje. Zruší se dnešní nejednoznačné `expenses.supplier_id`,
 upraví se formuláře, filtry, validace vlastnictví a uloží se údaje stran
 a platebního účtu podle stejného kontraktu.
+Výdaj vyžaduje úplnou adresu externího dodavatele; u vlastní firmy v roli
+odběratele stačí název (DESIGN Q47). Úplná adresa vlastní firmy je povinná
+na vystavené faktuře podle oddílu 7.1.
 Současné schvalovací stavy, výpočty DPH a ostatní chování výdajů se zachovají.
 Nové dokladové typy, platební stavy a daňová pravidla se zavedou až při
 navazující přestavbě na přijaté doklady.
@@ -478,6 +524,9 @@ alternativní názvy Business/Contact. Tiskové role zůstávají supplier/custo
 
 ## 14. Postup implementace a dokončení
 
+Následuje schválené pořadí a kritéria dokončení kroku 7. Postup zůstává
+součástí specifikace; aktuální rozsah zachycuje mapa VERIFICATION.
+
 1. Nové reverzibilní migrace a vývojové seedery; Business/Contact,
    adresy, účty, identifikátory, výchozí volby a aktivní limity.
 2. Sdílené doménové hodnoty a validace, porty, mapování a transakční
@@ -492,24 +541,35 @@ alternativní názvy Business/Contact. Tiskové role zůstávají supplier/custo
 Implementace je hotová až po napojení všech cest a odstranění starých
 nepoužívaných párů, ne vytvořením nevyužitých nových tříd vedle původních.
 Udělané položky TECH_DEBT se odškrtnou až po implementaci a ověření.
-ADR a TECH_DEBT se nyní pouze zpřesní podle odsouhlasených rozhodnutí.
+Technický návrh implementace je v `docs/design/DESIGN_BUSINESSES_AND_CONTACTS.md`.
+
+Společný seznam faktur umožní filtrování podle vlastní firmy a kontaktu
+podle technického návrhu, oddíl 4 „Frontend screens“. Historie zůstává
+dostupná i pro archivované strany a každý filtr respektuje vlastníka dat.
+Odstranění původních samostatných komponent samo tento požadavek nesplňuje.
+
+Stav implementace, výsledky závěrečného ověření a mapa scénářů A01–A29 jsou
+v [VERIFICATION_BUSINESSES_AND_CONTACTS.md](VERIFICATION_BUSINESSES_AND_CONTACTS.md).
+Před dodáním změny se ověří aktuální rozsah celé větve podle pravidel
+repozitáře. Mapa pokrytí nenahrazuje aktuální výsledky těchto kontrol.
 
 ## 15. Podklady a důvody rozhodnutí
 
-- [TECH_DEBT](TECH_DEBT.md): krok 7, neměnnost dokladů, přijaté doklady,
+- [TECH_DEBT](../TECH_DEBT.md): krok 7, neměnnost dokladů, přijaté doklady,
   archivace, prázdné hodnoty, bankovní validace, standard a oprávnění.
-- [D-042](adr/D-042-context-service-providers.md): composition roots.
-- [D-043](adr/D-043-modular-monolith.md): modulární monolit.
-- [D-044](adr/D-044-document-tables.md): navazující dokladový model,
+- [D-042](../adr/D-042-context-service-providers.md): composition roots.
+- [D-043](../adr/D-043-modular-monolith.md): modulární monolit.
+- [D-044](../adr/D-044-document-tables.md): navazující dokladový model,
   v době návrhu označen Proposed; nové typové tabulky nejsou tímto schváleny.
-- [D-045](adr/D-045-businesses-and-contacts.md): oddělení Business/Contact.
-- `.claude/CLAUDE.md` a `.claude/rules/`: cílová architektura, persistence,
+- [D-045](../adr/D-045-businesses-and-contacts.md): oddělení Business/Contact.
+- `AGENTS.md` a `.claude/rules/`: společné AI pokyny, cílová architektura, persistence,
   HTTP, frontend, administrace, platby, překlady, oprávnění a testování.
-- Ověřený kód: migrace Party/Product/Invoice/Expense, RegisterController,
+- Historické podklady ověřené při návrhu 2026-10-26: migrace Party/Product/Invoice/Expense, RegisterController,
   InvoicePartyService, PartyApplicationService, ClientWriteData,
   SupplierWriteData, InvoicePrintDataBuilder, PrintableInvoiceData,
   ProductFormDataService, AresLookupController, ReferenceDataSeeder,
-  PermissionCatalog a současné QR providery.
+  PermissionCatalog a tehdejší QR providery. Některé uvedené třídy byly
+  v kroku 7 odstraněny nebo nahrazeny; aktuální cesty a testy uvádí VERIFICATION.
 - [Evropská komise: EPREL Supplier User Manual](https://ec.europa.eu/assets/move-ener/eprel/EPREL%20Compliance/User%20guides/Supplier/supplier-user-manual.html):
   EUID rozlišuje zemi, registr a číslo; podklad pro opatrnou mezinárodní identitu.
 - [GLEIF: Registration Authorities List](https://www.gleif.org/en/lei-data/code-lists/gleif-registration-authorities-list):
