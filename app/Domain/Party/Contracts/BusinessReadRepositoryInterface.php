@@ -38,6 +38,9 @@ interface BusinessReadRepositoryInterface
 
     public function countActiveForUser(UserId $userId): int;
 
+    /** Reads committed rows while the caller holds the user's activation lock, regardless of an earlier snapshot. */
+    public function countActiveForUserForUpdate(UserId $userId): int;
+
     public function findDefaultIdForUser(UserId $userId): ?BusinessId;
 
     /**

@@ -40,8 +40,8 @@ final class CapacityLimit
         $this->users->lockForUpdate($owner);
 
         $active = match ($type) {
-            EntityType::BUSINESS => $this->businesses->countActiveForUser($owner),
-            EntityType::CONTACT => $this->contacts->countActiveForUser($owner),
+            EntityType::BUSINESS => $this->businesses->countActiveForUserForUpdate($owner),
+            EntityType::CONTACT => $this->contacts->countActiveForUserForUpdate($owner),
         };
         $limit = $this->limits->getUserLimit(
             $owner->toInt(),

@@ -54,10 +54,20 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
 
     public function countActiveForUser(UserId $userId): int
     {
-        return Business::query()
-            ->where('user_id', $userId->toInt())
-            ->whereNull('archived_at')
-            ->count();
+        return $this->records->countActiveForUser(
+            Business::query(),
+            $userId,
+            false,
+        );
+    }
+
+    public function countActiveForUserForUpdate(UserId $userId): int
+    {
+        return $this->records->countActiveForUser(
+            Business::query(),
+            $userId,
+            true,
+        );
     }
 
     public function findDefaultIdForUser(UserId $userId): ?BusinessId

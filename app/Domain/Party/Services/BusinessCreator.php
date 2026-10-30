@@ -43,7 +43,7 @@ final class BusinessCreator
         ?BankAccountWriteData $firstAccount,
     ): BusinessDTO {
         $this->capacity->assertCanActivate($userId, EntityType::BUSINESS);
-        $isFirstActive = $this->businesses->countActiveForUser($userId) === 0;
+        $isFirstActive = $this->businesses->countActiveForUserForUpdate($userId) === 0;
 
         $business = $this->businessWriter->create($userId, $data);
 

@@ -29,6 +29,21 @@ final class PartyRecords
 {
     private const DUPLICATE_KEY_ERROR = 1062;
 
+    /** @param Builder<Business>|Builder<Contact> $query */
+    public function countActiveForUser(
+        Builder $query,
+        UserId $userId,
+        bool $forUpdate,
+    ): int {
+        $query->where('user_id', $userId->toInt())->whereNull('archived_at');
+        if ($forUpdate) {
+            // The owner lock serializes activations; a locking read also sees commits after an earlier snapshot.
+            $query->lockForUpdate();
+        }
+
+        return $query->count();
+    }
+
     /**
      * @template T of Business|Contact
      *

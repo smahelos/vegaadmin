@@ -121,7 +121,7 @@ final class BusinessApplicationService
             }
 
             $this->capacity->assertCanActivate($userId, EntityType::BUSINESS);
-            $isFirstActive = $this->businesses->countActiveForUser($userId) === 0;
+            $isFirstActive = $this->businesses->countActiveForUserForUpdate($userId) === 0;
 
             $this->businessWriter->restore($id);
             $this->events->publish(new BusinessRestored($id, $userId));

@@ -33,6 +33,9 @@ interface ContactReadRepositoryInterface
 
     public function countActiveForUser(UserId $userId): int;
 
+    /** Reads committed rows while the caller holds the user's activation lock, regardless of an earlier snapshot. */
+    public function countActiveForUserForUpdate(UserId $userId): int;
+
     /**
      * The user's contacts, archived included, that share the company number, name or email with the profile;
      * which of them are duplicates is decided by DuplicateFinder.

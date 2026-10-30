@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\Party\Services;
 
+use App\Application\Party\Services\BusinessApplicationService;
 use App\Application\Party\Services\ContactApplicationService;
+use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\DTO\ContactWriteData;
+use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use PDO;
 use PDOException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsParties;
 use Tests\TestCase;
@@ -43,6 +50,121 @@ final class CapacityLimitTest extends TestCase
         $this->assertSame(self::LOCK_WAIT_TIMEOUT, $this->lockError($other, $probe));
     }
 
+    /** @return iterable<string, array{bool, bool}> */
+    public static function activations(): iterable
+    {
+        yield 'create contact' => [false, false];
+        yield 'restore contact' => [false, true];
+        yield 'create business' => [true, false];
+        yield 'restore business' => [true, true];
+    }
+
+    #[Test]
+    #[DataProvider('activations')]
+    public function activation_checks_the_committed_capacity_after_an_earlier_snapshot(bool $business, bool $restore): void
+    {
+        $other = $this->secondConnection();
+        $ownerId = $this->committedUser($other);
+        $table = $business ? 'businesses' : 'contacts';
+        $permission = $business ? 'limit_active_businesses_basic' : 'limit_active_contacts_basic';
+        $limitQuery = $other->prepare('SELECT limit_value FROM entity_limits WHERE permission_name = ? AND is_active = 1');
+        $limitQuery->execute([$permission]);
+        $limit = (int) $limitQuery->fetchColumn();
+        $this->assertGreaterThan(0, $limit);
+        $insert = $other->prepare('INSERT INTO ' . $table . ' (user_id, name, archived_at) VALUES (?, ?, ?)');
+        $archived = [];
+        for ($i = 0; $i <= $limit; $i++) {
+            $isArchived = $i >= $limit - 1;
+            $insert->execute([
+                $ownerId,
+                'Capacity candidate ' . $i,
+                $isArchived ? '2026-01-01 00:00:00' : null,
+            ]);
+            if ($isArchived) {
+                $archived[] = (int) $other->lastInsertId();
+            }
+        }
+        User::query()->findOrFail($ownerId)->assignRole('frontend_user');
+        $this->assertSame($limit - 1, DB::table($table)->where('user_id', $ownerId)->whereNull('archived_at')->count());
+
+        // The competing request commits after this transaction established its consistent-read snapshot.
+        $other->beginTransaction();
+        $other->query('SELECT id FROM users WHERE id = ' . $ownerId . ' FOR UPDATE')->fetchAll();
+        $other->exec('UPDATE ' . $table . ' SET archived_at = NULL WHERE id = ' . $archived[1]);
+        $other->commit();
+
+        $this->expectException(EntityLimitExceededException::class);
+        $userId = UserId::fromInt($ownerId);
+        if ($business) {
+            $service = $this->app->make(BusinessApplicationService::class);
+            if ($restore) {
+                $service->restore($userId, BusinessId::fromInt($archived[0]));
+            } else {
+                $service->create(
+                    $userId,
+                    new BusinessWriteData($this->profile(), null),
+                    null,
+                );
+            }
+        } else {
+            $service = $this->app->make(ContactApplicationService::class);
+            if ($restore) {
+                $service->restore($userId, ContactId::fromInt($archived[0]));
+            } else {
+                $service->create($userId, new ContactWriteData($this->profile(), null));
+            }
+        }
+    }
+
+    /** @return iterable<string, array{bool}> */
+    public static function businessActivations(): iterable
+    {
+        yield 'create' => [false];
+        yield 'restore' => [true];
+    }
+
+    #[Test]
+    #[DataProvider('businessActivations')]
+    public function an_earlier_empty_snapshot_does_not_replace_a_concurrently_selected_default(bool $restore): void
+    {
+        $other = $this->secondConnection();
+        $ownerId = $this->committedUser($other);
+        $insert = $other->prepare('INSERT INTO businesses (user_id, name, archived_at) VALUES (?, ?, ?)');
+        $insert->execute([
+            $ownerId,
+            'Archived business',
+            '2026-01-01 00:00:00',
+        ]);
+        $archivedId = (int) $other->lastInsertId();
+        User::query()->findOrFail($ownerId)->assignRole('frontend_user');
+        $this->assertSame(0, DB::table('businesses')->where('user_id', $ownerId)->whereNull('archived_at')->count());
+
+        $other->beginTransaction();
+        $other->query('SELECT id FROM users WHERE id = ' . $ownerId . ' FOR UPDATE')->fetchAll();
+        $insert->execute([
+            $ownerId,
+            'Concurrent first business',
+            null,
+        ]);
+        $defaultId = (int) $other->lastInsertId();
+        $other->exec('UPDATE users SET default_business_id = ' . $defaultId . ' WHERE id = ' . $ownerId);
+        $other->commit();
+
+        $service = $this->app->make(BusinessApplicationService::class);
+        $userId = UserId::fromInt($ownerId);
+        if ($restore) {
+            $service->restore($userId, BusinessId::fromInt($archivedId));
+        } else {
+            $service->create(
+                $userId,
+                new BusinessWriteData($this->profile(), null),
+                null,
+            );
+        }
+
+        $this->assertSame($defaultId, DB::table('users')->where('id', $ownerId)->lockForUpdate()->value('default_business_id'));
+    }
+
     private function secondConnection(): PDO
     {
         $config = config('database.connections.' . config('database.default'));
@@ -69,6 +191,9 @@ final class CapacityLimitTest extends TestCase
         $id = (int) $connection->lastInsertId();
 
         $this->beforeApplicationDestroyed(function () use ($connection, $id): void {
+            $connection->exec("UPDATE users SET default_business_id = NULL WHERE id = {$id}");
+            $connection->exec("DELETE FROM contacts WHERE user_id = {$id}");
+            $connection->exec("DELETE FROM businesses WHERE user_id = {$id}");
             $connection->exec("DELETE FROM users WHERE id = {$id}");
         });
 

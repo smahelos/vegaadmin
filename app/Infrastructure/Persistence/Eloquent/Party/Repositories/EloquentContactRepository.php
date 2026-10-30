@@ -36,10 +36,20 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
 
     public function countActiveForUser(UserId $userId): int
     {
-        return Contact::query()
-            ->where('user_id', $userId->toInt())
-            ->whereNull('archived_at')
-            ->count();
+        return $this->records->countActiveForUser(
+            Contact::query(),
+            $userId,
+            false,
+        );
+    }
+
+    public function countActiveForUserForUpdate(UserId $userId): int
+    {
+        return $this->records->countActiveForUser(
+            Contact::query(),
+            $userId,
+            true,
+        );
     }
 
     public function listLatestActiveForUser(UserId $userId, int $limit): array
