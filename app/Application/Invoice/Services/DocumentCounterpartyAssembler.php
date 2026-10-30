@@ -22,6 +22,7 @@ final class DocumentCounterpartyAssembler
         ContactId $contactId,
         DocumentPartyDTO $entered,
         ?ContactId $storedContactId,
+        ?DocumentPartyDTO $storedParty,
         bool $copyContact,
     ): DocumentPartyDTO {
         $contact = $this->contacts->findByIdForUser($contactId, $userId) ?? throw new ContactNotFoundException($contactId);
@@ -31,8 +32,11 @@ final class DocumentCounterpartyAssembler
         }
         if ($copyContact && ! $sameContact) {
             $entered = DocumentPartyDTO::fromProfile($contact->profile);
-        } elseif (! $copyContact && ! $entered->hasIdentityOf($contact->profile)) {
-            throw new ContactIdentityChangedException($contactId);
+        } elseif (! $entered->hasIdentityOf($contact->profile)) {
+            // An address-book correction must not force a change to the document's stored identity.
+            if (! $sameContact || $storedParty === null || ! $entered->hasIdentityOf($storedParty->toProfile())) {
+                throw new ContactIdentityChangedException($contactId);
+            }
         }
         if ($copyContact && (! $entered->hasCompleteAddress() || trim($entered->name) === '')) {
             throw new IncompleteDocumentPartyException;

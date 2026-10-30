@@ -230,6 +230,30 @@ final class InvoicePartiesAssemblerTest extends TestCase
         );
     }
 
+    #[Test]
+    public function a_contact_identity_correction_does_not_require_changing_the_stored_customer(): void
+    {
+        $business = $this->businessWithAddress();
+        $contact = Contact::factory()->create(['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER]);
+        $selection = $this->selection($business, contact: $contact);
+        $stored = $this->assembler->assemble(
+            $this->idOf($this->user),
+            $selection,
+            null,
+        );
+        $contact->update(['company_number' => self::OTHER_NUMBER]);
+
+        $kept = $this->assembler->assemble(
+            $this->idOf($this->user),
+            $selection,
+            $stored,
+        );
+
+        $this->assertSame($stored->customer, $kept->customer);
+        $this->assertSame($contact->id, $kept->contactId?->value);
+        $this->assertSame(self::OTHER_NUMBER, $contact->fresh()->company_number);
+    }
+
     /**
      * @param  array<string, string>  $attributes
      */

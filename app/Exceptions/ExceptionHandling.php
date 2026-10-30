@@ -121,7 +121,7 @@ class ExceptionHandling
         ));
         $exceptions->render(fn (ContactIdentityChangedException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
             $request,
-            'customer_company_number',
+            $request->routeIs('expense.*') ? 'supplier_company_number' : 'customer_company_number',
             __('parties.validation.contact_identity_changed'),
         ));
 

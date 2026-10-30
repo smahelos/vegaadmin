@@ -121,8 +121,12 @@ final class DocumentSupplierLogoTest extends TestCase
         $contact->update(['logo' => null]);
         [$secondBusiness] = $this->issuerOf($this->adminUser);
         $data['business_id'] = $secondBusiness->id;
+        // Editing the saved form submits its copied supplier identity.
+        $data['supplier_company_number'] = $expense->supplier_company_number;
+        $data['supplier_registration_country'] = $expense->supplier_registration_country;
         $this->put('/admin/expense/' . $expense->id, $data)->assertSessionHasNoErrors();
         $this->assertSame($copy, $expense->fresh()->supplier_logo);
+        $this->assertSame($contact->company_number, $expense->fresh()->supplier_company_number);
         Storage::disk('public')->assertExists($copy);
     }
 

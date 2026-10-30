@@ -11,11 +11,15 @@ use App\Models\Expense;
 use App\Models\Invoice;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\BuildsExpenseInput;
+use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 final class AdminDocumentSnapshotsTest extends TestCase
 {
+    use BuildsExpenseInput;
+    use BuildsInvoiceInput;
     use CreatesAdminTestEnvironment;
 
     protected function setUp(): void
@@ -29,6 +33,86 @@ final class AdminDocumentSnapshotsTest extends TestCase
     public static function documents(): array
     {
         return ['invoice' => ['invoice', 'customer'], 'expense' => ['expense', 'supplier']];
+    }
+
+    #[Test]
+    #[DataProvider('documents')]
+    public function changing_the_counterparty_identity_requires_another_contact_or_a_one_off_party(string $type, string $role): void
+    {
+        [$business, $account] = $this->issuerOf($this->adminUser);
+        $contact = Contact::factory()->create([
+            'user_id' => $this->adminUser->id,
+            'registration_country' => 'DE',
+            'company_number' => 'HRB 123',
+        ]);
+        $model = $type === 'invoice' ? Invoice::class : Expense::class;
+        $document = $model::factory()->create([
+            'user_id' => $this->adminUser->id,
+            'business_id' => $business->id,
+            'contact_id' => $contact->id,
+            $role . '_registration_country' => 'DE',
+            $role . '_company_number' => 'HRB 123',
+        ]);
+        $data = $type === 'invoice'
+            ? $this->invoiceInput(
+                $business,
+                $account,
+                ['invoice_vs' => $document->invoice_vs, 'payment_amount' => '0'],
+            )
+            : $this->expenseInput($business);
+        $data['user_id'] = $this->adminUser->id;
+        $data['contact_id'] = $contact->id;
+        $data[$role . '_registration_country'] = 'DE';
+        $data[$role . '_company_number'] = 'HRB 999';
+
+        $this->put('/admin/' . $type . '/' . $document->id, $data)->assertSessionHasErrors($role . '_company_number');
+        $this->assertSame('HRB 123', $document->fresh()->getAttribute($role . '_company_number'));
+        $this->assertSame($contact->id, $document->fresh()->contact_id);
+
+        $data['contact_id'] = null;
+        $this->put('/admin/' . $type . '/' . $document->id, $data)->assertSessionHasNoErrors();
+        $this->assertSame('HRB 999', $document->fresh()->getAttribute($role . '_company_number'));
+        $this->assertNull($document->fresh()->contact_id);
+    }
+
+    #[Test]
+    #[DataProvider('documents')]
+    public function a_contact_identity_correction_preserves_the_documents_historical_identity(string $type, string $role): void
+    {
+        [$business, $account] = $this->issuerOf($this->adminUser);
+        $contact = Contact::factory()->create([
+            'user_id' => $this->adminUser->id,
+            'registration_country' => 'DE',
+            'company_number' => 'HRB 999',
+            'archived_at' => now(),
+        ]);
+        $model = $type === 'invoice' ? Invoice::class : Expense::class;
+        $document = $model::factory()->create([
+            'user_id' => $this->adminUser->id,
+            'business_id' => $business->id,
+            'contact_id' => $contact->id,
+            $role . '_registration_country' => 'DE',
+            $role . '_company_number' => 'HRB 123',
+        ]);
+        $data = $type === 'invoice'
+            ? $this->invoiceInput(
+                $business,
+                $account,
+                ['invoice_vs' => $document->invoice_vs, 'payment_amount' => '0'],
+            )
+            : $this->expenseInput($business);
+        $data['user_id'] = $this->adminUser->id;
+        $data['contact_id'] = $contact->id;
+        $data[$role . '_registration_country'] = 'DE';
+        $data[$role . '_company_number'] = 'HRB 123';
+        $data[$role . '_name'] = 'Document-only correction';
+
+        $this->put('/admin/' . $type . '/' . $document->id, $data)->assertSessionHasNoErrors();
+
+        $this->assertSame('HRB 123', $document->fresh()->getAttribute($role . '_company_number'));
+        $this->assertSame('Document-only correction', $document->fresh()->getAttribute($role . '_name'));
+        $this->assertSame($contact->id, $document->fresh()->contact_id);
+        $this->assertSame('HRB 999', $contact->fresh()->company_number);
     }
 
     #[Test]

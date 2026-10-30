@@ -37,6 +37,7 @@ final class ExpensePartiesAssembler
             $data->contactId,
             $data->supplier,
             $stored?->contactId,
+            $stored?->supplier,
             true,
         );
 

@@ -78,6 +78,7 @@ final class InvoicePartiesAssembler
                 $contactId,
                 $customer,
                 $stored?->contactId,
+                $stored?->customer,
                 $selection->copyContact,
             );
         } elseif ($selection->saveCustomerToContacts) {
