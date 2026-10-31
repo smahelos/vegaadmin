@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\Invoice\Contracts\ExpenseWriteRepositoryInterface;
 use App\Models\Address;
 use App\Models\BankAccount;
 use App\Models\Contact;
 use App\Models\EntityLimit;
 use App\Models\Expense;
+use App\Models\FileHash;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\Support\BuildsExpenseInput;
 use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
@@ -212,6 +218,68 @@ final class ExpenseCrudControllerTest extends TestCase
         ]);
         $this->post('/admin/expense', array_replace($data, ['reference_number' => 'blocked']))->assertRedirect();
         $this->assertDatabaseMissing('expenses', ['reference_number' => 'blocked']);
+    }
+
+    #[Test]
+    public function a_web_plan_allowance_is_consumed_when_an_admin_creates_an_expense(): void
+    {
+        $this->regularUser->assignRole(Role::findByName('frontend_user', 'web'));
+        $this->regularUser->givePermissionTo(Permission::findByName('frontend.can_create_edit_invoice', 'web'));
+        EntityLimit::factory()->create([
+            'entity_type' => 'expense',
+            'metric_type' => 'count',
+            'period_type' => 'monthly',
+            'limit_value' => 1,
+            'permission_name' => 'frontend.can_create_edit_invoice',
+            'is_active' => true,
+        ]);
+        [$business] = $this->issuerOf($this->regularUser);
+        $data = $this->expenseInput($business);
+        $this->post('/admin/expense', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseHas('entity_limit_usage', [
+            'user_id' => $this->regularUser->id,
+            'entity_type' => 'expense',
+            'current_value' => 1,
+        ]);
+        $this->post('/admin/expense', array_replace($data, ['reference_number' => 'WEB-BLOCKED']))->assertRedirect();
+        $this->assertDatabaseMissing('expenses', ['reference_number' => 'WEB-BLOCKED']);
+    }
+
+    #[Test]
+    public function a_failed_expense_keeps_a_deduplicated_attachment_and_removes_only_new_files(): void
+    {
+        Storage::fake('public');
+        [$business] = $this->issuerOf($this->adminUser);
+        $data = $this->expenseInput($business);
+        $receipt = '%PDF-1.4 shared receipt';
+        $this->post('/admin/expense', $data + [
+            'attachments' => [UploadedFile::fake()->createWithContent('receipt.pdf', $receipt)],
+        ])->assertSessionHasNoErrors();
+        $expense = Expense::where('reference_number', $data['reference_number'])->sole();
+        $path = $expense->attachments[0];
+        $this->assertDatabaseHas('file_hashes', ['path' => $path, 'ref_count' => 1]);
+        $this->mock(ExpenseWriteRepositoryInterface::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('create')->once()->andThrow(new RuntimeException('Persistence failed'));
+        });
+        $this->withoutExceptionHandling();
+        try {
+            $this->post('/admin/expense', array_replace($data, [
+                'reference_number' => 'FAILED',
+                'attachments' => [
+                    UploadedFile::fake()->createWithContent('receipt.pdf', $receipt),
+                    UploadedFile::fake()->createWithContent('new.pdf', '%PDF-1.4 new receipt'),
+                ],
+            ]));
+            $this->fail('The expense write did not fail');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Persistence failed', $exception->getMessage());
+        }
+        Storage::disk('public')->assertExists($path);
+        $this->assertSame([$path], Storage::disk('public')->allFiles('expenses/attachments'));
+        $this->assertSame([$path], $expense->fresh()->attachments);
+        $this->assertDatabaseHas('file_hashes', ['path' => $path, 'ref_count' => 1]);
+        $this->assertSame(1, FileHash::count());
+        $this->assertDatabaseMissing('expenses', ['reference_number' => 'FAILED']);
     }
 
     #[Test]

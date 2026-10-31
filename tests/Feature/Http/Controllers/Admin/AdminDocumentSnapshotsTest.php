@@ -155,14 +155,17 @@ final class AdminDocumentSnapshotsTest extends TestCase
     public function a_validation_redirect_keeps_the_stored_reference_separate_from_the_new_selection(string $type, string $role): void
     {
         $contact = Contact::factory()->create(['user_id' => $this->adminUser->id]);
-        $changed = Contact::factory()->create(['user_id' => $this->adminUser->id]);
+        $changed = Contact::factory()->create([
+            'user_id' => $this->adminUser->id,
+            'name' => "O'Conner & Sons <Trading>",
+        ]);
         $model = $type === 'invoice' ? Invoice::class : Expense::class;
         $document = $model::factory()->create(['user_id' => $this->adminUser->id, 'contact_id' => $contact->id]);
 
         $this->withSession(['_old_input' => ['contact_id' => $changed->id, $role . '_name' => 'Typed before validation']])
             ->get('/admin/' . $type . '/' . $document->id . '/edit')->assertOk()
             ->assertSee('value="Typed before validation"', false)
-            ->assertSee('<option value="' . $changed->id . '" selected>' . $changed->name . '</option>', false)
+            ->assertSee('<option value="' . $changed->id . '" selected>' . e($changed->name) . '</option>', false)
             ->assertSee('data-stored-reference-id="' . $contact->id . '"', false);
     }
 }

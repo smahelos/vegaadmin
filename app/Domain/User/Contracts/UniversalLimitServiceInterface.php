@@ -34,7 +34,7 @@ interface UniversalLimitServiceInterface
      *
      * @param  int|null  $userId  User ID (null for anonymous users)
      * @param  string  $periodType  Period type
-     * @param  string  $guard  Guard name for permission checking
+     * @param  string|null  $guard  Explicit guard, or null to use the owner's configured limit
      * @return bool True on success, false on failure
      */
     public function recordUsage(
@@ -42,7 +42,7 @@ interface UniversalLimitServiceInterface
         string $entityType,
         string $metricType = 'count',
         ?string $periodType = null,
-        string $guard = 'web',
+        ?string $guard = 'web',
         int|float $value = 1,
     ): bool;
 

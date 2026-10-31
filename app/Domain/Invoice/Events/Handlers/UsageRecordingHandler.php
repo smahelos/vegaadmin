@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Invoice\Events\Handlers;
 
 use App\Domain\Invoice\Events\ExpenseCreated;
@@ -17,7 +19,7 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface;
  * Handles:
  * - InvoiceCreated: Record invoice usage
  */
-class UsageRecordingHandler implements DomainEventHandler
+final class UsageRecordingHandler implements DomainEventHandler
 {
     public function __construct(
         private readonly UniversalLimitServiceInterface $limitService,
@@ -32,7 +34,7 @@ class UsageRecordingHandler implements DomainEventHandler
                 'invoice',
                 'count',
                 null, // Let service determine best period type
-                'web',
+                null,
                 1,
             ),
             ExpenseCreated::class => $this->limitService->recordUsage(
@@ -40,7 +42,7 @@ class UsageRecordingHandler implements DomainEventHandler
                 'expense',
                 'count',
                 null,
-                'backpack',
+                null,
                 1,
 
             ),

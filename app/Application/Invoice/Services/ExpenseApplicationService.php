@@ -168,7 +168,11 @@ final class ExpenseApplicationService
             $saved = true;
         } finally {
             foreach ($saved ? $removed : $uploaded as $path) {
-                $this->files->deleteFile($path, 'public');
+                if ($saved) {
+                    $this->files->deleteFile($path, 'public');
+                } else {
+                    $this->files->discardRolledBackUpload($path, 'public');
+                }
             }
         }
 

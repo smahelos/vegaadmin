@@ -36,6 +36,7 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
         array $data,
         InvoicePartySelection $parties,
         array $products,
+        ?UserId $actorId = null,
     ): InvoiceActionResult {
         try {
             $invoice = $this->invoiceCrud->create(
@@ -43,6 +44,7 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
                 $data,
                 $parties,
                 $products,
+                $actorId,
             );
 
             // Convert DTO back to Eloquent model for compatibility

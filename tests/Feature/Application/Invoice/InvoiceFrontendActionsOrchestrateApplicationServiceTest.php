@@ -54,7 +54,7 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
                 string $entityType,
                 string $metricType = 'count',
                 ?string $periodType = 'daily',
-                string $guard = 'web',
+                ?string $guard = 'web',
                 int|float $value = 1,
             ): bool {
                 return true;

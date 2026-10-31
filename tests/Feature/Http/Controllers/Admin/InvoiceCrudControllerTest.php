@@ -7,16 +7,21 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Address;
 use App\Models\Contact;
+use App\Models\EntityLimit;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
+use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Role;
+use Tests\Support\BuildsBackendUsers;
 use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 final class InvoiceCrudControllerTest extends TestCase
 {
+    use BuildsBackendUsers;
     use BuildsInvoiceInput;
     use CreatesAdminTestEnvironment;
 
@@ -25,6 +30,47 @@ final class InvoiceCrudControllerTest extends TestCase
         parent::setUp();
         $this->setUpAdminTestEnvironment();
         $this->actingAs($this->adminUser, 'backpack');
+    }
+
+    #[Test]
+    public function admin_creation_consumes_the_owners_allowance_and_then_refuses_another_invoice(): void
+    {
+        $owner = User::factory()->create();
+        $owner->assignRole(Role::findByName('frontend_user', 'web'));
+        EntityLimit::where('entity_type', 'invoice')->update(['limit_value' => 1]);
+        [$business, $account] = $this->issuerOf($owner);
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            ['user_id' => $owner->id, 'payment_amount' => '100'],
+        );
+        $this->actingAs($this->backendUser('can_create_invoice'), 'backpack');
+        $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseHas('invoices', ['invoice_vs' => $data['invoice_vs']]);
+        $this->assertDatabaseHas('entity_limit_usage', [
+            'user_id' => $owner->id,
+            'entity_type' => 'invoice',
+            'current_value' => 1,
+        ]);
+        $this->post('/admin/invoice', array_replace($data, ['invoice_vs' => 'BLOCKED']))->assertRedirect();
+        $this->assertDatabaseMissing('invoices', ['invoice_vs' => 'BLOCKED']);
+    }
+
+    #[Test]
+    public function an_owner_without_a_limit_requires_the_explicit_admin_unlimited_permission(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            ['user_id' => $this->regularUser->id, 'payment_amount' => '100'],
+        );
+        $this->actingAs($this->backendUser('can_create_invoice'), 'backpack');
+        $this->post('/admin/invoice', $data)->assertRedirect();
+        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
+        $this->actingAs($this->backendUser('can_create_invoice', 'can_create_invoice_unlimited'), 'backpack');
+        $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseHas('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
 
     #[Test]

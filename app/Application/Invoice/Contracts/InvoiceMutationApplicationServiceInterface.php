@@ -5,6 +5,7 @@ namespace App\Application\Invoice\Contracts;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\User\ValueObjects\UserId;
 
 interface InvoiceMutationApplicationServiceInterface
 {
@@ -17,6 +18,7 @@ interface InvoiceMutationApplicationServiceInterface
         array $data,
         InvoicePartySelection $parties,
         array $products,
+        ?UserId $actorId = null,
     ): InvoiceActionResult;
 
     /**

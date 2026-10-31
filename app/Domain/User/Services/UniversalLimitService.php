@@ -123,7 +123,7 @@ class UniversalLimitService implements UniversalLimitServiceInterface
         string $entityType,
         string $metricType = 'count',
         ?string $periodType = null,
-        string $guard = 'web',
+        ?string $guard = 'web',
         int|float $value = 1,
     ): bool {
         if ($periodType === null) {
@@ -143,11 +143,22 @@ class UniversalLimitService implements UniversalLimitServiceInterface
         }
 
         // Check if user has permission for this entity type (using Infrastructure layer)
-        if (! $this->entityLimitUsageRepository->hasEntityPermission(
-            $userId,
-            $entityType,
-            $guard,
-        )) {
+        if ($guard === null) {
+            $hasPermission = $this->permissionResolver->getUserLimit(
+                $userId,
+                $entityType,
+                $metricType,
+                $periodType,
+            ) > 0;
+        } else {
+            $hasPermission = $this->entityLimitUsageRepository->hasEntityPermission(
+                $userId,
+                $entityType,
+                $guard,
+            );
+        }
+
+        if (! $hasPermission) {
             $this->logger->log(
                 'warning',
                 'UELS: Attempted to record usage without permission',
