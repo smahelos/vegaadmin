@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Models;
 
-use App\Models\Client;
-use App\Models\Supplier;
+use App\Models\Business;
+use App\Models\Contact;
+use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -16,9 +19,9 @@ use Tests\TestCase;
  * Feature tests for User Model
  *
  * Tests database relationships, business logic, and role-based functionality
- * Tests user interactions with clients, suppliers, and admin role functionality
+ * Tests user interactions with contacts, businesses, and admin role functionality
  */
-class UserFeatureTest extends TestCase
+final class UserFeatureTest extends TestCase
 {
     use WithFaker;
 
@@ -73,20 +76,20 @@ class UserFeatureTest extends TestCase
     }
 
     #[Test]
-    public function user_has_many_clients_relationship(): void
+    public function user_has_many_contacts_relationship(): void
     {
-        // Initially no clients
-        $this->assertInstanceOf(Collection::class, $this->user->clients);
-        $this->assertEmpty($this->user->clients);
+        // Initially no contacts
+        $this->assertInstanceOf(Collection::class, $this->user->contacts);
+        $this->assertEmpty($this->user->contacts);
 
-        // Create clients for the user
-        $client1 = Client::factory()->create([
+        // Create contacts for the user
+        $contact1 = Contact::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
         ]);
 
-        $client2 = Client::factory()->create([
+        $contact2 = Contact::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
@@ -96,31 +99,31 @@ class UserFeatureTest extends TestCase
         $this->user->refresh();
 
         // Assert relationship works
-        $this->assertCount(2, $this->user->clients()->get());
-        $this->assertTrue($this->user->clients->contains($client1));
-        $this->assertTrue($this->user->clients->contains($client2));
+        $this->assertCount(2, $this->user->contacts()->get());
+        $this->assertTrue($this->user->contacts->contains($contact1));
+        $this->assertTrue($this->user->contacts->contains($contact2));
 
-        // Assert all clients belong to this user
-        foreach ($this->user->clients as $client) {
-            $this->assertEquals($this->user->id, $client->user_id);
+        // Assert all contacts belong to this user
+        foreach ($this->user->contacts as $contact) {
+            $this->assertEquals($this->user->id, $contact->user_id);
         }
     }
 
     #[Test]
-    public function user_has_many_suppliers_relationship(): void
+    public function user_has_many_businesses_relationship(): void
     {
-        // Initially no suppliers
-        $this->assertInstanceOf(Collection::class, $this->user->suppliers);
-        $this->assertEmpty($this->user->suppliers);
+        // Initially no businesses
+        $this->assertInstanceOf(Collection::class, $this->user->businesses);
+        $this->assertEmpty($this->user->businesses);
 
-        // Create suppliers for the user
-        $supplier1 = Supplier::factory()->create([
+        // Create businesses for the user
+        $business1 = Business::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
         ]);
 
-        $supplier2 = Supplier::factory()->create([
+        $business2 = Business::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
@@ -130,27 +133,27 @@ class UserFeatureTest extends TestCase
         $this->user->refresh();
 
         // Assert relationship works
-        $this->assertCount(2, $this->user->suppliers()->get());
-        $this->assertTrue($this->user->suppliers->contains($supplier1));
-        $this->assertTrue($this->user->suppliers->contains($supplier2));
+        $this->assertCount(2, $this->user->businesses()->get());
+        $this->assertTrue($this->user->businesses->contains($business1));
+        $this->assertTrue($this->user->businesses->contains($business2));
 
-        // Assert all suppliers belong to this user
-        foreach ($this->user->suppliers as $supplier) {
-            $this->assertEquals($this->user->id, $supplier->user_id);
+        // Assert all businesses belong to this user
+        foreach ($this->user->businesses as $business) {
+            $this->assertEquals($this->user->id, $business->user_id);
         }
     }
 
     #[Test]
-    public function user_can_have_both_clients_and_suppliers(): void
+    public function user_can_have_both_contacts_and_businesses(): void
     {
-        // Create both clients and suppliers
-        $client = Client::factory()->create([
+        // Create both contacts and businesses
+        $contact = Contact::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
         ]);
 
-        $supplier = Supplier::factory()->create([
+        $business = Business::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
@@ -160,23 +163,23 @@ class UserFeatureTest extends TestCase
         $this->user->refresh();
 
         // Assert both relationships work
-        $this->assertCount(1, $this->user->clients()->get());
-        $this->assertCount(1, $this->user->suppliers()->get());
-        $this->assertTrue($this->user->clients->contains($client));
-        $this->assertTrue($this->user->suppliers->contains($supplier));
+        $this->assertCount(1, $this->user->contacts()->get());
+        $this->assertCount(1, $this->user->businesses()->get());
+        $this->assertTrue($this->user->contacts->contains($contact));
+        $this->assertTrue($this->user->businesses->contains($business));
     }
 
     #[Test]
     public function user_deletion_behavior_with_related_models(): void
     {
         // Create related models
-        $client = Client::factory()->create([
+        $contact = Contact::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
         ]);
 
-        $supplier = Supplier::factory()->create([
+        $business = Business::factory()->create([
             'user_id' => $this->user->id,
             'name' => $this->faker->company,
             'email' => $this->faker->unique()->companyEmail,
@@ -184,12 +187,12 @@ class UserFeatureTest extends TestCase
 
         $userId = $this->user->id;
 
-        // Users are soft deleted: the row stays, so clients and suppliers keep their owner
+        // Users are soft deleted: the row stays, so contacts and businesses keep their owner
         $this->user->delete();
 
         $this->assertSoftDeleted('users', ['id' => $userId]);
-        $this->assertSame($userId, Client::findOrFail($client->id)->user_id);
-        $this->assertSame($userId, Supplier::findOrFail($supplier->id)->user_id);
+        $this->assertSame($userId, Contact::findOrFail($contact->id)->user_id);
+        $this->assertSame($userId, Business::findOrFail($business->id)->user_id);
     }
 
     #[Test]
@@ -219,5 +222,13 @@ class UserFeatureTest extends TestCase
 
         $this->assertFalse($this->user->hasRole($this->adminRole));
         $this->assertTrue($this->user->hasRole($this->userRole));
+    }
+
+    #[Test]
+    public function invoices_belong_directly_to_the_user_including_one_off_customers(): void
+    {
+        $own = Invoice::factory()->create(['user_id' => $this->user->id, 'contact_id' => null]);
+        Invoice::factory()->create();
+        $this->assertSame([$own->id], $this->user->invoices()->pluck('id')->all());
     }
 }

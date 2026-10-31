@@ -20,9 +20,9 @@ final class StatisticsController extends Controller
         return response()->json(['data' => $this->statistics->monthlyRevenue($request->userId(), $request->filter())]);
     }
 
-    public function clientRevenue(StatisticsRequest $request): JsonResponse
+    public function customerRevenue(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statistics->clientRevenue($request->userId(), $request->filter())]);
+        return response()->json(['data' => $this->statistics->customerRevenue($request->userId(), $request->filter())]);
     }
 
     public function invoiceStatus(StatisticsRequest $request): JsonResponse

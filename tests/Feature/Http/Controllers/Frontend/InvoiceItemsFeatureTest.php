@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Models\Client;
+use App\Models\BankAccount;
+use App\Models\Business;
 use App\Models\EntityLimit;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
-use App\Models\PaymentMethod;
-use App\Models\Status;
-use App\Models\Supplier;
 use App\Models\Tax;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
+use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
@@ -25,7 +22,11 @@ use Tests\Traits\CreatesFrontendTestEnvironment;
  */
 final class InvoiceItemsFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment;
+    use BuildsInvoiceInput, CreatesFrontendTestEnvironment;
+
+    private Business $business;
+
+    private BankAccount $account;
 
     protected function setUp(): void
     {
@@ -52,6 +53,7 @@ final class InvoiceItemsFeatureTest extends TestCase
                 'rate' => $rate,
             ]);
         }
+        [$this->business, $this->account] = $this->issuerOf($this->user);
         $this->actingAs($this->user, 'web');
     }
 
@@ -122,19 +124,15 @@ final class InvoiceItemsFeatureTest extends TestCase
      */
     private function invoiceData(array $items, string $number): array
     {
-        return [
-            'invoice_vs' => $number,
-            'client_id' => Client::factory()->create(['user_id' => $this->user->id])->id,
-            'supplier_id' => Supplier::factory()->create(['user_id' => $this->user->id])->id,
-            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->format('Y-m-d'),
-            'due_in' => 14,
-            'payment_amount' => 1,
-            'payment_currency' => 'CZK',
-            'invoice-products' => json_encode($items),
-        ];
+        return $this->invoiceInput(
+            $this->business,
+            $this->account,
+            [
+                'invoice_vs' => $number,
+                'payment_amount' => 1,
+                'invoice-products' => json_encode($items),
+            ],
+        );
     }
 
     /**
@@ -143,13 +141,6 @@ final class InvoiceItemsFeatureTest extends TestCase
      */
     private function item(array $overrides = []): array
     {
-        return $overrides + [
-            'name' => 'Consulting',
-            'quantity' => '1',
-            'unit' => 'hours',
-            'price' => '100',
-            'currency' => 'CZK',
-            'tax_rate' => '21',
-        ];
+        return $this->invoiceItem($overrides + ['tax_rate' => '21']);
     }
 }

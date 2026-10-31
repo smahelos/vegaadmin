@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Console\Commands;
 
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class DatabaseMonitorCommandFeatureTest extends TestCase
+final class DatabaseMonitorCommandFeatureTest extends TestCase
 {
     #[Test]
     public function command_executes_successfully(): void
@@ -14,6 +16,11 @@ class DatabaseMonitorCommandFeatureTest extends TestCase
         $exitCode = Artisan::call('db:monitor');
 
         $this->assertEquals(0, $exitCode);
+        $output = Artisan::output();
+        $this->assertStringNotContainsString('Unable to fetch user statistics', $output);
+        $this->assertStringNotContainsString('Error -', $output);
+        $this->assertStringContainsString('contacts_count:', $output);
+        $this->assertStringContainsString('businesses_count:', $output);
     }
 
     #[Test]

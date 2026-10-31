@@ -11,6 +11,10 @@ description: >-
 
 Runs what CI checks, so a PR does not fail on something a local run would have caught. Report results; fixing is a separate decision.
 
+Before the code checks, assess documentation impact using [the shared policy](../../../docs/DOCUMENTATION.md) and [the index](../../../docs/README.md). Read the relevant accepted requirements and ADRs; update affected maintained documents with the change, repair moved-file links, or state briefly why no documentation change is needed. Treat Proposed decisions as proposals. Documentation-only changes need link/content checks and validation of any edited configuration syntax, without application tests or PHP checks solely for Markdown.
+
+Store agent-created check logs, reports and helper scripts in `dev_docs/ai/tmp/<task>/`; use selectable output paths there. Fixed-output application diagnostics keep their configured paths. This convention is shared by Codex and Claude and does not change the application's runtime storage.
+
 1. **Container.** `docker ps --filter name=BILLEX-app --format '{{.Status}}'` shows `Up`. If not, tell the user and stop — never start or rebuild containers yourself.
 2. **Formatting.** `docker exec BILLEX-app vendor/bin/phpcs` and `docker exec BILLEX-app vendor/bin/pint --test` — what `.github/workflows/static-analysis.yml` runs. A failure is fixed by `vendor/bin/phpcbf` followed by `vendor/bin/pint`, never by hand (`rules/php.md`, Formatting).
 3. **Static analysis.** `docker exec BILLEX-app vendor/bin/phpstan analyse --memory-limit=4G` at the level in `phpstan.neon`. Report every error; an error is fixed in the code, never with a baseline or an ignore comment.

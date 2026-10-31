@@ -11,7 +11,6 @@ class ProductDTO
      * Domain Product read DTO. Relations are represented as lightweight arrays to avoid Eloquent leakage.
      * - tax: ['id'=>int, 'name'=>string, 'rate'=>float]|null
      * - category: ['id'=>int, 'name'=>string]|null
-     * - supplier: ['id'=>int, 'name'=>string]|null
      * - invoices: int[] of invoice IDs (or empty array)
      */
     public function __construct(
@@ -25,9 +24,6 @@ class ProductDTO
         public readonly ?int $category_id,
         /** @var array{id:int,name:string}|null */
         public readonly ?array $category,
-        public readonly ?int $supplier_id,
-        /** @var array{id:int,name:string}|null */
-        public readonly ?array $supplier,
         public readonly ?string $currency,
         public readonly ?int $tax_id,
         /** @var array{id:int,name:string,rate:float}|null */
@@ -63,8 +59,6 @@ class ProductDTO
             unit: ($data['unit'] ?? null) instanceof Unit ? $data['unit'] : Unit::fromInput($data['unit'] ?? null),
             category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
             category: isset($data['category']) && is_array($data['category']) ? $data['category'] : null,
-            supplier_id: isset($data['supplier_id']) ? (int) $data['supplier_id'] : null,
-            supplier: isset($data['supplier']) && is_array($data['supplier']) ? $data['supplier'] : null,
             currency: $data['currency'] ?? null,
             tax_id: isset($data['tax_id']) ? (int) $data['tax_id'] : null,
             tax: isset($data['tax']) && is_array($data['tax']) ? $data['tax'] : null,

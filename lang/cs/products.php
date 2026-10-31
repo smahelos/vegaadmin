@@ -10,7 +10,6 @@ return [
         'description' => 'Popis',
         'price' => 'Cena',
         'sku' => 'SKU',
-        'supplier_id' => 'Dodavatel',
         'category_id' => 'Kategorie',
         'tax_id' => 'Daň',
         'is_default' => 'Výchozí produkt',
@@ -31,7 +30,6 @@ return [
         'description' => '',
         'price' => '',
         'sku' => '',
-        'supplier_id' => '',
         'category_id' => '',
         'tax_id' => '',
         'is_default' => '',
@@ -42,7 +40,6 @@ return [
     ],
     'placeholders' => [
         'select_category' => 'Vyberte kategorii',
-        'select_supplier' => 'Vyberte dodavatele',
         'select_tax' => 'Vyberte daň',
         'select_image' => 'Vyberte obrázek',
         'select_product' => 'Vyberte produkt',
@@ -103,7 +100,6 @@ return [
     'tags' => [
         'product' => 'Produkt',
         'invoice' => 'Faktura',
-        'supplier' => 'Dodavatel',
         'category' => 'Kategorie',
         'tax' => 'Daň',
         'details' => 'Podrobnosti',

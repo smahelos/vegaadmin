@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-25T22:57:44+00:00",
+    "generated_at": "2026-10-30T16:53:58+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -82,6 +82,10 @@
                     "concrete": "App\\Infrastructure\\Shared\\Time\\IcuDateFormatter"
                 },
                 {
+                    "abstract": "App\\Domain\\Shared\\Geography\\Contracts\\CountryNamesInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Geography\\IntlCountryNames"
+                },
+                {
                     "abstract": "App\\Domain\\Shared\\Log\\Contracts\\LogInterface",
                     "concrete": "App\\Infrastructure\\Shared\\Log\\LaravelLogger"
                 },
@@ -136,10 +140,6 @@
                 {
                     "abstract": "App\\Application\\Shared\\Geography\\Contracts\\CountryApplicationServiceInterface",
                     "concrete": "App\\Application\\Shared\\Geography\\Services\\CountryApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Shared\\Geography\\Contracts\\LocaleApplicationServiceInterface",
-                    "concrete": "App\\Application\\Shared\\Geography\\Services\\LocaleApplicationService"
                 }
             ],
             "singleton": [
@@ -152,12 +152,8 @@
         "App\\Providers\\AnalyticsServiceProvider": {
             "bind": [
                 {
-                    "abstract": "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface",
-                    "concrete": "App\\Domain\\Analytics\\Services\\DashboardService"
-                },
-                {
-                    "abstract": "App\\Domain\\Analytics\\Contracts\\AnalyticsDtoReadRepository",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsDtoReadRepository"
+                    "abstract": "App\\Domain\\Analytics\\Contracts\\AnalyticsReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsRepository"
                 },
                 {
                     "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsRepository",
@@ -166,22 +162,6 @@
                 {
                     "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsApplicationServiceInterface",
                     "concrete": "App\\Application\\Analytics\\Services\\ApiStatisticsApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\DashboardApplicationServiceInterface",
-                    "concrete": "App\\Application\\Analytics\\Services\\DashboardApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\UserStatisticsPresenterInterface",
-                    "concrete": "App\\Application\\Analytics\\Presenters\\UserStatisticsPresenter"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\MonthlyStatPresenterInterface",
-                    "concrete": "App\\Application\\Analytics\\Presenters\\MonthlyStatPresenter"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\ClientTotalPresenterInterface",
-                    "concrete": "App\\Application\\Analytics\\Presenters\\ClientTotalPresenter"
                 }
             ],
             "singleton": []
@@ -226,6 +206,26 @@
                     "concrete": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder"
                 },
                 {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\DocumentLogoStorageInterface",
+                    "concrete": "App\\Infrastructure\\Storage\\Invoice\\PublicDocumentLogoStorage"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\ExpenseReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\ExpenseWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceListReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceListRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceReminderReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceReminderRepository"
+                },
+                {
                     "abstract": "App\\Domain\\Invoice\\Notifications\\Contracts\\InvoiceReminderNotifierInterface",
                     "concrete": "App\\Infrastructure\\Notifications\\Invoice\\LaravelInvoiceReminderNotifier"
                 },
@@ -267,7 +267,7 @@
                 },
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\InvoicePdfRendererInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\InvoicePdfRenderer"
+                    "concrete": "App\\Infrastructure\\Renderers\\Invoice\\InvoicePdfRenderer"
                 },
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\TemporaryInvoiceStoreInterface",
@@ -303,68 +303,35 @@
         "App\\Providers\\PartyServiceProvider": {
             "bind": [
                 {
-                    "abstract": "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface",
-                    "concrete": "App\\Domain\\Party\\Services\\InvoicePartyService"
+                    "abstract": "App\\Domain\\Party\\Contracts\\BusinessReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBusinessRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface",
-                    "concrete": "App\\Domain\\Party\\Validation\\PartyCreationValidator"
+                    "abstract": "App\\Domain\\Party\\Contracts\\BusinessWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBusinessRepository"
                 },
                 {
-                    "abstract": "App\\Application\\Party\\Contracts\\ClientReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository"
+                    "abstract": "App\\Domain\\Party\\Contracts\\ContactReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository"
                 },
                 {
-                    "abstract": "App\\Application\\Party\\Contracts\\ClientWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository"
+                    "abstract": "App\\Domain\\Party\\Contracts\\ContactWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Party\\Contracts\\ClientDtoReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository"
+                    "abstract": "App\\Domain\\Party\\Contracts\\BankAccountReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBankAccountRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Party\\Contracts\\ClientDtoWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository"
+                    "abstract": "App\\Domain\\Party\\Contracts\\BankAccountWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBankAccountRepository"
                 },
                 {
-                    "abstract": "App\\Application\\Party\\Contracts\\SupplierReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Contracts\\SupplierWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierDtoReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Party\\Contracts\\SupplierDtoWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Contracts\\PartyApplicationServiceInterface",
-                    "concrete": "App\\Application\\Party\\Services\\PartyApplicationService"
+                    "abstract": "App\\Domain\\Party\\Contracts\\CompanyRegistryInterface",
+                    "concrete": "App\\Infrastructure\\Gateways\\Party\\AresCompanyRegistry"
                 }
             ],
-            "singleton": [
-                {
-                    "abstract": "App\\Application\\Party\\Services\\PartyAuthorizationService",
-                    "concrete": "closure"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Mappers\\ClientArrayMapper",
-                    "concrete": "closure"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Mappers\\SupplierArrayMapper",
-                    "concrete": "closure"
-                },
-                {
-                    "abstract": "App\\Application\\Party\\Services\\PartyInputValidationService",
-                    "concrete": "closure"
-                }
-            ]
+            "singleton": []
         },
         "App\\Providers\\PaymentServiceProvider": {
             "bind": [
@@ -375,10 +342,6 @@
                 {
                     "abstract": "App\\Domain\\Payment\\Contracts\\SubscriptionPaymentServiceInterface",
                     "concrete": "App\\Domain\\Payment\\Services\\SubscriptionPaymentService"
-                },
-                {
-                    "abstract": "App\\Domain\\Payment\\Contracts\\BankServiceInterface",
-                    "concrete": "App\\Domain\\Payment\\Services\\BankService"
                 },
                 {
                     "abstract": "App\\Application\\Payment\\Contracts\\PaymentWriteRepositoryInterface",
@@ -421,10 +384,6 @@
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentMethodDtoRepository"
                 },
                 {
-                    "abstract": "App\\Application\\Payment\\Contracts\\BankRepository",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentBankRepository"
-                },
-                {
                     "abstract": "App\\Domain\\Payment\\Contracts\\BankDtoRepository",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentBankDtoRepository"
                 },
@@ -435,10 +394,6 @@
                 {
                     "abstract": "App\\Application\\Payment\\Contracts\\PaymentApplicationServiceInterface",
                     "concrete": "App\\Application\\Payment\\Services\\PaymentApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Payment\\Contracts\\BankApplicationServiceInterface",
-                    "concrete": "App\\Application\\Payment\\Services\\BankApplicationService"
                 }
             ],
             "singleton": [
@@ -449,10 +404,6 @@
                 {
                     "abstract": "App\\Infrastructure\\Providers\\Payment\\GoPayGateway",
                     "concrete": "closure"
-                },
-                {
-                    "abstract": "App\\Application\\Payment\\Mappers\\QrPaymentPayloadMapper",
-                    "concrete": "App\\Application\\Payment\\Mappers\\QrPaymentPayloadMapper"
                 }
             ]
         },
@@ -465,6 +416,10 @@
                 {
                     "abstract": "App\\Domain\\Product\\Validation\\ProductCreationValidator",
                     "concrete": "closure"
+                },
+                {
+                    "abstract": "App\\Domain\\Product\\Contracts\\CatalogProductReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentCatalogProductRepository"
                 },
                 {
                     "abstract": "App\\Application\\Product\\Contracts\\ProductRepositoryInterface",
@@ -588,38 +543,6 @@
                 "method": "bind"
             }
         },
-        "App\\Application\\Analytics\\Contracts\\ClientTotalPresenterInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Analytics\\Presenters\\ClientTotalPresenter",
-                "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Analytics\\Contracts\\DashboardApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Analytics\\Services\\DashboardApplicationService",
-                "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Analytics\\Contracts\\MonthlyStatPresenterInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Analytics\\Presenters\\MonthlyStatPresenter",
-                "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Analytics\\Contracts\\UserStatisticsPresenterInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Analytics\\Presenters\\UserStatisticsPresenter",
-                "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Application\\Content\\Contracts\\PageApplicationServiceInterface": {
             "status": "ok",
             "actual": {
@@ -711,7 +634,7 @@
         "App\\Application\\Invoice\\Contracts\\InvoicePdfRendererInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\InvoicePdfRenderer",
+                "implementation": "App\\Infrastructure\\Renderers\\Invoice\\InvoicePdfRenderer",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
@@ -761,54 +684,6 @@
             "actual": {
                 "implementation": "App\\Application\\Invoice\\Services\\TemporaryInvoiceStore",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Party\\Contracts\\ClientReadRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Party\\Contracts\\ClientWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Party\\Contracts\\PartyApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Party\\Services\\PartyApplicationService",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Party\\Contracts\\SupplierReadRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Party\\Contracts\\SupplierWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierRepository",
-                "provider": "App\\Providers\\PartyServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Payment\\Contracts\\BankApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Payment\\Services\\BankApplicationService",
-                "provider": "App\\Providers\\PaymentServiceProvider",
                 "method": "bind"
             }
         },
@@ -900,14 +775,6 @@
                 "method": "bind"
             }
         },
-        "App\\Application\\Shared\\Geography\\Contracts\\LocaleApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Shared\\Geography\\Services\\LocaleApplicationService",
-                "provider": "App\\Providers\\SharedServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Application\\Shared\\Money\\Contracts\\CurrencyApplicationServiceInterface": {
             "status": "ok",
             "actual": {
@@ -948,10 +815,10 @@
                 "method": "bind"
             }
         },
-        "App\\Domain\\Analytics\\Contracts\\DashboardServiceInterface": {
+        "App\\Domain\\Analytics\\Contracts\\AnalyticsReadRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Domain\\Analytics\\Services\\DashboardService",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentAnalyticsRepository",
                 "provider": "App\\Providers\\AnalyticsServiceProvider",
                 "method": "bind"
             }
@@ -980,6 +847,30 @@
                 "method": "bind"
             }
         },
+        "App\\Domain\\Invoice\\Contracts\\DocumentLogoStorageInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Storage\\Invoice\\PublicDocumentLogoStorage",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\ExpenseReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\ExpenseWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
         "App\\Domain\\Invoice\\Contracts\\InvoiceDtoReadRepositoryInterface": {
             "status": "ok",
             "actual": {
@@ -996,10 +887,26 @@
                 "method": "bind"
             }
         },
+        "App\\Domain\\Invoice\\Contracts\\InvoiceListReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceListRepository",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
         "App\\Domain\\Invoice\\Contracts\\InvoicePrintDataBuilderInterface": {
             "status": "ok",
             "actual": {
                 "implementation": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder",
+                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Invoice\\Contracts\\InvoiceReminderReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceReminderRepository",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
@@ -1020,59 +927,59 @@
                 "method": "bind"
             }
         },
-        "App\\Domain\\Party\\Contracts\\ClientDtoReadRepositoryInterface": {
+        "App\\Domain\\Party\\Contracts\\BankAccountReadRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBankAccountRepository",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Party\\Contracts\\ClientDtoWriteRepositoryInterface": {
+        "App\\Domain\\Party\\Contracts\\BankAccountWriteRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentClientDtoRepository",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBankAccountRepository",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Party\\Contracts\\InvoicePartyServiceInterface": {
+        "App\\Domain\\Party\\Contracts\\BusinessReadRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Domain\\Party\\Services\\InvoicePartyService",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBusinessRepository",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Party\\Contracts\\PartyCreationValidatorInterface": {
+        "App\\Domain\\Party\\Contracts\\BusinessWriteRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Domain\\Party\\Validation\\PartyCreationValidator",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentBusinessRepository",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Party\\Contracts\\SupplierDtoReadRepositoryInterface": {
+        "App\\Domain\\Party\\Contracts\\CompanyRegistryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository",
+                "implementation": "App\\Infrastructure\\Gateways\\Party\\AresCompanyRegistry",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Party\\Contracts\\SupplierDtoWriteRepositoryInterface": {
+        "App\\Domain\\Party\\Contracts\\ContactReadRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentSupplierDtoRepository",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Payment\\Contracts\\BankServiceInterface": {
+        "App\\Domain\\Party\\Contracts\\ContactWriteRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Domain\\Payment\\Services\\BankService",
-                "provider": "App\\Providers\\PaymentServiceProvider",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }
         },
@@ -1161,6 +1068,14 @@
             "actual": {
                 "implementation": "App\\Domain\\Payment\\Services\\SubscriptionPaymentService",
                 "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Product\\Contracts\\CatalogProductReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentCatalogProductRepository",
+                "provider": "App\\Providers\\ProductServiceProvider",
                 "method": "bind"
             }
         },
@@ -1256,6 +1171,14 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Shared\\File\\Processors\\GdImageProcessor",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Geography\\Contracts\\CountryNamesInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Geography\\IntlCountryNames",
                 "provider": "App\\Providers\\SharedServiceProvider",
                 "method": "bind"
             }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Traits;
 
 use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
@@ -9,7 +11,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
-class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
+final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
 {
     private SpatieAuthorizationAdapter $adapter;
 
@@ -19,8 +21,6 @@ class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
         $this->adapter = new SpatieAuthorizationAdapter;
 
         // Create required permissions/roles for backpack guard
-        Permission::firstOrCreate(['name' => 'can_view_client', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'can_create_edit_client', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'test.permission', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'another.permission', 'guard_name' => 'backpack']);
         Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
@@ -57,10 +57,10 @@ class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     public function has_backpack_view_permission_true_with_permission(): void
     {
         $user = User::factory()->create();
-        $viewPermission = Permission::where('name', 'can_view_client')->where('guard_name', 'backpack')->first();
+        $viewPermission = Permission::where('name', 'can_view_contact')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($viewPermission);
 
-        $this->assertTrue($this->adapter->hasBackpackViewPermission($user->id, 'client'));
-        $this->assertFalse($this->adapter->hasBackpackViewPermission($user->id, 'supplier'));
+        $this->assertTrue($this->adapter->hasBackpackViewPermission($user->id, 'contact'));
+        $this->assertFalse($this->adapter->hasBackpackViewPermission($user->id, 'business'));
     }
 }

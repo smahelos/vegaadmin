@@ -1,49 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Analytics\Services;
 
-use App\Application\Analytics\Contracts\ClientTotalPresenterInterface;
-use App\Application\Analytics\Contracts\DashboardApplicationServiceInterface;
-use App\Application\Analytics\Contracts\MonthlyStatPresenterInterface;
-use App\Application\Analytics\Contracts\UserStatisticsPresenterInterface;
-use App\Domain\Analytics\Contracts\DashboardServiceInterface;
+use App\Application\Analytics\DTO\DashboardDTO;
+use App\Domain\Analytics\DTO\CustomerTotalDTO;
+use App\Domain\Analytics\Services\DashboardService;
+use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\User\ValueObjects\UserId;
-use App\Models\User;
 
-/**
- * DashboardService (Analytics Domain)
- * Responsible for aggregated analytical metrics exposed to UI.
- */
-class DashboardApplicationService implements DashboardApplicationServiceInterface
+final class DashboardApplicationService
 {
-    public function __construct(
-        private readonly DashboardServiceInterface $dashboardService,
-        private readonly UserStatisticsPresenterInterface $statsPresenter,
-        private readonly MonthlyStatPresenterInterface $monthlyPresenter,
-        private readonly ClientTotalPresenterInterface $clientPresenter,
-    ) {}
+    public function __construct(private readonly DashboardService $dashboard, private readonly MoneyFormatterInterface $money) {}
 
-    /** {@inheritDoc} */
-    public function getDashboardData(User $user): array
+    public function getDashboardData(UserId $userId): DashboardDTO
     {
-        $userId = UserId::fromInt($user->id);
-        $stats = $this->dashboardService->getUserStatistics($userId);
-        $monthly = $this->dashboardService->getMonthlyStatistics($userId);
-        $clients = $this->dashboardService->getClientsWithInvoiceTotals($userId);
+        $statistics = $this->dashboard->getUserStatistics($userId);
 
-        return [
-            'statistics' => $stats,
-            'statistics_formatted' => $this->statsPresenter->present($stats),
-            'monthly_stats' => $monthly,
-            'monthly_stats_formatted' => array_map(
-                fn ($dto) => $this->monthlyPresenter->present($dto),
-                $monthly,
-            ),
-            'clients' => $clients,
-            'clients_formatted' => array_map(
-                fn ($dto) => $this->clientPresenter->present($dto),
-                $clients,
-            ),
-        ];
+        return new DashboardDTO(
+            $statistics,
+            array_values(array_filter(
+                $this->dashboard->getCustomersWithInvoiceTotals($userId),
+                static fn (CustomerTotalDTO $customer): bool => $customer->contactId !== null,
+            )),
+            $this->money->formatWithCode($statistics->totalAmount),
+        );
     }
 }

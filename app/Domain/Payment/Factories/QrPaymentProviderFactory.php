@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Payment\Factories;
 
 use App\Domain\Payment\Contracts\QrPaymentProviderInterface;
-use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Domain\Payment\Providers\QrPayment\CzechQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
+use InvalidArgumentException;
 
-class QrPaymentProviderFactory
+final class QrPaymentProviderFactory
 {
     /**
      * Available QR payment providers
@@ -59,7 +62,7 @@ class QrPaymentProviderFactory
      *
      * @param  string  $countryCode  ISO 3166-1 alpha-2 country code
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public static function createProvider(string $countryCode): QrPaymentProviderInterface
     {
@@ -71,86 +74,28 @@ class QrPaymentProviderFactory
             if (in_array($countryCode, array_keys(self::$ibanCountryMapping))) {
                 $countryCode = 'EU';
             } else {
-                throw new \InvalidArgumentException("Unsupported country code: {$countryCode}");
+                throw new InvalidArgumentException("Unsupported country code: {$countryCode}");
             }
         }
 
         $providerClass = self::$providers[$countryCode];
 
         if (! class_exists($providerClass)) {
-            throw new \InvalidArgumentException("Provider class not found: {$providerClass}");
+            throw new InvalidArgumentException("Provider class not found: {$providerClass}");
         }
 
         return new $providerClass;
     }
 
-    /**
-     * Auto-detect provider based on payment payload data
-     * Priority: 1. IBAN country 2. Currency 3. Default (CZ)
-     */
-    public static function autoDetectProvider(QrPaymentPayload $payload): QrPaymentProviderInterface
+    /** Prefer the validated account country; currency is only a fallback when no supported country is known. */
+    public static function autoDetectProvider(QrPaymentDTO $payload): QrPaymentProviderInterface
     {
-        // Priority 1: Detect from Country Code if provided
-        if (! empty($payload->countryCode) && self::hasProvider($payload->countryCode)) {
-            return self::createProvider($payload->countryCode);
+        $country = $payload->account?->country->value;
+        if ($country !== null && (self::hasProvider($country) || isset(self::$ibanCountryMapping[$country]))) {
+            return self::createProvider($country);
         }
 
-        // Priority 2: Detect from IBAN
-        if (! empty($payload->iban)) {
-            $ibanCountryCode = strtoupper(substr(preg_replace('/\s+/', '', $payload->iban), 0, 2));
-
-            if (isset(self::$ibanCountryMapping[$ibanCountryCode])) {
-                $providerCountryCode = self::$ibanCountryMapping[$ibanCountryCode];
-
-                try {
-                    return self::createProvider($providerCountryCode);
-                } catch (\InvalidArgumentException $e) {
-                    // Country not supported, continue
-                }
-            }
-        }
-
-        // Priority 3: Detect from currency (basic heuristic)
-        $currency = $payload->amount->getCurrency();
-        if (! empty($currency)) {
-            switch (strtoupper($currency)) {
-                case 'CZK':
-                    return self::createProvider('CZ');
-                case 'EUR':
-                    // EUR is used in many countries, prefer Slovak if we have Slovak bank details
-                    if (! empty($payload->bankCode) && self::isSlovakBankCode($payload->bankCode)) {
-                        return self::createProvider('SK');
-                    }
-
-                    return self::createProvider('EU');
-                default:
-                    return self::createProvider('CZ');
-            }
-        }
-
-        // Priority 3: Default to Czech provider
-        return self::createProvider('CZ');
-    }
-
-    /**
-     * Check if bank code belongs to Slovak bank
-     * This is a simplified check - in real implementation you'd have a complete list
-     */
-    private static function isSlovakBankCode(string $bankCode): bool
-    {
-        // Common Slovak bank codes (simplified list)
-        $slovakBankCodes = [
-            '0900', // Slovenska sporitelna
-            '1100', // Tatrabanka
-            '1111', // UniCredit Bank
-            '3100', // SLSP
-            '5200', // OTP Banka
-            '6500', // Postova banka
-            '7500', // CSOB
-            '8120', // CSOB
-        ];
-
-        return in_array($bankCode, $slovakBankCodes);
+        return self::createProvider($payload->amount->getCurrency() === 'EUR' ? 'EU' : 'CZ');
     }
 
     /**

@@ -6,8 +6,6 @@ import InvoiceItemManager from './invoice-item-manager';
 import InvoiceFormValidationExtended from './invoice-form-validation-extended';
 import InvoiceNumberGenerator from './invoice-number-generator';
 import GuestInvoiceModal from './guest-invoice-modal';
-import SupplierFormData from './supplier-form-data.js';
-import ClientFormData from './client-form-data.js';
 import CurrencyManager from './currency-manager.js';
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -92,42 +90,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Check if user is logged in to initialize client and supplier handling
     const isLoggedIn = document.getElementById('invoice-form')?.dataset.userLoggedIn === 'true';
-    
-    // Check if user is editing or creating invoice
-    const isEditing = document.getElementById('invoice-form')?.dataset.isEditing === 'true';
-    
-    // Initialize entity fields toggle with correct locale
-    const locale = document.querySelector('input[name="lang"]')?.value || 'cs';
-    
-    // Log all form elements to help with debugging
-    console.log('Diagnosing form elements...');
-    console.log('isLoggedIn:', isLoggedIn);
-    console.log('isEditing:', isEditing);
-    
-    if (isLoggedIn) {
-        if (isEditing) {
-            // Initialize module to preselect default supplier and handle supplier form data
-            console.log('Initializing supplier form data...');
-            SupplierFormData.init({ isEditMode: true });
-            // Initialize module to preselect default client and handle client form data
-            console.log('Initializing client form data...');
-            ClientFormData.init({ isEditMode: true });  
-        } else {
-            // Initialize module to preselect default supplier and handle supplier form data
-            console.log('Initializing supplier form data...');
-            SupplierFormData.init();
-            // Initialize module to preselect default client and handle client form data
-            console.log('Initializing client form data...');
-            ClientFormData.init();    
-        }
-    }
-    
+
     // Initialisation of the form validation with extended capabilities
     const validation = new InvoiceFormValidationExtended({
-        supplierRequired: document.querySelector('form')?.dataset.supplierRequired || 'Dodavatel je povinný',
-        clientRequired: document.querySelector('form')?.dataset.clientRequired || 'Zákazník je povinný',
         amountRequired: document.querySelector('form')?.dataset.amountRequired || 'Částka je povinná',
         amountNumeric: document.querySelector('form')?.dataset.amountNumeric || 'Částka musí být číslo',
         amountPositive: document.querySelector('form')?.dataset.amountPositive || 'Částka musí být kladná',

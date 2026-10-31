@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Application\Product;
 
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class ProductApplicationServiceMoneyFeatureTest extends TestCase
+final class ProductApplicationServiceMoneyFeatureTest extends TestCase
 {
     protected ProductApplicationServiceInterface $productApp;
 
@@ -52,7 +55,7 @@ class ProductApplicationServiceMoneyFeatureTest extends TestCase
             $user->id,
         );
 
-        $this->assertSame('20.50', $updated->price?->getAmount());
+        $this->assertTrue(Money::fromString('20.50', 'EUR')->equals($updated->price));
         $this->assertSame('EUR', $updated->price?->getCurrency());
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
@@ -14,8 +16,8 @@ use Illuminate\Support\Carbon;
  * @property-read string $user_name
  * @property-read string $user_email
  * @property-read int $total_invoices
- * @property-read int $total_clients
- * @property-read int $total_suppliers
+ * @property-read int $total_contacts
+ * @property-read int $total_businesses
  * @property-read int $total_products
  * @property-read Carbon|null $last_invoice_date
  * @property-read int $invoices_last_30_days
@@ -56,8 +58,8 @@ class UserActivitySummary extends Model
         'user_name',
         'user_email',
         'total_invoices',
-        'total_clients',
-        'total_suppliers',
+        'total_contacts',
+        'total_businesses',
         'total_products',
         'last_invoice_date',
         'invoices_last_30_days',
@@ -72,8 +74,8 @@ class UserActivitySummary extends Model
     protected $casts = [
         'last_invoice_date' => 'datetime',
         'total_invoices' => 'integer',
-        'total_clients' => 'integer',
-        'total_suppliers' => 'integer',
+        'total_contacts' => 'integer',
+        'total_businesses' => 'integer',
         'total_products' => 'integer',
         'invoices_last_30_days' => 'integer',
         'invoices_last_7_days' => 'integer',

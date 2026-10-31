@@ -200,44 +200,49 @@ final class ReferenceDataSeeder extends Seeder
     private const ARCHIVE_RETENTION_MONTHS = [
         'invoices' => 36,
         'invoice_products' => 36,
-        'clients' => 36,
-        'suppliers' => 36,
     ];
 
     /**
-     * Entity limits by permission: entity type, period and limit value.
+     * Entity limits by permission: entity type, period, metric and limit value. A count limit counts what was
+     * created in the period; an active limit counts the records that are not archived (businesses, contacts).
      *
-     * @var array<string, array{string, string, int}>
+     * @var array<string, array{string, string, string, int}>
      */
     private const ENTITY_LIMITS = [
         'limit_daily_invoices_basic' => [
             'invoice',
             'daily',
+            'count',
             3,
         ],
         'limit_weekly_invoices_basic' => [
             'invoice',
             'weekly',
+            'count',
             15,
         ],
         'limit_monthly_invoices_basic' => [
             'invoice',
             'monthly',
+            'count',
             10,
         ],
-        'limit_yearly_clients_basic' => [
-            'client',
-            'yearly',
+        'limit_active_businesses_basic' => [
+            'business',
+            'lifetime',
+            'active',
+            10,
+        ],
+        'limit_active_contacts_basic' => [
+            'contact',
+            'lifetime',
+            'active',
             16,
-        ],
-        'limit_yearly_suppliers_basic' => [
-            'supplier',
-            'yearly',
-            10,
         ],
         'limit_lifetime_products_basic' => [
             'product',
             'lifetime',
+            'count',
             5,
         ],
     ];
@@ -248,15 +253,15 @@ final class ReferenceDataSeeder extends Seeder
             'limit_daily_invoices_basic',
             'limit_weekly_invoices_basic',
             'limit_monthly_invoices_basic',
-            'limit_yearly_clients_basic',
-            'limit_yearly_suppliers_basic',
+            'limit_active_businesses_basic',
+            'limit_active_contacts_basic',
             'limit_lifetime_products_basic',
         ],
         'frontend_user_plus' => [
             'limit_weekly_invoices_basic',
             'limit_monthly_invoices_basic',
-            'limit_yearly_clients_basic',
-            'limit_yearly_suppliers_basic',
+            'limit_active_businesses_basic',
+            'limit_active_contacts_basic',
             'limit_lifetime_products_basic',
         ],
     ];
@@ -428,6 +433,7 @@ final class ReferenceDataSeeder extends Seeder
         foreach (self::ENTITY_LIMITS as $permission => [
             $entityType,
             $period,
+            $metric,
             $limit,
         ]) {
             Permission::findOrCreate($permission, 'web');
@@ -437,7 +443,7 @@ final class ReferenceDataSeeder extends Seeder
                     'permission_name' => $permission,
                     'entity_type' => $entityType,
                     'period_type' => $period,
-                    'metric_type' => 'count',
+                    'metric_type' => $metric,
                 ],
                 ['limit_value' => $limit, 'is_active' => 1],
             );

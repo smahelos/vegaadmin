@@ -1,14 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
-use App\Domain\Analytics\Events\AnalyticsDataChanged;
-use App\Domain\Analytics\Events\Handlers\InvalidateAnalyticsCache;
+use App\Domain\Invoice\Events\ExpenseCreated;
 use App\Domain\Invoice\Events\Handlers\UsageRecordingHandler as InvoiceUsageRecordingHandler;
 use App\Domain\Invoice\Events\InvoiceCreated;
-use App\Domain\Party\Events\ClientCreated;
-use App\Domain\Party\Events\Handlers\UsageRecordingHandler as PartyUsageRecordingHandler;
-use App\Domain\Party\Events\SupplierCreated;
 use App\Domain\Product\Events\Handlers\UsageRecordingHandler as ProductUsageRecordingHandler;
 use App\Domain\Product\Events\ProductCreated;
 use App\Domain\Shared\Events\DomainEventDispatcher;
@@ -21,7 +19,7 @@ use Illuminate\Support\ServiceProvider;
  * Registers all event handlers with the DomainEventDispatcher
  * to ensure proper event handling throughout the application.
  */
-class DomainEventsServiceProvider extends ServiceProvider
+final class DomainEventsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
@@ -45,15 +43,6 @@ class DomainEventsServiceProvider extends ServiceProvider
      */
     private function registerEventHandlers(DomainEventDispatcher $dispatcher): void
     {
-        // Usage Recording Handler - handles client/supplier creation usage tracking
-        $dispatcher->register(
-            [
-                ClientCreated::class,
-                SupplierCreated::class,
-            ],
-            app(PartyUsageRecordingHandler::class),
-        );
-
         // Usage Recording Handler - handles product creation usage tracking
         $dispatcher->register(
             [
@@ -66,16 +55,10 @@ class DomainEventsServiceProvider extends ServiceProvider
         $dispatcher->register(
             [
                 InvoiceCreated::class,
+                ExpenseCreated::class,
             ],
             app(InvoiceUsageRecordingHandler::class),
         );
 
-        // Analytics Cache Invalidation Handler - handles analytics data changes
-        $dispatcher->register(
-            [
-                AnalyticsDataChanged::class,
-            ],
-            app(InvalidateAnalyticsCache::class),
-        );
     }
 }

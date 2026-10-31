@@ -4,13 +4,11 @@ namespace Tests\Feature\Models;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Status;
-use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -29,28 +27,6 @@ class InvoiceFeatureTest extends TestCase
         $this->assertDatabaseHas('invoices', [
             'id' => $invoice->id,
         ]);
-    }
-
-    #[Test]
-    public function it_belongs_to_client(): void
-    {
-        $client = Client::factory()->create();
-        $invoice = Invoice::factory()->create(['client_id' => $client->id]);
-
-        $relation = $invoice->client();
-        $this->assertInstanceOf(BelongsTo::class, $relation);
-        $this->assertEquals($client->id, $invoice->client->id);
-    }
-
-    #[Test]
-    public function it_belongs_to_supplier(): void
-    {
-        $supplier = Supplier::factory()->create();
-        $invoice = Invoice::factory()->create(['supplier_id' => $supplier->id]);
-
-        $relation = $invoice->supplier();
-        $this->assertInstanceOf(BelongsTo::class, $relation);
-        $this->assertEquals($supplier->id, $invoice->supplier->id);
     }
 
     #[Test]
@@ -136,27 +112,6 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_client_name_attribute_returns_client_name(): void
-    {
-        $client = Client::factory()->create(['name' => 'Test Client']);
-        $invoice = Invoice::factory()->create(['client_id' => $client->id]);
-
-        $clientName = $invoice->getClientNameAttribute();
-
-        $this->assertEquals('Test Client', $clientName);
-    }
-
-    #[Test]
-    public function get_client_name_attribute_returns_fallback_when_no_client(): void
-    {
-        $invoice = Invoice::factory()->create(['client_id' => null]);
-
-        $clientName = $invoice->getClientNameAttribute();
-
-        $this->assertIsString($clientName);
-    }
-
-    #[Test]
     public function get_status_color_class_attribute_returns_status_color(): void
     {
         $status = Status::factory()->create(['color' => 'green']);
@@ -237,27 +192,6 @@ class InvoiceFeatureTest extends TestCase
         $invoice = $this->invoiceDueDaysAgo(InvoiceStatus::PAID, 10);
 
         $this->assertFalse($invoice->overdue);
-    }
-
-    #[Test]
-    public function supplier_name_accessor_returns_supplier_name(): void
-    {
-        $supplier = Supplier::factory()->create(['name' => 'Test Supplier']);
-        $invoice = Invoice::factory()->create(['supplier_id' => $supplier->id]);
-
-        $supplierName = $invoice->supplier_name;
-
-        $this->assertEquals('Test Supplier', $supplierName);
-    }
-
-    #[Test]
-    public function supplier_name_accessor_returns_fallback_when_no_supplier(): void
-    {
-        $invoice = Invoice::factory()->create(['supplier_id' => null]);
-
-        $supplierName = $invoice->supplier_name;
-
-        $this->assertIsString($supplierName);
     }
 
     #[Test]

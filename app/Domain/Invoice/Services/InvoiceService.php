@@ -15,7 +15,8 @@ use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
-use App\Domain\Party\Contracts\InvoicePartyServiceInterface;
+use App\Domain\Party\DTO\DocumentParties;
+use App\Domain\Product\Contracts\InvoiceProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\Money\Enums\Currency;
@@ -29,8 +30,7 @@ final class InvoiceService implements InvoiceServiceInterface
         private readonly InvoiceDtoWriteRepositoryInterface $invoiceWriteRepository,
         private readonly InvoiceDtoReadRepositoryInterface $invoiceReadRepository,
         private readonly InvoiceProductDtoWriteRepositoryInterface $invoiceProductRepository,
-        // Domain service responsible for resolving/creating parties
-        private readonly InvoicePartyServiceInterface $partyService,
+        private readonly InvoiceProductDtoReadRepositoryInterface $invoiceProductReader,
     ) {}
 
     /**
@@ -51,55 +51,20 @@ final class InvoiceService implements InvoiceServiceInterface
     }
 
     /**
-     * Create invoice including on-the-fly client/supplier resolution and product persistence.
-     * Security (ownership) is enforced by passing explicit $userId and scoping persistence there.
+     * Security (ownership) is enforced by passing explicit $userId and scoping persistence there; the parties
+     * come checked and copied from the application.
+     *
+     * @param  list<InvoiceProductWriteData>  $invoiceProducts
      */
     public function createInvoice(
         UserId $userId,
         array $data,
+        DocumentParties $parties,
         array $invoiceProducts,
     ): InvoiceDTO {
-        // Resolve or create client if needed
-        if (empty($data['client_id']) && ! empty($data['client_name']) && strlen((string) $data['client_name']) >= 3) {
-            $client = $this->partyService->resolveOrCreateClient($userId, [
-                'name' => $data['client_name'],
-                'street' => $data['client_street'] ?? '',
-                'city' => $data['client_city'] ?? '',
-                'zip' => $data['client_zip'] ?? '',
-                'country' => $data['client_country'] ?? 'CZ',
-                'ico' => $data['client_ico'] ?? '',
-                'dic' => $data['client_dic'] ?? '',
-                'email' => $data['client_email'] ?? '',
-                'phone' => $data['client_phone'] ?? '',
-            ]);
-            $data['client_id'] = $client->id;
-        }
-
-        // Resolve or create supplier if needed
-        if (empty($data['supplier_id']) && ! empty($data['name']) && strlen((string) $data['name']) >= 3) {
-            $supplier = $this->partyService->resolveOrCreateSupplier($userId, [
-                'name' => $data['name'],
-                'street' => $data['street'] ?? '',
-                'city' => $data['city'] ?? '',
-                'zip' => $data['zip'] ?? '',
-                'country' => $data['country'] ?? 'CZ',
-                'ico' => $data['ico'] ?? '',
-                'dic' => $data['dic'] ?? '',
-                'email' => $data['email'] ?? '',
-                'phone' => $data['phone'] ?? '',
-                'account_number' => $data['account_number'] ?? '',
-                'bank_code' => $data['bank_code'] ?? '',
-                'bank_name' => $data['bank_name'] ?? '',
-                'iban' => $data['iban'] ?? '',
-                'swift' => $data['swift'] ?? '',
-                'supplier_logo' => $data['supplier_logo'] ?? '',
-            ]);
-            $data['supplier_id'] = $supplier->id;
-        }
-
         $data['user_id'] = $userId->toInt();
         $data['total_amount'] = $this->totalOf($data, $invoiceProducts);
-        $invoice = $this->invoiceWriteRepository->create(InvoiceWriteData::fromArray($data));
+        $invoice = $this->invoiceWriteRepository->create(InvoiceWriteData::fromArray($data, $parties));
 
         $this->saveInvoiceProducts($invoice->id, $invoiceProducts);
 
@@ -110,62 +75,32 @@ final class InvoiceService implements InvoiceServiceInterface
     }
 
     /**
-     * Update invoice including on-the-fly party resolution and product replacement.
+     * Update invoice with its parties and product replacement.
+     *
+     * @param  list<InvoiceProductWriteData>  $invoiceProducts
      */
     public function updateInvoice(
         UserId $userId,
         InvoiceId $invoiceId,
         array $data,
-        array $invoiceProducts,
+        DocumentParties $parties,
+        ?array $invoiceProducts,
     ): InvoiceDTO {
         $invoice = $this->invoiceReadRepository->findByIdForUser($invoiceId, $userId);
         if (! $invoice) {
             throw new InvoiceNotFoundException('Invoice not accessible for user');
         }
 
-        if (empty($data['client_id']) && ! empty($data['client_name']) && strlen((string) $data['client_name']) >= 3) {
-            $client = $this->partyService->resolveOrCreateClient($userId, [
-                'name' => $data['client_name'],
-                'street' => $data['client_street'] ?? '',
-                'city' => $data['client_city'] ?? '',
-                'zip' => $data['client_zip'] ?? '',
-                'country' => $data['client_country'] ?? 'CZ',
-                'ico' => $data['client_ico'] ?? '',
-                'dic' => $data['client_dic'] ?? '',
-                'email' => $data['client_email'] ?? '',
-                'phone' => $data['client_phone'] ?? '',
-                'description' => $data['client_description'] ?? '',
-            ]);
-            $data['client_id'] = $client->id;
-        }
-
-        if (empty($data['supplier_id']) && ! empty($data['name']) && strlen((string) $data['name']) >= 3) {
-            $supplier = $this->partyService->resolveOrCreateSupplier($userId, [
-                'name' => $data['name'],
-                'street' => $data['street'] ?? '',
-                'city' => $data['city'] ?? '',
-                'zip' => $data['zip'] ?? '',
-                'country' => $data['country'] ?? 'CZ',
-                'ico' => $data['ico'] ?? '',
-                'dic' => $data['dic'] ?? '',
-                'email' => $data['email'] ?? '',
-                'phone' => $data['phone'] ?? '',
-                'description' => $data['description'] ?? '',
-                'account_number' => $data['account_number'] ?? '',
-                'bank_code' => $data['bank_code'] ?? '',
-                'bank_name' => $data['bank_name'] ?? '',
-                'iban' => $data['iban'] ?? '',
-                'swift' => $data['swift'] ?? '',
-                'supplier_logo' => $data['supplier_logo'] ?? '',
-            ]);
-            $data['supplier_id'] = $supplier->id;
-        }
         $data['user_id'] = $userId->toInt();
-        $data['total_amount'] = $this->totalOf($data, $invoiceProducts);
-        $invoice = $this->invoiceWriteRepository->update($invoice->id, InvoiceWriteData::fromArray($data));
+        $data['total_amount'] = $invoiceProducts === null
+            ? $this->storedTotal($invoiceId, $data)
+            : $this->totalOf($data, $invoiceProducts);
+        $invoice = $this->invoiceWriteRepository->update($invoice->id, InvoiceWriteData::fromArray($data, $parties));
 
-        $this->invoiceProductRepository->deleteByInvoiceId($invoiceId);
-        $this->saveInvoiceProducts($invoiceId, $invoiceProducts);
+        if ($invoiceProducts !== null) {
+            $this->invoiceProductRepository->deleteByInvoiceId($invoiceId);
+            $this->saveInvoiceProducts($invoiceId, $invoiceProducts);
+        }
 
         return $invoice;
     }
@@ -184,13 +119,32 @@ final class InvoiceService implements InvoiceServiceInterface
     }
 
     /**
-     * The invoice amount is always the sum of its lines; an amount typed into the form is ignored.
+     * Line items determine the amount when present; a document without lines carries its entered amount.
      *
      * @param  array<string, mixed>  $data
      * @param  list<InvoiceProductWriteData>  $products
      */
     private function totalOf(array $data, array $products): Money
     {
+        if ($products === []) {
+            return Money::fromString((string) ($data['payment_amount'] ?? '0'), (string) $data['payment_currency']);
+        }
+
         return InvoiceTotals::fromProducts(Currency::from((string) $data['payment_currency']), $products)->total();
+    }
+
+    /** @param array<string, mixed> $data */
+    private function storedTotal(InvoiceId $invoiceId, array $data): Money
+    {
+        $lines = $this->invoiceProductReader->amountsForInvoice($invoiceId);
+        if ($lines === []) {
+            return $this->totalOf($data, []);
+        }
+        $totals = InvoiceTotals::zero(Currency::from((string) $data['payment_currency']));
+        foreach ($lines as $line) {
+            $totals = $totals->withLine($line->total->subtract($line->tax), $line->tax);
+        }
+
+        return $totals->total();
     }
 }

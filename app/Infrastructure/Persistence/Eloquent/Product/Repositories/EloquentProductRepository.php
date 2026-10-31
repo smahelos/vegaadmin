@@ -23,7 +23,6 @@ class EloquentProductRepository implements ProductRepositoryInterface
         return Product::with([
             'category',
             'tax',
-            'supplier',
             'invoices',
         ])->find($id);
     }
@@ -38,7 +37,6 @@ class EloquentProductRepository implements ProductRepositoryInterface
             ->with([
                 'category',
                 'tax',
-                'supplier',
                 'invoices',
             ])
             ->first();

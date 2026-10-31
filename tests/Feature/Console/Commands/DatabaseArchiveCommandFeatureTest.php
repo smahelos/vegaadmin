@@ -1,16 +1,54 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Console\Commands;
 
+use App\Models\Contact;
+use App\Models\Invoice;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class DatabaseArchiveCommandFeatureTest extends TestCase
+final class DatabaseArchiveCommandFeatureTest extends TestCase
 {
-    protected function setUp(): void
+    #[Test]
+    public function archives_document_party_references_and_stored_one_off_data(): void
     {
-        parent::setUp();
+        $invoice = Invoice::factory()->create([
+            'created_at' => now()->subYears(4),
+            'supplier_name' => 'Stored issuing business',
+            'customer_name' => 'Stored one-off customer',
+            'contact_id' => null,
+        ]);
+        $contact = Contact::factory()->create(['user_id' => $invoice->user_id]);
+        $linked = Invoice::factory()->create([
+            'user_id' => $invoice->user_id,
+            'business_id' => $invoice->business_id,
+            'contact_id' => $contact->id,
+            'created_at' => now()->subYears(4),
+        ]);
+
+        $this->artisan('db:archive', ['--force' => true])->assertSuccessful();
+
+        $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
+        $this->assertDatabaseHas('invoices_archive', [
+            'original_id' => $invoice->id,
+            'business_id' => $invoice->business_id,
+            'contact_id' => null,
+        ]);
+        $this->assertDatabaseHas('invoices_archive', ['original_id' => $linked->id, 'contact_id' => $contact->id]);
+        $archive = DB::table('invoices_archive')->where('original_id', $invoice->id)->first();
+        $stored = json_decode(
+            $archive->invoice_data,
+            true,
+            flags: JSON_THROW_ON_ERROR,
+        );
+        $this->assertSame('Stored issuing business', $stored['supplier_name']);
+        $this->assertSame('Stored one-off customer', $stored['customer_name']);
+        $this->assertDatabaseHas('businesses', ['id' => $invoice->business_id]);
+        $this->assertDatabaseHas('contacts', ['id' => $contact->id]);
     }
 
     #[Test]
@@ -66,21 +104,21 @@ class DatabaseArchiveCommandFeatureTest extends TestCase
     }
 
     #[Test]
-    public function command_handles_different_tables(): void
+    public function businesses_and_contacts_have_no_automatic_erasure_policy(): void
     {
         $tables = [
-            'invoices',
-            'clients',
-            'suppliers',
+            'businesses',
+            'contacts',
         ];
 
         foreach ($tables as $table) {
+            $this->assertDatabaseMissing('archive_policies', ['table_name' => $table]);
             $exitCode = Artisan::call('db:archive', [
                 '--table' => $table,
                 '--dry-run' => true,
             ]);
 
-            $this->assertEquals(0, $exitCode);
+            $this->assertEquals(1, $exitCode);
         }
     }
 

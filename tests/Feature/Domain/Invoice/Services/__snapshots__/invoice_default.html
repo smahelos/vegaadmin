@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Faktura SNAP-001</title>
+ <title>Faktura 20260001</title>
  <style>
  @page {
  margin: 20mm 15mm;
  }
+
  body {
  font-family: DejaVu Sans, Arial, sans-serif;
  font-size: 11px;
@@ -16,6 +18,7 @@
  margin: 0;
  padding: 0;
  }
+
  .header {
  margin-bottom: 15px;
  background-color: rgb(109, 188, 252);
@@ -25,6 +28,7 @@
  padding-bottom: 10px;
  border-bottom: 1px solid #5c5e60;
  }
+
  .header-logo-container {
  max-height: 40px;
  float: left;
@@ -32,6 +36,7 @@
  width: 30%;
  object-fit: contain;
  }
+
  .header-logo {
  max-height: 60px;
  max-width: 140px;
@@ -40,11 +45,13 @@
  background: rgba(255, 255, 255, 0.1);
  padding: 5px;
  }
+
  .header-content {
  float: left;
  text-align: left;
  width: 70%;
  }
+
  .invoice-title {
  font-size: 18px;
  font-weight: bold;
@@ -52,10 +59,12 @@
  text-transform: uppercase;
  letter-spacing: 1px;
  }
+
  .invoice-number {
  font-size: 14px;
  margin-bottom: 0;
  }
+
  .section {
  margin-bottom: 20px;
  background: #f8fafc;
@@ -63,6 +72,7 @@
  border-radius: 5px;
  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
  }
+
  .section-title {
  font-size: 13px;
  font-weight: bold;
@@ -71,11 +81,13 @@
  margin-bottom: 5px;
  color: #1e40af;
  }
+
  .parties {
  display: flex;
  margin-bottom: 20px;
  justify-content: space-between;
  }
+
  .supplier-info {
  width: 48%;
  background: #fff;
@@ -84,7 +96,8 @@
  border-radius: 5px;
  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
  }
- .client-info {
+
+ .customer-info {
  width: 48%;
  background: #fff;
  border-left: 5px solid #f59e0b;
@@ -92,57 +105,69 @@
  border-radius: 5px;
  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
  }
+
  .supplier-info h3,
- .client-info h3 {
+ .customer-info h3 {
  margin-top: 0;
  margin-bottom: 10px;
  font-size: 14px;
  text-transform: uppercase;
  letter-spacing: 0.5px;
  }
+
  .supplier-info p,
- .client-info p {
+ .customer-info p {
  margin: 5px 0;
  }
+
  .row {
  display: flex;
  margin-bottom: 5px;
  }
+
  .col {
  flex: 1;
  }
+
  .col-left {
  width: 48%;
  float: left;
  }
+
  .col-right {
  width: 48%;
  float: right;
  }
+
  .clearfix:after {
  content: "";
  display: table;
  clear: both;
  }
+
  .info-row {
  margin-bottom: 3px;
  line-height: 1.4;
  }
+
  .info-label {
  font-weight: bold;
  width: 200px;
  color: #6b7280;
  }
+
  .info-value {
  font-weight: bold;
  color: rgb(29, 29, 29);
  }
+
  .payment-info {
  border: 1px solid #d1d5db;
  padding: 10px;
  background-color: #f9fafb;
  border-radius: 5px;
  }
+
  .payment-info-title {
  font-weight: bold;
  margin-bottom: 5px;
@@ -150,9 +175,11 @@
  border-bottom: 1px solid #e5e7eb;
  padding-bottom: 5px;
  }
+
  .qrcode-title {
  border-bottom: 1px solid #ffffff;
  }
+
  .qr-code {
  text-align: center;
  background: #fff;
@@ -161,11 +188,13 @@
  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
  background-color: #dbeafe;
  }
+
  .qr-code h3 {
  margin-top: 0;
  color: #1e40af;
  font-size: 14px;
  }
+
  .qr-code img {
  max-width: 120px;
  max-height: 120px;
@@ -173,6 +202,7 @@
  padding: 5px;
  background: white;
  }
+
  .footer {
  margin-top: 20px;
  text-align: center;
@@ -181,25 +211,30 @@
  padding-top: 15px;
  border-top: 1px solid #e5e7eb;
  }
+
  table {
  width: 100%;
  border-collapse: collapse;
  margin: 10px 0 5px 0;
  background: white;
  }
+
  table th {
  background-color: #e5e7eb;
  text-align: left;
  color: #1f2937;
  }
+
  table th,
  table td {
  border: 1px solid #d1d5db;
  padding: 5px;
  }
+
  .text-right {
  text-align: right;
  }
+
  .bank-info {
  background: #fff;
  padding: 15px;
@@ -207,19 +242,23 @@
  margin-bottom: 20px;
  border-left: 5px solid #3b82f6;
  }
+
  .bank-info h3 {
  margin-top: 0;
  color: #1e40af;
  font-size: 16px;
  margin-bottom: 10px;
  }
+
  .bank-info p {
  margin: 5px 0;
  }
+
  .amount-total {
  background-color: #dbeafe;
  font-weight: bold;
  }
+
  .payment-details {
  background-color: #fee2e2;
  color: #b91c1c;
@@ -229,34 +268,57 @@
  font-weight: bold;
  text-align: center;
  }
+
  .red {
  color: #b91c1c;
  font-weight: bold;
  }
  </style>
 </head>
+
 <body>
  <div class="header">
- 
  <div class="header-content">
  <div class="invoice-title">Faktura</div>
- <div class="invoice-number">Číslo: SNAP-001</div>
+ <div class="invoice-number">Číslo: 20260001</div>
  </div>
- 
- 
+
+
  <div style="width: 120px;"></div>
  <div class="clearfix"></div>
  </div>
+
  <div class="parties clearfix">
  <div class="col-left">
- 
- <div class="supplier-info"><DYNAMIC_SUPPLIER_BLOCK/></div>
+ <div class="supplier-info">
+ <h3>Dodavatel</h3>
+ <p><strong>Snapshot Supplier s.r.o.</strong></p>
+ <p>Supplier Street 10</p>
+ <p>110 00 Praha, CZ</p>
+
+ <p>supplier@snapshot.test</p>
+ <p>+420 123 456 789</p>
+ <p>IČO: 27074358</p>
+
+ <p>DIČ: CZ27074358</p>
+ </div>
  </div>
  <div class="col-right">
- 
- <div class="client-info"><DYNAMIC_CLIENT_BLOCK/></div>
+ <div class="customer-info">
+ <h3>Odběratel</h3>
+ <p><strong>Snapshot Customer GmbH</strong></p>
+ <p>Customer Street 20</p>
+ <p>10115 Berlin, DE</p>
+
+ <p>customer@snapshot.test</p>
+ <p>+49 123 456 789</p>
+ <p>IČO: HRB 12345</p>
+
+ <p>DIČ: DE123456789</p>
  </div>
  </div>
+ </div>
+
  <div class="section clearfix">
  <div class="section-title">Údaje o faktuře</div>
  <div class="clearfix">
@@ -278,22 +340,23 @@
  <span class="info-value red">19. 3. 2026</span>
  </div>
  </div>
+
  <div class="col-right">
  <div class="info-row">
  <span class="info-label">Způsob platby:</span>
  <span class="info-value">Hotovost</span>
  </div>
- 
+
  <div class="info-row">
  <span class="info-label">VS:</span>
- <span class="info-value">SNAP-001</span>
+ <span class="info-value">20260001</span>
  </div>
- 
+
  <div class="info-row">
  <span class="info-label">Konstantní symbol:</span>
- <span class="info-value"><KS></span>
+ <span class="info-value">0308</span>
  </div>
- 
+
  <div class="info-row">
  <span class="info-label">Specifický symbol:</span>
  <span class="info-value">1234</span>
@@ -301,37 +364,83 @@
  </div>
  </div>
  </div>
+
  <!-- Invoice amounts -->
  <div class="section">
  <div class="section-title">Položky faktury</div>
+ <!-- Structured data from JSON -->
+ <table>
+ <thead>
+ <tr>
+ <th>Název položky</th>
+ <th class="text-right">Množství</th>
+ <th class="text-right">Jednotka</th>
+ <th class="text-right">Cena/ks</th>
+ <th class="text-right">DPH</th>
+ <th class="text-right">Celkem</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>Snapshot consulting</td>
+ <td class="text-right">2</td>
+ <td class="text-right">hodin</td>
+ <td class="text-right">€500,00</td>
+ <td class="text-right">21%</td>
+ <td class="text-right">€1 210,00</td>
+ </tr>
+ </tbody>
+ <tfoot>
+ <tr>
+ <th colspan="5" class="text-right">Celkem bez DPH</th>
+ <td class="text-right"><strong>
+ €1 000,00
+ </strong></td>
+ </tr>
+ <tr>
+ <th colspan="5" class="text-right">DPH</th>
+ <td class="text-right"><strong>€210,00</strong></td>
+ </tr>
+ <tr class="amount-total">
+ <th colspan="5" class="text-right">Celkem</th>
+ <td class="text-right"><strong>€1 210,00</strong></td>
+ </tr>
+ </tfoot>
+ </table>
+ <div
+ style="margin-top: 10px; padding: 5px 10px 0px 10px; background-color: #f9fafb; border-radius: 5px; border: 1px solid #e5e7eb;">
+ <strong>Poznámka k faktuře:</strong>
+ <p style="margin-top: 5px;">Snapshot invoice text</p>
  </div>
+ </div>
+
  <!-- Payment information and QR code -->
- 
+
  <div class="clearfix">
  <div class="">
  <div class="payment-info">
  <div class="payment-info-title">Informace pro platbu</div>
- <div class="info-row">
- <span class="info-label">Název banky:</span> <strong>Test Bank</strong>
- </div>
- 
- 
- 
+
+
+
+
  <div class="info-row">
  <span class="info-label">Částka:</span>
- <strong>€1 234,56</strong>
+ <strong>€1 210,00</strong>
  </div>
+
  <div class="info-row">
  <span class="info-label">VS:</span>
- <strong>SNAP-001</strong>
+ <strong>20260001</strong>
  </div>
  </div>
  </div>
- 
  </div>
+
  <div class="footer">
  <p>Vygenerováno: 20. 3. 2026 14:07</p>
  <p>Děkujeme za vytvoření PDF faktury!</p>
  </div>
 </body>
+
 </html>

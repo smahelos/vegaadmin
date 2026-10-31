@@ -1,21 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Payment\Services;
 
-use App\Application\Payment\Contracts\BankApplicationServiceInterface;
-use App\Domain\Payment\Contracts\BankServiceInterface;
+use App\Domain\Payment\Contracts\BankDtoRepository;
+use App\Domain\Payment\DTO\BankDTO;
+use App\Domain\Shared\Geography\Enums\Country;
 
-class BankApplicationService implements BankApplicationServiceInterface
+/**
+ * The banks a bank code is chosen from in bank account forms.
+ */
+final class BankApplicationService
 {
-    public function __construct(private readonly BankServiceInterface $bankService) {}
+    public function __construct(
+        private readonly BankDtoRepository $banks,
+    ) {}
 
-    public function getBanksForDropdown(): array
+    /**
+     * @return list<BankDTO>
+     */
+    public function listActive(Country $country): array
     {
-        return $this->bankService->getBanksForDropdown();
-    }
-
-    public function getBanksForJs(): array
-    {
-        return $this->bankService->getBanksForJs();
+        return $this->banks->listActiveForCountry($country);
     }
 }

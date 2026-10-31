@@ -4,7 +4,7 @@ namespace Tests\Feature\Traits;
 
 use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
 use App\Infrastructure\Authorization\Services\CrudAccessService;
-use App\Models\Client;
+use App\Models\Contact;
 use App\Models\User;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use PHPUnit\Framework\Attributes\Test;
@@ -120,12 +120,12 @@ class CrudAccessServiceFeatureTest extends TestCase
     #[Test]
     public function respects_entity_table_for_permissions(): void
     {
-        // Switch model to Client to ensure singular entity mapping handled by service
-        $this->setCrudModel(Client::class);
+        // Switch model to Contact to ensure singular entity mapping handled by service
+        $this->setCrudModel(Contact::class);
         $user = User::factory()->create();
-        // For client view permission, adapter checks can_view_client; create_edit permission is can_create_edit_client
-        Permission::firstOrCreate(['name' => 'can_view_client', 'guard_name' => 'backpack']);
-        $perm = Permission::where('name', 'can_view_client')->where('guard_name', 'backpack')->first();
+        // For contact view permission, adapter checks can_view_contact; create_edit permission is can_create_edit_contact
+        Permission::firstOrCreate(['name' => 'can_view_contact', 'guard_name' => 'backpack']);
+        $perm = Permission::where('name', 'can_view_contact')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);

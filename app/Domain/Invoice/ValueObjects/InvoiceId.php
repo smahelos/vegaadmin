@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Invoice\ValueObjects;
 
 use InvalidArgumentException;
@@ -8,10 +10,10 @@ use InvalidArgumentException;
  * Invoice ID Value Object.
  * Ensures type safety and validation for invoice identifiers.
  */
-final class InvoiceId
+final readonly class InvoiceId
 {
     public function __construct(
-        private readonly int $value,
+        public int $value,
     ) {
         if ($value <= 0) {
             throw new InvalidArgumentException('Invoice ID must be a positive integer.');

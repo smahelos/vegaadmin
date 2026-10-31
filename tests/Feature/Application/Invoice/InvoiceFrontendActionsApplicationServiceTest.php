@@ -3,13 +3,10 @@
 namespace Tests\Feature\Application\Invoice;
 
 use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
-use App\Models\PaymentMethod;
+use App\Models\Invoice;
 use App\Models\Status;
-use App\Models\StatusCategory;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -21,8 +18,6 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
     use AssertsInvoiceActionResult;
 
     private InvoiceFrontendActionsApplicationServiceInterface $frontend;
-
-    private InvoiceMutationApplicationServiceInterface $mutation;
 
     private User $user;
 
@@ -59,7 +54,7 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
                 string $entityType,
                 string $metricType = 'count',
                 ?string $periodType = 'daily',
-                string $guard = 'web',
+                ?string $guard = 'web',
                 int|float $value = 1,
             ): bool {
                 return true;
@@ -111,54 +106,20 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
         $this->app->instance(UniversalLimitServiceInterface::class, $fakeLimit);
         // Resolve services after binding fake limit
         $this->frontend = app(InvoiceFrontendActionsApplicationServiceInterface::class);
-        $this->mutation = app(InvoiceMutationApplicationServiceInterface::class);
     }
 
-    private function baseData(): array
+    private function pendingInvoiceId(): int
     {
-        // Ensure a 'paid' status exists so markAsPaid flow can locate it by slug.
-        $paidStatus = Status::firstOrCreate(['slug' => 'paid'], [
-            'name' => 'Paid',
-            'category_id' => StatusCategory::factory()->create()->id,
-            'color' => 'bg-green-100 text-green-800',
-            'description' => 'Paid status',
-            'is_active' => true,
-        ]);
-
-        return [
-            'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
-            'payment_amount' => 50,
-            'payment_currency' => 'EUR',
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->format('Y-m-d'),
-            'due_in' => 14,
-            // Start with a non-paid random status (simulate initial state before marking as paid)
+        return Invoice::factory()->create([
+            'user_id' => $this->user->id,
             'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-            'name' => 'Supp ' . uniqid(),
-            'street' => 'Street',
-            'city' => 'City',
-            'zip' => '10000',
-            'country' => 'CZ',
-            'client_name' => 'Client ' . uniqid(),
-            'client_street' => 'C St',
-            'client_city' => 'C City',
-            'client_zip' => '99999',
-            'client_country' => 'CZ',
-            'invoice_text' => 'Txt',
-        ];
+        ])->id;
     }
 
     #[Test]
     public function can_set_template_and_mark_paid(): void
     {
-        $create = $this->mutation->create(
-            $this->user->id,
-            $this->baseData(),
-            [],
-        );
-        $this->assertInvoiceSuccess($create, 'Create failed');
-        $invoiceId = $create->invoice->id;
+        $invoiceId = $this->pendingInvoiceId();
 
         $set = $this->frontend->setTemplate(
             $this->user->id,

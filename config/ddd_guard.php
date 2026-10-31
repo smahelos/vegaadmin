@@ -39,7 +39,7 @@ return [
             'allowed_directories' => [],
             'mode' => 'must_not_exist',
         ],
-        // Root Livewire components now organized under domain subdirectories (Party/, Invoice/, Product/)
+        // Root Livewire components now organized under bounded context subdirectories (Party/, Invoice/, Product/, User/)
         // Prevent adding new direct children .php components under app/Livewire (except domain folders)
         [
             'path' => base_path('app/Livewire'),
@@ -51,6 +51,7 @@ return [
                 'Invoice',
                 'Product',
                 'Shared',
+                'User',
             ],
             'mode' => 'no_new_files',
         ],

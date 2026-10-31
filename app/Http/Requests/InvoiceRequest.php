@@ -4,16 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Domain\Party\DTO\DocumentAccountDTO;
+use App\Domain\Party\DTO\DocumentPartyDTO;
+use App\Domain\Party\ValueObjects\BankAccountId;
+use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
+use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Shared\Money\Enums\Currency;
-use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
-use App\Domain\Shared\Unit\Enums\Unit;
+use App\Http\Requests\Invoice\InvoiceItemInput;
+use App\Http\Requests\Party\DocumentPartyInput;
 use App\Http\Requests\Rules\InvoiceStatusId;
-use App\Http\Requests\Rules\UniquePerUser;
-use Closure;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Number;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -27,6 +33,10 @@ final class InvoiceRequest extends BaseEntityRequest
     {
         if ($this->isGuestStore()) {
             return true; // Skip parent authorization & limit checks for guest temporary invoices
+        }
+
+        if ($this->boolean('save_customer_to_contacts') && $this->user()?->can('frontend.can_create_contact') !== true) {
+            return false;
         }
 
         return parent::authorize();
@@ -115,259 +125,131 @@ final class InvoiceRequest extends BaseEntityRequest
                 InvoiceStatusId::rule(),
             ],
 
-            // Issuer details
-            'supplier_id' => [
-                'nullable',
-                'integer',
-                'exists:suppliers,id',
-                'required_without:name',
-            ],
-            'name' => [
-                'nullable',
-                'string',
-                'min:3',
-                'max:255',
-                'required_without:supplier_id',
-            ],
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'street' => [
-                'nullable',
-                'string',
-                'max:255',
-                'required_without:supplier_id',
-            ],
-            'city' => [
-                'nullable',
-                'string',
-                'max:255',
-                'required_without:supplier_id',
-            ],
-            'zip' => [
-                'nullable',
-                'string',
-                'max:20',
-                'required_without:supplier_id',
-            ],
-            'country' => [
-                'nullable',
-                'string',
-                'max:255',
-                'required_without:supplier_id',
-            ],
-            'ico' => [
-                'nullable',
-                'string',
-                'max:50',
-                // a new party is created only without a selected one; its IČO must be new for the user
-                Rule::when(
-                    ! $this->filled('supplier_id'),
-                    [UniquePerUser::rule(
-                        'suppliers',
-                        'ico',
-                        $this->user()?->id,
-                    )],
-                ),
-            ],
-            'dic' => 'nullable|string|max:50',
-            'supplier_shortcut' => 'nullable|string|max:50',
-
-            // Bank account details
-            'account_number' => 'nullable|string|max:255',
-            'bank_code' => 'nullable|string|max:10',
-            'bank_name' => 'nullable|string|max:255',
-            'iban' => 'nullable|string|max:34',
-            'swift' => 'nullable|string|max:11',
-
-            // Client details
-            'client_id' => [
-                'nullable',
-                'integer',
-                'exists:clients,id',
-                'required_without:client_name',
-            ],
-            'client_name' => [
-                'nullable',
-                'string',
-                'min:3',
-                'max:255',
-                'required_without:client_id',
-            ],
-            'client_email' => 'nullable|email|max:255',
-            'client_phone' => 'nullable|string|max:20',
-            'client_street' => [
-                'nullable',
-                'string',
-                'max:255',
-                'required_without:client_id',
-            ],
-            'client_city' => [
-                'nullable',
-                'string',
-                'max:255',
-                'required_without:client_id',
-            ],
-            'client_zip' => [
-                'nullable',
-                'string',
-                'max:20',
-                'required_without:client_id',
-            ],
-            'client_country' => [
-                'nullable',
-                'string',
-                'max:255',
-                'required_without:client_id',
-            ],
-            'client_ico' => [
-                'nullable',
-                'string',
-                'max:50',
-                // a new party is created only without a selected one; its IČO must be new for the user
-                Rule::when(
-                    ! $this->filled('client_id'),
-                    [UniquePerUser::rule(
-                        'clients',
-                        'ico',
-                        $this->user()?->id,
-                    )],
-                ),
-            ],
-            'client_dic' => 'nullable|string|max:50',
-            'client_shortcut' => 'nullable|string|max:50',
-
             // Invoice text
             'invoice_text' => 'nullable|string',
 
             // Ensure only allowed file types are accepted; allow SVG as image format
-            'invoice_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize,
+            'invoice_logo' => $this->isGuestStore() ? 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize : ['exclude'],
 
             'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
 
-            'invoice-products' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'invoice-products.*' => ['array'],
-            'invoice-products.*.name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-            'invoice-products.*.quantity' => [
-                'required',
-                'numeric',
-                'decimal:0,3',
-                'gt:0',
-                'max:99999.999',
-            ],
-            'invoice-products.*.unit' => ['nullable', Rule::enum(Unit::class)],
-            'invoice-products.*.price' => [
-                'required',
-                'numeric',
-                'decimal:0,2',
-                'min:0',
-                'max:99999999.99',
-            ],
-            'invoice-products.*.currency' => [
-                'required',
-                Rule::enum(Currency::class),
-                'same:payment_currency',
-            ],
-            'invoice-products.*.tax_rate' => [
-                'required',
-                'numeric',
-                $this->taxRateRule(),
-            ],
-            'invoice-products.*.product_id' => $this->isGuestStore()
-                ? ['prohibited']
-                : [
-                    'nullable',
-                    'integer',
-                    Rule::exists('products', 'id')->where('user_id', $this->user()?->getAuthIdentifier()),
-                ],
-            'invoice-products.*.category' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'invoice-products.*.description' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
         ];
 
-        return $rules;
-    }
-
-    /**
-     * A line may carry only a rate the invoice form offers: 0 % or one of the VAT rates in the taxes table.
-     * The rates are loaded once, when the first numeric rate reaches the rule.
-     */
-    private function taxRateRule(): Closure
-    {
-        $allowed = null;
-
-        return function (
-            string $attribute,
-            mixed $value,
-            Closure $fail,
-        ) use (&$allowed): void {
-            if (! is_numeric($value)) {
-                return;
-            }
-            $allowed ??= $this->allowedTaxRates();
-            if (! in_array(
-                $this->normalizedRate((string) $value),
-                $allowed,
+        return [
+            ...$rules,
+            ...InvoiceItemInput::rules(
+                $this->user()?->getAuthIdentifier(),
+                $this->isGuestStore(),
                 true,
-            )) {
-                $fail(__('invoices.validation.tax_rate', ['rates' => $this->formattedRates($allowed)]));
-            }
-        };
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function allowedTaxRates(): array
-    {
-        $rates = array_map(
-            fn (int|float|string $rate): string => $this->normalizedRate((string) $rate),
-            ['0', ...array_values(app(TaxDtoReadRepositoryInterface::class)->getDphRatesForDropdown())],
-        );
-        $rates = array_values(array_unique($rates));
-        sort($rates, SORT_NUMERIC);
-
-        return $rates;
-    }
-
-    /**
-     * @param  list<string>  $rates
-     */
-    private function formattedRates(array $rates): string
-    {
-        return implode(', ', array_map(
-            fn (string $rate): string => (string) Number::percentage(
-                (float) $rate,
-                maxPrecision: 2,
-                locale: app()->getLocale(),
             ),
-            $rates,
-        ));
+            ...$this->partyRules(),
+        ];
     }
 
-    /** "21", "21.0" and "21.00" are the same rate. */
-    private function normalizedRate(string $rate): string
+    /**
+     * A signed-in user selects the business and its account and picks or enters the customer; a guest enters
+     * both parties and the account.
+     *
+     * @return array<string, mixed>
+     */
+    private function partyRules(): array
     {
-        $rate = ltrim(trim($rate), '+');
-        if (str_contains($rate, '.')) {
-            $rate = rtrim(rtrim($rate, '0'), '.');
+        $input = $this->all();
+        $bankTransfer = $this->paysByBankTransfer();
+
+        if ($this->isGuestStore()) {
+            return [
+                'business_id' => ['prohibited'],
+                'bank_account_id' => ['prohibited'],
+                'contact_id' => ['prohibited'],
+                'save_customer_to_contacts' => ['prohibited'],
+                ...DocumentPartyInput::rules(
+                    $input,
+                    'supplier',
+                    true,
+                ),
+                ...DocumentPartyInput::rules(
+                    $input,
+                    'customer',
+                    true,
+                ),
+                ...DocumentPartyInput::accountRules($input, $bankTransfer),
+            ];
         }
 
-        return $rate === '' ? '0' : $rate;
+        $userId = $this->user()?->getAuthIdentifier();
+
+        return [
+            'business_id' => [
+                'required',
+                'integer',
+                Rule::exists('businesses', 'id')->where('user_id', $userId),
+            ],
+            'bank_account_id' => $bankTransfer ? [
+                'required',
+                'integer',
+                Rule::exists('bank_accounts', 'id')->where('business_id', $this->integer('business_id')),
+            ] : ['exclude'],
+            'contact_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('contacts', 'id')->where('user_id', $userId),
+            ],
+            'save_customer_to_contacts' => ['boolean'],
+            'reload_business' => ['boolean'],
+            ...DocumentPartyInput::rules(
+                $input,
+                'customer',
+                true,
+            ),
+        ];
+    }
+
+    private function paysByBankTransfer(): bool
+    {
+        $paymentMethodId = $this->integer('payment_method_id');
+        if ($paymentMethodId <= 0) {
+            return false;
+        }
+
+        $paymentMethod = app(PaymentMethodDtoReadRepositoryInterface::class)->findById(PaymentMethodId::fromInt($paymentMethodId));
+
+        return $paymentMethod?->code === PaymentMethodCode::BANK_ACCOUNT;
+    }
+
+    /**
+     * The parties a signed-in user chose, from the validated input.
+     */
+    public function partySelection(): InvoicePartySelection
+    {
+        $validated = $this->validated();
+        $bankAccountId = $validated['bank_account_id'] ?? null;
+        $contactId = $validated['contact_id'] ?? null;
+
+        return new InvoicePartySelection(
+            businessId: BusinessId::fromInt((int) $validated['business_id']),
+            bankAccountId: $bankAccountId === null ? null : BankAccountId::fromInt((int) $bankAccountId),
+            contactId: $contactId === null ? null : ContactId::fromInt((int) $contactId),
+            customer: DocumentPartyInput::party($validated, 'customer'),
+            saveCustomerToContacts: $contactId === null && $this->boolean('save_customer_to_contacts'),
+            reloadBusiness: $this->boolean('reload_business'),
+        );
+    }
+
+    /**
+     * A party entered on the form, the guest's supplier or customer.
+     */
+    public function oneOffParty(string $role): DocumentPartyDTO
+    {
+        return DocumentPartyInput::party($this->validated(), $role);
+    }
+
+    /**
+     * The account a guest entered, null without one.
+     */
+    public function oneOffAccount(): ?DocumentAccountDTO
+    {
+        return DocumentPartyInput::account($this->validated());
     }
 
     private function isGuestStore(): bool
@@ -398,62 +280,27 @@ final class InvoiceRequest extends BaseEntityRequest
             'tax_point_date' => __('invoices.fields.tax_point_date'),
             'due_in' => __('invoices.fields.due_in'),
             'payment_status_id' => __('invoices.fields.status'),
-            'supplier_id' => __('invoices.fields.supplier_id'),
-            'name' => __('invoices.fields.supplier_name'),
-            'email' => __('invoices.fields.supplier_email'),
-            'phone' => __('invoices.fields.supplier_phone'),
-            'street' => __('invoices.fields.supplier_street'),
-            'city' => __('invoices.fields.supplier_city'),
-            'zip' => __('invoices.fields.supplier_zip'),
-            'country' => __('invoices.fields.supplier_country'),
-            'ico' => __('invoices.fields.supplier_ico'),
-            'dic' => __('invoices.fields.supplier_dic'),
-            'supplier_shortcut' => __('invoices.fields.supplier_shortcut'),
-            'account_number' => __('suppliers.fields.account_number'),
-            'bank_code' => __('suppliers.fields.bank_code'),
-            'bank_name' => __('suppliers.fields.bank_name'),
-            'iban' => __('suppliers.fields.iban'),
-            'swift' => __('suppliers.fields.swift'),
-            'client_id' => __('invoices.fields.client_id'),
-            'client_name' => __('invoices.fields.client_name'),
-            'client_email' => __('invoices.fields.client_email'),
-            'client_phone' => __('invoices.fields.client_phone'),
-            'client_street' => __('invoices.fields.client_street'),
-            'client_city' => __('invoices.fields.client_city'),
-            'client_zip' => __('invoices.fields.client_zip'),
-            'client_country' => __('invoices.fields.client_country'),
-            'client_ico' => __('invoices.fields.client_ico'),
-            'client_dic' => __('invoices.fields.client_dic'),
-            'client_shortcut' => __('invoices.fields.client_shortcut'),
             'invoice_text' => __('invoices.fields.invoice_text'),
             'invoice_logo' => __('invoices.fields.invoice_logo'),
             'template' => __('invoices.fields.template'),
-            'invoice-products' => __('invoices.fields.invoice_items'),
-            'invoice-products.*.name' => __('invoices.fields.item_name'),
-            'invoice-products.*.quantity' => __('invoices.fields.item_quantity'),
-            'invoice-products.*.unit' => __('invoices.fields.item_unit'),
-            'invoice-products.*.price' => __('invoices.fields.item_price'),
-            'invoice-products.*.currency' => __('invoices.fields.item_currency'),
-            'invoice-products.*.tax_rate' => __('invoices.fields.item_tax_rate'),
-            'invoice-products.*.product_id' => __('invoices.fields.item_product'),
-            'invoice-products.*.category' => __('invoices.fields.item_category'),
-            'invoice-products.*.description' => __('invoices.fields.item_description'),
+            ...InvoiceItemInput::attributes(),
+            'business_id' => __('invoices.fields.business_id'),
+            'bank_account_id' => __('invoices.fields.bank_account_id'),
+            'contact_id' => __('invoices.fields.contact_id'),
+            ...DocumentPartyInput::attributes('supplier'),
+            ...DocumentPartyInput::attributes('customer'),
+            ...DocumentPartyInput::accountAttributes(),
         ];
     }
 
     /**
-     * Choosing an existing party or filling in a new one is one decision, and an item must be
-     * in the currency of the invoice; the standard messages cannot say that.
+     * An item must be in the currency of the invoice; the standard messages cannot say that.
      *
      * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'supplier_id.required_without' => __('invoices.validation.supplier_required_without'),
-            'client_id.required_without' => __('invoices.validation.client_required_without'),
-            'ico.unique' => __('invoices.validation.supplier_exists'),
-            'client_ico.unique' => __('invoices.validation.client_exists'),
             'invoice-products.required' => __('invoices.validation.amount_positive'),
             'invoice-products.min' => __('invoices.validation.amount_positive'),
             'invoice-products.*.currency.same' => __('invoices.validation.item_currency'),
@@ -474,25 +321,9 @@ final class InvoiceRequest extends BaseEntityRequest
 
         $merge = [];
 
-        // Handle country fields
-        if (! $this->filled('country') && $this->has('country_fallback')) {
-            $merge['country'] = $this->input('country_fallback');
-        }
-
-        if (! $this->filled('client_country') && $this->has('client_country_fallback')) {
-            $merge['client_country'] = $this->input('client_country_fallback');
-        }
-
-        // Handle bank_code field
-        if (! $this->filled('bank_code') && $this->has('bank_code_fallback')) {
-            $merge['bank_code'] = $this->input('bank_code_fallback');
-        }
-
         // Handle any other fallback fields
         foreach ([
             'payment_method_id',
-            'supplier_id',
-            'client_id',
             'due_in',
             'payment_status_id',
         ] as $field) {

@@ -2,6 +2,7 @@
 
 namespace App\Application\Invoice\Contracts;
 
+use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
@@ -19,7 +20,9 @@ interface InvoiceCrudApplicationServiceInterface
     public function create(
         UserId $userId,
         array $data,
+        InvoicePartySelection $parties,
         array $products,
+        ?UserId $actorId = null,
     ): InvoiceDTO;
 
     /**
@@ -30,6 +33,7 @@ interface InvoiceCrudApplicationServiceInterface
         UserId $userId,
         InvoiceId $invoiceId,
         array $data,
-        array $products,
+        InvoicePartySelection $parties,
+        ?array $products,
     ): InvoiceDTO;
 }

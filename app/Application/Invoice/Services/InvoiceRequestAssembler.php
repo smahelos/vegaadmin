@@ -25,7 +25,7 @@ class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
         $payload = new InvoiceMutationPayload($validated, $products);
 
         // Handle logo upload uniformly
-        if ($request->hasFile('invoice_logo')) {
+        if (array_key_exists('invoice_logo', $validated) && $request->hasFile('invoice_logo')) {
             $path = $this->handleInvoiceLogoUpload($request->file('invoice_logo'));
             if ($path) {
                 $payload = $payload->withLogo($path);

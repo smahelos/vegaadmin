@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class DatabaseMonitorCommand extends Command
+final class DatabaseMonitorCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -238,8 +240,8 @@ class DatabaseMonitorCommand extends Command
 
         $testQueries = [
             'invoices_count' => 'SELECT COUNT(*) FROM invoices',
-            'clients_count' => 'SELECT COUNT(*) FROM clients',
-            'suppliers_count' => 'SELECT COUNT(*) FROM suppliers',
+            'contacts_count' => 'SELECT COUNT(*) FROM contacts',
+            'businesses_count' => 'SELECT COUNT(*) FROM businesses',
         ];
 
         foreach ($testQueries as $queryName => $query) {
@@ -328,8 +330,8 @@ class DatabaseMonitorCommand extends Command
                     user_name,
                     user_email,
                     total_invoices,
-                    total_clients,
-                    total_suppliers,
+                    total_contacts,
+                    total_businesses,
                     invoices_last_30_days,
                     invoices_last_7_days
                 FROM user_activity_summary
@@ -343,8 +345,8 @@ class DatabaseMonitorCommand extends Command
                 'Total Invoices',
                 'Last 30d',
                 'Last 7d',
-                'Clients',
-                'Suppliers',
+                'Contacts',
+                'Businesses',
             ];
             $data = [];
 
@@ -359,8 +361,8 @@ class DatabaseMonitorCommand extends Command
                     $stat->total_invoices,
                     $stat->invoices_last_30_days,
                     $stat->invoices_last_7_days,
-                    $stat->total_clients,
-                    $stat->total_suppliers,
+                    $stat->total_contacts,
+                    $stat->total_businesses,
                 ];
             }
 

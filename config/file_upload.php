@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     // Global default limits & settings applied when no specific context provided.
     'default' => [
@@ -52,7 +54,7 @@ return [
             ],
             'hash_deduplication' => ['enabled' => true],
         ],
-        'supplier_logo' => [
+        'party_logo' => [
             'max_kb' => 2048, // 2 MB
             'allowed_extensions' => [
                 'png',
@@ -68,7 +70,7 @@ return [
                 'path' => 'thumbnails',
                 'quality' => 85,
             ],
-            'hash_deduplication' => ['enabled' => true],
+            'hash_deduplication' => ['enabled' => false],
         ],
         'product_image' => [
             'max_kb' => 2048, // 2 MB

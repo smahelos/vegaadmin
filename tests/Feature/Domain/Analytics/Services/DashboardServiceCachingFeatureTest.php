@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Domain\Analytics\Services;
 
-use App\Domain\Analytics\Contracts\DashboardServiceInterface as AnalyticsDashboardServiceInterface;
+use App\Domain\Analytics\Services\DashboardService as AnalyticsDashboardService;
 use App\Domain\User\Events\UserDataChanged;
 use App\Domain\User\ValueObjects\UserId;
-use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -15,24 +17,24 @@ use Tests\TestCase;
 /**
  * Feature tests verifying cache lifecycle (warm -> stale -> invalidated) for DashboardService.
  */
-class DashboardServiceCachingFeatureTest extends TestCase
+final class DashboardServiceCachingFeatureTest extends TestCase
 {
-    private AnalyticsDashboardServiceInterface $service;
+    private AnalyticsDashboardService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = app(AnalyticsDashboardServiceInterface::class);
+        $this->service = app(AnalyticsDashboardService::class);
     }
 
     #[Test]
     public function invoice_creation_triggers_automatic_cache_invalidation(): void
     {
         $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
+        $contact = Contact::factory()->create(['user_id' => $user->id]);
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 10,
         ]);
 
@@ -43,7 +45,7 @@ class DashboardServiceCachingFeatureTest extends TestCase
         // Create another invoice AFTER cache warmed
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 20,
         ]);
 
@@ -54,7 +56,7 @@ class DashboardServiceCachingFeatureTest extends TestCase
         // Third invoice likewise -> immediate 3
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 5,
         ]);
         $statsAfterThird = $this->service->getUserStatistics(UserId::fromInt($user->id));
@@ -71,11 +73,11 @@ class DashboardServiceCachingFeatureTest extends TestCase
     {
         $userA = User::factory()->create();
         $userB = User::factory()->create();
-        $clientA = Client::factory()->create(['user_id' => $userA->id]);
-        $clientB = Client::factory()->create(['user_id' => $userB->id]);
+        $contactA = Contact::factory()->create(['user_id' => $userA->id]);
+        $contactB = Contact::factory()->create(['user_id' => $userB->id]);
         Invoice::factory()->create([
             'user_id' => $userA->id,
-            'client_id' => $clientA->id,
+            'contact_id' => $contactA->id,
             'payment_amount' => 50,
         ]);
 
@@ -86,12 +88,12 @@ class DashboardServiceCachingFeatureTest extends TestCase
         // Add invoice for user B (no cache yet) and second for A (stale cache)
         Invoice::factory()->create([
             'user_id' => $userB->id,
-            'client_id' => $clientB->id,
+            'contact_id' => $contactB->id,
             'payment_amount' => 30,
         ]);
         Invoice::factory()->create([
             'user_id' => $userA->id,
-            'client_id' => $clientA->id,
+            'contact_id' => $contactA->id,
             'payment_amount' => 25,
         ]);
 

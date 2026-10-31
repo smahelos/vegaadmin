@@ -27,14 +27,11 @@ class EloquentProductMapper
         $category = ($model->relationLoaded('category') && $model->category)
             ? ['id' => $model->category->getAttribute('id'), 'name' => $model->category->getAttribute('name')]
             : null;
-        $supplier = ($model->relationLoaded('supplier') && $model->supplier)
-            ? ['id' => $model->supplier->getAttribute('id'), 'name' => $model->supplier->getAttribute('name')]
-            : null;
 
         $currency = $model->getAttribute('currency') ?: 'CZK';
         $priceRaw = $model->getAttribute('price');
         $priceMoney = $priceRaw !== null
-            ? Money::fromFloat((float) $priceRaw, strtoupper($currency))
+            ? Money::fromString((string) $priceRaw, strtoupper($currency))
             : null;
 
         return ProductDTO::fromArray([
@@ -51,8 +48,6 @@ class EloquentProductMapper
             'invoices' => $model->relationLoaded('invoices') ? $model->invoices->pluck('id')->all() : [],
             'category_id' => $model->getAttribute('category_id'),
             'category' => $category,
-            'supplier_id' => $model->getAttribute('supplier_id'),
-            'supplier' => $supplier,
             'is_default' => $model->getAttribute('is_default'),
             'is_active' => $model->getAttribute('is_active'),
             'user_id' => $model->getAttribute('user_id'),

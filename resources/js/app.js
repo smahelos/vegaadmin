@@ -5,7 +5,6 @@ import '@fortawesome/fontawesome-free/scss/solid.scss';
 import '@fortawesome/fontawesome-free/scss/v4-shims.scss';
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
-import { initCountrySelect } from './country-select';
 import SlugGenerator from './slug-generator';
 import 'flowbite';
 
@@ -75,9 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.dispatchEvent(new CustomEvent('toggle-mobile-menu'));
         });
     }
-
-    // Initializing country select
-    initCountrySelect();
 
     // Initialize dashboard statistics if we are on the dashboard
     if (document.querySelector('.dashboard-stats-container')) {

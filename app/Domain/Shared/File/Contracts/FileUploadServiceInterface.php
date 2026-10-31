@@ -36,6 +36,9 @@ interface FileUploadServiceInterface
         ?string $context = null,
     ): ?string;
 
+    /** Removes a newly uploaded file after rollback, preserving paths still registered to other records. */
+    public function discardRolledBackUpload(string $path, string $disk): void;
+
     /** Delete a file from the configured storage disk.
      *
      * @param  string|null  $path  File path to delete (null means no file)

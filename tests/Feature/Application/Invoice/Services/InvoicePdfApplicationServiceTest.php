@@ -2,16 +2,17 @@
 
 namespace Tests\Feature\Application\Invoice\Services;
 
-use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
+use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
-use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
-use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Party\DTO\DocumentPartyDTO;
+use App\Domain\Party\ValueObjects\Address;
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\Shared\Unit\Enums\Unit;
+use App\Domain\Shared\Geography\Enums\Country;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
+use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\User;
@@ -25,8 +26,6 @@ class InvoicePdfApplicationServiceTest extends TestCase
     use AssertsInvoiceActionResult;
 
     private InvoicePdfApplicationServiceInterface $pdfService;
-
-    private InvoiceMutationApplicationServiceInterface $mutationService;
 
     private User $user;
 
@@ -63,7 +62,7 @@ class InvoicePdfApplicationServiceTest extends TestCase
                 string $entityType,
                 string $metricType = 'count',
                 ?string $periodType = 'daily',
-                string $guard = 'web',
+                ?string $guard = 'web',
                 int|float $value = 1,
             ): bool {
                 return true;
@@ -112,30 +111,23 @@ class InvoicePdfApplicationServiceTest extends TestCase
         $this->app->instance(UniversalLimitServiceInterface::class, $fakeLimit);
         // Now resolve services
         $this->pdfService = app(InvoicePdfApplicationServiceInterface::class);
-        $this->mutationService = app(InvoiceMutationApplicationServiceInterface::class);
     }
 
-    private function baseData(): array
+    /**
+     * Validated input of a guest invoice, as the form request hands it over.
+     *
+     * @return array<string, mixed>
+     */
+    private function guestInput(): array
     {
         return [
             'invoice_vs' => 'INV-' . uniqid(),
             'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
-            'payment_amount' => 100,
             'payment_currency' => 'EUR',
             'issue_date' => now()->format('Y-m-d'),
             'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
             'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-            'name' => 'Supplier ' . uniqid(),
-            'street' => 'Main',
-            'city' => 'City',
-            'zip' => '12345',
-            'country' => 'CZ',
-            'client_name' => 'Client ' . uniqid(),
-            'client_street' => 'C St',
-            'client_city' => 'C City',
-            'client_zip' => '54321',
-            'client_country' => 'CZ',
             'invoice_text' => 'Test invoice',
             'invoice-products' => [
                 [
@@ -150,24 +142,31 @@ class InvoicePdfApplicationServiceTest extends TestCase
         ];
     }
 
+    private function party(string $name): DocumentPartyDTO
+    {
+        return new DocumentPartyDTO(
+            $name,
+            null,
+            null,
+            Address::fromParts(
+                'Main 1',
+                'Brno',
+                '602 00',
+                Country::CZ,
+            ),
+            null,
+            null,
+        );
+    }
+
     #[Test]
     public function user_can_generate_pdf(): void
     {
-        // Create one product line so items flow into DTO/renderer
-        $products = [new InvoiceProductWriteData(
-            name: 'Service A',
-            quantity: '2',
-            unit: Unit::PIECES,
-            price: Money::fromString('50', 'EUR'),
-            taxRate: '21',
-        )];
-        $create = $this->mutationService->create(
-            $this->user->id,
-            $this->baseData(),
-            $products,
-        );
-        $this->assertInvoiceSuccess($create, 'Invoice creation failed');
-        $pdf = $this->pdfService->generate($this->user->id, $create->invoice->id);
+        $invoice = Invoice::factory()->create(['user_id' => $this->user->id, 'payment_currency' => 'EUR']);
+        InvoiceProduct::factory()->create(['invoice_id' => $invoice->id, 'currency' => 'EUR']);
+
+        $pdf = $this->pdfService->generate($this->user->id, $invoice->id);
+
         $this->assertInvoiceSuccess($pdf, 'PDF generation failed');
         $this->assertNotNull($pdf->response);
         $this->assertEquals(InvoiceActionStatus::SUCCESS, $pdf->status);
@@ -176,19 +175,21 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function guest_can_preview_pdf_by_token(): void
     {
-        // Simulate guest temporary invoice storage
-        $data = $this->baseData();
-        $data['lang'] = 'en';
-        // Use the same store as the application service for temporary invoices
-        $store = app(TemporaryInvoiceStoreInterface::class);
-        $token = $store->store($data);
-        $this->assertNotNull($store->get($token), 'Temporary store did not retain data');
+        $stored = app(GuestInvoiceApplicationServiceInterface::class)->storeGuestInvoice(
+            $this->guestInput(),
+            $this->party('Dodavatel s.r.o.'),
+            $this->party('Odběratel s.r.o.'),
+            null,
+            'en',
+        );
+
         $result = $this->pdfService->generate(
             userId: null,
-            token: $token,
+            token: $stored['token'],
             locale: 'en',
             preview: true,
         );
+
         $this->assertInvoiceSuccess($result, 'Guest preview failed');
         $this->assertNotNull($result->response);
     }
@@ -196,15 +197,10 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function another_users_invoice_is_not_rendered(): void
     {
-        $create = $this->mutationService->create(
-            $this->user->id,
-            $this->baseData(),
-            [],
-        );
-        $this->assertInvoiceSuccess($create, 'Invoice creation failed');
+        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
         $otherUser = User::factory()->create();
 
-        $pdf = $this->pdfService->generate($otherUser->id, $create->invoice->id);
+        $pdf = $this->pdfService->generate($otherUser->id, $invoice->id);
 
         $this->assertInvoiceFailure($pdf);
         $this->assertSame('invoices.messages.show_error', $pdf->message);

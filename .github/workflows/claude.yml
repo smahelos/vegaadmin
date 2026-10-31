@@ -1,6 +1,6 @@
 name: Claude Code
 
-# Automatic review of every pull request against the standard in .claude/ (CLAUDE.md and rules),
+# Automatic review of every pull request against AGENTS.md and the shared rules,
 # plus answers to "@claude" in PR and issue comments. Authenticates with a Claude subscription
 # token (`claude setup-token`) stored as the CLAUDE_CODE_OAUTH_TOKEN secret.
 
@@ -38,21 +38,12 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
 
-            Review this pull request's diff against the project standard: .claude/CLAUDE.md and the
-            rules in .claude/rules/ that apply to each changed path. The rules are the target standard;
-            existing code that predates them is not a template, so judge the changed lines, not the file.
-
-            Report, most severe first:
-            1. Bugs and regressions, with the concrete input or state that triggers them.
-            2. Security: authorization and ownership checks, input validation, escaping, secrets.
-            3. High-risk areas named in CLAUDE.md: money and VAT, invoice numbering, payments, permissions
-               and entity limits, invoice PDFs.
-            4. Violations of the rules in changed lines, citing the rule file.
-            5. Missing tests for changed behaviour.
+            Read AGENTS.md and its complete shared rule catalog, then the relevant documentation
+            and workflow sources it identifies. Review this pull request's diff using the Code Review
+            Rules in AGENTS.md, the same project standard used by Codex and local Claude.
 
             Put each finding as an inline comment on the line it concerns, and finish with one summary
-            comment. Skip style that Pint enforces and anything you cannot point to in the diff.
-            Write in English.
+            comment. Write in English.
           claude_args: |
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
 

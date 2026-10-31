@@ -1,130 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend\Auth;
 
-use App\Application\Party\Contracts\PartyApplicationServiceInterface;
-use App\Application\Payment\Contracts\BankApplicationServiceInterface;
-use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
-use App\Application\Shared\Geography\Contracts\LocaleApplicationServiceInterface;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RegistrationRequest;
-use App\Infrastructure\Forms\User\UserFormFields;
-use App\Models\Supplier;
-use App\Models\User;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
 
-class RegisterController extends Controller
+/**
+ * The registration page; the Livewire RegistrationForm on it validates and registers.
+ */
+final class RegisterController extends Controller
 {
-    use UserFormFields;
-
-    /**
-     * Constructor
-     */
-    public function __construct(
-        private readonly BankApplicationServiceInterface $bankService,
-        private readonly CountryApplicationServiceInterface $countryService,
-        private readonly LocaleApplicationServiceInterface $localeService,
-        private readonly PartyApplicationServiceInterface $partyService,
-    ) {}
-
-    /**
-     * Show registration form with user fields
-     */
-    public function showRegistrationForm(): View
+    public function create(): View
     {
-        $userFields = $this->getUserFields();
-        $passwordFields = $this->getPasswordFields();
-
-        // Get banks for dropdown
-        $banks = $this->bankService->getBanksForDropdown();
-
-        // Get banksData for JD bank-fields.js
-        $banksData = $this->bankService->getBanksForJs();
-
-        // Get countries for dropdown
-        $countries = $this->countryService->getCountryCodesForSelect();
-
-        return view('auth.register', [
-            'userFields' => $userFields,
-            'passwordFields' => $passwordFields,
-            'banks' => $banks,
-            'banksData' => $banksData,
-            'countries' => $countries,
-        ]);
-    }
-
-    /**
-     * Register a new user with related supplier
-     */
-    public function register(RegistrationRequest $request): RedirectResponse
-    {
-        $validatedData = $request->validated();
-
-        try {
-            // Create new user
-            $user = User::create([
-                'name' => $validatedData['name'],
-                'email' => $validatedData['email'],
-                'password' => Hash::make($validatedData['password']),
-            ]);
-
-            // Assign frontend_user role to new user
-            $frontendRole = Role::firstOrCreate(['name' => 'frontend_user']);
-            $user->assignRole($frontendRole);
-
-            // Create default supplier for new user using repository
-            $supplierData = [
-                'name' => $request->name,
-                'email' => $request->email,
-                'street' => $request->street,
-                'city' => $request->city,
-                'zip' => $request->zip,
-                'country' => $request->country ?? 'CZ',
-                'ico' => $request->ico,
-                'dic' => $request->dic,
-                'phone' => $request->phone,
-                'description' => $request->description,
-                'is_default' => true,
-                'user_id' => $user->id,
-                'account_number' => $request->account_number,
-                'bank_code' => $request->bank_code,
-                'iban' => $request->iban,
-                'swift' => $request->swift,
-                'bank_name' => $request->bank_name,
-                'has_payment_info' => (! empty($request->account_number) && ! empty($request->bank_code)),
-            ];
-
-            $supplier = $this->partyService->resolveOrCreateSupplierWithFlag($user->id, $supplierData);
-
-            // Fire registered event
-            event(new Registered($user));
-
-            // Login user automatically
-            Auth::login($user);
-
-            // Set locale and redirect
-            $locale = $this->localeService->determineLocale($request->get('lang'));
-
-            return redirect()->route('home', ['locale' => $locale])->with('success', __('users.auth.registration_success'));
-        } catch (\Exception $e) {
-            Log::error('Registration error: ' . $e->getMessage(), [
-                'email' => $validatedData['email'] ?? 'unknown',
-                'ip' => $request->ip(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            // If error occurs, try to delete partially created user to avoid data inconsistency
-            if (isset($user) && $user->exists) {
-                $user->delete();
-            }
-
-            return back()->withInput()->with('error', __('users.auth.registration_failed'));
-        }
+        return view('auth.register');
     }
 }

@@ -6,11 +6,13 @@ use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
-use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
+use App\Application\Payment\Mappers\QrPaymentMapper;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
-use App\Domain\Payment\Contracts\BankServiceInterface;
+use App\Domain\Party\DTO\DocumentAccountDTO;
+use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\Contracts\Locale;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -24,19 +26,28 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         private readonly InvoiceFormApplicationServiceInterface $invoiceFormService,
         private readonly Locale $locale,
         private readonly QrPaymentServiceInterface $qrPaymentService,
-        private readonly BankServiceInterface $bankService,
         private readonly TemporaryInvoiceStoreInterface $temporaryInvoiceStore,
-        private readonly QrPaymentPayloadMapper $qrPaymentMapper,
+        private readonly QrPaymentMapper $qrPaymentMapper,
         private readonly InvoiceProductWriteDataAssembler $products,
     ) {}
 
     /**
+     * The parties are stored as entered, in the shape a stored invoice keeps them, so the print reads both alike.
+     *
      * @param  array<string, mixed>  $validatedData  validated request input, items under 'invoice-products'
      */
-    public function storeGuestInvoice(array $validatedData, ?string $requestedLocale): array
-    {
+    public function storeGuestInvoice(
+        array $validatedData,
+        DocumentPartyDTO $supplier,
+        DocumentPartyDTO $customer,
+        ?DocumentAccountDTO $account,
+        ?string $requestedLocale,
+    ): array {
         $locale = $this->locale->determineLocale($requestedLocale);
         $validatedData['lang'] = $locale;
+        $validatedData['supplier'] = $supplier;
+        $validatedData['customer'] = $customer;
+        $validatedData['account'] = $account;
 
         if (isset($validatedData['due_in'])) {
             $validatedData['due_in'] = (int) $validatedData['due_in'];
@@ -53,22 +64,19 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         Session::put('last_guest_invoice_number', $validatedData['invoice_vs'] ?? null);
         Session::put('last_guest_invoice_expires', now()->addMinutes(10)->timestamp);
 
-        $tempInvoice = new \stdClass;
-        foreach ($validatedData as $k => $v) {
-            $tempInvoice->$k = $v;
-        }
-        if (isset($tempInvoice->due_in)) {
-            $tempInvoice->due_in = (int) $tempInvoice->due_in;
-        }
-
         $qrCodeBase64 = null;
         try {
-            if (((! empty($tempInvoice->account_number) && ! empty($tempInvoice->bank_code)) || ! empty($tempInvoice->iban))) {
-                $qrPayload = $this->qrPaymentMapper->fromArray($tempInvoice);
+            if ($account !== null) {
+                $qrPayload = $this->qrPaymentMapper->fromSnapshot(
+                    $validatedData['invoice_vs'] ?? null,
+                    Money::fromString($validatedData['payment_amount'], $validatedData['payment_currency']),
+                    $account,
+                    $validatedData['invoice_text'] ?? null,
+                );
                 $qrCodeBase64 = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
             }
         } catch (\Exception $e) {
-            Log::error('Error while generating QR code: ' . $e->getMessage());
+            Log::error('Guest invoice QR generation failed', ['exception' => $e]);
         }
 
         return [
@@ -90,8 +98,6 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         $paymentMethods = PaymentMethod::pluck('slug', 'id')->toArray();
         $statuses = Status::pluck('name', 'id')->toArray();
         $taxRates = Tax::where('slug', 'dph')->pluck('rate', 'id')->toArray();
-        $banks = $this->bankService->getBanksForDropdown();
-        $banksData = $this->bankService->getBanksForJs();
         // Guest context: no authenticated user ID => use 0 sentinel to start sequence at YYYY0001
         $suggestedNumber = $this->invoiceFormService->getNextInvoiceNumber(0);
         $limitsData = [
@@ -99,22 +105,8 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
             'current_usage' => 0,
             'allowed' => false,
         ];
-        $userInfo = [
-            'name' => '',
-            'street' => '',
-            'city' => '',
-            'zip' => '',
-            'country' => 'CZ',
-            'ico' => '',
-            'dic' => '',
-            'email' => '',
-            'phone' => '',
-        ];
-        $clients = $suppliers = [];
         $invoiceProducts = [];
         $fieldSet = app(InvoiceCreateFieldSetFactory::class)->build(
-            $clients,
-            $suppliers,
             $paymentMethods,
             $statuses,
         );
@@ -124,13 +116,8 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
             'paymentMethods',
             'statuses',
             'taxRates',
-            'banks',
-            'banksData',
             'suggestedNumber',
             'limitsData',
-            'userInfo',
-            'clients',
-            'suppliers',
             'invoiceProducts',
             'fields',
         );

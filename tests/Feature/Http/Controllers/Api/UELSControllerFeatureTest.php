@@ -33,8 +33,8 @@ class UELSControllerFeatureTest extends TestCase
             return new class extends PermissionLimitResolver
             {
                 public array $permissionLimits = [
-                    'client' => [],
-                    'supplier' => [],
+                    'contact' => [],
+                    'business' => [],
                     'product' => [],
                     'invoice' => [],
                 ];
@@ -65,8 +65,8 @@ class UELSControllerFeatureTest extends TestCase
                         public function getAllEntityTypes(): array
                         {
                             return [
-                                'client',
-                                'supplier',
+                                'contact',
+                                'business',
                                 'product',
                                 'invoice',
                             ];
@@ -235,7 +235,7 @@ class UELSControllerFeatureTest extends TestCase
                     string $entityType,
                     string $metricType = 'count',
                     ?string $periodType = 'daily',
-                    string $guard = 'web',
+                    ?string $guard = 'web',
                     int|float $value = 1,
                 ): bool {
                     return true;
@@ -303,7 +303,7 @@ class UELSControllerFeatureTest extends TestCase
     #[Test]
     public function entity_data_requires_authentication(): void
     {
-        $resp = $this->get('/test/uels/client');
+        $resp = $this->get('/test/uels/contact');
         // For unauthenticated web route expect 302 redirect to login
         $resp->assertStatus(302);
     }
@@ -327,7 +327,7 @@ class UELSControllerFeatureTest extends TestCase
             'user_permissions' => [],
             'limits' => [],
         ];
-        $resp = $this->getJson('/test/uels/client');
+        $resp = $this->getJson('/test/uels/contact');
         $resp->assertOk();
         $resp->assertJsonPath('status', 'no_permission');
         $this->assertTrue($resp->json('is_at_limit'));
@@ -344,7 +344,7 @@ class UELSControllerFeatureTest extends TestCase
             'limits' => [],
         ];
         $this->fakeService->usageStats = []; // no stats generated
-        $resp = $this->getJson('/test/uels/client');
+        $resp = $this->getJson('/test/uels/contact');
         $resp->assertOk();
         $this->assertEquals('unlimited', $resp->json('status'));
         $this->assertEquals(-1, $resp->json('limit'));
@@ -396,7 +396,7 @@ class UELSControllerFeatureTest extends TestCase
             'yearly' => [],
             'lifetime' => [],
         ];
-        $resp = $this->getJson('/test/uels/client');
+        $resp = $this->getJson('/test/uels/contact');
         $resp->assertOk();
         $this->assertEquals(10, $resp->json('limit')); // weekly chosen
         $this->assertEquals(2, $resp->json('current_usage'));
@@ -426,8 +426,8 @@ class UELSControllerFeatureTest extends TestCase
         ];
         $resp = $this->getJson('/test/uels-all');
         $resp->assertOk()->assertJsonStructure(['entities' => [
-            'client',
-            'supplier',
+            'contact',
+            'business',
             'product',
             'invoice',
         ]]);

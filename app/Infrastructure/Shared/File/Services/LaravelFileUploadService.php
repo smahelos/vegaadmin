@@ -470,6 +470,14 @@ class LaravelFileUploadService implements FileUploadServiceInterface
         $this->deleteFile($thumbnailPath, $disk);
     }
 
+    public function discardRolledBackUpload(string $path, string $disk): void
+    {
+        // The transaction already reverted reference counts. A surviving hash belongs to another record.
+        if (! FileHash::query()->where('disk', $disk)->where('path', $path)->exists()) {
+            Storage::disk($disk)->delete($path);
+        }
+    }
+
     public function deleteFile(?string $path, string $disk): bool
     {
         if (! $path) {

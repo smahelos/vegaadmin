@@ -46,7 +46,8 @@ class DatabaseMaintenanceLogFactory extends Factory
             'table_name' => $this->faker->randomElement([
                 'users',
                 'invoices',
-                'clients',
+                'businesses',
+                'contacts',
                 'products',
                 'expenses',
             ]),

@@ -33,5 +33,5 @@ Card payments of subscriptions go through GoPay; invoices carry QR payment codes
 
 ## QR payments
 
-- The variable symbol is the invoice number (max 10 digits, `domain.md`); the account comes from the supplier's bank account through `BankAccount`.
+- The variable symbol is the invoice number (max 10 digits, `domain.md`); the account is the one stored on the invoice (`account_*`, copied from a bank account of the invoice's business), read through `BankAccount`. Czech and Slovak QR codes carry its IBAN (`BankAccount::toIban()`).
 - Country-specific QR formats are implementations of `QrPaymentProviderInterface`; adding a country means adding a provider, not a branch.

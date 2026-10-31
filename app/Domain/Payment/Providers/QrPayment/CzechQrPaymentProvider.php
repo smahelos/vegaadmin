@@ -1,51 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Payment\Providers\QrPayment;
 
 use App\Domain\Payment\Contracts\QrPaymentProviderInterface;
-use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\DTO\QrPaymentDTO;
 
-class CzechQrPaymentProvider implements QrPaymentProviderInterface
+final class CzechQrPaymentProvider implements QrPaymentProviderInterface
 {
-    public const SUPPORTED_CURRENCIES = ['CZK'];
+    private const SUPPORTED_CURRENCIES = ['CZK'];
 
-    public function getSupportedCurrencies(): array
+    public function validatePaymentInfo(QrPaymentDTO $payload): bool
     {
-        return self::SUPPORTED_CURRENCIES;
+        return in_array(
+            $payload->amount->getCurrency(),
+            self::SUPPORTED_CURRENCIES,
+            true,
+        )
+            && $payload->amountDecimal() !== '0.00'
+            && $payload->account !== null;
     }
 
-    public function validatePaymentInfo(QrPaymentPayload $payload): bool
-    {
-        if (! in_array($payload->amount->getCurrency(), $this->getSupportedCurrencies())) {
-            return false;
-        }
-
-        if ($payload->amount->toFloat() <= 0) {
-            return false;
-        }
-
-        if (empty($payload->iban) && (empty($payload->accountNumber) || empty($payload->bankCode))) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function generateQrString(QrPaymentPayload $payload): string
+    public function generateQrString(QrPaymentDTO $payload): string
     {
         $qrParts = [];
         $qrParts[] = 'SPD*1.0';
-        $qrParts[] = 'ACC:' . $this->formatAccountIdentifier(
-            $payload->accountNumber,
-            $payload->bankCode,
-            $payload->iban,
-        );
-        $qrParts[] = 'AM:' . number_format(
-            $payload->amount->toFloat(),
-            2,
-            '.',
-            '',
-        );
+        $qrParts[] = 'ACC:' . $payload->account?->iban;
+        $qrParts[] = 'AM:' . $payload->amountDecimal();
         $qrParts[] = 'CC:' . $payload->amount->getCurrency();
 
         if (! empty($payload->variableSymbol)) {
@@ -61,21 +43,5 @@ class CzechQrPaymentProvider implements QrPaymentProviderInterface
         }
 
         return implode('*', $qrParts);
-    }
-
-    public function formatAccountIdentifier(
-        ?string $accountNumber,
-        ?string $bankCode,
-        ?string $iban,
-    ): ?string {
-        if (! empty($iban)) {
-            return strtoupper(preg_replace('/\s+/', '', $iban));
-        }
-
-        if (! empty($accountNumber) && ! empty($bankCode)) {
-            return $accountNumber . '/' . $bankCode;
-        }
-
-        return null;
     }
 }

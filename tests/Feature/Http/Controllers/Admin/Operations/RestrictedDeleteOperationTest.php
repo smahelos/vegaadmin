@@ -43,11 +43,6 @@ final class RestrictedDeleteOperationTest extends TestCase
                 'artisan_command_categories',
                 static fn (): int => ArtisanCommand::factory()->create()->category_id,
             ],
-            'client' => [
-                'client',
-                'clients',
-                static fn (): int => Invoice::factory()->create()->client_id,
-            ],
             'expense category' => [
                 'expense-category',
                 'expense_categories',
@@ -86,11 +81,6 @@ final class RestrictedDeleteOperationTest extends TestCase
                 'subscription-plan',
                 'subscription_plans',
                 static fn (): int => Subscription::factory()->create()->subscription_plan_id,
-            ],
-            'supplier' => [
-                'supplier',
-                'suppliers',
-                static fn (): int => Invoice::factory()->create()->supplier_id,
             ],
             'tax' => [
                 'tax',

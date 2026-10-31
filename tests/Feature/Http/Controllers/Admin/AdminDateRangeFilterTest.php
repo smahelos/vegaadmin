@@ -83,7 +83,7 @@ class AdminDateRangeFilterTest extends TestCase
             'expense' => Expense::factory()->create([$filter => $date]),
             'entity-usage' => EntityLimitUsage::create([
                 'user_id' => $this->adminUser->id,
-                'entity_type' => 'client',
+                'entity_type' => 'invoice',
                 'metric_type' => 'count',
                 'period_type' => 'monthly',
                 'period_start' => $date,

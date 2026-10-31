@@ -11,9 +11,9 @@ Files:
 
 The architecture tests in `tests/Feature/Architecture` read these committed files directly (not `storage/app/metrics`, which is git-ignored).
 
-Commands below run artisan in a throwaway container with the working tree mounted, because the `BILLEX-app` container has no bind mount and its `--save` output would never reach the host:
+Commands below run artisan in the `BILLEX-app` container, which bind-mounts the project, so `--save` and `--write` output lands in the working tree:
 
-    ARTISAN='docker run --rm -e HOME=/tmp -v "$PWD":/var/www -w /var/www --user "$(id -u):$(id -g)" billex-app php artisan'
+    ARTISAN='docker exec BILLEX-app php artisan'
 
 Maintenance Rules:
 1. Regenerate only when an intentional architectural change is approved.

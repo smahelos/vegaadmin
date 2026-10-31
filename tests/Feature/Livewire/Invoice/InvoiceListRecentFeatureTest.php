@@ -4,7 +4,6 @@ namespace Tests\Feature\Livewire\Invoice;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Livewire\Invoice\InvoiceListRecent;
-use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -37,17 +36,13 @@ class InvoiceListRecentFeatureTest extends TestCase
     public function component_displays_user_invoices_only(): void
     {
         $otherUser = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-        $otherClient = Client::factory()->create(['user_id' => $otherUser->id]);
 
         $userInvoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
         ]);
 
         $otherUserInvoice = Invoice::factory()->create([
             'user_id' => $otherUser->id,
-            'client_id' => $otherClient->id,
         ]);
 
         $this->actingAs($this->user);
@@ -101,10 +96,8 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_passes_correct_data_to_view(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
         Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);
@@ -119,13 +112,11 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_eager_loads_relationships(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
         $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $paymentStatus = Status::factory()->create();
 
         Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
             'payment_method_id' => $paymentMethod->id,
             'payment_status_id' => $paymentStatus->id,
         ]);
@@ -137,7 +128,6 @@ class InvoiceListRecentFeatureTest extends TestCase
 
         // Check that relationships are loaded
         $invoice = $invoices->first();
-        $this->assertTrue($invoice->relationLoaded('client'));
         $this->assertTrue($invoice->relationLoaded('paymentMethod'));
         $this->assertTrue($invoice->relationLoaded('paymentStatus'));
     }
@@ -145,17 +135,13 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_defaults_to_descending_created_at_order(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-
         $oldInvoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
             'created_at' => now()->subDays(2),
         ]);
 
         $newInvoice = Invoice::factory()->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
             'created_at' => now()->subDay(),
         ]);
 
@@ -171,12 +157,9 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_limits_to_5_invoices_per_page(): void
     {
-        $client = Client::factory()->create(['user_id' => $this->user->id]);
-
         // Create 7 invoices
         Invoice::factory()->count(7)->create([
             'user_id' => $this->user->id,
-            'client_id' => $client->id,
         ]);
 
         $this->actingAs($this->user);

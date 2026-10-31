@@ -1,38 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Payment\Providers\QrPayment;
 
 use App\Domain\Payment\Contracts\QrPaymentProviderInterface;
-use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\DTO\QrPaymentDTO;
 
-class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
+final class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
 {
-    public const SUPPORTED_CURRENCIES = ['EUR'];
+    private const SUPPORTED_CURRENCIES = ['EUR'];
 
-    public function getSupportedCurrencies(): array
+    public function validatePaymentInfo(QrPaymentDTO $payload): bool
     {
-        return self::SUPPORTED_CURRENCIES;
+        return in_array(
+            $payload->amount->getCurrency(),
+            self::SUPPORTED_CURRENCIES,
+            true,
+        )
+            && $payload->amountDecimal() !== '0.00'
+            && $payload->account !== null;
     }
 
-    public function validatePaymentInfo(QrPaymentPayload $payload): bool
-    {
-        if (! in_array($payload->amount->getCurrency(), $this->getSupportedCurrencies())) {
-            return false;
-        }
-
-        if ($payload->amount->toFloat() <= 0) {
-            return false;
-        }
-
-        // European standard requires IBAN
-        if (empty($payload->iban)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function generateQrString(QrPaymentPayload $payload): string
+    public function generateQrString(QrPaymentDTO $payload): string
     {
         $qrParts = [];
         $qrParts[] = 'BCD';
@@ -41,13 +31,8 @@ class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
         $qrParts[] = 'SCT';
         $qrParts[] = '';
         $qrParts[] = '';
-        $qrParts[] = strtoupper(preg_replace('/\s+/', '', $payload->iban));
-        $qrParts[] = 'EUR' . number_format(
-            $payload->amount->toFloat(),
-            2,
-            '.',
-            '',
-        );
+        $qrParts[] = $payload->account?->iban;
+        $qrParts[] = 'EUR' . $payload->amountDecimal();
         $qrParts[] = '';
         $qrParts[] = $payload->variableSymbol ?? '';
         $qrParts[] = substr(

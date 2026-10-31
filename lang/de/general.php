@@ -22,8 +22,6 @@ return [
     'navigation' => [
         'dashboard' => 'Übersicht',
         'invoices' => 'Rechnungen',
-        'clients' => 'Kunden',
-        'suppliers' => 'Lieferanten',
         'profile' => 'Profil',
         'products' => 'Produkte',
         'create_invoice' => 'Rechnung erstellen',
@@ -31,9 +29,7 @@ return [
         'language' => 'Sprache',
     ],
     'placeholders' => [
-        'select_client' => 'Wählen Sie einen Kunden oder erstellen Sie einen neuen...',
         'select_status' => 'Status auswählen...',
-        'select_supplier' => 'Wählen Sie einen Lieferanten oder erstellen Sie einen neuen...',
         'select_country' => 'Land auswählen...',
         'payment_method_select' => 'Zahlungsart auswählen',
         'due_in_select' => 'Zahlungsfrist auswählen',
@@ -61,6 +57,7 @@ return [
         'next' => 'Weiter',
     ],
     'actions' => [
+        'view_all' => 'Alle anzeigen',
         'create' => 'Erstellen',
         'edit' => 'Regeln',
         'delete' => 'Löschen',

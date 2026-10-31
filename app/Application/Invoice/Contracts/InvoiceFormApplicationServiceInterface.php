@@ -3,7 +3,6 @@
 namespace App\Application\Invoice\Contracts;
 
 use App\Application\Invoice\DTO\InvoiceFormDTO;
-use Illuminate\Http\Request;
 
 /**
  * Contract for invoice form-related application services
@@ -13,7 +12,7 @@ interface InvoiceFormApplicationServiceInterface
     /**
      * Prepare data for invoice creation form (legacy compatibility)
      */
-    public function prepareCreateData(int $userId, Request $request): InvoiceFormDTO;
+    public function prepareCreateData(int $userId): InvoiceFormDTO;
 
     /**
      * Prepare data for invoice editing form (legacy compatibility)

@@ -15,6 +15,9 @@ interface InvoiceDtoReadRepositoryInterface
     /** Find invoice by ID for specific user (ownership enforced). */
     public function findByIdForUser(InvoiceId $id, UserId $userId): ?InvoiceDTO;
 
+    /** Locks and rereads the invoice in the surrounding transaction, enforcing ownership. */
+    public function findByIdForUserForUpdate(InvoiceId $id, UserId $userId): ?InvoiceDTO;
+
     /** Highest invoice number of a user and year in the standard format (see InvoiceNumber), null if none. */
     public function findLastInvoiceNumber(UserId $userId, int $year): ?string;
 }

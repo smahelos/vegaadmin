@@ -52,7 +52,7 @@ interface EntityLimitUsageRepositoryInterface
      * Check if user has permission to create/access the given entity type.
      * This moves User loading and permission checking to Infrastructure layer.
      *
-     * @param  string  $entityType  Entity type (invoice, client, etc.)
+     * @param  string  $entityType  Entity type (invoice, contact, etc.)
      * @param  string  $guard  Guard name for permission checking
      * @return bool True if user has permission
      */

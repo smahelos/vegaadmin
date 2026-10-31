@@ -2,8 +2,7 @@
 
 namespace App\Infrastructure\Forms\Party;
 
-use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
-use Illuminate\Support\Facades\App;
+use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 
 trait BankFormFields
 {
@@ -12,8 +11,7 @@ trait BankFormFields
      */
     protected function getBankFields(): array
     {
-        // Get country codes from CountryService
-        $countries = App::make(CountryServiceInterface::class)->getCountryCodesForSelect();
+        $countries = app(CountryOptionsPresenter::class)->options(app()->getLocale());
 
         return [
             [

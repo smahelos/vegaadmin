@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support\Fakes\Analytics;
 
 use App\Application\Analytics\Contracts\ApiStatisticsRepository;
-use App\Domain\Party\ValueObjects\PartyId;
+use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
 
@@ -15,21 +15,21 @@ use DateTimeImmutable;
  */
 final class FakeApiStatisticsRepository implements ApiStatisticsRepository
 {
-    /** @var list<array{method: string, userId: UserId, from: DateTimeImmutable, to: ?DateTimeImmutable, clientIds: list<PartyId>}> */
+    /** @var list<array{method: string, userId: UserId, from: DateTimeImmutable, to: ?DateTimeImmutable, contactIds: list<ContactId>}> */
     public array $calls = [];
 
     public function monthlyRevenue(
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
             $userId,
             $from,
             $to,
-            $clientIds,
+            $contactIds,
         );
 
         return [[
@@ -39,23 +39,23 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
         ]];
     }
 
-    public function clientRevenue(
+    public function customerRevenue(
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
             $userId,
             $from,
             $to,
-            $clientIds,
+            $contactIds,
         );
 
         return [[
-            'client_id' => 1,
-            'client_name' => 'Acme',
+            'contact_id' => 1,
+            'customer_name' => 'Acme',
             'total' => '123.45',
         ]];
     }
@@ -64,14 +64,14 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
             $userId,
             $from,
             $to,
-            $clientIds,
+            $contactIds,
         );
 
         return [
@@ -112,14 +112,14 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
             $userId,
             $from,
             $to,
-            $clientIds,
+            $contactIds,
         );
 
         return [[
@@ -132,14 +132,14 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
             $userId,
             $from,
             $to,
-            $clientIds,
+            $contactIds,
         );
 
         return [[
@@ -151,21 +151,21 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     /**
-     * @param  list<PartyId>  $clientIds
+     * @param  list<ContactId>  $contactIds
      */
     private function record(
         string $method,
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): void {
         $this->calls[] = [
             'method' => $method,
             'userId' => $userId,
             'from' => $from,
             'to' => $to,
-            'clientIds' => $clientIds,
+            'contactIds' => $contactIds,
         ];
     }
 }

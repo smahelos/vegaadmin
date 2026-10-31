@@ -6,7 +6,7 @@ namespace App\Http\Requests;
 
 use App\Domain\Analytics\DTO\StatisticsFilter;
 use App\Domain\Analytics\Enums\StatisticsPeriod;
-use App\Domain\Party\ValueObjects\PartyId;
+use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
 use Illuminate\Foundation\Http\FormRequest;
@@ -32,8 +32,8 @@ final class StatisticsRequest extends FormRequest
                 'date_format:Y-m-d',
                 'after_or_equal:date_from',
             ],
-            'clients' => ['nullable', 'array'],
-            'clients.*' => [
+            'contacts' => ['nullable', 'array'],
+            'contacts.*' => [
                 'integer',
                 'min:1',
             ],
@@ -49,8 +49,8 @@ final class StatisticsRequest extends FormRequest
             'time_range' => __('dashboard.filters.date_range'),
             'date_from' => __('dashboard.filters.date_from'),
             'date_to' => __('dashboard.filters.date_to'),
-            'clients' => __('dashboard.filters.clients'),
-            'clients.*' => __('dashboard.filters.clients'),
+            'contacts' => __('dashboard.filters.contacts'),
+            'contacts.*' => __('dashboard.filters.contacts'),
         ];
     }
 
@@ -62,16 +62,16 @@ final class StatisticsRequest extends FormRequest
     public function filter(): StatisticsFilter
     {
         $period = StatisticsPeriod::tryFrom((string) $this->validated('time_range')) ?? StatisticsPeriod::YEAR;
-        $clientIds = array_map(
-            static fn (int|string $id): PartyId => PartyId::fromInt((int) $id),
-            $this->validated('clients') ?? [],
+        $contactIds = array_map(
+            static fn (int|string $id): ContactId => ContactId::fromInt((int) $id),
+            $this->validated('contacts') ?? [],
         );
 
         return new StatisticsFilter(
             period: $period,
             from: $this->validatedDate('date_from'),
             to: $this->validatedDate('date_to'),
-            clientIds: array_values($clientIds),
+            contactIds: array_values($contactIds),
         );
     }
 

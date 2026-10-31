@@ -1,325 +1,169 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Console\Commands;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Shared\Notifications\DTO\Recipient;
-use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder;
-use App\Infrastructure\Notifications\Invoice\Messages\InvoiceOverdueReminder;
-use App\Infrastructure\Notifications\Invoice\Messages\InvoiceUpcomingDueReminder;
-use App\Models\Client;
+use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\Status;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
+use Tests\Support\Fakes\CapturingInvoiceReminderNotifier;
 use Tests\TestCase;
-use Tests\Traits\CreatesFrontendTestEnvironment;
 
-class CheckInvoicePaymentStatusFeatureTest extends TestCase
+final class CheckInvoicePaymentStatusFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment;
-
-    protected function setUp(): void
+    /** @return array<string, array{int, InvoiceReminderType}> */
+    public static function dueDates(): array
     {
-        parent::setUp();
-
-        $this->setUpFrontendTestEnvironment();
-
-        Notification::fake();
+        return [
+            'upcoming' => [3, InvoiceReminderType::UPCOMING_DUE],
+            'today' => [0, InvoiceReminderType::DUE_TODAY],
+            'overdue' => [-1, InvoiceReminderType::OVERDUE],
+        ];
     }
 
     #[Test]
-    public function command_executes_successfully(): void
+    #[DataProvider('dueDates')]
+    public function sends_both_roles_from_the_snapshot_without_a_contact(int $days, InvoiceReminderType $type): void
     {
-        $exitCode = Artisan::call('invoices:check-payment-status');
+        $this->travelTo(now()->setDate(2026, 10, 29)->setTime(17, 45));
+        $notifier = $this->captureReminders();
+        Invoice::factory()->create([
+            'invoice_vs' => '20260001',
+            'issue_date' => now()->startOfDay()->subDays(10)->addDays($days),
+            'due_in' => 10,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->sole()->id,
+            'contact_id' => null,
+            'supplier_name' => 'Saved supplier',
+            'supplier_email' => 'saved-supplier@example.test',
+            'supplier_country' => 'DE',
+            'customer_name' => 'Saved customer',
+            'customer_email' => 'saved-customer@example.test',
+            'customer_country' => 'SK',
+        ]);
 
-        $this->assertEquals(0, $exitCode);
+        $this->assertSame(0, Artisan::call('invoices:check-payment-status'));
+        $this->assertCount(2, $notifier->sent);
+        foreach ($notifier->sent as [$sentType, $payload, $recipient]) {
+            $this->assertSame($type, $sentType);
+            $this->assertSame('20260001', $payload->invoiceNumber);
+            $this->assertSame(now()->addDays($days)->toDateString(), $payload->dueDate->format('Y-m-d'));
+            $supplier = $payload->recipientType === 'supplier';
+            $this->assertSame($supplier ? 'Saved supplier' : 'Saved customer', $recipient->name);
+            $this->assertSame($supplier ? 'saved-supplier@example.test' : 'saved-customer@example.test', $recipient->email);
+            $this->assertSame($supplier ? 'de' : 'sk', $payload->locale);
+            $this->assertSame($type === InvoiceReminderType::UPCOMING_DUE ? $days : null, $payload->daysLeft);
+            $this->assertSame($type === InvoiceReminderType::OVERDUE ? -$days : null, $payload->daysOverdue);
+        }
     }
 
     #[Test]
-    public function command_accepts_options(): void
+    public function skips_empty_snapshot_emails_even_when_the_business_has_an_email(): void
     {
-        $exitCode = Artisan::call('invoices:check-payment-status', [
-            '--days-before' => 5,
-            '--days-after' => 2,
-        ]);
+        $notifier = $this->captureReminders();
+        $invoice = $this->dueInvoice(['supplier_email' => null, 'customer_email' => null]);
+        Business::whereKey($invoice->business_id)->update(['email' => 'live-business@example.test']);
 
-        $this->assertEquals(0, $exitCode);
+        $this->assertSame(0, Artisan::call('invoices:check-payment-status'));
+        $this->assertSame([], $notifier->sent);
+        $this->assertStringContainsString('Notifications sent: 0 upcoming, 0 today, 0 overdue.', Artisan::output());
     }
 
     #[Test]
-    public function command_sends_upcoming_due_reminders(): void
+    public function counts_only_sent_notifications_and_keeps_the_payment_status(): void
     {
-        // Create client and invoice
-        $client = Client::factory()->create([
-            'email' => 'test@example.com',
-        ]);
+        $notifier = $this->captureReminders();
+        $invoice = $this->dueInvoice(['supplier_email' => null, 'customer_email' => 'one-off@example.test']);
+        $status = $invoice->payment_status_id;
 
-        $unpaidStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
-
-        // Create invoice due in 3 days (default days-before)
-        $invoice = Invoice::factory()->create([
-            'client_id' => $client->id,
-            'payment_status_id' => $unpaidStatus->id,
-            'issue_date' => Carbon::today()->subDays(7), // Issued 7 days ago
-            'due_in' => 10, // Due in 10 days from issue = 3 days from today
-        ]);
-
-        // Run the command
-        $exitCode = Artisan::call('invoices:check-payment-status');
-
-        $this->assertEquals(0, $exitCode);
-
-        // Check that upcoming due reminder was sent via on-demand notification to client's email
-        Notification::assertSentOnDemand(
-            InvoiceUpcomingDueReminder::class,
-            function (
-                $notification,
-                $channels,
-                $notifiable,
-            ) use ($client) {
-                return in_array(
-                    'mail',
-                    $channels,
-                    true,
-                )
-                    && ($notifiable->routes['mail'] ?? null) === $client->email;
-            },
-        );
+        $this->assertSame(0, Artisan::call('invoices:check-payment-status'));
+        $this->assertCount(1, $notifier->sent);
+        $this->assertStringContainsString('0 upcoming, 1 today, 0 overdue', Artisan::output());
+        $this->assertSame($status, $invoice->fresh()->payment_status_id);
     }
 
     #[Test]
-    public function command_sends_due_today_reminders(): void
+    public function skips_paid_cancelled_and_other_due_dates(): void
     {
-        // Create client and invoice
-        $client = Client::factory()->create([
-            'email' => 'test@example.com',
-        ]);
-
-        $unpaidStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
-
-        // Create invoice due today
-        $invoice = Invoice::factory()->create([
-            'client_id' => $client->id,
-            'payment_status_id' => $unpaidStatus->id,
-            'issue_date' => Carbon::today()->subDays(30), // Issued 30 days ago
-            'due_in' => 30, // Due in 30 days from issue = today
-        ]);
-
-        // Run the command
-        $exitCode = Artisan::call('invoices:check-payment-status');
-
-        $this->assertEquals(0, $exitCode);
-
-        // Check that due today reminder was sent via on-demand notification to client's email
-        Notification::assertSentOnDemand(
-            InvoiceDueReminder::class,
-            function (
-                $notification,
-                $channels,
-                $notifiable,
-            ) use ($client) {
-                return in_array(
-                    'mail',
-                    $channels,
-                    true,
-                )
-                    && ($notifiable->routes['mail'] ?? null) === $client->email;
-            },
-        );
+        $notifier = $this->captureReminders();
+        foreach ([InvoiceStatus::PAID, InvoiceStatus::CANCELLED] as $status) {
+            $this->dueInvoice(['payment_status_id' => Status::where('slug', $status->value)->sole()->id]);
+        }
+        $this->dueInvoice(['due_in' => 12]);
+        $this->assertSame(0, Artisan::call('invoices:check-payment-status'));
+        $this->assertSame([], $notifier->sent);
     }
 
     #[Test]
-    public function command_sends_overdue_reminders(): void
+    public function uses_custom_offsets(): void
     {
-        // Create client and invoice
-        $client = Client::factory()->create([
-            'email' => 'test@example.com',
-        ]);
-
-        $unpaidStatus = Status::where('slug', InvoiceStatus::PARTIALLY_PAID->value)->firstOrFail();
-
-        // Create invoice overdue by 1 day (default days-after)
-        $invoice = Invoice::factory()->create([
-            'client_id' => $client->id,
-            'payment_status_id' => $unpaidStatus->id,
-            'issue_date' => Carbon::today()->subDays(32), // Issued 32 days ago
-            'due_in' => 31, // Due in 31 days from issue = 1 day overdue
-        ]);
-
-        // Run the command
-        $exitCode = Artisan::call('invoices:check-payment-status');
-
-        $this->assertEquals(0, $exitCode);
-
-        // Being overdue is derived from the due date; the reminder leaves the stored status alone
-        $this->assertSame($unpaidStatus->id, $invoice->fresh()->payment_status_id);
-
-        // Check that overdue reminder was sent via on-demand notification to client's email
-        Notification::assertSentOnDemand(
-            InvoiceOverdueReminder::class,
-            function (
-                $notification,
-                $channels,
-                $notifiable,
-            ) use ($client) {
-                return in_array(
-                    'mail',
-                    $channels,
-                    true,
-                )
-                    && ($notifiable->routes['mail'] ?? null) === $client->email;
-            },
-        );
+        $notifier = $this->captureReminders();
+        $this->dueInvoice(['due_in' => 15, 'supplier_email' => null]);
+        $this->dueInvoice(['due_in' => 8, 'supplier_email' => null]);
+        $this->assertSame(0, Artisan::call('invoices:check-payment-status', ['--days-before' => 5, '--days-after' => 2]));
+        $this->assertCount(2, $notifier->sent);
+        $this->assertStringContainsString('1 upcoming, 0 today, 1 overdue', Artisan::output());
     }
 
     #[Test]
-    public function command_fails_when_a_reminder_cannot_be_sent(): void
+    public function rejects_invalid_offsets_without_sending(): void
+    {
+        $notifier = $this->captureReminders();
+        $this->dueInvoice();
+        foreach ([
+            '0',
+            '-1',
+            '1.5',
+            'three',
+        ] as $offset) {
+            $this->assertSame(2, Artisan::call('invoices:check-payment-status', ['--days-before' => $offset]));
+        }
+        $this->assertSame([], $notifier->sent);
+    }
+
+    #[Test]
+    public function fails_when_a_reminder_cannot_be_queued(): void
     {
         $this->app->instance(InvoiceReminderNotifierInterface::class, new class implements InvoiceReminderNotifierInterface
         {
             public function send(
                 InvoiceReminderType $type,
-                InvoiceReminderPayload $payload,
+                InvoiceReminderDTO $payload,
                 Recipient $recipient,
             ): void {
-                throw new RuntimeException('Mail transport is down');
+                throw new RuntimeException('The mail queue is unavailable');
             }
         });
-        Invoice::factory()->create([
-            'client_id' => Client::factory()->create(['email' => 'test@example.com'])->id,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-            'issue_date' => Carbon::today()->subDays(30),
-            'due_in' => 30,
-        ]);
-
-        $exitCode = Artisan::call('invoices:check-payment-status');
-
-        $this->assertSame(1, $exitCode);
+        $this->dueInvoice();
+        $this->assertSame(1, Artisan::call('invoices:check-payment-status'));
     }
 
-    #[Test]
-    public function command_ignores_paid_invoices(): void
+    /** @param array<string, mixed> $overrides */
+    private function dueInvoice(array $overrides = []): Invoice
     {
-        // Create client and invoice
-        $client = Client::factory()->create([
-            'email' => 'test@example.com',
+        return Invoice::factory()->create($overrides + [
+            'issue_date' => now()->subDays(10),
+            'due_in' => 10,
+            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->sole()->id,
+            'supplier_email' => 'supplier@example.test',
+            'customer_email' => 'customer@example.test',
         ]);
-
-        $paidStatus = Status::where('slug', 'paid')->first();
-
-        // Create paid invoice that would be overdue
-        $invoice = Invoice::factory()->create([
-            'client_id' => $client->id,
-            'payment_status_id' => $paidStatus->id,
-            'issue_date' => Carbon::today()->subDays(32),
-            'due_in' => 31,
-        ]);
-
-        // Run the command
-        $exitCode = Artisan::call('invoices:check-payment-status');
-
-        $this->assertEquals(0, $exitCode);
-
-        // Check that no reminders were sent
-        Notification::assertNothingSent();
     }
 
-    #[Test]
-    public function command_ignores_cancelled_invoices(): void
+    private function captureReminders(): CapturingInvoiceReminderNotifier
     {
-        // Create client and invoice
-        $client = Client::factory()->create([
-            'email' => 'test@example.com',
-        ]);
+        $notifier = new CapturingInvoiceReminderNotifier;
+        $this->app->instance(InvoiceReminderNotifierInterface::class, $notifier);
 
-        $cancelledStatus = Status::where('slug', 'cancelled')->first();
-
-        // Create cancelled invoice that would be overdue
-        $invoice = Invoice::factory()->create([
-            'client_id' => $client->id,
-            'payment_status_id' => $cancelledStatus->id,
-            'issue_date' => Carbon::today()->subDays(32),
-            'due_in' => 31,
-        ]);
-
-        // Run the command
-        $exitCode = Artisan::call('invoices:check-payment-status');
-
-        $this->assertEquals(0, $exitCode);
-
-        // Check that no reminders were sent
-        Notification::assertNothingSent();
-    }
-
-    #[Test]
-    public function command_handles_custom_parameters(): void
-    {
-        // Create client and invoice
-        $client = Client::factory()->create([
-            'email' => 'test@example.com',
-        ]);
-
-        $unpaidStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
-
-        // Create invoice due in 5 days
-        $invoice = Invoice::factory()->create([
-            'client_id' => $client->id,
-            'payment_status_id' => $unpaidStatus->id,
-            'issue_date' => Carbon::today()->subDays(5), // Issued 5 days ago
-            'due_in' => 10, // Due in 10 days from issue = 5 days from today
-        ]);
-
-        // Run the command with custom days-before = 5
-        $exitCode = Artisan::call('invoices:check-payment-status', [
-            '--days-before' => 5,
-        ]);
-
-        $this->assertEquals(0, $exitCode);
-
-        // Check that upcoming due reminder was sent via on-demand notification to client's email
-        Notification::assertSentOnDemand(
-            InvoiceUpcomingDueReminder::class,
-            function (
-                $notification,
-                $channels,
-                $notifiable,
-            ) use ($client) {
-                return in_array(
-                    'mail',
-                    $channels,
-                    true,
-                )
-                    && ($notifiable->routes['mail'] ?? null) === $client->email;
-            },
-        );
-    }
-
-    #[Test]
-    public function command_provides_feedback(): void
-    {
-        Artisan::call('invoices:check-payment-status');
-
-        $output = Artisan::output();
-
-        $this->assertStringContainsString('Checking invoice for payment reminder', $output);
-    }
-
-    #[Test]
-    public function command_handles_no_invoices_gracefully(): void
-    {
-        // Run command with no invoices in database
-        $exitCode = Artisan::call('invoices:check-payment-status');
-
-        $this->assertEquals(0, $exitCode);
-
-        // Should not send any notifications
-        Notification::assertNothingSent();
+        return $notifier;
     }
 }

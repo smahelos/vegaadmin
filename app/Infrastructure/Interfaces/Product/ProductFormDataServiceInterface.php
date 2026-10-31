@@ -4,7 +4,7 @@ namespace App\Infrastructure\Interfaces\Product;
 
 /**
  * Interface for Product-specific form data operations.
- * Handles categories, suppliers, tax rates for Product forms.
+ * Handles categories and tax rates for Product forms.
  */
 interface ProductFormDataServiceInterface
 {

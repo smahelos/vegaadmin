@@ -2,6 +2,8 @@
 
 namespace App\Domain\User\Services;
 
+use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
+use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\PeriodServiceInterface;
@@ -9,12 +11,14 @@ use App\Domain\User\Contracts\EntityLimitRepositoryInterface;
 use App\Domain\User\Contracts\EntityLimitUsageRepositoryInterface;
 use App\Domain\User\Contracts\PermissionLimitResolverInterface;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
+use App\Domain\User\Enums\EntityType;
+use App\Domain\User\ValueObjects\UserId;
 
 /**
  * Universal Limit Service - Permission-based System
  *
  * Core business logic for entity limit checking and enforcement
- * across all application entities (invoices, clients, suppliers, etc.)
+ * across all application entities (invoices, businesses, contacts, etc.)
  *
  * Updated to use userId instead of User objects for clean Domain layer architecture.
  * This version uses PermissionLimitResolver for real-time permission-based limits.
@@ -36,6 +40,8 @@ class UniversalLimitService implements UniversalLimitServiceInterface
 
     private readonly LogInterface $logger;
 
+    private const ACTIVE_METRIC = 'active';
+
     /**
      * Constructor
      */
@@ -46,6 +52,8 @@ class UniversalLimitService implements UniversalLimitServiceInterface
         ClockInterface $clock,
         PeriodServiceInterface $periodService,
         LogInterface $logger,
+        private readonly BusinessReadRepositoryInterface $businesses,
+        private readonly ContactReadRepositoryInterface $contacts,
     ) {
         $this->permissionResolver = $permissionResolver;
         $this->entityLimitRepository = $entityLimitRepository;
@@ -115,7 +123,7 @@ class UniversalLimitService implements UniversalLimitServiceInterface
         string $entityType,
         string $metricType = 'count',
         ?string $periodType = null,
-        string $guard = 'web',
+        ?string $guard = 'web',
         int|float $value = 1,
     ): bool {
         if ($periodType === null) {
@@ -135,11 +143,22 @@ class UniversalLimitService implements UniversalLimitServiceInterface
         }
 
         // Check if user has permission for this entity type (using Infrastructure layer)
-        if (! $this->entityLimitUsageRepository->hasEntityPermission(
-            $userId,
-            $entityType,
-            $guard,
-        )) {
+        if ($guard === null) {
+            $hasPermission = $this->permissionResolver->getUserLimit(
+                $userId,
+                $entityType,
+                $metricType,
+                $periodType,
+            ) > 0;
+        } else {
+            $hasPermission = $this->entityLimitUsageRepository->hasEntityPermission(
+                $userId,
+                $entityType,
+                $guard,
+            );
+        }
+
+        if (! $hasPermission) {
             $this->logger->log(
                 'warning',
                 'UELS: Attempted to record usage without permission',
@@ -355,6 +374,15 @@ class UniversalLimitService implements UniversalLimitServiceInterface
     ): int|float {
         if (! $userId) {
             return 0;
+        }
+
+        // A capacity limit has no usage rows: the user's active records are the usage
+        if ($metricType === self::ACTIVE_METRIC) {
+            return match (EntityType::tryFrom($entityType)) {
+                EntityType::BUSINESS => $this->businesses->countActiveForUser(UserId::fromInt($userId)),
+                EntityType::CONTACT => $this->contacts->countActiveForUser(UserId::fromInt($userId)),
+                null => 0,
+            };
         }
 
         try {

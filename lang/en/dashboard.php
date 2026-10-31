@@ -3,13 +3,13 @@
 return [
     'title' => 'Dashboard',
     'monthly_invoices' => 'Monthly Invoicing',
-    'recent_clients' => 'Recent Clients',
+    'recent_contacts' => 'Latest contacts',
     'recent_invoices' => 'Recent Invoices',
-    'recent_suppliers' => 'Recent Suppliers',
+    'recent_businesses' => 'Latest businesses',
     'cards' => [
-        'clients_count' => 'Total Clients',
+        'contacts_count' => 'Total contacts',
         'total_amount' => 'Total Amount',
-        'suppliers_count' => 'Total Suppliers',
+        'businesses_count' => 'Total businesses',
         'invoices_count' => 'Total Invoices',
     ],
     'sections' => [
@@ -20,15 +20,10 @@ return [
     ],
     'status' => [
         'no_email' => 'Email not provided',
-        'unknown_client' => 'Unknown client',
-        'no_clients' => 'You don\'t have any clients yet',
-        'no_suppliers' => 'You don\'t have any suppliers yet',
         'no_invoices' => 'You don\'t have any invoices yet',
     ],
     'actions' => [
-        'view_all_clients' => 'View All Clients',
         'view_all_invoices' => 'View All Invoices',
-        'view_all_suppliers' => 'View All Suppliers',
     ],
     'charts' => [
         'billed_currency' => 'Billed ($)',
@@ -38,7 +33,7 @@ return [
         'invoice_status' => 'Invoice Status',
         'payment_methods' => 'Payment Methods',
         'revenue_vs_expenses' => 'Revenue vs Expenses',
-        'revenue_by_client' => 'Revenue by Client',
+        'revenue_by_customer' => 'Revenue by customer',
         'expenses_by_supplier' => 'Expenses by Supplier',
         'revenue_vs_expenses_monthly' => 'Revenue vs Expenses (Monthly)',
         'revenue' => 'Revenue',
@@ -47,7 +42,7 @@ return [
     'statistics' => [
         'total_income' => 'Total Income',
         'overdue_amount' => 'Overdue Amount',
-        'clients_count' => 'Number of Clients',
+        'contacts_count' => 'Total contacts',
         'invoices_count' => 'Number of Invoices',
     ],
     'filters' => [
@@ -59,8 +54,7 @@ return [
         'last_year' => 'Last Year',
         'date_from' => 'Date From',
         'date_to' => 'Date To',
-        'clients' => 'Clients',
-        'suppliers' => 'Suppliers',
+        'contacts' => 'Contacts',
         'status' => 'Status',
     ],
 ];

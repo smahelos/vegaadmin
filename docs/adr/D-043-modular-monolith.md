@@ -29,7 +29,7 @@ A message broker is introduced with the first satellite, not before. RabbitMQ is
 
 ## Rationale
 
-- **Transactions guard money.** Splitting the core turns one transaction into a saga with compensations; entity limits become eventually consistent (two concurrent requests can exceed a plan limit) and numbering needs cross-service coordination, in the high-risk areas of `CLAUDE.md`.
+- **Transactions guard money.** Splitting the core turns one transaction into a saga with compensations; entity limits become eventually consistent (two concurrent requests can exceed a plan limit) and numbering needs cross-service coordination, in the high-risk areas of `AGENTS.md`.
 - **Request fan-out.** The invoice form needs client, supplier, products, payment methods, permissions and limits; as services that is 4–5 synchronous calls per request, each with timeouts, retries and a circuit breaker, and an outage of one breaks the form.
 - **The admin comes for free only on one database.** Backpack CRUD works on Eloquent models; per-service admins or an API-driven admin would replace it.
 - **Operations scale with services.** Deployments, CI pipelines, versioned contracts, distributed logging and tracing, and the local Docker stack all multiply.

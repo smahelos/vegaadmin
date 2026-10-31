@@ -13,7 +13,7 @@ interface PermissionLimitResolverInterface
      * Get the effective limit for a user and entity type
      *
      * @param  int|null  $userId  The user ID (null for anonymous)
-     * @param  string  $entityType  The entity type (invoice, client, etc.)
+     * @param  string  $entityType  The entity type (invoice, contact, etc.)
      * @param  string  $metricType  The metric type (count, value, size)
      * @param  string  $periodType  The period type (daily, monthly, etc.)
      * @return int The highest limit value, or 0 if no permission

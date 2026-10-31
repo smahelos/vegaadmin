@@ -5,6 +5,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Mappers;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Infrastructure\Persistence\Eloquent\Party\Mappers\EloquentDocumentPartiesMapper;
 use App\Models\Invoice;
 
 /**
@@ -35,8 +36,7 @@ class EloquentInvoiceMapper
         return InvoiceDTO::fromArray([
             'id' => InvoiceId::fromInt((int) $model->getAttribute('id')),
             'user_id' => (int) $model->getAttribute('user_id'),
-            'client_id' => $model->getAttribute('client_id') !== null ? (int) $model->getAttribute('client_id') : null,
-            'supplier_id' => $model->getAttribute('supplier_id') !== null ? (int) $model->getAttribute('supplier_id') : null,
+            'parties' => EloquentDocumentPartiesMapper::toDocumentParties($model),
             'number' => $model->getAttribute('invoice_vs'),
             'payment_reference' => $model->getAttribute('invoice_ss'),
             'constant_code' => $model->getAttribute('invoice_ks'),
@@ -54,7 +54,6 @@ class EloquentInvoiceMapper
             'created_at' => $model->getAttribute('created_at'),
             'updated_at' => $model->getAttribute('updated_at'),
             'status' => $status,
-            'logo' => $model->getAttribute('invoice_logo'),
         ]);
     }
 
@@ -71,11 +70,8 @@ class EloquentInvoiceMapper
         if ($data->user_id !== null) {
             $attrs['user_id'] = (int) $data->user_id;
         }
-        if ($data->client_id !== null) {
-            $attrs['client_id'] = (int) $data->client_id;
-        }
-        if ($data->supplier_id !== null) {
-            $attrs['supplier_id'] = (int) $data->supplier_id;
+        if ($data->parties !== null) {
+            $attrs += EloquentDocumentPartiesMapper::toAttributes($data->parties);
         }
 
         if ($data->number !== null) {
@@ -103,9 +99,6 @@ class EloquentInvoiceMapper
         }
         if ($data->note !== null) {
             $attrs['invoice_text'] = $data->note;
-        }
-        if ($data->logo !== null) {
-            $attrs['invoice_logo'] = $data->logo;
         }
         if ($data->status !== null) {
             $attrs['payment_status_id'] = (int) $data->status;

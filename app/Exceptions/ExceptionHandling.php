@@ -2,13 +2,37 @@
 
 namespace App\Exceptions;
 
+use App\Domain\Invoice\Exceptions\ExpenseAccessDeniedException;
+use App\Domain\Invoice\Exceptions\ExpenseNotFoundException;
+use App\Domain\Invoice\Exceptions\InvoiceAccessDeniedException;
+use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
+use App\Domain\Party\Exceptions\BankAccountArchivedException;
+use App\Domain\Party\Exceptions\BankAccountNotFoundException;
+use App\Domain\Party\Exceptions\BusinessArchivedException;
+use App\Domain\Party\Exceptions\BusinessNotFoundException;
+use App\Domain\Party\Exceptions\ContactIdentityChangedException;
+use App\Domain\Party\Exceptions\ContactNotFoundException;
+use App\Domain\Party\Exceptions\DefaultBankAccountRequiredException;
+use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
+use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
+use App\Domain\Party\Exceptions\IncompleteBusinessAddressException;
+use App\Domain\Party\Exceptions\IncompleteDocumentPartyException;
+use App\Domain\Party\ValueObjects\BankAccountId;
+use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Prologue\Alerts\Facades\Alert;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class ExceptionHandling
@@ -18,6 +42,8 @@ class ExceptionHandling
      */
     public static function registerCallbacks(Exceptions $exceptions): void
     {
+        $exceptions->map(InvoiceAccessDeniedException::class, fn (InvoiceAccessDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e));
+
         // Invoice model not found
         $exceptions->render(function (ModelNotFoundException $e, $request) {
             if (self::isInvoiceRoute($request)) {
@@ -27,6 +53,14 @@ class ExceptionHandling
 
             return null;
         });
+
+        $exceptions->render(fn (IncompleteDocumentPartyException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            'contact_id',
+            __('parties.messages.incomplete_document_address'),
+        ));
+
+        $exceptions->map(ExpenseAccessDeniedException::class, fn (ExpenseAccessDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e));
 
         // Entity limit exceeded
         $exceptions->render(function (EntityLimitExceededException $e, $request) {
@@ -45,13 +79,69 @@ class ExceptionHandling
             if (self::isInvoiceRoute($request)) {
                 return back()->withInput()->with('error', __('invoices.messages.limit_exceeded'));
             }
-            if (self::isSupplierRoute($request)) {
-                return back()->withInput()->with('error', __('suppliers.messages.limit_exceeded'));
-            }
 
             // Generic redirect with translated key from exception
-            return back()->withInput()->with('error', __($e->getMessageKey(), $e->getContext()));
+            return self::back($request, __($e->getMessageKey(), $e->getContext()));
         });
+
+        // Another user's invoice, business, contact or account is answered like a missing one
+        foreach ([
+            InvoiceNotFoundException::class,
+            ExpenseNotFoundException::class,
+            BusinessNotFoundException::class,
+            ContactNotFoundException::class,
+            BankAccountNotFoundException::class,
+        ] as $notFound) {
+            $exceptions->map($notFound, fn (Throwable $e): NotFoundHttpException => new NotFoundHttpException('', $e));
+        }
+
+        // A Czech company number another record of the user has already; on an invoice the customer saved to
+        // the contacts has it
+        $exceptions->render(fn (DuplicateCompanyNumberException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            self::isInvoiceRoute($request) ? 'customer_company_number' : 'company_number',
+            __('parties.messages.duplicate_blocking'),
+        ));
+
+        // The parties of a document: a new archived reference, a business without an address to print, a customer
+        // that is no longer the selected contact
+        $exceptions->render(fn (ArchivedReferenceSelectedException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            match (true) {
+                $e->reference instanceof BusinessId => 'business_id',
+                $e->reference instanceof BankAccountId => 'bank_account_id',
+                default => 'contact_id',
+            },
+            __('parties.validation.reference_archived'),
+        ));
+        $exceptions->render(fn (IncompleteBusinessAddressException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            'business_id',
+            __('parties.validation.business_address_incomplete'),
+        ));
+        $exceptions->render(fn (ContactIdentityChangedException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+            $request,
+            $request->routeIs('expense.*') ? 'supplier_company_number' : 'customer_company_number',
+            __('parties.validation.contact_identity_changed'),
+        ));
+
+        // Archiving a default needs another default first; an archived record cannot become one
+        $exceptions->render(fn (DefaultBusinessRequiredException $e, Request $request): JsonResponse|RedirectResponse => self::back(
+            $request,
+            __('businesses.messages.default_required'),
+        ));
+        $exceptions->render(fn (BusinessArchivedException $e, Request $request): JsonResponse|RedirectResponse => self::back(
+            $request,
+            __('businesses.messages.default_archived'),
+        ));
+        $exceptions->render(fn (DefaultBankAccountRequiredException $e, Request $request): JsonResponse|RedirectResponse => self::back(
+            $request,
+            __('parties.bank_accounts.messages.default_required'),
+        ));
+        $exceptions->render(fn (BankAccountArchivedException $e, Request $request): JsonResponse|RedirectResponse => self::back(
+            $request,
+            __('parties.bank_accounts.messages.default_archived'),
+        ));
 
         // A product on invoice lines stays; the user is told why instead of seeing a database error
         $exceptions->render(function (ProductInUseException $e, $request) {
@@ -87,6 +177,10 @@ class ExceptionHandling
                 if ($e instanceof ModelNotFoundException || $e instanceof EntityLimitExceededException) {
                     return null; // handled above
                 }
+                // A denied permission and another user's invoice keep their 403 and 404
+                if ($e instanceof HttpExceptionInterface) {
+                    return null;
+                }
                 // Let Laravel handle validation exceptions to preserve session error bag
                 if ($e instanceof ValidationException) {
                     return null;
@@ -113,13 +207,39 @@ class ExceptionHandling
         return str_starts_with($routeName, 'frontend.invoice') || $routeName === 'frontend.invoices';
     }
 
-    private static function isSupplierRoute(Request $request): bool
-    {
-        $routeName = $request->route()?->getName();
-        if (! $routeName) {
-            return false;
+    /**
+     * Back to the form with a validation error on one field, or Laravel's 422 for JSON.
+     */
+    private static function invalid(
+        Request $request,
+        string $field,
+        string $message,
+    ): JsonResponse|RedirectResponse {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'errors' => [$field => [$message]],
+            ], 422);
         }
 
-        return str_starts_with($routeName, 'frontend.supplier') || $routeName === 'frontend.suppliers';
+        return back()->withInput()->withErrors([$field => $message]);
+    }
+
+    /**
+     * Back to the form with a translated message: an alert in the admin, a flash message on the frontend.
+     */
+    private static function back(Request $request, string $message): JsonResponse|RedirectResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message], 409);
+        }
+
+        if ($request->is(config('backpack.base.route_prefix', 'admin') . '/*')) {
+            Alert::error($message)->flash();
+
+            return back()->withInput();
+        }
+
+        return back()->withInput()->with('error', $message);
     }
 }

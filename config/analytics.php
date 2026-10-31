@@ -29,14 +29,9 @@ return [
         // Default TTL for analytics cache in seconds
         'default_ttl' => env('ANALYTICS_CACHE_TTL', 600), // 10 minutes
 
-        // TTL for monthly statistics
-        'monthly_stats_ttl' => env('ANALYTICS_MONTHLY_CACHE_TTL', 1800), // 30 minutes
-
         // TTL for user statistics
         'user_stats_ttl' => env('ANALYTICS_USER_CACHE_TTL', 600), // 10 minutes
 
-        // TTL for client statistics
-        'client_stats_ttl' => env('ANALYTICS_CLIENT_CACHE_TTL', 900), // 15 minutes
     ],
 
     // External services configuration

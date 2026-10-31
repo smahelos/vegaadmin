@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Traits;
 
+use App\Infrastructure\Authorization\PermissionCatalog;
 use App\Models\User;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -17,41 +20,6 @@ trait CreatesAdminTestEnvironment
      */
     protected function setUpAdminTestEnvironment(): void
     {
-        // Ensure required permissions exist for backpack guard
-        $requiredPermissions = [
-            'can_create_edit_user',
-            'can_create_edit_supplier',
-            'can_create_edit_client',
-            'can_create_edit_invoice',
-            'can_create_edit_product',
-            'can_create_edit_expense',
-            'can_create_edit_tax',
-            'can_create_edit_bank',
-            'can_create_edit_payment_method',
-            'can_create_edit_command',
-            'can_create_edit_cron_task',
-            'can_create_edit_status',
-            'can_create_edit_page',                    // Missing permission for menu
-            'can_create_edit_subscription_plan',
-            'can_create_edit_subscription',
-            'can_create_edit_subscription_plan_feature',
-            'can_configure_system',
-            'backpack.access',
-            'backpack.api.access',
-            'backpack.api.clients',
-            'backpack.api.suppliers',
-            'backpack.api.invoices',
-            'backpack.api.products',
-            'backpack.api.extended',
-        ];
-
-        foreach ($requiredPermissions as $permissionName) {
-            Permission::firstOrCreate([
-                'name' => $permissionName,
-                'guard_name' => 'backpack',
-            ]);
-        }
-
         // Ensure admin role exists
         $adminRole = Role::firstOrCreate([
             'name' => 'admin',
@@ -65,7 +33,7 @@ trait CreatesAdminTestEnvironment
         ]);
 
         // Give admin role all permissions
-        $permissions = Permission::where('guard_name', 'backpack')->get();
+        $permissions = Permission::where('guard_name', PermissionCatalog::BACKPACK)->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK])->get();
         $adminRole->syncPermissions($permissions);
 
         // Create admin user with admin role (if not already set)

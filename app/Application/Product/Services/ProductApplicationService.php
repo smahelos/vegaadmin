@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Clean Application-layer service following PartyApplicationService pattern.
+ * Application-layer service for products.
  *
  * Orchestrates Domain services (business logic) with Infrastructure services (caching, files, etc.).
  * This is the proper DDD approach - Application layer coordinates between layers.

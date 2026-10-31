@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Domain\User\Services;
 
+use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
+use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\PeriodServiceInterface;
@@ -84,8 +86,8 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
             {
                 return [
                     'invoice',
-                    'client',
-                    'supplier',
+                    'contact',
+                    'business',
                     'product',
                     'expense',
                 ];
@@ -253,6 +255,8 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
             $clock,
             $periods,
             $logger,
+            app(BusinessReadRepositoryInterface::class),
+            app(ContactReadRepositoryInterface::class),
         );
     }
 

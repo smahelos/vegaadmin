@@ -4,9 +4,7 @@ namespace App\Providers;
 
 use App\Application\Shared\Console\Contracts\ArtisanCommandsRepositoryInterface;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
-use App\Application\Shared\Geography\Contracts\LocaleApplicationServiceInterface;
 use App\Application\Shared\Geography\Services\CountryApplicationService;
-use App\Application\Shared\Geography\Services\LocaleApplicationService;
 use App\Application\Shared\Money\Contracts\CurrencyApplicationServiceInterface;
 use App\Application\Shared\Money\Services\CurrencyApplicationService;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
@@ -19,6 +17,7 @@ use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\File\Config\FileUploadConfig;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Domain\Shared\File\Contracts\ImageProcessorInterface;
+use App\Domain\Shared\Geography\Contracts\CountryNamesInterface;
 use App\Domain\Shared\Geography\Contracts\CountryServiceInterface;
 use App\Domain\Shared\Geography\Services\CountryService;
 use App\Domain\Shared\Hash\Contracts\HashInterface;
@@ -52,6 +51,7 @@ use App\Infrastructure\Shared\Config\Services\LaravelConfigAdapter;
 use App\Infrastructure\Shared\Events\LaravelEventPublisher;
 use App\Infrastructure\Shared\File\Processors\GdImageProcessor;
 use App\Infrastructure\Shared\File\Services\LaravelFileUploadService;
+use App\Infrastructure\Shared\Geography\IntlCountryNames;
 use App\Infrastructure\Shared\Hash\LaravelHash;
 use App\Infrastructure\Shared\Http\Services\HttpClientService;
 use App\Infrastructure\Shared\Log\LaravelLogger;
@@ -211,6 +211,11 @@ class SharedServiceProvider extends ServiceProvider
             IcuDateFormatter::class,
         );
 
+        $this->app->bind(
+            CountryNamesInterface::class,
+            IntlCountryNames::class,
+        );
+
         // Logging adapter for Domain
         $this->app->bind(
             LogInterface::class,
@@ -296,10 +301,5 @@ class SharedServiceProvider extends ServiceProvider
             CountryApplicationService::class,
         );
 
-        // Locale application service binding
-        $this->app->bind(
-            LocaleApplicationServiceInterface::class,
-            LocaleApplicationService::class,
-        );
     }
 }

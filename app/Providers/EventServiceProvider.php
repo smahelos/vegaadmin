@@ -2,6 +2,16 @@
 
 namespace App\Providers;
 
+use App\Domain\Analytics\Listeners\InvalidateOwnerDashboard;
+use App\Domain\Party\Events\BusinessArchived;
+use App\Domain\Party\Events\BusinessCreated;
+use App\Domain\Party\Events\BusinessRestored;
+use App\Domain\Party\Events\BusinessUpdated;
+use App\Domain\Party\Events\ContactArchived;
+use App\Domain\Party\Events\ContactCreated;
+use App\Domain\Party\Events\ContactRestored;
+use App\Domain\Party\Events\ContactUpdated;
+use App\Domain\Party\Events\DefaultBusinessChanged;
 use App\Domain\Shared\Events\FormDataChanged;
 use App\Domain\Shared\Listeners\InvalidateFormDataCache;
 use App\Domain\User\Events\UserDataChanged;
@@ -21,6 +31,33 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
+        BusinessArchived::class => [
+            InvalidateOwnerDashboard::class,
+        ],
+        BusinessCreated::class => [
+            InvalidateOwnerDashboard::class,
+        ],
+        BusinessRestored::class => [
+            InvalidateOwnerDashboard::class,
+        ],
+        BusinessUpdated::class => [
+            InvalidateOwnerDashboard::class,
+        ],
+        ContactArchived::class => [
+            InvalidateOwnerDashboard::class,
+        ],
+        ContactCreated::class => [
+            InvalidateOwnerDashboard::class,
+        ],
+        ContactRestored::class => [
+            InvalidateOwnerDashboard::class,
+        ],
+        ContactUpdated::class => [
+            InvalidateOwnerDashboard::class,
+        ],
+        DefaultBusinessChanged::class => [
+            InvalidateOwnerDashboard::class,
+        ],
         UserDataChanged::class => [
             InvalidateUserCache::class,
         ],

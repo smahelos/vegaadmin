@@ -41,7 +41,8 @@ class PerformanceMetricFactory extends Factory
         $tables = [
             'users',
             'invoices',
-            'clients',
+            'businesses',
+            'contacts',
             'products',
             'expenses',
             null,

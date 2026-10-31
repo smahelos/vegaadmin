@@ -2,6 +2,14 @@
 
 Invoicing application: Laravel 12, Backpack admin panel, a public frontend (Blade, Livewire, Alpine, Tailwind), GoPay payments, PDF invoices with QR payment codes. UI languages: Czech, German, English, Slovak.
 
+## Documentation
+
+[Documentation index](docs/README.md) · [Documentation policy](docs/DOCUMENTATION.md) · [Agent instructions](AGENTS.md)
+
+Accepted requirements, ADRs and useful technical designs are versioned with the code. Local AI working files belong in ignored `dev_docs/ai/`; temporary artifacts go in `dev_docs/ai/tmp/<task>/`.
+
+Codex and Claude share the project guidance in `AGENTS.md`, including the same `.claude/rules/` catalog and workflow sources. `.claude/CLAUDE.md` imports that file for Claude.
+
 ## Local installation (Docker)
 
 ### Requirements
@@ -81,7 +89,7 @@ The `cron` container runs the Laravel scheduler (`php artisan schedule:work`), t
 - The `app`, `cron` and `queue` containers mount the project, so code changes apply without a rebuild; the queue worker keeps the code in memory and picks up changes after `docker exec BILLEX-app php artisan queue:restart`. Rebuild (`docker compose up -d --build app cron queue`) only after changing `app.dockerfile` or `WWW_UID`/`WWW_GID`.
 - After a `composer.lock` change: `docker exec BILLEX-app composer install`.
 - After a `package-lock.json` change: `npm ci`; `npm run dev` runs the Vite dev server.
-- In `local`, `php artisan migrate:fresh --seed` rebuilds the development database with reference data and development accounts (`database/seeders/DevelopmentDataSeeder.php`, password `backpack`): `admin@billex.test` and `backend@billex.test` for the admin panel, `user1@` / `user2@billex.test` (`frontend_user`) and `plus1@` / `plus2@billex.test` (`frontend_user_plus`) with a year of invoices, clients and expenses.
+- In `local`, `php artisan migrate:fresh --seed` rebuilds the development database with reference data and development accounts (`database/seeders/DevelopmentDataSeeder.php`, password `backpack`): `admin@billex.test` and `backend@billex.test` for the admin panel, `user1@` / `user2@billex.test` (`frontend_user`) and `plus1@` / `plus2@billex.test` (`frontend_user_plus`) with businesses, contacts and a year of invoices and expenses.
 - Tests run inside the app container on MySQL, in the `invoice_testing` database next to the development one; `phpunit.xml` names the database, the connection comes from `.env` through `docker-compose.yaml`. Create the database once and let the application user manage every `invoice_testing*` database (a parallel run creates `invoice_testing_test_N`):
 
   ```bash

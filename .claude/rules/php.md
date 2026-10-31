@@ -29,7 +29,7 @@ paths:
 
 - English everywhere: identifiers, comments, log messages, exception messages. User-facing text is a translation key (`translations.md`).
 - Enum cases and class constants are UPPER_SNAKE_CASE (`Unit::CUBIC_METERS`, `CACHE_TTL`); enum values stay as stored (`'cubic_meters'`).
-- Properties and variables are camelCase, including DTO and value object properties (`$clientId`, not `$client_id`). snake_case belongs to DB columns, request keys and translation keys; converting between them is the mappers' and form requests' job.
+- Properties and variables are camelCase, including DTO and value object properties (`$contactId`, not `$contact_id`). snake_case belongs to DB columns, request keys and translation keys; converting between them is the mappers' and form requests' job.
 - Czech business terms get English identifiers: IČO is `companyNumber` / `company_number`, DIČ is `vatNumber` / `vat_number`, in every layer (conversion in `docs/TECH_DEBT.md`). The `Id` / `_id` suffix is reserved for entity identifiers and foreign keys.
 - Interfaces end with `Interface` and live in `Contracts/`. Data class suffixes are defined in `architecture.md` (Data classes).
 - Import every class with `use`, sorted alphabetically; no inline fully qualified names (`\App\...`, `\Log::`).

@@ -1,311 +1,306 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Models\Client;
+use App\Models\Address;
+use App\Models\Contact;
 use App\Models\EntityLimit;
 use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
-use App\Models\Status;
-use App\Models\Supplier;
 use App\Models\User;
-use DOMDocument;
-use DOMXPath;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\Support\BuildsBackendUsers;
+use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
-class InvoiceCrudControllerTest extends TestCase
+final class InvoiceCrudControllerTest extends TestCase
 {
+    use BuildsBackendUsers;
+    use BuildsInvoiceInput;
     use CreatesAdminTestEnvironment;
-
-    private UniversalLimitService $limitService;
 
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->setUpAdminTestEnvironment();
-
-        $this->limitService = app(UniversalLimitService::class);
+        $this->actingAs($this->adminUser, 'backpack');
     }
 
     #[Test]
-    public function invoice_creation_records_entity_usage(): void
+    public function admin_creation_consumes_the_owners_allowance_and_then_refuses_another_invoice(): void
     {
-        $this->actingAs($this->adminUser, 'backpack');
-
-        // Create entity limit for invoices
-        EntityLimit::factory()->create([
+        $owner = User::factory()->create();
+        $owner->assignRole(Role::findByName('frontend_user', 'web'));
+        EntityLimit::where('entity_type', 'invoice')->update(['limit_value' => 1]);
+        [$business, $account] = $this->issuerOf($owner);
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            ['user_id' => $owner->id, 'payment_amount' => '100'],
+        );
+        $this->actingAs($this->backendUser('can_create_invoice'), 'backpack');
+        $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseHas('invoices', ['invoice_vs' => $data['invoice_vs']]);
+        $this->assertDatabaseHas('entity_limit_usage', [
+            'user_id' => $owner->id,
             'entity_type' => 'invoice',
-            'limit_value' => 10,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'permission_name' => 'can_create_edit_invoice',
-            'is_active' => true,
+            'current_value' => 1,
         ]);
+        $this->post('/admin/invoice', array_replace($data, ['invoice_vs' => 'BLOCKED']))->assertRedirect();
+        $this->assertDatabaseMissing('invoices', ['invoice_vs' => 'BLOCKED']);
+    }
 
-        // Create required related entities
-        $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
-        $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
-
-        // Check initial usage
-        $initialCheck = $this->limitService->checkLimit(
-            $this->adminUser->id,
-            'invoice',
-            'count',
-            'monthly',
+    #[Test]
+    public function an_owner_without_a_limit_requires_the_explicit_admin_unlimited_permission(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            ['user_id' => $this->regularUser->id, 'payment_amount' => '100'],
         );
-        $initialUsage = $initialCheck['current_usage'] ?? 0;
+        $this->actingAs($this->backendUser('can_create_invoice'), 'backpack');
+        $this->post('/admin/invoice', $data)->assertRedirect();
+        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
+        $this->actingAs($this->backendUser('can_create_invoice', 'can_create_invoice_unlimited'), 'backpack');
+        $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseHas('invoices', ['invoice_vs' => $data['invoice_vs']]);
+    }
 
-        $invoiceData = [
-            'invoice_vs' => 'INV-' . uniqid(),
-            'invoice_ks' => uniqid(),
-            'invoice_ss' => uniqid(),
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->addDays(30)->format('Y-m-d'),
-            'due_in' => 30,
-            'client_id' => $client->id,
-            'user_id' => $this->adminUser->id,
-            'supplier_id' => $supplier->id,
-            'payment_status_id' => $status->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_amount' => 100.00,
-            'payment_currency' => 'CZK',
-            'invoice_text' => 'Test invoice',
-        ];
+    #[Test]
+    public function create_and_edit_forms_use_the_document_parties(): void
+    {
+        $this->get('/admin/invoice/create')->assertOk()
+            ->assertSee('name="business_id"', false)->assertSee('name="customer_name"', false)
+            ->assertDontSee('name="client_id"', false)->assertDontSee('forms/invoice.js', false);
+        $invoice = Invoice::factory()->create();
+        $this->get('/admin/invoice/' . $invoice->id . '/edit')->assertOk()
+            ->assertSee('name="bank_account_id"', false)->assertSee('name="customer_name"', false);
+    }
 
-        // Simulate invoice creation by directly calling recordUsage
-        $invoice = Invoice::factory()->create($invoiceData);
-        $result = $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'invoice',
-            'count',
-            'monthly',
-            'backpack',
+    #[Test]
+    public function a_new_contact_is_copied_and_the_typed_customer_is_ignored(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id, 'name' => 'Selected customer']);
+        $address = Address::factory()->create(['business_id' => null, 'contact_id' => $contact->id]);
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            [
+                'user_id' => $this->regularUser->id,
+                'contact_id' => $contact->id,
+                'customer_name' => 'Ignored input',
+                'customer_country' => 'invalid',
+                'payment_amount' => '0',
+            ],
         );
-        $this->assertTrue($result, 'recordUsage should return true when successful');
-
-        // Check usage after creation
-        $newCheck = $this->limitService->checkLimit(
-            $this->adminUser->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-        $newUsage = $newCheck['current_usage'] ?? 0;
-
-        $this->assertEquals(
-            $initialUsage + 1,
-            $newUsage,
-            'Usage should increase by 1 after recording',
-        );
-
-        // Verify invoice was created
+        $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
         $this->assertDatabaseHas('invoices', [
-            'invoice_vs' => $invoice->invoice_vs,
-            'user_id' => $this->adminUser->id,
+            'invoice_vs' => $data['invoice_vs'],
+            'user_id' => $this->regularUser->id,
+            'business_id' => $business->id,
+            'contact_id' => $contact->id,
+            'supplier_name' => $business->name,
+            'customer_name' => $contact->name,
+            'customer_street' => $address->street,
+            'account_number' => $account->number,
         ]);
     }
 
     #[Test]
-    public function invoice_creation_respects_entity_limits(): void
+    public function keeping_the_contact_saves_document_corrections_without_changing_the_contact(): void
     {
-        $this->actingAs($this->adminUser, 'backpack');
-
-        // Set a strict limit for invoices - use unique permission name to avoid conflicts
-        EntityLimit::factory()->create([
-            'entity_type' => 'invoice',
-            'limit_value' => 1,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'permission_name' => 'can_create_edit_invoice',
-            'is_active' => true,
-        ]);
-
-        // Create required related entities
-        $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
-        $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
-
-        // First invoice creation - should succeed
-        $checkBeforeFirst = $this->limitService->checkLimit(
-            $this->adminUser->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-        $this->assertTrue($checkBeforeFirst['allowed'], 'First invoice should be allowed');
-
-        $invoice1 = Invoice::factory()->create([
-            'user_id' => $this->adminUser->id,
-            'client_id' => $client->id,
-            'supplier_id' => $supplier->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-        ]);
-
-        // Record usage with correct parameters
-        $result1 = $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'invoice',
-            'count',
-            'monthly',
-            'backpack',
-        );
-        $this->assertTrue($result1, 'First recordUsage should succeed');
-
-        // Second invoice creation - should fail due to limit
-        $checkBeforeSecond = $this->limitService->checkLimit(
-            $this->adminUser->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-        $this->assertFalse($checkBeforeSecond['allowed'], 'Second invoice should be denied due to limit');
-        $this->assertEquals(
-            'limit_exceeded',
-            $checkBeforeSecond['reason'],
-            'Reason should be limit_exceeded',
-        );
-
-        // Verify first invoice was created
-        $this->assertDatabaseHas('invoices', [
-            'id' => $invoice1->id,
-            'user_id' => $this->adminUser->id,
-        ]);
-    }
-
-    #[Test]
-    public function store_assigns_the_admin_as_owner_when_none_is_sent(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
-        $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $vs = (string) random_int(100000, 999999);
-
-        $this->post('/admin/invoice', [
-            'supplier_id' => $supplier->id,
-            'client_id' => $client->id,
-            'invoice_vs' => $vs,
-            'due_in' => 14,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_amount' => 1000,
-            'payment_status_id' => $pendingStatusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-            'payment_currency' => 'CZK',
-            'issue_date' => '2026-10-01',
-            'tax_point_date' => '2026-10-01',
-            'street' => 'Main 1',
-            'city' => 'Praha',
-            'zip' => '11000',
-            'country' => 'CZ',
-        ])
-            ->assertSessionHasNoErrors()
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('invoices', [
-            'invoice_vs' => $vs,
-            'user_id' => $this->adminUser->id,
-            'payment_status_id' => $pendingStatusId,
-        ]);
-    }
-
-    #[Test]
-    public function update_keeps_the_owner_when_another_one_is_sent(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $client = Client::factory()->create(['user_id' => $this->adminUser->id]);
-        $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id]);
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id]);
         $invoice = Invoice::factory()->create([
-            'user_id' => $this->adminUser->id,
-            'client_id' => $client->id,
-            'supplier_id' => $supplier->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
+            'user_id' => $this->regularUser->id,
+            'business_id' => $business->id,
+            'contact_id' => $contact->id,
+            'bank_account_id' => $account->id,
         ]);
-        $otherUser = User::factory()->create();
-
-        $this->put('/admin/invoice/' . $invoice->id, [
-            'id' => $invoice->id,
-            'user_id' => $otherUser->id,
-            'supplier_id' => $supplier->id,
-            'client_id' => $client->id,
+        $this->put('/admin/invoice/' . $invoice->id, $this->invoiceInput($business, $account, [
+            'user_id' => $this->regularUser->id,
             'invoice_vs' => $invoice->invoice_vs,
-            'due_in' => 14,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_amount' => 1000,
-            'payment_status_id' => $pendingStatusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-            'payment_currency' => 'CZK',
-            'issue_date' => '2026-10-01',
-            'tax_point_date' => '2026-10-01',
-            'street' => 'Main 1',
-            'city' => 'Praha',
-            'zip' => '11000',
-            'country' => 'CZ',
-            'invoice_text' => $text = 'Updated ' . uniqid(),
-        ])
-            ->assertSessionHasNoErrors()
-            ->assertRedirect();
+            'contact_id' => $contact->id,
+            'customer_name' => 'Corrected name',
+            'payment_amount' => '0',
+        ]))->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame('Corrected name', $invoice->fresh()->customer_name);
+        $this->assertSame($contact->name, $contact->fresh()->name);
+    }
 
-        $this->assertDatabaseHas('invoices', [
-            'id' => $invoice->id,
-            'invoice_text' => $text,
+    #[Test]
+    public function a_changed_contact_replaces_the_document_customer(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $old = Contact::factory()->create(['user_id' => $this->regularUser->id]);
+        $new = Contact::factory()->create(['user_id' => $this->regularUser->id]);
+        Address::factory()->create(['business_id' => null, 'contact_id' => $new->id]);
+        $invoice = Invoice::factory()->create([
+            'user_id' => $this->regularUser->id,
+            'business_id' => $business->id,
+            'contact_id' => $old->id,
+        ]);
+        $this->put('/admin/invoice/' . $invoice->id, $this->invoiceInput($business, $account, [
+            'user_id' => $this->regularUser->id,
+            'invoice_vs' => $invoice->invoice_vs,
+            'contact_id' => $new->id,
+            'customer_name' => 'Ignored name',
+            'payment_amount' => '0',
+        ]))->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame($new->name, $invoice->fresh()->customer_name);
+    }
+
+    #[Test]
+    public function selections_of_another_owner_are_rejected(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $contact = Contact::factory()->create();
+        $this->post('/admin/invoice', $this->invoiceInput($business, $account, [
             'user_id' => $this->adminUser->id,
+            'contact_id' => $contact->id,
+            'payment_amount' => '0',
+        ]))->assertSessionHasErrors(['business_id', 'contact_id']);
+    }
+
+    #[Test]
+    public function a_cash_invoice_drops_the_account(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            [
+                'user_id' => $this->regularUser->id,
+                'payment_amount' => '0',
+                'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail()->id,
+            ],
+        );
+        $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseHas('invoices', [
+            'invoice_vs' => $data['invoice_vs'],
+            'bank_account_id' => null,
+            'account_number' => null,
         ]);
     }
 
     #[Test]
-    public function show_displays_the_related_records_by_name(): void
+    public function an_archived_contact_cannot_be_newly_selected(): void
     {
-        $this->actingAs($this->adminUser, 'backpack');
-        $client = Client::factory()->create(['user_id' => $this->adminUser->id, 'name' => 'Client ' . uniqid()]);
-        $supplier = Supplier::factory()->create(['user_id' => $this->adminUser->id, 'name' => 'Supplier ' . uniqid()]);
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create(['name' => 'Status ' . uniqid()]);
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->adminUser->id,
-            'client_id' => $client->id,
-            'supplier_id' => $supplier->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $status->id,
-        ]);
-
-        $response = $this->get('/admin/invoice/' . $invoice->id . '/show')->assertOk();
-
-        $cells = $this->datagridCells($response->getContent());
-        $this->assertSame($this->adminUser->name, $cells[__('invoices.fields.user_id')]);
-        $this->assertSame($supplier->name, $cells[__('invoices.fields.supplier')]);
-        $this->assertSame($client->name, $cells[__('invoices.fields.client')]);
-        $this->assertSame($paymentMethod->name, $cells[__('invoices.fields.payment_method')]);
-        $this->assertSame($status->name, $cells[__('invoices.fields.status')]);
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id, 'archived_at' => now()]);
+        $this->post('/admin/invoice', $this->invoiceInput($business, $account, [
+            'user_id' => $this->regularUser->id,
+            'contact_id' => $contact->id,
+            'payment_amount' => '0',
+        ]))->assertSessionHasErrors('contact_id');
     }
 
-    /**
-     * @return array<string, string> cell text keyed by the column label
-     */
-    private function datagridCells(string $html): array
+    #[Test]
+    public function a_contact_without_a_complete_address_cannot_supply_a_new_snapshot(): void
     {
-        $document = new DOMDocument;
-        @$document->loadHTML('<?xml encoding="utf-8">' . $html);
-        $xpath = new DOMXPath($document);
-        $cells = [];
-        foreach ($xpath->query('//div[contains(@class, "bp-datagrid-item")]') as $item) {
-            $title = $xpath->query('.//div[contains(@class, "bp-datagrid-title")]', $item)->item(0);
-            $content = $xpath->query('.//div[contains(@class, "bp-datagrid-content")]', $item)->item(0);
-            if ($title && $content) {
-                $cells[trim($title->textContent)] = trim(preg_replace('/\s+/u', ' ', $content->textContent));
-            }
-        }
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id]);
+        $this->post('/admin/invoice', $this->invoiceInput($business, $account, [
+            'user_id' => $this->regularUser->id,
+            'contact_id' => $contact->id,
+            'payment_amount' => '123.45',
+        ]))->assertSessionHasErrors('contact_id');
+        $this->assertDatabaseMissing('invoices', ['contact_id' => $contact->id]);
+    }
 
-        return $cells;
+    #[Test]
+    public function a_document_without_lines_keeps_its_entered_amount_on_create_and_update(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            [
+                'user_id' => $this->regularUser->id,
+                'payment_amount' => '1234.56',
+                'invoice-products' => [],
+            ],
+        );
+        $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $invoice = Invoice::where('invoice_vs', $data['invoice_vs'])->sole();
+        $this->assertSame('1234.56', $invoice->payment_amount);
+        $this->put('/admin/invoice/' . $invoice->id, array_replace($data, ['payment_amount' => '2345.67']))
+            ->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame('2345.67', $invoice->fresh()->payment_amount);
+        $this->assertSame(0, $invoice->invoiceProducts()->count());
+    }
+
+    #[Test]
+    public function editing_a_document_with_lines_keeps_the_lines_and_their_total(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $invoice = Invoice::factory()->create([
+            'user_id' => $this->regularUser->id,
+            'business_id' => $business->id,
+            'payment_currency' => 'CZK',
+        ]);
+        $line = InvoiceProduct::factory()->create([
+            'invoice_id' => $invoice->id,
+            'currency' => 'CZK',
+            'quantity' => '2',
+            'price' => '100',
+            'tax_rate' => '21',
+            'tax_amount' => '42',
+            'total_price' => '242',
+        ]);
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            [
+                'user_id' => $this->regularUser->id,
+                'invoice_vs' => $invoice->invoice_vs,
+                'payment_amount' => '9999.99',
+            ],
+        );
+        unset($data['invoice-products']);
+        $this->put('/admin/invoice/' . $invoice->id, $data)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertSame('242.00', $invoice->fresh()->payment_amount);
+        $this->assertSame([$line->id], $invoice->invoiceProducts()->pluck('id')->all());
+    }
+
+    #[Test]
+    public function editing_an_invoice_identifies_an_unlabelled_bank_account_by_its_number(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $account->update([
+            'label' => null,
+            'iban' => null,
+            'number' => '2001234561',
+        ]);
+        $invoice = Invoice::factory()->create([
+            'user_id' => $this->regularUser->id,
+            'business_id' => $business->id,
+            'bank_account_id' => $account->id,
+        ]);
+        $this->get('/admin/invoice/' . $invoice->id . '/edit')->assertOk()
+            ->assertSee('<option value="' . $account->id . '" selected>2001234561</option>', false);
+    }
+
+    #[Test]
+    public function show_uses_the_saved_names(): void
+    {
+        $invoice = Invoice::factory()->create(['supplier_name' => 'Saved supplier', 'customer_name' => 'Saved customer']);
+        $this->get('/admin/invoice/' . $invoice->id . '/show')->assertOk()->assertSee('Saved supplier')->assertSee('Saved customer');
+    }
+
+    #[Test]
+    public function guests_and_admin_users_without_permission_cannot_write_invoices(): void
+    {
+        auth('backpack')->logout();
+        $this->post('/admin/invoice', [])->assertRedirect(route('backpack.auth.login'));
+        $this->actingAs($this->regularUser, 'backpack')->post('/admin/invoice', [])->assertForbidden();
     }
 }

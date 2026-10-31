@@ -11,6 +11,7 @@ use App\Domain\User\DTO\UserWriteData;
 use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
 use App\Infrastructure\Persistence\Eloquent\User\Mappers\EloquentUserMapper as Mapper;
+use App\Models\User;
 
 class EloquentUserDtoRepository implements UserReadRepositoryInterface, UserWriteRepositoryInterface
 {
@@ -71,5 +72,20 @@ class EloquentUserDtoRepository implements UserReadRepositoryInterface, UserWrit
             perPage: $paginator->perPage(),
             currentPage: $paginator->currentPage(),
         );
+    }
+
+    public function lockForUpdate(UserId $id): void
+    {
+        User::query()
+            ->whereKey($id->toInt())
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    public function assignRole(UserId $id, string $role): void
+    {
+        User::query()
+            ->findOrFail($id->toInt())
+            ->assignRole($role);
     }
 }

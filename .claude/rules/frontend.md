@@ -18,7 +18,7 @@ Public frontend: Blade layouts and components, Livewire 3 (which ships Alpine), 
 - A paginated list uses the `App\Livewire\Shared\Paginates` trait and renders its controls with `{{ $items->links() }}`; the one pagination view is `resources/views/livewire/pagination.blade.php`. No Livewire pagination themes, no hand-built page links.
 - Purely local UI state (toggles, modals, tabs, dropdowns) is Alpine (`x-data`) in the Blade component that owns it.
 - Remaining JavaScript is an ES module in `resources/js/`, imported through a Vite entry point. No inline `<script>` blocks with logic in Blade, no `window.*` globals for page code, no new standalone page scripts for something Livewire or Alpine covers.
-- Behaviour shared by clients and suppliers (ARES lookup, form prefill) exists once, parameterised by party type.
+- Behaviour shared by businesses, contacts and the parties of a document (party fields, validation, ARES lookup, prefill) exists once, in the Livewire form object `PartyDetailsForm` of the Party context.
 
 ## Blade
 

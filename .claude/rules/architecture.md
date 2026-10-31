@@ -36,7 +36,7 @@ Everything else — application services, pure domain services, presenters, asse
 
 | Role | Name | Example |
 |---|---|---|
-| Read model of an entity, returned by a repository | `<Entity>DTO` | `InvoiceDTO`, `ClientDTO` |
+| Read model of an entity, returned by a repository | `<Entity>DTO` | `InvoiceDTO`, `ContactDTO` |
 | Input for creating or updating an entity | `<Entity>WriteData` | `InvoiceWriteData` |
 | Read-only projection for one purpose (print, statistics, form, external format) | `<Purpose><Entity>DTO` | `PrintableInvoiceDTO`, `MonthlyStatDTO`, `QrPaymentDTO` |
 | Outcome of an application operation (status, messages, created id) | `<Operation>Result` | `InvoiceActionResult`, `RefundResult` |
@@ -54,7 +54,7 @@ Repositories are Domain ports: `app/Domain/<Context>/Contracts/<Entity>{Read,Wri
 
 - A context uses another context only through that context's Domain contracts, DTOs, value objects and events — never through its Infrastructure or models.
 - Shared kernel (`Domain/Shared`) holds only what several contexts need: money, tax, status, time, events, pagination, files. A concept used by one context lives in that context.
-- Client and supplier are both parties: shared behaviour lives once in the Party context; a client/supplier pair of near-identical classes is a defect to merge.
+- Business (the user's own identity) and contact (anyone the user does business with) are the two entities of the Party context (`docs/adr/D-045-businesses-and-contacts.md`). Supplier and customer are roles on a document, never entity names. Behaviour both entities share (party profile, address, bank accounts, duplicates, archiving, capacity) is written once and used by both; a near-identical business/contact pair of classes is a defect to merge.
 
 ## Events
 

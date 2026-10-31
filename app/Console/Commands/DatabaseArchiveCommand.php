@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use Carbon\Carbon;
@@ -7,7 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-class DatabaseArchiveCommand extends Command
+final class DatabaseArchiveCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -79,7 +81,7 @@ class DatabaseArchiveCommand extends Command
         }
 
         // Log maintenance task
-        $maintenanceId = DB::table('database_maintenance_log')->insertGetId([
+        $maintenanceId = DB::table('database_maintenance_logs')->insertGetId([
             'task_type' => 'archive',
             'table_name' => $tableName,
             'status' => 'running',
@@ -101,7 +103,7 @@ class DatabaseArchiveCommand extends Command
             }
 
             // Update maintenance log
-            DB::table('database_maintenance_log')
+            DB::table('database_maintenance_logs')
                 ->where('id', $maintenanceId)
                 ->update([
                     'status' => 'completed',
@@ -125,7 +127,7 @@ class DatabaseArchiveCommand extends Command
 
         } catch (\Exception $e) {
             // Update maintenance log with error
-            DB::table('database_maintenance_log')
+            DB::table('database_maintenance_logs')
                 ->where('id', $maintenanceId)
                 ->update([
                     'status' => 'failed',
@@ -168,7 +170,8 @@ class DatabaseArchiveCommand extends Command
             $archiveInvoiceId = DB::table('invoices_archive')->insertGetId([
                 'original_id' => $invoice->id,
                 'user_id' => $invoice->user_id,
-                'client_id' => $invoice->client_id,
+                'business_id' => $invoice->business_id,
+                'contact_id' => $invoice->contact_id,
                 'invoice_vs' => $invoice->invoice_vs,
                 'invoice_ks' => $invoice->invoice_ks,
                 'invoice_ss' => $invoice->invoice_ss,

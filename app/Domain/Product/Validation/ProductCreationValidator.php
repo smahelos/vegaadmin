@@ -87,7 +87,6 @@ class ProductCreationValidator
             'currency' => $data['currency'] ?? 'CZK',
             'unit' => Unit::fromInput($data['unit'] ?? null)->value,
             'category_id' => isset($data['category_id']) ? (int) $data['category_id'] : null,
-            'supplier_id' => isset($data['supplier_id']) ? (int) $data['supplier_id'] : null,
             'tax_id' => isset($data['tax_id']) ? (int) $data['tax_id'] : null,
             'image' => $data['image'] ?? null,
             'is_default' => (bool) ($data['is_default'] ?? false),

@@ -1,12 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Http\Requests\Admin\BaseEntityRequest;
-use App\Http\Requests\Admin\ClientRequest;
-use App\Http\Requests\Admin\InvoiceRequest;
-use App\Http\Requests\Admin\SupplierRequest;
 use App\Models\EntityLimit;
 use App\Models\User;
 use Illuminate\Support\Facades\Lang;
@@ -15,7 +13,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
-class EntityLimitSystemBasicTest extends TestCase
+final class EntityLimitSystemBasicTest extends TestCase
 {
     protected User $user;
 
@@ -32,10 +30,10 @@ class EntityLimitSystemBasicTest extends TestCase
         $permission = Permission::where('name', 'can_create_edit_invoice')
             ->where('guard_name', 'backpack')
             ->first();
-        $permission2 = Permission::where('name', 'can_create_edit_client')
+        $permission2 = Permission::where('name', 'can_create_contact')
             ->where('guard_name', 'backpack')
             ->first();
-        $permission3 = Permission::where('name', 'can_create_edit_supplier')
+        $permission3 = Permission::where('name', 'can_create_business')
             ->where('guard_name', 'backpack')
             ->first();
 
@@ -125,53 +123,6 @@ class EntityLimitSystemBasicTest extends TestCase
             1,
         );
         $this->assertTrue($check['allowed']);
-    }
-
-    #[Test]
-    public function request_authorization_structure_works(): void
-    {
-        $this->actingAs($this->backendUser, 'backpack');
-
-        // Test InvoiceRequest instantiation
-        $request = new InvoiceRequest;
-
-        // Test that it extends BaseEntityRequest
-        $this->assertInstanceOf(BaseEntityRequest::class, $request);
-
-        // Test entity type method
-        $reflection = new \ReflectionClass($request);
-        $method = $reflection->getMethod('getEntityType');
-        $method->setAccessible(true);
-        $this->assertEquals('invoice', $method->invoke($request));
-
-        // Test permission method
-        $method = $reflection->getMethod('getRequiredPermission');
-        $method->setAccessible(true);
-        $this->assertEquals('can_create_edit_invoice', $method->invoke($request));
-    }
-
-    #[Test]
-    public function client_and_supplier_requests_work_correctly(): void
-    {
-        $this->actingAs($this->backendUser, 'backpack');
-
-        // Test ClientRequest
-        $clientRequest = new ClientRequest;
-        $this->assertInstanceOf(BaseEntityRequest::class, $clientRequest);
-
-        $reflection = new \ReflectionClass($clientRequest);
-        $method = $reflection->getMethod('getEntityType');
-        $method->setAccessible(true);
-        $this->assertEquals('client', $method->invoke($clientRequest));
-
-        // Test SupplierRequest
-        $supplierRequest = new SupplierRequest;
-        $this->assertInstanceOf(BaseEntityRequest::class, $supplierRequest);
-
-        $reflection = new \ReflectionClass($supplierRequest);
-        $method = $reflection->getMethod('getEntityType');
-        $method->setAccessible(true);
-        $this->assertEquals('supplier', $method->invoke($supplierRequest));
     }
 
     #[Test]
