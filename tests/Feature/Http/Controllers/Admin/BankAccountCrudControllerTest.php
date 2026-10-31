@@ -33,6 +33,43 @@ final class BankAccountCrudControllerTest extends TestCase
     }
 
     #[Test]
+    public function bank_account_reads_are_scoped_to_the_permitted_owner_type(): void
+    {
+        $business = Business::factory()->create();
+        $contact = Contact::factory()->create();
+        $businessAccount = BankAccount::factory()->ownedBy($business)->create();
+        $contactAccount = BankAccount::factory()->ownedBy($contact)->create(['iban' => 'DE89370400440532013000']);
+        foreach ([
+            [
+                'business',
+                $businessAccount,
+                $contactAccount,
+            ],
+            [
+                'contact',
+                $contactAccount,
+                $businessAccount,
+            ],
+        ] as [$type, $visible, $hidden]) {
+            $this->actingAs($this->backendUser('can_view_' . $type), 'backpack');
+            foreach ([
+                '',
+                '?business_id=' . $business->id,
+                '?contact_id=' . $contact->id,
+            ] as $filter) {
+                $response = $this->postJson('/admin/bank-account/search' . $filter, ['start' => 0, 'length' => 100]);
+                $response->assertOk()->assertDontSee($hidden->iban);
+                if ($filter === '') {
+                    $response->assertSee($visible->iban);
+                }
+            }
+            $this->actingAs($this->backendUser('can_update_' . $type), 'backpack');
+            $this->get('/admin/bank-account/' . $hidden->id . '/edit')->assertForbidden();
+            $this->get('/admin/bank-account/' . $visible->id . '/edit')->assertOk();
+        }
+    }
+
+    #[Test]
     public function adds_the_first_account_of_a_contact_as_its_default(): void
     {
         $contact = Contact::factory()->create();

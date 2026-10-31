@@ -10,6 +10,7 @@ use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\User\ValueObjects\UserId;
+use App\Http\Requests\Admin\ArchiveBusinessRequest;
 use App\Http\Requests\Admin\BusinessRequest;
 use App\Infrastructure\Forms\Party\PartyFormFields;
 use App\Models\Business;
@@ -87,14 +88,17 @@ final class BusinessCrudController extends CrudController
         return $this->crud->performSaveAction($entry->id);
     }
 
-    public function archive(BusinessApplicationService $businesses, int $id): RedirectResponse
-    {
+    public function archive(
+        ArchiveBusinessRequest $request,
+        BusinessApplicationService $businesses,
+        int $id,
+    ): RedirectResponse {
         abort_unless(backpack_user()?->can('can_archive_business') === true, 403);
         $entry = Business::query()->findOrFail($id);
         $businesses->archive(
             $this->ownerOf($entry),
             BusinessId::fromInt($entry->id),
-            null,
+            $request->replacement(),
         );
 
         return $this->redirectWithSuccess(__('businesses.messages.archived'));

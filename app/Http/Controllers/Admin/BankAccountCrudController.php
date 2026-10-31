@@ -22,6 +22,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Prologue\Alerts\Facades\Alert;
 
@@ -35,7 +36,9 @@ final class BankAccountCrudController extends CrudController
 {
     use CreateOperation;
     use ListOperation;
-    use UpdateOperation;
+    use UpdateOperation {
+        edit as private editAccount;
+    }
 
     public function setup(): void
     {
@@ -58,6 +61,13 @@ final class BankAccountCrudController extends CrudController
         }
 
         CRUD::denyAccess($denied);
+    }
+
+    public function edit(int $id): View
+    {
+        $this->authorizeOwner(BankAccount::query()->findOrFail($id));
+
+        return $this->editAccount($id);
     }
 
     public function store(BankAccountApplicationService $accounts): RedirectResponse
@@ -139,6 +149,12 @@ final class BankAccountCrudController extends CrudController
 
     protected function setupListOperation(): void
     {
+        if (backpack_user()?->can('can_view_business') !== true) {
+            CRUD::addClause('whereNull', 'business_id');
+        }
+        if (backpack_user()?->can('can_view_contact') !== true) {
+            CRUD::addClause('whereNull', 'contact_id');
+        }
         $businessId = request()->integer('business_id');
         $contactId = request()->integer('contact_id');
         if ($businessId > 0) {

@@ -147,6 +147,46 @@ final class BusinessCrudControllerTest extends TestCase
     }
 
     #[Test]
+    public function archiving_a_default_accepts_an_explicit_replacement_without_set_default_permission(): void
+    {
+        $owner = $this->frontendUser();
+        $business = Business::factory()->create(['user_id' => $owner->id]);
+        $replacement = Business::factory()->create(['user_id' => $owner->id]);
+        $owner->forceFill(['default_business_id' => $business->id])->save();
+        $this->actingAs($this->backendUser('can_archive_business', 'can_view_business'), 'backpack');
+        $this->postJson('/admin/business/search', ['start' => 0, 'length' => 100])
+            ->assertOk()->assertSee('replacement_business_id')->assertSee($replacement->name);
+        $this->post(route('admin.businesses.archive', ['id' => $business->id]), [
+            'replacement_business_id' => $replacement->id,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertNotNull($business->fresh()->archived_at);
+        $this->assertSame($replacement->id, $owner->fresh()->default_business_id);
+    }
+
+    #[Test]
+    public function archiving_rejects_a_foreign_archived_or_unchanged_replacement(): void
+    {
+        $owner = $this->frontendUser();
+        $business = Business::factory()->create(['user_id' => $owner->id]);
+        $owner->forceFill(['default_business_id' => $business->id])->save();
+        $archived = Business::factory()->archived()->create(['user_id' => $owner->id]);
+        $foreign = Business::factory()->create();
+        $this->actingAs($this->admin, 'backpack');
+        foreach ([
+            $business->id,
+            $archived->id,
+            $foreign->id,
+            'invalid',
+        ] as $replacement) {
+            $this->post(route('admin.businesses.archive', ['id' => $business->id]), [
+                'replacement_business_id' => $replacement,
+            ])->assertSessionHasErrors('replacement_business_id');
+            $this->assertNull($business->fresh()->archived_at);
+            $this->assertSame($business->id, $owner->fresh()->default_business_id);
+        }
+    }
+
+    #[Test]
     public function archiving_needs_the_permission(): void
     {
         $business = Business::factory()->create();
