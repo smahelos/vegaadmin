@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Models\Client;
+use App\Models\Business;
 use App\Models\Product;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
@@ -30,7 +30,7 @@ class AdminListFiltersTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $owner = User::factory()->create(['name' => 'Owner ' . uniqid()]);
 
-        $response = $this->get('/admin/client?user_id=' . $owner->id);
+        $response = $this->get('/admin/business?user_id=' . $owner->id);
 
         $response->assertOk();
         $response->assertSee('data-select2-filter="user_id"', false);
@@ -45,10 +45,10 @@ class AdminListFiltersTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
         $owner = User::factory()->create();
-        Client::factory()->create(['user_id' => $owner->id]);
-        Client::factory()->create();
+        Business::factory()->create(['user_id' => $owner->id]);
+        Business::factory()->create();
 
-        $this->postJson('/admin/client/search?user_id=' . $owner->id, [
+        $this->postJson('/admin/business/search?user_id=' . $owner->id, [
             'draw' => 1,
             'start' => 0,
             'length' => 10,

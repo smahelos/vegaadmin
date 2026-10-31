@@ -84,7 +84,6 @@ class ProductList extends Component
             'created_at' => 'created_at',
             'name' => 'name',
             'category_id' => 'category_id',
-            'supplier_id' => 'supplier_id',
             'price' => 'price',
             'tax_id' => 'tax_id',
             'is_default' => 'is_default',

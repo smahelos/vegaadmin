@@ -24,7 +24,7 @@ Present the inventory and an ordered plan to the user before changing code. Defa
 4. Delivery — form requests, controllers, resources, Livewire, routes, views, JS
 5. Tests — rewrite to behaviour tests, delete structural ones
 
-Name every decision the rules leave open (a class name the rules do not dictate, merging client/supplier code, behaviour changes) and get it settled before converting.
+Name every decision the rules leave open (a class name the rules do not dictate, merging business/contact code, behaviour changes) and get it settled before converting.
 
 ## 3. Convert
 

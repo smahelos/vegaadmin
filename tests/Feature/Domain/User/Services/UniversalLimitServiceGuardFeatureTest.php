@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Domain\User\Services;
 
+use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
+use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\PeriodServiceInterface;
@@ -86,8 +88,8 @@ class UniversalLimitServiceGuardFeatureTest extends TestCase
             {
                 return [
                     'invoice',
-                    'client',
-                    'supplier',
+                    'contact',
+                    'business',
                     'product',
                     'expense',
                 ];
@@ -188,7 +190,7 @@ class UniversalLimitServiceGuardFeatureTest extends TestCase
              * Check if user has permission to create/access the given entity type.
              * This moves User loading and permission checking to Infrastructure layer.
              *
-             * @param  string  $entityType  Entity type (invoice, client, etc.)
+             * @param  string  $entityType  Entity type (invoice, contact, etc.)
              * @param  string  $guard  Guard name for permission checking
              * @return bool True if user has permission
              */
@@ -236,6 +238,8 @@ class UniversalLimitServiceGuardFeatureTest extends TestCase
             $clock,
             $periodService,
             $logger,
+            app(BusinessReadRepositoryInterface::class),
+            app(ContactReadRepositoryInterface::class),
         );
     }
 

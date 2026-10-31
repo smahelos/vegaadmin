@@ -45,7 +45,6 @@ class Bank extends Model
     */
 
     // Bank model is reference data for bank codes and information
-    // Suppliers reference banks via bank_code field, not direct relationship
 
     /*
     |--------------------------------------------------------------------------

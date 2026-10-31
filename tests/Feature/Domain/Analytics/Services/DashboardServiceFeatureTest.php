@@ -1,37 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Domain\Analytics\Services;
 
-use App\Domain\Analytics\Contracts\DashboardServiceInterface as AnalyticsDashboardServiceInterface;
+use App\Domain\Analytics\Services\DashboardService as AnalyticsDashboardService;
 use App\Domain\Shared\Money\ValueObjects\Money; // updated namespace
 use App\Domain\User\ValueObjects\UserId;
-use App\Models\Client;
+use App\Models\Business;
+use App\Models\Contact;
 use App\Models\Invoice;
-use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
-class DashboardServiceFeatureTest extends TestCase
+final class DashboardServiceFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment, WithFaker;
 
-    private AnalyticsDashboardServiceInterface $service;
+    private AnalyticsDashboardService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->setUpFrontendTestEnvironment();
-        $this->service = app(AnalyticsDashboardServiceInterface::class);
-    }
-
-    #[Test]
-    public function service_can_be_resolved_from_container(): void
-    {
-        $service = app(AnalyticsDashboardServiceInterface::class);
-        $this->assertInstanceOf(AnalyticsDashboardServiceInterface::class, $service);
+        $this->service = app(AnalyticsDashboardService::class);
     }
 
     #[Test]
@@ -40,8 +35,8 @@ class DashboardServiceFeatureTest extends TestCase
         $user = User::factory()->create();
         $stats = $this->service->getUserStatistics(UserId::fromInt($user->id));
         $this->assertSame(0, $stats->invoiceCount);
-        $this->assertSame(0, $stats->clientCount);
-        $this->assertSame(0, $stats->suppliersCount);
+        $this->assertSame(0, $stats->contactCount);
+        $this->assertSame(0, $stats->businessCount);
         $this->assertInstanceOf(Money::class, $stats->totalAmount);
         $this->assertSame('0', $stats->totalAmount->getAmount());
         $this->assertSame(0.0, $stats->totalAmount->toFloat());
@@ -51,73 +46,38 @@ class DashboardServiceFeatureTest extends TestCase
     public function statistics_reflect_created_entities(): void
     {
         $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
-        $supplier = Supplier::factory()->create(['user_id' => $user->id]);
+        $contact = Contact::factory()->create(['user_id' => $user->id]);
+        $supplier = Business::factory()->create(['user_id' => $user->id]);
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
-            'payment_amount' => 123.45,
+            'contact_id' => $contact->id,
+            'business_id' => $supplier->id,
+            'payment_amount' => '123.45',
         ]);
 
         $stats = $this->service->getUserStatistics(UserId::fromInt($user->id));
         $this->assertSame(1, $stats->invoiceCount);
-        $this->assertSame(1, $stats->clientCount);
-        $this->assertSame(1, $stats->suppliersCount);
+        $this->assertSame(1, $stats->contactCount);
+        $this->assertSame(1, $stats->businessCount);
         $this->assertInstanceOf(Money::class, $stats->totalAmount);
         $this->assertSame(123.45, $stats->totalAmount->toFloat());
     }
 
     #[Test]
-    public function monthly_statistics_cover_requested_window(): void
+    public function customers_with_totals_returns_expected_shape(): void
     {
         $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
-
-        // Create invoices across 3 months window (now, -1M, -2M) but request 2 months
+        $contact = Contact::factory()->create(['user_id' => $user->id]);
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
-            'issue_date' => now()->startOfMonth(),
-            'payment_amount' => 10,
-        ]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'client_id' => $client->id,
-            'issue_date' => now()->subMonth()->startOfMonth(),
-            'payment_amount' => 20,
-        ]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'client_id' => $client->id,
-            'issue_date' => now()->subMonths(2)->startOfMonth(),
-            'payment_amount' => 30,
-        ]);
-
-        $collection = collect($this->service->getMonthlyStatistics(UserId::fromInt($user->id), 2));
-        $months = $collection->pluck('month')->all();
-        $this->assertContains(now()->format('Y-m'), $months);
-        $this->assertContains(now()->subMonth()->format('Y-m'), $months);
-        // Ensure each total is Money
-        $collection->each(function ($dto): void {
-            $this->assertInstanceOf(Money::class, $dto->total);
-        });
-    }
-
-    #[Test]
-    public function clients_with_totals_returns_expected_shape(): void
-    {
-        $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 55,
         ]);
 
-        $clients = collect($this->service->getClientsWithInvoiceTotals(UserId::fromInt($user->id)));
-        $this->assertCount(1, $clients);
-        $first = $clients->first();
-        $this->assertSame($client->id, $first->clientId);
+        $customers = collect($this->service->getCustomersWithInvoiceTotals(UserId::fromInt($user->id)));
+        $this->assertCount(1, $customers);
+        $first = $customers->first();
+        $this->assertSame($contact->id, $first->contactId->value);
         $this->assertInstanceOf(Money::class, $first->totalAmount);
         $this->assertSame(55.0, $first->totalAmount->toFloat());
     }
@@ -127,10 +87,10 @@ class DashboardServiceFeatureTest extends TestCase
     {
         $userA = User::factory()->create();
         $userB = User::factory()->create();
-        $clientA = Client::factory()->create(['user_id' => $userA->id]);
+        $contactA = Contact::factory()->create(['user_id' => $userA->id]);
         Invoice::factory()->create([
             'user_id' => $userA->id,
-            'client_id' => $clientA->id,
+            'contact_id' => $contactA->id,
             'payment_amount' => 11,
         ]);
 

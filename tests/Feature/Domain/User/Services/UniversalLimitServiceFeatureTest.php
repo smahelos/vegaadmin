@@ -109,7 +109,7 @@ class UniversalLimitServiceFeatureTest extends TestCase
     {
         $result = $this->service->checkLimit(
             $this->user->id,
-            'client',
+            'contact',
             'count',
             'monthly',
         );

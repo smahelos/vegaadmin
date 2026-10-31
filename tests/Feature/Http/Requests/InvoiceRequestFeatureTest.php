@@ -1,73 +1,49 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Requests;
 
-use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Http\Requests\InvoiceRequest;
-use App\Models\Client;
+use App\Models\BankAccount;
+use App\Models\Business;
+use App\Models\Contact;
 use App\Models\EntityLimit;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Status;
-use App\Models\Supplier;
 use App\Models\Tax;
 use App\Models\User;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Validator as ValidatorInstance;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
- * Feature tests for InvoiceRequest
- *
- * Tests complete validation flow with HTTP context and database interactions
- * Tests invoice validation scenarios, authorization, and validation with database constraints
+ * Validation of the invoice form: a signed-in user selects a business, its account and a contact of their own,
+ * a guest enters both parties and the account.
  */
-class InvoiceRequestFeatureTest extends TestCase
+final class InvoiceRequestFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, WithFaker;
+    use BuildsInvoiceInput, CreatesFrontendTestEnvironment;
 
-    protected PaymentMethod $paymentMethod;
+    private Business $business;
 
-    protected Status $paymentStatus;
+    private BankAccount $account;
 
-    protected Supplier $supplier;
+    /** @var array<string, mixed> */
+    private array $validInvoiceData;
 
-    protected Client $client;
-
-    protected array $validInvoiceData;
-
-    /**
-     * Set up the test environment.
-     * Creates related models and valid invoice data for request testing.
-     */
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Set up frontend test environment with roles and permissions
         $this->setUpFrontendTestEnvironment();
-
-        // Create related models
-        $this->createRelatedModels();
-
-        // Set up valid invoice data
-        $this->setupValidInvoiceData();
-    }
-
-    /**
-     * Create related models for testing
-     */
-    private function createRelatedModels(): void
-    {
-        $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $this->paymentStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
-        $this->supplier = Supplier::factory()->create();
-        $this->client = Client::factory()->create();
         foreach (['12.00', '21.00'] as $rate) {
             Tax::factory()->create([
                 'name' => 'DPH ' . $rate . ' ' . uniqid(),
@@ -75,66 +51,77 @@ class InvoiceRequestFeatureTest extends TestCase
                 'rate' => $rate,
             ]);
         }
-    }
 
-    /**
-     * Setup valid invoice data for testing
-     */
-    private function setupValidInvoiceData(): void
-    {
-        $this->validInvoiceData = [
-            'invoice_vs' => $this->faker->numerify('INV-####'),
-            'invoice_ks' => $this->faker->numerify('####'),
-            'invoice_ss' => $this->faker->numerify('####'),
-            'payment_method_id' => $this->paymentMethod->id,
-            'payment_amount' => $this->faker->randomFloat(
-                2,
-                100,
-                10000,
-            ),
-            'payment_currency' => 'CZK',
-            'issue_date' => $this->faker->date(),
-            'tax_point_date' => $this->faker->date(),
-            'due_in' => $this->faker->numberBetween(1, 30),
-            'payment_status_id' => $this->paymentStatus->id,
-
-            // Using supplier
-            'supplier_id' => $this->supplier->id,
-            'email' => $this->faker->email,
-            'phone' => $this->faker->phoneNumber,
-
-            // Bank details
-            'account_number' => $this->faker->numerify('##########'),
-            'bank_code' => $this->faker->numerify('####'),
-            'bank_name' => $this->faker->company . ' Bank',
-            'iban' => 'CZ' . $this->faker->numerify('####################'),
-            'swift' => $this->faker->lexify('????????'),
-
-            // Using client
-            'client_id' => $this->client->id,
-            'client_email' => $this->faker->email,
-            'client_phone' => $this->faker->phoneNumber,
-
-            'invoice_text' => $this->faker->paragraph,
-
-            'invoice-products' => [$this->item()],
-        ];
+        [$this->business, $this->account] = $this->issuerOf($this->user);
+        $this->validInvoiceData = $this->invoiceInput(
+            $this->business,
+            $this->account,
+            [
+                'invoice_ks' => '0308',
+                'invoice_ss' => '1234',
+                'invoice_text' => 'Thank you for your order.',
+                'customer_email' => 'ucetni@odberatel.test',
+                'customer_phone' => '+420 700 111 222',
+                'invoice-products' => [$this->item()],
+            ],
+        );
     }
 
     /**
      * @param  array<string, mixed>  $overrides
-     * @return array<string, mixed>
+     * @return array<string, string>
      */
     private function item(array $overrides = []): array
     {
-        return $overrides + [
-            'name' => 'Consulting',
+        return $this->invoiceItem($overrides + [
             'quantity' => '1.5',
-            'unit' => 'hours',
             'price' => '1200.50',
-            'currency' => 'CZK',
             'tax_rate' => '21.00',
-        ];
+        ]);
+    }
+
+    /**
+     * The validator InvoiceRequest builds for the data; the party rules read the request input and the user.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function validator(
+        array $data,
+        ?User $user = null,
+        bool $guest = false,
+    ): ValidatorInstance {
+        $request = InvoiceRequest::create(
+            '/',
+            'POST',
+            $data,
+        );
+        $request->setUserResolver(fn (): ?User => $guest ? null : ($user ?? $this->user));
+        if ($guest) {
+            $request->setRouteResolver(fn (): object => (object) ['name' => 'frontend.invoice.store.guest']);
+        }
+
+        return Validator::make(
+            $data,
+            $request->rules(),
+            $request->messages(),
+            $request->attributes(),
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, list<string>>
+     */
+    private function errors(
+        array $data,
+        ?User $user = null,
+        bool $guest = false,
+    ): array {
+        return $this->validator(
+            $data,
+            $user,
+            $guest,
+        )->errors()->toArray();
     }
 
     /**
@@ -148,75 +135,65 @@ class InvoiceRequestFeatureTest extends TestCase
         ?User $user = null,
         string $currency = 'CZK',
     ): array {
-        $request = new InvoiceRequest;
-        $request->setUserResolver(fn () => $user);
-        $data = ['invoice-products' => $items, 'payment_currency' => $currency] + $this->validInvoiceData;
+        if ($user !== null) {
+            [$business, $account] = $this->issuerOf($user);
+            $data = $this->invoiceInput(
+                $business,
+                $account,
+                ['invoice-products' => $items, 'payment_currency' => $currency],
+            );
+        } else {
+            $data = ['invoice-products' => $items, 'payment_currency' => $currency] + $this->validInvoiceData;
+        }
 
-        return Validator::make(
-            $data,
-            $request->rules(),
-            $request->messages(),
-            $request->attributes(),
-        )->errors()->toArray();
+        return $this->errors($data, $user);
     }
 
     #[Test]
-    public function validation_passes_with_valid_data_using_existing_supplier_and_client(): void
+    public function validation_passes_with_a_business_its_account_and_a_customer(): void
     {
-        $request = new InvoiceRequest;
-        $validator = Validator::make(
-            $this->validInvoiceData,
-            $request->rules(),
-            $request->messages(),
-        );
-
-        $this->assertFalse($validator->fails());
-        $this->assertEmpty($validator->errors()->all());
+        $this->assertSame([], $this->errors($this->validInvoiceData));
     }
 
     #[Test]
-    public function validation_passes_with_manual_supplier_and_client_data(): void
+    public function validation_passes_with_a_contact_of_the_user(): void
     {
-        $manualData = [
-            'invoice_vs' => $this->faker->numerify('INV-####'),
-            'payment_method_id' => $this->paymentMethod->id,
-            'payment_amount' => 1000.50,
+        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
+
+        $this->assertSame([], $this->errors(['contact_id' => $contact->id] + $this->validInvoiceData));
+    }
+
+    #[Test]
+    public function a_guest_invoice_passes_with_both_parties_and_an_account(): void
+    {
+        $data = $this->guestInvoiceInput([
             'payment_currency' => 'EUR',
-            'issue_date' => $this->faker->date(),
-            'tax_point_date' => $this->faker->date(),
-            'due_in' => 14,
-            'payment_status_id' => $this->paymentStatus->id,
-
-            // Manual supplier data (no supplier_id)
-            'name' => $this->faker->company,
-            'street' => $this->faker->streetAddress,
-            'city' => $this->faker->city,
-            'zip' => $this->faker->postcode,
-            'country' => $this->faker->country,
-            'ico' => $this->faker->numerify('########'),
-            'dic' => $this->faker->numerify('CZ########'),
-
-            // Manual client data (no client_id)
-            'client_name' => $this->faker->company,
-            'client_street' => $this->faker->streetAddress,
-            'client_city' => $this->faker->city,
-            'client_zip' => $this->faker->postcode,
-            'client_country' => $this->faker->country,
-            'client_ico' => $this->faker->numerify('########'),
-            'client_dic' => $this->faker->numerify('CZ########'),
-
+            'supplier_registration_country' => 'CZ',
+            'supplier_company_number' => '27082440',
+            'customer_vat_number' => 'CZ699001182',
             'invoice-products' => [$this->item(['currency' => 'EUR'])],
-        ];
+        ]);
 
-        $request = new InvoiceRequest;
-        $validator = Validator::make(
-            $manualData,
-            $request->rules(),
-            $request->messages(),
-        );
+        $this->assertSame([], $this->errors($data, guest: true));
+    }
 
-        $this->assertFalse($validator->fails());
-        $this->assertEmpty($validator->errors()->all());
+    #[Test]
+    public function a_guest_cannot_refer_to_stored_parties(): void
+    {
+        $data = $this->guestInvoiceInput([
+            'business_id' => $this->business->id,
+            'bank_account_id' => $this->account->id,
+            'contact_id' => Contact::factory()->create(['user_id' => $this->user->id])->id,
+            'save_customer_to_contacts' => '1',
+            'invoice-products' => [$this->item()],
+        ]);
+
+        $this->assertSame([
+            'business_id',
+            'bank_account_id',
+            'contact_id',
+            'save_customer_to_contacts',
+        ], array_keys($this->errors($data, guest: true)));
     }
 
     #[Test]
@@ -229,298 +206,209 @@ class InvoiceRequestFeatureTest extends TestCase
             'issue_date',
             'due_in',
             'payment_status_id',
+            'business_id',
         ];
 
         foreach ($requiredFields as $field) {
             $invalidData = $this->validInvoiceData;
             unset($invalidData[$field]);
 
-            $request = new InvoiceRequest;
-            $validator = Validator::make(
-                $invalidData,
-                $request->rules(),
-                $request->messages(),
-            );
-
-            $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
             $this->assertArrayHasKey(
                 $field,
-                $validator->errors()->toArray(),
+                $this->errors($invalidData),
                 "Should have error for missing {$field}",
             );
         }
     }
 
     #[Test]
-    public function validation_fails_when_neither_supplier_id_nor_manual_data_provided(): void
+    public function the_customer_needs_a_name_and_an_address(): void
     {
-        $invalidData = $this->validInvoiceData;
-        unset($invalidData['supplier_id']);
-        // Don't provide manual supplier data either
+        $data = $this->validInvoiceData;
+        unset($data['customer_name'], $data['customer_street'], $data['customer_city'], $data['customer_postal_code'], $data['customer_country']);
 
-        $request = new InvoiceRequest;
-        $validator = Validator::make(
-            $invalidData,
-            $request->rules(),
-            $request->messages(),
-        );
+        $errors = $this->errors($data);
 
-        $this->assertTrue($validator->fails());
-
-        // Should fail for required fields when supplier_id is missing
-        $requiredWhenNoSupplierId = [
-            'name',
-            'street',
-            'city',
-            'zip',
-            'country',
-        ];
-        foreach ($requiredWhenNoSupplierId as $field) {
-            $this->assertArrayHasKey(
-                $field,
-                $validator->errors()->toArray(),
-                "Should have error for {$field} when supplier_id is missing",
-            );
+        foreach ([
+            'customer_name',
+            'customer_street',
+            'customer_city',
+            'customer_postal_code',
+            'customer_country',
+        ] as $field) {
+            $this->assertArrayHasKey($field, $errors);
         }
     }
 
     #[Test]
-    public function validation_fails_when_neither_client_id_nor_manual_data_provided(): void
+    public function a_guest_invoice_names_the_missing_field_of_each_party(): void
     {
-        $invalidData = $this->validInvoiceData;
-        unset($invalidData['client_id']);
-        // Don't provide manual client data either
+        $data = $this->guestInvoiceInput(['invoice-products' => [$this->item()]]);
+        unset($data['supplier_name'], $data['supplier_street'], $data['customer_name'], $data['customer_street']);
 
-        $request = new InvoiceRequest;
-        $validator = Validator::make(
-            $invalidData,
-            $request->rules(),
-            $request->messages(),
+        $errors = $this->errors($data, guest: true);
+
+        $this->assertSame([
+            'supplier_name',
+            'supplier_street',
+            'customer_name',
+            'customer_street',
+        ], array_keys($errors));
+        $this->assertStringContainsString(__('parties.fields.street'), $errors['supplier_street'][0]);
+        $this->assertStringContainsString(__('parties.fields.name'), $errors['customer_name'][0]);
+    }
+
+    #[Test]
+    public function a_bank_transfer_needs_an_account_and_another_payment_method_does_not(): void
+    {
+        $data = ['bank_account_id' => null] + $this->validInvoiceData;
+        $this->assertArrayHasKey('bank_account_id', $this->errors($data));
+
+        $cash = PaymentMethod::where(
+            'slug',
+            '!=',
+            PaymentMethodCode::BANK_ACCOUNT->value,
+        )->firstOrFail();
+        $this->assertSame([], $this->errors(['payment_method_id' => $cash->id] + $data));
+    }
+
+    #[Test]
+    public function an_account_left_on_the_form_is_dropped_without_a_bank_transfer(): void
+    {
+        $cash = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
+        [, $accountOfAnotherBusiness] = $this->issuerOf($this->user);
+
+        $validator = $this->validator([
+            'payment_method_id' => $cash->id,
+            'bank_account_id' => $accountOfAnotherBusiness->id,
+        ] + $this->validInvoiceData);
+        $this->assertSame([], $validator->errors()->toArray());
+        $this->assertArrayNotHasKey('bank_account_id', $validator->validated());
+
+        $guestValidator = $this->validator(
+            $this->guestInvoiceInput([
+                'payment_method_id' => $cash->id,
+                'account_number' => 'not an account',
+                'invoice-products' => [$this->item()],
+            ]),
+            guest: true,
         );
-
-        $this->assertTrue($validator->fails());
-
-        // Should fail for required fields when client_id is missing
-        $requiredWhenNoClientId = [
-            'client_name',
-            'client_street',
-            'client_city',
-            'client_zip',
-            'client_country',
-        ];
-        foreach ($requiredWhenNoClientId as $field) {
-            $this->assertArrayHasKey(
-                $field,
-                $validator->errors()->toArray(),
-                "Should have error for {$field} when client_id is missing",
-            );
-        }
+        $this->assertSame([], $guestValidator->errors()->toArray());
+        $this->assertSame([], array_filter(
+            array_keys($guestValidator->validated()),
+            fn (string $key): bool => str_starts_with($key, 'account_'),
+        ));
     }
 
     #[Test]
     public function validation_fails_with_due_in_outside_one_to_maximum_days(): void
     {
-        $invalidValues = [
+        foreach ([
             0,
             -1,
             -10,
             InvoiceDueDate::MAX_DAYS + 1,
-        ];
-
-        foreach ($invalidValues as $value) {
-            $invalidData = $this->validInvoiceData;
-            $invalidData['due_in'] = $value;
-
-            $request = new InvoiceRequest;
-            $validator = Validator::make(
-                $invalidData,
-                $request->rules(),
-                $request->messages(),
+        ] as $value) {
+            $this->assertArrayHasKey(
+                'due_in',
+                $this->errors(['due_in' => $value] + $this->validInvoiceData),
+                "Validation should fail for due_in value: {$value}",
             );
-
-            $this->assertTrue($validator->fails(), "Validation should fail for due_in value: {$value}");
-            $this->assertArrayHasKey('due_in', $validator->errors()->toArray());
         }
     }
 
     #[Test]
     public function validation_fails_with_invalid_currency_format(): void
     {
-        $invalidData = $this->validInvoiceData;
-        $invalidData['payment_currency'] = 'INVALID'; // Too long (max 3)
-
-        $request = new InvoiceRequest;
-        $validator = Validator::make(
-            $invalidData,
-            $request->rules(),
-            $request->messages(),
-        );
-
-        $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('payment_currency', $validator->errors()->toArray());
+        $this->assertArrayHasKey('payment_currency', $this->errors(['payment_currency' => 'INVALID'] + $this->validInvoiceData));
     }
 
     #[Test]
     public function validation_fails_with_invalid_email_formats(): void
     {
-        $invalidEmails = [
+        foreach ([
             'invalid-email',
             'test@',
             '@test.com',
             'test.com',
-        ];
-
-        foreach ($invalidEmails as $email) {
-            $invalidData = $this->validInvoiceData;
-            $invalidData['email'] = $email;
-
-            $request = new InvoiceRequest;
-            $validator = Validator::make(
-                $invalidData,
-                $request->rules(),
-                $request->messages(),
+        ] as $email) {
+            $this->assertArrayHasKey(
+                'customer_email',
+                $this->errors(['customer_email' => $email] + $this->validInvoiceData),
+                "Validation should fail for email: {$email}",
             );
-
-            $this->assertTrue($validator->fails(), "Validation should fail for email: {$email}");
-            $this->assertArrayHasKey('email', $validator->errors()->toArray());
         }
     }
 
     #[Test]
     public function validation_fails_with_an_expense_status(): void
     {
-        $invalidData = $this->validInvoiceData;
-        $invalidData['payment_status_id'] = Status::where('slug', 'paid-expense')->firstOrFail()->id;
+        $data = ['payment_status_id' => Status::where('slug', 'paid-expense')->firstOrFail()->id] + $this->validInvoiceData;
 
-        $request = new InvoiceRequest;
-        $validator = Validator::make(
-            $invalidData,
-            $request->rules(),
-            $request->messages(),
-        );
-
-        $this->assertSame(['payment_status_id'], array_keys($validator->errors()->toArray()));
+        $this->assertSame(['payment_status_id'], array_keys($this->errors($data)));
     }
 
     #[Test]
     public function validation_fails_with_nonexistent_foreign_keys(): void
     {
-        $foreignKeyFields = [
-            'payment_method_id' => 99999,
-            'payment_status_id' => 99999,
-            'supplier_id' => 99999,
-            'client_id' => 99999,
-        ];
-
-        foreach ($foreignKeyFields as $field => $invalidId) {
-            $invalidData = $this->validInvoiceData;
-            $invalidData[$field] = $invalidId;
-
-            $request = new InvoiceRequest;
-            $validator = Validator::make(
-                $invalidData,
-                $request->rules(),
-                $request->messages(),
+        foreach ([
+            'payment_method_id',
+            'payment_status_id',
+            'business_id',
+            'bank_account_id',
+            'contact_id',
+        ] as $field) {
+            $this->assertArrayHasKey(
+                $field,
+                $this->errors([$field => 99999] + $this->validInvoiceData),
+                "Validation should fail for {$field} with an unknown id",
             );
-
-            $this->assertTrue($validator->fails(), "Validation should fail for {$field} with invalid ID: {$invalidId}");
-            $this->assertArrayHasKey($field, $validator->errors()->toArray());
         }
     }
 
     #[Test]
-    public function validation_fails_with_too_short_names(): void
+    public function the_business_account_and_contact_must_be_the_users_own(): void
     {
-        $shortNameFields = [
-            'name' => 'AB', // min 3
-            'client_name' => 'AB', // min 3
-        ];
+        [$foreignBusiness, $foreignAccount] = $this->issuerOf(User::factory()->create());
+        [, $accountOfAnotherBusiness] = $this->issuerOf($this->user);
+        $foreignContact = Contact::factory()->create();
 
-        foreach ($shortNameFields as $field => $shortValue) {
-            $invalidData = $this->validInvoiceData;
-
-            // Remove IDs so manual data is required
-            if ($field === 'name') {
-                unset($invalidData['supplier_id']);
-                $invalidData['street'] = 'Test Street';
-                $invalidData['city'] = 'Test City';
-                $invalidData['zip'] = '12345';
-                $invalidData['country'] = 'Test Country';
-            } else {
-                unset($invalidData['client_id']);
-                $invalidData['client_street'] = 'Test Street';
-                $invalidData['client_city'] = 'Test City';
-                $invalidData['client_zip'] = '12345';
-                $invalidData['client_country'] = 'Test Country';
-            }
-
-            $invalidData[$field] = $shortValue;
-
-            $request = new InvoiceRequest;
-            $validator = Validator::make(
-                $invalidData,
-                $request->rules(),
-                $request->messages(),
-            );
-
-            $this->assertTrue($validator->fails(), "Validation should fail for short {$field}: {$shortValue}");
-            $this->assertArrayHasKey($field, $validator->errors()->toArray());
-        }
+        $this->assertArrayHasKey('business_id', $this->errors(['business_id' => $foreignBusiness->id] + $this->validInvoiceData));
+        $this->assertArrayHasKey('bank_account_id', $this->errors(['bank_account_id' => $foreignAccount->id] + $this->validInvoiceData));
+        $this->assertArrayHasKey('bank_account_id', $this->errors(['bank_account_id' => $accountOfAnotherBusiness->id] + $this->validInvoiceData));
+        $this->assertArrayHasKey('contact_id', $this->errors(['contact_id' => $foreignContact->id] + $this->validInvoiceData));
     }
 
     #[Test]
     public function validation_passes_with_nullable_fields_set_to_null(): void
     {
-        $dataWithNulls = $this->validInvoiceData;
-        $nullableFields = [
+        $data = $this->validInvoiceData;
+        foreach ([
             'invoice_ks',
             'invoice_ss',
-            'email',
-            'phone',
-            'ico',
-            'dic',
-            'supplier_shortcut',
-            'account_number',
-            'bank_code',
-            'bank_name',
-            'iban',
-            'swift',
-            'client_email',
-            'client_phone',
-            'client_ico',
-            'client_dic',
-            'client_shortcut',
             'invoice_text',
-        ];
-
-        foreach ($nullableFields as $field) {
-            $dataWithNulls[$field] = null;
+            'contact_id',
+            'customer_email',
+            'customer_phone',
+            'customer_registration_country',
+            'customer_company_number',
+            'customer_vat_number',
+        ] as $field) {
+            $data[$field] = null;
         }
 
-        $request = new InvoiceRequest;
-        $validator = Validator::make(
-            $dataWithNulls,
-            $request->rules(),
-            $request->messages(),
-        );
-
-        $this->assertFalse($validator->fails());
-        $this->assertEmpty($validator->errors()->all());
+        $this->assertSame([], $this->errors($data));
     }
 
     #[Test]
     public function authorization_without_authenticated_user_returns_false(): void
     {
-        $request = new InvoiceRequest;
-
-        // Without authenticated user, should return false
-        $this->assertFalse($request->authorize());
+        $this->assertFalse((new InvoiceRequest)->authorize());
     }
 
     #[Test]
     public function authorization_with_authenticated_user_succeeds(): void
     {
-        // Create EntityLimit to avoid EntityLimitExceededException
         EntityLimit::create([
             'permission_name' => 'frontend.can_create_edit_invoice',
             'entity_type' => 'invoice',
@@ -530,19 +418,29 @@ class InvoiceRequestFeatureTest extends TestCase
             'description' => 'Invoice limit for frontend tests',
             'is_active' => true,
         ]);
-
         $this->actingAs($this->user, 'web');
 
-        $request = new InvoiceRequest;
+        $this->assertTrue((new InvoiceRequest)->authorize());
+    }
 
-        // With authenticated user and proper limits, should return true
-        $this->assertTrue($request->authorize());
+    #[Test]
+    public function saving_the_customer_to_the_contacts_needs_the_contact_permission(): void
+    {
+        $this->actingAs($this->user, 'web');
+        $request = InvoiceRequest::create(
+            '/',
+            'POST',
+            ['save_customer_to_contacts' => '1'],
+        );
+        $request->setUserResolver(fn (): User => $this->user);
+
+        $this->assertFalse($request->authorize());
     }
 
     #[Test]
     public function validation_passes_with_valid_currencies(): void
     {
-        $validCurrencies = [
+        foreach ([
             'CZK',
             'EUR',
             'USD',
@@ -550,241 +448,67 @@ class InvoiceRequestFeatureTest extends TestCase
             'PLN',
             'HUF',
             'CHF',
-        ];
+        ] as $currency) {
+            $data = [
+                'payment_currency' => $currency,
+                'invoice-products' => [$this->item(['currency' => $currency])],
+            ] + $this->validInvoiceData;
 
-        foreach ($validCurrencies as $currency) {
-            $validData = $this->validInvoiceData;
-            $validData['payment_currency'] = $currency;
-            $validData['invoice-products'] = [$this->item(['currency' => $currency])];
-            $validData['invoice_vs'] = 'INV-' . $currency; // Make unique
-
-            $request = new InvoiceRequest;
-            $validator = Validator::make(
-                $validData,
-                $request->rules(),
-                $request->messages(),
+            $this->assertSame(
+                [],
+                $this->errors($data),
+                "Validation should pass for currency: {$currency}",
             );
-
-            $this->assertFalse($validator->fails(), "Validation should pass for currency: {$currency}");
         }
-    }
-
-    #[Test]
-    public function validation_handles_fallback_fields_in_prepare_for_validation(): void
-    {
-        // Test that validation passes with minimal but complete data
-        $minimalData = [
-            'invoice_vs' => 'INV-MINIMAL',
-            'payment_method_id' => $this->paymentMethod->id,
-            'payment_amount' => 1000,
-            'payment_currency' => 'CZK',
-            'issue_date' => $this->faker->date(),
-            'tax_point_date' => $this->faker->date(),
-            'due_in' => 14,
-            'payment_status_id' => $this->paymentStatus->id,
-
-            // Provide supplier_id so supplier fields are not required
-            'supplier_id' => $this->supplier->id,
-            // Provide client_id so client fields are not required
-            'client_id' => $this->client->id,
-
-            'invoice-products' => [$this->item()],
-        ];
-
-        $request = new InvoiceRequest;
-
-        // Test that validation works with minimal data
-        $validator = Validator::make($minimalData, $request->rules());
-
-        // This should pass validation as all required fields have values
-        $this->assertFalse($validator->fails());
-        if ($validator->fails()) {
-            $this->fail('Validation failed: ' . implode(', ', $validator->errors()->all()));
-        }
-    }
-
-    /**
-     * Errors of the IČO fields when the invoice brings the given party fields.
-     *
-     * @param  array<string, mixed>  $partyFields
-     * @return array{supplier: list<string>, client: list<string>}
-     */
-    private function partyIcoErrors(
-        User $user,
-        array $partyFields,
-    ): array {
-        $data = $partyFields + $this->validInvoiceData;
-        // the rule reads supplier_id and client_id from the request itself
-        $request = InvoiceRequest::create(
-            '/',
-            'POST',
-            $data,
-        );
-        $request->setUserResolver(fn () => $user);
-
-        $errors = Validator::make(
-            $data,
-            $request->rules(),
-            $request->messages(),
-            $request->attributes(),
-        )->errors();
-
-        return ['supplier' => $errors->get('ico'), 'client' => $errors->get('client_ico')];
-    }
-
-    #[Test]
-    public function new_party_with_the_ico_of_a_stored_one_asks_to_select_it(): void
-    {
-        $user = User::factory()->create();
-        Supplier::factory()->create(['user_id' => $user->id, 'ico' => '11111111']);
-        Client::factory()->create(['user_id' => $user->id, 'ico' => '22222222']);
-
-        $errors = $this->partyIcoErrors($user, [
-            'supplier_id' => null,
-            'name' => 'New Supplier',
-            'ico' => '11111111',
-            'client_id' => null,
-            'client_name' => 'New Client',
-            'client_ico' => '22222222',
-        ]);
-
-        $this->assertSame([__('invoices.validation.supplier_exists')], $errors['supplier']);
-        $this->assertSame([__('invoices.validation.client_exists')], $errors['client']);
-    }
-
-    #[Test]
-    public function selected_party_is_not_checked_for_a_duplicate_ico(): void
-    {
-        $user = User::factory()->create();
-        $supplier = Supplier::factory()->create(['user_id' => $user->id, 'ico' => '11111111']);
-        $client = Client::factory()->create(['user_id' => $user->id, 'ico' => '22222222']);
-
-        $errors = $this->partyIcoErrors($user, [
-            'supplier_id' => $supplier->id,
-            'ico' => '11111111',
-            'client_id' => $client->id,
-            'client_ico' => '22222222',
-        ]);
-
-        $this->assertSame([], $errors['supplier']);
-        $this->assertSame([], $errors['client']);
-    }
-
-    #[Test]
-    public function new_party_may_share_the_ico_of_another_users_party(): void
-    {
-        $otherUser = User::factory()->create();
-        Supplier::factory()->create(['user_id' => $otherUser->id, 'ico' => '11111111']);
-        Client::factory()->create(['user_id' => $otherUser->id, 'ico' => '22222222']);
-
-        $errors = $this->partyIcoErrors(User::factory()->create(), [
-            'supplier_id' => null,
-            'name' => 'New Supplier',
-            'ico' => '11111111',
-            'client_id' => null,
-            'client_name' => 'New Client',
-            'client_ico' => '22222222',
-        ]);
-
-        $this->assertSame([], $errors['supplier']);
-        $this->assertSame([], $errors['client']);
-    }
-
-    #[Test]
-    public function missing_party_errors_name_which_party(): void
-    {
-        $request = new InvoiceRequest;
-        $data = $this->validInvoiceData;
-        unset($data['supplier_id'], $data['name'], $data['client_id'], $data['client_name'], $data['street'], $data['client_street']);
-
-        $errors = Validator::make(
-            $data,
-            $request->rules(),
-            $request->messages(),
-            $request->attributes(),
-        )->errors();
-
-        $this->assertSame(__('invoices.validation.supplier_required_without'), $errors->first('supplier_id'));
-        $this->assertSame(__('invoices.validation.client_required_without'), $errors->first('client_id'));
-        $this->assertStringContainsString(__('invoices.fields.supplier_street'), $errors->first('street'));
-        $this->assertStringContainsString(__('invoices.fields.client_street'), $errors->first('client_street'));
     }
 
     #[Test]
     public function validation_passes_with_valid_invoice_logo_file(): void
     {
-        // Create a fake image file
-        $file = UploadedFile::fake()->image('logo.png', 100, 100)->size(1000); // 1MB
+        $file = UploadedFile::fake()->image('logo.png', 100, 100)->size(1000);
 
-        $data = $this->validInvoiceData;
-        $data['invoice_logo'] = $file;
-
-        $validator = Validator::make($data, (new InvoiceRequest)->rules());
-
-        $this->assertTrue($validator->passes(), 'Validation should pass with valid image file');
+        $this->assertSame([], $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
     }
 
     #[Test]
     public function validation_fails_with_invalid_invoice_logo_format(): void
     {
-        // Create a fake file with invalid format
         $file = UploadedFile::fake()->create('document.pdf', 1000);
 
-        $data = $this->validInvoiceData;
-        $data['invoice_logo'] = $file;
-
-        $validator = Validator::make($data, (new InvoiceRequest)->rules());
-
-        $this->assertFalse($validator->passes(), 'Validation should fail with invalid file format');
-        $this->assertArrayHasKey('invoice_logo', $validator->errors()->toArray());
+        $this->assertArrayHasKey('invoice_logo', $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
     }
 
     #[Test]
     public function validation_fails_with_oversized_invoice_logo(): void
     {
-        // Create a fake image file that's too large (3MB)
         $file = UploadedFile::fake()->image('logo.png', 100, 100)->size(3000);
 
-        $data = $this->validInvoiceData;
-        $data['invoice_logo'] = $file;
-
-        $validator = Validator::make($data, (new InvoiceRequest)->rules());
-
-        $this->assertFalse($validator->passes(), 'Validation should fail with oversized file');
-        $this->assertArrayHasKey('invoice_logo', $validator->errors()->toArray());
+        $this->assertArrayHasKey('invoice_logo', $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
     }
 
     #[Test]
     public function validation_passes_with_null_invoice_logo(): void
     {
-        $data = $this->validInvoiceData;
-        $data['invoice_logo'] = null;
-
-        $validator = Validator::make($data, (new InvoiceRequest)->rules());
-
-        $this->assertTrue($validator->passes(), 'Validation should pass with null invoice logo');
+        $this->assertSame([], $this->errors(['invoice_logo' => null] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
     }
 
     #[Test]
     public function validation_passes_with_various_valid_image_formats(): void
     {
-        $formats = [
+        foreach ([
             'jpg',
             'jpeg',
             'png',
             'gif',
             'svg',
-        ];
-
-        foreach ($formats as $format) {
+        ] as $format) {
             $file = UploadedFile::fake()->image("logo.{$format}", 100, 100)->size(1000);
 
-            $data = $this->validInvoiceData;
-            $data['invoice_logo'] = $file;
-
-            $validator = Validator::make($data, (new InvoiceRequest)->rules());
-
-            $this->assertTrue($validator->passes(), "Validation should pass with .{$format} format");
+            $this->assertSame(
+                [],
+                $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true),
+                "Validation should pass with .{$format} format",
+            );
         }
     }
 
@@ -891,7 +615,7 @@ class InvoiceRequestFeatureTest extends TestCase
 
         $response = $this->postJson(
             route('frontend.invoice.store.guest', ['locale' => 'cs']),
-            ['invoice-products' => json_encode($items)] + $this->validInvoiceData,
+            $this->guestInvoiceInput(['invoice-products' => json_encode($items)]),
         );
 
         $response->assertStatus(422)
@@ -904,7 +628,7 @@ class InvoiceRequestFeatureTest extends TestCase
     {
         $response = $this->postJson(
             route('frontend.invoice.store.guest', ['locale' => 'cs']),
-            ['invoice-products' => '{broken'] + $this->validInvoiceData,
+            $this->guestInvoiceInput(['invoice-products' => '{broken']),
         );
 
         $response->assertStatus(422)->assertJsonValidationErrors(['invoice-products']);
@@ -913,16 +637,8 @@ class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function the_typed_payment_amount_is_neither_required_nor_kept(): void
     {
-        $request = new InvoiceRequest;
         foreach ([null, -100] as $amount) {
-            $data = $this->validInvoiceData;
-            $data['payment_amount'] = $amount;
-
-            $validator = Validator::make(
-                $data,
-                $request->rules(),
-                $request->messages(),
-            );
+            $validator = $this->validator(['payment_amount' => $amount] + $this->validInvoiceData);
 
             $this->assertTrue($validator->passes());
             $this->assertArrayNotHasKey('payment_amount', $validator->validated());

@@ -20,6 +20,7 @@ return [
         'updated_at' => 'Updated',
     ],
     'hints' => [
+        'business' => 'Details of the business on whose behalf you will issue documents. The name and email are prefilled from your login details; you can change them.',
         'password' => 'At least 8 characters long',
         'password_confirmation' => 'Enter the password again for confirmation',
         'current_password' => 'Confirm password change',
@@ -53,6 +54,7 @@ return [
         'system_name' => 'Invoicing System',
     ],
     'sections' => [
+        'business' => 'Your business',
         'basic_info' => 'Basic Information',
         'address' => 'Address',
         'change_password' => 'Change Password',

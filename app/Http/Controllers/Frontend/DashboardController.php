@@ -1,33 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
-use App\Application\Analytics\Contracts\DashboardApplicationServiceInterface;
+use App\Application\Analytics\Services\DashboardApplicationService;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class DashboardController extends Controller
+final class DashboardController extends Controller
 {
-    /**
-     * Constructor
-     */
-    public function __construct(private readonly DashboardApplicationServiceInterface $dashboardService) {}
+    public function __construct(private readonly DashboardApplicationService $dashboardService) {}
 
-    /**
-     * Show the application dashboard with user statistics
-     */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $user = Auth::user();
-        $dashboardData = $this->dashboardService->getDashboardData($user);
-
         return view('frontend.dashboard', [
-            'invoiceCount' => $dashboardData['statistics_formatted']['invoice_count'],
-            'clientCount' => $dashboardData['statistics_formatted']['client_count'],
-            'suppliersCount' => $dashboardData['statistics_formatted']['suppliers_count'],
-            'totalAmount' => $dashboardData['statistics_formatted']['total_amount'],
-            'clients' => $dashboardData['clients'],
+            'dashboard' => $this->dashboardService->getDashboardData(UserId::fromInt($request->user('web')->id)),
         ]);
     }
 }

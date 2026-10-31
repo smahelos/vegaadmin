@@ -31,7 +31,7 @@ class UsageRecordingHandler implements DomainEventHandler
                 'product',
                 'count',
                 null, // Let service determine best period type
-                'web', // Use web guard for client/supplier creation
+                'web',
                 1,
             ),
             default => true, // Return true for events we don't handle

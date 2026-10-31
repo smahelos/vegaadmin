@@ -1,18 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Notifications\Invoice\Messages;
 
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
+use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
+use App\Infrastructure\Notifications\Invoice\InvoiceReminderMailFactory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class InvoiceUpcomingDueReminder extends Notification implements ShouldQueue
+final class InvoiceUpcomingDueReminder extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(private readonly InvoiceReminderPayload $payload) {}
+    public function __construct(private readonly InvoiceReminderDTO $payload) {}
 
     public function via(object $notifiable): array
     {
@@ -21,19 +25,11 @@ class InvoiceUpcomingDueReminder extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $dueDate = $this->payload->dueDate->format('d.m.Y');
-        $viewName = $this->payload->recipientType === 'client'
-            ? 'emails.invoices.reminders.upcoming_due_client'
-            : 'emails.invoices.reminders.upcoming_due_supplier';
-
-        return (new MailMessage)
-            ->subject(__('invoices.reminders.upcoming_due_subject', ['number' => $this->payload->invoiceNumber]))
-            ->view($viewName, [
-                'invoiceNumber' => $this->payload->invoiceNumber,
-                'dueDate' => $dueDate,
-                'daysLeft' => $this->payload->daysLeft,
-                'greeting' => __('invoices.reminders.greeting', ['name' => $notifiable->name ?? '']),
-                'locale' => $this->locale,
-            ]);
+        return app(InvoiceReminderMailFactory::class)->create(
+            $this->payload,
+            InvoiceReminderType::UPCOMING_DUE,
+            $this->locale,
+            $notifiable->name ?? '',
+        );
     }
 }

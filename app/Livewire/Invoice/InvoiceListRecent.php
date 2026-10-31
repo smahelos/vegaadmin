@@ -32,7 +32,6 @@ class InvoiceListRecent extends Component
     {
         try {
             $query = Invoice::with([
-                'client',
                 'paymentMethod',
                 'paymentStatus',
             ])

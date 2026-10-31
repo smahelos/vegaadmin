@@ -2,6 +2,7 @@
 
 namespace App\Domain\Invoice\Events\Handlers;
 
+use App\Domain\Invoice\Events\ExpenseCreated;
 use App\Domain\Invoice\Events\InvoiceCreated;
 use App\Domain\Shared\Events\Contracts\DomainEvent;
 use App\Domain\Shared\Events\DomainEventHandler;
@@ -31,8 +32,17 @@ class UsageRecordingHandler implements DomainEventHandler
                 'invoice',
                 'count',
                 null, // Let service determine best period type
-                'web', // Use web guard for client/supplier creation
+                'web',
                 1,
+            ),
+            ExpenseCreated::class => $this->limitService->recordUsage(
+                $event->getPayload()['user_id'],
+                'expense',
+                'count',
+                null,
+                'backpack',
+                1,
+
             ),
             default => true, // Return true for events we don't handle
         };
@@ -52,7 +62,7 @@ class UsageRecordingHandler implements DomainEventHandler
 
     public function canHandle(DomainEvent $event): bool
     {
-        return $event instanceof InvoiceCreated;
+        return $event instanceof InvoiceCreated || $event instanceof ExpenseCreated;
     }
 
     public function getPriority(): int

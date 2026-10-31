@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace App\Domain\Analytics\DTO;
 
 use App\Domain\Analytics\Enums\StatisticsPeriod;
-use App\Domain\Party\ValueObjects\PartyId;
+use App\Domain\Party\ValueObjects\ContactId;
 use DateTimeImmutable;
 
 final readonly class StatisticsFilter
 {
     /**
-     * @param  list<PartyId>  $clientIds  empty means all clients
+     * @param  list<ContactId>  $contactIds  empty means all customers
      */
     public function __construct(
         public StatisticsPeriod $period,
         public ?DateTimeImmutable $from,
         public ?DateTimeImmutable $to,
-        public array $clientIds,
+        public array $contactIds,
     ) {}
 
     /**

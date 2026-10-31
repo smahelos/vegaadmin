@@ -1,109 +1,58 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Domain\Analytics\Contracts\DashboardServiceInterface;
-use App\Domain\Analytics\DTO\ClientTotalDTO;
-use App\Domain\Analytics\DTO\MonthlyStatDTO;
-use App\Domain\Analytics\DTO\UserStatisticsDTO;
-use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\User\ValueObjects\UserId;
-use App\Models\User;
+use App\Models\Business;
+use App\Models\Contact;
+use App\Models\Invoice;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
+use Tests\Support\BuildsParties;
 use Tests\TestCase;
 
-class DashboardControllerFeatureTest extends TestCase
+final class DashboardControllerFeatureTest extends TestCase
 {
+    use BuildsParties;
+
     #[Test]
     public function guest_is_redirected_to_login(): void
     {
-        $locale = config('app.locale');
-        $response = $this->get(route('frontend.dashboard', ['locale' => $locale]));
-        $response->assertStatus(302);
-        // Login route outside locale group -> no locale param expected
-        $response->assertRedirect(route('login'));
+        $this->get(route('frontend.dashboard', ['locale' => 'cs']))->assertRedirect(route('login'));
     }
 
     #[Test]
-    public function authenticated_user_sees_dashboard_with_expected_variables(): void
+    public function the_dashboard_renders_the_users_statistics_and_latest_parties(): void
     {
-        // Bind fake service implementation
-        $this->app->bind(DashboardServiceInterface::class, function () {
-            return new class implements DashboardServiceInterface
-            {
-                public function getUserStatistics(UserId $userId): UserStatisticsDTO
-                {
-                    return new UserStatisticsDTO(
-                        invoiceCount: 5,
-                        clientCount: 3,
-                        suppliersCount: 2,
-                        totalAmount: Money::fromString('123.45', 'CZK'),
-                    );
-                }
-
-                public function getMonthlyStatistics(UserId $userId, int $months = 6): array
-                {
-                    return [
-                        new MonthlyStatDTO('2025-01', Money::fromString('10.00', 'CZK')),
-                    ];
-                }
-
-                public function getClientsWithInvoiceTotals(UserId $userId): array
-                {
-                    return [
-                        new ClientTotalDTO(
-                            1,
-                            'Client A',
-                            Money::fromString('50.00', 'CZK'),
-                        ),
-                    ];
-                }
-
-                public function getDashboardData(UserId $userId): array
-                {
-                    return [
-                        'statistics_formatted' => [
-                            'invoice_count' => 5,
-                            'client_count' => 3,
-                            'suppliers_count' => 2,
-                            'total_amount' => '123.45',
-                        ],
-                        'monthly_stats' => $this->getMonthlyStatistics($userId),
-                        'clients' => $this->getClientsWithInvoiceTotals($userId),
-                    ];
-                }
-
-                public function invalidateUserCache(int $userId): bool
-                {
-                    return true;
-                }
-            };
-        });
-
-        $user = User::factory()->create();
-        $this->actingAs($user, 'web');
-
-        // Ensure permissions referenced in navigation exist to avoid rendering exceptions
-        foreach ([
-            'frontend.can_create_edit_client',
-            'frontend.can_create_edit_supplier',
-            'frontend.can_create_edit_product',
-        ] as $perm) {
-            Permission::findOrCreate($perm, 'web');
-        }
-
-        $locale = config('app.locale');
-        $response = $this->get(route('frontend.dashboard', ['locale' => $locale]));
-
-        $response->assertStatus(200);
-        $response->assertViewIs('frontend.dashboard');
-        $response->assertViewHasAll([
-            'invoiceCount',
-            'clientCount',
-            'suppliersCount',
-            'totalAmount',
-            'clients',
+        $user = $this->frontendUser();
+        $business = Business::factory()->create(['user_id' => $user->id, 'name' => 'My own business']);
+        Contact::factory()->create(['user_id' => $user->id, 'name' => 'My contact']);
+        Contact::factory()->create(['name' => 'Private other contact']);
+        Invoice::factory()->create([
+            'user_id' => $user->id,
+            'business_id' => $business->id,
+            'payment_amount' => '123.45',
         ]);
+
+        $this->actingAs($user)->get(route('frontend.dashboard', ['locale' => 'cs']))
+            ->assertOk()->assertSee('My own business')->assertSee('My contact')->assertDontSee('Private other contact')
+            ->assertViewHas('dashboard', fn ($dashboard): bool => $dashboard->statistics->invoiceCount === 1
+                && $dashboard->statistics->businessCount === 1
+                && $dashboard->statistics->contactCount === 1
+                && $dashboard->statistics->totalAmount->getAmount() === '123.45');
+    }
+
+    #[Test]
+    public function one_off_invoices_keep_the_date_filters_available_without_a_contact_selector(): void
+    {
+        $user = $this->frontendUser();
+        Invoice::factory()->create(['user_id' => $user->id, 'contact_id' => null]);
+
+        $this->actingAs($user)->get(route('frontend.dashboard', ['locale' => 'cs']))
+            ->assertOk()
+            ->assertSee('id="stats-timerange"', false)
+            ->assertSee('id="stats-date-from"', false)
+            ->assertDontSee('id="stats-contact-filter"', false)
+            ->assertViewHas('dashboard', fn ($dashboard): bool => $dashboard->contacts === []);
     }
 }

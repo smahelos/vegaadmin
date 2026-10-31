@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Payment\Services;
 
 use App\Domain\Payment\Contracts\QrCodeRendererInterface;
-use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Domain\Payment\Services\QrPaymentService;
+use App\Domain\Payment\ValueObjects\BankAccount;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -36,12 +37,16 @@ final class QrPaymentServiceTest extends TestCase
     #[Test]
     public function generate_qr_code_base64_czech(): void
     {
-        $payload = new QrPaymentPayload(
+        $payload = new QrPaymentDTO(
             variableSymbol: '20250001',
             amount: Money::fromString('1234.56', 'CZK'),
-            accountNumber: '1234567890',
-            bankCode: '0100',
-            iban: null,
+            account: BankAccount::fromParts(
+                'CZ6508000000192000145399',
+                null,
+                null,
+                null,
+                null,
+            ),
             message: 'Test payment',
         );
 
@@ -58,12 +63,16 @@ final class QrPaymentServiceTest extends TestCase
     #[Test]
     public function generate_qr_code_base64_european(): void
     {
-        $payload = new QrPaymentPayload(
+        $payload = new QrPaymentDTO(
             variableSymbol: '20250002',
             amount: Money::fromString('250.75', 'EUR'),
-            accountNumber: null,
-            bankCode: null,
-            iban: 'DE44500105175407324931',
+            account: BankAccount::fromParts(
+                'DE44500105175407324931',
+                null,
+                null,
+                null,
+                null,
+            ),
             message: 'European payment',
         );
 

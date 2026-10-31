@@ -2,6 +2,7 @@
 
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Shared\Money\ValueObjects\Money;
 
 /**
@@ -17,8 +18,7 @@ class InvoiceWriteData
         public readonly ?string $tax_point_date,
 
         // Optional parameters with default values
-        public readonly ?int $client_id = null,
-        public readonly ?int $supplier_id = null,
+        public readonly ?DocumentParties $parties = null,
         public readonly ?string $number = null,
         public readonly ?string $issue_date = null,
         public readonly ?int $due_in = null,
@@ -36,11 +36,10 @@ class InvoiceWriteData
         public readonly array $items = [],
         public readonly ?string $created_at = null,
         public readonly ?string $updated_at = null,
-        public readonly ?string $logo = null,
         public readonly ?string $status = null,
     ) {}
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data, ?DocumentParties $parties = null): self
     {
         // Normalize currency from multiple accepted shapes
         $currency = $data['currency']
@@ -145,8 +144,7 @@ class InvoiceWriteData
         }
 
         return new self(
-            client_id: isset($data['client_id']) ? (int) $data['client_id'] : null,
-            supplier_id: isset($data['supplier_id']) ? (int) $data['supplier_id'] : null,
+            parties: $parties,
             number: $data['number'] ?? ($data['invoice_vs'] ?? null),
             issue_date: $data['issue_date'] ?? null,
             due_in: isset($data['due_in']) ? (int) $data['due_in'] : null,
@@ -167,7 +165,6 @@ class InvoiceWriteData
             items: $data['items'] ?? [],
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,
-            logo: $data['logo'] ?? $data['invoice_logo'] ?? null,
             status: $data['status'] ?? (int) $data['payment_status_id'] ?? null,
         );
     }

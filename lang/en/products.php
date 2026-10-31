@@ -10,7 +10,6 @@ return [
         'description' => 'Description',
         'price' => 'Price',
         'sku' => 'SKU',
-        'supplier_id' => 'Supplier',
         'category_id' => 'Category',
         'tax_id' => 'Tax',
         'is_default' => 'Default product',
@@ -31,7 +30,6 @@ return [
         'description' => '',
         'price' => '',
         'sku' => '',
-        'supplier_id' => '',
         'category_id' => '',
         'tax_id' => '',
         'is_default' => '',
@@ -42,7 +40,6 @@ return [
     ],
     'placeholders' => [
         'select_category' => 'Select category',
-        'select_supplier' => 'Select supplier',
         'select_tax' => 'Select tax',
         'select_image' => 'Select image',
         'select_product' => 'Select product',
@@ -103,7 +100,6 @@ return [
     'tags' => [
         'product' => 'Product',
         'invoice' => 'Invoice',
-        'supplier' => 'Supplier',
         'category' => 'Category',
         'tax' => 'Tax',
         'details' => 'Details',

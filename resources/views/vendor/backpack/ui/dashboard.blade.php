@@ -27,8 +27,8 @@
                             <div class="card bg-success text-white h-100">
                                 <div class="card-body d-flex align-items-center gap-3">
                                     <div class="flex-grow-1">
-                                        <h4 class="mb-1">{{ $dashboardStats['total_clients'] ?? 0 }}</h4>
-                                        <small>{{ __('admin.dashboard.total_clients') }}</small>
+                                        <h4 class="mb-1">{{ $dashboardStats['total_contacts'] ?? 0 }}</h4>
+                                        <small>{{ __('admin.dashboard.total_contacts') }}</small>
                                     </div>
                                     <i class="la la-users la-2x flex-shrink-0"></i>
                                 </div>
@@ -39,8 +39,8 @@
                             <div class="card bg-orange text-white h-100">
                                 <div class="card-body d-flex align-items-center gap-3">
                                     <div class="flex-grow-1">
-                                        <h4 class="mb-1">{{ $dashboardStats['total_suppliers'] ?? 0 }}</h4>
-                                        <small>{{ __('admin.dashboard.total_suppliers') }}</small>
+                                        <h4 class="mb-1">{{ $dashboardStats['total_businesses'] ?? 0 }}</h4>
+                                        <small>{{ __('admin.dashboard.total_businesses') }}</small>
                                     </div>
                                     <i class="la la-truck la-2x flex-shrink-0"></i>
                                 </div>
@@ -115,8 +115,8 @@
                                             </a>
                                         </div>
                                         <div class="col-md-3 mb-2">
-                                            <a href="{{ backpack_url('client/create') }}" class="btn btn-success btn-block">
-                                                <i class="la la-user-plus"></i> {{ __('admin.dashboard.add_client') }}
+                                            <a href="{{ backpack_url('business/create') }}" class="btn btn-success btn-block">
+                                                <i class="la la-user-plus"></i> {{ __('admin.dashboard.add_business') }}
                                             </a>
                                         </div>
                                         <div class="col-md-3 mb-2">
@@ -281,8 +281,8 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="text-center">
-                                                <h4 class="text-success">{{ $dashboardStats['recent_clients'] ?? 0 }}</h4>
-                                                <small class="text-muted">{{ __('admin.dashboard.clients_last_30_days') }}</small>
+                                                <h4 class="text-success">{{ $dashboardStats['recent_contacts'] ?? 0 }}</h4>
+                                                <small class="text-muted">{{ __('admin.dashboard.contacts_last_30_days') }}</small>
                                             </div>
                                         </div>
                                     </div>

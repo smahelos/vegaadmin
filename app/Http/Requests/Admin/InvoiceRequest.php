@@ -1,105 +1,173 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
+use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
+use App\Application\Invoice\DTO\InvoicePartySelection;
+use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\ValueObjects\BankAccountId;
+use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
+use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\User\ValueObjects\UserId;
+use App\Http\Requests\Invoice\InvoiceItemInput;
+use App\Http\Requests\Party\AdminDocumentPartyInput;
+use App\Http\Requests\Party\DocumentPartyInput;
 use App\Http\Requests\Rules\InvoiceStatusId;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class InvoiceRequest extends BaseEntityRequest
+final class InvoiceRequest extends FormRequest
 {
-    /**
-     * Get the entity type for limit checking
-     */
-    protected function getEntityType(): string
+    public function authorize(): bool
     {
-        return 'invoice';
+        return backpack_user()?->can($this->isMethod('POST') ? 'can_create_invoice' : 'can_update_invoice') === true;
     }
 
-    /**
-     * Get required permission for invoice operations
-     */
-    protected function getRequiredPermission(): string
-    {
-        return 'can_create_edit_invoice';
-    }
-
-    /**
-     * Get the validation rules that apply to the request
-     */
+    /** @return array<string, mixed> */
     public function rules(): array
     {
-        return [
-            'supplier_id' => [
+        $rules = [
+            'user_id' => 'required|integer|exists:users,id',
+            'business_id' => [
+                'required',
+                'integer',
+                Rule::exists('businesses', 'id')->where('user_id', $this->integer('user_id')),
+            ],
+            'contact_id' => [
                 'nullable',
                 'integer',
-                'exists:suppliers,id',
-                'required_without:name',
+                Rule::exists('contacts', 'id')->where('user_id', $this->integer('user_id')),
             ],
-            'client_id' => 'required|exists:clients,id',
-            'invoice_vs' => 'required|string|max:255',
-            'invoice_ks' => 'nullable|string|max:255',
-            'invoice_ss' => 'nullable|string|max:255',
+            'bank_account_id' => $this->paysByBankTransfer() ? [
+                'required',
+                'integer',
+                Rule::exists('bank_accounts', 'id')->where('business_id', $this->integer('business_id')),
+            ] : ['exclude'],
+            'invoice_vs' => 'required|string|max:50',
+            'invoice_ks' => 'nullable|string|max:20',
+            'invoice_ss' => 'nullable|string|max:20',
             'due_in' => 'required|integer|min:1|max:' . InvoiceDueDate::MAX_DAYS,
             'payment_method_id' => 'required|exists:payment_methods,id',
-            'payment_amount' => 'required|numeric|min:0',
-            'payment_status_id' => [
-                'required',
-                InvoiceStatusId::rule(),
-            ],
-            'payment_currency' => 'required|string|max:100',
+            'payment_amount' => 'required|numeric|decimal:0,2|min:0|max:99999999.99',
+            'payment_status_id' => ['required', InvoiceStatusId::rule()],
+            'payment_currency' => ['required', Rule::enum(Currency::class)],
             'issue_date' => 'required|date',
             'tax_point_date' => 'required|date',
-            'ico' => 'nullable|string|max:20',
-            'dic' => 'nullable|string|max:30',
-            'street' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'zip' => 'required|string|max:20',
-            'country' => 'required|string|max:100',
             'invoice_text' => 'nullable|string',
-            'user_id' => 'required|exists:users,id',
-            'invoice_logo' => 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:2048',
-            'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
+            'template' => 'nullable|string|in:default,modern,minimal',
+        ];
+
+        $customerRules = AdminDocumentPartyInput::rules(
+            $this->all(),
+            'customer',
+            $this->filled('contact_id') && ! $this->keepsContact(),
+        );
+
+        return [
+            ...$rules,
+            ...InvoiceItemInput::rules(
+                $this->integer('user_id'),
+                false,
+                false,
+            ),
+            ...$customerRules,
         ];
     }
 
+    protected function prepareForValidation(): void
+    {
+        $items = $this->input('invoice-products');
+        if (is_string($items)) {
+            $decoded = json_decode($items, true);
+            if (is_array($decoded)) {
+                $this->merge(['invoice-products' => $decoded]);
+            }
+        }
+    }
+
+    /** @return list<InvoiceProductWriteData>|null */
+    public function products(): ?array
+    {
+        if (! $this->has('invoice-products')) {
+            return null;
+        }
+
+        return app(InvoiceProductWriteDataAssembler::class)->fromValidated($this->validated('invoice-products'));
+    }
+
+    public function partySelection(): InvoicePartySelection
+    {
+        $validated = $this->validated();
+
+        return new InvoicePartySelection(
+            businessId: BusinessId::fromInt((int) $validated['business_id']),
+            bankAccountId: isset($validated['bank_account_id']) ? BankAccountId::fromInt((int) $validated['bank_account_id']) : null,
+            contactId: isset($validated['contact_id']) ? ContactId::fromInt((int) $validated['contact_id']) : null,
+            customer: DocumentPartyInput::party($validated, 'customer'),
+            saveCustomerToContacts: false,
+            reloadBusiness: false,
+            copyContact: true,
+        );
+    }
+
+    /** @return array<string, string> */
     public function attributes(): array
     {
-        return [
-            'supplier_id' => __('invoices.fields.supplier_id'),
-            'client_id' => __('invoices.fields.client_id'),
-            'invoice_vs' => __('invoices.fields.invoice_vs'),
-            'invoice_ks' => __('invoices.fields.invoice_ks'),
-            'invoice_ss' => __('invoices.fields.invoice_ss'),
-            'due_in' => __('invoices.fields.due_in'),
-            'payment_method_id' => __('invoices.fields.payment_method_id'),
-            'payment_amount' => __('invoices.fields.payment_amount'),
-            'payment_status_id' => __('invoices.fields.status'),
-            'payment_currency' => __('invoices.fields.payment_currency'),
-            'issue_date' => __('invoices.fields.issue_date'),
-            'tax_point_date' => __('invoices.fields.tax_point_date'),
-            'ico' => __('invoices.fields.supplier_ico'),
-            'dic' => __('invoices.fields.supplier_dic'),
-            'street' => __('invoices.fields.supplier_street'),
-            'city' => __('invoices.fields.supplier_city'),
-            'zip' => __('invoices.fields.supplier_zip'),
-            'country' => __('invoices.fields.supplier_country'),
-            'invoice_text' => __('invoices.fields.invoice_text'),
-            'user_id' => __('invoices.fields.user_id'),
-            'invoice_logo' => __('invoices.fields.invoice_logo'),
-            'template' => __('invoices.fields.template'),
-        ];
+        $attributes = [...DocumentPartyInput::attributes('customer'), ...InvoiceItemInput::attributes()];
+        foreach ([
+            'user_id',
+            'business_id',
+            'contact_id',
+            'bank_account_id',
+            'invoice_vs',
+            'invoice_ks',
+            'invoice_ss',
+            'due_in',
+            'payment_amount',
+            'payment_currency',
+            'payment_method_id',
+            'issue_date',
+            'tax_point_date',
+            'invoice_text',
+            'template',
+        ] as $field) {
+            $attributes[$field] = __('invoices.fields.' . $field);
+        }
+        $attributes['payment_status_id'] = __('invoices.fields.status');
+
+        return $attributes;
     }
 
-    /**
-     * Choosing an existing supplier or filling in a new one is one decision; the standard
-     * required_without message cannot say that.
-     *
-     * @return array<string, string>
-     */
-    public function messages(): array
+    private function keepsContact(): bool
     {
-        return [
-            'supplier_id.required_without' => __('invoices.validation.supplier_required_without'),
-        ];
+        $id = (int) $this->route('id');
+        if ($this->isMethod('POST') || $id <= 0 || $this->integer('user_id') <= 0) {
+            return false;
+        }
+        $invoice = app(InvoiceListingApplicationServiceInterface::class)->getById(
+            InvoiceId::fromInt($id),
+            UserId::fromInt($this->integer('user_id')),
+        );
+
+        return $invoice->parties?->contactId?->value === $this->integer('contact_id');
+    }
+
+    private function paysByBankTransfer(): bool
+    {
+        $id = $this->integer('payment_method_id');
+        if ($id <= 0) {
+            return false;
+        }
+
+        return app(PaymentMethodDtoReadRepositoryInterface::class)->findById(PaymentMethodId::fromInt($id))?->code === PaymentMethodCode::BANK_ACCOUNT;
     }
 }

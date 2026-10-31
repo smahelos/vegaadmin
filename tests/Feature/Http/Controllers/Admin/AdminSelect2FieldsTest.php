@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\Invoice;
-use App\Models\Supplier;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
@@ -33,8 +33,8 @@ class AdminSelect2FieldsTest extends TestCase
 
         $this->assertSelect2Field(
             $content,
-            'supplier_id',
-            'bpFieldInitBillexSelect2',
+            'contact_id',
+            'bpFieldInitBillexSelect2Ajax',
         );
         $this->assertSelect2Field(
             $content,
@@ -89,13 +89,13 @@ class AdminSelect2FieldsTest extends TestCase
     public function edit_form_preselects_the_related_record(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $supplier = Supplier::factory()->create(['name' => 'Supplier ' . uniqid()]);
-        $expense = Expense::factory()->create(['supplier_id' => $supplier->id]);
+        $contact = Contact::factory()->create(['name' => 'Contact ' . uniqid()]);
+        $expense = Expense::factory()->create(['user_id' => $contact->user_id, 'contact_id' => $contact->id]);
 
         $response = $this->get("/admin/expense/{$expense->id}/edit");
 
         $response->assertOk();
-        $response->assertSee('<option value="' . $supplier->id . '" selected>' . $supplier->name . '</option>', false);
+        $response->assertSee('<option value="' . $contact->id . '" selected>' . $contact->name . '</option>', false);
     }
 
     #[Test]

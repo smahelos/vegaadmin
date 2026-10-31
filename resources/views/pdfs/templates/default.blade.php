@@ -1,16 +1,10 @@
-@php
-// Explicit language setting for this view
-if (isset($locale) && in_array($locale, config('app.available_locales', ['cs', 'en', 'de', 'sk']))) {
-app()->setLocale($locale);
-}
-@endphp
 <!DOCTYPE html>
 <html lang="{{ $locale ?? app()->getLocale() }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('invoices.titles.invoice') }} {{ $invoice->invoice_vs }}</title>
+    <title>{{ __('invoices.titles.invoice') }} {{ $invoice->number }}</title>
     <style>
         @page {
             margin: 20mm 15mm;
@@ -103,7 +97,7 @@ app()->setLocale($locale);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        .client-info {
+        .customer-info {
             width: 48%;
             background: #fff;
             border-left: 5px solid #f59e0b;
@@ -113,7 +107,7 @@ app()->setLocale($locale);
         }
 
         .supplier-info h3,
-        .client-info h3 {
+        .customer-info h3 {
             margin-top: 0;
             margin-bottom: 10px;
             font-size: 14px;
@@ -122,7 +116,7 @@ app()->setLocale($locale);
         }
 
         .supplier-info p,
-        .client-info p {
+        .customer-info p {
             margin: 5px 0;
         }
 
@@ -284,25 +278,19 @@ app()->setLocale($locale);
 
 <body>
     <div class="header">
-        @php
-        $logoPath = $invoice->invoice_logo ?? $invoice->supplier_logo ?? $supplier->supplier_logo ?? '';
-        $hasLogo = !empty($logoPath) && file_exists(storage_path('app/public/' . $logoPath));
-        @endphp
-
         <div class="header-content">
             <div class="invoice-title">{{ __('invoices.titles.invoice') }}</div>
-            <div class="invoice-number">{{ __('invoices.placeholders.number') }}: {{ $invoice->invoice_vs }}</div>
+            <div class="invoice-number">{{ __('invoices.placeholders.number') }}: {{ $invoice->number }}</div>
         </div>
 
-        @if($hasLogo)
+        @if($logoPath)
         <div class="header-logo-container">
-            <img src="{{ storage_path('app/public/' . $logoPath) }}" alt="{{ __('invoices.labels.company_logo') }}"
+            <img src="{{ $logoPath }}" alt="{{ __('invoices.labels.company_logo') }}"
                 class="header-logo">
         </div>
         @endif
 
-        @if(!$hasLogo)
-        {{-- Empty div to maintain flexbox structure when no logo --}}
+        @if(!$logoPath)
         <div style="width: 120px;"></div>
         @endif
         <div class="clearfix"></div>
@@ -310,38 +298,48 @@ app()->setLocale($locale);
 
     <div class="parties clearfix">
         <div class="col-left">
-            {{-- Supplier information --}}
             <div class="supplier-info">
-                <h3>{{ __('invoices.fields.supplier_id') }}</h3>
+                <h3>{{ __('invoices.fields.supplier') }}</h3>
                 <p><strong>{{ $supplier->name ?? '' }}</strong></p>
                 <p>{{ $supplier->street ?? '' }}</p>
-                <p>{{ $supplier->zip ?? '' }} {{ $supplier->city ?? '' }}{{
+                <p>{{ $supplier->postalCode ?? '' }} {{ $supplier->city ?? '' }}{{
                     ($supplier->country) ? ',' : '' }} {{ $supplier->country ?? '' }}</p>
 
-                @if(!empty($supplier->ico))
-                <p>{{ __('invoices.fields.ico') }}: {{ $supplier->ico }}</p>
+                @if ($supplier->email)
+                    <p>{{ $supplier->email }}</p>
+                @endif
+                @if ($supplier->phone)
+                    <p>{{ $supplier->phone }}</p>
+                @endif
+                @if(!empty($supplier->companyNumber))
+                <p>{{ __('parties.fields.company_number') }}: {{ $supplier->companyNumber }}</p>
                 @endif
 
-                @if(!empty($supplier->dic))
-                <p>{{ __('invoices.fields.dic') }}: {{ $supplier->dic }}</p>
+                @if(!empty($supplier->vatNumber))
+                <p>{{ __('parties.fields.vat_number') }}: {{ $supplier->vatNumber }}</p>
                 @endif
             </div>
         </div>
         <div class="col-right">
-            {{-- Client information --}}
-            <div class="client-info">
-                <h3>{{ __('invoices.fields.client_id') }}</h3>
-                <p><strong>{{ $client->name ?? '' }}</strong></p>
-                <p>{{ $client->street ?? '' }}</p>
-                <p>{{ $client->zip ?? '' }} {{ $client->city ?? '' }}{{
-                    $client->country ? ',' : '' }} {{ $client->country ?? '' }}</p>
+            <div class="customer-info">
+                <h3>{{ __('invoices.fields.customer') }}</h3>
+                <p><strong>{{ $customer->name ?? '' }}</strong></p>
+                <p>{{ $customer->street ?? '' }}</p>
+                <p>{{ $customer->postalCode ?? '' }} {{ $customer->city ?? '' }}{{
+                    $customer->country ? ',' : '' }} {{ $customer->country ?? '' }}</p>
 
-                @if(!empty($client->ico))
-                <p>{{ __('invoices.fields.ico') }}: {{ $client->ico }}</p>
+                @if ($customer->email)
+                    <p>{{ $customer->email }}</p>
+                @endif
+                @if ($customer->phone)
+                    <p>{{ $customer->phone }}</p>
+                @endif
+                @if(!empty($customer->companyNumber))
+                <p>{{ __('parties.fields.company_number') }}: {{ $customer->companyNumber }}</p>
                 @endif
 
-                @if(!empty($client->dic))
-                <p>{{ __('invoices.fields.dic') }}: {{ $client->dic }}</p>
+                @if(!empty($customer->vatNumber))
+                <p>{{ __('parties.fields.vat_number') }}: {{ $customer->vatNumber }}</p>
                 @endif
             </div>
         </div>
@@ -353,19 +351,19 @@ app()->setLocale($locale);
             <div class="col-left">
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.issue_date') }}:</span>
-                    <span class="info-value">{{ $invoice->issue_date }}</span>
+                    <span class="info-value">{{ $issueDateFormatted }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.tax_point_date') }}:</span>
-                    <span class="info-value">{{ $invoice->tax_point_date }}</span>
+                    <span class="info-value">{{ $taxPointDateFormatted }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.due_in') }}:</span>
-                    <span class="info-value">{{ $invoice->due_in ?? '0' }} {{ __('invoices.units.days') }}</span>
+                    <span class="info-value">{{ $dueDays ?? '0' }} {{ __('invoices.units.days') }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label red">{{ __('invoices.fields.due_date') }}:</span>
-                    <span class="info-value red">{{ $invoice->due_date }}</span>
+                    <span class="info-value red">{{ $dueDateFormatted }}</span>
                 </div>
             </div>
 
@@ -377,24 +375,24 @@ app()->setLocale($locale);
                 </div>
                 @endif
 
-                @if($invoice->invoice_vs)
+                @if($invoice->number)
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.invoice_vs_short') }}:</span>
-                    <span class="info-value">{{ $invoice->invoice_vs }}</span>
+                    <span class="info-value">{{ $invoice->number }}</span>
                 </div>
                 @endif
 
-                @if($invoice->invoice_ks)
+                @if($invoice->constantSymbol)
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.invoice_ks') }}:</span>
-                    <span class="info-value">{{ $invoice->invoice_ks }}</span>
+                    <span class="info-value">{{ $invoice->constantSymbol }}</span>
                 </div>
                 @endif
 
-                @if($invoice->invoice_ss)
+                @if($invoice->specificSymbol)
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.invoice_ss') }}:</span>
-                    <span class="info-value">{{ $invoice->invoice_ss }}</span>
+                    <span class="info-value">{{ $invoice->specificSymbol }}</span>
                 </div>
                 @endif
             </div>
@@ -421,16 +419,11 @@ app()->setLocale($locale);
                 @foreach($invoiceProductsFormatted as $item)
                 <tr>
                     <td>{{ $item['name'] ?? '-' }}</td>
-                    <td class="text-right">{{ isset($item['quantity']) ? number_format($item['quantity'], 2, ',', ' ') :
-                        '-' }}</td>
+                    <td class="text-right">{{ $item['quantity_formatted'] }}</td>
                     <td class="text-right">{{ __('invoices.units.' . $item['unit']) }}</td>
-                    <td class="text-right">{{ $item['price_formatted'] ?? (isset($item['price']) ?
-                        number_format($item['price'], 2, ',', ' ') . ' ' . ($item['currency'] ??
-                        $invoice->payment_currency) : '-') }}</td>
-                    <td class="text-right">{{ isset($item['tax_rate']) ? $item['tax_rate'] : 0 }}%</td>
-                    <td class="text-right">{{ $item['total_price_formatted'] ?? (isset($item['total_price']) ?
-                        number_format($item['total_price'], 2, ',', ' ') . ' ' . ($item['currency'] ??
-                        $invoice->payment_currency) : '-') }}</td>
+                    <td class="text-right">{{ $item['price_formatted'] }}</td>
+                    <td class="text-right">{{ $item['tax_rate_formatted'] }}%</td>
+                    <td class="text-right">{{ $item['total_price_formatted'] }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -438,58 +431,30 @@ app()->setLocale($locale);
                 <tr>
                     <th colspan="5" class="text-right">{{ __('invoices.labels.total_without_tax') }}</th>
                     <td class="text-right"><strong>
-                            <x-money :formatted="$subtotalFormatted ?? null" :value="$subtotal ?? null"
-                                :amount="isset($subtotal)?($subtotal['amount']??0):0"
-                                :currency="$subtotal['currency'] ?? ($invoice->payment_currency ?? 'CZK')" />
+                            {{ $subtotalFormatted }}
                         </strong></td>
                 </tr>
                 <tr>
                     <th colspan="5" class="text-right">{{ __('invoices.labels.total_tax') }}</th>
-                    <td class="text-right"><strong><x-money :formatted="$taxFormatted ?? null" :value="$totalTax ?? null" :amount="isset($totalTax)?($totalTax['amount']??0):0" :currency="$totalTax['currency'] ?? ($invoice->payment_currency ?? 'CZK')" /></strong></td>
+                    <td class="text-right"><strong>{{ $taxFormatted }}</strong></td>
                 </tr>
                 <tr class="amount-total">
                     <th colspan="5" class="text-right">{{ __('invoices.fields.total') }}</th>
-                    <td class="text-right"><strong><x-money :formatted="$paymentAmountFormatted ?? null" :value="$paymentAmount ?? null" :amount="$invoice->payment_amount" :currency="$invoice->payment_currency" /></strong></td>
+                    <td class="text-right"><strong>{{ $paymentAmountFormatted }}</strong></td>
                 </tr>
             </tfoot>
         </table>
-        <!-- Test spans for automated assertions -->
-        <span id="test-payment-total"
-            data-test-payment-total="{{ $paymentAmountFormatted ?? (isset($paymentAmount) ? (number_format((float)($paymentAmount['amount'] ?? ($invoice->payment_amount ?? 0)), 2, ',', ' ') . ' ' . ($paymentAmount['currency'] ?? ($invoice->payment_currency ?? 'CZK'))) : (number_format($invoice->payment_amount, 2, ',', ' ') . ' ' . $invoice->payment_currency)) }}"
-            style="display:none">{{ $paymentAmountFormatted ?? (isset($paymentAmount) ?
-            (number_format((float)($paymentAmount['amount'] ?? ($invoice->payment_amount ?? 0)), 2, ',', ' ') . ' ' .
-            ($paymentAmount['currency'] ?? ($invoice->payment_currency ?? 'CZK'))) :
-            (number_format($invoice->payment_amount, 2, ',', ' ') . ' ' . $invoice->payment_currency)) }}</span>
-        <span id="test-subtotal"
-            data-test-subtotal="{{ $subtotalFormatted ?? (isset($subtotal) ? (number_format((float)($subtotal['amount'] ?? 0), 2, ',', ' ') . ' ' . ($subtotal['currency'] ?? ($invoice->payment_currency ?? 'CZK'))) : '') }}"
-            style="display:none">{{ $subtotalFormatted ?? (isset($subtotal) ? (number_format((float)($subtotal['amount']
-            ?? 0), 2, ',', ' ') . ' ' . ($subtotal['currency'] ?? ($invoice->payment_currency ?? 'CZK'))) : '')
-            }}</span>
-        <span id="test-tax"
-            data-test-tax="{{ $taxFormatted ?? (isset($totalTax) ? (number_format((float)($totalTax['amount'] ?? 0), 2, ',', ' ') . ' ' . ($totalTax['currency'] ?? ($invoice->payment_currency ?? 'CZK'))) : '') }}"
-            style="display:none">{{ $taxFormatted ?? (isset($totalTax) ? (number_format((float)($totalTax['amount'] ??
-            0), 2, ',', ' ') . ' ' . ($totalTax['currency'] ?? ($invoice->payment_currency ?? 'CZK'))) : '') }}</span>
-
-        @if($invoice->invoice_text)
+        @if($invoice->notes)
         <div
             style="margin-top: 10px; padding: 5px 10px 0px 10px; background-color: #f9fafb; border-radius: 5px; border: 1px solid #e5e7eb;">
             <strong>{{ __('invoices.fields.invoice_note') }}:</strong>
-            <p style="margin-top: 5px;">{{ $invoice->invoice_text }}</p>
+            <p style="margin-top: 5px;">{{ $invoice->notes }}</p>
         </div>
         @endif
         @endif
     </div>
 
     <!-- Payment information and QR code -->
-
-    @php
-    // Handle bank details for different object types
-    $accountNumber = $supplier->account_number ?? ($invoice->account_number ?? '');
-    $bankCode = $supplier->bank_code ?? ($invoice->bank_code ?? '');
-    $bankName = $supplier->bank_name ?? ($invoice->bank_name ?? '');
-    $iban = $supplier->iban ?? ($invoice->iban ?? '');
-    $swift = $supplier->swift ?? ($invoice->swift ?? '');
-    @endphp
 
     <div class="clearfix">
         <div class="@if(isset($hasQrCode) && $hasQrCode && !empty($qrCode))col-left @endif">
@@ -498,64 +463,40 @@ app()->setLocale($locale);
 
                 @if(!empty($bankName))
                 <div class="info-row">
-                    <span class="info-label">{{ __('suppliers.fields.bank_name') }}:</span> <strong>{{ $bankName
+                    <span class="info-label">{{ __('parties.bank_accounts.fields.bank_name') }}:</span> <strong>{{ $bankName
                         }}</strong>
-                </div>
-                @elseif($supplier && !empty($supplier->bank_name))
-                <div class="info-row">
-                    <span class="info-label">{{ __('suppliers.fields.bank_name') }}:</span> <strong>{{
-                        $supplier->bank_name }}</strong>
                 </div>
                 @endif
                 @if(!empty($accountNumber) && !empty($bankCode))
                 <div class="info-row">
-                    <span class="info-label">{{ __('suppliers.fields.account_number') }}:</span>
+                    <span class="info-label">{{ __('parties.bank_accounts.fields.number') }}:</span>
                     <strong>{{ $accountNumber }}/{{ $bankCode }}</strong>
-                </div>
-                @elseif($supplier && !empty($supplier->account_number) &&
-                !empty($supplier->bank_code))
-                <div class="info-row">
-                    <span class="info-label">{{ __('suppliers.fields.account_number') }}:</span>
-                    <strong>{{ $supplier->account_number }}/{{ $supplier->bank_code }}</strong>
                 </div>
                 @endif
 
                 @if(!empty($iban))
                 <div class="info-row">
-                    <span class="info-label">{{ __('suppliers.fields.iban') }}:</span> <strong>{{ $iban }}</strong>
-                </div>
-                @elseif($supplier && !empty($supplier->iban))
-                <div class="info-row">
-                    <span class="info-label">{{ __('suppliers.fields.iban') }}:</span> <strong>{{
-                        $supplier->iban }}</strong>
+                    <span class="info-label">{{ __('parties.bank_accounts.fields.iban') }}:</span> <strong>{{ $iban }}</strong>
                 </div>
                 @endif
 
                 @if(!empty($swift))
                 <div class="info-row">
-                    <span class="info-label">{{ __('suppliers.fields.swift') }}:</span> <strong>{{ $swift }}</strong>
-                </div>
-                @elseif($supplier && !empty($supplier->swift))
-                <div class="info-row">
-                    <span class="info-label">{{ __('suppliers.fields.swift') }}:</span> <strong>{{
-                        $supplier->swift }}</strong>
+                    <span class="info-label">{{ __('parties.bank_accounts.fields.swift') }}:</span> <strong>{{ $swift }}</strong>
                 </div>
                 @endif
 
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.amount') }}:</span>
-                    <strong>{{ $paymentAmountFormatted ?? (number_format($invoice->payment_amount, 2, ',', ' ') . ' ' .
-                        $invoice->payment_currency) }}</strong>
+                    <strong>{{ $paymentAmountFormatted }}</strong>
                 </div>
 
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.invoice_vs_short') }}:</span>
-                    <strong>{{ $invoice->invoice_vs }}</strong>
+                    <strong>{{ $invoice->number }}</strong>
                 </div>
             </div>
         </div>
-
-        {{-- QR code for payment --}}
         @if(isset($hasQrCode) && $hasQrCode && !empty($qrCode))
         <div class="col-right">
             <div class="qr-code">

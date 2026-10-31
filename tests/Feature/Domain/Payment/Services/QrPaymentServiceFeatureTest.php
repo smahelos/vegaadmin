@@ -1,204 +1,136 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Domain\Payment\Services;
 
-use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
+use App\Application\Payment\Mappers\QrPaymentMapper;
+use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
+use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Payment\Contracts\QrCodeRendererInterface;
 use App\Domain\Payment\Services\QrPaymentService;
-use App\Models\User;
+use App\Domain\Payment\ValueObjects\BankAccount;
+use App\Domain\Shared\Geography\Enums\Country;
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\User\ValueObjects\UserId;
+use App\Models\BankAccount as StoredBankAccount;
+use App\Models\Business;
+use App\Models\Invoice;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Tests\Traits\CreatesFrontendTestEnvironment;
 
-class QrPaymentServiceFeatureTest extends TestCase
+final class QrPaymentServiceFeatureTest extends TestCase
 {
-    // Use custom trait that runs fresh migrations and seeds required data (permissions, roles, etc.)
-    use CreatesFrontendTestEnvironment;
-
-    private QrPaymentService $service;
-
-    private QrCodeRendererInterface $qrRenderer;
-
-    private QrPaymentPayloadMapper $mapper;
-
-    protected function setUp(): void
+    /** @return array<string, array{string, string, string, string}> */
+    public static function accounts(): array
     {
-        parent::setUp();
-
-        $this->setUpFrontendTestEnvironment();
-
-        $this->qrRenderer = $this->createMock(QrCodeRendererInterface::class);
-        // Ensure renderer returns a valid data URL instead of an empty string in tests
-        $this->qrRenderer
-            ->method('renderDataUrl')
-            ->willReturnCallback(function (
-                string $qrString,
-                int $size = 300,
-                int $margin = 2,
-                string $errorCorrection = 'H',
-            ): string {
-                return 'data:image/png;base64,' . base64_encode($qrString);
-            });
-        $this->service = new QrPaymentService($this->qrRenderer);
-        $this->mapper = app(QrPaymentPayloadMapper::class);
-        $this->user = User::factory()->create();
-    }
-
-    #[Test]
-    public function generate_qr_code_base64_returns_null_for_missing_invoice_vs(): void
-    {
-        $data = [
-            'payment_amount' => 1000,
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-            // Missing invoice_vs
+        return [
+            'Czech' => [
+                'CZ',
+                'CZK',
+                'CZ6508000000192000145399',
+                'SPD*1.0*',
+            ],
+            'Slovak' => [
+                'SK',
+                'EUR',
+                'SK0209000000002000145399',
+                'SPD*1.0*',
+            ],
+            'German' => [
+                'DE',
+                'EUR',
+                'DE89370400440532013000',
+                'BCD',
+            ],
         ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->generateQrCodeBase64($payload);
-
-        // Variable symbol is optional for CZ provider, valid account + amount should generate QR
-        $this->assertNotNull($result);
-        $this->assertIsString($result);
-        $this->assertStringStartsWith('data:image/png;base64,', $result);
     }
 
     #[Test]
-    public function generate_qr_code_base64_returns_null_for_missing_payment_amount(): void
-    {
-        $data = [
-            'invoice_vs' => '20240001',
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-            // Missing payment_amount
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->generateQrCodeBase64($payload);
+    #[DataProvider('accounts')]
+    public function generates_qr_from_the_account_snapshot(
+        string $country,
+        string $currency,
+        string $iban,
+        string $prefix,
+    ): void {
+        $renderer = $this->createMock(QrCodeRendererInterface::class);
+        $renderer->expects($this->once())->method('renderDataUrl')->willReturnCallback(
+            function (string $payload) use ($prefix): string {
+                $this->assertStringStartsWith($prefix, $payload);
 
-        $this->assertNull($result);
+                return 'data:image/png;base64,' . base64_encode($payload);
+            },
+        );
+        $snapshot = new DocumentAccountDTO(BankAccount::fromParts($iban, null, null, Country::from($country), null), 'Saved bank');
+        $payload = app(QrPaymentMapper::class)->fromSnapshot(
+            '20260001',
+            Money::fromString('1500.50', $currency),
+            $snapshot,
+            'Saved message',
+        );
+        $this->assertSame($country, $payload->account?->country->value);
+        $this->assertSame($iban, $payload->account?->iban);
+        $this->assertSame($snapshot->account, $payload->account);
+        $this->assertSame('1500.5', $payload->amount->getAmount());
+        $this->assertNotNull((new QrPaymentService($renderer))->generateQrCodeBase64($payload));
     }
 
     #[Test]
-    public function generate_qr_code_base64_returns_null_for_missing_account_info(): void
+    public function changing_and_archiving_the_source_account_does_not_change_the_printed_payment(): void
     {
-        $data = [
-            'invoice_vs' => '20240001',
-            'payment_amount' => 1000,
-            // Missing account info
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->generateQrCodeBase64($payload);
-
-        $this->assertNull($result);
-    }
-
-    #[Test]
-    public function generate_qr_code_base64_generates_base64_string_with_valid_data(): void
-    {
-        $data = [
-            'invoice_vs' => '20240001',
-            'payment_amount' => 1500.50,
+        $invoice = Invoice::factory()->create([
+            'invoice_vs' => '20260042',
+            'payment_amount' => '1234.56',
             'payment_currency' => 'CZK',
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->generateQrCodeBase64($payload);
+            'account_iban' => 'CZ6508000000192000145399',
+            'account_number' => '19-2000145399',
+            'account_bank_code' => '0800',
+            'account_country' => 'CZ',
+        ]);
+        $business = Business::findOrFail($invoice->business_id);
+        $source = StoredBankAccount::factory()->ownedBy($business)->create([
+            'iban' => $invoice->account_iban,
+            'number' => $invoice->account_number,
+            'bank_code' => '0800',
+        ]);
+        $invoice->update(['bank_account_id' => $source->id]);
+        $source->update([
+            'iban' => 'DE89370400440532013000',
+            'number' => null,
+            'bank_code' => null,
+            'country' => 'DE',
+            'archived_at' => now(),
+        ]);
+        $business->update(['archived_at' => now()]);
+        $stored = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
+        $printable = app(InvoicePrintDataBuilderInterface::class)->build($stored);
+        $payment = app(QrPaymentMapper::class)->fromPrintableInvoice($printable);
+        $renderer = $this->createMock(QrCodeRendererInterface::class);
+        $renderer->expects($this->once())->method('renderDataUrl')->willReturnCallback(function (string $qr): string {
+            $this->assertStringContainsString('ACC:CZ6508000000192000145399*AM:1234.56*CC:CZK', $qr);
+            $this->assertStringNotContainsString('DE89370400440532013000', $qr);
 
-        // Result should be either null or a valid base64 string
-        $this->assertTrue($result === null || (is_string($result) && str_starts_with($result, 'data:image/png;base64,')));
+            return 'data:image/png;base64,' . base64_encode($qr);
+        });
+        $this->assertNotNull((new QrPaymentService($renderer))->generateQrCodeBase64($payment));
     }
 
     #[Test]
-    public function generate_qr_code_base64_uses_iban_when_available(): void
+    public function a_missing_snapshot_has_no_fallback_payment_account(): void
     {
-        $data = [
-            'invoice_vs' => '20240001',
-            'payment_amount' => 1000,
-            'payment_currency' => 'EUR',
-            'iban' => 'CZ6508000000192000145399',
-            'account_number' => '123456789', // Should be ignored in favor of IBAN
-            'bank_code' => '0100',
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->generateQrCodeBase64($payload);
-
-        // Result should be either null or a valid base64 string
-        $this->assertTrue($result === null || (is_string($result) && str_starts_with($result, 'data:image/png;base64,')));
-    }
-
-    #[Test]
-    public function generate_qr_code_base64_uses_supplier_account_info_when_invoice_missing(): void
-    {
-        $data = [
-            'invoice_vs' => '20240001',
-            'payment_amount' => 750,
-            'payment_currency' => 'CZK',
-            'supplier_account_number' => '987654321',
-            'supplier_bank_code' => '0200',
-            'supplier_name' => 'Test Supplier',
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->generateQrCodeBase64($payload);
-
-        $this->assertNotNull($result);
-        $this->assertStringStartsWith('data:image/png;base64,', $result);
-    }
-
-    #[Test]
-    public function generate_qr_code_handles_exception_gracefully(): void
-    {
-        // Create an object that might cause issues in QR generation
-        $data = [
-            'invoice_vs' => '20240001',
-            // Zero amount is invalid for providers but should not throw in mapper
-            'payment_amount' => 0,
-            'payment_currency' => 'CZK',
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->generateQrCodeBase64($payload);
-
-        // Should handle any issues and return a result or null
-        $this->assertTrue($result === null || (is_string($result) && str_starts_with($result, 'data:image/png;base64,')));
-    }
-
-    #[Test]
-    public function generate_qr_code_with_complex_invoice_data(): void
-    {
-        $data = [
-            'invoice_vs' => '20240001',
-            'payment_amount' => 2500.75,
-            'payment_currency' => 'CZK',
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-            'invoice_ks' => '0308',
-            'invoice_ss' => '1234567890',
-            'name' => 'Test Company s.r.o.',
-            'issue_date' => '2024-01-15',
-            'due_in' => 14,
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->generateQrCodeBase64($payload);
-
-        $this->assertNotNull($result);
-        $this->assertStringStartsWith('data:image/png;base64,', $result);
-    }
-
-    #[Test]
-    public function service_handles_array_input_gracefully(): void
-    {
-        $data = [
-            'invoice_vs' => '20240001',
-            'payment_amount' => 1000,
-            'payment_currency' => 'CZK',
-            'account_number' => '123456789',
-            'bank_code' => '0100',
-        ];
-        $payload = $this->mapper->fromArray($data);
-        $result = $this->service->generateQrCodeBase64($payload);
-
-        // Result should be either null or a valid base64 string
-        $this->assertTrue($result === null || (is_string($result) && str_starts_with($result, 'data:image/png;base64,')));
+        $renderer = $this->createMock(QrCodeRendererInterface::class);
+        $renderer->expects($this->never())->method('renderDataUrl');
+        $payload = app(QrPaymentMapper::class)->fromSnapshot(
+            '20260001',
+            Money::fromString('100', 'CZK'),
+            null,
+            null,
+        );
+        $this->assertNull($payload->account);
+        $this->assertNull((new QrPaymentService($renderer))->generateQrCodeBase64($payload));
     }
 }

@@ -22,7 +22,7 @@ interface ApiStatisticsApplicationServiceInterface
     /**
      * @return list<array<string, mixed>>
      */
-    public function clientRevenue(UserId $userId, StatisticsFilter $filter): array;
+    public function customerRevenue(UserId $userId, StatisticsFilter $filter): array;
 
     /**
      * @return list<array<string, mixed>>

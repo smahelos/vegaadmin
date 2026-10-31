@@ -1,17 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Models;
 
 use App\Models\Bank;
-use App\Models\Supplier;
-use App\Models\User;
+use App\Models\BankAccount;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class BankFeatureTest extends TestCase
+final class BankFeatureTest extends TestCase
 {
     use WithFaker;
 
@@ -37,14 +38,12 @@ class BankFeatureTest extends TestCase
             'name' => 'Komerční banka',
         ]);
 
-        // Suppliers can reference this bank via bank_code field
-        $user = User::factory()->create();
-        $supplier = Supplier::factory()->create([
-            'user_id' => $user->id,
+        // Bank accounts reference the bank code
+        $account = BankAccount::factory()->create([
             'bank_code' => '0100',
         ]);
 
-        $this->assertEquals('0100', $supplier->bank_code);
+        $this->assertEquals('0100', $account->bank_code);
     }
 
     #[Test]

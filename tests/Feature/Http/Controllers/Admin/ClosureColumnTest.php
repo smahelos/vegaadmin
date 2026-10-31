@@ -51,7 +51,7 @@ final class ClosureColumnTest extends TestCase
         $user = User::factory()->create(['name' => '<i>User ' . uniqid() . '</i>']);
         EntityLimitUsage::create([
             'user_id' => $user->id,
-            'entity_type' => 'client',
+            'entity_type' => 'invoice',
             'metric_type' => 'count',
             'period_type' => 'monthly',
             'period_start' => now()->startOfMonth(),
@@ -63,7 +63,7 @@ final class ClosureColumnTest extends TestCase
         $row = $this->listRow('/admin/entity-usage', e($user->name));
 
         $this->assertStringNotContainsString($user->name, $row);
-        $this->assertStringContainsString('<span class="badge text-bg-secondary">Client</span>', $row);
+        $this->assertStringContainsString('<span class="badge text-bg-secondary">' . __('entity_limits.entity_types.invoice.singular') . '</span>', $row);
         $this->assertMatchesRegularExpression('/<span>\s*0\s*<\/span>/', $row);
     }
 

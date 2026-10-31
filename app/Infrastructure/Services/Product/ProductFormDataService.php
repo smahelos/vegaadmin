@@ -5,13 +5,11 @@ namespace App\Infrastructure\Services\Product;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
 use App\Models\ProductCategory;
-use App\Models\Supplier;
 use App\Models\Tax;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Product-specific form data service.
- * Handles categories, suppliers, tax rates for Product forms.
+ * Handles categories and tax rates for Product forms.
  */
 class ProductFormDataService implements ProductFormDataServiceInterface
 {
@@ -69,30 +67,6 @@ class ProductFormDataService implements ProductFormDataServiceInterface
                 $result = [];
                 foreach ($categories as $category) {
                     $result[$category->id] = $category->name;
-                }
-
-                return $result;
-            },
-            60 * 5,
-            ['form_data', 'products'],
-        );
-    }
-
-    public function getAllSuppliers(): array
-    {
-        $cacheKey = 'product_suppliers';
-
-        return $this->cacheService->remember(
-            $cacheKey,
-            function () {
-                $query = Supplier::query();
-                $query->where('user_id', Auth::id());
-
-                $suppliers = $query->orderBy('name')->get();
-
-                $result = [];
-                foreach ($suppliers as $supplier) {
-                    $result[$supplier->id] = $supplier->name;
                 }
 
                 return $result;

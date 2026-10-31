@@ -10,8 +10,9 @@
 
 ## Files and sections
 
-- Keys are `<file>.<section>.<name>`, snake_case segments (`clients.messages.created`, `invoices.fields.due_date`).
-- One file per bounded context or entity, plural name (`clients.php`, `payment_methods.php`), read by frontend and admin alike. A sub-entity is a section of its parent (`products.categories.fields.name`) unless it is large enough for its own file.
+- Keys are `<file>.<section>.<name>`, snake_case segments (`contacts.messages.created`, `invoices.fields.due_date`).
+- One file per bounded context or entity, plural name (`contacts.php`, `payment_methods.php`), read by frontend and admin alike. A sub-entity is a section of its parent (`products.categories.fields.name`) unless it is large enough for its own file.
+- Values several entities of one context share are labelled once in the context file: the party profile, address and bank account fields of businesses, contacts and document parties live in `parties.php` (`parties.fields.company_number`, `parties.bank_accounts.fields.iban`); the entity files keep only what is their own.
 - Sections, used the same way in every file: `entity` (`singular`, `plural`), `fields` (labels, list columns and validation attributes), `hints`, `placeholders`, `actions`, `messages`, `validation` (only rules Laravel's standard messages cannot express), `statuses` (enum labels), and where needed `filters`, `titles`, `sections`.
 - A field label lives in its entity file even when the same word appears elsewhere; a slug shown in a URL is labelled "URL klíč", a fixed system identifier "Identifikátor".
 - `general.php` holds only interface words that belong to no entity: navigation, yes/no, pagination, empty states.

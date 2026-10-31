@@ -9,7 +9,7 @@
                         </div>
                         <div class="basis-6/18 lg:basis-6/24">
                             <p class="text-xs text-gray-500 dark:text-white">
-                                {{ $invoice->client ? $invoice->client->name : __('dashboard.status.unknown_client') }} -
+                                {{ $invoice->customer_name }} -
                                 {{ number_format($invoice->payment_amount, 0, ',', ' ') }} {{ __('general.currency') }}
                             </p>
                         </div>

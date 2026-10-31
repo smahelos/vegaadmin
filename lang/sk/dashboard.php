@@ -3,13 +3,13 @@
 return [
     'title' => 'Prehľad',
     'monthly_invoices' => 'Mesačná fakturácia',
-    'recent_clients' => 'Poslední klienti',
+    'recent_contacts' => 'Posledné kontakty',
     'recent_invoices' => 'Posledné faktúry',
-    'recent_suppliers' => 'Poslední dodávatelia',
+    'recent_businesses' => 'Posledné firmy',
     'cards' => [
         'invoices_count' => 'Celkom faktúr',
-        'clients_count' => 'Celkom klientov',
-        'suppliers_count' => 'Celkom dodávateľov',
+        'contacts_count' => 'Celkom kontaktov',
+        'businesses_count' => 'Celkom firiem',
         'total_amount' => 'Celková suma',
     ],
     'sections' => [
@@ -20,15 +20,10 @@ return [
     ],
     'status' => [
         'no_email' => 'E-mail nie je uvedený',
-        'unknown_client' => 'Neznámy klient',
-        'no_clients' => 'Zatiaľ nemáte žiadnych klientov',
-        'no_suppliers' => 'Zatiaľ nemáte žiadnych dodávateľov',
         'no_invoices' => 'Zatiaľ nemáte žiadne faktúry',
     ],
     'actions' => [
-        'view_all_clients' => 'Zobraziť všetkých klientov',
         'view_all_invoices' => 'Zobraziť všetky faktúry',
-        'view_all_suppliers' => 'Zobraziť všetkých dodávateľov',
     ],
     'charts' => [
         'billed_currency' => 'Fakturované (€)',
@@ -38,7 +33,7 @@ return [
         'invoice_status' => 'Stav faktúr',
         'payment_methods' => 'Platební metody',
         'revenue_vs_expenses' => 'Příjmy vs Výdaje',
-        'revenue_by_client' => 'Příjmy podle klienta',
+        'revenue_by_customer' => 'Príjmy podľa odberateľa',
         'expenses_by_supplier' => 'Výdaje podle dodavatele',
         'revenue_vs_expenses_monthly' => 'Příjmy vs Výdaje (měsíčně)',
         'revenue' => 'Příjmy',
@@ -47,7 +42,7 @@ return [
     'statistics' => [
         'total_income' => 'Celkový príjem',
         'overdue_amount' => 'Po splatnosti',
-        'clients_count' => 'Počet klientov',
+        'contacts_count' => 'Celkom kontaktov',
         'invoices_count' => 'Počet faktúr',
     ],
     'filters' => [
@@ -59,8 +54,7 @@ return [
         'last_year' => 'Posledný rok',
         'date_from' => 'Dátum od',
         'date_to' => 'Dátum do',
-        'clients' => 'Klienti',
-        'suppliers' => 'Dodávatelia',
+        'contacts' => 'Kontakty',
         'status' => 'Stav',
     ],
 ];

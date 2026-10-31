@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\Analytics\Services;
 
-use App\Domain\Analytics\Contracts\AnalyticsDtoReadRepository;
+use App\Domain\Analytics\Contracts\AnalyticsReadRepositoryInterface;
+use App\Domain\Analytics\DTO\UserStatisticsDTO;
 use App\Domain\Analytics\Services\DashboardService as AnalyticsDashboardService;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\User\ValueObjects\UserId;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -69,24 +72,19 @@ final class DashboardServiceTest extends TestCase
                 return true;
             }
         };
-        $analytics = new class implements AnalyticsDtoReadRepository
+        $analytics = new class implements AnalyticsReadRepositoryInterface
         {
-            public function getUserStats(int $userId): array
+            public function getUserStats(UserId $userId): UserStatisticsDTO
             {
-                return [
-                    'invoice_count' => 0,
-                    'client_count' => 0,
-                    'suppliers_count' => 0,
-                    'total_amount' => 0.0,
-                ];
+                return new UserStatisticsDTO(
+                    0,
+                    0,
+                    0,
+                    Money::fromString('0', 'CZK'),
+                );
             }
 
-            public function getMonthlyStats(int $userId, int $months): array
-            {
-                return [];
-            }
-
-            public function getClientsWithTotals(int $userId): array
+            public function getCustomersWithTotals(UserId $userId): array
             {
                 return [];
             }
@@ -94,7 +92,6 @@ final class DashboardServiceTest extends TestCase
         $service = new AnalyticsDashboardService($stub, $analytics);
         $userId = 777;
         $this->assertTrue($service->invalidateUserCache($userId));
-        $flat = collect($stub->invalidated)->flatten();
-        $this->assertTrue($flat->contains(fn ($t) => str_starts_with($t, 'analytics.user.')));
+        $this->assertSame([['analytics.user.777']], $stub->invalidated);
     }
 }

@@ -14,10 +14,6 @@ class InvoiceFieldParityTest extends TestCase
 {
     use InvoiceFormFields;
 
-    private array $clients = ['1' => 'Client'];
-
-    private array $suppliers = ['2' => 'Supplier'];
-
     private array $paymentMethods = ['3' => 'bank_transfer'];
 
     private array $statuses = ['4' => 'paid'];
@@ -26,15 +22,11 @@ class InvoiceFieldParityTest extends TestCase
     public function factory_matches_trait_field_names_and_types(): void
     {
         $legacy = $this->getInvoiceFields(
-            $this->clients,
-            $this->suppliers,
             $this->paymentMethods,
             $this->statuses,
         );
         $factory = new InvoiceCreateFieldSetFactory;
         $dtoSet = $factory->build(
-            $this->clients,
-            $this->suppliers,
             $this->paymentMethods,
             $this->statuses,
         );

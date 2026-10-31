@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Shared;
 
+use App\Domain\Shared\Pagination\DTO\PaginatedResult;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\WithPagination;
 
 /**
@@ -17,5 +19,22 @@ trait Paginates
     public function paginationView(): string
     {
         return 'livewire.pagination';
+    }
+
+    /**
+     * @template T
+     *
+     * @param  PaginatedResult<T>  $result
+     * @return LengthAwarePaginator<int, T>
+     */
+    protected function paginator(PaginatedResult $result, string $pageName = 'page'): LengthAwarePaginator
+    {
+        return new LengthAwarePaginator(
+            $result->items(),
+            $result->total(),
+            $result->perPage(),
+            $result->currentPage(),
+            ['pageName' => $pageName],
+        );
     }
 }

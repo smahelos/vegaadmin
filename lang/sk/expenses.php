@@ -1,15 +1,22 @@
 <?php
 
 return [
+    'sections' => [
+        'document' => 'Údaje dokladu',
+        'amounts' => 'Sumy, DPH a mena',
+        'status' => 'Stav a kategória',
+        'other' => 'Ostatné údaje a prílohy',
+    ],
     'entity' => [
         'singular' => 'Výdavok',
         'plural' => 'Výdavky',
     ],
     'fields' => [
+        'supplier' => 'Dodávateľ',
+        'customer' => 'Odberateľ',
         'expense_date' => 'Dátum',
         'amount' => 'Čiastka',
         'currency' => 'Mena',
-        'supplier_id' => 'Dodávateľ',
         'category_id' => 'Kategória',
         'payment_method_id' => 'Spôsob platby',
         'reference_number' => 'Referenčné číslo',
@@ -26,6 +33,10 @@ return [
         'reference_number' => 'Napr. číslo faktúry, číslo dokladu atď.',
         'attachments' => 'Nahrajte súbory spojené s týmto výdajom (obrázky, PDF, dokumenty).',
         'tax_included' => 'Označte, ak je daň už zahrnutá v celkovej čiastke',
+    ],
+    'messages' => [
+        'created' => 'Výdavok bol vytvorený.',
+        'updated' => 'Výdavok bol upravený.',
     ],
     'filters' => [
         'date_range' => 'Obdobie',

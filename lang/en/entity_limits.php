@@ -28,13 +28,13 @@ return [
             'singular' => 'Invoice',
             'plural' => 'Invoices',
         ],
-        'client' => [
-            'singular' => 'Client',
-            'plural' => 'Clients',
+        'business' => [
+            'singular' => 'Business',
+            'plural' => 'My businesses',
         ],
-        'supplier' => [
-            'singular' => 'Supplier',
-            'plural' => 'Suppliers',
+        'contact' => [
+            'singular' => 'Contact',
+            'plural' => 'Contacts',
         ],
         'product' => [
             'singular' => 'Product',
@@ -57,6 +57,7 @@ return [
         'count' => 'Count',
         'value' => 'Monetary value',
         'size' => 'File size',
+        'active' => 'Active records',
     ],
     'periods' => [
         'daily' => 'Daily',

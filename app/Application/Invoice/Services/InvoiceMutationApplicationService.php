@@ -5,9 +5,19 @@ namespace App\Application\Invoice\Services;
 use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
+use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
+use App\Domain\Party\Exceptions\BankAccountNotFoundException;
+use App\Domain\Party\Exceptions\BusinessNotFoundException;
+use App\Domain\Party\Exceptions\ContactIdentityChangedException;
+use App\Domain\Party\Exceptions\ContactNotFoundException;
+use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
+use App\Domain\Party\Exceptions\IncompleteBusinessAddressException;
+use App\Domain\Party\Exceptions\IncompleteDocumentPartyException;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
@@ -24,12 +34,14 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
     public function create(
         int $userId,
         array $data,
+        InvoicePartySelection $parties,
         array $products,
     ): InvoiceActionResult {
         try {
             $invoice = $this->invoiceCrud->create(
                 new UserId($userId),
                 $data,
+                $parties,
                 $products,
             );
 
@@ -37,8 +49,21 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
             $model = $this->resolvePublishedModelByDto($invoice);
 
             return InvoiceActionResult::success(message: 'invoices.messages.created', invoice: $model);
-        } catch (EntityLimitExceededException) {
-            return InvoiceActionResult::failure('invoices.messages.limit_exceeded');
+        } catch (
+            InvoiceNotFoundException|
+            ArchivedReferenceSelectedException|
+            BankAccountNotFoundException|
+            BusinessNotFoundException|
+            ContactIdentityChangedException|
+            ContactNotFoundException|
+            DuplicateCompanyNumberException|
+            IncompleteBusinessAddressException|
+            IncompleteDocumentPartyException $e
+        ) {
+            // The exception handler answers these as validation errors or a 404
+            throw $e;
+        } catch (EntityLimitExceededException $e) {
+            return InvoiceActionResult::failure($e->getMessageKey());
         } catch (\Throwable $e) {
             Log::error('Invoice create failed: ' . $e->getMessage() . json_encode($e->getTrace()));
 
@@ -54,13 +79,15 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
         int $userId,
         int $invoiceId,
         array $data,
-        array $products,
+        InvoicePartySelection $parties,
+        ?array $products,
     ): InvoiceActionResult {
         try {
             $invoice = $this->invoiceCrud->update(
                 new UserId($userId),
                 new InvoiceId($invoiceId),
                 $data,
+                $parties,
                 $products,
             );
 
@@ -68,8 +95,21 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
             $model = $this->resolvePublishedModelByDto($invoice);
 
             return InvoiceActionResult::success(message: 'invoices.messages.updated', invoice: $model);
-        } catch (EntityLimitExceededException) {
-            return InvoiceActionResult::failure('invoices.messages.limit_exceeded');
+        } catch (
+            InvoiceNotFoundException|
+            ArchivedReferenceSelectedException|
+            BankAccountNotFoundException|
+            BusinessNotFoundException|
+            ContactIdentityChangedException|
+            ContactNotFoundException|
+            DuplicateCompanyNumberException|
+            IncompleteBusinessAddressException|
+            IncompleteDocumentPartyException $e
+        ) {
+            // The exception handler answers these as validation errors or a 404
+            throw $e;
+        } catch (EntityLimitExceededException $e) {
+            return InvoiceActionResult::failure($e->getMessageKey());
         } catch (\Throwable $e) {
             Log::error('Invoice update failed: ' . $e->getMessage());
 

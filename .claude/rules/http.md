@@ -14,7 +14,7 @@ Controllers are delivery: allowed dependencies in `architecture.md`, Backpack CR
 - A controller action does three things: take validated input from its form request, call one application service method, turn the result into a response (view, redirect, JSON). No queries, no business decisions, no loops over domain data.
 - Dependencies by constructor property promotion; the current user goes to Application as `UserId`.
 - Error handling: the context's not-found exception becomes a 404 and a domain exception a translated flash message or validation error — mapped once in `app/Exceptions/ExceptionHandling.php`, not by a `try/catch` around every action.
-- Client and supplier controllers, requests and views share one implementation where their behaviour is the same (`architecture.md`, Bounded contexts).
+- Business and contact controllers, requests and views share one implementation where their behaviour is the same (`architecture.md`, Bounded contexts).
 
 ## Form requests
 
@@ -25,8 +25,8 @@ Controllers are delivery: allowed dependencies in `architecture.md`, Backpack CR
 ## Routes
 
 - HTTP verbs follow the effect: `GET` never changes state (no `GET …/set-default`, `GET …/delete/{token}`, `GET …/run`); creating is `POST`, updating `PUT`/`PATCH`, deleting `DELETE`.
-- URLs use the plural resource name: `/clients`, `/clients/{client}/edit`, `/invoices/{invoice}/mark-paid`. CRUD routes are registered with `Route::resource()` (or `apiResource()`), so names and verbs come from Laravel.
-- Route names: `<area>.<resource plural>.<action>` — Laravel resource actions (`index`, `create`, `store`, `show`, `edit`, `update`, `destroy`) for CRUD, a kebab-case verb for custom actions: `frontend.clients.index`, `frontend.invoices.mark-paid`, `api.clients.show`, `api.admin.users.search`. The area tells the guard: `frontend`, `api`, `api.admin`.
+- URLs use the plural resource name: `/contacts`, `/contacts/{contact}/edit`, `/invoices/{invoice}/mark-paid`. CRUD routes are registered with `Route::resource()` (or `apiResource()`), so names and verbs come from Laravel.
+- Route names: `<area>.<resource plural>.<action>` — Laravel resource actions (`index`, `create`, `store`, `show`, `edit`, `update`, `destroy`) for CRUD, a kebab-case verb for custom actions: `frontend.contacts.index`, `frontend.invoices.mark-paid`, `api.contacts.show`, `api.admin.users.search`. The area tells the guard: `frontend`, `api`, `api.admin`.
 - Actions are referenced as `[Controller::class, 'method']`. Route parameters are typed by `whereNumber()` / an enum constraint.
 - Frontend routes live inside `Route::localized()` (`{locale}` prefix, `app.available_locales`); links are generated with `route()` including the current locale. Unlocalized routes are only those an external party calls (payment callbacks, `/login` redirect target).
 

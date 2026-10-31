@@ -32,4 +32,12 @@ interface UserWriteRepositoryInterface
      * @throws \Exception
      */
     public function updatePassword(UserId $userId, UserPassword $password): bool;
+
+    /**
+     * Locks the user's row until the surrounding transaction ends, so that checks of the user's capacity and the
+     * writes they allow run one request at a time.
+     */
+    public function lockForUpdate(UserId $id): void;
+
+    public function assignRole(UserId $id, string $role): void;
 }

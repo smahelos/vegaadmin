@@ -1,25 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Invoice;
 
+use App\Application\Invoice\Presenters\InvoiceListPresenter;
+use App\Application\Invoice\Services\InvoiceListApplicationService;
+use App\Domain\Invoice\DTO\InvoiceSearch;
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Party\Exceptions\BusinessNotFoundException;
+use App\Domain\Party\Exceptions\ContactNotFoundException;
+use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
-use App\Models\Invoice;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Throwable;
 
-/**
- * InvoiceList Livewire Component
- *
- * Handles displaying and filtering a paginated list of invoices for the authenticated user.
- * Provides search, filtering by status, sorting, and pagination functionality.
- */
-class InvoiceList extends Component
+final class InvoiceList extends Component
 {
+    use ActsForUser;
     use Paginates;
     use Sorts;
 
@@ -29,37 +32,40 @@ class InvoiceList extends Component
     #[Url]
     public string $status = '';
 
+    #[Url(as: 'business_id')]
+    public string $businessId = '';
+
+    #[Url(as: 'contact_id')]
+    public string $contactId = '';
+
     #[Url(as: 'sort')]
     public string $orderBy = 'created_at';
 
     #[Url(as: 'direction')]
     public bool $orderAsc = false;
 
-    public ?string $errorMessage = null;
-
-    /**
-     * Reset pagination when search term is updated
-     */
-    public function updatingSearch(): void
+    public function updating(string $property): void
     {
-        $this->resetPage();
+        if (in_array(
+            $property,
+            [
+                'search',
+                'status',
+                'businessId',
+                'contactId',
+            ],
+            true,
+        )) {
+            $this->resetPage();
+        }
     }
 
-    /**
-     * Reset pagination when status filter is updated
-     */
-    public function updatingStatus(): void
-    {
-        $this->resetPage();
-    }
-
-    /**
-     * Reset all filters and pagination
-     */
     public function resetFilters(): void
     {
         $this->search = '';
         $this->status = '';
+        $this->businessId = '';
+        $this->contactId = '';
         $this->resetPage();
     }
 
@@ -68,7 +74,7 @@ class InvoiceList extends Component
         return [
             'created_at' => 'created_at',
             'invoice_vs' => 'invoice_vs',
-            'client_id' => 'client_id',
+            'customer_name' => 'customer_name',
             'payment_amount' => 'payment_amount',
             'payment_method_id' => 'payment_method_id',
             'payment_status_id' => 'payment_status_id',
@@ -81,73 +87,53 @@ class InvoiceList extends Component
         return 'created_at';
     }
 
-    /**
-     * Render the component with invoices data
-     */
-    public function render(): View
+    public function render(InvoiceListApplicationService $invoices, InvoiceListPresenter $presenter): View
     {
+        $this->requirePermission('frontend.can_view_invoice');
+        $userId = $this->userId();
+        $status = InvoiceStatus::tryFrom($this->status);
+        abort_if($this->status !== '' && $status === null, 404);
+        $businessId = $this->filterId($this->businessId);
+        $contactId = $this->filterId($this->contactId);
         try {
-            $query = Invoice::with([
-                'client',
-                'paymentMethod',
-                'paymentStatus',
-            ])
-                ->where('user_id', Auth::id());
-
-            if (! empty($this->search)) {
-                $query->where(function ($q): void {
-                    $q->where(
-                        'invoice_vs',
-                        'like',
-                        "%{$this->search}%",
-                    )
-                        ->orWhereHas('client', function ($q): void {
-                            $q->where(
-                                'name',
-                                'like',
-                                "%{$this->search}%",
-                            );
-                        });
-                });
-            }
-
-            if (! empty($this->status)) {
-                $query->whereHas('paymentStatus', function ($q): void {
-                    $q->where('name', $this->status);
-                });
-            }
-
-            // Special handling for different sorting fields
-            if ($this->sortKey() === 'client_id') {
-                // Using subquery to sort by client name while maintaining eager loading
-                $query->orderBy(function ($query): void {
-                    $query->select('name')
-                        ->from('clients')
-                        ->whereColumn('clients.id', 'invoices.client_id')
-                        ->limit(1);
-                }, $this->sortDirection());
-            } elseif ($this->sortKey() === 'due_date') {
-                // Special handling for due_date which is calculated from issue_date + due_in
-                $query->orderByRaw('DATE_ADD(issue_date, INTERVAL due_in DAY) ' . $this->sortDirection());
-            } else {
-                $query->orderBy($this->sortColumn(), $this->sortDirection());
-            }
-
-            $invoices = $query->paginate(10);
-
-            return view('livewire.invoice.invoice-list', [
-                'invoices' => $invoices,
-                'hasData' => $invoices->total() > 0,
-            ]);
-        } catch (Throwable $e) {
-            Log::error('Loading invoices failed', ['exception' => $e]);
-            $this->errorMessage = __('invoices.messages.error_loading');
-
-            return view('livewire.invoice.invoice-list', [
-                'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator
-                'hasData' => false,
-                'errorMessage' => $this->errorMessage,
-            ]);
+            $result = $invoices->search(
+                $userId,
+                new InvoiceSearch(
+                    $this->search,
+                    $status,
+                    $businessId === null ? null : BusinessId::fromInt($businessId),
+                    $contactId === null ? null : ContactId::fromInt($contactId),
+                    $this->sortKey(),
+                    $this->orderAsc,
+                ),
+                new PageRequest($this->getPage(), 10),
+            );
+        } catch (BusinessNotFoundException|ContactNotFoundException) {
+            abort(404);
         }
+
+        return view('livewire.invoice.invoice-list', [
+            'invoices' => $this->paginator($result),
+            'hasData' => $result->total() > 0,
+            'businesses' => $invoices->businessFilters($userId),
+            'contacts' => $invoices->contactFilters($userId),
+            'statuses' => InvoiceStatus::cases(),
+            'presenter' => $presenter,
+        ]);
+    }
+
+    private function filterId(string $value): ?int
+    {
+        if ($value === '') {
+            return null;
+        }
+        $id = filter_var(
+            $value,
+            FILTER_VALIDATE_INT,
+            ['options' => ['min_range' => 1]],
+        );
+        abort_if($id === false, 404);
+
+        return $id;
     }
 }

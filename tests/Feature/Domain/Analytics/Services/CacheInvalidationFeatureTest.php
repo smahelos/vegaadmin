@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Domain\Analytics\Services;
 
-use App\Domain\Analytics\Contracts\DashboardServiceInterface as AnalyticsDashboardServiceInterface;
+use App\Domain\Analytics\Services\DashboardService as AnalyticsDashboardService;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface; // updated namespace
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\Events\UserDataChanged;
 use App\Domain\User\ValueObjects\UserId;
-use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -15,16 +17,16 @@ use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class CacheInvalidationFeatureTest extends TestCase
+final class CacheInvalidationFeatureTest extends TestCase
 {
-    private AnalyticsDashboardServiceInterface $dashboardService;
+    private AnalyticsDashboardService $dashboardService;
 
     private CacheServiceInterface $cacheService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->dashboardService = app(AnalyticsDashboardServiceInterface::class);
+        $this->dashboardService = app(AnalyticsDashboardService::class);
         $this->cacheService = app(CacheServiceInterface::class);
     }
 
@@ -45,10 +47,10 @@ class CacheInvalidationFeatureTest extends TestCase
     public function user_statistics_are_refreshed_after_invoice_event(): void
     {
         $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
+        $contact = Contact::factory()->create(['user_id' => $user->id]);
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 100,
         ]);
 
@@ -57,10 +59,10 @@ class CacheInvalidationFeatureTest extends TestCase
         $this->assertInstanceOf(Money::class, $statsFirst->totalAmount);
         $this->assertSame(100.0, $statsFirst->totalAmount->toFloat());
 
-        Invoice::withoutEvents(function () use ($user, $client): void {
+        Invoice::withoutEvents(function () use ($user, $contact): void {
             Invoice::factory()->create([
                 'user_id' => $user->id,
-                'client_id' => $client->id,
+                'contact_id' => $contact->id,
                 'payment_amount' => 200,
             ]);
         });
@@ -74,89 +76,56 @@ class CacheInvalidationFeatureTest extends TestCase
     }
 
     #[Test]
-    public function monthly_statistics_are_refreshed_after_invoice_event(): void
+    public function customers_totals_are_refreshed_after_contact_event(): void
     {
         $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
+        $contactA = Contact::factory()->create(['user_id' => $user->id]);
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
-            'payment_amount' => 50,
-            'issue_date' => now()->startOfMonth(),
-        ]);
-
-        $monthlyFirst = $this->dashboardService->getMonthlyStatistics(UserId::fromInt($user->id), 2);
-        $this->assertGreaterThanOrEqual(1, count($monthlyFirst));
-        $firstTotal = collect($monthlyFirst)->sum(fn ($dto) => $dto->total->toFloat());
-        $this->assertEquals(50.0, $firstTotal);
-
-        Invoice::withoutEvents(function () use ($user, $client): void {
-            Invoice::factory()->create([
-                'user_id' => $user->id,
-                'client_id' => $client->id,
-                'payment_amount' => 70,
-                'issue_date' => now()->startOfMonth()->addDay(),
-            ]);
-        });
-        $monthlyCached = $this->dashboardService->getMonthlyStatistics(UserId::fromInt($user->id), 2);
-        $this->assertEquals($firstTotal, collect($monthlyCached)->sum(fn ($dto) => $dto->total->toFloat()));
-
-        app(Dispatcher::class)->dispatch(new UserDataChanged($user->id, 'invoice'));
-        $monthlyAfter = $this->dashboardService->getMonthlyStatistics(UserId::fromInt($user->id), 2);
-        $this->assertEquals(120.0, collect($monthlyAfter)->sum(fn ($dto) => $dto->total->toFloat()));
-    }
-
-    #[Test]
-    public function clients_totals_are_refreshed_after_client_event(): void
-    {
-        $user = User::factory()->create();
-        $clientA = Client::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'client_id' => $clientA->id,
+            'contact_id' => $contactA->id,
             'payment_amount' => 80,
         ]);
 
-        $clientsFirst = $this->dashboardService->getClientsWithInvoiceTotals(UserId::fromInt($user->id));
-        $this->assertCount(1, $clientsFirst);
+        $customersFirst = $this->dashboardService->getCustomersWithInvoiceTotals(UserId::fromInt($user->id));
+        $this->assertCount(1, $customersFirst);
 
-        Client::withoutEvents(function () use ($user, &$clientB): void {
-            $clientB = Client::factory()->create(['user_id' => $user->id]);
+        Contact::withoutEvents(function () use ($user, &$contactB): void {
+            $contactB = Contact::factory()->create(['user_id' => $user->id]);
         });
-        Invoice::withoutEvents(function () use ($user, &$clientB): void {
+        Invoice::withoutEvents(function () use ($user, &$contactB): void {
             Invoice::factory()->create([
                 'user_id' => $user->id,
-                'client_id' => $clientB->id,
+                'contact_id' => $contactB->id,
                 'payment_amount' => 40,
             ]);
         });
-        $clientsCached = $this->dashboardService->getClientsWithInvoiceTotals(UserId::fromInt($user->id));
-        $this->assertCount(1, $clientsCached);
+        $customersCached = $this->dashboardService->getCustomersWithInvoiceTotals(UserId::fromInt($user->id));
+        $this->assertCount(1, $customersCached);
 
-        app(Dispatcher::class)->dispatch(new UserDataChanged($user->id, 'client'));
-        $clientsAfter = $this->dashboardService->getClientsWithInvoiceTotals(UserId::fromInt($user->id));
-        $this->assertCount(2, $clientsAfter);
-        $this->assertInstanceOf(Money::class, $clientsAfter[0]->totalAmount);
+        app(Dispatcher::class)->dispatch(new UserDataChanged($user->id, 'contact'));
+        $customersAfter = $this->dashboardService->getCustomersWithInvoiceTotals(UserId::fromInt($user->id));
+        $this->assertCount(2, $customersAfter);
+        $this->assertInstanceOf(Money::class, $customersAfter[0]->totalAmount);
     }
 
     #[Test]
     public function direct_invalidate_user_cache_method_works(): void
     {
         $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
+        $contact = Contact::factory()->create(['user_id' => $user->id]);
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 10,
         ]);
 
         $stats = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));
         $this->assertSame(1, $stats->invoiceCount);
 
-        Invoice::withoutEvents(function () use ($user, $client): void {
+        Invoice::withoutEvents(function () use ($user, $contact): void {
             Invoice::factory()->create([
                 'user_id' => $user->id,
-                'client_id' => $client->id,
+                'contact_id' => $contact->id,
                 'payment_amount' => 20,
             ]);
         });
@@ -173,23 +142,22 @@ class CacheInvalidationFeatureTest extends TestCase
     public function cache_keys_use_expected_prefix_after_population(): void
     {
         $user = User::factory()->create();
-        $client = Client::factory()->create(['user_id' => $user->id]);
+        $contact = Contact::factory()->create(['user_id' => $user->id]);
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 5,
         ]);
 
         $uid = UserId::fromInt($user->id);
         $this->dashboardService->getUserStatistics($uid);
-        $this->dashboardService->getMonthlyStatistics($uid);
-        $this->dashboardService->getClientsWithInvoiceTotals($uid);
+        $this->dashboardService->getCustomersWithInvoiceTotals($uid);
 
         Cache::tags(['analytics.user.' . $user->id])->flush();
 
         Invoice::factory()->create([
             'user_id' => $user->id,
-            'client_id' => $client->id,
+            'contact_id' => $contact->id,
             'payment_amount' => 7,
         ]);
         $stats = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));

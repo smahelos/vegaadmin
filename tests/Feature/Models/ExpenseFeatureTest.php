@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Models;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Models\BankAccount;
+use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
 use App\Models\Status;
-use App\Models\Supplier;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -18,9 +21,9 @@ use Tests\TestCase;
  * Feature tests for Expense Model
  *
  * Tests database relationships, business logic, and model behavior requiring database interactions
- * Tests expense interactions with users, suppliers, categories, payment methods, and file uploads
+ * Tests expense persistence and related records
  */
-class ExpenseFeatureTest extends TestCase
+final class ExpenseFeatureTest extends TestCase
 {
     use WithFaker;
 
@@ -37,43 +40,17 @@ class ExpenseFeatureTest extends TestCase
     }
 
     #[Test]
-    public function fillable_attributes_can_be_mass_assigned(): void
+    public function stores_the_document_snapshot_with_the_expense(): void
     {
-        $user = User::factory()->create();
-        $supplier = Supplier::factory()->create();
-        $category = ExpenseCategory::factory()->create();
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $status = Status::factory()->create();
+        $expense = Expense::factory()->create([
+            'supplier_name' => 'Document supplier',
+            'customer_name' => 'Document customer',
+            'attachments' => ['receipts/receipt.pdf'],
+        ])->fresh();
 
-        $data = [
-            'user_id' => $user->id,
-            'supplier_id' => $supplier->id,
-            'category_id' => $category->id,
-            'expense_date' => '2025-06-18 00:00:00',
-            'amount' => 150.75,
-            'currency' => 'USD',
-            'payment_method_id' => $paymentMethod->id,
-            'reference_number' => 'REF-123456',
-            'description' => 'Test expense description',
-            'tax_amount' => 31.66,
-            'tax_included' => true,
-            'status_id' => $status->id,
-            'attachments' => null,
-        ];
-
-        $expense = Expense::create($data);
-
-        // Check key fields manually since cast/storage format differs
-        $this->assertDatabaseHas('expenses', [
-            'user_id' => $data['user_id'],
-            'supplier_id' => $data['supplier_id'],
-            'category_id' => $data['category_id'],
-            'expense_date' => $data['expense_date'],
-            'currency' => $data['currency'],
-            'description' => $data['description'],
-        ]);
-        $this->assertEquals($data['amount'], $expense->amount);
-        $this->assertEquals($data['description'], $expense->description);
+        $this->assertSame('Document supplier', $expense->supplier_name);
+        $this->assertSame('Document customer', $expense->customer_name);
+        $this->assertSame(['receipts/receipt.pdf'], $expense->attachments);
     }
 
     #[Test]
@@ -110,13 +87,20 @@ class ExpenseFeatureTest extends TestCase
     }
 
     #[Test]
-    public function belongs_to_supplier_relationship(): void
+    public function the_expense_links_its_business_contact_and_contact_account(): void
     {
-        $supplier = Supplier::factory()->create();
-        $expense = Expense::factory()->create(['supplier_id' => $supplier->id]);
+        $user = User::factory()->create();
+        $contact = Contact::factory()->create(['user_id' => $user->id]);
+        $account = BankAccount::factory()->ownedBy($contact)->create();
+        $expense = Expense::factory()->create([
+            'user_id' => $user->id,
+            'contact_id' => $contact->id,
+            'bank_account_id' => $account->id,
+        ]);
 
-        $this->assertInstanceOf(Supplier::class, $expense->supplier);
-        $this->assertEquals($supplier->id, $expense->supplier->id);
+        $this->assertSame($user->id, $expense->business->user_id);
+        $this->assertSame($contact->id, $expense->contact->id);
+        $this->assertSame($account->id, $expense->bankAccount->id);
     }
 
     #[Test]
@@ -182,38 +166,6 @@ class ExpenseFeatureTest extends TestCase
     }
 
     #[Test]
-    public function attachments_mutator_works(): void
-    {
-        $expense = Expense::factory()->make();
-
-        // Test that setAttachmentsAttribute method exists and can be called
-        $this->assertTrue(method_exists($expense, 'setAttachmentsAttribute'));
-
-        // Test setting attachments value
-        $attachments = ['file1.pdf', 'file2.jpg'];
-        $expense->setAttachmentsAttribute($attachments);
-
-        // The actual implementation depends on HasFileUploads trait
-        $this->assertTrue(
-            is_null($expense->attachments) ||
-            is_array($expense->attachments) ||
-            is_string($expense->attachments),
-        );
-    }
-
-    #[Test]
-    public function file_upload_methods_exist(): void
-    {
-        $expense = Expense::factory()->create();
-
-        // Test file URL method exists and returns string or null
-        $fileUrl = $expense->getFileUrl('attachments');
-
-        $this->assertTrue(is_string($fileUrl) || is_null($fileUrl));
-        $this->assertTrue(method_exists($expense, 'getFileUrl'));
-    }
-
-    #[Test]
     public function can_update_expense(): void
     {
         $expense = Expense::factory()->create();
@@ -244,31 +196,12 @@ class ExpenseFeatureTest extends TestCase
     }
 
     #[Test]
-    public function can_create_expense_without_optional_fields(): void
+    public function can_store_an_expense_without_a_contact_or_account(): void
     {
-        $user = User::factory()->create();
+        $expense = Expense::factory()->create(['contact_id' => null, 'bank_account_id' => null]);
 
-        $data = [
-            'user_id' => $user->id,
-            'expense_date' => '2025-06-18 00:00:00',
-            'amount' => 75.00,
-            'currency' => 'CZK',
-            'description' => 'Simple expense',
-            'attachments' => null,
-        ];
-
-        $expense = Expense::create($data);
-
-        // Check key fields manually since cast/storage format differs
-        $this->assertDatabaseHas('expenses', [
-            'user_id' => $data['user_id'],
-            'expense_date' => $data['expense_date'],
-            'description' => $data['description'],
-        ]);
-        $this->assertEquals($data['amount'], $expense->amount);
-        $this->assertNull($expense->supplier_id);
-        $this->assertNull($expense->category_id);
-        $this->assertNull($expense->payment_method_id);
+        $this->assertNull($expense->fresh()->contact);
+        $this->assertNull($expense->fresh()->bankAccount);
     }
 
     #[Test]

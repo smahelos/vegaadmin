@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use App\Application\User\Contracts\UELSApplicationServiceInterface;
@@ -56,19 +58,6 @@ abstract class BaseEntityRequest extends FormRequest
         }
 
         return true;
-    }
-
-    /**
-     * Handle authorization failure by converting limit exceptions to redirect with flash message
-     */
-    protected function failedAuthorization(): void
-    {
-        $previous = $this->exception ?? null;
-        if ($previous instanceof EntityLimitExceededException) {
-            session()->flash('error', trans('suppliers.messages.limit_exceeded'));
-            abort(redirect()->back());
-        }
-        parent::failedAuthorization();
     }
 
     /**

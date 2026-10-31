@@ -6,9 +6,10 @@ namespace App\Infrastructure\Persistence\Eloquent\Analytics\Repositories;
 
 use App\Application\Analytics\Contracts\ApiStatisticsRepository;
 use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Party\ValueObjects\PartyId;
+use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\ValueObjects\UserId;
+use App\Infrastructure\Persistence\Eloquent\Analytics\Queries\CustomerRevenueQuery;
 use App\Models\Expense;
 use App\Models\Invoice;
 use DateTimeImmutable;
@@ -29,13 +30,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $query = $this->invoices(
             $userId,
             $from,
             $to,
-            $clientIds,
+            $contactIds,
         )
             ->select(
                 DB::raw('DATE_FORMAT(invoices.issue_date, "%Y-%m") as month'),
@@ -54,30 +55,19 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
         return $this->rows($query);
     }
 
-    public function clientRevenue(
+    public function customerRevenue(
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $query = $this->invoices(
             $userId,
             $from,
             $to,
-            $clientIds,
-        )
-            ->join(
-                'clients',
-                'invoices.client_id',
-                '=',
-                'clients.id',
-            )
-            ->select([
-                'clients.id as client_id',
-                'clients.name as client_name',
-                DB::raw('SUM(invoices.payment_amount) as total'),
-            ])
-            ->groupBy(['clients.id', 'clients.name'])
+            $contactIds,
+        );
+        $query = CustomerRevenueQuery::group($query)
             ->orderByDesc('total')
             ->limit(10);
 
@@ -88,13 +78,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $query = $this->invoices(
             $userId,
             $from,
             $to,
-            $clientIds,
+            $contactIds,
         )
             ->select(
                 DB::raw('DATE_FORMAT(invoices.issue_date, "%Y-%m") as month'),
@@ -133,13 +123,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $query = $this->invoices(
             $userId,
             $from,
             $to,
-            $clientIds,
+            $contactIds,
         )
             ->selectRaw(
                 'CASE WHEN statuses.slug IN (?, ?) AND DATE_ADD(invoices.issue_date, INTERVAL invoices.due_in DAY) < ? THEN ? ELSE statuses.slug END as status',
@@ -166,13 +156,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): array {
         $query = $this->invoices(
             $userId,
             $from,
             $to,
-            $clientIds,
+            $contactIds,
         )
             ->select(
                 'payment_methods.slug as method',
@@ -194,16 +184,16 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     /**
-     * Invoices of the user in the date range, optionally of the given clients only.
+     * Invoices of the user in the date range, optionally of the given customers only.
      *
-     * @param  list<PartyId>  $clientIds
+     * @param  list<ContactId>  $contactIds
      * @return Builder<Invoice>
      */
     private function invoices(
         UserId $userId,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
-        array $clientIds,
+        array $contactIds,
     ): Builder {
         return Invoice::query()
             ->where('invoices.user_id', $userId->toInt())
@@ -213,9 +203,9 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
                 $from->format('Y-m-d'),
             )
             ->when($to !== null, fn (Builder $query) => $query->where('invoices.issue_date', '<=', $to?->format('Y-m-d')))
-            ->when($clientIds !== [], fn (Builder $query) => $query->whereIn(
-                'invoices.client_id',
-                array_map(static fn (PartyId $id): int => $id->toInt(), $clientIds),
+            ->when($contactIds !== [], fn (Builder $query) => $query->whereIn(
+                'invoices.contact_id',
+                array_map(static fn (ContactId $id): int => $id->value, $contactIds),
             ));
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Exceptions;
 
 use App\Domain\User\Exceptions\EntityLimitExceededException;
@@ -7,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class EntityLimitExceededExceptionTest extends TestCase
+final class EntityLimitExceededExceptionTest extends TestCase
 {
     #[Test]
     public function json_requests_receive_translated_payload(): void
@@ -62,21 +64,21 @@ class EntityLimitExceededExceptionTest extends TestCase
     }
 
     #[Test]
-    public function supplier_routes_redirect_back_with_flash_message(): void
+    public function business_routes_redirect_back_with_flash_message(): void
     {
-        // Arrange: named route under frontend.supplier*
-        Route::middleware('web')->post('/test/supplier-limit', function (): void {
+        // Arrange: named route under frontend.business*
+        Route::middleware('web')->post('/test/business-limit', function (): void {
             throw new EntityLimitExceededException(
-                limitData: ['entity' => 'supplier', 'limit' => 2],
+                limitData: ['entity' => 'business', 'limit' => 2],
             );
-        })->name('frontend.supplier.testLimit');
+        })->name('frontend.business.testLimit');
 
         // Act
-        $resp = $this->from('/supplier-prev')
-            ->post('/test/supplier-limit', []);
+        $resp = $this->from('/business-prev')
+            ->post('/test/business-limit', []);
 
         // Assert
-        $resp->assertRedirect('/supplier-prev');
-        $resp->assertSessionHas('error', __('suppliers.messages.limit_exceeded'));
+        $resp->assertRedirect('/business-prev');
+        $resp->assertSessionHas('error', __('businesses.messages.limit_exceeded'));
     }
 }

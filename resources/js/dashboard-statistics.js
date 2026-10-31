@@ -13,7 +13,7 @@ class DashboardStatistics {
         this.translations = {};
         this.currency = 'CZK';
         this.initialized = false;
-        this.selectedClients = [];
+        this.selectedContacts = [];
     }
 
     /**
@@ -69,12 +69,12 @@ class DashboardStatistics {
             });
         }
 
-        // Client filter
-        const clientFilter = document.getElementById('stats-client-filter');
-        if (clientFilter) {
-            clientFilter.addEventListener('change', (e) => {
+        // Contact filter
+        const contactFilter = document.getElementById('stats-contact-filter');
+        if (contactFilter) {
+            contactFilter.addEventListener('change', (e) => {
                 const selectedOptions = Array.from(e.target.selectedOptions);
-                this.selectedClients = selectedOptions.map(option => option.value);
+                this.selectedContacts = selectedOptions.map(option => option.value);
                 this.refreshAllCharts();
             });
         }
@@ -89,9 +89,9 @@ class DashboardStatistics {
             this.initRevenueChart();
         }
 
-        // Revenue by client chart
-        if (document.getElementById('revenueByClientChart')) {
-            this.initRevenueByClientChart();
+        // Revenue by contact chart
+        if (document.getElementById('revenueByCustomerChart')) {
+            this.initRevenueByContactChart();
         }
 
         // Invoice status distribution chart
@@ -166,20 +166,20 @@ class DashboardStatistics {
     }
 
     /**
-     * Initialize revenue by client chart
+     * Initialize revenue by contact chart
      */
-    initRevenueByClientChart() {
-        const ctx = document.getElementById('revenueByClientChart').getContext('2d');
+    initRevenueByContactChart() {
+        const ctx = document.getElementById('revenueByCustomerChart').getContext('2d');
         
         // Fetch data from API
-        this.fetchData('client-revenue').then(data => {
-            console.log('Client revenue data (raw):', data);
+        this.fetchData('customer-revenue').then(data => {
+            console.log('Contact revenue data (raw):', data);
             
             // Ujistíme se, že máme platná data
             if (!data || !Array.isArray(data) || data.length === 0) {
-                console.warn('No client revenue data received or invalid format.');
+                console.warn('No contact revenue data received or invalid format.');
                 // Vytvoříme prázdný graf s informací
-                this.charts.clientRevenue = this.createChart(ctx, 'pie', {
+                this.charts.customerRevenue = this.createChart(ctx, 'pie', {
                     labels: [this.translations.noData || 'No data'],
                     datasets: [{
                         data: [1],
@@ -194,8 +194,8 @@ class DashboardStatistics {
             }
             
             // Nyní jsme si jisti, že máme platná data
-            this.charts.clientRevenue = this.createChart(ctx, 'pie', {
-                labels: data.map(item => item.client_name),
+            this.charts.customerRevenue = this.createChart(ctx, 'pie', {
+                labels: data.map(item => item.customer_name),
                 datasets: [{
                     data: data.map(item => item.total),
                     backgroundColor: this.generateColors(data.length),
@@ -221,9 +221,9 @@ class DashboardStatistics {
                 }
             });
         }).catch(error => {
-            console.error('Failed to load client revenue data:', error);
+            console.error('Failed to load contact revenue data:', error);
             // Zobrazíme prázdný graf v případě chyby
-            this.charts.clientRevenue = this.createChart(ctx, 'pie', {
+            this.charts.customerRevenue = this.createChart(ctx, 'pie', {
                 labels: [this.translations.error || 'Error'],
                 datasets: [{
                     data: [1],
@@ -261,9 +261,9 @@ class DashboardStatistics {
 
             // Ujistíme se, že máme platná data
             if (!data || !Array.isArray(data) || data.length === 0) {
-                console.warn('No client revenue data received or invalid format.');
+                console.warn('No contact revenue data received or invalid format.');
                 // Vytvoříme prázdný graf s informací
-                this.charts.clientRevenue = this.createChart(ctx, 'pie', {
+                this.charts.customerRevenue = this.createChart(ctx, 'pie', {
                     labels: [this.translations.noData || 'No data'],
                     datasets: [{
                         data: [1],
@@ -454,9 +454,9 @@ class DashboardStatistics {
             queryParams.append('date_to', this.filters.dateTo);
         }
         
-        if (this.selectedClients && this.selectedClients.length > 0) {
-            this.selectedClients.forEach(clientId => {
-                queryParams.append('clients[]', clientId);
+        if (this.selectedContacts && this.selectedContacts.length > 0) {
+            this.selectedContacts.forEach(contactId => {
+                queryParams.append('contacts[]', contactId);
             });
         }
         
@@ -517,7 +517,7 @@ class DashboardStatistics {
     getEndpointForChart(chartKey) {
         const endpoints = {
             'revenue': 'monthly-revenue',
-            'clientRevenue': 'client-revenue',
+            'customerRevenue': 'customer-revenue',
             'invoiceStatus': 'invoice-status',
             'paymentMethods': 'payment-methods',
             'revenueExpenses': 'revenue-expenses'
@@ -540,8 +540,8 @@ class DashboardStatistics {
                 chart.data.datasets[1].data = data.map(item => item.paid || 0);
                 break;
                 
-            case 'clientRevenue':
-                chart.data.labels = data.map(item => item.client_name);
+            case 'customerRevenue':
+                chart.data.labels = data.map(item => item.customer_name);
                 chart.data.datasets[0].data = data.map(item => item.total);
                 chart.data.datasets[0].backgroundColor = this.generateColors(data.length);
                 break;

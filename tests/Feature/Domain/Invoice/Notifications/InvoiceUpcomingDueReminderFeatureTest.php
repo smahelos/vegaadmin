@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Domain\Invoice\Notifications;
 
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceUpcomingDueReminder;
 use App\Models\Invoice;
 use App\Models\User;
@@ -12,7 +17,7 @@ use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class InvoiceUpcomingDueReminderFeatureTest extends TestCase
+final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
 {
     private Invoice $invoice;
 
@@ -39,11 +44,15 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     {
         Notification::fake();
 
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
-            recipientType: 'client',
+            recipientType: 'customer',
         );
         $this->user->notify(new InvoiceUpcomingDueReminder($payload));
 
@@ -58,7 +67,11 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
         $anonymousNotifiable = (new AnonymousNotifiable)
             ->route('mail', 'test@example.com');
 
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -74,7 +87,11 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     {
         Notification::fake();
 
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -94,7 +111,11 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     #[Test]
     public function notification_contains_correct_invoice_data(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -105,7 +126,7 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
         $reflection = new \ReflectionClass($notification);
         $payloadProp = $reflection->getProperty('payload');
         $payloadProp->setAccessible(true);
-        /** @var InvoiceReminderPayload $actual */
+        /** @var InvoiceReminderDTO $actual */
         $actual = $payloadProp->getValue($notification);
         $this->assertEquals($this->invoice->invoice_vs, $actual->invoiceNumber);
     }
@@ -113,26 +134,34 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     #[Test]
     public function notification_sets_correct_recipient_type(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
-            recipientType: 'client',
+            recipientType: 'customer',
         );
         $notification = new InvoiceUpcomingDueReminder($payload);
 
         $reflection = new \ReflectionClass($notification);
         $payloadProp = $reflection->getProperty('payload');
         $payloadProp->setAccessible(true);
-        /** @var InvoiceReminderPayload $actual */
+        /** @var InvoiceReminderDTO $actual */
         $actual = $payloadProp->getValue($notification);
-        $this->assertEquals('client', $actual->recipientType);
+        $this->assertEquals('customer', $actual->recipientType);
     }
 
     #[Test]
     public function mail_message_has_correct_subject(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -153,11 +182,15 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     #[Test]
     public function mail_message_uses_correct_view_for_client(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
-            recipientType: 'client',
+            recipientType: 'customer',
         );
         $notification = new InvoiceUpcomingDueReminder($payload);
         $notification->locale('en');
@@ -167,13 +200,17 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
         $viewProperty = $reflection->getProperty('view');
         $viewProperty->setAccessible(true);
 
-        $this->assertEquals('emails.invoices.reminders.upcoming_due_client', $viewProperty->getValue($mailMessage));
+        $this->assertEquals('emails.invoices.reminders.upcoming_due_customer', $viewProperty->getValue($mailMessage));
     }
 
     #[Test]
     public function mail_message_uses_correct_view_for_supplier(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -193,7 +230,11 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     #[Test]
     public function mail_message_includes_invoice_in_view_data(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -215,7 +256,11 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     #[Test]
     public function mail_message_includes_formatted_due_date(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -232,13 +277,17 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
 
         $this->assertArrayHasKey('dueDate', $viewData);
         $this->assertIsString($viewData['dueDate']);
-        $this->assertMatchesRegularExpression('/^\d{2}\.\d{2}\.\d{4}$/', $viewData['dueDate']);
+        $this->assertSame(app(DateFormatterInterface::class)->formatDate($payload->dueDate, $viewData['locale']), $viewData['dueDate']);
     }
 
     #[Test]
     public function mail_message_includes_days_left(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -261,7 +310,11 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     #[Test]
     public function mail_message_includes_user_greeting(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -283,7 +336,11 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     #[Test]
     public function mail_message_includes_locale_information(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -305,7 +362,11 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     #[Test]
     public function notification_respects_user_preferred_locale(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -325,7 +386,11 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     #[Test]
     public function notification_falls_back_to_default_locale(): void
     {
-        $payload = new InvoiceReminderPayload(
+        $payload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -348,16 +413,24 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
         Notification::fake();
 
         // Test with client recipient type
-        $clientPayload = new InvoiceReminderPayload(
+        $clientPayload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
-            recipientType: 'client',
+            recipientType: 'customer',
         );
         $this->user->notify(new InvoiceUpcomingDueReminder($clientPayload));
 
         // Test with supplier recipient type
-        $supplierPayload = new InvoiceReminderPayload(
+        $supplierPayload = new InvoiceReminderDTO(
+            invoiceId: InvoiceId::fromInt(1),
+            total: Money::fromString('100', 'CZK'),
+            supplierName: 'Saved supplier',
+            customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
             dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
             daysLeft: 5,
@@ -372,10 +445,10 @@ class InvoiceUpcomingDueReminderFeatureTest extends TestCase
                 $reflection = new \ReflectionClass($notification);
                 $payloadProperty = $reflection->getProperty('payload');
                 $payloadProperty->setAccessible(true);
-                /** @var InvoiceReminderPayload $payload */
+                /** @var InvoiceReminderDTO $payload */
                 $payload = $payloadProperty->getValue($notification);
 
-                return in_array($payload->recipientType, ['client', 'supplier']);
+                return in_array($payload->recipientType, ['customer', 'supplier']);
             },
         );
     }

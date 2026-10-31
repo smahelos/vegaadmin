@@ -46,22 +46,6 @@ class Invoice extends Model
     |--------------------------------------------------------------------------
     */
     /**
-     * Get the client associated with the invoice
-     */
-    public function client(): BelongsTo
-    {
-        return $this->belongsTo(Client::class, 'client_id');
-    }
-
-    /**
-     * Get the supplier associated with the invoice
-     */
-    public function supplier(): BelongsTo
-    {
-        return $this->belongsTo(Supplier::class, 'supplier_id');
-    }
-
-    /**
      * Get the payment method associated with the invoice
      */
     public function paymentMethod(): BelongsTo
@@ -129,24 +113,6 @@ class Invoice extends Model
     }
 
     /**
-     * Get client name with fallback for unknown client
-     */
-    public function getClientNameAttribute(): string
-    {
-        // Check if the relation is loaded
-        if ($this->relationLoaded('client') && $this->client) {
-            return $this->client->name;
-        } elseif ($this->client_id) {
-            // If client is needed (lazy loading)
-            $client = $this->client()->first();
-
-            return $client ? $client->name : __('invoices.placeholders.unknown_client');
-        }
-
-        return __('invoices.placeholders.unknown_client');
-    }
-
-    /**
      * Get CSS class for payment status display with fallback
      */
     public function getStatusColorClassAttribute(): string
@@ -203,28 +169,6 @@ class Invoice extends Model
     | ACCESSORS
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * Get supplier name with fallback for unknown supplier.
-     */
-    protected function supplierName(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                // Kontrola existence vztahu supplier
-                if ($this->relationLoaded('supplier') && $this->supplier) {
-                    return $this->supplier->name;
-                } elseif ($this->supplier_id) {
-                    // Lazy loading pokud je potřeba
-                    $supplier = $this->supplier()->first();
-
-                    return $supplier ? $supplier->name : __('invoices.placeholders.unknown_supplier');
-                }
-
-                return __('invoices.placeholders.unknown_supplier');
-            },
-        );
-    }
 
     /**
      * Get all products (regular and custom) associated with this invoice

@@ -24,7 +24,6 @@ class Product extends Model
         'currency',
         'tax_id',
         'category_id',
-        'supplier_id',
         'description',
         'is_default',
         'is_active',
@@ -105,14 +104,6 @@ class Product extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Get the supplier, who sells the product.
-     */
-    public function supplier(): BelongsTo
-    {
-        return $this->belongsTo(Supplier::class);
     }
 
     /**

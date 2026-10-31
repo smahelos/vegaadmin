@@ -1,23 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Payment\Contracts;
 
-use App\Domain\Payment\DTO\QrPaymentPayload;
+use App\Domain\Payment\DTO\QrPaymentDTO;
 
 interface QrPaymentProviderInterface
 {
     /**
      * Generate QR payment string according to country-specific banking standards
      *
-     * @param  QrPaymentPayload  $payload  Payment data for QR generation
+     * @param  QrPaymentDTO  $payload  Payment data for QR generation
      * @return string QR payment string
      */
-    public function generateQrString(QrPaymentPayload $payload): string;
+    public function generateQrString(QrPaymentDTO $payload): string;
 
     /**
      * Validate if payload has all required information for QR payment in this country
      *
-     * @param  QrPaymentPayload  $payload  Payment data for validation
+     * @param  QrPaymentDTO  $payload  Payment data for validation
      */
-    public function validatePaymentInfo(QrPaymentPayload $payload): bool;
+    public function validatePaymentInfo(QrPaymentDTO $payload): bool;
 }

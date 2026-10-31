@@ -49,6 +49,33 @@
             function bpFieldInitBillexSelect2Ajax(element) {
                 var key = element.data('key');
                 var attribute = element.data('attribute');
+                var dependencies = element.data('dependencies') || [];
+                function parameters(params) {
+                    var data = { q: params.term, page: params.page || 1 };
+                    dependencies.forEach(function (name) {
+                        data[name] = element.closest('form').find('[name="' + name + '"]').val();
+                    });
+                    return data;
+                }
+
+                function preselectDefault() {
+                    if (element.data('select-default') !== true || element.val()) return;
+                    var requested = parameters({});
+                    $.getJSON(element.data('source'), requested, function (response) {
+                        if (element.val() || JSON.stringify(parameters({})) !== JSON.stringify(requested)) return;
+                        var record = (response.data || response).find(function (item) { return item.is_default; });
+                        if (record) {
+                            element.append(new Option(record[attribute], record[key], true, true)).trigger('change');
+                        }
+                    });
+                }
+
+                dependencies.forEach(function (name) {
+                    element.closest('form').find('[name="' + name + '"]').on('change', function () {
+                        element.empty().val(null).trigger('change');
+                        preselectDefault();
+                    });
+                });
 
                 element.select2($.extend(billexSelect2Options(element), {
                     minimumInputLength: element.data('minimum-input-length') || 0,
@@ -56,9 +83,7 @@
                         url: element.data('source'),
                         dataType: 'json',
                         delay: 400,
-                        data: function (params) {
-                            return { q: params.term, page: params.page || 1 };
-                        },
+                        data: parameters,
                         processResults: function (data, params) {
                             var paginated = !Array.isArray(data);
                             var records = paginated ? (data.data || []) : data;
@@ -67,17 +92,18 @@
                             return {
                                 results: records
                                     .map(function (record) {
-                                        return { id: record[key], text: String(record[attribute] ?? '') };
+                                        return { ...record, id: record[key], text: String(record[attribute] ?? '') };
                                     })
                                     // a plain array is the whole list: narrow it to the term here
                                     .filter(function (option) {
                                         return paginated || !term || option.text.toLowerCase().indexOf(term) !== -1;
                                     }),
-                                pagination: { more: paginated && data.current_page < data.last_page },
+                                pagination: { more: paginated && (data.meta || data).current_page < (data.meta || data).last_page },
                             };
                         },
                     },
                 }));
+                preselectDefault();
             }
         </script>
     @endonce

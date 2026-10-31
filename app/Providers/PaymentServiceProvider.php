@@ -2,18 +2,13 @@
 
 namespace App\Providers;
 
-use App\Application\Payment\Contracts\BankApplicationServiceInterface;
-use App\Application\Payment\Contracts\BankRepository;
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
 use App\Application\Payment\Contracts\PaymentReadRepositoryInterface;
 use App\Application\Payment\Contracts\PaymentWriteRepositoryInterface;
 use App\Application\Payment\Contracts\SubscriptionReadRepositoryInterface;
 use App\Application\Payment\Contracts\SubscriptionWriteRepositoryInterface;
-use App\Application\Payment\Mappers\QrPaymentPayloadMapper;
-use App\Application\Payment\Services\BankApplicationService;
 use App\Application\Payment\Services\PaymentApplicationService;
 use App\Domain\Payment\Contracts\BankDtoRepository;
-use App\Domain\Payment\Contracts\BankServiceInterface;
 use App\Domain\Payment\Contracts\GatewayRegistryInterface;
 use App\Domain\Payment\Contracts\PaymentDtoReadRepositoryInterface;
 use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
@@ -24,12 +19,10 @@ use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
-use App\Domain\Payment\Services\BankService;
 use App\Domain\Payment\Services\GatewayRegistry;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\Services\SubscriptionPaymentService;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentBankDtoRepository;
-use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentBankRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentDtoReadRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentDtoWriteRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentMethodDtoRepository;
@@ -70,11 +63,6 @@ class PaymentServiceProvider extends ServiceProvider
         $this->app->bind(
             SubscriptionPaymentServiceInterface::class,
             SubscriptionPaymentService::class,
-        );
-
-        $this->app->bind(
-            BankServiceInterface::class,
-            BankService::class,
         );
 
         $this->app->singleton(
@@ -142,11 +130,6 @@ class PaymentServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            BankRepository::class,
-            EloquentBankRepository::class,
-        );
-
-        $this->app->bind(
             BankDtoRepository::class,
             EloquentBankDtoRepository::class,
         );
@@ -177,13 +160,5 @@ class PaymentServiceProvider extends ServiceProvider
             PaymentApplicationServiceInterface::class,
             PaymentApplicationService::class,
         );
-
-        $this->app->bind(
-            BankApplicationServiceInterface::class,
-            BankApplicationService::class,
-        );
-
-        // Application Payment mappers
-        $this->app->singleton(QrPaymentPayloadMapper::class);
     }
 }

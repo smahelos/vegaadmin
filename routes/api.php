@@ -1,13 +1,10 @@
 <?php
 
-use App\Http\Controllers\Api\AresLookupController;
-use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\StatisticsController;
-use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UELSController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
@@ -29,10 +26,6 @@ Route::middleware(['api.require.backpack', 'refresh.backpack.session'])
         Route::get('/user', [UserController::class, 'getUsersAdmin'])->name('users');
         Route::get('/user/search', [UserController::class, 'searchUsersAdmin'])->name('users.search');
         Route::get('/user/{id}', [UserController::class, 'getUserAdmin'])->whereNumber('id')->name('user');
-        Route::get('/client', [ClientController::class, 'getClientsAdmin'])->name('clients');
-        Route::get('/client/{id}', [ClientController::class, 'getClientAdmin'])->whereNumber('id')->name('client');
-        Route::get('/supplier', [SupplierController::class, 'getSuppliersAdmin'])->name('suppliers');
-        Route::get('/supplier/{id}', [SupplierController::class, 'getSupplierAdmin'])->whereNumber('id')->name('supplier');
         Route::get('/invoice/{id}', [InvoiceController::class, 'getInvoice'])->whereNumber('id')->name('invoice');
         Route::get('/invoice', [InvoiceController::class, 'getInvoice'])->name('invoice.query');
     });
@@ -41,16 +34,6 @@ Route::middleware(['api.require.backpack', 'refresh.backpack.session'])
 Route::middleware(['api.require.frontend', 'refresh.frontend.session'])
     ->name('api.')
     ->group(function (): void {
-        // Clients
-        Route::get('/client', [ClientController::class, 'getClients'])->name('clients');
-        Route::get('/client/default', [ClientController::class, 'getDefaultClient'])->name('client.default');
-        Route::get('/client/{id}', [ClientController::class, 'getClient'])->whereNumber('id')->name('client');
-
-        // Suppliers
-        Route::get('/supplier', [SupplierController::class, 'getSuppliers'])->name('suppliers');
-        Route::get('/supplier/default', [SupplierController::class, 'getDefaultSupplier'])->name('supplier.default');
-        Route::get('/supplier/{id}', [SupplierController::class, 'getSupplier'])->whereNumber('id')->name('supplier');
-
         // Invoices
         Route::get('/invoice', [InvoiceController::class, 'getInvoice'])->name('invoice.query');
         Route::get('/invoice/{id}', [InvoiceController::class, 'getInvoice'])->whereNumber('id')->name('invoice');
@@ -65,7 +48,7 @@ Route::middleware(['api.require.frontend', 'refresh.frontend.session'])
 
         // Dashboard charts
         Route::get('/statistics/monthly-revenue', [StatisticsController::class, 'monthlyRevenue'])->name('statistics.monthly-revenue');
-        Route::get('/statistics/client-revenue', [StatisticsController::class, 'clientRevenue'])->name('statistics.client-revenue');
+        Route::get('/statistics/customer-revenue', [StatisticsController::class, 'customerRevenue'])->name('statistics.customer-revenue');
         Route::get('/statistics/invoice-status', [StatisticsController::class, 'invoiceStatus'])->name('statistics.invoice-status');
         Route::get('/statistics/payment-methods', [StatisticsController::class, 'paymentMethods'])->name('statistics.payment-methods');
         Route::get('/statistics/revenue-expenses', [StatisticsController::class, 'revenueExpenses'])->name('statistics.revenue-expenses');
@@ -82,9 +65,6 @@ Route::middleware('throttle:60,1')
         Route::get('/currencies/all', [CurrencyController::class, 'getAllCurrencies'])->name('currencies.all');
         Route::get('/currencies/exchange-rate', [CurrencyController::class, 'getExchangeRate'])->name('exchange-rate');
         Route::get('/currencies/convert', [CurrencyController::class, 'convertCurrency'])->name('convert-currency');
-
-        // ARES lookup
-        Route::get('/ares-lookup', [AresLookupController::class, 'lookup'])->name('ares-lookup');
 
         // UELS - Universal Entity Limit System
         Route::middleware('auth:web')->group(function (): void {

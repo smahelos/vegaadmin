@@ -172,7 +172,7 @@ class PermissionLimitResolverTest extends TestCase
     {
         EntityLimit::create([
             'permission_name' => 'basic_user',
-            'entity_type' => 'client',
+            'entity_type' => 'contact',
             'limit_value' => 15,
             'period_type' => 'daily',
             'metric_type' => 'count',
@@ -184,7 +184,7 @@ class PermissionLimitResolverTest extends TestCase
 
         $limit = $this->resolver->getUserLimit(
             $user->id,
-            'client',
+            'contact',
             'count',
             'daily',
         );

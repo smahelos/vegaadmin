@@ -25,12 +25,21 @@
             data-minimum-input-length="{{ $field['minimum_input_length'] ?? 0 }}"
             data-placeholder="{{ $field['placeholder'] ?? '' }}"
             data-allows-null="{{ $field['allows_null'] ? 'true' : 'false' }}"
+            data-dependencies='@json($field["dependencies"] ?? [])'
+            @if (isset($field['counterparty_role']))
+                data-counterparty-role="{{ $field['counterparty_role'] }}"
+            @endif
+            data-stored-reference-id="{{ $field['stored_reference_id'] ?? '' }}"
+            data-document-business-role="{{ $field['document_business_role'] ?? '' }}"
+            data-document-account="{{ !empty($field['document_account']) ? 'true' : 'false' }}"
+            data-bank-transfer-method="{{ $field['bank_transfer_method_id'] ?? '' }}"
+            data-select-default="{{ !empty($field['select_default']) ? 'true' : 'false' }}"
             @include('crud::fields.inc.attributes', ['default_class' => 'form-control form-select'])>
         @if ($field['allows_null'])
             <option value=""></option>
         @endif
         @if ($currentEntry)
-            <option value="{{ $currentEntry->getKey() }}" selected>{{ $currentEntry->{$field['attribute']} }}</option>
+            <option value="{{ $currentEntry->getKey() }}" selected>{{ isset($field['display_value']) ? $field['display_value']($currentEntry) : $currentEntry->{$field['attribute']} }}</option>
         @endif
     </select>
 

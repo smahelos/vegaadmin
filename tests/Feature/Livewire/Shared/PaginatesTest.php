@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Shared;
 
-use App\Livewire\Party\ClientList;
-use App\Models\Client;
+use App\Livewire\Party\ContactList;
+use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\BuildsParties;
 use Tests\TestCase;
 
 final class PaginatesTest extends TestCase
 {
+    use BuildsParties;
+
     private User $user;
 
     protected function setUp(): void
@@ -21,8 +24,8 @@ final class PaginatesTest extends TestCase
         parent::setUp();
         app()->setLocale('cs');
         URL::defaults(['locale' => 'cs']);
-        $this->user = User::factory()->create();
-        Client::factory()->count(15)->create(['user_id' => $this->user->id]);
+        $this->user = $this->frontendUser();
+        Contact::factory()->count(15)->create(['user_id' => $this->user->id]);
     }
 
     #[Test]
@@ -30,7 +33,7 @@ final class PaginatesTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        Livewire::test(ClientList::class)
+        Livewire::test(ContactList::class)
             ->assertSeeText('Zobrazeno')
             ->assertSee('aria-label="Další"', false)
             ->assertDontSeeText('Showing')
@@ -42,7 +45,7 @@ final class PaginatesTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        Livewire::test(ClientList::class)
+        Livewire::test(ContactList::class)
             ->assertSee("wire:click=\"nextPage('page')\"", false)
             ->assertDontSee('href="?page=', false)
             ->call('nextPage')
@@ -56,7 +59,7 @@ final class PaginatesTest extends TestCase
         $this->actingAs($this->user);
 
         Livewire::withQueryParams(['page' => 'abc'])
-            ->test(ClientList::class)
+            ->test(ContactList::class)
             ->assertOk()
             ->assertSee('aria-current="page">1</span>', false);
     }

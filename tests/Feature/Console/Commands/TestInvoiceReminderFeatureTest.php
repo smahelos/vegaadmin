@@ -2,9 +2,7 @@
 
 namespace Tests\Feature\Console\Commands;
 
-use App\Models\Client;
 use App\Models\Invoice;
-use App\Models\Status;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
@@ -74,23 +72,9 @@ class TestInvoiceReminderFeatureTest extends TestCase
     #[Test]
     public function command_sends_test_reminder(): void
     {
-        $client = Client::factory()->create([
-            'email' => 'test@example.com',
-        ]);
-
-        // Create unpaid status if it doesn't exist
-        $unpaidStatus = Status::firstOrCreate([
-            'slug' => 'unpaid',
-        ], [
-            'name' => 'Unpaid',
-            'description' => 'Invoice is not paid yet',
-            'color' => 'bg-red-100 text-red-800',
-            'is_active' => true,
-        ]);
-
         $invoice = Invoice::factory()->create([
-            'client_id' => $client->id,
-            'payment_status_id' => $unpaidStatus->id,
+            'customer_email' => 'test@example.com',
+            'supplier_email' => null,
         ]);
 
         $exitCode = Artisan::call('invoices:test-reminder', [

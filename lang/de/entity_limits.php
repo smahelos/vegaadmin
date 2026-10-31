@@ -28,13 +28,13 @@ return [
             'singular' => 'Rechnung',
             'plural' => 'Rechnungen',
         ],
-        'client' => [
-            'singular' => 'Kunde',
-            'plural' => 'Kunden',
+        'business' => [
+            'singular' => 'Firma',
+            'plural' => 'Meine Firmen',
         ],
-        'supplier' => [
-            'singular' => 'Lieferant',
-            'plural' => 'Lieferanten',
+        'contact' => [
+            'singular' => 'Kontakt',
+            'plural' => 'Kontakte',
         ],
         'product' => [
             'singular' => 'Produkt',
@@ -57,6 +57,7 @@ return [
         'count' => 'Anzahl',
         'value' => 'Geldwert',
         'size' => 'Dateigröße',
+        'active' => 'Aktive Einträge',
     ],
     'periods' => [
         'daily' => 'Täglich',

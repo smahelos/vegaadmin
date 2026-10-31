@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Database\Seeders;
 
 use App\Infrastructure\Authorization\PermissionCatalog;
+use App\Models\Business;
+use App\Models\Contact;
 use App\Models\Expense;
-use App\Models\Invoice;
 use App\Models\User;
 use Database\Seeders\DevelopmentDataSeeder;
 use Illuminate\Support\Facades\DB;
@@ -30,41 +31,45 @@ final class DevelopmentDataSeederTest extends TestCase
     }
 
     #[Test]
-    public function fills_the_last_year_of_every_frontend_account_without_counting_it_against_limits(): void
+    public function gives_every_frontend_account_businesses_contacts_and_expenses_within_its_limits(): void
     {
         $this->seed(DevelopmentDataSeeder::class);
 
         foreach (DevelopmentDataSeeder::ACCOUNTS as $email => $account) {
             $user = User::where('email', $email)->firstOrFail();
-            $invoices = Invoice::where('user_id', $user->id)->get();
+            $businesses = Business::where('user_id', $user->id);
 
             if ($account['guard'] === PermissionCatalog::BACKPACK) {
-                $this->assertCount(
+                $this->assertFalse($businesses->exists(), $email);
+                $this->assertSame(
                     0,
-                    $invoices,
+                    Expense::where('user_id', $user->id)->count(),
                     $email,
                 );
 
                 continue;
             }
 
-            $months = $invoices->map(fn (Invoice $invoice): string => substr((string) $invoice->issue_date, 0, 7))->unique();
-            $this->assertGreaterThanOrEqual(
-                12,
-                $months->count(),
-                $email,
-            );
+            $default = Business::findOrFail($user->default_business_id);
+            $this->assertNull($default->archived_at, $email);
+            $this->assertNotNull($default->default_bank_account_id, $email);
             $this->assertSame(
-                $invoices->count(),
-                $invoices->pluck('invoice_vs')->unique()->count(),
+                2,
+                Business::where('user_id', $user->id)->whereNull('archived_at')->count(),
                 $email,
             );
-            $this->assertTrue($invoices->every(fn (Invoice $invoice): bool => (float) $invoice->payment_amount > 0), $email);
-            $this->assertGreaterThan(
-                0,
-                Expense::where('user_id', $user->id)->count(),
+            $this->assertTrue(Business::where('user_id', $user->id)->whereNotNull('archived_at')->exists(), $email);
+            $this->assertLessThanOrEqual(
+                16,
+                Contact::where('user_id', $user->id)->whereNull('archived_at')->count(),
                 $email,
             );
+            $this->assertTrue(Contact::where('user_id', $user->id)->whereNotNull('archived_at')->exists(), $email);
+
+            $expenses = Expense::where('user_id', $user->id)->get();
+            $this->assertTrue($expenses->every(fn (Expense $expense): bool => $expense->business_id === $default->id), $email);
+            $this->assertTrue($expenses->contains(fn (Expense $expense): bool => $expense->contact_id !== null && $expense->bank_account_id !== null), $email);
+            $this->assertTrue($expenses->contains(fn (Expense $expense): bool => $expense->contact_id === null), $email);
             $this->assertSame(
                 0,
                 DB::table('entity_limit_usage')->where('user_id', $user->id)->count(),
@@ -78,14 +83,12 @@ final class DevelopmentDataSeederTest extends TestCase
     {
         $this->seed(DevelopmentDataSeeder::class);
         $users = User::whereIn('email', array_keys(DevelopmentDataSeeder::ACCOUNTS))->pluck('id');
-        $firstNumbers = Invoice::whereIn('user_id', $users)->orderBy('invoice_vs')->pluck('invoice_vs')->all();
-        $firstExpenses = Expense::whereIn('user_id', $users)->count();
+        $first = $this->seededData($users->all());
 
         $this->seed(DevelopmentDataSeeder::class);
 
         $this->assertSame(count(DevelopmentDataSeeder::ACCOUNTS), User::whereIn('email', array_keys(DevelopmentDataSeeder::ACCOUNTS))->count());
-        $this->assertSame($firstNumbers, Invoice::whereIn('user_id', $users)->orderBy('invoice_vs')->pluck('invoice_vs')->all());
-        $this->assertSame($firstExpenses, Expense::whereIn('user_id', $users)->count());
+        $this->assertSame($first, $this->seededData($users->all()));
     }
 
     #[Test]
@@ -96,5 +99,18 @@ final class DevelopmentDataSeederTest extends TestCase
         $this->expectException(RuntimeException::class);
 
         $this->app->make(DevelopmentDataSeeder::class)->run();
+    }
+
+    /**
+     * @param  list<int>  $userIds
+     * @return array<string, list<mixed>>
+     */
+    private function seededData(array $userIds): array
+    {
+        return [
+            'businesses' => Business::whereIn('user_id', $userIds)->orderBy('name')->pluck('name')->all(),
+            'contacts' => Contact::whereIn('user_id', $userIds)->orderBy('name')->pluck('name')->all(),
+            'expenses' => Expense::whereIn('user_id', $userIds)->orderBy('expense_date')->orderBy('amount')->pluck('amount')->all(),
+        ];
     }
 }

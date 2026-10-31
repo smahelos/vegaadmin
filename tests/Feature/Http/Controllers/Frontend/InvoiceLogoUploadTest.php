@@ -1,75 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Models\Client;
+use App\Models\BankAccount;
+use App\Models\Business;
 use App\Models\EntityLimit;
 use App\Models\Invoice;
-use App\Models\PaymentMethod;
-use App\Models\Status;
-use App\Models\Supplier;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
+use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
 /**
- * Feature tests for invoice logo upload functionality
- *
- * Tests complete HTTP flow of invoice logo upload, validation, and storage
+ * An authenticated invoice takes the selected business logo and keeps its own file.
  */
-class InvoiceLogoUploadTest extends TestCase
+final class InvoiceLogoUploadTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, WithFaker;
+    use BuildsInvoiceInput, CreatesFrontendTestEnvironment;
 
-    protected PaymentMethod $paymentMethod;
+    private Business $business;
 
-    protected Status $paymentStatus;
+    private BankAccount $account;
 
-    protected Supplier $supplier;
-
-    protected Client $client;
-
-    /**
-     * Set up the test environment.
-     */
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->setUpFrontendTestEnvironment();
-
-        // Create required permissions for 'web' guard
         $permission = Permission::where('name', 'frontend.can_create_edit_invoice')
             ->where('guard_name', 'web')
             ->first();
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
-
-        // Create related models
-        $this->paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $this->paymentStatus = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail();
-        $this->supplier = Supplier::factory()->create(['user_id' => $this->user->id]);
-        $this->client = Client::factory()->create(['user_id' => $this->user->id]);
-
-        // Set up fake disk for file uploads
-        Storage::fake('public');
-
-        // Create entity limit for invoices
-        $this->createInvoiceEntityLimit();
-    }
-
-    /**
-     * Create entity limit for invoices to allow test operations
-     */
-    private function createInvoiceEntityLimit(): void
-    {
         EntityLimit::create([
             'permission_name' => 'frontend.can_create_edit_invoice',
             'entity_type' => 'invoice',
@@ -79,242 +47,57 @@ class InvoiceLogoUploadTest extends TestCase
             'description' => 'Invoice limit for frontend tests',
             'is_active' => true,
         ]);
-    }
+        Storage::fake('public');
 
-    #[Test]
-    public function invoice_can_be_created_with_logo_upload(): void
-    {
+        [$this->business, $this->account] = $this->issuerOf($this->user);
         $this->actingAs($this->user, 'web');
+    }
 
-        // Create a fake image file
-        $logoFile = UploadedFile::fake()->image('invoice_logo.png', 100, 100)->size(1000);
-
-        $invoiceData = [
-            'invoice_vs' => 'TEST001',
-            'supplier_id' => $this->supplier->id,
-            'client_id' => $this->client->id,
-            'payment_method_id' => $this->paymentMethod->id,
-            'payment_status_id' => $this->paymentStatus->id,
-            'payment_amount' => 1000.00,
-            'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([[
-                'name' => 'Service',
-                'quantity' => '1',
-                'unit' => 'pieces',
-                'price' => '100',
-                'currency' => 'CZK',
-                'tax_rate' => '0',
-            ]]),
-            'issue_date' => now()->toDateString(),
-            'tax_point_date' => now()->toDateString(),
-            'due_in' => 30,
-            'invoice_text' => 'Test invoice description',
-            'invoice_logo' => $logoFile,
-        ];
-
-        $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $invoiceData);
-
+    #[Test]
+    public function a_signed_in_invoice_uses_a_private_copy_of_the_selected_business_logo(): void
+    {
+        Storage::disk('public')->put('parties/logo.png', 'business logo contents');
+        $this->business->update(['logo' => 'parties/logo.png']);
+        $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $this->invoiceData('TEST001', [
+            'invoice_logo' => UploadedFile::fake()->image('unrelated.png'),
+        ]));
         $response->assertRedirect();
-        // Check that redirect indicates success (contains 'invoice' route)
-        $this->assertTrue(str_contains($response->headers->get('Location'), 'invoice'));
-
-        // Verify invoice was created
-        $this->assertDatabaseHas('invoices', [
-            'invoice_vs' => 'TEST001',
-            'supplier_id' => $this->supplier->id,
-            'client_id' => $this->client->id,
-        ]);
-
-        // Verify invoice logo was stored
-        $invoice = Invoice::where('invoice_vs', 'TEST001')->first();
-        $this->assertNotNull($invoice->invoice_logo);
-        $this->assertStringContainsString('invoices/logos', $invoice->invoice_logo);
-
-        // Verify file was actually uploaded
-        $this->assertTrue(Storage::disk('public')->exists($invoice->invoice_logo));
+        $invoice = Invoice::where('invoice_vs', 'TEST001')->sole();
+        $this->assertNotSame($this->business->logo, $invoice->supplier_logo);
+        $this->assertSame('business logo contents', Storage::disk('public')->get($invoice->supplier_logo));
+        Storage::disk('public')->delete($this->business->logo);
+        $this->business->update(['logo' => null]);
+        $this->get(route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]))
+            ->assertOk()->assertSee('wire:click="reloadBusinessData"', false);
+        $copy = $invoice->supplier_logo;
+        $this->put(route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]), $this->invoiceData('TEST001'))
+            ->assertRedirect();
+        $this->assertSame($copy, $invoice->fresh()->supplier_logo);
+        $this->assertSame('business logo contents', Storage::disk('public')->get($copy));
+        $this->put(route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]), $this->invoiceData('TEST001', ['reload_business' => '1']))
+            ->assertRedirect();
+        $this->assertNull($invoice->fresh()->supplier_logo);
+        Storage::disk('public')->assertMissing($copy);
     }
 
     #[Test]
-    public function invoice_creation_fails_with_invalid_logo_format(): void
+    public function the_authenticated_forms_offer_the_business_logo_without_a_document_upload(): void
     {
-        $this->actingAs($this->user);
-
-        // Create a fake non-image file
-        $invalidFile = UploadedFile::fake()->create('document.pdf', 1000);
-
-        $invoiceData = [
-            'invoice_vs' => 'TEST002',
-            'supplier_id' => $this->supplier->id,
-            'client_id' => $this->client->id,
-            'payment_method_id' => $this->paymentMethod->id,
-            'payment_status_id' => $this->paymentStatus->id,
-            'payment_amount' => 1000.00,
-            'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([[
-                'name' => 'Service',
-                'quantity' => '1',
-                'unit' => 'pieces',
-                'price' => '100',
-                'currency' => 'CZK',
-                'tax_rate' => '0',
-            ]]),
-            'issue_date' => now()->toDateString(),
-            'tax_point_date' => now()->toDateString(),
-            'due_in' => 30,
-            'invoice_text' => 'Test invoice description',
-            'invoice_logo' => $invalidFile,
-        ];
-
-        $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $invoiceData);
-
-        $response->assertSessionHasErrors('invoice_logo');
-
-        // Verify invoice was not created
-        $this->assertDatabaseMissing('invoices', [
-            'invoice_vs' => 'TEST002',
-        ]);
+        $this->get(route('frontend.invoice.create', ['locale' => 'cs']))->assertOk()->assertDontSee('name="invoice_logo"', false);
+        $invoice = Invoice::factory()->create(['user_id' => $this->user->id, 'business_id' => $this->business->id]);
+        $this->get(route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]))->assertOk()->assertDontSee('name="invoice_logo"', false);
     }
 
-    #[Test]
-    public function invoice_creation_fails_with_oversized_logo(): void
+    /**
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, mixed>
+     */
+    private function invoiceData(string $number, array $overrides = []): array
     {
-        $this->actingAs($this->user);
-
-        // Create a fake image file that's too large (3MB)
-        $oversizedFile = UploadedFile::fake()->image('large_logo.png', 100, 100)->size(3000);
-
-        $invoiceData = [
-            'invoice_vs' => 'TEST003',
-            'supplier_id' => $this->supplier->id,
-            'client_id' => $this->client->id,
-            'payment_method_id' => $this->paymentMethod->id,
-            'payment_status_id' => $this->paymentStatus->id,
-            'payment_amount' => 1000.00,
-            'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([[
-                'name' => 'Service',
-                'quantity' => '1',
-                'unit' => 'pieces',
-                'price' => '100',
-                'currency' => 'CZK',
-                'tax_rate' => '0',
-            ]]),
-            'issue_date' => now()->toDateString(),
-            'tax_point_date' => now()->toDateString(),
-            'due_in' => 30,
-            'invoice_text' => 'Test invoice description',
-            'invoice_logo' => $oversizedFile,
-        ];
-
-        $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $invoiceData);
-
-        $response->assertSessionHasErrors('invoice_logo');
-
-        // Verify invoice was not created
-        $this->assertDatabaseMissing('invoices', [
-            'invoice_vs' => 'TEST003',
-        ]);
-    }
-
-    #[Test]
-    public function invoice_can_be_updated_with_logo_upload(): void
-    {
-        $this->actingAs($this->user);
-
-        // Create an existing invoice
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'supplier_id' => $this->supplier->id,
-            'client_id' => $this->client->id,
-            'payment_method_id' => $this->paymentMethod->id,
-            'payment_status_id' => $this->paymentStatus->id,
-        ]);
-
-        // Create a fake image file for update
-        $newLogoFile = UploadedFile::fake()->image('updated_logo.png', 100, 100)->size(800);
-
-        $updateData = [
-            'invoice_vs' => $invoice->invoice_vs,
-            'supplier_id' => $this->supplier->id,
-            'client_id' => $this->client->id,
-            'payment_method_id' => $this->paymentMethod->id,
-            'payment_status_id' => $this->paymentStatus->id,
-            'payment_amount' => 1500.00,
-            'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([[
-                'name' => 'Service',
-                'quantity' => '1',
-                'unit' => 'pieces',
-                'price' => '100',
-                'currency' => 'CZK',
-                'tax_rate' => '0',
-            ]]),
-            'issue_date' => now()->toDateString(),
-            'tax_point_date' => now()->toDateString(),
-            'due_in' => 30,
-            'invoice_text' => 'Updated invoice description',
-            'invoice_logo' => $newLogoFile,
-        ];
-
-        $response = $this->put(route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]), $updateData);
-
-        $response->assertRedirect();
-        $response->assertSessionHasNoErrors();
-
-        // Verify invoice was updated
-        $invoice->refresh();
-        $this->assertNotNull($invoice->invoice_logo);
-        $this->assertStringContainsString('invoices/logos', $invoice->invoice_logo);
-
-        // Verify file was actually uploaded
-        $this->assertTrue(Storage::disk('public')->exists($invoice->invoice_logo));
-    }
-
-    #[Test]
-    public function invoice_can_be_created_without_logo(): void
-    {
-        $this->actingAs($this->user);
-
-        $invoiceData = [
-            'invoice_vs' => 'TEST004',
-            'supplier_id' => $this->supplier->id,
-            'client_id' => $this->client->id,
-            'payment_method_id' => $this->paymentMethod->id,
-            'payment_status_id' => $this->paymentStatus->id,
-            'payment_amount' => 1000.00,
-            'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([[
-                'name' => 'Service',
-                'quantity' => '1',
-                'unit' => 'pieces',
-                'price' => '100',
-                'currency' => 'CZK',
-                'tax_rate' => '0',
-            ]]),
-            'issue_date' => now()->toDateString(),
-            'tax_point_date' => now()->toDateString(),
-            'due_in' => 30,
-            'invoice_text' => 'Test invoice without logo',
-            // No invoice_logo field
-        ];
-
-        $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $invoiceData);
-
-        $response->assertRedirect();
-
-        // Check that the redirect location indicates success (contains 'invoice' route)
-        // If there were validation errors, we would get redirected back to create form
-        $this->assertTrue(str_contains($response->headers->get('Location'), 'invoice'));
-
-        // Verify invoice was created
-        $this->assertDatabaseHas('invoices', [
-            'invoice_vs' => 'TEST004',
-            'supplier_id' => $this->supplier->id,
-            'client_id' => $this->client->id,
-        ]);
-
-        // Verify invoice logo is null or empty
-        $invoice = Invoice::where('invoice_vs', 'TEST004')->first();
-        $this->assertTrue(empty($invoice->invoice_logo));
+        return $this->invoiceInput(
+            $this->business,
+            $this->account,
+            ['invoice_vs' => $number, ...$overrides],
+        );
     }
 }

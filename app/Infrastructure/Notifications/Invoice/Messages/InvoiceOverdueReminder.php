@@ -1,18 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Notifications\Invoice\Messages;
 
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
+use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
+use App\Infrastructure\Notifications\Invoice\InvoiceReminderMailFactory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class InvoiceOverdueReminder extends Notification implements ShouldQueue
+final class InvoiceOverdueReminder extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(private readonly InvoiceReminderPayload $payload) {}
+    public function __construct(private readonly InvoiceReminderDTO $payload) {}
 
     public function via(object $notifiable): array
     {
@@ -21,19 +25,11 @@ class InvoiceOverdueReminder extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $dueDate = $this->payload->dueDate->format('d.m.Y');
-        $viewName = $this->payload->recipientType === 'client'
-            ? 'emails.invoices.reminders.overdue_client'
-            : 'emails.invoices.reminders.overdue_supplier';
-
-        return (new MailMessage)
-            ->subject(__('invoices.reminders.overdue_subject', ['number' => $this->payload->invoiceNumber]))
-            ->view($viewName, [
-                'invoiceNumber' => $this->payload->invoiceNumber,
-                'dueDate' => $dueDate,
-                'daysOverdue' => $this->payload->daysOverdue,
-                'greeting' => __('invoices.reminders.greeting', ['name' => $notifiable->name ?? '']),
-                'locale' => $this->locale,
-            ]);
+        return app(InvoiceReminderMailFactory::class)->create(
+            $this->payload,
+            InvoiceReminderType::OVERDUE,
+            $this->locale,
+            $notifiable->name ?? '',
+        );
     }
 }

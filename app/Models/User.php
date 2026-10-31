@@ -1,12 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use App\Infrastructure\Shared\Locale\Traits\HasPreferredLocale;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -16,7 +16,6 @@ class User extends Authenticatable
 {
     use CrudTrait;
     use HasFactory, Notifiable;
-    use HasPreferredLocale;
     use HasRoles;
     use SoftDeletes;
 
@@ -64,27 +63,27 @@ class User extends Authenticatable
     |--------------------------------------------------------------------------
     */
     /**
-     * Get the invoices associated with the user through clients
+     * Get the invoices belonging to the user
      */
-    public function invoices(): HasManyThrough
+    public function invoices(): HasMany
     {
-        return $this->hasManyThrough(Invoice::class, Client::class);
+        return $this->hasMany(Invoice::class);
     }
 
     /**
-     * Get clients belonging to this user
+     * Get contacts belonging to this user
      */
-    public function clients(): HasMany
+    public function contacts(): HasMany
     {
-        return $this->hasMany(Client::class);
+        return $this->hasMany(Contact::class);
     }
 
     /**
-     * Get suppliers belonging to this user
+     * Get businesses belonging to this user
      */
-    public function suppliers(): HasMany
+    public function businesses(): HasMany
     {
-        return $this->hasMany(Supplier::class);
+        return $this->hasMany(Business::class);
     }
 
     /**
@@ -118,14 +117,6 @@ class User extends Authenticatable
     | METHODS
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * Get preferred locale of the user
-     */
-    public function preferredLocale(): string
-    {
-        return $this->getPreferredLocale();
-    }
 
     /**
      * Get the casts array

@@ -1,23 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\User\DTO;
 
-class UserWriteData
+final readonly class UserWriteData
 {
     public function __construct(
-        public readonly string $name,
-        public readonly string $email,
-        public readonly ?string $password = null,
-        public readonly ?string $description = null,
-        public readonly ?string $street = null,
-        public readonly ?string $city = null,
-        public readonly ?string $zip = null,
-        public readonly ?string $country = null,
-        public readonly ?string $phone = null,
-        public readonly ?string $ico = null,
-        public readonly ?string $dic = null,
-        public readonly ?string $created_at = null,
-        public readonly ?string $updated_at = null,
+        public string $name,
+        public string $email,
+        public ?string $password = null,
+        public ?string $description = null,
+        public ?string $street = null,
+        public ?string $city = null,
+        public ?string $zip = null,
+        public ?string $country = null,
+        public ?string $phone = null,
+        public ?string $created_at = null,
+        public ?string $updated_at = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -32,8 +32,6 @@ class UserWriteData
             zip: $data['zip'] ?? null,
             country: $data['country'] ?? null,
             phone: $data['phone'] ?? null,
-            ico: $data['ico'] ?? null,
-            dic: $data['dic'] ?? null,
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,
         );
@@ -50,8 +48,6 @@ class UserWriteData
             'zip' => $this->zip,
             'country' => $this->country,
             'phone' => $this->phone,
-            'ico' => $this->ico,
-            'dic' => $this->dic,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -1,5 +1,11 @@
 @extends('layouts.frontend')
 
+@use('App\Domain\Payment\Enums\PaymentMethodCode')
+{{-- Taken before the payment method options are replaced by their labels below --}}
+@php
+$bankTransferMethodId = array_search(PaymentMethodCode::BANK_ACCOUNT->value, $paymentMethods ?? [], true) ?: null;
+@endphp
+
 @php
 /**
 * Helper for getting field by name
@@ -16,32 +22,10 @@ return null;
 }
 
 /**
-* Generating classes for fields
-*/
-if (!function_exists('getCreateFieldClasses')) {
-function getCreateFieldClasses($fieldName, $supplierFields, $clientFields, $invoiceFields) {
-$classes = [];
-if(in_array($fieldName, $invoiceFields)) {
-$classes[] = 'bg-blue-50';
-}
-
-if(in_array($fieldName, $supplierFields)) {
-$classes[] = 'bg-[#FDFDFC] supplier-field';
-}
-
-if(in_array($fieldName, $clientFields)) {
-$classes[] = 'bg-[#FDFDFC] client-field';
-}
-
-return implode(' ', $classes);
-}
-}
-
-/**
 * Generating common attributes for input fields
 */
 if (!function_exists('renderCreateInputAttributes')) {
-function renderCreateInputAttributes($field, $supplierFields, $userInfo, $suggestedNumber = false) {
+function renderCreateInputAttributes($field, $suggestedNumber = false) {
 $attributes = [];
 // Field type
 $attributes[] = 'type="' . $field['type'] . '"';
@@ -67,9 +51,7 @@ $attributes[] = 'placeholder="' . $field['placeholder'] . '"';
 }
 
 // Value - different sources based on field type
-if(in_array($field['name'], $supplierFields)) {
-$attributes[] = 'value="' . old($field['name'], $userInfo[$field['name'] ?? ''] ?? '') . '"';
-} elseif($field['name'] === 'issue_date') {
+if($field['name'] === 'issue_date') {
 $attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
 } elseif($field['name'] === 'tax_point_date') {
 $attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
@@ -83,23 +65,11 @@ return implode(' ', $attributes);
 }
 }
 
-$invoiceFields = ['invoice_vs', 'invoice_ks', 'invoice_ss', 'issue_date', 'tax_point_date', 'payment_method_id',
-'due_in', 'payment_amount', 'payment_currency', 'payment_status'];
-$supplierFields = ['name', 'email', 'phone', 'street', 'city', 'zip', 'country', 'ico', 'dic', 'account_number',
-'bank_code', 'bank_name', 'iban', 'swift', 'supplier_logo'];
-$clientFields = ['client_name', 'client_email', 'client_phone', 'client_street', 'client_city', 'client_zip',
-'client_country', 'client_ico', 'client_dic'];
 $fieldDescription = getCreateFieldByName($fields, 'invoice_text');
 
 // Fields to determine start and end of sections
-$sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id', 'supplier_id', 'email',
-'city', 'ico', 'account_number', 'iban', 'client_id', 'client_email', 'client_city', 'client_ico'];
-$sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency', 'supplier_id', 'phone', 'country',
-'dic', 'bank_name',
-'swift', 'client_id', 'client_phone', 'client_country', 'client_dic'];
-
-// Fields for special layout division
-$specialLayoutFields = ['tax_point_date', 'payment_status_id', 'swift'];
+$sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id'];
+$sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
 
 $formAction = $userLoggedIn ? route('frontend.invoice.store', ['locale' => app()->getLocale()]) :
 route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
@@ -134,8 +104,6 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
 
 <form id="invoice-form" method="POST" action="{{ $formAction }}" enctype="multipart/form-data"
     data-user-logged-in="{{ $userLoggedIn ? 'true' : 'false' }}"
-    data-supplier-required="{{ __('invoices.validation.supplier_required') }}"
-    data-client-required="{{ __('invoices.validation.client_required') }}"
     data-amount-required="{{ __('invoices.validation.amount_required') }}"
     data-amount-numeric="{{ __('invoices.validation.amount_numeric') }}"
     data-amount-positive="{{ __('invoices.validation.amount_positive') }}"
@@ -156,25 +124,12 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
             <div class="grid grid-cols-1 md:grid-cols-5 md:col-span-4 gap-6">
                 @foreach($fields as $field)
                 @if($field['name'] !== 'invoice_text' && $field['name'] !== 'template')
-                @php
-                $fieldClasses = getCreateFieldClasses($field['name'], $supplierFields, $clientFields, $invoiceFields);
-                @endphp
-
                 @if(in_array($field['name'], $sectionStartFields))
-                <div class="grid grid-cols-1
-                            @if(
-                                $field['name'] === 'payment_amount' ||
-                                $field['name'] === 'supplier_id' ||
-                                $field['name'] === 'client_id')md:grid-cols-5
-                            @elseif(
-                                $field['name'] === 'account_number' ||
-                                $field['name'] === 'city' ||
-                                $field['name'] === 'client_city')md:grid-cols-10
-                            @else md:grid-cols-4
-                            @endif gap-6 mb-5">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-5">
                     @endif
 
                     @if($field['name'] === 'invoice_logo')
+                    @guest
                     <!-- Supplier logo -->
                     <div class="md:col-span-1">
                         <label for="invoice_logo"
@@ -191,8 +146,8 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                         <div class="">
                             <div id="image-preview-container" class="flex justify-between items-center">
                                 <img id="current-image-preview"
-                                    src="{{ Storage::disk('public')->url('suppliers/logos/no_logo.png') }}" alt=""
-                                    class="max-w-full max-h-20 object-cover rounded-sm m-auto">
+                                    src="" alt=""
+                                    class="hidden max-w-full max-h-20 object-cover rounded-sm m-auto">
                             </div>
                         </div>
 
@@ -200,8 +155,9 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                    @endguest
                     <!-- Start 4 col parent grid -->
-                    <div class="md:col-span-4 grid grid-cols-1">
+                    <div @class(['grid grid-cols-1', 'md:col-span-4' => !auth()->check(), 'md:col-span-6' => auth()->check()])>
 
                         @elseif($field['name'] === 'invoice_vs')
                         <!-- Invoice number -->
@@ -212,7 +168,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                             </label>
                             <div class="grid grid-cols-10">
                                 <div class="col-span-9">
-                                    <input {!! renderCreateInputAttributes($field, $supplierFields, $userInfo ?? [],
+                                    <input {!! renderCreateInputAttributes($field,
                                         $suggestedNumber) !!}
                                         class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                                 </div>
@@ -241,74 +197,6 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                                 hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                         </div>
 
-                        @elseif($field['name'] === 'supplier_id')
-                        @if($userLoggedIn)
-                        @php
-                        // userInfo data if exists
-                        $value = old($field['name'], $userInfo[$field['name']] ?? '');
-                        @endphp
-                        <!-- Supplier select -->
-                        <div class="md:col-span-4">
-                            <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $userInfo['supplier_id'] ?? '')" required="true"
-                                :options="$suppliers" hint="{{ $field['hint'] }}" class="bg-[#FDFDFC] supplier-select"
-                                labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}" />
-                        </div>
-
-                        <div class="md:col-span-1">
-                            @if(isset($field['label']) && $field['label'] !== '')
-                            <label class="invisible block text-base font-medium text-gray-900 dark:text-white mb-2">
-                                {{ __('suppliers.actions.edit_short') }}
-                            </label>
-                            @endif
-                            @php
-                            $supplierId = $userInfo['supplier_id'] ?? null;
-                            $supplierEditUrl = $supplierId ? route('frontend.supplier.edit', ['locale' =>
-                            app()->getLocale(), 'id' => $supplierId]) : '#';
-                            @endphp
-                            <a href="{{ $supplierEditUrl }}" id="edit-supplier-link"
-                                class="inline-flex justify-center py-2 px-5 shadow-sm dark:shadow-none shadow-indigo-600/30 text-md font-semibold rounded-sm text-white bg-[#490BF4] hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 {{ empty($supplierId) ? 'pointer-events-none opacity-50' : '' }}">
-                                {{ __('suppliers.actions.edit_short') }}
-                            </a>
-                        </div>
-                        @endif
-
-                        @elseif($field['name'] === 'client_id')
-                        @if($userLoggedIn)
-                        @php
-                        // clientInfo data if exists
-                        $value = old($field['name'], $clientInfo[$field['name']] ?? '');
-                        // editLink Route
-                        if(isset($userInfo['client_id']) && $userInfo['client_id'] !== '') {
-                        $editLinkRoute = route('frontend.client.edit',
-                        ['id' => $userInfo['client_id'], 'locale' => app()->getLocale()]
-                        );
-                        } else {
-                        $editLinkRoute = '#';
-                        }
-                        @endphp
-                        <!-- Client select -->
-                        <div class="md:col-span-4">
-                            <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $clientInfo['client_id'] ?? '')" required="true"
-                                :options="$clients" hint="{{ $field['hint'] }}" class="bg-[#FDFDFC] client-select"
-                                labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}" />
-                        </div>
-                        <div class="md:col-span-1">
-                            @if(isset($field['label']) && $field['label'] !== '')
-                            <label class="invisible block text-base font-medium text-gray-900 dark:text-white mb-2">
-                                {{ __('clients.actions.edit_short') }}
-                            </label>
-                            @endif
-                            <a href="{{ $editLinkRoute }}" id="edit-client-link"
-                                class="inline-flex justify-center py-2 px-5 shadow-sm dark:shadow-none shadow-indigo-600/30 text-md font-semibold rounded-sm bg-[#490BF4] hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 {{ empty($invoice->client_id) ? 'pointer-events-none' : '' }}">
-                                {{ __('clients.actions.edit_short') }}
-                            </a>
-                        </div>
-                        @endif
-
                         @elseif($field['name'] === 'payment_method_id')
                         <!-- Payment method -->
                         <div class="md:col-span-1">
@@ -319,7 +207,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                             $marginBottomClass = !isset($field['hint']) || $field['hint'] === '' ? 'mb-6' : '';
                             @endphp
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" :selected="old($field['name'], '7')"
+                                id="{{ $field['name'] }}" :selected="old($field['name'], $bankTransferMethodId)"
                                 required="{{ isset($field['required']) ? $field['required'] : ''}}"
                                 :options="$paymentMethods" hint="{{ $field['hint'] }}"
                                 class="bg-blue-50 {{ $marginBottomClass }}" labelClass="" />
@@ -351,47 +239,17 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                             hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                     </div>
 
-                    @elseif($field['name'] === 'country')
-                    <div class="md:col-span-3 mb-5">
-                        <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            valueField="id" :selected="old($field['name'], $userInfo['country'] ?? 'CZ')"
-                            required="{{ isset($field['required']) ? $field['required'] : ''}}"
-                            :options="$field['options']" hint="{{ $field['hint'] }}" labelClass="" allowsNull="true"
-                            placeholder="{{ $field['placeholder'] }}"
-                            class="{{ in_array($field['name'], $supplierFields) ? 'bg-[#FDFDFC] supplier-field country-select' : '' }}" />
-                    </div>
-
-                    @elseif($field['name'] === 'client_country')
-                    <div class="md:col-span-3 mb-5">
-                        <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            valueField="id" :selected="old($field['name'], $userInfo['client_country'] ?? 'CZ')"
-                            required="{{ isset($field['required']) ? $field['required'] : ''}}"
-                            :options="$field['options']" hint="{{ $field['hint'] }}" labelClass="" allowsNull="true"
-                            placeholder="{{ $field['placeholder'] }}"
-                            class="{{ in_array($field['name'], $clientFields) ? 'bg-[#FDFDFC] client-field country-select' : '' }}" />
-                    </div>
-
-                    @elseif($field['name'] === 'bank_code')
-                    <div class="md:col-span-3">
-                        <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            :selected="old($field['name'], $invoice->bank_code ?? $defaultSupplier->bank_code ?? '')"
-                            required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$banks"
-                            placeholder="{{ __('suppliers.placeholders.bank_code') }}" hint="{{ $field['hint'] }}"
-                            class="bg-[#FDFDFC] supplier-field" labelClass="" />
-                    </div>
-
                     @elseif($field['name'] === 'invoice_ks')
                     <div class="md:col-span-1">
                         <label for="{{ $field['name'] }}"
                             class="block text-base font-medium text-gray-900 dark:text-white mb-2">
                             {{ $field['label'] }}
-                            @if(isset($field['required']) && $field['required'] === true && $field['name'] !==
-                            'name' && $field['name'] !== 'client_name')
+                            @if(isset($field['required']) && $field['required'] === true)
                             <span class="text-red-500">*</span>
                             @endif
                         </label>
-                        <input {!! renderCreateInputAttributes($field, $supplierFields, $userInfo ?? []) !!}
-                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 {{ $fieldClasses }}">
+                        <input {!! renderCreateInputAttributes($field) !!}
+                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                         @if(isset($field['hint']) && $field['hint'] !== '')
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             {{ $field['hint'] }}
@@ -404,45 +262,16 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
 
                     @else
                     <!-- Other fields -->
-                    @php
-                    $containerId = '';
-                    if ($field['name'] === 'name') {
-                    $containerId = 'supplier_name_container';
-                    } elseif ($field['name'] === 'client_name') {
-                    $containerId = 'client_name_container';
-                    } else {
-                    $containerId = $field['name'] . '_container';
-                    }
-                    $marginClass = in_array($field['name'], ['name', 'street', 'client_name', 'client_street']) ?
-                    'mb-5' : '';
-
-                    $columnSpan = '';
-                    if(in_array($field['name'], ['account_number', 'city', 'client_city'])) {
-                    $columnSpan = 'md:col-span-4';
-                    } elseif(in_array($field['name'], ['bank_code', 'bank_name', 'zip', 'client_zip'])) {
-                    $columnSpan = 'md:col-span-3';
-                    } elseif(in_array($field['name'], ['ico', 'dic', 'email', 'phone', 'city', 'zip', 'iban', 'swift',
-                    'client_ico', 'client_dic', 'client_email', 'client_phone'])) {
-                    $columnSpan = 'md:col-span-2';
-                    } else {
-                    $columnSpan = 'md:col-span-1';
-                    }
-                    @endphp
-                    <div class="{{ $marginClass }} {{ $columnSpan }}" id="{{ $containerId }}">
+                    <div class="md:col-span-1" id="{{ $field['name'] }}_container">
                         <label for="{{ $field['name'] }}"
                             class="block text-base font-medium text-gray-900 dark:text-white mb-2">
                             {{ $field['label'] }}
-                            @if(isset($field['required']) && $field['required'] === true && $field['name'] !== 'name' &&
-                            $field['name'] !== 'client_name')
+                            @if(isset($field['required']) && $field['required'] === true)
                             <span class="text-red-500">*</span>
-                            @elseif($field['name'] === 'name')
-                            <span id="supplier-name-required" class="text-red-500">*</span>
-                            @elseif($field['name'] === 'client_name')
-                            <span class="text-red-500" id="client-name-required">*</span>
                             @endif
                         </label>
-                        <input {!! renderCreateInputAttributes($field, $supplierFields, $userInfo ?? []) !!}
-                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500 {{ $fieldClasses }}">
+                        <input {!! renderCreateInputAttributes($field) !!}
+                            class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                         @if(isset($field['hint']) && $field['hint'] !== '')
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             {{ $field['hint'] }}
@@ -462,33 +291,14 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
             </div> <!-- close 5 col grid -->
         </div> <!-- close p-6 -->
     </div> <!-- close bg-white -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div
-            class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800">
-            <div class="p-6">
-                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">{{
-                    __('invoices.sections.seller_details') }}</h2>
-                <div>
+    @endif
 
-                    @elseif($field['name'] === 'swift')
-                </div>
-            </div>
-        </div>
-        <div
-            class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-20 dark:shadow-gray-900/30 dark:bg-gray-800">
-            <div class="p-6">
-                <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">{{
-                    __('invoices.sections.client_details') }}</h2>
-                <div>
+    @endif
+    @endforeach
 
-                    @elseif($field['name'] === 'client_country')
-                </div>
-                @endif
-
-                @endif
-                @endforeach
-            </div>
-        </div>
+    <div class="mb-8">
+        <livewire:party.document-party-picker :guest="! $userLoggedIn" :business-id="$businessId ?? null"
+            :contact-id="$contactId ?? null" :bank-transfer-method-id="$bankTransferMethodId" />
     </div>
 
     <!-- Section 4: Invoice Description -->
@@ -654,36 +464,36 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
     <div class="flex justify-end mb-10">
         <!-- Invoice items total sum -->
         <div class="grid grid-cols-12 mt-5 mb-4 pt-3">
-            <div class="col-span-10 text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2">
+            <div class="col-span-6 md:col-span-10 text-xl md:text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2">
                 {{ __('invoices.labels.total_without_tax') }}:</div>
-            <div class="col-span-2 font-bold text-3xl text-right pl-2 pt-2 dark:text-white"
+            <div class="col-span-6 md:col-span-2 font-bold text-xl md:text-3xl text-right whitespace-nowrap md:whitespace-normal pl-2 pt-2 dark:text-white"
                 id="invoice-items-total-without-tax">
                 0.00</div>
-            <div class="col-span-10 text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2">
+            <div class="col-span-6 md:col-span-10 text-xl md:text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2">
                 {{ __('invoices.labels.total_tax') }}:</div>
-            <div class="col-span-2 font-bold text-3xl text-right pl-2 pt-2 dark:text-white"
+            <div class="col-span-6 md:col-span-2 font-bold text-xl md:text-3xl text-right whitespace-nowrap md:whitespace-normal pl-2 pt-2 dark:text-white"
                 id="invoice-items-total-tax">
                 0.00</div>
             <div
-                class="col-span-10 text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2 mt-2 border-t-3 border-[#490BF4] dark:border-gray-700">
+                class="col-span-6 md:col-span-10 text-xl md:text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2 mt-2 border-t-3 border-[#490BF4] dark:border-gray-700">
                 {{ __('invoices.fields.total') }}:</div>
-            <div class="col-span-2 font-bold text-3xl text-right pl-2 pt-2 mt-2 border-t-3 border-[#490BF4] dark:border-gray-700 dark:text-white"
+            <div class="col-span-6 md:col-span-2 font-bold text-xl md:text-3xl text-right whitespace-nowrap md:whitespace-normal pl-2 pt-2 mt-2 border-t-3 border-[#490BF4] dark:border-gray-700 dark:text-white"
                 id="invoice-items-total">
                 0.00</div>
         </div>
     </div>
-    <div class="flex @if($userLoggedIn)justify-between @else justify-between @endif mb-20 md:mb-10">
-        <div class="flex space-x-4">
+    <div class="flex flex-wrap justify-between gap-4 mb-20 md:mb-10">
+        <div class="flex flex-wrap gap-4">
             @if($userLoggedIn)
             <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
-                class="inline-flex justify-center py-6 px-12 border border-white dark:border-gray-700 shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-200 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                class="inline-flex justify-center px-6 py-4 md:px-12 md:py-6 border border-white dark:border-gray-700 shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-200 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                 {{ __('invoices.actions.cancel') }}
             </a>
             @endif
 
             <!-- Template Settings Button -->
             <button type="button"
-                class="template-settings-btn inline-flex items-center px-6 py-6 border border-gray-300 dark:border-gray-600 shadow-xl shadow-gray-400/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-600 dark:hover:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                class="template-settings-btn inline-flex items-center px-4 py-4 md:px-6 md:py-6 border border-gray-300 dark:border-gray-600 shadow-xl shadow-gray-400/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-600 dark:hover:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
                 <i class="fas fa-cog mr-2"></i>
                 <span class="template-name">{{ __('invoices.templates.default') }}</span>
                 <span class="ml-2">{{ __('invoices.labels.template_settings') }}</span>
@@ -692,7 +502,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
 
         <div class="flex">
             <button type="submit"
-                class="inline-flex items-center px-12 py-6 border border-transparent rounded-sm dark:shadow-md shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 text-lg font-semibold text-white hover:text-white bg-[#490BF4] hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer transition-colors duration-200">
+                class="inline-flex items-center px-6 py-4 md:px-12 md:py-6 border border-transparent rounded-sm dark:shadow-md shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 text-lg font-semibold text-white hover:text-white bg-[#490BF4] hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer transition-colors duration-200">
                 <i class="fas fa-save mr-2"></i>
                 {{ __('invoices.actions.create') }}
             </button>
@@ -1016,12 +826,6 @@ function addClassToNumOfWordsInStrByClass(selectClass, addClass, numWords = 1, s
     console.log('New HTML:', newHTML);
 }
 </script>
-<script>
-    // Make bank options available to the bank-fields.js script
-    window.bankOptions = {{ Js::from($banksData) }};
-</script>
-@vite('resources/js/bank-fields.js')
-@vite('resources/js/ares-lookup.js')
 @vite('resources/js/invoice-form.js')
 @vite('resources/js/image-preview.js')
 @vite('resources/js/template-selector.js')

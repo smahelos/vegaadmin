@@ -3,7 +3,7 @@
 namespace App\Infrastructure\Notifications\Invoice;
 
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
-use App\Domain\Invoice\Notifications\DTO\InvoiceReminderPayload;
+use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder;
@@ -15,7 +15,7 @@ class LaravelInvoiceReminderNotifier implements InvoiceReminderNotifierInterface
 {
     public function send(
         InvoiceReminderType $type,
-        InvoiceReminderPayload $payload,
+        InvoiceReminderDTO $payload,
         Recipient $recipient,
     ): void {
         $notification = match ($type) {

@@ -39,7 +39,7 @@
 
                 <!-- Left column -->
                 @php
-                $leftColumnFields = ['name', 'slug', 'category_id', 'tax_id', 'price', 'currency', 'supplier_id'];
+                $leftColumnFields = ['name', 'slug', 'category_id', 'tax_id', 'price', 'currency'];
                 @endphp
                 @foreach($fields as $field)
                 @if ($field['name'] === 'name' || $field['name'] === 'price')
@@ -76,17 +76,6 @@
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
                                 id="{{ $field['name'] }}" valueField="id"
                                 :selected="old($field['name'], $product->currency ?? '')"
-                                required="{{ isset($field['required']) ? $field['required'] : ''}}"
-                                :options="$field['options']" hint="{{ $field['hint'] }}" class="bg-[#FDFDFC]"
-                                labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}" />
-                        </div>
-
-                        @elseif ($field['name'] === 'supplier_id')
-                        <!-- Product Supplier -->
-                        <div class="mb-5">
-                            <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $product->supplier_id ?? '')"
                                 required="{{ isset($field['required']) ? $field['required'] : ''}}"
                                 :options="$field['options']" hint="{{ $field['hint'] }}" class="bg-[#FDFDFC]"
                                 labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}" />
@@ -188,7 +177,7 @@
                                     <p id="no-image-message" class="text-gray-500 dark:text-gray-400">{{
                                         __('products.messages.no_image_selected') }}</p>
                                     <img id="current-image-preview"
-                                        src="{{ Storage::disk('public')->url('suppliers/logos/no_logo.png') }}"
+
                                         alt="{{ $product->name }}" class="max-h-40 object-cover rounded-sm hidden">
                                     @endif
                                 </div>

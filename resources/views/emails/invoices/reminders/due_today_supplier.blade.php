@@ -7,7 +7,7 @@
     @endphp
 
     <p class="paragraph">
-        {{ __('invoices.reminders.due_today_intro_supplier', ['number' => $invoice->invoice_vs, 'client' => $invoice->client_name]) }}
+        {{ __('invoices.reminders.due_today_intro_supplier', ['number' => $invoiceNumber, 'client' => $customerName]) }}
     </p>
 
     <p class="paragraph">
@@ -20,15 +20,15 @@
                 {{ __('invoices.fields.invoice_vs') }}
             </th>
             <td style="text-align: right; padding: 8px; border-bottom: 1px solid #e8e5ef;">
-                {{ $invoice->invoice_vs }}
+                {{ $invoiceNumber }}
             </td>
         </tr>
         <tr>
             <th style="text-align: left; padding: 8px; border-bottom: 1px solid #e8e5ef;">
-                {{ __('invoices.fields.client_id') }}
+                {{ __('invoices.fields.customer') }}
             </th>
             <td style="text-align: right; padding: 8px; border-bottom: 1px solid #e8e5ef;">
-                {{ $invoice->client_name }}
+                {{ $customerName }}
             </td>
         </tr>
         <tr>
@@ -36,7 +36,7 @@
                 {{ __('invoices.fields.amount') }}
             </th>
             <td style="text-align: right; padding: 8px; border-bottom: 1px solid #e8e5ef;">
-                {{ $invoice->payment_amount }} {{ $invoice->payment_currency }}
+                {{ $formattedAmount }}
             </td>
         </tr>
         <tr>
@@ -52,9 +52,9 @@
     <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
         <tr>
             <td align="center">
-                <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}" 
-                   class="button" 
-                   target="_blank" 
+                <a href="{{ $invoiceUrl }}"
+                   class="button"
+                   target="_blank"
                    rel="noopener">
                     {{ __('invoices.reminders.view_invoice') }}
                 </a>
