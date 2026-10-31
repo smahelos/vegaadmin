@@ -71,12 +71,16 @@ final class InvoiceContactApplicationService
     public function saveCustomerToContacts(UserId $userId, InvoiceId $invoiceId): ContactId
     {
         return $this->transactions->transaction(function () use ($userId, $invoiceId): ContactId {
-            $invoice = $this->get($userId, $invoiceId);
+            $invoice = $this->invoices->findByIdForUserForUpdate($invoiceId, $userId)
+                ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
             if ($invoice->parties->contactId !== null) {
                 return $invoice->parties->contactId;
             }
 
-            $contact = $this->contacts->create($userId, new ContactWriteData($invoice->parties->customer->toProfile(), null));
+            $contact = $this->contacts->create(
+                $userId,
+                new ContactWriteData($invoice->parties->customer->toProfile(), null),
+            );
             $this->invoiceWriter->linkContact($invoiceId, $contact->id);
 
             return $contact->id;

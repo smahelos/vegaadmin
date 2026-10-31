@@ -33,6 +33,19 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         return $model ? $this->mapper->toDto($model) : null;
     }
 
+    public function findByIdForUserForUpdate(InvoiceId $id, UserId $userId): ?InvoiceDTO
+    {
+        $query = Invoice::query();
+        $query->with('invoiceProducts');
+        $query->whereKey($id->getValue());
+        $query->where('user_id', $userId->toInt());
+        $query->lockForUpdate();
+
+        $model = $query->first();
+
+        return $model === null ? null : $this->mapper->toDto($model);
+    }
+
     public function create(InvoiceWriteData $writeData): InvoiceDTO
     {
         // Delegate attribute mapping to mapper to keep logic centralized

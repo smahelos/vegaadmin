@@ -88,6 +88,20 @@ final class InvoiceContactControllerTest extends TestCase
     }
 
     #[Test]
+    public function repeated_save_to_contacts_requests_keep_the_existing_contact(): void
+    {
+        $user = $this->frontendUser();
+        $invoice = $this->invoiceOf($user);
+        $invoice->update(['customer_company_number' => null]);
+        $this->actingAs($user);
+        $this->post(route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]))->assertSessionHasNoErrors();
+        $contactId = $invoice->fresh()->contact_id;
+        $this->post(route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]))->assertSessionHasNoErrors();
+        $this->assertSame($contactId, $invoice->fresh()->contact_id);
+        $this->assertSame(1, Contact::where('user_id', $user->id)->count());
+    }
+
+    #[Test]
     public function the_invoice_is_linked_to_a_contact_with_the_customers_company_number(): void
     {
         $user = $this->frontendUser();
