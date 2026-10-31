@@ -20,6 +20,101 @@ final readonly class BankAccount
      */
     private const LOCAL_NUMBER_COUNTRIES = [Country::CZ, Country::SK];
 
+    /** National BBAN formats from the SWIFT IBAN Registry, release 103 (September 2026).
+     * @see https://www.swift.com/resource/iban-registry-pdf
+     */
+    private const BBAN_FORMATS = [
+        'AD' => '[0-9]{8}[A-Z0-9]{12}',
+        'AE' => '[0-9]{19}',
+        'AL' => '[0-9]{8}[A-Z0-9]{16}',
+        'AT' => '[0-9]{16}',
+        'AZ' => '[A-Z]{4}[A-Z0-9]{20}',
+        'BA' => '[0-9]{16}',
+        'BE' => '[0-9]{12}',
+        'BG' => '[A-Z]{4}[0-9]{6}[A-Z0-9]{8}',
+        'BH' => '[A-Z]{4}[A-Z0-9]{14}',
+        'BI' => '[0-9]{23}',
+        'BR' => '[A-Z0-9]{8}[0-9]{15}[A-Z0-9]{2}',
+        'BY' => '[A-Z0-9]{4}[0-9]{4}[A-Z0-9]{16}',
+        'CH' => '[0-9]{5}[A-Z0-9]{12}',
+        'CR' => '[0-9]{18}',
+        'CY' => '[0-9]{8}[A-Z0-9]{16}',
+        'CZ' => '[0-9]{20}',
+        'DE' => '[0-9]{18}',
+        'DJ' => '[0-9]{23}',
+        'DK' => '[0-9]{14}',
+        'DO' => '[A-Z0-9]{4}[0-9]{20}',
+        'EE' => '[0-9]{16}',
+        'EG' => '[0-9]{25}',
+        'ES' => '[0-9]{20}',
+        'FI' => '[0-9]{14}',
+        'FK' => '[A-Z]{2}[0-9]{12}',
+        'FO' => '[0-9]{14}',
+        'FR' => '[0-9]{10}[A-Z0-9]{11}[0-9]{2}',
+        'GB' => '[A-Z]{4}[0-9]{14}',
+        'GE' => '[A-Z]{2}[0-9]{16}',
+        'GI' => '[A-Z]{4}[A-Z0-9]{15}',
+        'GL' => '[0-9]{14}',
+        'GR' => '[0-9]{7}[A-Z0-9]{16}',
+        'GT' => '[A-Z0-9]{24}',
+        'HN' => '[A-Z]{4}[0-9]{20}',
+        'HR' => '[0-9]{17}',
+        'HU' => '[0-9]{24}',
+        'IE' => '[A-Z]{4}[0-9]{14}',
+        'IL' => '[0-9]{19}',
+        'IQ' => '[A-Z]{4}[0-9]{15}',
+        'IS' => '[0-9]{22}',
+        'IT' => '[A-Z]{1}[0-9]{10}[A-Z0-9]{12}',
+        'JO' => '[A-Z]{4}[0-9]{4}[A-Z0-9]{18}',
+        'KW' => '[A-Z]{4}[A-Z0-9]{22}',
+        'KZ' => '[0-9]{3}[A-Z0-9]{13}',
+        'LB' => '[0-9]{4}[A-Z0-9]{20}',
+        'LC' => '[A-Z]{4}[A-Z0-9]{24}',
+        'LI' => '[0-9]{5}[A-Z0-9]{12}',
+        'LT' => '[0-9]{16}',
+        'LU' => '[0-9]{3}[A-Z0-9]{13}',
+        'LV' => '[A-Z]{4}[A-Z0-9]{13}',
+        'LY' => '[0-9]{21}',
+        'MC' => '[0-9]{10}[A-Z0-9]{11}[0-9]{2}',
+        'MD' => '[A-Z0-9]{20}',
+        'ME' => '[0-9]{18}',
+        'MK' => '[0-9]{3}[A-Z0-9]{10}[0-9]{2}',
+        'MN' => '[0-9]{16}',
+        'MR' => '[0-9]{23}',
+        'MT' => '[A-Z]{4}[0-9]{5}[A-Z0-9]{18}',
+        'MU' => '[A-Z]{4}[0-9]{19}[A-Z]{3}',
+        'NI' => '[A-Z]{4}[0-9]{20}',
+        'NL' => '[A-Z]{4}[0-9]{10}',
+        'NO' => '[0-9]{11}',
+        'OM' => '[0-9]{3}[A-Z0-9]{16}',
+        'PK' => '[A-Z]{4}[A-Z0-9]{16}',
+        'PL' => '[0-9]{24}',
+        'PS' => '[A-Z]{4}[A-Z0-9]{21}',
+        'PT' => '[0-9]{21}',
+        'QA' => '[A-Z]{4}[A-Z0-9]{21}',
+        'RO' => '[A-Z]{4}[A-Z0-9]{16}',
+        'RS' => '[0-9]{18}',
+        'RU' => '[0-9]{14}[A-Z0-9]{15}',
+        'SA' => '[0-9]{2}[A-Z0-9]{18}',
+        'SC' => '[A-Z]{4}[0-9]{20}[A-Z]{3}',
+        'SD' => '[0-9]{14}',
+        'SE' => '[0-9]{20}',
+        'SI' => '[0-9]{15}',
+        'SK' => '[0-9]{20}',
+        'SM' => '[A-Z]{1}[0-9]{10}[A-Z0-9]{12}',
+        'SO' => '[0-9]{19}',
+        'ST' => '[0-9]{21}',
+        'SV' => '[A-Z]{4}[0-9]{20}',
+        'TL' => '[0-9]{19}',
+        'TN' => '[0-9]{20}',
+        'TR' => '[0-9]{6}[A-Z0-9]{16}',
+        'UA' => '[0-9]{6}[A-Z0-9]{19}',
+        'VA' => '[0-9]{18}',
+        'VG' => '[A-Z]{4}[0-9]{16}',
+        'XK' => '[0-9]{16}',
+        'YE' => '[A-Z]{4}[0-9]{4}[A-Z0-9]{18}',
+    ];
+
     private const PREFIX_WEIGHTS = [
         10,
         5,
@@ -209,10 +304,20 @@ final readonly class BankAccount
         }
 
         $country = Country::tryFrom(substr($iban, 0, 2));
-        if ($country === null || self::mod97(substr($iban, 4) . substr($iban, 0, 4)) !== 1) {
-            throw new InvalidBankAccountException(BankAccountProblem::INVALID_IBAN);
-        }
-        if (in_array($country, self::LOCAL_NUMBER_COUNTRIES, true) && preg_match('/^[A-Z]{2}[0-9]{22}$/D', $iban) !== 1) {
+        $format = self::BBAN_FORMATS[$country?->value ?? ''] ?? null;
+        $checkDigits = (int) substr(
+            $iban,
+            2,
+            2,
+        );
+        if (
+            $country === null
+            || $format === null
+            || $checkDigits < 2
+            || $checkDigits > 98
+            || preg_match('/\A' . $format . '\z/', substr($iban, 4)) !== 1
+            || self::mod97(substr($iban, 4) . substr($iban, 0, 4)) !== 1
+        ) {
             throw new InvalidBankAccountException(BankAccountProblem::INVALID_IBAN);
         }
 

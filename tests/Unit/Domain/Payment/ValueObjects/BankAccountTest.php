@@ -92,9 +92,45 @@ final class BankAccountTest extends TestCase
         $this->assertNull($account->bankCode);
     }
 
-    /** @return iterable<string, array{Country, string}> */
-    public static function malformedLocalIbans(): iterable
+    /** @return iterable<string, array{string}> */
+    public static function foreignIbans(): iterable
     {
+        yield 'Austria' => ['AT611904300234573201'];
+        yield 'Germany' => ['DE89370400440532013000'];
+        yield 'United Kingdom' => ['GB29NWBK60161331926819'];
+        yield 'France' => ['FR1420041010050500013M02606'];
+        yield 'Switzerland' => ['CH9300762011623852957'];
+        yield 'Italy' => ['IT60X0542811101000000123456'];
+        yield 'Netherlands' => ['NL91ABNA0417164300'];
+        yield 'Norway' => ['NO9386011117947'];
+        yield 'Poland' => ['PL61109010140000071219812874'];
+        yield 'Saudi Arabia' => ['SA0380000000608010167519'];
+        yield 'Mauritius' => ['MU17BOMM0101101030300200000MUR'];
+        yield 'Brazil' => ['BR9700360305000010009795493P1'];
+    }
+
+    #[Test]
+    #[DataProvider('foreignIbans')]
+    public function national_formats_accept_valid_foreign_accounts(string $iban): void
+    {
+        $account = BankAccount::fromParts(
+            $iban,
+            null,
+            null,
+            null,
+            null,
+        );
+        $this->assertSame($iban, $account->iban);
+    }
+
+    /** @return iterable<string, array{Country, string}> */
+    public static function malformedIbans(): iterable
+    {
+        yield 'short-german-iban' => [Country::DE, '12345678901'];
+        yield 'long-german-iban' => [Country::DE, '3704004405320130000'];
+        yield 'german-letter' => [Country::DE, 'A70400440532013000'];
+        yield 'american-iban' => [Country::US, '12345678901'];
+        yield 'british-numeric-bank' => [Country::GB, '123460161331926819'];
         foreach ([Country::CZ, Country::SK] as $country) {
             yield $country->value . '-extra-digits' => [$country, '2010000000200123456100'];
             yield $country->value . '-missing-digit' => [$country, '2010000000200123456'];
@@ -103,8 +139,8 @@ final class BankAccountTest extends TestCase
     }
 
     #[Test]
-    #[DataProvider('malformedLocalIbans')]
-    public function a_valid_checksum_does_not_allow_a_malformed_local_iban(Country $country, string $bban): void
+    #[DataProvider('malformedIbans')]
+    public function a_valid_checksum_does_not_allow_a_malformed_iban(Country $country, string $bban): void
     {
         $digits = $bban . $country->value . '00';
         $remainder = 0;
