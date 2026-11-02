@@ -85,7 +85,8 @@ final class UserFeatureTest extends TestCase
         $this->assertEmpty($this->user->contacts);
 
         // Create contacts for the user
-        $contact1 = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact1 = $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -93,7 +94,8 @@ final class UserFeatureTest extends TestCase
             ],
         );
 
-        $contact2 = Contact::factory()->create(
+        $contactFactory2 = Contact::factory();
+        $contact2 = $contactFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -127,7 +129,8 @@ final class UserFeatureTest extends TestCase
         $this->assertEmpty($this->user->businesses);
 
         // Create businesses for the user
-        $business1 = Business::factory()->create(
+        $businessFactory = Business::factory();
+        $business1 = $businessFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -135,7 +138,8 @@ final class UserFeatureTest extends TestCase
             ],
         );
 
-        $business2 = Business::factory()->create(
+        $businessFactory2 = Business::factory();
+        $business2 = $businessFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -165,7 +169,8 @@ final class UserFeatureTest extends TestCase
     public function user_can_have_both_contacts_and_businesses(): void
     {
         // Create both contacts and businesses
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -173,7 +178,8 @@ final class UserFeatureTest extends TestCase
             ],
         );
 
-        $business = Business::factory()->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -199,7 +205,8 @@ final class UserFeatureTest extends TestCase
     public function user_deletion_behavior_with_related_models(): void
     {
         // Create related models
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -207,7 +214,8 @@ final class UserFeatureTest extends TestCase
             ],
         );
 
-        $business = Business::factory()->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -279,8 +287,10 @@ final class UserFeatureTest extends TestCase
     #[Test]
     public function invoices_belong_directly_to_the_user_including_one_off_customers(): void
     {
-        $own = Invoice::factory()->create(['user_id' => $this->user->id, 'contact_id' => null]);
-        Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $own = $invoiceFactory->create(['user_id' => $this->user->id, 'contact_id' => null]);
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create();
         $this->assertSame(
             [$own->id],
             $this->user->invoices()->pluck('id')->all(),

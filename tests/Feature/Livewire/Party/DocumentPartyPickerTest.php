@@ -48,7 +48,8 @@ final class DocumentPartyPickerTest extends TestCase
     #[Test]
     public function a_business_without_a_complete_address_is_flagged(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
 
         Livewire::actingAs($this->user)
             ->test(DocumentPartyPicker::class, ['businessId' => $business->id])
@@ -61,7 +62,8 @@ final class DocumentPartyPickerTest extends TestCase
     public function a_stored_invoice_shows_its_business_copy_until_the_user_reloads_it(): void
     {
         $business = $this->businessWithAddress(['name' => 'Aktuální název']);
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $business->id,
@@ -87,7 +89,9 @@ final class DocumentPartyPickerTest extends TestCase
     public function the_selected_account_shows_its_data(): void
     {
         $business = $this->businessWithAddress();
-        BankAccount::factory()->ownedBy($business)->create(
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $bankAccountFactory->create(
             [
                 'number' => '2001234561',
                 'bank_code' => '2010',
@@ -96,7 +100,9 @@ final class DocumentPartyPickerTest extends TestCase
                 'bank_name' => 'Fio banka',
             ],
         );
-        $account = BankAccount::factory()->ownedBy($business)->create(
+        $bankAccountFactory2 = BankAccount::factory();
+        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($business);
+        $account = $bankAccountFactory2->create(
             [
                 'number' => '1234567899',
                 'bank_code' => '0100',
@@ -120,8 +126,11 @@ final class DocumentPartyPickerTest extends TestCase
     public function a_stored_invoice_shows_its_account_copy_until_the_user_reloads_the_business(): void
     {
         $business = $this->businessWithAddress();
-        $account = BankAccount::factory()->ownedBy($business)->create(['bank_name' => 'Aktuální banka']);
-        $invoice = Invoice::factory()->create(
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $account = $bankAccountFactory->create(['bank_name' => 'Aktuální banka']);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $business->id,
@@ -146,7 +155,8 @@ final class DocumentPartyPickerTest extends TestCase
     #[Test]
     public function selecting_a_contact_fills_the_customer(): void
     {
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Odběratel s.r.o.',
@@ -177,13 +187,15 @@ final class DocumentPartyPickerTest extends TestCase
     #[Test]
     public function the_contact_search_lists_only_the_users_contacts(): void
     {
-        Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Hledaný vlastní',
             ],
         );
-        Contact::factory()->create(['name' => 'Hledaný cizí']);
+        $contactFactory2 = Contact::factory();
+        $contactFactory2->create(['name' => 'Hledaný cizí']);
 
         Livewire::actingAs($this->user)
             ->test(DocumentPartyPicker::class)
@@ -210,8 +222,10 @@ final class DocumentPartyPickerTest extends TestCase
      */
     private function businessWithAddress(array $attributes = []): Business
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id, ...$attributes]);
-        Address::factory()->create([
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id, ...$attributes]);
+        $addressFactory = Address::factory();
+        $addressFactory->create([
             'business_id' => $business->id,
             'city' => 'Brno',
         ]);

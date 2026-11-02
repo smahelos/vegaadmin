@@ -15,7 +15,8 @@ class ProductImageHashDedupIntegrationTest extends TestCase
     public function product_image_dedup_reuses_file(): void
     {
         Storage::fake('public');
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
         $file1 = UploadedFile::fake()->image(
             'p1.png',
             220,

@@ -18,7 +18,8 @@ class InvoiceFormFieldsFeatureTest extends TestCase
     {
         // Arrange
         $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
-        $status = Status::factory()->create(['name' => 'Paid']);
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create(['name' => 'Paid']);
 
         $paymentMethods = [$paymentMethod->id => $paymentMethod->name];
         $statuses = [$status->id => $status->name];

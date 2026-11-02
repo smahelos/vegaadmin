@@ -24,11 +24,14 @@ class StatusCategoryCrudControllerTest extends TestCase
     public function show_lists_statuses_of_the_category(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $category = StatusCategory::factory()->create();
-        $status = Status::factory()->create(
+        $statusCategoryFactory = StatusCategory::factory();
+        $category = $statusCategoryFactory->create();
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create(
             ['category_id' => $category->id, 'name' => 'Status ' . uniqid()],
         );
-        $otherStatus = Status::factory()->create(['name' => 'Other ' . uniqid()]);
+        $statusFactory2 = Status::factory();
+        $otherStatus = $statusFactory2->create(['name' => 'Other ' . uniqid()]);
 
         $response = $this->get("/admin/status-category/{$category->id}/show");
 
@@ -62,9 +65,13 @@ class StatusCategoryCrudControllerTest extends TestCase
     public function list_counts_statuses_in_the_list_query(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $category = StatusCategory::factory()->create(['name' => 'Category ' . uniqid()]);
-        Status::factory()->count(2)->create(['category_id' => $category->id]);
-        StatusCategory::factory()->create();
+        $statusCategoryFactory = StatusCategory::factory();
+        $category = $statusCategoryFactory->create(['name' => 'Category ' . uniqid()]);
+        $statusFactory = Status::factory();
+        $statusFactory = $statusFactory->count(2);
+        $statusFactory->create(['category_id' => $category->id]);
+        $statusCategoryFactory2 = StatusCategory::factory();
+        $statusCategoryFactory2->create();
 
         DB::enableQueryLog();
         $response = $this->postJson('/admin/status-category/search', [

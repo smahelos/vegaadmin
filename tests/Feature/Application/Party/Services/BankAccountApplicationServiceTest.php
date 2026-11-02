@@ -38,7 +38,8 @@ final class BankAccountApplicationServiceTest extends TestCase
     #[Test]
     public function the_first_account_of_an_owner_becomes_its_default_and_the_next_one_does_not(): void
     {
-        $contact = Contact::factory()->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create();
         $owner = AccountOwner::contact(
             ContactId::fromInt($contact->id),
         );
@@ -68,7 +69,8 @@ final class BankAccountApplicationServiceTest extends TestCase
     #[Test]
     public function archiving_the_default_account_needs_another_active_account_as_the_default(): void
     {
-        $business = Business::factory()->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
         $owner = AccountOwner::business(
             BusinessId::fromInt($business->id),
         );
@@ -113,7 +115,8 @@ final class BankAccountApplicationServiceTest extends TestCase
     #[Test]
     public function the_last_active_account_leaves_no_default_and_becomes_it_again_when_restored(): void
     {
-        $business = Business::factory()->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
         $owner = AccountOwner::business(
             BusinessId::fromInt($business->id),
         );
@@ -142,8 +145,10 @@ final class BankAccountApplicationServiceTest extends TestCase
     #[Test]
     public function an_account_of_another_owner_of_the_same_user_is_no_replacement(): void
     {
-        $business = Business::factory()->create();
-        $sibling = Business::factory()->create(['user_id' => $business->user_id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+        $businessFactory2 = Business::factory();
+        $sibling = $businessFactory2->create(['user_id' => $business->user_id]);
         $owner = AccountOwner::business(
             BusinessId::fromInt($business->id),
         );
@@ -157,7 +162,9 @@ final class BankAccountApplicationServiceTest extends TestCase
             $owner,
             $this->czechAccount('1234567899', '0100'),
         );
-        $foreign = BankAccount::factory()->ownedBy($sibling)->create();
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($sibling);
+        $foreign = $bankAccountFactory->create();
 
         $this->expectException(BankAccountNotFoundException::class);
 
@@ -172,8 +179,11 @@ final class BankAccountApplicationServiceTest extends TestCase
     #[Test]
     public function an_archived_account_cannot_become_the_default(): void
     {
-        $business = Business::factory()->create();
-        $archived = BankAccount::factory()->ownedBy($business)->create(['archived_at' => now()]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $archived = $bankAccountFactory->create(['archived_at' => now()]);
 
         $this->expectException(BankAccountArchivedException::class);
 
@@ -189,8 +199,11 @@ final class BankAccountApplicationServiceTest extends TestCase
     #[Test]
     public function another_users_owner_and_account_are_not_found(): void
     {
-        $contact = Contact::factory()->create();
-        $account = BankAccount::factory()->ownedBy($contact)->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create();
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $bankAccountFactory->create();
         $stranger = $this->idOf(User::factory()->create());
 
         try {
@@ -219,9 +232,13 @@ final class BankAccountApplicationServiceTest extends TestCase
     #[Test]
     public function updating_an_account_requires_its_selected_owner(): void
     {
-        $business = Business::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $business->user_id]);
-        $account = BankAccount::factory()->ownedBy($business)->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $business->user_id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $account = $bankAccountFactory->create();
 
         $this->expectException(BankAccountNotFoundException::class);
 

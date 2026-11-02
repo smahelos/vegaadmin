@@ -20,7 +20,8 @@ class SessionControllerFeatureTest extends TestCase
     /** @test */
     public function check_auth_returns_authenticated_when_logged_in(): void
     {
-        $user = User::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create(
             ['password' => Hash::make('secret123')],
         );
         $this->actingAs($user, 'web');

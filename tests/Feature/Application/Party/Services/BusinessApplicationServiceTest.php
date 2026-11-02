@@ -205,10 +205,12 @@ final class BusinessApplicationServiceTest extends TestCase
             $this->data('Other'),
             null,
         );
-        $archivedAccount = BankAccount::factory()
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory
             ->ownedBy(
                 Business::query()->findOrFail($other->id->value),
-            )
+            );
+        $archivedAccount = $bankAccountFactory
             ->create(['archived_at' => now()]);
         $this->businesses->archive(
             $this->idOf($user),
@@ -342,7 +344,8 @@ final class BusinessApplicationServiceTest extends TestCase
     public function a_business_and_a_contact_may_share_a_czech_company_number(): void
     {
         $user = $this->frontendUser();
-        Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contactFactory->create(
             [
                 'user_id' => $user->id,
                 'registration_country' => 'CZ',

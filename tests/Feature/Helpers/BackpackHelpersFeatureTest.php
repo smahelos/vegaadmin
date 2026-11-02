@@ -63,7 +63,8 @@ class BackpackHelpersFeatureTest extends TestCase
     #[Test]
     public function backpack_user_returns_authenticated_user(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
 
         $authenticatedUser = backpack_user();
@@ -155,7 +156,8 @@ class BackpackHelpersFeatureTest extends TestCase
         Config::set('backpack.base.route_prefix', 'admin');
 
         // Create and authenticate user
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
 
         // Test all functions work together
@@ -182,7 +184,8 @@ class BackpackHelpersFeatureTest extends TestCase
         Config::set('backpack.base.guard', 'web');
         Config::set('backpack.base.route_prefix', 'backend');
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'web');
 
         $guardName = backpack_guard_name();

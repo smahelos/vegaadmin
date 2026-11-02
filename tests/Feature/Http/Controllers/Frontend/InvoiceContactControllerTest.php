@@ -49,7 +49,8 @@ final class InvoiceContactControllerTest extends TestCase
     #[Test]
     public function a_user_without_the_permissions_is_forbidden(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $invoice = $this->invoiceOf($user);
 
         $this->actingAs($user)
@@ -194,7 +195,9 @@ final class InvoiceContactControllerTest extends TestCase
 
     private function invoiceOf(User $user): Invoice
     {
-        return Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+
+        return $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'customer_name' => 'Odběratel s.r.o.',
@@ -206,7 +209,9 @@ final class InvoiceContactControllerTest extends TestCase
 
     private function contactOf(User $user, string $companyNumber): Contact
     {
-        return Contact::factory()->create(
+        $contactFactory = Contact::factory();
+
+        return $contactFactory->create(
             [
                 'user_id' => $user->id,
                 'company_number' => $companyNumber,

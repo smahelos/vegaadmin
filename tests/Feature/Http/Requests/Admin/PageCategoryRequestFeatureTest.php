@@ -166,7 +166,8 @@ class PageCategoryRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create an existing category
-        $existingCategory = PageCategory::factory()->create(['slug' => 'existing-slug']);
+        $pageCategoryFactory = PageCategory::factory();
+        $existingCategory = $pageCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Test Category',

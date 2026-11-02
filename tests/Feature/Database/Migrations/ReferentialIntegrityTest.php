@@ -35,10 +35,14 @@ final class ReferentialIntegrityTest extends TestCase
     #[Test]
     public function an_invoice_keeps_its_business_contact_account_payment_method_status_and_owner(): void
     {
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
         $business = Business::findOrFail($invoice->business_id);
-        $account = BankAccount::factory()->ownedBy($business)->create();
-        $contact = Contact::factory()->create(['user_id' => $invoice->user_id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $account = $bankAccountFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $invoice->user_id]);
         $invoice->forceFill(
             ['contact_id' => $contact->id, 'bank_account_id' => $account->id],
         )->save();
@@ -71,7 +75,8 @@ final class ReferentialIntegrityTest extends TestCase
     #[Test]
     public function an_invoice_line_keeps_its_product(): void
     {
-        $line = InvoiceProduct::factory()->create();
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $line = $invoiceProductFactory->create();
 
         $this->assertDeleteRefused(
             Product::findOrFail($line->product_id),
@@ -82,9 +87,11 @@ final class ReferentialIntegrityTest extends TestCase
     #[Test]
     public function the_same_product_can_be_on_several_lines_of_one_invoice(): void
     {
-        $line = InvoiceProduct::factory()->create();
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $line = $invoiceProductFactory->create();
 
-        InvoiceProduct::factory()->create(
+        $invoiceProductFactory2 = InvoiceProduct::factory();
+        $invoiceProductFactory2->create(
             [
                 'invoice_id' => $line->invoice_id,
                 'product_id' => $line->product_id,
@@ -100,7 +107,8 @@ final class ReferentialIntegrityTest extends TestCase
     #[Test]
     public function deleting_an_invoice_deletes_its_lines(): void
     {
-        $line = InvoiceProduct::factory()->create();
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $line = $invoiceProductFactory->create();
 
         Invoice::findOrFail($line->invoice_id)->delete();
 
@@ -110,7 +118,8 @@ final class ReferentialIntegrityTest extends TestCase
     #[Test]
     public function a_product_keeps_its_tax_rate_and_category(): void
     {
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
 
         $this->assertDeleteRefused(
             Tax::findOrFail($product->tax_id),
@@ -121,9 +130,13 @@ final class ReferentialIntegrityTest extends TestCase
     #[Test]
     public function an_expense_keeps_its_business_contact_account_category_payment_method_and_status(): void
     {
-        $expense = Expense::factory()->create(['status_id' => Status::factory()]);
-        $contact = Contact::factory()->create(['user_id' => $expense->user_id]);
-        $account = BankAccount::factory()->ownedBy($contact)->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['status_id' => Status::factory()]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $expense->user_id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $bankAccountFactory->create();
         $expense->forceFill(
             ['contact_id' => $contact->id, 'bank_account_id' => $account->id],
         )->save();
@@ -146,7 +159,8 @@ final class ReferentialIntegrityTest extends TestCase
     #[Test]
     public function billex_payments_keep_their_subscription_plan_and_user(): void
     {
-        $payment = Payment::factory()->create();
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create();
         $subscription = $payment->subscription;
 
         $this->assertDeleteRefused($subscription);
@@ -161,8 +175,10 @@ final class ReferentialIntegrityTest extends TestCase
     #[Test]
     public function deleting_a_plan_feature_removes_it_from_plans(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
         DB::table('subscription_plan_subscription_plan_feature')->insert(
             [
                 'subscription_plan_id' => $plan->id,
@@ -178,10 +194,13 @@ final class ReferentialIntegrityTest extends TestCase
     #[Test]
     public function product_slugs_are_unique_per_user(): void
     {
-        $product = Product::factory()->create();
-        $otherUser = User::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
 
-        Product::factory()->create(['user_id' => $otherUser->id, 'slug' => $product->slug]);
+        $productFactory2 = Product::factory();
+        $productFactory2->create(['user_id' => $otherUser->id, 'slug' => $product->slug]);
 
         $this->assertRefused(
             fn () => Product::factory()->create(['user_id' => $product->user_id, 'slug' => $product->slug]),

@@ -13,7 +13,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     public function can_create_database_health_alert(): void
     {
 
-        $alert = DatabaseHealthAlert::factory()->create(
+        $databaseHealthAlertFactory = DatabaseHealthAlert::factory();
+        $alert = $databaseHealthAlertFactory->create(
             [
                 'alert_type' => 'memory',
                 'severity' => 'warning',
@@ -66,7 +67,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     public function casts_work_correctly(): void
     {
 
-        $alert = DatabaseHealthAlert::factory()->create(
+        $databaseHealthAlertFactory = DatabaseHealthAlert::factory();
+        $alert = $databaseHealthAlertFactory->create(
             [
                 'metric_data' => [
                     'value' => 85.5,

@@ -37,7 +37,8 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function can_use_factory_to_create_mysql_optimization_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $log = $mysqlOptimizationLogFactory->create();
 
         $this->assertInstanceOf(MysqlOptimizationLog::class, $log);
         $this->assertDatabaseHas('mysql_optimization_logs', [
@@ -110,12 +111,14 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function applied_attribute_is_cast_to_boolean(): void
     {
-        $log = MysqlOptimizationLog::factory()->create(['applied' => '1']);
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $log = $mysqlOptimizationLogFactory->create(['applied' => '1']);
 
         $this->assertIsBool($log->applied);
         $this->assertTrue($log->applied);
 
-        $log = MysqlOptimizationLog::factory()->create(['applied' => '0']);
+        $mysqlOptimizationLogFactory2 = MysqlOptimizationLog::factory();
+        $log = $mysqlOptimizationLogFactory2->create(['applied' => '0']);
         $this->assertIsBool($log->fresh()->applied);
         $this->assertFalse($log->fresh()->applied);
     }
@@ -152,9 +155,12 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function can_query_logs_by_setting_name(): void
     {
-        MysqlOptimizationLog::factory()->create(['setting_name' => 'innodb_buffer_pool_size']);
-        MysqlOptimizationLog::factory()->create(['setting_name' => 'max_connections']);
-        MysqlOptimizationLog::factory()->create(['setting_name' => 'innodb_buffer_pool_size']);
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $mysqlOptimizationLogFactory->create(['setting_name' => 'innodb_buffer_pool_size']);
+        $mysqlOptimizationLogFactory2 = MysqlOptimizationLog::factory();
+        $mysqlOptimizationLogFactory2->create(['setting_name' => 'max_connections']);
+        $mysqlOptimizationLogFactory3 = MysqlOptimizationLog::factory();
+        $mysqlOptimizationLogFactory3->create(['setting_name' => 'innodb_buffer_pool_size']);
 
         $bufferPoolLogs = MysqlOptimizationLog::where('setting_name', 'innodb_buffer_pool_size')->get();
         $maxConnectionsLogs = MysqlOptimizationLog::where('setting_name', 'max_connections')->get();
@@ -180,7 +186,8 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function can_delete_mysql_optimization_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $log = $mysqlOptimizationLogFactory->create();
         $logId = $log->id;
 
         $log->delete();

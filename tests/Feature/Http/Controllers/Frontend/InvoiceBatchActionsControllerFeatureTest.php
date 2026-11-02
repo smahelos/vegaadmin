@@ -98,7 +98,8 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
     public function batch_actions_template_and_mark_paid_success(): void
     {
         $this->actingAs($this->user);
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
         $response = $this->post(
             route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]),
             [
@@ -114,7 +115,8 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
     public function batch_actions_rejects_invalid_template(): void
     {
         $this->actingAs($this->user);
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
         $response = $this->post(
             route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]),
             [
@@ -128,7 +130,8 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
     public function batch_actions_rejects_unknown_status(): void
     {
         $this->actingAs($this->user);
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
         $response = $this->post(
             route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]),
             [

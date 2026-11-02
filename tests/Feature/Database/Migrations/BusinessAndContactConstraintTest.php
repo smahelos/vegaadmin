@@ -79,7 +79,8 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[DataProvider('parties')]
     public function foreign_and_missing_company_numbers_may_repeat_in_one_account(string $model): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         foreach (
             [
@@ -112,8 +113,10 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[DataProvider('ownedRecords')]
     public function an_address_or_account_needs_exactly_one_owner(string $model): void
     {
-        $business = Business::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $business->user_id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $business->user_id]);
 
         $this->assertRefused(
             fn () => $model::factory()->create(['business_id' => null, 'contact_id' => null]),
@@ -130,11 +133,18 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[Test]
     public function a_default_account_belongs_to_its_owner(): void
     {
-        $business = Business::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $business->user_id]);
-        $otherBusiness = Business::factory()->create(['user_id' => $business->user_id]);
-        $ownAccount = BankAccount::factory()->ownedBy($business)->create();
-        $contactAccount = BankAccount::factory()->ownedBy($contact)->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $business->user_id]);
+        $businessFactory2 = Business::factory();
+        $otherBusiness = $businessFactory2->create(['user_id' => $business->user_id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $ownAccount = $bankAccountFactory->create();
+        $bankAccountFactory2 = BankAccount::factory();
+        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($contact);
+        $contactAccount = $bankAccountFactory2->create();
 
         $business->forceFill(['default_bank_account_id' => $ownAccount->id])->save();
         $contact->forceFill(['default_bank_account_id' => $contactAccount->id])->save();
@@ -155,9 +165,11 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[Test]
     public function the_default_business_belongs_to_the_user(): void
     {
-        $business = Business::factory()->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
         $user = User::findOrFail($business->user_id);
-        $otherUsersBusiness = Business::factory()->create();
+        $businessFactory2 = Business::factory();
+        $otherUsersBusiness = $businessFactory2->create();
 
         $user->forceFill(['default_business_id' => $business->id])->save();
 

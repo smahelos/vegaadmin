@@ -64,8 +64,10 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
     #[Test]
     public function subscribe_endpoint_redirects_to_gateway_url(): void
     {
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create(
             [
                 'price' => 50.00,
                 'currency' => 'EUR',
@@ -101,8 +103,10 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
     #[Test]
     public function duplicate_active_subscription_is_blocked(): void
     {
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create(
             [
                 'price' => 50.00,
                 'currency' => 'EUR',
@@ -139,8 +143,10 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
     #[Test]
     public function invalid_gateway_fails_validation(): void
     {
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create(['is_active' => true]);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create(['is_active' => true]);
         $this->actingAs($user);
 
         $response = $this->post(
@@ -166,8 +172,10 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
     #[Test]
     public function cancel_subscription_flow_sets_cancelled_status(): void
     {
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create(['is_active' => true]);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create(['is_active' => true]);
         $this->actingAs($user);
 
         // Create subscription (pending) through subscribe endpoint

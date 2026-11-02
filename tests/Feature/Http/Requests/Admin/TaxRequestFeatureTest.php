@@ -36,7 +36,8 @@ class TaxRequestFeatureTest extends TestCase
         $this->limitService = app(UniversalLimitService::class);
 
         // Provide generous default limit for taxes
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'can_create_edit_tax',
                 'entity_type' => 'tax',
@@ -235,7 +236,8 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_for_authenticated_user_without_permission(): void
     {
-        $userNoPerm = User::factory()->create();
+        $userFactory = User::factory();
+        $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
 
         $this->postJson('/test-tax', [

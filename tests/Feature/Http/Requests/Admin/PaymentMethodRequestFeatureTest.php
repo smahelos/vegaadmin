@@ -28,7 +28,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
 
         $this->limitService = app(UniversalLimitService::class);
 
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'can_create_edit_payment_method',
                 'entity_type' => 'payment_method',
@@ -137,7 +138,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_for_user_without_permission(): void
     {
-        $userNoPerm = User::factory()->create();
+        $userFactory = User::factory();
+        $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
         $this->postJson('/test-payment-method', [
             'name' => 'No Perm',

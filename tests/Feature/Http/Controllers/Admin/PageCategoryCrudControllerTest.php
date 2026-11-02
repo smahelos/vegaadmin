@@ -138,7 +138,8 @@ class PageCategoryCrudControllerTest extends TestCase
     #[Test]
     public function show_category_requires_authentication(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $response = $this->get("/admin/page-category/{$category->id}/show");
 
@@ -150,7 +151,8 @@ class PageCategoryCrudControllerTest extends TestCase
     {
         $this->actingAs($this->regularUser, 'backpack');
 
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $response = $this->getJson("/admin/page-category/{$category->id}/show");
 
@@ -160,7 +162,8 @@ class PageCategoryCrudControllerTest extends TestCase
     #[Test]
     public function edit_category_requires_authentication(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $response = $this->get("/admin/page-category/{$category->id}/edit");
 
@@ -172,7 +175,8 @@ class PageCategoryCrudControllerTest extends TestCase
     {
         $this->actingAs($this->regularUser, 'backpack');
 
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $response = $this->get("/admin/page-category/{$category->id}/edit");
 
@@ -194,7 +198,8 @@ class PageCategoryCrudControllerTest extends TestCase
     #[Test]
     public function update_category_requires_authentication(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $updateData = [
             'name_cs' => 'Updated Category',
@@ -212,7 +217,8 @@ class PageCategoryCrudControllerTest extends TestCase
     {
         $this->actingAs($this->regularUser, 'backpack');
 
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $updateData = [
             'name' => [
@@ -248,7 +254,8 @@ class PageCategoryCrudControllerTest extends TestCase
     #[Test]
     public function delete_category_requires_authentication(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $response = $this->delete("/admin/page-category/{$category->id}");
 
@@ -261,7 +268,8 @@ class PageCategoryCrudControllerTest extends TestCase
     {
         $this->actingAs($this->regularUser, 'backpack');
 
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         // Delete directly to test business logic
         // HTTP delete has complex Backpack dependencies

@@ -127,7 +127,8 @@ final class PartyListLatestTest extends TestCase
     #[DataProvider('kinds')]
     public function requires_an_authenticated_user_with_the_view_permission(string $kind, string $model): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $model::factory()->create(['user_id' => $user->id]);
 
         Livewire::test(PartyListLatest::class, ['partyType' => $kind])->assertForbidden();

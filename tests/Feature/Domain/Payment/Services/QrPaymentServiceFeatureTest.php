@@ -93,7 +93,8 @@ final class QrPaymentServiceFeatureTest extends TestCase
     #[Test]
     public function changing_and_archiving_the_source_account_does_not_change_the_printed_payment(): void
     {
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'invoice_vs' => '20260042',
                 'payment_amount' => '1234.56',
@@ -105,7 +106,9 @@ final class QrPaymentServiceFeatureTest extends TestCase
             ],
         );
         $business = Business::findOrFail($invoice->business_id);
-        $source = StoredBankAccount::factory()->ownedBy($business)->create(
+        $bankAccountFactory = StoredBankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $source = $bankAccountFactory->create(
             [
                 'iban' => $invoice->account_iban,
                 'number' => $invoice->account_number,

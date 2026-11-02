@@ -40,7 +40,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
     public function changing_the_counterparty_identity_requires_another_contact_or_a_one_off_party(string $type, string $role): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'registration_country' => 'DE',
@@ -90,7 +91,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
     public function a_contact_identity_correction_preserves_the_documents_historical_identity(string $type, string $role): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'registration_country' => 'DE',
@@ -139,14 +141,18 @@ final class AdminDocumentSnapshotsTest extends TestCase
     #[DataProvider('documents')]
     public function opening_edit_keeps_the_document_snapshot_even_when_its_sources_are_archived(string $type, string $role): void
     {
-        $business = Business::factory()->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(
             ['user_id' => $this->adminUser->id, 'name' => 'Changed business source'],
         );
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             ['user_id' => $this->adminUser->id, 'name' => 'Changed contact source'],
         );
         $accountOwner = $type === 'invoice' ? $business : $contact;
-        $account = BankAccount::factory()->ownedBy($accountOwner)->create(['archived_at' => now()]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($accountOwner);
+        $account = $bankAccountFactory->create(['archived_at' => now()]);
         $business->update(['archived_at' => now()]);
         $contact->update(['archived_at' => now()]);
         $model = $type === 'invoice' ? Invoice::class : Expense::class;
@@ -183,8 +189,10 @@ final class AdminDocumentSnapshotsTest extends TestCase
     #[DataProvider('documents')]
     public function a_validation_redirect_keeps_the_stored_reference_separate_from_the_new_selection(string $type, string $role): void
     {
-        $contact = Contact::factory()->create(['user_id' => $this->adminUser->id]);
-        $changed = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
+        $contactFactory2 = Contact::factory();
+        $changed = $contactFactory2->create(
             [
                 'user_id' => $this->adminUser->id,
                 'name' => "O'Conner & Sons <Trading>",

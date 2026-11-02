@@ -163,8 +163,10 @@ class PaymentApplicationServiceFeatureTest extends TestCase
 
     private function createSubscription(): Subscription
     {
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create([
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create([
             'price' => 100.00,
             'currency' => 'CZK',
         ]);

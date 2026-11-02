@@ -15,7 +15,8 @@ trait BuildsBackendUsers
 {
     private function backendUser(string ...$permissions): User
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->assignRole(
             Role::findByName('backend_user', 'backpack'),
         );

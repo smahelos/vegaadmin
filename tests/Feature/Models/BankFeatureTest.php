@@ -19,7 +19,8 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_can_be_created_with_factory(): void
     {
-        $bank = Bank::factory()->create();
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create();
 
         $this->assertInstanceOf(Bank::class, $bank);
         $this->assertDatabaseHas(
@@ -42,7 +43,8 @@ final class BankFeatureTest extends TestCase
         ]);
 
         // Bank accounts reference the bank code
-        $account = BankAccount::factory()->create([
+        $bankAccountFactory = BankAccount::factory();
+        $account = $bankAccountFactory->create([
             'bank_code' => '0100',
         ]);
 
@@ -52,16 +54,19 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_code_must_be_unique(): void
     {
-        $bank1 = Bank::factory()->create(['code' => '1234']);
+        $bankFactory = Bank::factory();
+        $bank1 = $bankFactory->create(['code' => '1234']);
 
         $this->expectException(QueryException::class);
-        Bank::factory()->create(['code' => '1234']);
+        $bankFactory2 = Bank::factory();
+        $bankFactory2->create(['code' => '1234']);
     }
 
     #[Test]
     public function bank_can_be_created_with_minimal_data(): void
     {
-        $bank = Bank::factory()->create(
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create(
             [
                 'name' => 'Test Bank',
                 'code' => '5678',
@@ -84,7 +89,8 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_can_be_created_with_all_optional_fields(): void
     {
-        $bank = Bank::factory()->create(
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create(
             [
                 'name' => 'Full Bank',
                 'code' => '9999',
@@ -111,7 +117,8 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_can_be_updated(): void
     {
-        $bank = Bank::factory()->create([
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create([
             'name' => 'Original Bank',
             'active' => true,
         ]);
@@ -134,7 +141,8 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_can_be_deleted(): void
     {
-        $bank = Bank::factory()->create();
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create();
         $bankId = $bank->id;
 
         $bank->delete();
@@ -147,7 +155,8 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_deletion_works_correctly(): void
     {
-        $bank = Bank::factory()->create();
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create();
         $bankId = $bank->id;
 
         // Bank can be deleted since it's reference data
@@ -174,7 +183,8 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_creation_with_timestamps(): void
     {
-        $bank = Bank::factory()->create();
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create();
 
         $this->assertNotNull($bank->created_at);
         $this->assertNotNull($bank->updated_at);

@@ -44,7 +44,8 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_tests_existing_task_with_daily_frequency(): void
     {
-        $task = CronTask::factory()->create(
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(
             [
                 'name' => 'Test Daily Task',
                 'frequency' => 'daily',
@@ -64,7 +65,8 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_tests_existing_task_with_weekly_frequency(): void
     {
-        $task = CronTask::factory()->create(
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(
             [
                 'name' => 'Test Weekly Task',
                 'frequency' => 'weekly',
@@ -85,7 +87,8 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_tests_existing_task_with_monthly_frequency(): void
     {
-        $task = CronTask::factory()->create(
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(
             [
                 'name' => 'Test Monthly Task',
                 'frequency' => 'monthly',
@@ -106,7 +109,8 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_tests_existing_task_with_custom_expression(): void
     {
-        $task = CronTask::factory()->create(
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(
             [
                 'name' => 'Test Custom Task',
                 'frequency' => 'custom',
@@ -134,7 +138,8 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_handles_task_without_run_at_time(): void
     {
-        $task = CronTask::factory()->create(
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(
             [
                 'name' => 'Test Task Without Time',
                 'frequency' => 'daily',
@@ -154,7 +159,8 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_converts_unknown_frequency_to_default(): void
     {
-        $task = CronTask::factory()->create(
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(
             [
                 'name' => 'Test Unknown Frequency',
                 'frequency' => 'unknown',
@@ -185,7 +191,8 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_can_simulate_task_execution(): void
     {
-        $task = CronTask::factory()->create(
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(
             [
                 'name' => 'Test Simulation',
                 'frequency' => 'daily',
@@ -203,7 +210,8 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_skips_simulation_when_declined(): void
     {
-        $task = CronTask::factory()->create(
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(
             [
                 'name' => 'Test No Simulation',
                 'frequency' => 'daily',

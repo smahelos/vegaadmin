@@ -20,8 +20,10 @@ final class SharedProductCatalogTest extends TestCase
     #[Test]
     public function product_forms_no_longer_need_a_supplier(): void
     {
-        $user = User::factory()->create();
-        $product = Product::factory()->create(['user_id' => $user->id]);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $user->id]);
         $this->actingAs($user, 'web');
         $this->get(
             route('frontend.product.create', ['locale' => 'cs']),
@@ -36,7 +38,8 @@ final class SharedProductCatalogTest extends TestCase
     #[Test]
     public function reading_and_updating_a_product_preserves_its_identity_without_a_supplier_relation(): void
     {
-        $product = Product::factory()->create(['price' => '123.45', 'currency' => 'CZK']);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['price' => '123.45', 'currency' => 'CZK']);
         $dto = app(ProductDtoReadRepositoryInterface::class)->findByIdForUser(
             ProductId::fromInt($product->id),
             UserId::fromInt($product->user_id),
@@ -62,9 +65,12 @@ final class SharedProductCatalogTest extends TestCase
     #[Test]
     public function the_product_list_keeps_the_catalog_scoped_to_the_user(): void
     {
-        $user = User::factory()->create();
-        $product = Product::factory()->create(['user_id' => $user->id, 'name' => 'Visible shared product']);
-        Product::factory()->create(['name' => 'Other private product']);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $user->id, 'name' => 'Visible shared product']);
+        $productFactory2 = Product::factory();
+        $productFactory2->create(['name' => 'Other private product']);
         Livewire::actingAs($user)->test(ProductList::class)
             ->set('search', 'product')->assertSee($product->name)->assertDontSee('Other private product')->assertDontSee('supplier_id');
     }

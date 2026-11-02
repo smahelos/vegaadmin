@@ -21,7 +21,8 @@ final class CustomerRevenueTest extends TestCase
     #[Test]
     public function groups_archived_contacts_and_one_off_customers_without_losing_or_merging_identities(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $business = Business::factory()->archived()->create(['user_id' => $user->id]);
         $contact = Contact::factory()->archived()->create(['user_id' => $user->id, 'name' => 'Current contact name']);
         $base = [
@@ -67,7 +68,8 @@ final class CustomerRevenueTest extends TestCase
         ) {
             Invoice::factory()->create($attributes + $base);
         }
-        Invoice::factory()->create(['issue_date' => '2026-10-20', 'payment_amount' => '9999']);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['issue_date' => '2026-10-20', 'payment_amount' => '9999']);
         $uid = UserId::fromInt($user->id);
         $repository = app(EloquentApiStatisticsRepository::class);
         $rows = $repository->customerRevenue(
@@ -129,10 +131,13 @@ final class CustomerRevenueTest extends TestCase
     #[Test]
     public function a_foreign_contact_filter_returns_no_other_users_statistics(): void
     {
-        $owner = User::factory()->create();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
         $owner->assignRole('frontend_user');
-        $foreignContact = Contact::factory()->create();
-        Invoice::factory()->create(
+        $contactFactory = Contact::factory();
+        $foreignContact = $contactFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $foreignContact->user_id,
                 'contact_id' => $foreignContact->id,

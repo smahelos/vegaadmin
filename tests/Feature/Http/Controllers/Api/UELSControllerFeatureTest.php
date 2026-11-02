@@ -305,7 +305,9 @@ class UELSControllerFeatureTest extends TestCase
 
     private function makeUser(): User
     {
-        return User::factory()->create(
+        $userFactory = User::factory();
+
+        return $userFactory->create(
             ['password' => Hash::make('secret123')],
         );
     }

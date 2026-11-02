@@ -38,7 +38,8 @@ class ProductCrudControllerTest extends TestCase
         $this->actingAs($this->regularUser, 'backpack');
 
         // Create entity limit for products
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'entity_type' => 'product',
                 'limit_value' => 10,
@@ -65,7 +66,8 @@ class ProductCrudControllerTest extends TestCase
             'user_id' => $this->regularUser->id,
         ];
 
-        $product = Product::factory()->create($productData);
+        $productFactory = Product::factory();
+        $product = $productFactory->create($productData);
         $result = $this->limitService->recordUsage(
             $this->regularUser->id,
             'product',
@@ -100,7 +102,8 @@ class ProductCrudControllerTest extends TestCase
     public function product_creation_respects_entity_limits(): void
     {
         // Set a strict limit for products
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'entity_type' => 'product',
                 'limit_value' => 1,
@@ -120,7 +123,8 @@ class ProductCrudControllerTest extends TestCase
         );
         $this->assertTrue($checkBeforeFirst['allowed']);
 
-        $product1 = Product::factory()->create(['user_id' => $this->regularUser->id]);
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(['user_id' => $this->regularUser->id]);
         $result1 = $this->limitService->recordUsage(
             $this->regularUser->id,
             'product',
@@ -154,7 +158,8 @@ class ProductCrudControllerTest extends TestCase
     public function create_form_offers_product_categories(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $category = ProductCategory::factory()->create(['name' => 'Category ' . uniqid()]);
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create(['name' => 'Category ' . uniqid()]);
 
         $response = $this->get('/admin/product/create');
 

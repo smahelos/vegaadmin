@@ -21,7 +21,8 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_feature_can_be_created_with_factory(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $this->assertInstanceOf(SubscriptionPlanFeature::class, $feature);
         $this->assertDatabaseHas(
@@ -37,7 +38,8 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     #[Test]
     public function subscription_plans_relationship_works_correctly(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $relationship = $feature->subscriptionPlans();
 
@@ -47,9 +49,12 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     #[Test]
     public function feature_can_be_attached_to_subscription_plans(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
-        $plan1 = SubscriptionPlan::factory()->create();
-        $plan2 = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan1 = $subscriptionPlanFactory->create();
+        $subscriptionPlanFactory2 = SubscriptionPlan::factory();
+        $plan2 = $subscriptionPlanFactory2->create();
 
         $feature->subscriptionPlans()->attach([$plan1->id, $plan2->id]);
 
@@ -65,7 +70,8 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     #[Test]
     public function generate_slug_creates_unique_slug(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create(['name' => 'Test Feature Name']);
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create(['name' => 'Test Feature Name']);
 
         $slug = $feature->generateSlug('Test Feature Name');
 
@@ -76,7 +82,8 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     #[Test]
     public function generate_slug_handles_duplicate_names(): void
     {
-        SubscriptionPlanFeature::factory()->create(['slug' => 'test-feature']);
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $subscriptionPlanFeatureFactory->create(['slug' => 'test-feature']);
 
         $feature = new SubscriptionPlanFeature;
         $slug = $feature->generateSlug('Test Feature');
@@ -89,7 +96,8 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     #[Test]
     public function feature_can_be_soft_deleted(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
         $featureId = $feature->id;
 
         $feature->delete();

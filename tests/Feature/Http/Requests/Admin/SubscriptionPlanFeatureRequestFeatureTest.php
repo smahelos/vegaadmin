@@ -109,7 +109,8 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_slug_is_not_unique(): void
     {
-        SubscriptionPlanFeature::factory()->create(['slug' => 'existing-feature']);
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $subscriptionPlanFeatureFactory->create(['slug' => 'existing-feature']);
 
         $data = [
             'name' => 'Test Feature',

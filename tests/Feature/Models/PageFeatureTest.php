@@ -20,8 +20,10 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_can_be_created_with_valid_data(): void
     {
-        $category = PageCategory::factory()->create();
-        $user = User::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $pageData = [
             'name' => 'Test Page',
@@ -47,8 +49,10 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_belongs_to_category(): void
     {
-        $category = PageCategory::factory()->create(['name' => 'Test Category']);
-        $page = Page::factory()->create(['category_id' => $category->id]);
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create(['name' => 'Test Category']);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['category_id' => $category->id]);
 
         $this->assertInstanceOf(PageCategory::class, $page->category);
         $this->assertEquals('Test Category', $page->category->name);
@@ -58,8 +62,10 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_can_have_parent(): void
     {
-        $parentPage = Page::factory()->create(['name' => 'Parent Page']);
-        $childPage = Page::factory()->create(
+        $pageFactory = Page::factory();
+        $parentPage = $pageFactory->create(['name' => 'Parent Page']);
+        $pageFactory2 = Page::factory();
+        $childPage = $pageFactory2->create(
             [
                 'name' => 'Child Page',
                 'parent_id' => $parentPage->id,
@@ -74,14 +80,17 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_can_have_children(): void
     {
-        $parentPage = Page::factory()->create(['name' => 'Parent Page']);
-        $childPage1 = Page::factory()->create(
+        $pageFactory = Page::factory();
+        $parentPage = $pageFactory->create(['name' => 'Parent Page']);
+        $pageFactory2 = Page::factory();
+        $childPage1 = $pageFactory2->create(
             [
                 'name' => 'Child Page 1',
                 'parent_id' => $parentPage->id,
             ],
         );
-        $childPage2 = Page::factory()->create(
+        $pageFactory3 = Page::factory();
+        $childPage2 = $pageFactory3->create(
             [
                 'name' => 'Child Page 2',
                 'parent_id' => $parentPage->id,
@@ -102,8 +111,10 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_belongs_to_published_by_user(): void
     {
-        $user = User::factory()->create(['name' => 'Test User']);
-        $page = Page::factory()->create(['published_by' => $user->id]);
+        $userFactory = User::factory();
+        $user = $userFactory->create(['name' => 'Test User']);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['published_by' => $user->id]);
 
         $this->assertInstanceOf(User::class, $page->publishedBy);
         $this->assertEquals('Test User', $page->publishedBy->name);
@@ -116,8 +127,10 @@ class PageFeatureTest extends TestCase
         // Page má custom mutator pro images, který používá HasFileUploads trait
         // Pro testování castů použijeme raw DB přístup
 
-        $category = PageCategory::factory()->create();
-        $user = User::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         // Test 1: null hodnota
         $pageNull = Page::create(
@@ -172,7 +185,8 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_publishing_dates_are_cast_to_datetime(): void
     {
-        $page = Page::factory()->create(
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(
             [
                 'publishing_start' => '2025-01-01 10:00:00',
                 'publishing_end' => '2025-12-31 23:59:59',
@@ -194,8 +208,10 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_published_is_cast_to_boolean(): void
     {
-        $publishedPage = Page::factory()->create(['published' => 1]);
-        $unpublishedPage = Page::factory()->create(['published' => 0]);
+        $pageFactory = Page::factory();
+        $publishedPage = $pageFactory->create(['published' => 1]);
+        $pageFactory2 = Page::factory();
+        $unpublishedPage = $pageFactory2->create(['published' => 0]);
 
         $this->assertTrue($publishedPage->published);
         $this->assertFalse($unpublishedPage->published);
@@ -206,7 +222,8 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_can_be_updated(): void
     {
-        $page = Page::factory()->create(['name' => 'Original Name']);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['name' => 'Original Name']);
 
         $page->update(['name' => 'Updated Name']);
 
@@ -216,7 +233,8 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_can_be_deleted(): void
     {
-        $page = Page::factory()->create();
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create();
         $pageId = $page->id;
 
         $page->delete();
@@ -227,8 +245,10 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_category_relationship_returns_belongs_to(): void
     {
-        $category = PageCategory::factory()->create();
-        $page = Page::factory()->create(['category_id' => $category->id]);
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['category_id' => $category->id]);
 
         $this->assertInstanceOf(BelongsTo::class, $page->category());
     }
@@ -236,8 +256,10 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_parent_relationship_returns_belongs_to(): void
     {
-        $parentPage = Page::factory()->create();
-        $childPage = Page::factory()->create(['parent_id' => $parentPage->id]);
+        $pageFactory = Page::factory();
+        $parentPage = $pageFactory->create();
+        $pageFactory2 = Page::factory();
+        $childPage = $pageFactory2->create(['parent_id' => $parentPage->id]);
 
         $this->assertInstanceOf(BelongsTo::class, $childPage->parent());
     }
@@ -245,7 +267,8 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_children_relationship_returns_has_many(): void
     {
-        $page = Page::factory()->create();
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create();
 
         $this->assertInstanceOf(HasMany::class, $page->children());
     }
@@ -253,8 +276,10 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_published_by_relationship_returns_belongs_to(): void
     {
-        $user = User::factory()->create();
-        $page = Page::factory()->create(['published_by' => $user->id]);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['published_by' => $user->id]);
 
         $this->assertInstanceOf(BelongsTo::class, $page->publishedBy());
     }
@@ -265,10 +290,12 @@ class PageFeatureTest extends TestCase
         // The scope reads the whole table; start without the seeded content pages
         Page::query()->delete();
 
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         // Published page with no time restrictions
-        $publishedPage = Page::factory()->create(
+        $pageFactory = Page::factory();
+        $publishedPage = $pageFactory->create(
             [
                 'published' => true,
                 'category_id' => $category->id,
@@ -278,13 +305,15 @@ class PageFeatureTest extends TestCase
         );
 
         // Unpublished page
-        $unpublishedPage = Page::factory()->create([
+        $pageFactory2 = Page::factory();
+        $unpublishedPage = $pageFactory2->create([
             'published' => false,
             'category_id' => $category->id,
         ]);
 
         // Published page with future start date
-        $futurePublishedPage = Page::factory()->create(
+        $pageFactory3 = Page::factory();
+        $futurePublishedPage = $pageFactory3->create(
             [
                 'published' => true,
                 'category_id' => $category->id,
@@ -294,7 +323,8 @@ class PageFeatureTest extends TestCase
         );
 
         // Published page with past end date
-        $expiredPublishedPage = Page::factory()->create(
+        $pageFactory4 = Page::factory();
+        $expiredPublishedPage = $pageFactory4->create(
             [
                 'published' => true,
                 'category_id' => $category->id,
@@ -323,11 +353,15 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_scope_by_category_filters_by_category(): void
     {
-        $category1 = PageCategory::factory()->create();
-        $category2 = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category1 = $pageCategoryFactory->create();
+        $pageCategoryFactory2 = PageCategory::factory();
+        $category2 = $pageCategoryFactory2->create();
 
-        $pageInCategory1 = Page::factory()->create(['category_id' => $category1->id]);
-        $pageInCategory2 = Page::factory()->create(['category_id' => $category2->id]);
+        $pageFactory = Page::factory();
+        $pageInCategory1 = $pageFactory->create(['category_id' => $category1->id]);
+        $pageFactory2 = Page::factory();
+        $pageInCategory2 = $pageFactory2->create(['category_id' => $category2->id]);
 
         $pagesInCategory1 = Page::byCategory($category1->id)->get();
 
@@ -343,9 +377,12 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_scope_root_pages_filters_pages_without_parent(): void
     {
-        $parentPage = Page::factory()->create();
-        $rootPage = Page::factory()->create(['parent_id' => null]);
-        $childPage = Page::factory()->create(['parent_id' => $parentPage->id]);
+        $pageFactory = Page::factory();
+        $parentPage = $pageFactory->create();
+        $pageFactory2 = Page::factory();
+        $rootPage = $pageFactory2->create(['parent_id' => null]);
+        $pageFactory3 = Page::factory();
+        $childPage = $pageFactory3->create(['parent_id' => $parentPage->id]);
 
         $rootPages = Page::rootPages()->get();
 
@@ -364,7 +401,8 @@ class PageFeatureTest extends TestCase
     public function page_is_currently_published_attribute_works_correctly(): void
     {
         // Published with no time restrictions
-        $alwaysPublished = Page::factory()->create(
+        $pageFactory = Page::factory();
+        $alwaysPublished = $pageFactory->create(
             [
                 'published' => true,
                 'publishing_start' => null,
@@ -373,12 +411,14 @@ class PageFeatureTest extends TestCase
         );
 
         // Unpublished
-        $unpublished = Page::factory()->create([
+        $pageFactory2 = Page::factory();
+        $unpublished = $pageFactory2->create([
             'published' => false,
         ]);
 
         // Published but future start date
-        $futurePublished = Page::factory()->create(
+        $pageFactory3 = Page::factory();
+        $futurePublished = $pageFactory3->create(
             [
                 'published' => true,
                 'publishing_start' => now()->addDay(),
@@ -386,7 +426,8 @@ class PageFeatureTest extends TestCase
         );
 
         // Published but past end date
-        $expiredPublished = Page::factory()->create(
+        $pageFactory4 = Page::factory();
+        $expiredPublished = $pageFactory4->create(
             [
                 'published' => true,
                 'publishing_start' => now()->subWeek(),
@@ -395,7 +436,8 @@ class PageFeatureTest extends TestCase
         );
 
         // Currently published (within time window)
-        $currentlyPublished = Page::factory()->create(
+        $pageFactory5 = Page::factory();
+        $currentlyPublished = $pageFactory5->create(
             [
                 'published' => true,
                 'publishing_start' => now()->subDay(),
@@ -413,15 +455,18 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_breadcrumbs_attribute_returns_correct_hierarchy(): void
     {
-        $grandparent = Page::factory()->create(['name' => 'Grandparent', 'slug' => 'grandparent']);
-        $parent = Page::factory()->create(
+        $pageFactory = Page::factory();
+        $grandparent = $pageFactory->create(['name' => 'Grandparent', 'slug' => 'grandparent']);
+        $pageFactory2 = Page::factory();
+        $parent = $pageFactory2->create(
             [
                 'name' => 'Parent',
                 'slug' => 'parent',
                 'parent_id' => $grandparent->id,
             ],
         );
-        $child = Page::factory()->create(
+        $pageFactory3 = Page::factory();
+        $child = $pageFactory3->create(
             [
                 'name' => 'Child',
                 'slug' => 'child',
@@ -449,8 +494,10 @@ class PageFeatureTest extends TestCase
     public function page_auto_sets_sort_order_on_creation(): void
     {
         // Vytvoříme kategorii
-        $category = PageCategory::factory()->create();
-        $user = User::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         // Přihlásíme uživatele pro testování boot metody
         $this->actingAs($user, 'web');
@@ -480,8 +527,10 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_auto_sets_published_by_on_creation_when_user_authenticated(): void
     {
-        $category = PageCategory::factory()->create();
-        $user = User::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         // Přihlásíme uživatele pro testování boot metody
         $this->actingAs($user, 'web');
@@ -500,7 +549,8 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_does_not_auto_set_published_by_when_user_not_authenticated(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $page = Page::create(
             [

@@ -15,7 +15,8 @@ final class EloquentPaymentDtoWriteRepositoryTest extends TestCase
     #[Test]
     public function updates_payment_and_returns_its_dto(): void
     {
-        $payment = Payment::factory()->create([
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create([
             'status' => 'pending',
             'gateway_data' => null,
         ]);

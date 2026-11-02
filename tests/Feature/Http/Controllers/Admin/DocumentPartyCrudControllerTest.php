@@ -26,7 +26,8 @@ final class DocumentPartyCrudControllerTest extends TestCase
     #[Test]
     public function contact_search_returns_the_document_profile_including_the_address(): void
     {
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             [
                 'user_id' => $this->regularUser->id,
                 'name' => 'Profile for the document',
@@ -40,7 +41,8 @@ final class DocumentPartyCrudControllerTest extends TestCase
                 'contact_person' => 'Private contact person',
             ],
         );
-        $address = Address::factory()->create(
+        $addressFactory = Address::factory();
+        $address = $addressFactory->create(
             [
                 'business_id' => null,
                 'contact_id' => $contact->id,
@@ -76,16 +78,22 @@ final class DocumentPartyCrudControllerTest extends TestCase
     #[Test]
     public function offers_only_the_owners_active_businesses_and_contacts(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->regularUser->id]);
-        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id]);
-        Business::factory()->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->regularUser->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->regularUser->id]);
+        $businessFactory2 = Business::factory();
+        $businessFactory2->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
-        Contact::factory()->create(
+        $contactFactory2 = Contact::factory();
+        $contactFactory2->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
-        Business::factory()->create(['user_id' => $this->adminUser->id]);
-        Contact::factory()->create(['user_id' => $this->adminUser->id]);
+        $businessFactory3 = Business::factory();
+        $businessFactory3->create(['user_id' => $this->adminUser->id]);
+        $contactFactory3 = Contact::factory();
+        $contactFactory3->create(['user_id' => $this->adminUser->id]);
         $this->getJson(
             route('admin.document-parties.businesses', ['user_id' => $this->regularUser->id]),
         )->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $business->id);
@@ -97,10 +105,15 @@ final class DocumentPartyCrudControllerTest extends TestCase
     #[Test]
     public function accounts_are_scoped_to_the_owner_and_business_and_identify_the_default(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->regularUser->id]);
-        $account = BankAccount::factory()->ownedBy($business)->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->regularUser->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $account = $bankAccountFactory->create();
         $business->update(['default_bank_account_id' => $account->id]);
-        BankAccount::factory()->ownedBy($business)->create(['archived_at' => now()]);
+        $bankAccountFactory2 = BankAccount::factory();
+        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($business);
+        $bankAccountFactory2->create(['archived_at' => now()]);
         $this->getJson(
             route(
                 'admin.document-parties.accounts',
@@ -118,9 +131,14 @@ final class DocumentPartyCrudControllerTest extends TestCase
     #[Test]
     public function expense_accounts_come_only_from_the_selected_contact(): void
     {
-        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id]);
-        $account = BankAccount::factory()->ownedBy($contact)->create();
-        BankAccount::factory()->ownedBy($contact)->create(['archived_at' => now()]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->regularUser->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $bankAccountFactory->create();
+        $bankAccountFactory2 = BankAccount::factory();
+        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($contact);
+        $bankAccountFactory2->create(['archived_at' => now()]);
         $this->getJson(
             route(
                 'admin.document-parties.accounts',

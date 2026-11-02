@@ -132,10 +132,12 @@ class PageServiceFeatureTest extends TestCase
     #[Test]
     public function it_can_get_pages_by_category(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
         $page1 = Page::factory()->published()->inCategory($category)->create();
         $page2 = Page::factory()->published()->inCategory($category)->create();
-        $otherCategory = PageCategory::factory()->create();
+        $pageCategoryFactory2 = PageCategory::factory();
+        $otherCategory = $pageCategoryFactory2->create();
         Page::factory()->published()->inCategory($otherCategory)->create();
 
         $categoryPages = $this->pageService->getPagesByCategory($category->id);
@@ -221,12 +223,14 @@ class PageServiceFeatureTest extends TestCase
     #[Test]
     public function it_can_get_related_pages(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
         $mainPage = Page::factory()->published()->inCategory($category)->create();
         $relatedPage1 = Page::factory()->published()->inCategory($category)->create();
         $relatedPage2 = Page::factory()->published()->inCategory($category)->create();
         $relatedPage3 = Page::factory()->published()->inCategory($category)->create();
-        $otherCategory = PageCategory::factory()->create();
+        $pageCategoryFactory2 = PageCategory::factory();
+        $otherCategory = $pageCategoryFactory2->create();
         Page::factory()->published()->inCategory($otherCategory)->create();
         $relatedPages = $this->pageService->getRelatedPages(
             $this->pageService->getPageBySlug((string) $mainPage->id),

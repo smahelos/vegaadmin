@@ -258,7 +258,8 @@ class UniversalLimitServiceGuardFeatureTest extends TestCase
     #[Test]
     public function guard_parameter_is_string_not_numeric_when_recording_usage(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // Create permission for web guard (service logic operates on default user guard)
         Permission::firstOrCreate(['name' => 'can_create_edit_invoice', 'guard_name' => 'web']);
         $user->givePermissionTo('can_create_edit_invoice');

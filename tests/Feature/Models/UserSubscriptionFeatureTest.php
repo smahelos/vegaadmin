@@ -13,7 +13,8 @@ class UserSubscriptionFeatureTest extends TestCase
     #[Test]
     public function user_has_subscriptions_relationship(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $this->assertInstanceOf(HasMany::class, $user->subscriptions());
     }
@@ -21,9 +22,12 @@ class UserSubscriptionFeatureTest extends TestCase
     #[Test]
     public function user_can_have_multiple_subscriptions(): void
     {
-        $user = User::factory()->create();
-        $subscription1 = Subscription::factory()->create(['user_id' => $user->id]);
-        $subscription2 = Subscription::factory()->create(['user_id' => $user->id]);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription1 = $subscriptionFactory->create(['user_id' => $user->id]);
+        $subscriptionFactory2 = Subscription::factory();
+        $subscription2 = $subscriptionFactory2->create(['user_id' => $user->id]);
 
         $subscriptions = $user->subscriptions;
 

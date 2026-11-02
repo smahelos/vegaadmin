@@ -48,9 +48,12 @@ final class CacheInvalidationFeatureTest extends TestCase
     #[Test]
     public function user_statistics_are_refreshed_after_invoice_event(): void
     {
-        $user = User::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -94,9 +97,12 @@ final class CacheInvalidationFeatureTest extends TestCase
     #[Test]
     public function customers_totals_are_refreshed_after_contact_event(): void
     {
-        $user = User::factory()->create();
-        $contactA = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contactA = $contactFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contactA->id,
@@ -143,9 +149,12 @@ final class CacheInvalidationFeatureTest extends TestCase
     #[Test]
     public function direct_invalidate_user_cache_method_works(): void
     {
-        $user = User::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -185,9 +194,12 @@ final class CacheInvalidationFeatureTest extends TestCase
     #[Test]
     public function cache_keys_use_expected_prefix_after_population(): void
     {
-        $user = User::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -201,7 +213,8 @@ final class CacheInvalidationFeatureTest extends TestCase
 
         Cache::tags(['analytics.user.' . $user->id])->flush();
 
-        Invoice::factory()->create(
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,

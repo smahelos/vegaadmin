@@ -25,7 +25,8 @@ class FrontendAuthFeatureTest extends TestCase
     #[Test]
     public function web_guard_authenticates_user_and_permissions_work(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('view_dashboard');
         $this->actingAs($user, 'web');
 

@@ -164,7 +164,8 @@ class StatusRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create existing status
-        $existingStatus = Status::factory()->create(
+        $statusFactory = Status::factory();
+        $existingStatus = $statusFactory->create(
             [
                 'slug' => 'existing-slug',
                 'category_id' => $this->statusCategory->id,
@@ -191,7 +192,8 @@ class StatusRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $status = Status::factory()->create(
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create(
             [
                 'slug' => 'test-slug',
                 'category_id' => $this->statusCategory->id,
@@ -236,7 +238,8 @@ class StatusRequestFeatureTest extends TestCase
     public function authorization_fails_without_permission(): void
     {
         // Create user without admin permissions
-        $unauthorizedUser = User::factory()->create();
+        $userFactory = User::factory();
+        $unauthorizedUser = $userFactory->create();
         $this->actingAs($unauthorizedUser, 'backpack');
 
         $validData = [

@@ -39,10 +39,16 @@ final class BankAccountCrudControllerTest extends TestCase
     #[Test]
     public function bank_account_reads_are_scoped_to_the_permitted_owner_type(): void
     {
-        $business = Business::factory()->create();
-        $contact = Contact::factory()->create();
-        $businessAccount = BankAccount::factory()->ownedBy($business)->create();
-        $contactAccount = BankAccount::factory()->ownedBy($contact)->create(['iban' => 'DE89370400440532013000']);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create();
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $businessAccount = $bankAccountFactory->create();
+        $bankAccountFactory2 = BankAccount::factory();
+        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($contact);
+        $contactAccount = $bankAccountFactory2->create(['iban' => 'DE89370400440532013000']);
         foreach (
             [
                 [
@@ -86,7 +92,8 @@ final class BankAccountCrudControllerTest extends TestCase
     #[Test]
     public function adds_the_first_account_of_a_contact_as_its_default(): void
     {
-        $contact = Contact::factory()->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create();
 
         $this->actingAs($this->admin, 'backpack')
             ->post(
@@ -109,7 +116,8 @@ final class BankAccountCrudControllerTest extends TestCase
     #[Test]
     public function refuses_an_invalid_iban(): void
     {
-        $business = Business::factory()->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
 
         $this->actingAs($this->admin, 'backpack')
             ->post(
@@ -125,8 +133,11 @@ final class BankAccountCrudControllerTest extends TestCase
     #[Test]
     public function archiving_the_only_account_leaves_the_owner_without_a_default(): void
     {
-        $business = Business::factory()->create();
-        $account = BankAccount::factory()->ownedBy($business)->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $account = $bankAccountFactory->create();
         $business->forceFill(['default_bank_account_id' => $account->id])->save();
 
         $this->actingAs($this->admin, 'backpack')
@@ -142,8 +153,11 @@ final class BankAccountCrudControllerTest extends TestCase
     #[Test]
     public function changing_an_account_needs_the_owners_update_permission(): void
     {
-        $contact = Contact::factory()->create();
-        $account = BankAccount::factory()->ownedBy($contact)->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create();
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $bankAccountFactory->create();
         $backendUser = $this->backendUser('can_update_business');
 
         $this->actingAs($backendUser, 'backpack')

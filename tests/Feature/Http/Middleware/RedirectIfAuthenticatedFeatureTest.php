@@ -32,7 +32,8 @@ class RedirectIfAuthenticatedFeatureTest extends TestCase
     #[Test]
     public function authenticated_frontend_user_redirects_to_frontend_dashboard(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'web');
         $request = Request::create('/login');
         $response = $this->middleware->handle(
@@ -50,7 +51,8 @@ class RedirectIfAuthenticatedFeatureTest extends TestCase
     #[Test]
     public function authenticated_backpack_user_redirects_to_backpack_dashboard(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
         $request = Request::create('/admin/login');
         $response = $this->middleware->handle(

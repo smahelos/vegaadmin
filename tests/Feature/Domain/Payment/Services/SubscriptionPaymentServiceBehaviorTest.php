@@ -192,7 +192,8 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     private function makeSubscription(): Subscription
     {
         $unique = uniqid();
-        $user = User::factory()->create([
+        $userFactory = User::factory();
+        $user = $userFactory->create([
             'email' => 'user_' . $unique . '@example.com',
         ]);
 

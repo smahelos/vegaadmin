@@ -84,7 +84,8 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_user_id_is_missing(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -102,7 +103,8 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_user_id_does_not_exist(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -121,8 +123,10 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_status_is_invalid(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -141,8 +145,10 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_amount_is_missing(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -160,8 +166,10 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_starts_at_is_invalid_date(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -181,8 +189,10 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_when_ends_at_is_invalid_date(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -203,8 +213,10 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_data(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -224,8 +236,10 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_minimal_required_data(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -243,8 +257,10 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_all_valid_status_values(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $validStatuses = [
             'pending',

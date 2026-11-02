@@ -50,7 +50,8 @@ class ManageUserPermissionsFeatureTest extends TestCase
     #[Test]
     public function command_shows_user_permissions(): void
     {
-        $user = User::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create(
             [
                 'email' => Str::random(10) . '@example.com',
             ],
@@ -70,7 +71,8 @@ class ManageUserPermissionsFeatureTest extends TestCase
     #[Test]
     public function command_assigns_role_to_user(): void
     {
-        $user = User::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create(
             [
                 'email' => Str::random(10) . '@example.com',
             ],
@@ -97,7 +99,8 @@ class ManageUserPermissionsFeatureTest extends TestCase
     #[Test]
     public function command_removes_role_from_user(): void
     {
-        $user = User::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create(
             [
                 'email' => Str::random(10) . '@example.com',
             ],
@@ -127,7 +130,8 @@ class ManageUserPermissionsFeatureTest extends TestCase
     #[Test]
     public function command_handles_user_by_id(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $exitCode = Artisan::call('user:permissions', [
             'action' => 'show-user',
@@ -158,7 +162,8 @@ class ManageUserPermissionsFeatureTest extends TestCase
     #[Test]
     public function command_handles_invalid_role(): void
     {
-        $user = User::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create(
             [
                 'email' => Str::random(10) . '@example.com',
             ],

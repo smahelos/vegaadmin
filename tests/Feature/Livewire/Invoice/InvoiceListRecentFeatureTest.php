@@ -35,13 +35,16 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_displays_user_invoices_only(): void
     {
-        $otherUser = User::factory()->create();
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
 
-        $userInvoice = Invoice::factory()->create([
+        $invoiceFactory = Invoice::factory();
+        $userInvoice = $invoiceFactory->create([
             'user_id' => $this->user->id,
         ]);
 
-        $otherUserInvoice = Invoice::factory()->create([
+        $invoiceFactory2 = Invoice::factory();
+        $otherUserInvoice = $invoiceFactory2->create([
             'user_id' => $otherUser->id,
         ]);
 
@@ -96,7 +99,8 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_passes_correct_data_to_view(): void
     {
-        Invoice::factory()->create([
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create([
             'user_id' => $this->user->id,
         ]);
 
@@ -113,9 +117,11 @@ class InvoiceListRecentFeatureTest extends TestCase
     public function component_eager_loads_relationships(): void
     {
         $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $paymentStatus = Status::factory()->create();
+        $statusFactory = Status::factory();
+        $paymentStatus = $statusFactory->create();
 
-        Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'payment_method_id' => $paymentMethod->id,
@@ -141,14 +147,16 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_defaults_to_descending_created_at_order(): void
     {
-        $oldInvoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $oldInvoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'created_at' => now()->subDays(2),
             ],
         );
 
-        $newInvoice = Invoice::factory()->create(
+        $invoiceFactory2 = Invoice::factory();
+        $newInvoice = $invoiceFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'created_at' => now()->subDay(),
@@ -168,7 +176,9 @@ class InvoiceListRecentFeatureTest extends TestCase
     public function component_limits_to_5_invoices_per_page(): void
     {
         // Create 7 invoices
-        Invoice::factory()->count(7)->create([
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->count(7);
+        $invoiceFactory->create([
             'user_id' => $this->user->id,
         ]);
 

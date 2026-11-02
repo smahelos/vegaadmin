@@ -15,9 +15,11 @@ class ProductObserverTest extends TestCase
     public function product_observer_dispatches_events_on_lifecycle_and_only_on_relevant_updates(): void
     {
         $events = Event::fake([FormDataChanged::class]);
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
-        $product = Product::factory()->create(
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
             [
                 'user_id' => $user->id,
                 'name' => 'Prod A',

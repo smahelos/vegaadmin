@@ -46,7 +46,9 @@ class SubscriptionPolicyFeatureTest extends TestCase
     #[Test]
     public function policy_allows_user_to_view_own_subscription(): void
     {
-        $subscription = Subscription::factory()->for($this->user)->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscriptionFactory = $subscriptionFactory->for($this->user);
+        $subscription = $subscriptionFactory->create();
 
         $this->actingAs($this->user);
 
@@ -58,9 +60,13 @@ class SubscriptionPolicyFeatureTest extends TestCase
     #[Test]
     public function policy_denies_user_to_view_other_users_subscription(): void
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-        $subscription = Subscription::factory()->for($user2)->create();
+        $userFactory = User::factory();
+        $user1 = $userFactory->create();
+        $userFactory2 = User::factory();
+        $user2 = $userFactory2->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscriptionFactory = $subscriptionFactory->for($user2);
+        $subscription = $subscriptionFactory->create();
 
         $this->actingAs($user1);
 
@@ -72,12 +78,15 @@ class SubscriptionPolicyFeatureTest extends TestCase
     #[Test]
     public function policy_allows_user_to_update_own_subscription(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         // Give user permission to cancel/update subscriptions
         $user->givePermissionTo('frontend.can_cancel_subscription');
 
-        $subscription = Subscription::factory()->for($user)->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscriptionFactory = $subscriptionFactory->for($user);
+        $subscription = $subscriptionFactory->create();
 
         $this->actingAs($user);
 
@@ -89,9 +98,13 @@ class SubscriptionPolicyFeatureTest extends TestCase
     #[Test]
     public function policy_denies_user_to_update_other_users_subscription(): void
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-        $subscription = Subscription::factory()->for($user2)->create();
+        $userFactory = User::factory();
+        $user1 = $userFactory->create();
+        $userFactory2 = User::factory();
+        $user2 = $userFactory2->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscriptionFactory = $subscriptionFactory->for($user2);
+        $subscription = $subscriptionFactory->create();
 
         $this->actingAs($user1);
 
@@ -103,10 +116,13 @@ class SubscriptionPolicyFeatureTest extends TestCase
     #[Test]
     public function policy_denies_normal_user_to_delete_subscription(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         // Normal users cannot delete subscriptions (only admins with backpack permissions can)
-        $subscription = Subscription::factory()->for($user)->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscriptionFactory = $subscriptionFactory->for($user);
+        $subscription = $subscriptionFactory->create();
 
         $this->actingAs($user);
 
@@ -118,9 +134,13 @@ class SubscriptionPolicyFeatureTest extends TestCase
     #[Test]
     public function policy_denies_user_to_delete_other_users_subscription(): void
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-        $subscription = Subscription::factory()->for($user2)->create();
+        $userFactory = User::factory();
+        $user1 = $userFactory->create();
+        $userFactory2 = User::factory();
+        $user2 = $userFactory2->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscriptionFactory = $subscriptionFactory->for($user2);
+        $subscription = $subscriptionFactory->create();
 
         $this->actingAs($user1);
 
@@ -132,13 +152,16 @@ class SubscriptionPolicyFeatureTest extends TestCase
     #[Test]
     public function policy_integrates_with_laravel_authorization(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         // Give user necessary permissions for web guard
         $user->givePermissionTo('frontend.can_view_subscription');
         $user->givePermissionTo('frontend.can_cancel_subscription');
 
-        $subscription = Subscription::factory()->for($user)->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscriptionFactory = $subscriptionFactory->for($user);
+        $subscription = $subscriptionFactory->create();
 
         $this->actingAs($user);
 
@@ -159,9 +182,13 @@ class SubscriptionPolicyFeatureTest extends TestCase
     #[Test]
     public function policy_denies_unauthorized_access_through_laravel_authorization(): void
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-        $subscription = Subscription::factory()->for($user2)->create();
+        $userFactory = User::factory();
+        $user1 = $userFactory->create();
+        $userFactory2 = User::factory();
+        $user2 = $userFactory2->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscriptionFactory = $subscriptionFactory->for($user2);
+        $subscription = $subscriptionFactory->create();
 
         $this->actingAs($user1);
 

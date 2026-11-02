@@ -128,9 +128,12 @@ final class AnalyticsCacheInvalidationTest extends TestCase
         $repo = app(AnalyticsReadRepositoryInterface::class);
         // Instantiate service directly to eliminate container timing side-effects
         $service = new DashboardService($cache, $repo);
-        $user = User::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -144,7 +147,8 @@ final class AnalyticsCacheInvalidationTest extends TestCase
         );
         $this->assertEquals(1, $stats1->invoiceCount);
         // Add new invoice (cached value should remain stale until invalidation)
-        Invoice::factory()->create(
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,

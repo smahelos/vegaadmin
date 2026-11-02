@@ -26,8 +26,10 @@ trait BuildsInvoiceInput
      */
     private function issuerOf(User $user): array
     {
-        $business = Business::factory()->create(['user_id' => $user->id]);
-        Address::factory()->create(['business_id' => $business->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $user->id]);
+        $addressFactory = Address::factory();
+        $addressFactory->create(['business_id' => $business->id]);
 
         return [$business, BankAccount::factory()->ownedBy($business)->create()];
     }

@@ -72,12 +72,15 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_has_many_pages(): void
     {
-        $category = PageCategory::factory()->create(['name' => 'Test Category']);
-        $page1 = Page::factory()->create([
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create(['name' => 'Test Category']);
+        $pageFactory = Page::factory();
+        $page1 = $pageFactory->create([
             'name' => 'Page 1',
             'category_id' => $category->id,
         ]);
-        $page2 = Page::factory()->create([
+        $pageFactory2 = Page::factory();
+        $page2 = $pageFactory2->create([
             'name' => 'Page 2',
             'category_id' => $category->id,
         ]);
@@ -97,7 +100,8 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_multilingual_attributes_work_correctly(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         // Test that multilingual attributes are accessible as arrays via accessors
         $this->assertIsArray($category->name);
@@ -113,7 +117,8 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_can_be_updated(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $updateData = [
             'name' => [
@@ -137,7 +142,8 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_can_be_deleted(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
         $categoryId = $category->id;
 
         $category->delete();
@@ -148,7 +154,8 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_can_be_deactivated(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $updateData = [
             'name' => [
@@ -174,8 +181,10 @@ class PageCategoryFeatureTest extends TestCase
     {
         // Slug uniqueness je nyní testovaná v PageCategoryRequest testech
         // Protože model už automaticky negeneruje slugy - dělá to request
-        $category1 = PageCategory::factory()->create();
-        $category2 = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category1 = $pageCategoryFactory->create();
+        $pageCategoryFactory2 = PageCategory::factory();
+        $category2 = $pageCategoryFactory2->create();
 
         // Both categories should be created successfully
         $this->assertInstanceOf(PageCategory::class, $category1);
@@ -244,7 +253,8 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_pages_relationship_returns_has_many(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $this->assertInstanceOf(HasMany::class, $category->pages());
     }
@@ -252,14 +262,19 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_pages_count_attribute_returns_correct_count(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         // Vytvoříme 3 stránky v kategorii
-        Page::factory()->count(3)->create(['category_id' => $category->id]);
+        $pageFactory = Page::factory();
+        $pageFactory = $pageFactory->count(3);
+        $pageFactory->create(['category_id' => $category->id]);
 
         // Vytvoříme stránku v jiné kategorii
-        $otherCategory = PageCategory::factory()->create();
-        Page::factory()->create(['category_id' => $otherCategory->id]);
+        $pageCategoryFactory2 = PageCategory::factory();
+        $otherCategory = $pageCategoryFactory2->create();
+        $pageFactory2 = Page::factory();
+        $pageFactory2->create(['category_id' => $otherCategory->id]);
 
         $this->assertEquals(3, $category->pages_count);
         $this->assertEquals(1, $otherCategory->pages_count);
@@ -268,16 +283,20 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_published_pages_count_attribute_returns_correct_count(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         // Vytvoříme 2 publikované stránky
-        Page::factory()->count(2)->create([
+        $pageFactory = Page::factory();
+        $pageFactory = $pageFactory->count(2);
+        $pageFactory->create([
             'category_id' => $category->id,
             'published' => true,
         ]);
 
         // Vytvoříme 1 nepublikovanou stránku
-        Page::factory()->create([
+        $pageFactory2 = Page::factory();
+        $pageFactory2->create([
             'category_id' => $category->id,
             'published' => false,
         ]);

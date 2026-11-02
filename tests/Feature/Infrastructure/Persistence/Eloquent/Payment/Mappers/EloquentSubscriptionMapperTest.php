@@ -16,14 +16,16 @@ final class EloquentSubscriptionMapperTest extends TestCase
     #[Test]
     public function maps_loaded_plan_with_its_price(): void
     {
-        $plan = SubscriptionPlan::factory()->create(
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create(
             [
                 'name' => 'Basic',
                 'price' => '50.00',
                 'currency' => 'CZK',
             ],
         );
-        $subscription = Subscription::factory()->create(['subscription_plan_id' => $plan->id]);
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create(['subscription_plan_id' => $plan->id]);
 
         $dto = (new EloquentSubscriptionMapper)->toDto(
             $subscription->load('subscriptionPlan'),
@@ -40,7 +42,8 @@ final class EloquentSubscriptionMapperTest extends TestCase
     #[Test]
     public function maps_subscription_without_loaded_plan(): void
     {
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $dto = (new EloquentSubscriptionMapper)->toDto($subscription);
 

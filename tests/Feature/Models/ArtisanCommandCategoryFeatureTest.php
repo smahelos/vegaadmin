@@ -16,7 +16,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function can_create_artisan_command_category_with_factory(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $this->assertDatabaseHas(
             'artisan_command_categories',
@@ -48,7 +49,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $category = ArtisanCommandCategory::factory()->create([
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create([
             'is_active' => 1,
         ]);
 
@@ -59,10 +61,13 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function has_many_commands_relationship(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         // Create some commands in this category
-        $commands = ArtisanCommand::factory()->count(3)->create([
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $artisanCommandFactory = $artisanCommandFactory->count(3);
+        $commands = $artisanCommandFactory->create([
             'category_id' => $category->id,
         ]);
 
@@ -90,7 +95,9 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function factory_creates_unique_slugs(): void
     {
-        $categories = ArtisanCommandCategory::factory()->count(5)->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $artisanCommandCategoryFactory = $artisanCommandCategoryFactory->count(5);
+        $categories = $artisanCommandCategoryFactory->create();
 
         $slugs = $categories->pluck('slug')->toArray();
         $uniqueSlugs = array_unique($slugs);
@@ -114,7 +121,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function can_update_category(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $newData = [
             'name' => 'Updated Category',
@@ -136,7 +144,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function can_delete_category(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
         $categoryId = $category->id;
 
         $category->delete();
@@ -147,8 +156,10 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function boolean_cast_works_with_is_active(): void
     {
-        $activeCategory = ArtisanCommandCategory::factory()->create(['is_active' => 1]);
-        $inactiveCategory = ArtisanCommandCategory::factory()->create(['is_active' => 0]);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $activeCategory = $artisanCommandCategoryFactory->create(['is_active' => 1]);
+        $artisanCommandCategoryFactory2 = ArtisanCommandCategory::factory();
+        $inactiveCategory = $artisanCommandCategoryFactory2->create(['is_active' => 0]);
 
         $this->assertTrue($activeCategory->is_active);
         $this->assertFalse($inactiveCategory->is_active);
@@ -159,14 +170,17 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function can_have_multiple_commands_in_category(): void
     {
-        $category = ArtisanCommandCategory::factory()->create(['name' => 'Database']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create(['name' => 'Database']);
 
-        $command1 = ArtisanCommand::factory()->create([
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command1 = $artisanCommandFactory->create([
             'category_id' => $category->id,
             'name' => 'Migrate',
         ]);
 
-        $command2 = ArtisanCommand::factory()->create([
+        $artisanCommandFactory2 = ArtisanCommand::factory();
+        $command2 = $artisanCommandFactory2->create([
             'category_id' => $category->id,
             'name' => 'Seed',
         ]);
@@ -195,7 +209,9 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function relationship_eager_loading_works(): void
     {
-        $categories = ArtisanCommandCategory::factory()->count(2)->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $artisanCommandCategoryFactory = $artisanCommandCategoryFactory->count(2);
+        $categories = $artisanCommandCategoryFactory->create();
 
         // Create commands for each category
         foreach ($categories as $category) {
@@ -222,7 +238,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function can_create_category_without_description(): void
     {
-        $category = ArtisanCommandCategory::factory()->create(['description' => null]);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create(['description' => null]);
 
         $this->assertNull($category->description);
     }
@@ -230,7 +247,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function slug_field_is_fillable_and_updatable(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
         $newSlug = 'new-custom-slug';
 
         $category->update(['slug' => $newSlug]);

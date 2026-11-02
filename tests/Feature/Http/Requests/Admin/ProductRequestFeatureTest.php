@@ -185,7 +185,8 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        Product::factory()->create(
+        $productFactory = Product::factory();
+        $productFactory->create(
             [
                 'slug' => 'existing-slug',
                 'user_id' => $this->productUser->id,
@@ -211,7 +212,8 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $existingProduct = Product::factory()->create(
+        $productFactory = Product::factory();
+        $existingProduct = $productFactory->create(
             [
                 'slug' => 'existing-slug',
                 'user_id' => $this->productUser->id,
@@ -462,7 +464,8 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'can_create_edit_product',
                 'entity_type' => 'product',
@@ -504,7 +507,8 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_for_authenticated_user_without_permission(): void
     {
-        $userNoPerm = User::factory()->create();
+        $userFactory = User::factory();
+        $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
 
         $this->postJson(
@@ -524,7 +528,8 @@ class ProductRequestFeatureTest extends TestCase
         $this->revokeUnlimitedAccess('product');
         $this->actingAs($this->adminUser, 'backpack');
 
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'can_create_edit_product',
                 'entity_type' => 'product',
@@ -582,7 +587,8 @@ class ProductRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'can_create_edit_product',
                 'entity_type' => 'product',

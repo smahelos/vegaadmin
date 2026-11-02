@@ -17,8 +17,10 @@ final class EloquentProductDtoRepositoryTest extends TestCase
     #[Test]
     public function delete_refused_by_an_invoice_line_throws_product_in_use(): void
     {
-        $product = Product::factory()->create();
-        InvoiceProduct::factory()->create(['product_id' => $product->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(['product_id' => $product->id]);
 
         try {
             app(ProductDtoWriteRepositoryInterface::class)->delete(
@@ -33,7 +35,8 @@ final class EloquentProductDtoRepositoryTest extends TestCase
     #[Test]
     public function delete_removes_a_product_without_invoice_lines(): void
     {
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
 
         app(ProductDtoWriteRepositoryInterface::class)->delete(
             ProductId::fromInt($product->id),

@@ -76,7 +76,8 @@ final class ExpenseRequestFeatureTest extends TestCase
     #[Test]
     public function updating_requires_the_complete_document(): void
     {
-        $expense = Expense::factory()->create(['user_id' => $this->adminUser->id]);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['user_id' => $this->adminUser->id]);
         $this->put('/admin/expense/' . $expense->id, ['description' => 'Changed'])->assertSessionHasErrors([
             'business_id',
             'user_id',

@@ -15,7 +15,8 @@ class ProductImageValidationFeatureTest extends TestCase
     public function rejects_disallowed_extension(): void
     {
         Storage::fake('public');
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
         $file = UploadedFile::fake()->create(
             'malicious.exe',
             10,
@@ -30,7 +31,8 @@ class ProductImageValidationFeatureTest extends TestCase
     public function rejects_oversized_file(): void
     {
         Storage::fake('public');
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
         // 11 MB (KB calculation: 11 * 1024 = 11264)
         $file = UploadedFile::fake()->create(
             'big.png',
@@ -46,7 +48,8 @@ class ProductImageValidationFeatureTest extends TestCase
     public function accepts_valid_image(): void
     {
         Storage::fake('public');
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
         $file = UploadedFile::fake()->image(
             'ok.png',
             100,

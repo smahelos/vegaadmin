@@ -28,7 +28,8 @@ class AdminListFiltersTest extends TestCase
     public function select2_filter_renders_its_values_and_marks_the_active_one(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $owner = User::factory()->create(['name' => 'Owner ' . uniqid()]);
+        $userFactory = User::factory();
+        $owner = $userFactory->create(['name' => 'Owner ' . uniqid()]);
 
         $response = $this->get('/admin/business?user_id=' . $owner->id);
 
@@ -50,9 +51,12 @@ class AdminListFiltersTest extends TestCase
     public function select2_filter_value_limits_the_search(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $owner = User::factory()->create();
-        Business::factory()->create(['user_id' => $owner->id]);
-        Business::factory()->create();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        $businessFactory = Business::factory();
+        $businessFactory->create(['user_id' => $owner->id]);
+        $businessFactory2 = Business::factory();
+        $businessFactory2->create();
 
         $this->postJson('/admin/business/search?user_id=' . $owner->id, [
             'draw' => 1,
@@ -83,8 +87,10 @@ class AdminListFiltersTest extends TestCase
     public function simple_filter_limits_the_search(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        Product::factory()->create(['is_active' => true]);
-        Product::factory()->create(['is_active' => false]);
+        $productFactory = Product::factory();
+        $productFactory->create(['is_active' => true]);
+        $productFactory2 = Product::factory();
+        $productFactory2->create(['is_active' => false]);
 
         $this->postJson('/admin/product/search?is_active=1', [
             'draw' => 1,

@@ -60,7 +60,8 @@ class ApiBackpackControllerFeatureTest extends TestCase
 
     public function test_returns_backpack_user_when_authenticated_via_backpack_guard(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
 
         $response = $this->getJson('/api/test-backpack-auth-user');
@@ -71,7 +72,8 @@ class ApiBackpackControllerFeatureTest extends TestCase
 
     public function test_falls_back_to_web_guard_when_backpack_not_authenticated(): void
     {
-        $webUser = User::factory()->create();
+        $userFactory = User::factory();
+        $webUser = $userFactory->create();
         $this->actingAs($webUser, 'web');
 
         $response = $this->getJson('/api/test-backpack-auth-user');
@@ -90,7 +92,8 @@ class ApiBackpackControllerFeatureTest extends TestCase
 
     public function test_log_context_endpoint_contains_required_keys(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
 
         $response = $this->getJson('/api/test-backpack-auth-context');

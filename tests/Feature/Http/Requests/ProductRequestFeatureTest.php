@@ -88,7 +88,9 @@ class ProductRequestFeatureTest extends TestCase
      */
     private function createTax(): Tax
     {
-        return Tax::factory()->create(
+        $taxFactory = Tax::factory();
+
+        return $taxFactory->create(
             [
                 'name' => $this->faker->word,
                 'rate' => $this->faker->randomFloat(
@@ -105,7 +107,9 @@ class ProductRequestFeatureTest extends TestCase
      */
     private function createProductCategory(): ProductCategory
     {
-        return ProductCategory::factory()->create([
+        $productCategoryFactory = ProductCategory::factory();
+
+        return $productCategoryFactory->create([
             'name' => $this->faker->word,
         ]);
     }
@@ -474,7 +478,8 @@ class ProductRequestFeatureTest extends TestCase
     public function slug_uniqueness_validation(): void
     {
         // Create a product of the user with a specific slug
-        Product::factory()->create(
+        $productFactory = Product::factory();
+        $productFactory->create(
             [
                 'slug' => 'existing-slug',
                 'user_id' => $this->user->id,

@@ -72,7 +72,8 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function another_users_email_fails(): void
     {
-        $other = User::factory()->create();
+        $userFactory = User::factory();
+        $other = $userFactory->create();
 
         $this->assertTrue(
             $this->validate(['name' => 'Jan Novák', 'email' => $other->email])->errors()->has('email'),

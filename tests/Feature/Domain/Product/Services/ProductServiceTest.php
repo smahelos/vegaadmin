@@ -67,7 +67,8 @@ class ProductServiceTest extends TestCase
     public function second_product_is_not_default(): void
     {
         // Create first product
-        Product::factory()->create(['user_id' => $this->user->id, 'is_default' => true]);
+        $productFactory = Product::factory();
+        $productFactory->create(['user_id' => $this->user->id, 'is_default' => true]);
 
         $productData = new ProductWriteData(
             name: 'Second Product',
@@ -119,7 +120,8 @@ class ProductServiceTest extends TestCase
     #[Test]
     public function can_update_product(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $updateData = new ProductWriteData(
             name: 'Updated Product',
@@ -140,7 +142,8 @@ class ProductServiceTest extends TestCase
     #[Test]
     public function handles_boolean_fields_correctly(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $updateData = new ProductWriteData(
             name: 'Test Product',
@@ -160,7 +163,8 @@ class ProductServiceTest extends TestCase
     #[Test]
     public function can_delete_product(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $this->productService->deleteProduct(
             ProductId::fromInt($product->id),

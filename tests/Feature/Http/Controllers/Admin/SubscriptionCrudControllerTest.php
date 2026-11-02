@@ -55,8 +55,10 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $data = [
             'user_id' => $user->id,
@@ -87,8 +89,10 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->regularUser, 'backpack');
 
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $data = [
             'user_id' => $user->id,
@@ -108,7 +112,8 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $response = $this->get("/admin/subscription/{$subscription->id}/show");
 
@@ -120,7 +125,8 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $response = $this->get("/admin/subscription/{$subscription->id}/edit");
 
@@ -132,9 +138,12 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create();
-        $subscription = Subscription::factory()->create([
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create([
             'status' => 'pending',
             'amount' => 50.00,
         ]);
@@ -169,7 +178,8 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $response = $this->delete("/admin/subscription/{$subscription->id}");
 
@@ -193,7 +203,8 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->regularUser, 'backpack');
 
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $response = $this->delete("/admin/subscription/{$subscription->id}");
 
@@ -228,7 +239,8 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $data = [
             'user_id' => 999999,
@@ -249,7 +261,8 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'user_id' => $user->id,
@@ -270,8 +283,10 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $data = [
             'user_id' => $user->id,
@@ -292,8 +307,10 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $data = [
             'user_id' => $user->id,
@@ -314,8 +331,10 @@ class SubscriptionCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $data = [
             'user_id' => $user->id,

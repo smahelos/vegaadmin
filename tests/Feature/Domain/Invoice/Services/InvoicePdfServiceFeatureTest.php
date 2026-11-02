@@ -54,7 +54,8 @@ final class InvoicePdfServiceFeatureTest extends TestCase
                 'archived_at' => now(),
             ],
         );
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             [
                 'user_id' => $invoice->user_id,
                 'name' => 'Changed live contact',
@@ -253,7 +254,9 @@ final class InvoicePdfServiceFeatureTest extends TestCase
 
     private function invoice(): Invoice
     {
-        return Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+
+        return $invoiceFactory->create(
             [
                 'invoice_vs' => '20260001',
                 'issue_date' => '2026-03-05',

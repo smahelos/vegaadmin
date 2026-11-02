@@ -321,7 +321,8 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_fails_with_different_user_current_password(): void
     {
         // Create another user with different password
-        $otherUser = User::factory()->create(
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create(
             [
                 'password' => Hash::make('other-user-password'),
             ],

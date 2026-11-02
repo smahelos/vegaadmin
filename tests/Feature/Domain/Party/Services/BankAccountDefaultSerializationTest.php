@@ -32,8 +32,11 @@ final class BankAccountDefaultSerializationTest extends TestCase
                 $connection->exec("DELETE FROM users WHERE id = {$userId}");
             },
         );
-        $contact = Contact::factory()->create(['user_id' => $userId]);
-        $account = BankAccount::factory()->ownedBy($contact)->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $userId]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $bankAccountFactory->create();
         $this->assertNull(
             $this->lockError($connection, $userId),
         );

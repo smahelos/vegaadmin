@@ -55,8 +55,10 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create some features for testing
-        $feature1 = SubscriptionPlanFeature::factory()->create();
-        $feature2 = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature1 = $subscriptionPlanFeatureFactory->create();
+        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
+        $feature2 = $subscriptionPlanFeatureFactory2->create();
         $uniquePlanName = 'Premium Plan ' . uniqid();
         $data = [
             'name' => $uniquePlanName,
@@ -113,7 +115,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $response = $this->get("/admin/subscription-plan/{$plan->id}/show");
 
@@ -125,7 +128,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $response = $this->get("/admin/subscription-plan/{$plan->id}/edit");
 
@@ -137,14 +141,17 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create([
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create([
             'name' => 'Original Plan',
             'price' => 50.00,
         ]);
 
         // Create some features for testing
-        $feature1 = SubscriptionPlanFeature::factory()->create();
-        $feature2 = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature1 = $subscriptionPlanFeatureFactory->create();
+        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
+        $feature2 = $subscriptionPlanFeatureFactory2->create();
 
         $data = [
             'name' => 'Updated Plan',
@@ -183,7 +190,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $response = $this->delete("/admin/subscription-plan/{$plan->id}");
 
@@ -207,7 +215,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->regularUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $response = $this->delete("/admin/subscription-plan/{$plan->id}");
 

@@ -19,7 +19,8 @@ final class InvoicePrintDataBuilderTest extends TestCase
     #[Test]
     public function prints_the_tax_point_date_text_and_payment_method_of_the_stored_invoice(): void
     {
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'issue_date' => '2026-10-10',
                 'tax_point_date' => '2026-09-30',

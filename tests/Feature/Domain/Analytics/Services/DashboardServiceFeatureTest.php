@@ -32,7 +32,8 @@ final class DashboardServiceFeatureTest extends TestCase
     #[Test]
     public function statistics_structure_for_new_user_is_zeroed(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $stats = $this->service->getUserStatistics(
             UserId::fromInt($user->id),
         );
@@ -47,10 +48,14 @@ final class DashboardServiceFeatureTest extends TestCase
     #[Test]
     public function statistics_reflect_created_entities(): void
     {
-        $user = User::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $user->id]);
-        $supplier = Business::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $user->id]);
+        $businessFactory = Business::factory();
+        $supplier = $businessFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -72,9 +77,12 @@ final class DashboardServiceFeatureTest extends TestCase
     #[Test]
     public function customers_with_totals_returns_expected_shape(): void
     {
-        $user = User::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -97,10 +105,14 @@ final class DashboardServiceFeatureTest extends TestCase
     #[Test]
     public function statistics_are_isolated_per_user(): void
     {
-        $userA = User::factory()->create();
-        $userB = User::factory()->create();
-        $contactA = Contact::factory()->create(['user_id' => $userA->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $userA = $userFactory->create();
+        $userFactory2 = User::factory();
+        $userB = $userFactory2->create();
+        $contactFactory = Contact::factory();
+        $contactA = $contactFactory->create(['user_id' => $userA->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $userA->id,
                 'contact_id' => $contactA->id,

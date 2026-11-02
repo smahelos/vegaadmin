@@ -27,26 +27,30 @@ final class SortsTest extends TestCase
         $this->user = $this->frontendUser();
         $this->actingAs($this->user);
 
-        $alpha = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $alpha = $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Alpha Contact',
             ],
         );
-        $beta = Contact::factory()->create(
+        $contactFactory2 = Contact::factory();
+        $beta = $contactFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Beta Contact',
             ],
         );
-        Address::factory()->create(
+        $addressFactory = Address::factory();
+        $addressFactory->create(
             [
                 'business_id' => null,
                 'contact_id' => $alpha->id,
                 'city' => 'Zlín',
             ],
         );
-        Address::factory()->create(
+        $addressFactory2 = Address::factory();
+        $addressFactory2->create(
             [
                 'business_id' => null,
                 'contact_id' => $beta->id,

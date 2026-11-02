@@ -29,7 +29,8 @@ class InvoiceObserverEventsFeatureTest extends TestCase
     {
         Event::fake([UserDataChanged::class]);
 
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'payment_amount' => 100,
@@ -48,7 +49,8 @@ class InvoiceObserverEventsFeatureTest extends TestCase
     #[Test]
     public function updated_dispatches_event_only_when_watched_fields_dirty(): void
     {
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'payment_amount' => 100,
@@ -77,7 +79,8 @@ class InvoiceObserverEventsFeatureTest extends TestCase
     #[Test]
     public function deleted_dispatches_user_data_changed_event(): void
     {
-        $invoice = Invoice::factory()->create([
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create([
             'user_id' => $this->user->id,
             'payment_amount' => 50,
         ]);

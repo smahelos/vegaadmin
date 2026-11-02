@@ -65,7 +65,8 @@ final class ExpenseCrudControllerTest extends TestCase
     public function create_and_edit_forms_send_attachments_as_multipart_data(): void
     {
         $this->get('/admin/expense/create')->assertOk()->assertSee('enctype="multipart/form-data"', false);
-        $expense = Expense::factory()->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create();
         $this->get('/admin/expense/' . $expense->id . '/edit')->assertOk()->assertSee('enctype="multipart/form-data"', false);
     }
 
@@ -119,9 +120,13 @@ final class ExpenseCrudControllerTest extends TestCase
     public function a_new_contact_and_its_account_are_copied_and_typed_values_are_ignored(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $contact = Contact::factory()->create(['user_id' => $this->adminUser->id]);
-        $address = Address::factory()->create(['business_id' => null, 'contact_id' => $contact->id]);
-        $account = BankAccount::factory()->ownedBy($contact)->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
+        $addressFactory = Address::factory();
+        $address = $addressFactory->create(['business_id' => null, 'contact_id' => $contact->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $bankAccountFactory->create();
         $data = $this->expenseInput(
             $business,
             [
@@ -147,9 +152,13 @@ final class ExpenseCrudControllerTest extends TestCase
     public function keeping_the_contact_and_account_preserves_the_account_snapshot_and_saves_document_corrections(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $contact = Contact::factory()->create(['user_id' => $this->adminUser->id, 'archived_at' => now()]);
-        $account = BankAccount::factory()->ownedBy($contact)->create(['archived_at' => now()]);
-        $expense = Expense::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id, 'archived_at' => now()]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $bankAccountFactory->create(['archived_at' => now()]);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'business_id' => $business->id,
@@ -180,11 +189,14 @@ final class ExpenseCrudControllerTest extends TestCase
     public function a_changed_contact_replaces_the_supplier(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $expense = Expense::factory()->create(
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(
             ['user_id' => $this->adminUser->id, 'business_id' => $business->id],
         );
-        $contact = Contact::factory()->create(['user_id' => $this->adminUser->id]);
-        Address::factory()->create(['business_id' => null, 'contact_id' => $contact->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
+        $addressFactory = Address::factory();
+        $addressFactory->create(['business_id' => null, 'contact_id' => $contact->id]);
         $this->put(
             '/admin/expense/' . $expense->id,
             $this->expenseInput($business, ['contact_id' => $contact->id]),
@@ -196,10 +208,13 @@ final class ExpenseCrudControllerTest extends TestCase
     public function an_account_of_a_different_contact_is_rejected(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $contact = Contact::factory()->create(['user_id' => $this->adminUser->id]);
-        $account = BankAccount::factory()->ownedBy(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy(
             Contact::factory()->create(['user_id' => $this->adminUser->id]),
-        )->create();
+        );
+        $account = $bankAccountFactory->create();
         $this->post(
             '/admin/expense',
             $this->expenseInput(
@@ -223,7 +238,8 @@ final class ExpenseCrudControllerTest extends TestCase
     public function newly_selected_archived_contacts_are_rejected(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $contact = Contact::factory()->create(['user_id' => $this->adminUser->id, 'archived_at' => now()]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id, 'archived_at' => now()]);
         $this->post(
             '/admin/expense',
             $this->expenseInput($business, ['contact_id' => $contact->id]),
@@ -234,7 +250,8 @@ final class ExpenseCrudControllerTest extends TestCase
     public function editing_with_the_wrong_owner_returns_not_found(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $expense = Expense::factory()->create(['user_id' => $this->regularUser->id]);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['user_id' => $this->regularUser->id]);
         $this->put(
             '/admin/expense/' . $expense->id,
             $this->expenseInput($business),
@@ -246,7 +263,8 @@ final class ExpenseCrudControllerTest extends TestCase
     {
         [$business] = $this->issuerOf($this->regularUser);
         $this->regularUser->givePermissionTo('can_create_expense');
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'entity_type' => 'expense',
                 'metric_type' => 'count',
@@ -282,7 +300,8 @@ final class ExpenseCrudControllerTest extends TestCase
         $this->regularUser->givePermissionTo(
             Permission::findByName('frontend.can_create_edit_invoice', 'web'),
         );
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'entity_type' => 'expense',
                 'metric_type' => 'count',
@@ -399,7 +418,8 @@ final class ExpenseCrudControllerTest extends TestCase
     #[Test]
     public function show_and_list_render_the_saved_supplier(): void
     {
-        $expense = Expense::factory()->create(['supplier_name' => 'Saved supplier']);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['supplier_name' => 'Saved supplier']);
         $this->get('/admin/expense/' . $expense->id . '/show')->assertOk()->assertSee('Saved supplier');
         $this->get('/admin/expense')->assertOk();
     }

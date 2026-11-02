@@ -29,10 +29,14 @@ final class DashboardControllerFeatureTest extends TestCase
     public function the_dashboard_renders_the_users_statistics_and_latest_parties(): void
     {
         $user = $this->frontendUser();
-        $business = Business::factory()->create(['user_id' => $user->id, 'name' => 'My own business']);
-        Contact::factory()->create(['user_id' => $user->id, 'name' => 'My contact']);
-        Contact::factory()->create(['name' => 'Private other contact']);
-        Invoice::factory()->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $user->id, 'name' => 'My own business']);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $user->id, 'name' => 'My contact']);
+        $contactFactory2 = Contact::factory();
+        $contactFactory2->create(['name' => 'Private other contact']);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'business_id' => $business->id,
@@ -57,7 +61,8 @@ final class DashboardControllerFeatureTest extends TestCase
     public function one_off_invoices_keep_the_date_filters_available_without_a_contact_selector(): void
     {
         $user = $this->frontendUser();
-        Invoice::factory()->create(['user_id' => $user->id, 'contact_id' => null]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'contact_id' => null]);
 
         $this->actingAs($user)->get(
             route('frontend.dashboard', ['locale' => 'cs']),

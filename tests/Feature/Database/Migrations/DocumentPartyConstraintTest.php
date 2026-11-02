@@ -40,7 +40,8 @@ final class DocumentPartyConstraintTest extends TestCase
     public function a_document_refers_only_to_a_business_and_contact_of_its_user(string $model): void
     {
         $document = $model::factory()->create();
-        $ownContact = Contact::factory()->create(['user_id' => $document->user_id]);
+        $contactFactory = Contact::factory();
+        $ownContact = $contactFactory->create(['user_id' => $document->user_id]);
 
         $document->forceFill(['contact_id' => $ownContact->id])->save();
 
@@ -60,10 +61,14 @@ final class DocumentPartyConstraintTest extends TestCase
     #[Test]
     public function an_invoice_account_belongs_to_the_invoice_business(): void
     {
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
         $business = Business::findOrFail($invoice->business_id);
-        $ownAccount = BankAccount::factory()->ownedBy($business)->create();
-        $otherBusiness = Business::factory()->create(['user_id' => $invoice->user_id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $ownAccount = $bankAccountFactory->create();
+        $businessFactory = Business::factory();
+        $otherBusiness = $businessFactory->create(['user_id' => $invoice->user_id]);
 
         $invoice->forceFill(['bank_account_id' => $ownAccount->id])->save();
 
@@ -85,10 +90,15 @@ final class DocumentPartyConstraintTest extends TestCase
     #[Test]
     public function an_expense_account_belongs_to_the_expense_contact(): void
     {
-        $expense = Expense::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $expense->user_id]);
-        $ownAccount = BankAccount::factory()->ownedBy($contact)->create();
-        $otherContact = Contact::factory()->create(['user_id' => $expense->user_id]);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $expense->user_id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $ownAccount = $bankAccountFactory->create();
+        $contactFactory2 = Contact::factory();
+        $otherContact = $contactFactory2->create(['user_id' => $expense->user_id]);
 
         $expense->forceFill(
             ['contact_id' => $contact->id, 'bank_account_id' => $ownAccount->id],
@@ -115,10 +125,13 @@ final class DocumentPartyConstraintTest extends TestCase
     #[Test]
     public function an_expense_without_a_contact_has_no_account_reference(): void
     {
-        $expense = Expense::factory()->create();
-        $account = BankAccount::factory()->ownedBy(
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create();
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy(
             Contact::factory()->create(['user_id' => $expense->user_id]),
-        )->create();
+        );
+        $account = $bankAccountFactory->create();
 
         $this->assertChangeRefused(
             $expense,

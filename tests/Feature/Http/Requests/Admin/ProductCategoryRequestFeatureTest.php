@@ -34,11 +34,13 @@ class ProductCategoryRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
 
-        ProductCategory::factory()->create();
+        $productCategoryFactory = ProductCategory::factory();
+        $productCategoryFactory->create();
         $this->limitService = app(UniversalLimitService::class);
 
         // Provide generous limit for default tests
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'can_create_edit_product',
                 'entity_type' => 'product_category',
@@ -150,7 +152,8 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        $existingCategory = ProductCategory::factory()->create(['slug' => 'existing-slug']);
+        $productCategoryFactory = ProductCategory::factory();
+        $existingCategory = $productCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Valid Name',
@@ -167,7 +170,8 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $existingCategory = ProductCategory::factory()->create(['slug' => 'existing-slug']);
+        $productCategoryFactory = ProductCategory::factory();
+        $existingCategory = $productCategoryFactory->create(['slug' => 'existing-slug']);
 
         $validData = [
             'name' => 'Updated Name',
@@ -267,7 +271,8 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_for_authenticated_user_without_permission(): void
     {
-        $userNoPerm = User::factory()->create();
+        $userFactory = User::factory();
+        $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
 
         $this->postJson('/test-product-category', [

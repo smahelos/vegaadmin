@@ -36,9 +36,11 @@ final class PartyListTest extends TestCase
     #[Test]
     public function shows_only_the_users_active_contacts(): void
     {
-        Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
         Contact::factory()->archived()->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
-        Contact::factory()->create(['name' => 'Someone Else']);
+        $contactFactory2 = Contact::factory();
+        $contactFactory2->create(['name' => 'Someone Else']);
 
         Livewire::test(ContactList::class)
             ->assertSee('Active Mine')
@@ -49,7 +51,8 @@ final class PartyListTest extends TestCase
     #[Test]
     public function the_archive_tab_shows_archived_contacts(): void
     {
-        Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
         Contact::factory()->archived()->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
 
         Livewire::test(ContactList::class)
@@ -61,14 +64,16 @@ final class PartyListTest extends TestCase
     #[Test]
     public function searches_the_name_short_name_company_number_and_email(): void
     {
-        Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Nakladatelství',
                 'short_name' => 'NAK',
             ],
         );
-        Contact::factory()->create(
+        $contactFactory2 = Contact::factory();
+        $contactFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Tiskárna',
@@ -88,7 +93,8 @@ final class PartyListTest extends TestCase
     #[Test]
     public function a_wildcard_in_the_search_is_taken_literally(): void
     {
-        Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Plain Name']);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Plain Name']);
 
         Livewire::test(ContactList::class)
             ->set('search', '%')
@@ -98,7 +104,8 @@ final class PartyListTest extends TestCase
     #[Test]
     public function the_business_list_marks_the_default_business(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id, 'name' => 'Default One']);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id, 'name' => 'Default One']);
         $this->user->forceFill(['default_business_id' => $business->id])->save();
 
         Livewire::test(BusinessList::class)

@@ -209,7 +209,8 @@ class PageRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_category(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
         $response = $this->postJson(
             '/admin/test-page-validation',
             [

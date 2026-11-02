@@ -21,7 +21,8 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function can_create_cron_task_with_factory(): void
     {
-        $cronTask = CronTask::factory()->create();
+        $cronTaskFactory = CronTask::factory();
+        $cronTask = $cronTaskFactory->create();
 
         $this->assertDatabaseHas(
             'cron_tasks',
@@ -69,7 +70,8 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $cronTask = CronTask::factory()->create(
+        $cronTaskFactory = CronTask::factory();
+        $cronTask = $cronTaskFactory->create(
             [
                 'run_at' => '15:30:00',
                 'last_run' => '2025-06-17 10:00:00',
@@ -256,7 +258,8 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function can_update_cron_task(): void
     {
-        $cronTask = CronTask::factory()->create();
+        $cronTaskFactory = CronTask::factory();
+        $cronTask = $cronTaskFactory->create();
 
         $newData = [
             'name' => 'Updated Task Name',
@@ -278,7 +281,8 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function can_delete_cron_task(): void
     {
-        $cronTask = CronTask::factory()->create();
+        $cronTaskFactory = CronTask::factory();
+        $cronTask = $cronTaskFactory->create();
         $cronTaskId = $cronTask->id;
 
         $cronTask->delete();
@@ -308,7 +312,8 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function command_mutator_and_accessor_work_together(): void
     {
-        $cronTask = CronTask::factory()->make();
+        $cronTaskFactory = CronTask::factory();
+        $cronTask = $cronTaskFactory->make();
 
         // Test setting command through mutator
         $cronTask->setCommandAttribute('queue:work --timeout=60');

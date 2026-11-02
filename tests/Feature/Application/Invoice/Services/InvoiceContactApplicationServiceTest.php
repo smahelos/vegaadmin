@@ -30,7 +30,9 @@ final class InvoiceContactApplicationServiceTest extends TestCase
             )],
         );
         $connection = DB::connection('contact_race');
-        $owner = User::factory()->connection('contact_race')->create();
+        $userFactory = User::factory();
+        $userFactory = $userFactory->connection('contact_race');
+        $owner = $userFactory->create();
         $this->beforeApplicationDestroyed(
             function () use ($connection, $owner): void {
                 $connection->table('invoices')->where('user_id', $owner->id)->delete();
@@ -43,8 +45,12 @@ final class InvoiceContactApplicationServiceTest extends TestCase
         $owner->assignRole(
             Role::on('contact_race')->where('name', 'frontend_user')->where('guard_name', 'web')->firstOrFail(),
         );
-        $business = Business::factory()->connection('contact_race')->create(['user_id' => $owner->id]);
-        $invoice = Invoice::factory()->connection('contact_race')->create(
+        $businessFactory = Business::factory();
+        $businessFactory = $businessFactory->connection('contact_race');
+        $business = $businessFactory->create(['user_id' => $owner->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->connection('contact_race');
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $owner->id,
                 'business_id' => $business->id,
@@ -60,7 +66,9 @@ final class InvoiceContactApplicationServiceTest extends TestCase
             $reader->findByIdForUser($invoiceId, $ownerId)->parties->contactId,
         );
 
-        $contact = Contact::factory()->connection('contact_race')->create(['user_id' => $owner->id, 'company_number' => null]);
+        $contactFactory = Contact::factory();
+        $contactFactory = $contactFactory->connection('contact_race');
+        $contact = $contactFactory->create(['user_id' => $owner->id, 'company_number' => null]);
         $invoice->update(['contact_id' => $contact->id]);
         // A non-locking reread still sees the earlier snapshot after the other request commits.
         $this->assertNull(

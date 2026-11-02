@@ -36,15 +36,18 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
     #[Test]
     public function a_failure_while_storing_the_lines_leaves_the_invoice_and_its_lines_untouched(): void
     {
-        $user = User::factory()->create();
-        $invoice = Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'invoice_vs' => 'BEFORE',
                 'payment_currency' => 'CZK',
             ],
         );
-        $line = InvoiceProduct::factory()->create(['invoice_id' => $invoice->id]);
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $line = $invoiceProductFactory->create(['invoice_id' => $invoice->id]);
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
 
         try {
@@ -94,8 +97,10 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
     public function a_later_line_failure_rolls_back_the_new_contact_address_and_invoice(): void
     {
         $user = $this->frontendUser();
-        $business = Business::factory()->create(['user_id' => $user->id]);
-        Address::factory()->create(['business_id' => $business->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $user->id]);
+        $addressFactory = Address::factory();
+        $addressFactory->create(['business_id' => $business->id]);
         $beforeAddresses = Address::count();
         $beforeUsage = EntityLimitUsage::where('user_id', $user->id)->count();
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());

@@ -129,7 +129,8 @@ class CronTaskCrudControllerTest extends TestCase
     #[Test]
     public function run_executes_the_task_and_reports_success(): void
     {
-        $task = CronTask::factory()->create([
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create([
             'command' => 'inspire',
             'last_run' => null,
         ]);
@@ -152,7 +153,8 @@ class CronTaskCrudControllerTest extends TestCase
     #[Test]
     public function run_reports_a_failed_task_as_an_error(): void
     {
-        $task = CronTask::factory()->create(['command' => 'billex:no-such-command']);
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(['command' => 'billex:no-such-command']);
 
         $this->actingAs($this->adminUser, 'backpack')
             ->from('/admin/cron-task')
@@ -170,7 +172,8 @@ class CronTaskCrudControllerTest extends TestCase
     #[Test]
     public function run_is_not_reachable_over_get(): void
     {
-        $task = CronTask::factory()->create([
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create([
             'command' => 'inspire',
             'last_run' => null,
         ]);
@@ -185,11 +188,13 @@ class CronTaskCrudControllerTest extends TestCase
     #[Test]
     public function run_requires_the_cron_task_permission(): void
     {
-        $task = CronTask::factory()->create([
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create([
             'command' => 'inspire',
             'last_run' => null,
         ]);
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->assignRole(
             Role::findByName('backend_user', 'backpack'),
         );

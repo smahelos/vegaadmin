@@ -133,7 +133,8 @@ class ProductControllerFeatureTest extends TestCase
         );
         $this->assertTrue($checkBeforeFirst['allowed']);
 
-        $product1 = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(['user_id' => $this->user->id]);
         $result = $this->limitService->recordUsage(
             $this->user->id,
             'product',
@@ -328,7 +329,8 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $response = $this->get(
             route('frontend.product.show', ['locale' => 'cs', 'id' => $product->id]),
@@ -345,7 +347,8 @@ class ProductControllerFeatureTest extends TestCase
     #[Test]
     public function show_requires_authentication(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $response = $this->get(
             route('frontend.product.show', ['locale' => 'cs', 'id' => $product->id]),
@@ -359,8 +362,10 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $otherUser = User::factory()->create();
-        $product = Product::factory()->create(['user_id' => $otherUser->id]);
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $otherUser->id]);
 
         $response = $this->get(
             route('frontend.product.show', ['locale' => 'cs', 'id' => $product->id]),
@@ -382,9 +387,11 @@ class ProductControllerFeatureTest extends TestCase
         }
 
         // Create product with explicit state to override factory default
-        $product = Product::factory()->state([
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->state([
             'user_id' => $this->user->id,
-        ])->create();
+        ]);
+        $product = $productFactory->create();
 
         $response = $this->delete(
             route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]),
@@ -413,7 +420,8 @@ class ProductControllerFeatureTest extends TestCase
     #[Test]
     public function destroy_requires_authentication(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $response = $this->delete(
             route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]),
@@ -428,8 +436,10 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $otherUser = User::factory()->create();
-        $product = Product::factory()->create(['user_id' => $otherUser->id]);
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $otherUser->id]);
 
         $response = $this->delete(
             route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]),
@@ -448,13 +458,15 @@ class ProductControllerFeatureTest extends TestCase
     {
         Storage::fake('public');
         Storage::disk('public')->put('products/kept.png', 'image');
-        $product = Product::factory()->create(
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
             [
                 'user_id' => $this->user->id,
                 'image' => 'products/kept.png',
             ],
         );
-        InvoiceProduct::factory()->create(['product_id' => $product->id]);
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(['product_id' => $product->id]);
 
         $this->actingAs($this->user, 'web')
             ->from(
@@ -478,8 +490,10 @@ class ProductControllerFeatureTest extends TestCase
     #[Test]
     public function store_refuses_a_slug_the_user_already_has_but_accepts_another_users(): void
     {
-        $own = Product::factory()->create(['user_id' => $this->user->id]);
-        $foreign = Product::factory()->create();
+        $productFactory = Product::factory();
+        $own = $productFactory->create(['user_id' => $this->user->id]);
+        $productFactory2 = Product::factory();
+        $foreign = $productFactory2->create();
         $productData = [
             'name' => 'Product ' . uniqid(),
             'price' => 10,

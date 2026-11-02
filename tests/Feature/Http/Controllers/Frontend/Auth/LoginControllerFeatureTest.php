@@ -58,7 +58,8 @@ class LoginControllerFeatureTest extends TestCase
         $this->withoutMiddleware(VerifyCsrfToken::class);
         $locale = config('app.locale');
         $passwordPlain = 'Secret123!';
-        $user = User::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create(
             [
                 'email' => 'user_' . uniqid() . '@example.com',
                 'password' => Hash::make($passwordPlain),
@@ -85,7 +86,8 @@ class LoginControllerFeatureTest extends TestCase
     {
         $this->withoutMiddleware(VerifyCsrfToken::class);
         $locale = config('app.locale');
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'web');
 
         $response = $this->post(

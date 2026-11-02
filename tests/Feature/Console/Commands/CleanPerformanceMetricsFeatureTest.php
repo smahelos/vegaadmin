@@ -27,7 +27,9 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
     private function createTestMetrics(): void
     {
         // Create some old metrics (older than 90 days) with process-specific identifiers
-        PerformanceMetric::factory()->count(5)->create(
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $performanceMetricFactory = $performanceMetricFactory->count(5);
+        $performanceMetricFactory->create(
             [
                 'measured_at' => now()->subDays(100),
                 'metadata' => ['test_process' => $this->processId, 'category' => 'old'],
@@ -35,7 +37,9 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
         );
 
         // Create some recent metrics (within 90 days) with process-specific identifiers
-        PerformanceMetric::factory()->count(3)->create(
+        $performanceMetricFactory2 = PerformanceMetric::factory();
+        $performanceMetricFactory2 = $performanceMetricFactory2->count(3);
+        $performanceMetricFactory2->create(
             [
                 'measured_at' => now()->subDays(30),
                 'metadata' => ['test_process' => $this->processId, 'category' => 'recent'],
@@ -43,7 +47,9 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
         );
 
         // Create some sample metrics (with generated metadata) with process-specific identifiers
-        PerformanceMetric::factory()->count(2)->create(
+        $performanceMetricFactory3 = PerformanceMetric::factory();
+        $performanceMetricFactory3 = $performanceMetricFactory3->count(2);
+        $performanceMetricFactory3->create(
             [
                 'metadata' => [
                     'generated' => true,

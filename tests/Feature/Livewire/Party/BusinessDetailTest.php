@@ -119,7 +119,9 @@ final class BusinessDetailTest extends TestCase
 
     private function business(): Business
     {
-        return Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+
+        return $businessFactory->create(['user_id' => $this->user->id]);
     }
 
     private function makeDefault(Business $business): void

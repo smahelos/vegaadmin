@@ -35,11 +35,13 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function index_displays_subscription_plans(): void
     {
-        $activePlan = SubscriptionPlan::factory()->create([
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $activePlan = $subscriptionPlanFactory->create([
             'is_active' => true,
             'name' => 'Active Test Plan',
         ]);
-        $inactivePlan = SubscriptionPlan::factory()->create([
+        $subscriptionPlanFactory2 = SubscriptionPlan::factory();
+        $inactivePlan = $subscriptionPlanFactory2->create([
             'is_active' => false,
             'name' => 'Inactive Test Plan',
         ]);
@@ -60,7 +62,8 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function index_shows_user_subscription_when_authenticated(): void
     {
-        $subscription = Subscription::factory()->create([
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create([
             'user_id' => $this->user->id,
             'status' => 'active',
         ]);
@@ -78,7 +81,8 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function my_subscription_shows_the_active_subscription(): void
     {
-        $subscription = Subscription::factory()->create(
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create(
             [
                 'user_id' => $this->user->id,
                 'status' => 'active',
@@ -101,7 +105,8 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function show_displays_specific_subscription_plan(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $this->actingAs($this->user);
 
@@ -123,7 +128,8 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function subscribe_requires_authentication(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $response = $this->post(
             route('subscriptions.subscribe', [
@@ -140,8 +146,10 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function user_cannot_subscribe_if_already_has_active_subscription(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
-        $existingSubscription = Subscription::factory()->create([
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+        $subscriptionFactory = Subscription::factory();
+        $existingSubscription = $subscriptionFactory->create([
             'user_id' => $this->user->id,
             'status' => 'active',
         ]);
@@ -165,7 +173,8 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function cancel_requires_authentication(): void
     {
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $response = $this->delete(
             route(
@@ -185,7 +194,8 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function user_can_cancel_own_subscription(): void
     {
-        $subscription = Subscription::factory()->create([
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create([
             'user_id' => $this->user->id,
             'status' => 'active',
         ]);
@@ -212,8 +222,10 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function user_cannot_cancel_other_users_subscription(): void
     {
-        $otherUser = User::factory()->create();
-        $subscription = Subscription::factory()->create([
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create([
             'user_id' => $otherUser->id,
             'status' => 'active',
         ]);

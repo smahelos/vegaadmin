@@ -100,7 +100,8 @@ class EntityLimitRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         $existingName = 'dup_limit_' . uniqid();
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'permission_name' => $existingName,
                 'entity_type' => 'invoice',

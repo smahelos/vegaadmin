@@ -177,7 +177,8 @@ final class BusinessFormTest extends TestCase
     #[Test]
     public function a_matching_name_only_warns_and_saves_once_confirmed(): void
     {
-        Business::factory()->create([
+        $businessFactory = Business::factory();
+        $businessFactory->create([
             'user_id' => $this->user->id,
             'name' => 'Acme',
         ]);
@@ -203,7 +204,8 @@ final class BusinessFormTest extends TestCase
     public function the_capacity_limit_stops_a_new_business(): void
     {
         $this->limitActive('business', 1);
-        Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $businessFactory->create(['user_id' => $this->user->id]);
 
         Livewire::test(BusinessForm::class)
             ->set('party.name', 'Druhá')
@@ -223,14 +225,16 @@ final class BusinessFormTest extends TestCase
     #[Test]
     public function emptied_optional_fields_are_stored_empty(): void
     {
-        $business = Business::factory()->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(
             [
                 'user_id' => $this->user->id,
                 'email' => 'old@example.test',
                 'phone' => '+420 123',
             ],
         );
-        Address::factory()->create(['business_id' => $business->id]);
+        $addressFactory = Address::factory();
+        $addressFactory->create(['business_id' => $business->id]);
 
         Livewire::test(BusinessForm::class, ['businessId' => $business->id])
             ->assertSet('party.email', 'old@example.test')

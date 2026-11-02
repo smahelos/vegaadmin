@@ -77,7 +77,8 @@ class EntityLimitCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $limit = EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $limit = $entityLimitFactory->create(
             [
                 'permission_name' => 'original_limit',
                 'entity_type' => 'invoice',
@@ -122,7 +123,8 @@ class EntityLimitCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $limit = EntityLimit::factory()->create();
+        $entityLimitFactory = EntityLimit::factory();
+        $limit = $entityLimitFactory->create();
 
         $response = $this->delete(
             backpack_url('entity-limit/' . $limit->id),
@@ -196,7 +198,8 @@ class EntityLimitCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create first limit
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             ['permission_name' => $uniquePermissionName = 'unique_limit_name_' . Str::random(10)],
         );
 

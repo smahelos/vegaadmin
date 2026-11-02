@@ -92,8 +92,10 @@ class AdminSelect2FieldsTest extends TestCase
     public function edit_form_preselects_the_related_record(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $contact = Contact::factory()->create(['name' => 'Contact ' . uniqid()]);
-        $expense = Expense::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['name' => 'Contact ' . uniqid()]);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(
             ['user_id' => $contact->user_id, 'contact_id' => $contact->id],
         );
 
@@ -142,7 +144,8 @@ class AdminSelect2FieldsTest extends TestCase
     public function invoice_edit_form_keeps_stored_payment_values(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'tax_point_date' => '2026-09-30',

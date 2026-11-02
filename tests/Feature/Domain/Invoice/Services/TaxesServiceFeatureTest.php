@@ -29,9 +29,12 @@ class TaxesServiceFeatureTest extends TestCase
     public function get_all_taxes_for_select_returns_ordered_taxes_as_id_name_array(): void
     {
         // Arrange
-        $tax1 = Tax::factory()->create(['name' => 'Zebra Tax']);
-        $tax2 = Tax::factory()->create(['name' => 'Alpha Tax']);
-        $tax3 = Tax::factory()->create(['name' => 'Beta Tax']);
+        $taxFactory = Tax::factory();
+        $tax1 = $taxFactory->create(['name' => 'Zebra Tax']);
+        $taxFactory2 = Tax::factory();
+        $tax2 = $taxFactory2->create(['name' => 'Alpha Tax']);
+        $taxFactory3 = Tax::factory();
+        $tax3 = $taxFactory3->create(['name' => 'Beta Tax']);
 
         // Act
         $result = $this->service->getAllTaxesForSelect();
@@ -66,7 +69,8 @@ class TaxesServiceFeatureTest extends TestCase
     public function taxes_for_select_cache_expires_after_5_minutes(): void
     {
         // Arrange
-        $t1 = Tax::factory()->create(['name' => 'Test Tax']);
+        $taxFactory = Tax::factory();
+        $t1 = $taxFactory->create(['name' => 'Test Tax']);
 
         // Act - First call to populate cache
         $initial = $this->service->getAllTaxesForSelect();

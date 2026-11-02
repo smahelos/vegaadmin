@@ -32,9 +32,12 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function shows_only_owned_invoices_and_filter_options(): void
     {
-        $owned = Invoice::factory()->create(['user_id' => $this->user->id, 'invoice_vs' => 'OWNED-001']);
-        $foreign = Invoice::factory()->create(['invoice_vs' => 'FOREIGN-001']);
-        $foreignContact = Contact::factory()->create(['name' => 'Foreign Contact']);
+        $invoiceFactory = Invoice::factory();
+        $owned = $invoiceFactory->create(['user_id' => $this->user->id, 'invoice_vs' => 'OWNED-001']);
+        $invoiceFactory2 = Invoice::factory();
+        $foreign = $invoiceFactory2->create(['invoice_vs' => 'FOREIGN-001']);
+        $contactFactory = Contact::factory();
+        $foreignContact = $contactFactory->create(['name' => 'Foreign Contact']);
         $component = Livewire::test(InvoiceList::class)
             ->assertSee($owned->invoice_vs)->assertDontSee($foreign->invoice_vs)
             ->assertDontSee($foreignContact->name);
@@ -54,9 +57,12 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function combines_business_contact_status_and_stored_customer_search(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $other = Business::factory()->create(['user_id' => $this->user->id]);
-        $contact = Contact::factory()->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $businessFactory2 = Business::factory();
+        $other = $businessFactory2->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             ['user_id' => $this->user->id, 'name' => 'Current Address Book Name'],
         );
         $paid = Status::where('slug', 'paid')->value('id');
@@ -68,20 +74,25 @@ final class InvoiceListFeatureTest extends TestCase
             'payment_status_id' => $paid,
             'customer_name' => 'Stored Customer',
         ];
-        $match = Invoice::factory()->create($base + ['invoice_vs' => 'MATCH-001']);
-        Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $match = $invoiceFactory->create($base + ['invoice_vs' => 'MATCH-001']);
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(
             array_replace(
                 $base,
                 ['business_id' => $other->id, 'invoice_vs' => 'OTHER-BUSINESS'],
             ),
         );
-        Invoice::factory()->create(
+        $invoiceFactory3 = Invoice::factory();
+        $invoiceFactory3->create(
             array_replace($base, ['contact_id' => null, 'invoice_vs' => 'ONE-OFF']),
         );
-        Invoice::factory()->create(
+        $invoiceFactory4 = Invoice::factory();
+        $invoiceFactory4->create(
             array_replace($base, ['payment_status_id' => $pending, 'invoice_vs' => 'UNPAID']),
         );
-        Invoice::factory()->create(
+        $invoiceFactory5 = Invoice::factory();
+        $invoiceFactory5->create(
             array_replace(
                 $base,
                 ['customer_name' => 'Different Customer', 'invoice_vs' => 'OTHER-NAME'],
@@ -107,10 +118,14 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function filters_each_party_independently_and_keeps_one_off_history(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $other = Business::factory()->create(['user_id' => $this->user->id]);
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $businessFactory2 = Business::factory();
+        $other = $businessFactory2->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $business->id,
@@ -118,7 +133,8 @@ final class InvoiceListFeatureTest extends TestCase
                 'invoice_vs' => 'FIRST',
             ],
         );
-        Invoice::factory()->create(
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $other->id,
@@ -126,7 +142,8 @@ final class InvoiceListFeatureTest extends TestCase
                 'invoice_vs' => 'SECOND',
             ],
         );
-        Invoice::factory()->create(
+        $invoiceFactory3 = Invoice::factory();
+        $invoiceFactory3->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $business->id,
@@ -145,7 +162,8 @@ final class InvoiceListFeatureTest extends TestCase
     {
         $business = Business::factory()->archived()->create(['user_id' => $this->user->id]);
         $contact = Contact::factory()->archived()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $business->id,
@@ -164,7 +182,8 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function rejects_foreign_and_missing_business_ids_identically(): void
     {
-        $foreign = Business::factory()->create();
+        $businessFactory = Business::factory();
+        $foreign = $businessFactory->create();
         foreach ([(string) $foreign->id, '2147483647'] as $id) {
             Livewire::test(InvoiceList::class)->set('businessId', $id)->assertNotFound();
         }
@@ -173,7 +192,8 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function rejects_foreign_and_missing_contact_ids_identically(): void
     {
-        $foreign = Contact::factory()->create();
+        $contactFactory = Contact::factory();
+        $foreign = $contactFactory->create();
         foreach ([(string) $foreign->id, '2147483647'] as $id) {
             Livewire::test(InvoiceList::class)->set('contactId', $id)->assertNotFound();
         }
@@ -201,9 +221,13 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function filter_changes_and_reset_return_to_the_first_page(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->count(12)->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->count(12);
+        $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $business->id,
@@ -242,7 +266,8 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function sorts_due_dates_and_ignores_unknown_sort_columns(): void
     {
-        Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'invoice_vs' => 'EARLY',
@@ -251,7 +276,8 @@ final class InvoiceListFeatureTest extends TestCase
                 'created_at' => '2026-01-01',
             ],
         );
-        Invoice::factory()->create(
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'invoice_vs' => 'LATER',
@@ -268,8 +294,10 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function searches_invoice_numbers_and_links_stored_customers_to_contacts(): void
     {
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'contact_id' => $contact->id,
@@ -277,7 +305,8 @@ final class InvoiceListFeatureTest extends TestCase
                 'customer_name' => 'Stored Customer',
             ],
         );
-        Invoice::factory()->create(['user_id' => $this->user->id, 'invoice_vs' => 'OTHER-002']);
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(['user_id' => $this->user->id, 'invoice_vs' => 'OTHER-002']);
         Livewire::test(InvoiceList::class)->set('search', 'LINKED-001')->assertSee('Stored Customer')->assertDontSee('OTHER-002')
             ->assertSeeHtml(
                 'href="' . route('frontend.contacts.show', ['locale' => app()->getLocale(), 'contact' => $contact->id]) . '"',

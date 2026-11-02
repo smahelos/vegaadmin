@@ -25,7 +25,9 @@ final class PaginatesTest extends TestCase
         app()->setLocale('cs');
         URL::defaults(['locale' => 'cs']);
         $this->user = $this->frontendUser();
-        Contact::factory()->count(15)->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contactFactory = $contactFactory->count(15);
+        $contactFactory->create(['user_id' => $this->user->id]);
     }
 
     #[Test]

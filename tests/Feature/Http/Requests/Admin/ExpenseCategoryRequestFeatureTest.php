@@ -91,7 +91,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
+        $expenseCategoryFactory = ExpenseCategory::factory();
+        $expenseCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Test Category',
@@ -108,7 +109,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $category = ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
+        $expenseCategoryFactory = ExpenseCategory::factory();
+        $category = $expenseCategoryFactory->create(['slug' => 'existing-slug']);
 
         $validData = [
             'name' => 'Updated Category',
@@ -181,7 +183,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function authorization_fails_without_permission(): void
     {
         // Create user without permission for this specific test
-        $userWithoutPermission = User::factory()->create();
+        $userFactory = User::factory();
+        $userWithoutPermission = $userFactory->create();
         $this->actingAs($userWithoutPermission, 'backpack');
 
         $request = new ExpenseCategoryRequest;

@@ -41,7 +41,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function can_use_factory_to_create_database_maintenance_log(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->create();
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $log = $databaseMaintenanceLogFactory->create();
 
         $this->assertInstanceOf(DatabaseMaintenanceLog::class, $log);
         $this->assertDatabaseHas('database_maintenance_logs', [
@@ -100,7 +101,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function results_attribute_is_cast_to_array(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->create([
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $log = $databaseMaintenanceLogFactory->create([
             'results' => ['test' => 'value'],
         ]);
 
@@ -112,7 +114,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function started_at_attribute_is_cast_to_datetime(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->create([
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $log = $databaseMaintenanceLogFactory->create([
             'started_at' => '2023-01-01 10:00:00',
         ]);
 
@@ -127,7 +130,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function completed_at_attribute_is_cast_to_datetime(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->create([
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $log = $databaseMaintenanceLogFactory->create([
             'completed_at' => '2023-01-01 11:00:00',
         ]);
 
@@ -145,7 +149,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         $startedAt = Carbon::parse('2023-01-01 10:00:00');
         $completedAt = Carbon::parse('2023-01-01 10:05:00');
 
-        $log = DatabaseMaintenanceLog::factory()->create(
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $log = $databaseMaintenanceLogFactory->create(
             [
                 'started_at' => $startedAt,
                 'completed_at' => $completedAt,
@@ -160,9 +165,12 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     #[Test]
     public function duration_is_empty_until_the_task_has_started_and_completed(): void
     {
-        $notStarted = DatabaseMaintenanceLog::factory()->create(['started_at' => null, 'completed_at' => null]);
-        $running = DatabaseMaintenanceLog::factory()->create(['started_at' => now(), 'completed_at' => null]);
-        $completedOnly = DatabaseMaintenanceLog::factory()->create(['started_at' => null, 'completed_at' => now()]);
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $notStarted = $databaseMaintenanceLogFactory->create(['started_at' => null, 'completed_at' => null]);
+        $databaseMaintenanceLogFactory2 = DatabaseMaintenanceLog::factory();
+        $running = $databaseMaintenanceLogFactory2->create(['started_at' => now(), 'completed_at' => null]);
+        $databaseMaintenanceLogFactory3 = DatabaseMaintenanceLog::factory();
+        $completedOnly = $databaseMaintenanceLogFactory3->create(['started_at' => null, 'completed_at' => now()]);
 
         $this->assertNull($notStarted->duration);
         $this->assertNull($running->duration);
@@ -190,9 +198,12 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function can_query_logs_by_task_type(): void
     {
 
-        DatabaseMaintenanceLog::factory()->create(['task_type' => 'optimize']);
-        DatabaseMaintenanceLog::factory()->create(['task_type' => 'analyze']);
-        DatabaseMaintenanceLog::factory()->create(['task_type' => 'optimize']);
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $databaseMaintenanceLogFactory->create(['task_type' => 'optimize']);
+        $databaseMaintenanceLogFactory2 = DatabaseMaintenanceLog::factory();
+        $databaseMaintenanceLogFactory2->create(['task_type' => 'analyze']);
+        $databaseMaintenanceLogFactory3 = DatabaseMaintenanceLog::factory();
+        $databaseMaintenanceLogFactory3->create(['task_type' => 'optimize']);
 
         $optimizeLogs = DatabaseMaintenanceLog::where('task_type', 'optimize')->get();
         $analyzeLogs = DatabaseMaintenanceLog::where('task_type', 'analyze')->get();
@@ -205,9 +216,12 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function can_query_logs_by_table_name(): void
     {
 
-        DatabaseMaintenanceLog::factory()->create(['table_name' => 'users']);
-        DatabaseMaintenanceLog::factory()->create(['table_name' => 'invoices']);
-        DatabaseMaintenanceLog::factory()->create(['table_name' => 'users']);
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $databaseMaintenanceLogFactory->create(['table_name' => 'users']);
+        $databaseMaintenanceLogFactory2 = DatabaseMaintenanceLog::factory();
+        $databaseMaintenanceLogFactory2->create(['table_name' => 'invoices']);
+        $databaseMaintenanceLogFactory3 = DatabaseMaintenanceLog::factory();
+        $databaseMaintenanceLogFactory3->create(['table_name' => 'users']);
 
         $userLogs = DatabaseMaintenanceLog::where('table_name', 'users')->get();
         $invoiceLogs = DatabaseMaintenanceLog::where('table_name', 'invoices')->get();
@@ -235,7 +249,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function can_delete_database_maintenance_log(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->create();
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $log = $databaseMaintenanceLogFactory->create();
         $logId = $log->id;
 
         $log->delete();

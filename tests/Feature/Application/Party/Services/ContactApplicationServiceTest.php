@@ -133,7 +133,8 @@ final class ContactApplicationServiceTest extends TestCase
     public function a_foreign_number_name_or_email_only_warns(): void
     {
         $user = $this->frontendUser();
-        Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contactFactory->create(
             [
                 'user_id' => $user->id,
                 'name' => 'Wiener GmbH',
@@ -170,8 +171,10 @@ final class ContactApplicationServiceTest extends TestCase
     public function the_duplicate_check_ignores_the_contact_being_edited_and_other_users(): void
     {
         $user = $this->frontendUser();
-        $own = Contact::factory()->create(['user_id' => $user->id, 'name' => 'Acme']);
-        Contact::factory()->create(['name' => 'Acme']);
+        $contactFactory = Contact::factory();
+        $own = $contactFactory->create(['user_id' => $user->id, 'name' => 'Acme']);
+        $contactFactory2 = Contact::factory();
+        $contactFactory2->create(['name' => 'Acme']);
 
         $duplicates = $this->contacts->findDuplicates(
             $this->idOf($user),
@@ -234,7 +237,8 @@ final class ContactApplicationServiceTest extends TestCase
     #[Test]
     public function an_account_without_a_configured_limit_creates_no_contact(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $this->assertLimitExceeded(
             fn () => $this->contacts->create(

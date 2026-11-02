@@ -30,7 +30,8 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function can_create_expense_with_factory(): void
     {
-        $expense = Expense::factory()->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create();
 
         $this->assertDatabaseHas(
             'expenses',
@@ -61,7 +62,8 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $expense = Expense::factory()->create(
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(
             [
                 'expense_date' => '2025-06-18',
                 'amount' => '123.45',
@@ -85,8 +87,10 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function belongs_to_user_relationship(): void
     {
-        $user = User::factory()->create();
-        $expense = Expense::factory()->create(['user_id' => $user->id]);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['user_id' => $user->id]);
 
         $this->assertInstanceOf(User::class, $expense->user);
         $this->assertEquals($user->id, $expense->user->id);
@@ -96,10 +100,15 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function the_expense_links_its_business_contact_and_contact_account(): void
     {
-        $user = User::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $user->id]);
-        $account = BankAccount::factory()->ownedBy($contact)->create();
-        $expense = Expense::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $user->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $bankAccountFactory->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -115,8 +124,10 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function belongs_to_category_relationship(): void
     {
-        $category = ExpenseCategory::factory()->create();
-        $expense = Expense::factory()->create(['category_id' => $category->id]);
+        $expenseCategoryFactory = ExpenseCategory::factory();
+        $category = $expenseCategoryFactory->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['category_id' => $category->id]);
 
         $this->assertInstanceOf(ExpenseCategory::class, $expense->category);
         $this->assertEquals($category->id, $expense->category->id);
@@ -126,7 +137,8 @@ final class ExpenseFeatureTest extends TestCase
     public function belongs_to_payment_method_relationship(): void
     {
         $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $expense = Expense::factory()->create(['payment_method_id' => $paymentMethod->id]);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['payment_method_id' => $paymentMethod->id]);
 
         $this->assertInstanceOf(PaymentMethod::class, $expense->paymentMethod);
         $this->assertEquals($paymentMethod->id, $expense->paymentMethod->id);
@@ -135,8 +147,10 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function belongs_to_status_relationship(): void
     {
-        $status = Status::factory()->create();
-        $expense = Expense::factory()->create(['status_id' => $status->id]);
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['status_id' => $status->id]);
 
         $this->assertInstanceOf(Status::class, $expense->status);
         $this->assertEquals($status->id, $expense->status->id);
@@ -158,7 +172,8 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function factory_for_user_state_works(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $expense = Expense::factory()->forUser($user)->create();
 
         $this->assertEquals($user->id, $expense->user_id);
@@ -180,7 +195,8 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function can_update_expense(): void
     {
-        $expense = Expense::factory()->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create();
 
         $newData = [
             'amount' => 299.99,
@@ -202,7 +218,8 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function can_delete_expense(): void
     {
-        $expense = Expense::factory()->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create();
         $expenseId = $expense->id;
 
         $expense->delete();
@@ -213,7 +230,8 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function can_store_an_expense_without_a_contact_or_account(): void
     {
-        $expense = Expense::factory()->create(['contact_id' => null, 'bank_account_id' => null]);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['contact_id' => null, 'bank_account_id' => null]);
 
         $this->assertNull($expense->fresh()->contact);
         $this->assertNull($expense->fresh()->bankAccount);
@@ -222,9 +240,12 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function currency_field_can_store_different_currencies(): void
     {
-        $usdExpense = Expense::factory()->create(['currency' => 'USD']);
-        $eurExpense = Expense::factory()->create(['currency' => 'EUR']);
-        $gbpExpense = Expense::factory()->create(['currency' => 'GBP']);
+        $expenseFactory = Expense::factory();
+        $usdExpense = $expenseFactory->create(['currency' => 'USD']);
+        $expenseFactory2 = Expense::factory();
+        $eurExpense = $expenseFactory2->create(['currency' => 'EUR']);
+        $expenseFactory3 = Expense::factory();
+        $gbpExpense = $expenseFactory3->create(['currency' => 'GBP']);
 
         $this->assertEquals('USD', $usdExpense->currency);
         $this->assertEquals('EUR', $eurExpense->currency);
@@ -234,7 +255,8 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function reference_number_can_be_null(): void
     {
-        $expense = Expense::factory()->create(['reference_number' => null]);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['reference_number' => null]);
 
         $this->assertNull($expense->reference_number);
     }
@@ -242,7 +264,8 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function tax_calculations_work_correctly(): void
     {
-        $expense = Expense::factory()->create(
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(
             [
                 'amount' => '100.00',
                 'tax_amount' => '21.00',

@@ -83,7 +83,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function admin_can_view_subscription_plan_feature(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $response = $this->actingAs($this->adminUser, 'backpack')
             ->get("/admin/subscription-plan-feature/{$feature->id}/show");
@@ -94,7 +95,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function admin_can_view_edit_form(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $response = $this->actingAs($this->adminUser, 'backpack')
             ->get("/admin/subscription-plan-feature/{$feature->id}/edit");
@@ -107,7 +109,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $updateData = [
             'name' => 'Updated Feature Name',
@@ -134,7 +137,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function regular_user_cannot_update_subscription_plan_feature(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $updateData = [
             'name' => 'Updated Feature Name',
@@ -150,7 +154,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function admin_can_delete_subscription_plan_feature(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $response = $this->actingAs($this->adminUser, 'backpack')
             ->deleteJson("/admin/subscription-plan-feature/{$feature->id}");
@@ -162,7 +167,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function regular_user_cannot_delete_subscription_plan_feature(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $response = $this->actingAs($this->regularUser, 'backpack')
             ->deleteJson("/admin/subscription-plan-feature/{$feature->id}");
@@ -188,7 +194,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function create_fails_with_duplicate_slug(): void
     {
-        SubscriptionPlanFeature::factory()->create(['slug' => 'existing-slug']);
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $subscriptionPlanFeatureFactory->create(['slug' => 'existing-slug']);
 
         $duplicateData = [
             'name' => 'Test Feature',
@@ -253,9 +260,12 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function features_are_displayed_in_correct_sort_order(): void
     {
-        SubscriptionPlanFeature::factory()->create(['name' => 'Feature C', 'sort_order' => 3]);
-        SubscriptionPlanFeature::factory()->create(['name' => 'Feature A', 'sort_order' => 1]);
-        SubscriptionPlanFeature::factory()->create(['name' => 'Feature B', 'sort_order' => 2]);
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $subscriptionPlanFeatureFactory->create(['name' => 'Feature C', 'sort_order' => 3]);
+        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
+        $subscriptionPlanFeatureFactory2->create(['name' => 'Feature A', 'sort_order' => 1]);
+        $subscriptionPlanFeatureFactory3 = SubscriptionPlanFeature::factory();
+        $subscriptionPlanFeatureFactory3->create(['name' => 'Feature B', 'sort_order' => 2]);
 
         $response = $this->actingAs($this->adminUser, 'backpack')
             ->get('/admin/subscription-plan-feature');

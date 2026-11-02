@@ -128,7 +128,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $this->actingAs($this->user);
 
         // Create existing expense category
-        ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
+        $expenseCategoryFactory = ExpenseCategory::factory();
+        $expenseCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = $this->validExpenseCategoryData;
         $invalidData['slug'] = 'existing-slug';
@@ -146,7 +147,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $this->actingAs($this->user);
 
         // Create existing expense category
-        $existingCategory = ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
+        $expenseCategoryFactory = ExpenseCategory::factory();
+        $existingCategory = $expenseCategoryFactory->create(['slug' => 'existing-slug']);
 
         $updateData = $this->validExpenseCategoryData;
         $updateData['slug'] = 'existing-slug';
@@ -225,7 +227,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function authorization_fails_without_permission(): void
     {
         // Create user without permission
-        $userWithoutPermission = User::factory()->create();
+        $userFactory = User::factory();
+        $userWithoutPermission = $userFactory->create();
         $this->actingAs($userWithoutPermission);
 
         $request = new ExpenseCategoryRequest;

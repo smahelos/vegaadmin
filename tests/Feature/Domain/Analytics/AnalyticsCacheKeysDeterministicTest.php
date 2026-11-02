@@ -18,10 +18,13 @@ final class AnalyticsCacheKeysDeterministicTest extends TestCase
     #[Test]
     public function dashboard_service_uses_deterministic_cache_keys(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // Seed some minimal data to ensure aggregation produces non-null values
-        $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,

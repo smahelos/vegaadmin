@@ -89,7 +89,8 @@ final class InvoiceRequestFeatureTest extends TestCase
     public function a_correction_with_the_same_contact_still_requires_the_complete_address(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'business_id' => $business->id,

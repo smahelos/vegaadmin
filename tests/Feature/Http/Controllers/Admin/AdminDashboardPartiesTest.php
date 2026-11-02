@@ -18,12 +18,16 @@ final class AdminDashboardPartiesTest extends TestCase
     public function dashboard_counts_only_active_businesses_and_contacts_and_links_to_business_creation(): void
     {
         $this->setUpAdminTestEnvironment();
-        Business::factory()->create(['user_id' => $this->regularUser->id]);
-        Business::factory()->create(
+        $businessFactory = Business::factory();
+        $businessFactory->create(['user_id' => $this->regularUser->id]);
+        $businessFactory2 = Business::factory();
+        $businessFactory2->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
-        Contact::factory()->create(['user_id' => $this->regularUser->id]);
-        Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $this->regularUser->id]);
+        $contactFactory2 = Contact::factory();
+        $contactFactory2->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
         $this->actingAs($this->adminUser, 'backpack')->get('/admin/dashboard')

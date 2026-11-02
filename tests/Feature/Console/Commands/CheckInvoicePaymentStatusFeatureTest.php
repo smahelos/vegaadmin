@@ -43,7 +43,8 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
             )->setTime(17, 45),
         );
         $notifier = $this->captureReminders();
-        Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'invoice_vs' => '20260001',
                 'issue_date' => now()->startOfDay()->subDays(10)->addDays($days),
@@ -194,7 +195,9 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     /** @param array<string, mixed> $overrides */
     private function dueInvoice(array $overrides = []): Invoice
     {
-        return Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+
+        return $invoiceFactory->create(
             $overrides + [
                 'issue_date' => now()->subDays(10),
                 'due_in' => 10,

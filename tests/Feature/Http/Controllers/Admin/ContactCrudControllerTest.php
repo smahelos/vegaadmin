@@ -84,7 +84,8 @@ final class ContactCrudControllerTest extends TestCase
     #[Test]
     public function archives_and_restores_a_contact(): void
     {
-        $contact = Contact::factory()->create(['user_id' => $this->frontendUser()->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->frontendUser()->id]);
 
         $this->actingAs($this->admin, 'backpack')
             ->post(
@@ -102,7 +103,8 @@ final class ContactCrudControllerTest extends TestCase
     #[Test]
     public function updating_needs_the_permission(): void
     {
-        $contact = Contact::factory()->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create();
         $backendUser = $this->backendUser('can_view_contact');
 
         $this->actingAs($backendUser, 'backpack')

@@ -20,7 +20,8 @@ class TestInvoiceReminderFeatureTest extends TestCase
     #[Test]
     public function command_executes_successfully(): void
     {
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
 
         $exitCode = Artisan::call('invoices:test-reminder', [
             'invoice_id' => $invoice->id,
@@ -32,7 +33,8 @@ class TestInvoiceReminderFeatureTest extends TestCase
     #[Test]
     public function command_accepts_invoice_option(): void
     {
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
 
         $exitCode = Artisan::call('invoices:test-reminder', [
             'invoice_id' => $invoice->id,
@@ -72,7 +74,8 @@ class TestInvoiceReminderFeatureTest extends TestCase
     #[Test]
     public function command_sends_test_reminder(): void
     {
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'customer_email' => 'test@example.com',
                 'supplier_email' => null,

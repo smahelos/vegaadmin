@@ -30,9 +30,12 @@ final class DashboardServiceCachingFeatureTest extends TestCase
     #[Test]
     public function invoice_creation_triggers_automatic_cache_invalidation(): void
     {
-        $user = User::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -47,7 +50,8 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $this->assertSame(1, $statsInitial->invoiceCount);
 
         // Create another invoice AFTER cache warmed
-        Invoice::factory()->create(
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -62,7 +66,8 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $this->assertSame(2, $statsAfterSecond->invoiceCount);
 
         // Third invoice likewise -> immediate 3
-        Invoice::factory()->create(
+        $invoiceFactory3 = Invoice::factory();
+        $invoiceFactory3->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -87,11 +92,16 @@ final class DashboardServiceCachingFeatureTest extends TestCase
     #[Test]
     public function statistics_are_isolated_per_user_even_with_cache(): void
     {
-        $userA = User::factory()->create();
-        $userB = User::factory()->create();
-        $contactA = Contact::factory()->create(['user_id' => $userA->id]);
-        $contactB = Contact::factory()->create(['user_id' => $userB->id]);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $userA = $userFactory->create();
+        $userFactory2 = User::factory();
+        $userB = $userFactory2->create();
+        $contactFactory = Contact::factory();
+        $contactA = $contactFactory->create(['user_id' => $userA->id]);
+        $contactFactory2 = Contact::factory();
+        $contactB = $contactFactory2->create(['user_id' => $userB->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $userA->id,
                 'contact_id' => $contactA->id,
@@ -106,14 +116,16 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $this->assertSame(1, $statsA1->invoiceCount);
 
         // Add invoice for user B (no cache yet) and second for A (stale cache)
-        Invoice::factory()->create(
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(
             [
                 'user_id' => $userB->id,
                 'contact_id' => $contactB->id,
                 'payment_amount' => 30,
             ],
         );
-        Invoice::factory()->create(
+        $invoiceFactory3 = Invoice::factory();
+        $invoiceFactory3->create(
             [
                 'user_id' => $userA->id,
                 'contact_id' => $contactA->id,

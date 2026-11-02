@@ -48,7 +48,8 @@ class PermissionCatalogSyncTest extends TestCase
     #[Test]
     public function frontend_user_role_can_cancel_only_its_own_subscription(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->assignRole('frontend_user');
 
         $this->assertTrue(

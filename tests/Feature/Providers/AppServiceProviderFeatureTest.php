@@ -23,7 +23,8 @@ class AppServiceProviderFeatureTest extends TestCase
     public function invoice_observer_is_registered(): void
     {
         // Test that observer is actually working by creating an invoice
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'invoice_text' => json_encode(
                     [

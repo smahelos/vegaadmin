@@ -13,7 +13,8 @@ class ArchivePolicyFeatureTest extends TestCase
     public function can_create_archive_policy_with_factory(): void
     {
 
-        $archivePolicy = ArchivePolicy::factory()->create();
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $archivePolicy = $archivePolicyFactory->create();
 
         $this->assertDatabaseHas(
             'archive_policies',
@@ -48,7 +49,8 @@ class ArchivePolicyFeatureTest extends TestCase
     public function casts_work_correctly(): void
     {
 
-        $archivePolicy = ArchivePolicy::factory()->create(
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $archivePolicy = $archivePolicyFactory->create(
             [
                 'enabled' => 1,
                 'retention_months' => '36',
@@ -83,7 +85,8 @@ class ArchivePolicyFeatureTest extends TestCase
     public function model_can_be_updated(): void
     {
 
-        $policy = ArchivePolicy::factory()->create();
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $policy = $archivePolicyFactory->create();
 
         $newData = [
             'table_name' => 'updated_table',
@@ -106,7 +109,8 @@ class ArchivePolicyFeatureTest extends TestCase
     public function model_can_be_deleted(): void
     {
 
-        $policy = ArchivePolicy::factory()->create();
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $policy = $archivePolicyFactory->create();
         $policyId = $policy->id;
 
         $policy->delete();
@@ -118,7 +122,8 @@ class ArchivePolicyFeatureTest extends TestCase
     public function datetime_cast_works_with_last_archived_at(): void
     {
 
-        $policy = ArchivePolicy::factory()->create(['last_archived_at' => '2024-01-15 10:30:00']);
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $policy = $archivePolicyFactory->create(['last_archived_at' => '2024-01-15 10:30:00']);
 
         $this->assertInstanceOf(Carbon::class, $policy->last_archived_at);
         $this->assertEquals(
@@ -131,8 +136,10 @@ class ArchivePolicyFeatureTest extends TestCase
     public function boolean_cast_works_with_enabled(): void
     {
 
-        $truePolicy = ArchivePolicy::factory()->create(['enabled' => 1]);
-        $falsePolicy = ArchivePolicy::factory()->create(['enabled' => 0]);
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $truePolicy = $archivePolicyFactory->create(['enabled' => 1]);
+        $archivePolicyFactory2 = ArchivePolicy::factory();
+        $falsePolicy = $archivePolicyFactory2->create(['enabled' => 0]);
 
         $this->assertTrue($truePolicy->enabled);
         $this->assertFalse($falsePolicy->enabled);

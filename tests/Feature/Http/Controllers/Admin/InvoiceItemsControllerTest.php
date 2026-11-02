@@ -36,7 +36,8 @@ final class InvoiceItemsControllerTest extends TestCase
     #[Test]
     public function the_catalog_is_scoped_to_the_invoice_owner_currency_search_and_active_products(): void
     {
-        $product = Product::factory()->create(
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
             [
                 'user_id' => $this->regularUser->id,
                 'name' => 'Shared consulting',
@@ -45,17 +46,20 @@ final class InvoiceItemsControllerTest extends TestCase
                 'is_active' => true,
             ],
         );
-        Product::factory()->create(
+        $productFactory2 = Product::factory();
+        $productFactory2->create(
             ['name' => 'Shared consulting foreign owner', 'currency' => 'CZK'],
         );
-        Product::factory()->create(
+        $productFactory3 = Product::factory();
+        $productFactory3->create(
             [
                 'user_id' => $this->regularUser->id,
                 'name' => 'Shared EUR',
                 'currency' => 'EUR',
             ],
         );
-        Product::factory()->create(
+        $productFactory4 = Product::factory();
+        $productFactory4->create(
             [
                 'user_id' => $this->regularUser->id,
                 'name' => 'Shared inactive',
@@ -125,7 +129,8 @@ final class InvoiceItemsControllerTest extends TestCase
     public function an_invoice_saves_catalog_and_custom_items_and_replaces_them_on_edit(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $product = Product::factory()->create(
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
             [
                 'user_id' => $this->regularUser->id,
                 'price' => '100',
@@ -192,7 +197,8 @@ final class InvoiceItemsControllerTest extends TestCase
     #[Test]
     public function a_product_can_be_used_by_two_businesses_of_the_same_user(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->regularUser->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->regularUser->id]);
         foreach ([1, 2] as $index) {
             [$business, $account] = $this->issuerOf($this->regularUser);
             $data = $this->invoiceInput(
@@ -223,9 +229,12 @@ final class InvoiceItemsControllerTest extends TestCase
     #[Test]
     public function opening_edit_preserves_the_saved_item_instead_of_reloading_the_catalog(): void
     {
-        $product = Product::factory()->create(['name' => 'Current catalogue name', 'price' => '999.99']);
-        $invoice = Invoice::factory()->create(['user_id' => $product->user_id]);
-        InvoiceProduct::factory()->create(
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['name' => 'Current catalogue name', 'price' => '999.99']);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $product->user_id]);
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(
             [
                 'invoice_id' => $invoice->id,
                 'product_id' => $product->id,
@@ -242,10 +251,12 @@ final class InvoiceItemsControllerTest extends TestCase
     public function invalid_items_are_rejected_and_leave_existing_lines_untouched(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             ['user_id' => $this->regularUser->id, 'business_id' => $business->id],
         );
-        $existing = InvoiceProduct::factory()->create(['invoice_id' => $invoice->id]);
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $existing = $invoiceProductFactory->create(['invoice_id' => $invoice->id]);
         $data = $this->invoiceInput(
             $business,
             $account,
@@ -278,7 +289,8 @@ final class InvoiceItemsControllerTest extends TestCase
     public function another_owners_product_is_rejected_by_both_save_and_preview(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
         $data = $this->invoiceInput(
             $business,
             $account,
@@ -297,7 +309,8 @@ final class InvoiceItemsControllerTest extends TestCase
     public function application_creation_also_checks_catalog_ownership(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
         $items = app(InvoiceProductWriteDataAssembler::class)->fromValidated(
             [$this->invoiceItem(['product_id' => (string) $product->id])],
         );

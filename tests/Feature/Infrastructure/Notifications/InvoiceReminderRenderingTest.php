@@ -41,7 +41,8 @@ final class InvoiceReminderRenderingTest extends TestCase
     public function renders_both_recipients_from_stored_document_data(InvoiceReminderType $type, string $locale): void
     {
         Notification::fake();
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'invoice_vs' => '20260042',
                 'contact_id' => null,

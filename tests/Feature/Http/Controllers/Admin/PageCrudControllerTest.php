@@ -138,7 +138,8 @@ class PageCrudControllerTest extends TestCase
     #[Test]
     public function show_page_requires_authentication(): void
     {
-        $page = Page::factory()->create(['category_id' => $this->category->id]);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['category_id' => $this->category->id]);
 
         $response = $this->get("/admin/page/{$page->id}/show");
 
@@ -150,7 +151,8 @@ class PageCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $page = Page::factory()->create(['category_id' => $this->category->id]);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['category_id' => $this->category->id]);
 
         $response = $this->getJson("/admin/page/{$page->id}/show");
 
@@ -160,7 +162,8 @@ class PageCrudControllerTest extends TestCase
     #[Test]
     public function edit_page_requires_authentication(): void
     {
-        $page = Page::factory()->create(['category_id' => $this->category->id]);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['category_id' => $this->category->id]);
 
         $response = $this->get("/admin/page/{$page->id}/edit");
 
@@ -172,7 +175,8 @@ class PageCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $page = Page::factory()->create(['category_id' => $this->category->id]);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['category_id' => $this->category->id]);
 
         $response = $this->get("/admin/page/{$page->id}/edit");
 
@@ -183,7 +187,8 @@ class PageCrudControllerTest extends TestCase
     public function edit_form_shows_every_locale_of_the_multilingual_fields(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $page = Page::factory()->create(
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(
             [
                 'category_id' => $this->category->id,
                 'name' => ['cs' => 'Nazev', 'en' => 'Title'],
@@ -210,7 +215,8 @@ class PageCrudControllerTest extends TestCase
     #[Test]
     public function update_page_requires_authentication(): void
     {
-        $page = Page::factory()->create(['category_id' => $this->category->id]);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['category_id' => $this->category->id]);
 
         $updateData = [
             'name' => 'Updated Page',
@@ -229,7 +235,8 @@ class PageCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Vytvoření stránky s výchozími multijazyčnými daty
-        $page = Page::factory()->create(
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(
             [
                 'category_id' => $this->category->id,
                 'name' => ['cs' => 'Původní název CS', 'en' => 'Original title EN'],
@@ -315,7 +322,8 @@ class PageCrudControllerTest extends TestCase
     #[Test]
     public function delete_page_requires_authentication(): void
     {
-        $page = Page::factory()->create(['category_id' => $this->category->id]);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['category_id' => $this->category->id]);
 
         $response = $this->delete("/admin/page/{$page->id}");
 
@@ -328,7 +336,8 @@ class PageCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $page = Page::factory()->create(['category_id' => $this->category->id]);
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(['category_id' => $this->category->id]);
 
         $response = $this->delete("/admin/page/{$page->id}");
 
@@ -480,7 +489,8 @@ class PageCrudControllerTest extends TestCase
     public function update_page_stores_only_validated_input(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $page = Page::factory()->create(
+        $pageFactory = Page::factory();
+        $page = $pageFactory->create(
             [
                 'category_id' => $this->category->id,
                 'name' => ['cs' => 'Původní'],

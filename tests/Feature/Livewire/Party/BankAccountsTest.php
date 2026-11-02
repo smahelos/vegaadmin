@@ -34,7 +34,8 @@ final class BankAccountsTest extends TestCase
     #[Test]
     public function the_first_account_of_a_contact_becomes_its_default(): void
     {
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
 
         Livewire::test(BankAccounts::class, ['ownerType' => 'contact', 'ownerId' => $contact->id])
             ->call('add')
@@ -52,7 +53,8 @@ final class BankAccountsTest extends TestCase
     #[Test]
     public function refuses_an_invalid_iban(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
 
         Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
             ->call('add')
@@ -69,7 +71,8 @@ final class BankAccountsTest extends TestCase
     #[Test]
     public function a_bank_code_must_be_an_active_bank_of_the_country(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
 
         Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
             ->call('add')
@@ -82,9 +85,14 @@ final class BankAccountsTest extends TestCase
     #[Test]
     public function archiving_the_default_account_asks_for_a_replacement(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $default = BankAccount::factory()->ownedBy($business)->create();
-        $other = BankAccount::factory()->ownedBy($business)->create(
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $default = $bankAccountFactory->create();
+        $bankAccountFactory2 = BankAccount::factory();
+        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($business);
+        $other = $bankAccountFactory2->create(
             [
                 'number' => '1234567899',
                 'bank_code' => '0100',
@@ -106,8 +114,10 @@ final class BankAccountsTest extends TestCase
     #[Test]
     public function another_users_account_cannot_be_edited(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $foreign = BankAccount::factory()->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $foreign = $bankAccountFactory->create();
 
         $this->expectException(BankAccountNotFoundException::class);
 
@@ -118,7 +128,8 @@ final class BankAccountsTest extends TestCase
     #[Test]
     public function changing_accounts_needs_the_owners_update_permission(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
         $this->user->removeRole('frontend_user');
         $this->user->givePermissionTo('frontend.can_view_business');
 
@@ -171,7 +182,9 @@ final class BankAccountsTest extends TestCase
         $owner = $model::factory()->create(['user_id' => $this->user->id]);
         $targetModel = $target === 'business' ? Business::class : Contact::class;
         $otherOwner = $targetModel::factory()->create(['user_id' => $this->user->id]);
-        $account = BankAccount::factory()->ownedBy($otherOwner)->create([
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($otherOwner);
+        $account = $bankAccountFactory->create([
             'archived_at' => $action === 'restore' ? now() : null,
         ]);
 

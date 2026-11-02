@@ -22,9 +22,12 @@ class PageServiceCategoriesFeatureTest extends TestCase
     #[Test]
     public function returns_only_categories_with_published_pages(): void
     {
-        $catWithPages = PageCategory::factory()->create();
-        $catEmpty = PageCategory::factory()->create();
-        $catWithDraftOnly = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $catWithPages = $pageCategoryFactory->create();
+        $pageCategoryFactory2 = PageCategory::factory();
+        $catEmpty = $pageCategoryFactory2->create();
+        $pageCategoryFactory3 = PageCategory::factory();
+        $catWithDraftOnly = $pageCategoryFactory3->create();
 
         // Published pages
         Page::factory()->published()->inCategory($catWithPages)->create();

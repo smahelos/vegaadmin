@@ -16,7 +16,8 @@ final class InvoiceCreateControllerFeatureTest extends TestCase
     #[Test]
     public function authenticated_user_can_access_invoice_create_page_and_view_has_expected_keys(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         Auth::login($user);
 
         $response = $this->get('/cs/invoice/create');

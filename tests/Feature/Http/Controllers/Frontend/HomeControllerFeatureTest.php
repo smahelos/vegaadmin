@@ -22,7 +22,8 @@ class HomeControllerFeatureTest extends TestCase
     #[Test]
     public function authenticated_user_is_redirected_to_dashboard(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'web');
 
         $locale = config('app.locale');

@@ -201,8 +201,10 @@ class InvoiceControllerFeatureTest extends TestCase
     public function set_template_fails_for_other_users_invoice(): void
     {
         // Create another user and their invoice
-        $otherUser = User::factory()->create();
-        $otherInvoice = Invoice::factory()->create([
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $otherInvoice = $invoiceFactory->create([
             'user_id' => $otherUser->id,
             'template' => 'default',
         ]);
@@ -385,7 +387,8 @@ class InvoiceControllerFeatureTest extends TestCase
         );
         $this->assertTrue($checkBeforeFirst['allowed']);
 
-        $invoice1 = Invoice::factory()->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoice1 = $invoiceFactory->create(['user_id' => $this->user->id]);
         $result = $this->limitService->recordUsage(
             $this->user->id,
             'invoice',
@@ -571,7 +574,8 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->user->givePermissionTo(
             ['frontend.can_create_contact', 'limit_active_contacts_basic'],
         );
-        $existing = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $existing = $contactFactory->create(
             ['user_id' => $this->user->id, 'company_number' => '27082440'],
         );
         [$business, $account] = $this->issuerOf($this->user);

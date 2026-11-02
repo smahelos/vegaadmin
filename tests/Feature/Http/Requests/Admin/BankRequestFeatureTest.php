@@ -28,7 +28,8 @@ class BankRequestFeatureTest extends TestCase
         $this->limitService = app(UniversalLimitService::class);
 
         // Seed a generous default limit for banks
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'can_create_edit_bank',
                 'entity_type' => 'bank',
@@ -89,7 +90,8 @@ class BankRequestFeatureTest extends TestCase
     #[Test]
     public function code_must_be_unique(): void
     {
-        Bank::factory()->create(['code' => 'EXIST']);
+        $bankFactory = Bank::factory();
+        $bankFactory->create(['code' => 'EXIST']);
         $request = new BankRequest;
         $validator = Validator::make(
             [
@@ -106,7 +108,8 @@ class BankRequestFeatureTest extends TestCase
     #[Test]
     public function update_allows_same_code(): void
     {
-        $bank = Bank::factory()->create(['code' => 'KEEP']);
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create(['code' => 'KEEP']);
         $request = new BankRequest;
         $request->merge(['id' => $bank->id]);
         $validator = Validator::make(
@@ -150,7 +153,8 @@ class BankRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_for_user_without_permission(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
         $this->postJson(
             '/test-bank',

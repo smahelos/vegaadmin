@@ -15,8 +15,10 @@ class SubscriptionFeatureTest extends TestCase
     #[Test]
     public function subscription_can_be_created_with_valid_data(): void
     {
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $subscription = Subscription::create(
             [
@@ -36,7 +38,8 @@ class SubscriptionFeatureTest extends TestCase
     #[Test]
     public function subscription_has_user_relationship(): void
     {
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $this->assertInstanceOf(BelongsTo::class, $subscription->user());
         $this->assertInstanceOf(User::class, $subscription->user);
@@ -45,7 +48,8 @@ class SubscriptionFeatureTest extends TestCase
     #[Test]
     public function subscription_has_subscription_plan_relationship(): void
     {
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $this->assertInstanceOf(BelongsTo::class, $subscription->subscriptionPlan());
         $this->assertInstanceOf(SubscriptionPlan::class, $subscription->subscriptionPlan);
@@ -54,7 +58,8 @@ class SubscriptionFeatureTest extends TestCase
     #[Test]
     public function subscription_has_payments_relationship(): void
     {
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $this->assertInstanceOf(HasMany::class, $subscription->payments());
     }
@@ -62,7 +67,8 @@ class SubscriptionFeatureTest extends TestCase
     #[Test]
     public function subscription_cancel_updates_status_to_cancelled(): void
     {
-        $subscription = Subscription::factory()->create(['status' => 'active']);
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create(['status' => 'active']);
 
         $result = $subscription->cancel();
 

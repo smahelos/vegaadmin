@@ -167,7 +167,8 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_a_contact_of_the_user(): void
     {
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
 
         $this->assertSame(
             [],
@@ -433,7 +434,8 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         [$foreignBusiness, $foreignAccount] = $this->issuerOf(User::factory()->create());
         [, $accountOfAnotherBusiness] = $this->issuerOf($this->user);
-        $foreignContact = Contact::factory()->create();
+        $contactFactory = Contact::factory();
+        $foreignContact = $contactFactory->create();
 
         $this->assertArrayHasKey(
             'business_id',
@@ -775,9 +777,12 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function an_item_may_reference_only_a_product_of_the_user(): void
     {
-        $user = User::factory()->create();
-        $own = Product::factory()->create(['user_id' => $user->id]);
-        $foreign = Product::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $productFactory = Product::factory();
+        $own = $productFactory->create(['user_id' => $user->id]);
+        $productFactory2 = Product::factory();
+        $foreign = $productFactory2->create();
 
         $this->assertSame(
             [],

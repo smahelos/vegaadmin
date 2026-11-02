@@ -109,7 +109,8 @@ class UserCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create a user to be updated
-        $user = User::factory()->create([
+        $userFactory = User::factory();
+        $user = $userFactory->create([
             'email' => $this->faker->unique()->safeEmail,
         ]);
 
@@ -139,7 +140,8 @@ class UserCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create a user to be deleted
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $response = $this->delete("/admin/user/{$user->id}");
 

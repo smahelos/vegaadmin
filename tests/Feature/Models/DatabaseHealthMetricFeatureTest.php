@@ -22,7 +22,8 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function can_create_database_health_metric_with_factory(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create();
 
         $this->assertDatabaseHas(
             'database_health_metrics',
@@ -58,7 +59,8 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function casts_work_correctly(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create(
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create(
             [
                 'metric_value' => '123.4567',
                 'measured_at' => '2025-06-18 15:30:45',
@@ -78,7 +80,8 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function table_name_is_correct(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create();
 
         $this->assertEquals('database_health_metrics', $metric->getTable());
     }
@@ -88,26 +91,30 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     {
 
         // Create old metrics (older than 24 hours)
-        DatabaseHealthMetric::factory()->create(
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $databaseHealthMetricFactory->create(
             [
                 'measured_at' => now()->subDays(2),
             ],
         );
 
-        DatabaseHealthMetric::factory()->create(
+        $databaseHealthMetricFactory2 = DatabaseHealthMetric::factory();
+        $databaseHealthMetricFactory2->create(
             [
                 'measured_at' => now()->subHours(30),
             ],
         );
 
         // Create recent metrics (within 24 hours)
-        $recentMetric1 = DatabaseHealthMetric::factory()->create(
+        $databaseHealthMetricFactory3 = DatabaseHealthMetric::factory();
+        $recentMetric1 = $databaseHealthMetricFactory3->create(
             [
                 'measured_at' => now()->subHours(12),
             ],
         );
 
-        $recentMetric2 = DatabaseHealthMetric::factory()->create(
+        $databaseHealthMetricFactory4 = DatabaseHealthMetric::factory();
+        $recentMetric2 = $databaseHealthMetricFactory4->create(
             [
                 'measured_at' => now()->subHours(6),
             ],
@@ -188,7 +195,8 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function can_update_database_health_metric(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create();
 
         $newData = [
             'status' => 'critical',
@@ -211,7 +219,8 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function can_delete_database_health_metric(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create();
         $metricId = $metric->id;
 
         $metric->delete();

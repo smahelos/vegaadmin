@@ -18,7 +18,8 @@ final class ObsoletePartyPermissionsTest extends TestCase
     {
         $migration = $this->migration();
         $migration->down();
-        $owner = User::factory()->create();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
         $owner->givePermissionTo(
             Permission::findByName('can_view_client', 'backpack'),
         );

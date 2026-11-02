@@ -40,8 +40,10 @@ class InvoiceServiceFeatureTest extends TestCase
     #[Test]
     public function save_invoice_products_stores_each_line_with_its_computed_amounts(): void
     {
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $this->service->saveInvoiceProducts(
             InvoiceId::fromInt($invoice->id),
@@ -103,7 +105,8 @@ class InvoiceServiceFeatureTest extends TestCase
     public function set_invoice_template_updates_invoice_successfully(): void
     {
         Auth::login($this->user);
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'template' => 'default',
@@ -137,7 +140,8 @@ class InvoiceServiceFeatureTest extends TestCase
     public function set_invoice_template_accepts_valid_template_names(): void
     {
         Auth::login($this->user);
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'template' => 'default',
@@ -169,7 +173,8 @@ class InvoiceServiceFeatureTest extends TestCase
     public function generate_invoice_number_starts_sequence_for_user_without_invoices(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $this->assertSame(
             $year . '0001',
@@ -184,9 +189,12 @@ class InvoiceServiceFeatureTest extends TestCase
     public function generate_invoice_number_continues_sequence_of_current_year(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0007']);
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0012']);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '0007']);
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(['user_id' => $user->id, 'invoice_vs' => $year . '0012']);
 
         $this->assertSame(
             $year . '0013',
@@ -201,8 +209,10 @@ class InvoiceServiceFeatureTest extends TestCase
     public function generate_invoice_number_restarts_sequence_after_non_standard_last_number(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '-A1']);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '-A1']);
 
         $this->assertSame(
             $year . '0001',
@@ -217,9 +227,12 @@ class InvoiceServiceFeatureTest extends TestCase
     public function generate_invoice_number_continues_past_9999(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '9999']);
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '10000']);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '9999']);
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(['user_id' => $user->id, 'invoice_vs' => $year . '10000']);
 
         $this->assertSame(
             $year . '10001',
@@ -234,9 +247,12 @@ class InvoiceServiceFeatureTest extends TestCase
     public function generate_invoice_number_ignores_non_standard_numbers(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0005']);
-        Invoice::factory()->create(
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '0005']);
+        $invoiceFactory2 = Invoice::factory();
+        $invoiceFactory2->create(
             ['user_id' => $user->id, 'invoice_vs' => $year . '-ZZZ-LONG-NUMBER'],
         );
 

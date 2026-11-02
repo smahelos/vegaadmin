@@ -86,7 +86,8 @@ final class CacheManagementControllerTest extends TestCase
         string $message,
     ): void {
         $artisan = Artisan::spy();
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->assignRole(
             Role::findByName('backend_user', 'backpack'),
         );
@@ -168,7 +169,8 @@ final class CacheManagementControllerTest extends TestCase
 
     private function admin(): User
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->assignRole(
             Role::findByName('admin', 'backpack'),
         );

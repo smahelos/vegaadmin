@@ -267,7 +267,8 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
     #[Test]
     public function product_guard_usage_records(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // Ensure permission for web guard
         Permission::firstOrCreate(['name' => 'can_create_edit_product', 'guard_name' => 'web']);
         $user->givePermissionTo('can_create_edit_product');

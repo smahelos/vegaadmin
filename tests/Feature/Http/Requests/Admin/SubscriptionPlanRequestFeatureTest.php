@@ -159,8 +159,10 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_features(): void
     {
         // Create some test features first
-        $feature1 = SubscriptionPlanFeature::factory()->create();
-        $feature2 = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature1 = $subscriptionPlanFeatureFactory->create();
+        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
+        $feature2 = $subscriptionPlanFeatureFactory2->create();
 
         $data = [
             'name' => 'Test Plan',

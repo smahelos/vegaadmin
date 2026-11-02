@@ -31,7 +31,8 @@ final class ContactDetailTest extends TestCase
     public function archiving_frees_a_place_that_restoring_takes_again(): void
     {
         $this->limitActive('contact', 1);
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
 
         Livewire::test(ContactDetail::class, ['contactId' => $contact->id])
             ->call('archive')
@@ -41,7 +42,8 @@ final class ContactDetailTest extends TestCase
             );
         $this->assertNotNull($contact->fresh()?->archived_at);
 
-        $replacement = Contact::factory()->create(['user_id' => $this->user->id]);
+        $contactFactory2 = Contact::factory();
+        $replacement = $contactFactory2->create(['user_id' => $this->user->id]);
         Livewire::test(ContactDetail::class, ['contactId' => $contact->id])
             ->call('restore')
             ->assertSet(
@@ -58,7 +60,8 @@ final class ContactDetailTest extends TestCase
     #[Test]
     public function shows_the_contact_person(): void
     {
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'contact_person' => 'Eva Malá',

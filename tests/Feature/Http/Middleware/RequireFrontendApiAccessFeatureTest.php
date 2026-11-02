@@ -49,7 +49,8 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
     #[Test]
     public function authenticated_user_without_permission_gets_403(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'web');
         $request = Request::create(
             '/api/frontend/resource',
@@ -72,7 +73,8 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
     #[Test]
     public function authenticated_user_with_permission_passes(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $role = Role::where('name', 'frontend_user')->first();
         $user->assignRole($role);
         $this->actingAs($user, 'web');

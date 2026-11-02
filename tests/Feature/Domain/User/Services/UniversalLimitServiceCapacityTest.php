@@ -19,10 +19,14 @@ final class UniversalLimitServiceCapacityTest extends TestCase
     public function the_usage_of_a_capacity_limit_is_the_number_of_active_records(): void
     {
         $user = $this->frontendUser();
-        Contact::factory()->count(2)->create(['user_id' => $user->id]);
+        $contactFactory = Contact::factory();
+        $contactFactory = $contactFactory->count(2);
+        $contactFactory->create(['user_id' => $user->id]);
         Contact::factory()->archived()->create(['user_id' => $user->id]);
-        Business::factory()->create(['user_id' => $user->id]);
-        Contact::factory()->create();
+        $businessFactory = Business::factory();
+        $businessFactory->create(['user_id' => $user->id]);
+        $contactFactory2 = Contact::factory();
+        $contactFactory2->create();
 
         $limits = app(UniversalLimitServiceInterface::class);
         $contacts = $limits->checkLimit(

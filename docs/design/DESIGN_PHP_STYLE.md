@@ -52,6 +52,8 @@ $due = $due->modify('+14 days');
 $formatted = $due->format('Y-m-d');
 ```
 
+For model factories, retain the factory returned by each state operation, including `state()`, `count()`, `for()` and the bank-account factory's `ownedBy()`. Preserve the model or collection returned by `create()` or `make()`. Every original `factory()` call still executes independently. A controlled transformation of direct method statements reserves names against existing local variables, verifies the expected statement-expansion AST and preserves comments and literals. Methods exposing their local symbol table and unsupported expression contexts require separate review.
+
 Do not lift calls out of branches, short-circuit expressions, nullsafe paths, closures or loop iterations. Preserve argument evaluation order and reference semantics. Converting a ternary must evaluate only its selected branch and evaluate its condition once. The shorthand ternary must retain its evaluated truthy value.
 
 Money, immutable dates, invoice numbering and locks, payment callbacks, permissions and entity limits, and rendered PDFs require explicit behaviour review. Existing PDF snapshots remain the expected output.

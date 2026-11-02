@@ -49,7 +49,8 @@ class RequireBackpackAccessFeatureTest extends TestCase
     #[Test]
     public function backpack_user_without_permission_gets_403(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
         app()->setLocale('cs');
         $request = Request::create(
@@ -74,7 +75,8 @@ class RequireBackpackAccessFeatureTest extends TestCase
     #[Test]
     public function backpack_user_with_permission_passes(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $role = Role::where('name', 'admin')->first();
         $user->assignRole($role);
         $this->actingAs($user, 'backpack');

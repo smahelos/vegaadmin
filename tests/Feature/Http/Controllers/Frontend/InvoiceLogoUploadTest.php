@@ -108,7 +108,8 @@ final class InvoiceLogoUploadTest extends TestCase
         $this->get(
             route('frontend.invoice.create', ['locale' => 'cs']),
         )->assertOk()->assertDontSee('name="invoice_logo"', false);
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             ['user_id' => $this->user->id, 'business_id' => $this->business->id],
         );
         $this->get(

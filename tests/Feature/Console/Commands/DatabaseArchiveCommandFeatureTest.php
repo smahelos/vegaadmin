@@ -16,7 +16,8 @@ final class DatabaseArchiveCommandFeatureTest extends TestCase
     #[Test]
     public function archives_document_party_references_and_stored_one_off_data(): void
     {
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'created_at' => now()->subYears(4),
                 'supplier_name' => 'Stored issuing business',
@@ -24,8 +25,10 @@ final class DatabaseArchiveCommandFeatureTest extends TestCase
                 'contact_id' => null,
             ],
         );
-        $contact = Contact::factory()->create(['user_id' => $invoice->user_id]);
-        $linked = Invoice::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $invoice->user_id]);
+        $invoiceFactory2 = Invoice::factory();
+        $linked = $invoiceFactory2->create(
             [
                 'user_id' => $invoice->user_id,
                 'business_id' => $invoice->business_id,

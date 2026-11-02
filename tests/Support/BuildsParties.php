@@ -21,7 +21,8 @@ trait BuildsParties
 {
     private function frontendUser(): User
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->assignRole('frontend_user');
 
         return $user;

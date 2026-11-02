@@ -230,7 +230,8 @@ class UniversalLimitServiceFeatureTest extends TestCase
     public function record_usage_returns_false_for_user_without_permission(): void
     {
         // Create user without permission
-        $userWithoutPermission = User::factory()->create();
+        $userFactory = User::factory();
+        $userWithoutPermission = $userFactory->create();
 
         $result = $this->service->recordUsage(
             $userWithoutPermission->id,

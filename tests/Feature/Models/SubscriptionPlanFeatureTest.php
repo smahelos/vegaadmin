@@ -37,7 +37,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_has_subscriptions_relationship(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $this->assertInstanceOf(HasMany::class, $plan->subscriptions());
     }
@@ -45,7 +46,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_has_features_relationship(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $this->assertInstanceOf(BelongsToMany::class, $plan->features());
     }
@@ -53,9 +55,12 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_can_attach_and_detach_features(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
-        $feature1 = SubscriptionPlanFeature::factory()->create(['name' => 'Feature 1']);
-        $feature2 = SubscriptionPlanFeature::factory()->create(['name' => 'Feature 2']);
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature1 = $subscriptionPlanFeatureFactory->create(['name' => 'Feature 1']);
+        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
+        $feature2 = $subscriptionPlanFeatureFactory2->create(['name' => 'Feature 2']);
 
         // Attach features to plan
         $plan->features()->attach([$feature1->id, $feature2->id]);
@@ -87,8 +92,10 @@ class SubscriptionPlanFeatureTest extends TestCase
         // The scope reads the whole table; start without the seeded plans
         SubscriptionPlan::query()->delete();
 
-        SubscriptionPlan::factory()->create(['is_active' => true]);
-        SubscriptionPlan::factory()->create(['is_active' => false]);
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlanFactory->create(['is_active' => true]);
+        $subscriptionPlanFactory2 = SubscriptionPlan::factory();
+        $subscriptionPlanFactory2->create(['is_active' => false]);
 
         $activePlans = SubscriptionPlan::active()->get();
 
@@ -99,7 +106,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_has_trial_period_returns_correct_boolean(): void
     {
-        $planWithTrial = SubscriptionPlan::factory()->create(['trial_days' => 14]);
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $planWithTrial = $subscriptionPlanFactory->create(['trial_days' => 14]);
         $planWithoutTrial = SubscriptionPlan::factory()->withoutTrial()->create();
 
         $this->assertTrue($planWithTrial->hasTrialPeriod());
@@ -109,7 +117,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_formatted_price_includes_currency(): void
     {
-        $plan = SubscriptionPlan::factory()->create([
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create([
             'price' => 29.99,
             'currency' => 'EUR',
         ]);
@@ -124,7 +133,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_casts_attributes_correctly(): void
     {
-        $plan = SubscriptionPlan::factory()->create(
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create(
             [
                 'price' => '29.99',
                 'is_active' => '1',

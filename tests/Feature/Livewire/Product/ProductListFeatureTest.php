@@ -60,10 +60,13 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_displays_user_products_only(): void
     {
-        $otherUser = User::factory()->create();
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
 
-        $userProduct = Product::factory()->create(['user_id' => $this->user->id]);
-        $otherUserProduct = Product::factory()->create(['user_id' => $otherUser->id]);
+        $productFactory = Product::factory();
+        $userProduct = $productFactory->create(['user_id' => $this->user->id]);
+        $productFactory2 = Product::factory();
+        $otherUserProduct = $productFactory2->create(['user_id' => $otherUser->id]);
 
         $this->actingAs($this->user);
 
@@ -77,14 +80,16 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_handles_search_by_name(): void
     {
-        $product1 = Product::factory()->create(
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Awesome Product',
             ],
         );
 
-        $product2 = Product::factory()->create(
+        $productFactory2 = Product::factory();
+        $product2 = $productFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Different Item',
@@ -104,7 +109,8 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_handles_search_by_description(): void
     {
-        $product1 = Product::factory()->create(
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Product A',
@@ -112,7 +118,8 @@ class ProductListFeatureTest extends TestCase
             ],
         );
 
-        $product2 = Product::factory()->create(
+        $productFactory2 = Product::factory();
+        $product2 = $productFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Product B',
@@ -133,12 +140,14 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_filters_by_active_status(): void
     {
-        $activeProduct = Product::factory()->create([
+        $productFactory = Product::factory();
+        $activeProduct = $productFactory->create([
             'user_id' => $this->user->id,
             'is_active' => true,
         ]);
 
-        $inactiveProduct = Product::factory()->create([
+        $productFactory2 = Product::factory();
+        $inactiveProduct = $productFactory2->create([
             'user_id' => $this->user->id,
             'is_active' => false,
         ]);
@@ -156,12 +165,14 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_filters_by_inactive_status(): void
     {
-        $activeProduct = Product::factory()->create([
+        $productFactory = Product::factory();
+        $activeProduct = $productFactory->create([
             'user_id' => $this->user->id,
             'is_active' => true,
         ]);
 
-        $inactiveProduct = Product::factory()->create([
+        $productFactory2 = Product::factory();
+        $inactiveProduct = $productFactory2->create([
             'user_id' => $this->user->id,
             'is_active' => false,
         ]);
@@ -179,7 +190,9 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function sort_by_toggles_order_direction_for_same_field(): void
     {
-        Product::factory()->count(3)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(3);
+        $productFactory->create(['user_id' => $this->user->id]);
 
         $this->actingAs($this->user);
 
@@ -196,7 +209,9 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function sort_by_sets_new_field_with_ascending_order(): void
     {
-        Product::factory()->count(3)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(3);
+        $productFactory->create(['user_id' => $this->user->id]);
 
         $this->actingAs($this->user);
 
@@ -213,8 +228,10 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_handles_special_invoices_sorting(): void
     {
-        $product1 = Product::factory()->create(['user_id' => $this->user->id]);
-        $product2 = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(['user_id' => $this->user->id]);
+        $productFactory2 = Product::factory();
+        $product2 = $productFactory2->create(['user_id' => $this->user->id]);
 
         $this->actingAs($this->user);
 
@@ -233,7 +250,9 @@ class ProductListFeatureTest extends TestCase
     public function updating_search_resets_pagination(): void
     {
         $this->actingAs($this->user);
-        Product::factory()->count(16)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(16);
+        $productFactory->create(['user_id' => $this->user->id]);
 
         Livewire::test(ProductList::class)
             ->call('gotoPage', 2)
@@ -246,7 +265,9 @@ class ProductListFeatureTest extends TestCase
     public function updating_status_resets_pagination(): void
     {
         $this->actingAs($this->user);
-        Product::factory()->count(16)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(16);
+        $productFactory->create(['user_id' => $this->user->id]);
 
         Livewire::test(ProductList::class)
             ->call('gotoPage', 2)
@@ -259,7 +280,9 @@ class ProductListFeatureTest extends TestCase
     public function reset_filters_clears_all_filters_and_pagination(): void
     {
         $this->actingAs($this->user);
-        Product::factory()->count(16)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(16);
+        $productFactory->create(['user_id' => $this->user->id]);
 
         Livewire::test(ProductList::class)
             ->set('search', 'test')
@@ -313,7 +336,8 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_passes_correct_data_to_view(): void
     {
-        Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory->create(['user_id' => $this->user->id]);
 
         $this->actingAs($this->user);
 
@@ -326,7 +350,8 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_counts_invoices_for_each_product(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $this->actingAs($this->user);
 
@@ -341,14 +366,16 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_applies_search_filter(): void
     {
-        Product::factory()->create(
+        $productFactory = Product::factory();
+        $productFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Matching Product',
             ],
         );
 
-        Product::factory()->create(
+        $productFactory2 = Product::factory();
+        $productFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Different Product',
@@ -387,7 +414,9 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_handles_empty_search_and_status(): void
     {
-        Product::factory()->count(2)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(2);
+        $productFactory->create(['user_id' => $this->user->id]);
 
         $this->actingAs($this->user);
 

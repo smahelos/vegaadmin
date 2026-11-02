@@ -46,7 +46,8 @@ class PermissionLimitResolverTest extends TestCase
             ],
         );
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
         $limit = $this->resolver->getUserLimit(
@@ -62,7 +63,8 @@ class PermissionLimitResolverTest extends TestCase
     #[Test]
     public function user_without_permissions_gets_zero_limit(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // User has no permissions
 
         $limit = $this->resolver->getUserLimit(
@@ -101,7 +103,8 @@ class PermissionLimitResolverTest extends TestCase
             ],
         );
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo(['basic_user', 'premium_user']);
 
         $limit = $this->resolver->getUserLimit(
@@ -130,7 +133,8 @@ class PermissionLimitResolverTest extends TestCase
             ],
         );
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('can_use_api');
 
         $limit = $this->resolver->getUserLimit(
@@ -158,7 +162,8 @@ class PermissionLimitResolverTest extends TestCase
             ],
         );
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
         $canCreate = $this->resolver->canUserCreateEntity($user->id, 'invoice');
@@ -169,7 +174,8 @@ class PermissionLimitResolverTest extends TestCase
     #[Test]
     public function can_create_invoice_returns_false_when_user_has_no_permission(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // User has no permissions
 
         $canCreate = $this->resolver->canUserCreateEntity($user->id, 'invoice');
@@ -191,7 +197,8 @@ class PermissionLimitResolverTest extends TestCase
             ],
         );
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('basic_user');
 
         $limit = $this->resolver->getUserLimit(
@@ -207,7 +214,8 @@ class PermissionLimitResolverTest extends TestCase
     #[Test]
     public function returns_zero_for_non_existent_permission(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('basic_user'); // This permission exists but has no limits
 
         $limit = $this->resolver->getUserLimit(
@@ -235,7 +243,8 @@ class PermissionLimitResolverTest extends TestCase
             ],
         );
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
         $limit = $this->resolver->getUserLimit(
@@ -263,7 +272,8 @@ class PermissionLimitResolverTest extends TestCase
             ],
         );
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
         $limit = $this->resolver->getUserLimit(
@@ -291,7 +301,8 @@ class PermissionLimitResolverTest extends TestCase
             ],
         );
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('can_create_edit_invoice');
 
         $limits = $this->resolver->getUserPermissionLimits($user->id, 'invoice');

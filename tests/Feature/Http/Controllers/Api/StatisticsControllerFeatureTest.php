@@ -63,7 +63,8 @@ final class StatisticsControllerFeatureTest extends TestCase
     #[DataProvider('routes')]
     public function user_without_statistics_permission_gets_403(string $route): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('frontend.api.access');
 
         $this->actingAs($user, 'web')->getJson(
@@ -266,7 +267,8 @@ final class StatisticsControllerFeatureTest extends TestCase
 
     private function statisticsUser(): User
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->assignRole('frontend_user');
 
         return $user;

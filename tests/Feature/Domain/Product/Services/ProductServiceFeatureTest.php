@@ -104,10 +104,14 @@ class ProductServiceFeatureTest extends TestCase
     public function get_form_data_returns_expected_structure_and_is_cached(): void
     {
         // Prepare data
-        ProductCategory::factory()->create(['name' => 'Electronics']);
-        ProductCategory::factory()->create(['name' => 'Books']);
-        Tax::factory()->create(['slug' => 'dph', 'rate' => 21]);
-        Tax::factory()->create(['slug' => 'other', 'rate' => 10]); // should be ignored
+        $productCategoryFactory = ProductCategory::factory();
+        $productCategoryFactory->create(['name' => 'Electronics']);
+        $productCategoryFactory2 = ProductCategory::factory();
+        $productCategoryFactory2->create(['name' => 'Books']);
+        $taxFactory = Tax::factory();
+        $taxFactory->create(['slug' => 'dph', 'rate' => 21]);
+        $taxFactory2 = Tax::factory();
+        $taxFactory2->create(['slug' => 'other', 'rate' => 10]); // should be ignored
 
         $cache = $this->makeCountingCache();
         $this->app->instance(CacheServiceInterface::class, $cache);
@@ -141,8 +145,10 @@ class ProductServiceFeatureTest extends TestCase
         Cache::flush();
         // The service lists the whole table; start without the seeded categories
         ProductCategory::query()->delete();
-        ProductCategory::factory()->create(['name' => 'Zeta']);
-        ProductCategory::factory()->create(['name' => 'Alpha']);
+        $productCategoryFactory = ProductCategory::factory();
+        $productCategoryFactory->create(['name' => 'Zeta']);
+        $productCategoryFactory2 = ProductCategory::factory();
+        $productCategoryFactory2->create(['name' => 'Alpha']);
 
         // Resolve Application service
         $service = app(ProductApplicationServiceInterface::class);

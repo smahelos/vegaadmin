@@ -52,7 +52,8 @@ class RequireBackpackApiAccessFeatureTest extends TestCase
     #[Test]
     public function authenticated_without_permission_gets_403(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
         $request = Request::create(
             '/admin/api/resource',
@@ -77,7 +78,8 @@ class RequireBackpackApiAccessFeatureTest extends TestCase
     #[Test]
     public function authenticated_with_permission_passes(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $user->assignRole($role);
         $this->actingAs($user, 'backpack');

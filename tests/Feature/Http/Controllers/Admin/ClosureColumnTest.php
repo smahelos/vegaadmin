@@ -34,7 +34,8 @@ final class ClosureColumnTest extends TestCase
     public function escapes_text_and_shows_zero_count(): void
     {
         $name = '<b>Category ' . uniqid() . '</b>';
-        PageCategory::factory()->create(
+        $pageCategoryFactory = PageCategory::factory();
+        $pageCategoryFactory->create(
             ['name' => array_fill_keys([
                 'cs',
                 'de',
@@ -55,7 +56,8 @@ final class ClosureColumnTest extends TestCase
     #[Test]
     public function renders_html_columns_with_escaped_values(): void
     {
-        $user = User::factory()->create(['name' => '<i>User ' . uniqid() . '</i>']);
+        $userFactory = User::factory();
+        $user = $userFactory->create(['name' => '<i>User ' . uniqid() . '</i>']);
         EntityLimitUsage::create(
             [
                 'user_id' => $user->id,

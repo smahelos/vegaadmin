@@ -30,7 +30,8 @@ class StatusCategoryRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
 
-        StatusCategory::factory()->create();
+        $statusCategoryFactory = StatusCategory::factory();
+        $statusCategoryFactory->create();
 
         // Define test routes
         Route::post(
@@ -152,7 +153,8 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        $existingCategory = StatusCategory::factory()->create(['slug' => 'existing-slug']);
+        $statusCategoryFactory = StatusCategory::factory();
+        $existingCategory = $statusCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Valid Name',
@@ -169,7 +171,8 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $existingCategory = StatusCategory::factory()->create(['slug' => 'existing-slug']);
+        $statusCategoryFactory = StatusCategory::factory();
+        $existingCategory = $statusCategoryFactory->create(['slug' => 'existing-slug']);
 
         $validData = [
             'id' => $existingCategory->id,
@@ -214,7 +217,8 @@ class StatusCategoryRequestFeatureTest extends TestCase
     public function authorization_fails_without_permission(): void
     {
         // Create a user without the required permission
-        $userWithoutPermission = User::factory()->create();
+        $userFactory = User::factory();
+        $userWithoutPermission = $userFactory->create();
         // Give basic backpack access but not the specific permission (for backpack guard)
         $backpackAccess = Permission::where('name', 'backpack.access')
             ->where('guard_name', 'backpack')

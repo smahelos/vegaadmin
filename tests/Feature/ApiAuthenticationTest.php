@@ -15,7 +15,8 @@ final class ApiAuthenticationTest extends TestCase
     public function frontend_user_can_access_frontend_api(): void
     {
         // Create frontend user with role
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $frontendRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
         $user->assignRole($frontendRole);
 
@@ -36,7 +37,8 @@ final class ApiAuthenticationTest extends TestCase
     public function admin_user_can_access_all_apis(): void
     {
         // Create admin user with role
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $user->assignRole($adminRole);
 
@@ -57,11 +59,13 @@ final class ApiAuthenticationTest extends TestCase
     public function guard_separation_is_enforced(): void
     {
         // Create users with different guards
-        $backpackUser = User::factory()->create();
+        $userFactory = User::factory();
+        $backpackUser = $userFactory->create();
         $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $backpackUser->assignRole($adminRole);
 
-        $webUser = User::factory()->create();
+        $userFactory2 = User::factory();
+        $webUser = $userFactory2->create();
         $frontendRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
         $webUser->assignRole($frontendRole);
 

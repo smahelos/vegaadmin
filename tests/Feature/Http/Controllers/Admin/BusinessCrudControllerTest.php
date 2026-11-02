@@ -83,7 +83,8 @@ final class BusinessCrudControllerTest extends TestCase
     {
         $owner = $this->frontendUser();
         $this->limitActive('business', 1);
-        Business::factory()->create(['user_id' => $owner->id]);
+        $businessFactory = Business::factory();
+        $businessFactory->create(['user_id' => $owner->id]);
 
         $this->actingAs($this->admin, 'backpack')
             ->from('/admin/business/create')
@@ -132,7 +133,8 @@ final class BusinessCrudControllerTest extends TestCase
     #[Test]
     public function updates_a_business_and_clears_emptied_fields(): void
     {
-        $business = Business::factory()->create(['email' => 'old@example.test']);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['email' => 'old@example.test']);
 
         $this->actingAs($this->admin, 'backpack')
             ->put(
@@ -156,7 +158,8 @@ final class BusinessCrudControllerTest extends TestCase
     public function archives_and_restores_a_business_of_its_owner(): void
     {
         $owner = $this->frontendUser();
-        $business = Business::factory()->create(['user_id' => $owner->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $owner->id]);
         $owner->forceFill(['default_business_id' => $business->id])->save();
 
         $this->actingAs($this->admin, 'backpack')
@@ -178,8 +181,10 @@ final class BusinessCrudControllerTest extends TestCase
     public function archiving_a_default_accepts_an_explicit_replacement_without_set_default_permission(): void
     {
         $owner = $this->frontendUser();
-        $business = Business::factory()->create(['user_id' => $owner->id]);
-        $replacement = Business::factory()->create(['user_id' => $owner->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $owner->id]);
+        $businessFactory2 = Business::factory();
+        $replacement = $businessFactory2->create(['user_id' => $owner->id]);
         $owner->forceFill(['default_business_id' => $business->id])->save();
         $this->actingAs(
             $this->backendUser('can_archive_business', 'can_view_business'),
@@ -201,10 +206,12 @@ final class BusinessCrudControllerTest extends TestCase
     public function archiving_rejects_a_foreign_archived_or_unchanged_replacement(): void
     {
         $owner = $this->frontendUser();
-        $business = Business::factory()->create(['user_id' => $owner->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $owner->id]);
         $owner->forceFill(['default_business_id' => $business->id])->save();
         $archived = Business::factory()->archived()->create(['user_id' => $owner->id]);
-        $foreign = Business::factory()->create();
+        $businessFactory2 = Business::factory();
+        $foreign = $businessFactory2->create();
         $this->actingAs($this->admin, 'backpack');
         foreach (
             [
@@ -228,7 +235,8 @@ final class BusinessCrudControllerTest extends TestCase
     #[Test]
     public function archiving_needs_the_permission(): void
     {
-        $business = Business::factory()->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
         $backendUser = $this->backendUser('can_view_business');
 
         $this->actingAs($backendUser, 'backpack')
@@ -241,7 +249,8 @@ final class BusinessCrudControllerTest extends TestCase
     #[Test]
     public function the_admin_has_no_delete_operation(): void
     {
-        $business = Business::factory()->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
 
         $this->actingAs($this->admin, 'backpack')
             ->delete('/admin/business/' . $business->id)

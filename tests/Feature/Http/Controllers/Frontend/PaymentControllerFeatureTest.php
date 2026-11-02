@@ -16,8 +16,10 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_return_handles_successful_payment(): void
     {
-        $subscription = Subscription::factory()->create();
-        $payment = Payment::factory()->create(
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create(
             [
                 'subscription_id' => $subscription->id,
                 'gateway' => 'gopay',
@@ -46,8 +48,10 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_return_handles_failed_payment(): void
     {
-        $subscription = Subscription::factory()->create();
-        $payment = Payment::factory()->create(
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create(
             [
                 'subscription_id' => $subscription->id,
                 'gateway' => 'gopay',

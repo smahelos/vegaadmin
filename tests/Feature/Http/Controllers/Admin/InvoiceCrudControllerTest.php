@@ -35,7 +35,8 @@ final class InvoiceCrudControllerTest extends TestCase
     #[Test]
     public function admin_creation_consumes_the_owners_allowance_and_then_refuses_another_invoice(): void
     {
-        $owner = User::factory()->create();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
         $owner->assignRole(
             Role::findByName('frontend_user', 'web'),
         );
@@ -96,7 +97,8 @@ final class InvoiceCrudControllerTest extends TestCase
         $this->get('/admin/invoice/create')->assertOk()
             ->assertSee('name="business_id"', false)->assertSee('name="customer_name"', false)
             ->assertDontSee('name="client_id"', false)->assertDontSee('forms/invoice.js', false);
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
         $this->get('/admin/invoice/' . $invoice->id . '/edit')->assertOk()
             ->assertSee('name="bank_account_id"', false)->assertSee('name="customer_name"', false);
     }
@@ -105,10 +107,12 @@ final class InvoiceCrudControllerTest extends TestCase
     public function a_new_contact_is_copied_and_the_typed_customer_is_ignored(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             ['user_id' => $this->regularUser->id, 'name' => 'Selected customer'],
         );
-        $address = Address::factory()->create(['business_id' => null, 'contact_id' => $contact->id]);
+        $addressFactory = Address::factory();
+        $address = $addressFactory->create(['business_id' => null, 'contact_id' => $contact->id]);
         $data = $this->invoiceInput(
             $business,
             $account,
@@ -140,8 +144,10 @@ final class InvoiceCrudControllerTest extends TestCase
     public function keeping_the_contact_saves_document_corrections_without_changing_the_contact(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id]);
-        $invoice = Invoice::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->regularUser->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->regularUser->id,
                 'business_id' => $business->id,
@@ -171,10 +177,14 @@ final class InvoiceCrudControllerTest extends TestCase
     public function a_changed_contact_replaces_the_document_customer(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $old = Contact::factory()->create(['user_id' => $this->regularUser->id]);
-        $new = Contact::factory()->create(['user_id' => $this->regularUser->id]);
-        Address::factory()->create(['business_id' => null, 'contact_id' => $new->id]);
-        $invoice = Invoice::factory()->create(
+        $contactFactory = Contact::factory();
+        $old = $contactFactory->create(['user_id' => $this->regularUser->id]);
+        $contactFactory2 = Contact::factory();
+        $new = $contactFactory2->create(['user_id' => $this->regularUser->id]);
+        $addressFactory = Address::factory();
+        $addressFactory->create(['business_id' => null, 'contact_id' => $new->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->regularUser->id,
                 'business_id' => $business->id,
@@ -202,7 +212,8 @@ final class InvoiceCrudControllerTest extends TestCase
     public function selections_of_another_owner_are_rejected(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $contact = Contact::factory()->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create();
         $this->post(
             '/admin/invoice',
             $this->invoiceInput(
@@ -245,7 +256,8 @@ final class InvoiceCrudControllerTest extends TestCase
     public function an_archived_contact_cannot_be_newly_selected(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
         $this->post(
@@ -266,7 +278,8 @@ final class InvoiceCrudControllerTest extends TestCase
     public function a_contact_without_a_complete_address_cannot_supply_a_new_snapshot(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->regularUser->id]);
         $this->post(
             '/admin/invoice',
             $this->invoiceInput(
@@ -311,14 +324,16 @@ final class InvoiceCrudControllerTest extends TestCase
     public function editing_a_document_with_lines_keeps_the_lines_and_their_total(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->regularUser->id,
                 'business_id' => $business->id,
                 'payment_currency' => 'CZK',
             ],
         );
-        $line = InvoiceProduct::factory()->create(
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $line = $invoiceProductFactory->create(
             [
                 'invoice_id' => $invoice->id,
                 'currency' => 'CZK',
@@ -358,7 +373,8 @@ final class InvoiceCrudControllerTest extends TestCase
                 'number' => '2001234561',
             ],
         );
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->regularUser->id,
                 'business_id' => $business->id,
@@ -375,7 +391,8 @@ final class InvoiceCrudControllerTest extends TestCase
     #[Test]
     public function show_uses_the_saved_names(): void
     {
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             ['supplier_name' => 'Saved supplier', 'customer_name' => 'Saved customer'],
         );
         $this->get('/admin/invoice/' . $invoice->id . '/show')->assertOk()->assertSee('Saved supplier')->assertSee('Saved customer');

@@ -83,7 +83,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        ArtisanCommandCategory::factory()->create(['slug' => 'existing-slug']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $artisanCommandCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Test Category',
@@ -100,7 +101,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $category = ArtisanCommandCategory::factory()->create(['slug' => 'existing-slug']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create(['slug' => 'existing-slug']);
 
         $validData = [
             'name' => 'Updated Category',
@@ -118,8 +120,10 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function update_fails_with_slug_of_another_category(): void
     {
-        ArtisanCommandCategory::factory()->create(['slug' => 'taken-slug']);
-        $category = ArtisanCommandCategory::factory()->create(['slug' => 'own-slug']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $artisanCommandCategoryFactory->create(['slug' => 'taken-slug']);
+        $artisanCommandCategoryFactory2 = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory2->create(['slug' => 'own-slug']);
 
         $request = ArtisanCommandCategoryRequest::create(
             '/',

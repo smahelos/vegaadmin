@@ -41,7 +41,8 @@ class PerformanceMetricFeatureTest extends TestCase
     public function can_use_factory_to_create_performance_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $metric = $performanceMetricFactory->create();
 
         $this->assertInstanceOf(PerformanceMetric::class, $metric);
         $this->assertDatabaseHas('performance_metrics', [
@@ -157,7 +158,8 @@ class PerformanceMetricFeatureTest extends TestCase
     public function metadata_attribute_is_cast_to_array(): void
     {
 
-        $metric = PerformanceMetric::factory()->create([
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $metric = $performanceMetricFactory->create([
             'metadata' => ['test' => 'value', 'number' => 123],
         ]);
 
@@ -169,7 +171,8 @@ class PerformanceMetricFeatureTest extends TestCase
     public function measured_at_attribute_is_cast_to_datetime(): void
     {
 
-        $metric = PerformanceMetric::factory()->create([
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $metric = $performanceMetricFactory->create([
             'measured_at' => '2023-01-01 10:00:00',
         ]);
 
@@ -184,7 +187,8 @@ class PerformanceMetricFeatureTest extends TestCase
     public function metric_value_attribute_is_cast_to_decimal(): void
     {
 
-        $metric = PerformanceMetric::factory()->create([
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $metric = $performanceMetricFactory->create([
             'metric_value' => 123.456789,
         ]);
 
@@ -198,7 +202,8 @@ class PerformanceMetricFeatureTest extends TestCase
 
         PerformanceMetric::factory()->forQueryType('SELECT')->createMany(2);
         PerformanceMetric::factory()->forQueryType('INSERT')->create();
-        PerformanceMetric::factory()->create(['query_type' => null]);
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $performanceMetricFactory->create(['query_type' => null]);
 
         $selectMetrics = PerformanceMetric::where('query_type', 'SELECT')->get();
         $insertMetrics = PerformanceMetric::where('query_type', 'INSERT')->get();
@@ -211,7 +216,8 @@ class PerformanceMetricFeatureTest extends TestCase
     public function can_update_performance_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $metric = $performanceMetricFactory->create();
 
         $metric->update([
             'metric_value' => 999.99,
@@ -226,7 +232,8 @@ class PerformanceMetricFeatureTest extends TestCase
     public function can_delete_performance_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $metric = $performanceMetricFactory->create();
         $metricId = $metric->id;
 
         $metric->delete();

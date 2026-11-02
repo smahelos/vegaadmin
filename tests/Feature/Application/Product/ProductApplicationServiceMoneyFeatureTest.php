@@ -23,7 +23,8 @@ final class ProductApplicationServiceMoneyFeatureTest extends TestCase
     #[Test]
     public function create_product_with_price_money(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $data = [
             'name' => 'Money DTO Product',
             'price_money' => ['amount' => '123.45', 'currency' => 'czk'],
@@ -38,7 +39,8 @@ final class ProductApplicationServiceMoneyFeatureTest extends TestCase
     #[Test]
     public function update_product_with_legacy_price_and_currency(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $created = $this->productApp->createProduct(
             [
                 'name' => 'Legacy Price Product',

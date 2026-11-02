@@ -42,7 +42,8 @@ final class InvoicePdfSnapshotTest extends TestCase
                 20,
             )->setTime(14, 7),
         );
-        $invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'invoice_vs' => '20260001',
                 'invoice_ks' => '0308',
@@ -77,7 +78,8 @@ final class InvoicePdfSnapshotTest extends TestCase
                 'supplier_logo' => null,
             ],
         );
-        InvoiceProduct::factory()->create(
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(
             [
                 'invoice_id' => $invoice->id,
                 'product_id' => null,

@@ -76,7 +76,8 @@ class AdminDatepickerFieldTest extends TestCase
     public function edit_form_submits_an_empty_value_when_nothing_is_stored(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $record = Subscription::factory()->create(['trial_ends_at' => null]);
+        $subscriptionFactory = Subscription::factory();
+        $record = $subscriptionFactory->create(['trial_ends_at' => null]);
 
         $this->get("/admin/subscription/{$record->getKey()}/edit")
             ->assertOk()

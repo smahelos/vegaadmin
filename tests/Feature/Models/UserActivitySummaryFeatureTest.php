@@ -17,14 +17,20 @@ final class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function the_summary_counts_businesses_and_contacts_including_the_archive_and_one_off_invoices(): void
     {
-        $user = User::factory()->create();
-        $business = Business::factory()->create(['user_id' => $user->id]);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $user->id]);
         Business::factory()->archived()->create(['user_id' => $user->id]);
-        Contact::factory()->create(['user_id' => $user->id]);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $user->id]);
         Contact::factory()->archived()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(['user_id' => $user->id, 'business_id' => $business->id]);
-        Contact::factory()->create();
-        Business::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'business_id' => $business->id]);
+        $contactFactory2 = Contact::factory();
+        $contactFactory2->create();
+        $businessFactory2 = Business::factory();
+        $businessFactory2->create();
         $summary = UserActivitySummary::where('user_id', $user->id)->sole();
 
         $this->assertSame($user->id, $summary->user->id);

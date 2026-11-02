@@ -96,7 +96,8 @@ final class DocumentSupplierLogoTest extends TestCase
         $business->update(
             ['logo' => $this->sourceLogo('business.png')],
         );
-        $contact = Contact::factory()->create(['user_id' => $this->adminUser->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
         $data = $this->invoiceInput(
             $business,
             $account,
@@ -216,7 +217,8 @@ final class DocumentSupplierLogoTest extends TestCase
     public function contact_upload_is_multipart_and_stores_a_source_logo(): void
     {
         $this->get('/admin/contact/create')->assertOk()->assertSee('enctype="multipart/form-data"', false);
-        $owner = User::factory()->create();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
         $owner->assignRole(
             Role::findByName('frontend_user', 'web'),
         );
@@ -305,7 +307,8 @@ final class DocumentSupplierLogoTest extends TestCase
         $nextBusiness->update(
             ['logo' => $this->sourceLogo('after.png')],
         );
-        $contact = Contact::factory()->create(['user_id' => $this->adminUser->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
         $input['business_id'] = $nextBusiness->id;
         $input['bank_account_id'] = $nextAccount->id;
         $input['contact_id'] = $contact->id;
@@ -375,10 +378,12 @@ final class DocumentSupplierLogoTest extends TestCase
 
     private function supplierContact(string $logo): Contact
     {
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             ['user_id' => $this->adminUser->id, 'logo' => $this->sourceLogo($logo)],
         );
-        Address::factory()->create(['business_id' => null, 'contact_id' => $contact->id]);
+        $addressFactory = Address::factory();
+        $addressFactory->create(['business_id' => null, 'contact_id' => $contact->id]);
 
         return $contact;
     }

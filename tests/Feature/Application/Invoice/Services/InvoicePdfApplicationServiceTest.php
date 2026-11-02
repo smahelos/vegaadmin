@@ -164,8 +164,10 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function user_can_generate_pdf(): void
     {
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id, 'payment_currency' => 'EUR']);
-        InvoiceProduct::factory()->create(['invoice_id' => $invoice->id, 'currency' => 'EUR']);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id, 'payment_currency' => 'EUR']);
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(['invoice_id' => $invoice->id, 'currency' => 'EUR']);
 
         $pdf = $this->pdfService->generate($this->user->id, $invoice->id);
 
@@ -199,8 +201,10 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function another_users_invoice_is_not_rendered(): void
     {
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-        $otherUser = User::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
 
         $pdf = $this->pdfService->generate($otherUser->id, $invoice->id);
 

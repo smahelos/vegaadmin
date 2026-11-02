@@ -212,28 +212,32 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     #[Test]
     public function expenses_sum_the_users_expenses_in_the_range_by_month(): void
     {
-        Expense::factory()->create(
+        $expenseFactory = Expense::factory();
+        $expenseFactory->create(
             [
                 'user_id' => $this->user->id,
                 'expense_date' => '2026-01-03',
                 'amount' => 120,
             ],
         );
-        Expense::factory()->create(
+        $expenseFactory2 = Expense::factory();
+        $expenseFactory2->create(
             [
                 'user_id' => $this->user->id,
                 'expense_date' => '2026-01-28',
                 'amount' => 80,
             ],
         );
-        Expense::factory()->create(
+        $expenseFactory3 = Expense::factory();
+        $expenseFactory3->create(
             [
                 'user_id' => $this->user->id,
                 'expense_date' => '2026-03-01',
                 'amount' => 50,
             ],
         );
-        Expense::factory()->create(['expense_date' => '2026-01-10', 'amount' => 999]);
+        $expenseFactory4 = Expense::factory();
+        $expenseFactory4->create(['expense_date' => '2026-01-10', 'amount' => 999]);
 
         $rows = $this->repository->expenses(
             UserId::fromInt($this->user->id),
@@ -268,7 +272,8 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         int $amount,
         string $status,
     ): void {
-        Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
             [
                 'user_id' => $client->user_id,
                 'contact_id' => $client->id,

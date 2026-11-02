@@ -48,7 +48,8 @@ class CrudAccessServiceFeatureTest extends TestCase
     public function denies_all_access_by_default(): void
     {
         $this->setCrudModel(User::class);
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $this->service->configureCrudAccess($this->crud, $user->id);
 
@@ -71,7 +72,8 @@ class CrudAccessServiceFeatureTest extends TestCase
     public function allows_view_access_with_view_permission(): void
     {
         $this->setCrudModel(User::class);
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $perm = Permission::where('name', 'can_view_user')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($perm);
 
@@ -91,7 +93,8 @@ class CrudAccessServiceFeatureTest extends TestCase
     public function allows_full_access_with_create_edit_permission(): void
     {
         $this->setCrudModel(User::class);
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $perm = Permission::where('name', 'can_create_edit_user')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($perm);
 
@@ -115,7 +118,8 @@ class CrudAccessServiceFeatureTest extends TestCase
     public function admin_role_allows_full_access(): void
     {
         $this->setCrudModel(User::class);
-        $admin = User::factory()->create();
+        $userFactory = User::factory();
+        $admin = $userFactory->create();
         $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $admin->assignRole($role);
 
@@ -140,7 +144,8 @@ class CrudAccessServiceFeatureTest extends TestCase
     {
         // Switch model to Contact to ensure singular entity mapping handled by service
         $this->setCrudModel(Contact::class);
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // For contact view permission, adapter checks can_view_contact; create_edit permission is can_create_edit_contact
         Permission::firstOrCreate(['name' => 'can_view_contact', 'guard_name' => 'backpack']);
         $perm = Permission::where('name', 'can_view_contact')->where('guard_name', 'backpack')->first();

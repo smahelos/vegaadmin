@@ -117,7 +117,8 @@ final class ContactFormTest extends TestCase
     public function the_capacity_limit_stops_a_new_contact(): void
     {
         $this->limitActive('contact', 1);
-        Contact::factory()->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $this->user->id]);
 
         Livewire::test(ContactForm::class)
             ->set('party.name', 'Další')
@@ -136,7 +137,8 @@ final class ContactFormTest extends TestCase
     #[Test]
     public function editing_clears_an_emptied_contact_person_and_email(): void
     {
-        $contact = Contact::factory()->create(
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'contact_person' => 'Petr',
@@ -158,8 +160,10 @@ final class ContactFormTest extends TestCase
     #[Test]
     public function editing_needs_the_permission(): void
     {
-        $other = User::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $other->id]);
+        $userFactory = User::factory();
+        $other = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $other->id]);
         $this->actingAs($other);
 
         Livewire::test(ContactForm::class, ['contactId' => $contact->id])->assertForbidden();
@@ -167,7 +171,8 @@ final class ContactFormTest extends TestCase
 
     private function createBusinessWithCompanyNumber(string $companyNumber): void
     {
-        Business::factory()->create(
+        $businessFactory = Business::factory();
+        $businessFactory->create(
             [
                 'user_id' => $this->user->id,
                 'company_number' => $companyNumber,

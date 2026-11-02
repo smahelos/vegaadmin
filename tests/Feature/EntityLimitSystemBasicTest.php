@@ -62,7 +62,8 @@ final class EntityLimitSystemBasicTest extends TestCase
             ],
         );
 
-        $limit = EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $limit = $entityLimitFactory->create(
             [
                 'permission_name' => 'test_invoice_limit',
                 'entity_type' => 'invoice',
@@ -96,7 +97,8 @@ final class EntityLimitSystemBasicTest extends TestCase
         $this->user->givePermissionTo('monthly_invoice_limit');
 
         // Create a limit
-        EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'monthly_invoice_limit',
                 'entity_type' => 'invoice',
@@ -175,7 +177,8 @@ final class EntityLimitSystemBasicTest extends TestCase
     public function entity_limit_factory_works(): void
     {
         // Test the factory can create instances
-        $limit = EntityLimit::factory()->make();
+        $entityLimitFactory = EntityLimit::factory();
+        $limit = $entityLimitFactory->make();
         $this->assertNotNull($limit->permission_name);
         $this->assertNotNull($limit->entity_type);
 

@@ -20,7 +20,8 @@ final class AuthenticateSessionFeatureTest extends TestCase
     #[Test]
     public function admin_stays_logged_in_after_login(): void
     {
-        $admin = User::factory()->create();
+        $userFactory = User::factory();
+        $admin = $userFactory->create();
         $admin->assignRole(
             Role::findByName(PermissionCatalog::ADMIN_ROLE, PermissionCatalog::BACKPACK),
         );

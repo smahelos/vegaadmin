@@ -29,7 +29,8 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     #[Test]
     public function has_backpack_permission_returns_false_without_permission(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->assertFalse(
             $this->adapter->hasBackpackPermission($user->id, 'test.permission'),
         );
@@ -38,7 +39,8 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     #[Test]
     public function has_backpack_permission_returns_true_with_permission(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $permission = Permission::where('name', 'test.permission')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($permission);
 
@@ -50,7 +52,8 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     #[Test]
     public function is_backpack_admin_true_when_role_assigned(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $user->assignRole($role);
 
@@ -62,7 +65,8 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     #[Test]
     public function has_backpack_view_permission_true_with_permission(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $viewPermission = Permission::where('name', 'can_view_contact')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($viewPermission);
 
