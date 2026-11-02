@@ -326,7 +326,8 @@ class UELSControllerFeatureTest extends TestCase
         $user = $this->makeUser();
         $this->actingAs($user, 'web');
         $resp = $this->getJson('/test/uels/invalid');
-        $resp->assertStatus(400)->assertJson(['error' => 'Invalid entity type']);
+        $assertionResponse = $resp->assertStatus(400);
+        $assertionResponse->assertJson(['error' => 'Invalid entity type']);
     }
 
     #[Test]
@@ -454,7 +455,8 @@ class UELSControllerFeatureTest extends TestCase
             ],
         ];
         $resp = $this->getJson('/test/uels-all');
-        $resp->assertOk()->assertJsonStructure(
+        $assertionResponse = $resp->assertOk();
+        $assertionResponse->assertJsonStructure(
             ['entities' => [
                 'contact',
                 'business',

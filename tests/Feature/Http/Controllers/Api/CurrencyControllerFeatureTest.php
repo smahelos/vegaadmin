@@ -55,7 +55,8 @@ class CurrencyControllerFeatureTest extends TestCase
         $resp = $this->getJson(
             route('api.exchange-rate', ['from' => 'USD', 'to' => 'USD']),
         );
-        $resp->assertOk()->assertJson([
+        $assertionResponse = $resp->assertOk();
+        $assertionResponse->assertJson([
             'from' => 'USD',
             'to' => 'USD',
             'rate' => 1.0,

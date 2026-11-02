@@ -155,7 +155,8 @@ class PaymentControllerCallbackTest extends TestCase
         );
 
         $response = $this->postJson('/payment/notify', ['gateway' => 'gopay']);
-        $response->assertOk()->assertJson(['status' => 'ok']);
+        $assertionResponse = $response->assertOk();
+        $assertionResponse->assertJson(['status' => 'ok']);
     }
 
     #[Test]
@@ -191,6 +192,7 @@ class PaymentControllerCallbackTest extends TestCase
         );
 
         $response = $this->postJson('/payment/notify', ['gateway' => 'gopay']);
-        $response->assertOk()->assertJson(['status' => 'error']);
+        $assertionResponse = $response->assertOk();
+        $assertionResponse->assertJson(['status' => 'error']);
     }
 }

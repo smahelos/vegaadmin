@@ -100,21 +100,21 @@ class UserControllerFeatureTest extends TestCase
         $httpClient = $httpClient->withoutMiddleware();
         $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'id',
-                'name',
-                'email',
-                'created_at',
-                'updated_at',
-            ])
-            ->assertJson(
-                [
-                    'id' => $this->testUser1->id,
-                    'name' => $this->testUser1->name,
-                    'email' => $this->testUser1->email,
-                ],
-            );
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse = $assertionResponse->assertJsonStructure([
+            'id',
+            'name',
+            'email',
+            'created_at',
+            'updated_at',
+        ]);
+        $assertionResponse->assertJson(
+            [
+                'id' => $this->testUser1->id,
+                'name' => $this->testUser1->name,
+                'email' => $this->testUser1->email,
+            ],
+        );
     }
 
     #[Test]
@@ -124,12 +124,12 @@ class UserControllerFeatureTest extends TestCase
         $httpClient = $httpClient->withoutMiddleware();
         $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(403)
-            ->assertJson(
-                [
-                    'error' => __('users.auth.unauthorized'),
-                ],
-            );
+        $assertionResponse = $response->assertStatus(403);
+        $assertionResponse->assertJson(
+            [
+                'error' => __('users.auth.unauthorized'),
+            ],
+        );
     }
 
     #[Test]
@@ -138,12 +138,12 @@ class UserControllerFeatureTest extends TestCase
         $httpClient = $this->withoutMiddleware();
         $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(401)
-            ->assertJson(
-                [
-                    'error' => __('users.auth.unauthenticated'),
-                ],
-            );
+        $assertionResponse = $response->assertStatus(401);
+        $assertionResponse->assertJson(
+            [
+                'error' => __('users.auth.unauthenticated'),
+            ],
+        );
     }
 
     #[Test]
@@ -155,12 +155,12 @@ class UserControllerFeatureTest extends TestCase
         $httpClient = $httpClient->withoutMiddleware();
         $response = $httpClient->getJson("/api/admin/user/{$nonExistentId}");
 
-        $response->assertStatus(404)
-            ->assertJson(
-                [
-                    'error' => __('users.messages.not_found'),
-                ],
-            );
+        $assertionResponse = $response->assertStatus(404);
+        $assertionResponse->assertJson(
+            [
+                'error' => __('users.messages.not_found'),
+            ],
+        );
     }
 
     #[Test]
@@ -388,7 +388,8 @@ class UserControllerFeatureTest extends TestCase
         $this->actingAs($this->backendAdminUser, 'backpack');
         $long = str_repeat('a', 1000);
         $response = $this->getJson('/api/admin/user/search?q=' . $long);
-        $response->assertStatus(200)->assertJsonPath('total', 0);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJsonPath('total', 0);
     }
 
     #[Test]
@@ -397,7 +398,8 @@ class UserControllerFeatureTest extends TestCase
         $this->actingAs($this->backendAdminUser, 'backpack');
         $maliciousQuery = "%27; DROP TABLE users; SELECT * FROM users WHERE name LIKE '%25";
         $response = $this->getJson('/api/admin/user/search?q=' . $maliciousQuery);
-        $response->assertStatus(200)->assertJsonPath('total', 0);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJsonPath('total', 0);
         $this->assertDatabaseHas('users', ['id' => $this->backendAdminUser->id]);
     }
 
@@ -412,17 +414,17 @@ class UserControllerFeatureTest extends TestCase
         $httpClient = $httpClient->withoutMiddleware();
         $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(200)
-            ->assertJsonStructure(
-                [
-                    'id',
-                    'name',
-                    'email',
-                    'email_verified_at',
-                    'created_at',
-                    'updated_at',
-                ],
-            );
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJsonStructure(
+            [
+                'id',
+                'name',
+                'email',
+                'email_verified_at',
+                'created_at',
+                'updated_at',
+            ],
+        );
 
         // Verify data types
         $data = $response->json();
@@ -475,24 +477,24 @@ class UserControllerFeatureTest extends TestCase
         $httpClient = $this->withoutMiddleware();
         $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(401)
-            ->assertJsonStructure(['error']);
+        $assertionResponse = $response->assertStatus(401);
+        $assertionResponse->assertJsonStructure(['error']);
 
         // Test 403 error format
         $httpClient2 = $this->actingAs($this->unauthorizedAdmin, 'backpack');
         $httpClient2 = $httpClient2->withoutMiddleware();
         $response = $httpClient2->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(403)
-            ->assertJsonStructure(['error']);
+        $assertionResponse2 = $response->assertStatus(403);
+        $assertionResponse2->assertJsonStructure(['error']);
 
         // Test 404 error format
         $httpClient3 = $this->actingAs($this->backendAdminUser, 'backpack');
         $httpClient3 = $httpClient3->withoutMiddleware();
         $response = $httpClient3->getJson('/api/admin/user/99999');
 
-        $response->assertStatus(404)
-            ->assertJsonStructure(['error']);
+        $assertionResponse3 = $response->assertStatus(404);
+        $assertionResponse3->assertJsonStructure(['error']);
     }
 
     #[Test]
@@ -515,8 +517,8 @@ class UserControllerFeatureTest extends TestCase
         $httpClient = $httpClient->withoutMiddleware();
         $response = $httpClient->getJson("/api/admin/user/{$failingId}");
 
-        $response->assertStatus(500)
-            ->assertJsonStructure(['error']);
+        $assertionResponse = $response->assertStatus(500);
+        $assertionResponse->assertJsonStructure(['error']);
 
         // Log expectation asserted automatically at test end by Mockery
         $this->assertTrue(true);

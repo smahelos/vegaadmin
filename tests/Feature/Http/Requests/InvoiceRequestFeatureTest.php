@@ -812,9 +812,9 @@ final class InvoiceRequestFeatureTest extends TestCase
             ),
         );
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['invoice-products.1.unit', 'invoice-products.1.product_id'])
-            ->assertJsonMissingValidationErrors(['invoice-products', 'invoice-products.0.unit']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse = $assertionResponse->assertJsonValidationErrors(['invoice-products.1.unit', 'invoice-products.1.product_id']);
+        $assertionResponse->assertJsonMissingValidationErrors(['invoice-products', 'invoice-products.0.unit']);
     }
 
     #[Test]
@@ -825,7 +825,8 @@ final class InvoiceRequestFeatureTest extends TestCase
             $this->guestInvoiceInput(['invoice-products' => '{broken']),
         );
 
-        $response->assertStatus(422)->assertJsonValidationErrors(['invoice-products']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['invoice-products']);
     }
 
     #[Test]

@@ -51,7 +51,8 @@ class InvoiceControllerFeatureTest extends TestCase
         $invoice = $this->stub->invoices[1]; // owned by regular user
         $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
         $response = $httpClient->getJson('/api/admin/invoice/' . $invoice->id);
-        $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['id' => $invoice->id]);
     }
 
     #[Test]
@@ -60,7 +61,8 @@ class InvoiceControllerFeatureTest extends TestCase
         $invoice = $this->stub->invoices[0]; // owned by frontend user
         $httpClient = $this->actingAs($this->frontendUser, 'web');
         $response = $httpClient->getJson('/api/invoice/' . $invoice->id);
-        $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['id' => $invoice->id]);
     }
 
     #[Test]
@@ -69,7 +71,8 @@ class InvoiceControllerFeatureTest extends TestCase
         $foreign = $this->stub->invoices[2]; // owned by admin
         $httpClient = $this->actingAs($this->frontendUser, 'web');
         $response = $httpClient->getJson('/api/invoice/' . $foreign->id);
-        $response->assertStatus(403)->assertJson(
+        $assertionResponse = $response->assertStatus(403);
+        $assertionResponse->assertJson(
             ['error' => __('users.auth.unauthorized')],
         );
     }
@@ -79,7 +82,8 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $httpClient = $this->actingAs($this->frontendUser, 'web');
         $response = $httpClient->getJson('/api/invoice/999999');
-        $response->assertStatus(404)->assertJson(
+        $assertionResponse = $response->assertStatus(404);
+        $assertionResponse->assertJson(
             ['error' => __('invoices.messages.not_found')],
         );
     }
@@ -89,7 +93,8 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $invoice = $this->stub->invoices[0];
         $response = $this->getJson('/api/invoice/' . $invoice->id);
-        $response->assertStatus(401)->assertJson(
+        $assertionResponse = $response->assertStatus(401);
+        $assertionResponse->assertJson(
             ['error' => __('users.auth.unauthenticated')],
         );
     }
@@ -102,7 +107,8 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $httpClient = $this->actingAs($this->frontendUser, 'web');
         $response = $httpClient->getJson('/api/invoice');
-        $response->assertStatus(400)->assertJson(
+        $assertionResponse = $response->assertStatus(400);
+        $assertionResponse->assertJson(
             ['error' => __('invoices.messages.id_required')],
         );
     }
@@ -113,7 +119,8 @@ class InvoiceControllerFeatureTest extends TestCase
         $invoice = $this->stub->invoices[0];
         $httpClient = $this->actingAs($this->frontendUser, 'web');
         $response = $httpClient->getJson('/api/invoice?q=' . $invoice->id);
-        $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['id' => $invoice->id]);
     }
 
     // ---------------------------------------------------------------
@@ -142,7 +149,8 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->stub->failOnId = 123456; // configure stub
         $httpClient = $this->actingAs($this->frontendUser, 'web');
         $response = $httpClient->getJson('/api/invoice/123456');
-        $response->assertStatus(404)->assertJson(
+        $assertionResponse = $response->assertStatus(404);
+        $assertionResponse->assertJson(
             ['error' => __('invoices.messages.not_found')],
         );
     }

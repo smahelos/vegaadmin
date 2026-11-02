@@ -14,7 +14,8 @@ class SessionControllerFeatureTest extends TestCase
         $resp = $this->getJson(
             route('api.auth-check'),
         );
-        $resp->assertStatus(401)->assertJson(['status' => 'unauthenticated']);
+        $assertionResponse = $resp->assertStatus(401);
+        $assertionResponse->assertJson(['status' => 'unauthenticated']);
     }
 
     /** @test */
@@ -28,7 +29,8 @@ class SessionControllerFeatureTest extends TestCase
         $resp = $this->getJson(
             route('api.auth-check'),
         );
-        $resp->assertOk()->assertJson(['status' => 'authenticated']);
+        $assertionResponse = $resp->assertOk();
+        $assertionResponse->assertJson(['status' => 'authenticated']);
     }
 
     /** @test */
@@ -37,6 +39,7 @@ class SessionControllerFeatureTest extends TestCase
         $resp = $this->postJson(
             route('api.session-refresh'),
         );
-        $resp->assertOk()->assertJson(['status' => 'session_refreshed']);
+        $assertionResponse = $resp->assertOk();
+        $assertionResponse->assertJson(['status' => 'session_refreshed']);
     }
 }

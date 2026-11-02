@@ -49,7 +49,8 @@ class PageControllerFeatureTest extends TestCase
         $response = $this->get(
             route('home', ['locale' => 'cs']),
         );
-        $response->assertOk()->assertViewIs('frontend.pages.homepage-empty');
+        $assertionResponse = $response->assertOk();
+        $assertionResponse->assertViewIs('frontend.pages.homepage-empty');
     }
 
     #[Test]
@@ -72,15 +73,16 @@ class PageControllerFeatureTest extends TestCase
         $response = $this->get(
             route('home', ['locale' => 'cs']),
         );
-        $response->assertOk()->assertViewIs('frontend.pages.homepage')
-            ->assertViewHasAll(
-                [
-                    'page',
-                    'navigationPages',
-                    'featurePages',
-                    'pricePage',
-                ],
-            );
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.homepage');
+        $assertionResponse->assertViewHasAll(
+            [
+                'page',
+                'navigationPages',
+                'featurePages',
+                'pricePage',
+            ],
+        );
     }
 
     #[Test]
@@ -100,12 +102,13 @@ class PageControllerFeatureTest extends TestCase
         $response = $this->get(
             route('frontend.pages.index', ['locale' => 'cs']),
         );
-        $response->assertOk()->assertViewIs('frontend.pages.index')
-            ->assertViewHasAll([
-                'pages',
-                'categoriesWithPages',
-                'navigationPages',
-            ]);
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.index');
+        $assertionResponse->assertViewHasAll([
+            'pages',
+            'categoriesWithPages',
+            'navigationPages',
+        ]);
     }
 
     #[Test]
@@ -124,16 +127,17 @@ class PageControllerFeatureTest extends TestCase
         $response = $this->get(
             route('frontend.pages.show', ['locale' => 'cs', 'slug' => 'moje-stranka']),
         );
-        $response->assertOk()->assertViewIs('frontend.pages.show')
-            ->assertViewHasAll(
-                [
-                    'page',
-                    'breadcrumbs',
-                    'relatedPages',
-                    'navigationPages',
-                    'locale',
-                ],
-            );
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.show');
+        $assertionResponse->assertViewHasAll(
+            [
+                'page',
+                'breadcrumbs',
+                'relatedPages',
+                'navigationPages',
+                'locale',
+            ],
+        );
     }
 
     #[Test]
@@ -186,7 +190,8 @@ class PageControllerFeatureTest extends TestCase
         $response = $this->get(
             route('frontend.pages.category.slug', ['locale' => 'cs', 'slug' => 'kategorie']),
         );
-        $response->assertOk()->assertViewIs('frontend.pages.category');
+        $assertionResponse = $response->assertOk();
+        $assertionResponse->assertViewIs('frontend.pages.category');
     }
 
     #[Test]
@@ -218,7 +223,8 @@ class PageControllerFeatureTest extends TestCase
         $response = $this->get(
             route('frontend.pages.category', ['locale' => 'cs', 'categoryId' => 7]),
         );
-        $response->assertOk()->assertViewIs('frontend.pages.category');
+        $assertionResponse = $response->assertOk();
+        $assertionResponse->assertViewIs('frontend.pages.category');
     }
 
     #[Test]
@@ -244,10 +250,11 @@ class PageControllerFeatureTest extends TestCase
         $response = $this->get(
             route('frontend.pages.search', ['locale' => 'cs', 'q' => 'ab']),
         );
-        $response->assertOk()->assertViewIs('frontend.pages.search')
-            ->assertViewHas('pages', function ($c) {
-                return $c->count() === 0;
-            });
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.search');
+        $assertionResponse->assertViewHas('pages', function ($c) {
+            return $c->count() === 0;
+        });
     }
 
     #[Test]
@@ -264,10 +271,11 @@ class PageControllerFeatureTest extends TestCase
         $response = $this->get(
             route('frontend.pages.search', ['locale' => 'cs', 'q' => 'testovani']),
         );
-        $response->assertOk()->assertViewIs('frontend.pages.search')
-            ->assertViewHas('pages', function ($c) {
-                return $c->count() === 1;
-            });
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.search');
+        $assertionResponse->assertViewHas('pages', function ($c) {
+            return $c->count() === 1;
+        });
     }
 
     #[Test]
@@ -283,6 +291,7 @@ class PageControllerFeatureTest extends TestCase
         $response = $this->get(
             route('frontend.pages.sitemap', ['locale' => 'cs']),
         );
-        $response->assertOk()->assertViewIs('frontend.pages.sitemap');
+        $assertionResponse = $response->assertOk();
+        $assertionResponse->assertViewIs('frontend.pages.sitemap');
     }
 }

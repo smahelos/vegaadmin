@@ -130,8 +130,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             $payload,
             ['Accept' => 'application/json'],
         );
-        $response->assertStatus(200)
-            ->assertJson(['success' => true]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['success' => true]);
     }
 
     #[Test]
@@ -188,8 +188,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             route('frontend.invoice.store.guest', ['locale' => 'cs']),
             array_merge($invoiceData, ['lang' => 'cs']),
         );
-        $response->assertStatus(500)
-            ->assertJson(['success' => false]);
+        $assertionResponse = $response->assertStatus(500);
+        $assertionResponse->assertJson(['success' => false]);
     }
 
     #[Test]

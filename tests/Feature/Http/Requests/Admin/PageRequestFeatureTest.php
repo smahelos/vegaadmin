@@ -66,7 +66,8 @@ class PageRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
         $response = $this->postJson('/admin/test-page-validation', []);
-        $response->assertStatus(422)->assertJsonValidationErrors(['name']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['name']);
     }
 
     #[Test]
@@ -80,7 +81,8 @@ class PageRequestFeatureTest extends TestCase
                 'slug_cs' => str_repeat('a', 256),
             ],
         );
-        $response->assertStatus(422)->assertJsonValidationErrors(['slug.cs']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['slug.cs']);
     }
 
     #[Test]
@@ -113,7 +115,8 @@ class PageRequestFeatureTest extends TestCase
                 'publishing_end' => '2024-01-01 10:00:00',
             ],
         );
-        $response->assertStatus(422)->assertJsonValidationErrors(['publishing_end']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['publishing_end']);
     }
 
     #[Test]
@@ -127,7 +130,8 @@ class PageRequestFeatureTest extends TestCase
                 'slug_cs' => 'valid-slug',
             ],
         );
-        $response->assertStatus(422)->assertJsonValidationErrors(['name.cs']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['name.cs']);
     }
 
     #[Test]
@@ -142,7 +146,8 @@ class PageRequestFeatureTest extends TestCase
                 'sort_order' => -1,
             ],
         );
-        $response->assertStatus(422)->assertJsonValidationErrors(['sort_order']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['sort_order']);
     }
 
     #[Test]
@@ -202,7 +207,8 @@ class PageRequestFeatureTest extends TestCase
                 'category_id' => 999999,
             ],
         );
-        $response->assertStatus(422)->assertJsonValidationErrors(['category_id']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['category_id']);
     }
 
     #[Test]
@@ -240,9 +246,9 @@ class PageRequestFeatureTest extends TestCase
             'slug_en' => 'name',
         ];
         $response = $this->postJson('/admin/test-page-transform', $payload);
-        $response->assertStatus(200)
-            ->assertJsonMissing(['name_cs', 'name_en'])
-            ->assertJsonStructure(['name' => ['cs', 'en'], 'slug' => ['cs', 'en']]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse = $assertionResponse->assertJsonMissing(['name_cs', 'name_en']);
+        $assertionResponse->assertJsonStructure(['name' => ['cs', 'en'], 'slug' => ['cs', 'en']]);
     }
 
     #[Test]
@@ -253,7 +259,8 @@ class PageRequestFeatureTest extends TestCase
             'name_cs' => '',
             'slug_cs' => '',
         ]);
-        $response->assertStatus(422)->assertJsonValidationErrors(['name', 'slug']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['name', 'slug']);
     }
 
     #[Test]

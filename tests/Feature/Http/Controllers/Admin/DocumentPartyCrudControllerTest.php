@@ -57,7 +57,8 @@ final class DocumentPartyCrudControllerTest extends TestCase
             route('admin.document-parties.contacts', ['user_id' => $this->regularUser->id]),
         );
 
-        $response->assertOk()->assertJsonPath(
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertJsonPath(
             'data.0.profile',
             [
                 'logo_url' => asset('storage/parties/contact-logo.png'),
@@ -72,7 +73,9 @@ final class DocumentPartyCrudControllerTest extends TestCase
                 'email' => $contact->email,
                 'phone' => $contact->phone,
             ],
-        )->assertDontSee('Private note')->assertDontSee('Private contact person');
+        );
+        $assertionResponse = $assertionResponse->assertDontSee('Private note');
+        $assertionResponse->assertDontSee('Private contact person');
     }
 
     #[Test]

@@ -50,7 +50,8 @@ class EntityLimitRequestFeatureTest extends TestCase
         $this->withoutMiddleware();
         $this->actingAs($this->adminUser, 'backpack');
         $response = $this->postJson('/admin/entity-limit-test', $payload);
-        $response->assertStatus(200)->assertJson(['success' => true]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['success' => true]);
     }
 
     #[Test]
@@ -144,6 +145,7 @@ class EntityLimitRequestFeatureTest extends TestCase
         ];
 
         $response = $this->postJson('/admin/entity-limit-test', $payload);
-        $response->assertStatus(200)->assertJson(['success' => true]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['success' => true]);
     }
 }

@@ -71,6 +71,7 @@ class CountryControllerFeatureTest extends TestCase
         $resp = $this->getJson(
             route('api.country', ['code' => 'XX']),
         );
-        $resp->assertStatus(404)->assertJson(['message' => 'Country not found']);
+        $assertionResponse = $resp->assertStatus(404);
+        $assertionResponse->assertJson(['message' => 'Country not found']);
     }
 }
