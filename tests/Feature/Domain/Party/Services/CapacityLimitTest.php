@@ -47,7 +47,8 @@ final class CapacityLimitTest extends TestCase
             'The owner was locked before the capacity check',
         );
 
-        $this->app->make(ContactApplicationService::class)->create(
+        $contactService = $this->app->make(ContactApplicationService::class);
+        $contactService->create(
             UserId::fromInt($ownerId),
             new ContactWriteData($this->profile(), null),
         );

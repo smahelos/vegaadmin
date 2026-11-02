@@ -129,14 +129,18 @@ final class CacheManagementControllerTest extends TestCase
         );
 
         foreach ($commands as $command) {
-            $artisan->shouldHaveReceived('call')->with($command)->once();
+            $verification = $artisan->shouldHaveReceived('call');
+            $verification = $verification->with($command);
+            $verification->once();
         }
     }
 
     #[Test]
     public function a_failure_shows_a_message_without_the_exception_text(): void
     {
-        Artisan::shouldReceive('call')->with('cache:clear')->andThrow(
+        $expectation = Artisan::shouldReceive('call');
+        $expectation->with('cache:clear');
+        $expectation->andThrow(
             new RuntimeException('Connection refused [tcp://redis:6379]'),
         );
 

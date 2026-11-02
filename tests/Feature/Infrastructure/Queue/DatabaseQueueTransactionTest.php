@@ -21,7 +21,8 @@ final class DatabaseQueueTransactionTest extends TestCase
     #[Test]
     public function a_job_is_stored_inside_the_transaction_that_dispatches_it(): void
     {
-        $this->transactions()->transaction(
+        $transactions = $this->transactions();
+        $transactions->transaction(
             function (): void {
                 $this->dispatchJob();
 
@@ -36,7 +37,8 @@ final class DatabaseQueueTransactionTest extends TestCase
     public function a_rolled_back_transaction_leaves_no_job(): void
     {
         try {
-            $this->transactions()->transaction(
+            $transactions = $this->transactions();
+            $transactions->transaction(
                 function (): void {
                     $this->dispatchJob();
 
@@ -51,7 +53,10 @@ final class DatabaseQueueTransactionTest extends TestCase
 
     private function dispatchJob(): void
     {
-        QueuedCommand::dispatch(['about'])->onConnection('database')->onQueue(self::QUEUE);
+        $job = new QueuedCommand(['about']);
+        $job->onConnection('database');
+        $job->onQueue(self::QUEUE);
+        dispatch($job);
     }
 
     private function storedJobs(): int

@@ -84,8 +84,10 @@ final class BankAccountCrudControllerTest extends TestCase
                 $this->backendUser('can_update_' . $type),
                 'backpack',
             );
-            $this->get('/admin/bank-account/' . $hidden->id . '/edit')->assertForbidden();
-            $this->get('/admin/bank-account/' . $visible->id . '/edit')->assertOk();
+            $hiddenResponse = $this->get('/admin/bank-account/' . $hidden->id . '/edit');
+            $hiddenResponse->assertForbidden();
+            $visibleResponse = $this->get('/admin/bank-account/' . $visible->id . '/edit');
+            $visibleResponse->assertOk();
         }
     }
 

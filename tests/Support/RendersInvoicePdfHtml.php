@@ -17,7 +17,9 @@ trait RendersInvoicePdfHtml
         string $locale = 'cs',
     ): string {
         $html = '';
-        Pdf::shouldReceive('loadView')->once()->andReturnUsing(
+        $expectation = Pdf::shouldReceive('loadView');
+        $expectation->once();
+        $expectation->andReturnUsing(
             function (string $view, array $data) use (&$html): PdfDocument {
                 $html = view($view, $data)->render();
 

@@ -126,12 +126,12 @@ final class PartyPagesTest extends TestCase
         $user = $this->frontendUser();
         $record = $model::factory()->create(['user_id' => $user->id]);
 
-        $this->actingAs($user)
-            ->get(
-                route($route, [$parameter => $record->id]),
-            )
-            ->assertOk()
-            ->assertSeeLivewire($component);
+        $this->actingAs($user);
+        $response = $this->get(
+            route($route, [$parameter => $record->id]),
+        );
+        $response->assertOk();
+        $response->assertSeeLivewire($component);
     }
 
     /**

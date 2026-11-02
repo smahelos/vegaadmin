@@ -76,7 +76,8 @@ class TaxesServiceFeatureTest extends TestCase
         $this->assertArrayHasKey($t1->id, $initial);
 
         // Before TTL: add new tax but expect cached result (no new id)
-        $this->travel(4)->minutes();
+        $wormhole = $this->travel(4);
+        $wormhole->minutes();
         $t2 = Model::withoutEvents(
             function () {
                 return Tax::factory()->create(['name' => 'New Tax']);
@@ -87,7 +88,8 @@ class TaxesServiceFeatureTest extends TestCase
         $this->assertArrayNotHasKey($t2->id, $beforeExpire);
 
         // After TTL: expect refreshed result to include new id
-        $this->travel(2)->minutes(); // Total 6 minutes
+        $wormhole = $this->travel(2);
+        $wormhole->minutes(); // Total 6 minutes
         $afterExpire = $this->service->getAllTaxesForSelect();
         $this->assertArrayHasKey($t2->id, $afterExpire);
     }

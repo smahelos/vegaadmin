@@ -173,7 +173,8 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     #[Test]
     public function invoice_status_counts_unpaid_invoices_past_their_due_date_as_overdue(): void
     {
-        $rows = $this->repositoryOn('2026-02-04')->invoiceStatus(
+        $repository = $this->repositoryOn('2026-02-04');
+        $rows = $repository->invoiceStatus(
             UserId::fromInt($this->user->id),
             new DateTimeImmutable('2026-01-01'),
             null,

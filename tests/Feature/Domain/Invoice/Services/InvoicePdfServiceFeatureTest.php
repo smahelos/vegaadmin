@@ -121,7 +121,8 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     public function cash_does_not_generate_a_payment_qr_even_with_a_saved_account(): void
     {
         $qr = $this->createMock(QrPaymentServiceInterface::class);
-        $qr->expects($this->never())->method('generateQrCodeBase64');
+        $expectation = $qr->expects($this->never());
+        $expectation->method('generateQrCodeBase64');
         $this->app->instance(QrPaymentServiceInterface::class, $qr);
         $invoice = $this->invoice();
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);

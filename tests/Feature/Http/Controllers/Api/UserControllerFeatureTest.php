@@ -323,10 +323,17 @@ class UserControllerFeatureTest extends TestCase
         $this->app->forgetInstance(UserServiceInterface::class);
         $this->actingAs($this->backendAdminUser, 'backpack');
 
+        $userResponse = $this->getJson("/api/admin/user/{$this->testUser1->id}");
+        $userResponse->assertOk();
+        $searchResponse = $this->getJson('/api/admin/user/search?q=Test+User');
+        $searchResponse->assertOk();
+        $searchResponse->assertJsonPath('total', 2);
+        $listResponse = $this->getJson('/api/admin/user');
+        $listResponse->assertOk();
         $responses = [
-            $this->getJson("/api/admin/user/{$this->testUser1->id}")->assertOk(),
-            $this->getJson('/api/admin/user/search?q=Test+User')->assertOk()->assertJsonPath('total', 2),
-            $this->getJson('/api/admin/user')->assertOk(),
+            $userResponse,
+            $searchResponse,
+            $listResponse,
         ];
 
         foreach ($responses as $response) {
@@ -510,14 +517,14 @@ class UserControllerFeatureTest extends TestCase
     public function get_user_admin_returns_500_and_logs_when_service_throws(): void
     {
         // Expect an error log invocation with correct message and context
-        Log::shouldReceive('error')
-            ->once()
-            ->withArgs(
-                function ($message, $context) {
-                    return str_contains($message, 'UserController@getUserAdmin error')
-                        && isset($context['user_id']);
-                },
-            );
+        $expectation = Log::shouldReceive('error');
+        $expectation->once();
+        $expectation->withArgs(
+            function ($message, $context) {
+                return str_contains($message, 'UserController@getUserAdmin error')
+                    && isset($context['user_id']);
+            },
+        );
         // Configure stub to throw for specific id (handled inside stub)
         $failingId = 777777;
         $this->userServiceStub->failOnId = $failingId;

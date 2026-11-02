@@ -98,11 +98,12 @@ final class BusinessApplicationServiceTest extends TestCase
             $this->fail('The default business was archived without a replacement');
         } catch (DefaultBusinessRequiredException) {
         }
+        $business = $this->businesses->get(
+            $this->idOf($user),
+            $first->id,
+        );
         $this->assertFalse(
-            $this->businesses->get(
-                $this->idOf($user),
-                $first->id,
-            )->isArchived(),
+            $business->isArchived(),
         );
 
         $this->businesses->archive(
@@ -111,11 +112,12 @@ final class BusinessApplicationServiceTest extends TestCase
             $second->id,
         );
 
+        $business = $this->businesses->get(
+            $this->idOf($user),
+            $first->id,
+        );
         $this->assertTrue(
-            $this->businesses->get(
-                $this->idOf($user),
-                $first->id,
-            )->isArchived(),
+            $business->isArchived(),
         );
         $this->assertSame($second->id->value, $user->fresh()?->default_business_id);
     }

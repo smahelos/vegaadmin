@@ -225,7 +225,9 @@ final class InvoiceItemsControllerTest extends TestCase
                     'invoice-products' => [$this->invoiceItem(['product_id' => (string) $product->id])],
                 ],
             );
-            $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
+            $response = $this->post('/admin/invoice', $data);
+            $response->assertSessionHasNoErrors();
+            $response->assertRedirect();
             $this->assertDatabaseHas(
                 'invoices',
                 [

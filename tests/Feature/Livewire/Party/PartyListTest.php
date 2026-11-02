@@ -104,7 +104,8 @@ final class PartyListTest extends TestCase
     {
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $this->user->id, 'name' => 'Default One']);
-        $this->user->forceFill(['default_business_id' => $business->id])->save();
+        $this->user->forceFill(['default_business_id' => $business->id]);
+        $this->user->save();
 
         $component = Livewire::test(BusinessList::class);
         $component->assertSeeInOrder(

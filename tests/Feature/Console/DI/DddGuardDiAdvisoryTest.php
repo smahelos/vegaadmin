@@ -80,8 +80,9 @@ PHP;
     public function di_scan_reports_advisory_for_missing_interface(): void
     {
         // When interface exists now, this scenario produces hard violations instead of advisories.
-        $this->artisan('ddd:guard', ['--di' => true, '--format' => 'json'])
-            ->assertExitCode(1); // Interface present -> violations expected
+        $command = $this->pendingCommand('ddd:guard', ['--di' => true, '--format' => 'json']);
+        $command->assertExitCode(1); // Interface present -> violations expected
+        $command->run();
 
         // Re-run command capturing buffered output (artisan testing tools don't give direct output string) via manual process
         // We'll execute the command class directly to capture output, or simpler: read the report file if configured.
@@ -92,8 +93,9 @@ PHP;
         config(['ddd_guard.json_report_path' => $reportPath]);
 
         // Re-run command with updated config
-        $this->artisan('ddd:guard', ['--di' => true, '--format' => 'json'])
-            ->assertExitCode(1);
+        $command = $this->pendingCommand('ddd:guard', ['--di' => true, '--format' => 'json']);
+        $command->assertExitCode(1);
+        $command->run();
 
         $this->assertFileExists($reportPath, 'JSON report file not generated');
         $json = json_decode(
@@ -118,15 +120,16 @@ PHP;
         $reportPath = storage_path("app/ddd_guard_report_{$this->processId}.json");
         config(['ddd_guard.json_report_path' => $reportPath]);
 
-        $this->artisan(
+        $command = $this->pendingCommand(
             'ddd:guard',
             [
                 '--di' => true,
                 '--format' => 'json',
                 '--fail-on-advisory' => true,
             ],
-        )
-            ->assertExitCode(1); // Advisories should trigger failure with flag
+        );
+        $command->assertExitCode(1); // Advisories should trigger failure with flag
+        $command->run();
     }
 
     #[Test]
@@ -151,8 +154,9 @@ PHP;
         $reportPath = storage_path("app/ddd_guard_report_{$this->processId}.json");
         config(['ddd_guard.json_report_path' => $reportPath]);
 
-        $this->artisan('ddd:guard', ['--di' => true, '--format' => 'json'])
-            ->assertExitCode(1); // Hard violation should fail build now that interface exists
+        $command = $this->pendingCommand('ddd:guard', ['--di' => true, '--format' => 'json']);
+        $command->assertExitCode(1); // Hard violation should fail build now that interface exists
+        $command->run();
 
         // Inspect JSON report
         $json = json_decode(

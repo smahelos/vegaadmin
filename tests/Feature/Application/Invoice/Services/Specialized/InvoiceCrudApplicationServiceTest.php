@@ -51,7 +51,8 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
 
         try {
-            $this->app->make(InvoiceCrudApplicationServiceInterface::class)->update(
+            $invoiceService = $this->app->make(InvoiceCrudApplicationServiceInterface::class);
+            $invoiceService->update(
                 new UserId($user->id),
                 InvoiceId::fromInt($invoice->id),
                 [
@@ -108,7 +109,8 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         $beforeUsage = $entityLimitUsageQuery->count();
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
         try {
-            $this->app->make(InvoiceCrudApplicationServiceInterface::class)->create(
+            $invoiceService = $this->app->make(InvoiceCrudApplicationServiceInterface::class);
+            $invoiceService->create(
                 $this->idOf($user),
                 [
                     'invoice_vs' => '20260042',

@@ -200,27 +200,27 @@ class LoginControllerTest extends TestCase
     public function login_handles_exceptions_gracefully(): void
     {
         // Mock Auth facade to throw exception during attempt
-        Auth::shouldReceive('guard')
-            ->once()
-            ->with('web')
-            ->andReturnSelf();
+        $expectation = Auth::shouldReceive('guard');
+        $expectation->once();
+        $expectation->with('web');
+        $expectation->andReturnSelf();
 
-        Auth::shouldReceive('attempt')
-            ->once()
-            ->andThrow(
-                new \Exception('Database connection error'),
-            );
+        $expectation = Auth::shouldReceive('attempt');
+        $expectation->once();
+        $expectation->andThrow(
+            new \Exception('Database connection error'),
+        );
 
         // Expect log to be called
-        Log::shouldReceive('error')
-            ->once()
-            ->with(
-                'Login error: Database connection error',
-                [
-                    'email' => $this->validEmail,
-                    'ip' => '127.0.0.1',
-                ],
-            );
+        $expectation = Log::shouldReceive('error');
+        $expectation->once();
+        $expectation->with(
+            'Login error: Database connection error',
+            [
+                'email' => $this->validEmail,
+                'ip' => '127.0.0.1',
+            ],
+        );
 
         // Create a request
         $request = Request::create(
@@ -520,27 +520,27 @@ class LoginControllerTest extends TestCase
     public function login_logs_error_on_exception(): void
     {
         // Mock Auth facade to throw exception during attempt
-        Auth::shouldReceive('guard')
-            ->once()
-            ->with('web')
-            ->andReturnSelf();
+        $expectation = Auth::shouldReceive('guard');
+        $expectation->once();
+        $expectation->with('web');
+        $expectation->andReturnSelf();
 
-        Auth::shouldReceive('attempt')
-            ->once()
-            ->andThrow(
-                new \Exception('Test exception'),
-            );
+        $expectation = Auth::shouldReceive('attempt');
+        $expectation->once();
+        $expectation->andThrow(
+            new \Exception('Test exception'),
+        );
 
         // Expect log to be called
-        Log::shouldReceive('error')
-            ->once()
-            ->with(
-                'Login error: Test exception',
-                [
-                    'email' => $this->validEmail,
-                    'ip' => '127.0.0.1',
-                ],
-            );
+        $expectation = Log::shouldReceive('error');
+        $expectation->once();
+        $expectation->with(
+            'Login error: Test exception',
+            [
+                'email' => $this->validEmail,
+                'ip' => '127.0.0.1',
+            ],
+        );
 
         // Create a request
         $request = Request::create(
@@ -566,19 +566,20 @@ class LoginControllerTest extends TestCase
     public function login_returns_error_message_on_exception(): void
     {
         // Mock Auth facade to throw exception during attempt
-        Auth::shouldReceive('guard')
-            ->once()
-            ->with('web')
-            ->andReturnSelf();
+        $expectation = Auth::shouldReceive('guard');
+        $expectation->once();
+        $expectation->with('web');
+        $expectation->andReturnSelf();
 
-        Auth::shouldReceive('attempt')
-            ->once()
-            ->andThrow(
-                new \Exception('Test exception'),
-            );
+        $expectation = Auth::shouldReceive('attempt');
+        $expectation->once();
+        $expectation->andThrow(
+            new \Exception('Test exception'),
+        );
 
         // Expect log to be called
-        Log::shouldReceive('error')->once();
+        $expectation = Log::shouldReceive('error');
+        $expectation->once();
 
         // Create a request
         $request = Request::create(

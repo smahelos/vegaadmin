@@ -54,18 +54,20 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function name_and_email_pass(): void
     {
+        $validator = $this->validate(
+            ['name' => 'Jan Novák', 'email' => 'jan_' . uniqid() . '@example.com'],
+        );
         $this->assertFalse(
-            $this->validate(
-                ['name' => 'Jan Novák', 'email' => 'jan_' . uniqid() . '@example.com'],
-            )->fails(),
+            $validator->fails(),
         );
     }
 
     #[Test]
     public function own_email_passes(): void
     {
+        $validator = $this->validate(['name' => 'Jan Novák', 'email' => $this->user->email]);
         $this->assertFalse(
-            $this->validate(['name' => 'Jan Novák', 'email' => $this->user->email])->fails(),
+            $validator->fails(),
         );
     }
 
@@ -75,15 +77,18 @@ class UserRequestFeatureTest extends TestCase
         $userFactory = User::factory();
         $other = $userFactory->create();
 
+        $validator = $this->validate(['name' => 'Jan Novák', 'email' => $other->email]);
+        $errors = $validator->errors();
         $this->assertTrue(
-            $this->validate(['name' => 'Jan Novák', 'email' => $other->email])->errors()->has('email'),
+            $errors->has('email'),
         );
     }
 
     #[Test]
     public function missing_name_and_invalid_email_fail_with_field_labels(): void
     {
-        $errors = $this->validate(['name' => '', 'email' => 'invalid'])->errors();
+        $validator = $this->validate(['name' => '', 'email' => 'invalid']);
+        $errors = $validator->errors();
 
         $this->assertStringContainsString(
             __('users.fields.name'),

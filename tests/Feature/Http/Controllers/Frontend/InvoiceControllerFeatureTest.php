@@ -242,11 +242,11 @@ class InvoiceControllerFeatureTest extends TestCase
 
         // Mock the service to throw an exception
         $mockService = $this->mock(InvoiceServiceInterface::class);
-        $mockService->shouldReceive('setInvoiceTemplate')
-            ->with($this->invoice->id, 'modern')
-            ->andThrow(
-                new \Exception('Service error'),
-            );
+        $expectation = $mockService->shouldReceive('setInvoiceTemplate');
+        $expectation->with($this->invoice->id, 'modern');
+        $expectation->andThrow(
+            new \Exception('Service error'),
+        );
 
         $response = $this->putJson(
             route(
@@ -505,17 +505,17 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->actingAs($this->user, 'web');
         // Mock PDF application service (controller uses InvoicePdfApplicationServiceInterface->generate())
         $pdfMock = $this->mock(InvoicePdfApplicationServiceInterface::class);
-        $pdfMock->shouldReceive('generate')
-            ->once()
-            ->andReturn(
-                InvoiceActionResult::success(
-                    response: response(
-                        'PDF CONTENT',
-                        200,
-                        ['Content-Type' => 'application/pdf'],
-                    ),
+        $expectation = $pdfMock->shouldReceive('generate');
+        $expectation->once();
+        $expectation->andReturn(
+            InvoiceActionResult::success(
+                response: response(
+                    'PDF CONTENT',
+                    200,
+                    ['Content-Type' => 'application/pdf'],
                 ),
-            );
+            ),
+        );
         $response = $this->get(
             route(
                 'frontend.invoice.download',
@@ -547,11 +547,11 @@ class InvoiceControllerFeatureTest extends TestCase
             ],
         );
         $pdfMock = $this->mock(InvoicePdfApplicationServiceInterface::class);
-        $pdfMock->shouldReceive('generate')
-            ->once()
-            ->andReturn(
-                InvoiceActionResult::success(response: $responseMock),
-            );
+        $expectation = $pdfMock->shouldReceive('generate');
+        $expectation->once();
+        $expectation->andReturn(
+            InvoiceActionResult::success(response: $responseMock),
+        );
         $response = $this->get(
             route('frontend.invoice.download', ['locale' => 'en', 'id' => $this->invoice->id]),
         );

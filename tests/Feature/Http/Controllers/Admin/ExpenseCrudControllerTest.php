@@ -379,7 +379,9 @@ final class ExpenseCrudControllerTest extends TestCase
         $this->mock(
             ExpenseWriteRepositoryInterface::class,
             function (MockInterface $mock): void {
-                $mock->shouldReceive('create')->once()->andThrow(
+                $expectation = $mock->shouldReceive('create');
+                $expectation->once();
+                $expectation->andThrow(
                     new RuntimeException('Persistence failed'),
                 );
             },

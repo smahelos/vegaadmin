@@ -32,9 +32,10 @@ class DddGuardCommandTest extends TestCase
             }
         }
 
-        $this->artisan('ddd:guard')
-            ->expectsOutput('No DDD guard violations detected.')
-            ->assertExitCode(0);
+        $command = $this->pendingCommand('ddd:guard');
+        $command->expectsOutput('No DDD guard violations detected.');
+        $command->assertExitCode(0);
+        $command->run();
     }
 
     #[Test]
@@ -80,9 +81,10 @@ class DddGuardCommandTest extends TestCase
         );
 
         try {
-            $this->artisan('ddd:guard')
-                ->expectsOutput('DDD guard violations:')
-                ->assertExitCode(1);
+            $command = $this->pendingCommand('ddd:guard');
+            $command->expectsOutput('DDD guard violations:');
+            $command->assertExitCode(1);
+            $command->run();
         } finally {
             // Restore original config
             config(

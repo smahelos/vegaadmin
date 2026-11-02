@@ -101,31 +101,40 @@ class AdminCrudSmokeTest extends TestCase
         $record = $this->createRecord($model);
         $base = '/admin/' . $route;
 
-        $this->freshCrud()->get($base)->assertOk();
+        $this->freshCrud();
+        $response = $this->get($base);
+        $response->assertOk();
 
         // DataTables request of the list view; renders every column of the record
-        $this->freshCrud()->postJson($base . '/search', [
+        $this->freshCrud();
+        $response = $this->postJson($base . '/search', [
             'draw' => 1,
             'start' => 0,
             'length' => 10,
-        ])
-            ->assertOk()
-            ->assertJsonStructure([
-                'draw',
-                'recordsTotal',
-                'recordsFiltered',
-                'data',
-            ])
-            ->assertJsonPath('recordsTotal', fn ($total) => $total >= 1);
+        ]);
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'draw',
+            'recordsTotal',
+            'recordsFiltered',
+            'data',
+        ]);
+        $response->assertJsonPath('recordsTotal', fn ($total) => $total >= 1);
 
         if ($this->hasRoute("{$base}/create")) {
-            $this->freshCrud()->get($base . '/create')->assertOk();
+            $this->freshCrud();
+            $response = $this->get($base . '/create');
+            $response->assertOk();
         }
         if ($this->hasRoute("{$base}/{id}/edit")) {
-            $this->freshCrud()->get("{$base}/{$record->getKey()}/edit")->assertOk();
+            $this->freshCrud();
+            $response = $this->get("{$base}/{$record->getKey()}/edit");
+            $response->assertOk();
         }
         if ($this->hasRoute("{$base}/{id}/show")) {
-            $this->freshCrud()->get("{$base}/{$record->getKey()}/show")->assertOk();
+            $this->freshCrud();
+            $response = $this->get("{$base}/{$record->getKey()}/show");
+            $response->assertOk();
         }
     }
 

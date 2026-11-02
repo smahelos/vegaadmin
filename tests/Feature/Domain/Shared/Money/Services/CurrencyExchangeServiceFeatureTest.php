@@ -243,13 +243,13 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     {
         // Spy on the domain logger adapter instead of the facade, to assert log() was called
         $mockLogger = \Mockery::mock(LogInterface::class);
-        $mockLogger->shouldReceive('log')
-            ->once()
-            ->withArgs(
-                function (string $level, string $message) {
-                    return $level === 'error' && str_contains($message, 'Error fetching currency exchange rates');
-                },
-            );
+        $expectation = $mockLogger->shouldReceive('log');
+        $expectation->once();
+        $expectation->withArgs(
+            function (string $level, string $message) {
+                return $level === 'error' && str_contains($message, 'Error fetching currency exchange rates');
+            },
+        );
         $this->app->instance(LogInterface::class, $mockLogger);
         // Re-resolve service to pick up mocked logger
         $this->service = app(CurrencyExchangeService::class);

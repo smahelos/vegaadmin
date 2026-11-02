@@ -185,9 +185,10 @@ final class DocumentPartyCrudControllerTest extends TestCase
                 'accounts',
             ] as $source
         ) {
-            $this->getJson(
+            $response = $this->getJson(
                 route('admin.document-parties.' . $source),
-            )->assertForbidden();
+            );
+            $response->assertForbidden();
         }
     }
 }

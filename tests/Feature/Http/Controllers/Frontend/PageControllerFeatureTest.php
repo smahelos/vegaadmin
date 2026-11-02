@@ -44,8 +44,10 @@ class PageControllerFeatureTest extends TestCase
     #[Test]
     public function homepage_renders_empty_when_no_page(): void
     {
-        $this->mock(PageServiceInterface::class)
-            ->shouldReceive('getHomepage')->once()->andReturn(null);
+        $pageService = $this->mock(PageServiceInterface::class);
+        $expectation = $pageService->shouldReceive('getHomepage');
+        $expectation->once();
+        $expectation->andReturn(null);
         $response = $this->get(
             route('home', ['locale' => 'cs']),
         );
@@ -62,14 +64,22 @@ class PageControllerFeatureTest extends TestCase
         );
         $price = $this->mockPage(['id' => 12]);
         $mock = $this->mock(PageServiceInterface::class);
-        $mock->shouldReceive('getHomepage')->once()->andReturn($page);
-        $mock->shouldReceive('getPagesForNavigation')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getHomepage');
+        $expectation->once();
+        $expectation->andReturn($page);
+        $expectation = $mock->shouldReceive('getPagesForNavigation');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$page]),
         );
-        $mock->shouldReceive('getPagesByCategory')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getPagesByCategory');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$feature]),
         );
-        $mock->shouldReceive('getPageContentById')->once()->andReturn($price);
+        $expectation = $mock->shouldReceive('getPageContentById');
+        $expectation->once();
+        $expectation->andReturn($price);
         $response = $this->get(
             route('home', ['locale' => 'cs']),
         );
@@ -90,13 +100,19 @@ class PageControllerFeatureTest extends TestCase
     {
         $page = $this->mockPage();
         $mock = $this->mock(PageServiceInterface::class);
-        $mock->shouldReceive('getAllPublishedPages')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getAllPublishedPages');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$page]),
         );
-        $mock->shouldReceive('getCategoriesWithPages')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getCategoriesWithPages');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([]),
         );
-        $mock->shouldReceive('getPagesForNavigation')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getPagesForNavigation');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$page]),
         );
         $response = $this->get(
@@ -116,12 +132,20 @@ class PageControllerFeatureTest extends TestCase
     {
         $page = $this->mockPage(['slug' => ['cs' => 'moje-stranka', 'en' => 'my-page']]);
         $mock = $this->mock(PageServiceInterface::class);
-        $mock->shouldReceive('getPageBySlug')->once()->andReturn($page);
-        $mock->shouldReceive('getBreadcrumbs')->once()->andReturn([['name' => 'Root', 'slug' => 'root']]);
-        $mock->shouldReceive('getRelatedPages')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getPageBySlug');
+        $expectation->once();
+        $expectation->andReturn($page);
+        $expectation = $mock->shouldReceive('getBreadcrumbs');
+        $expectation->once();
+        $expectation->andReturn([['name' => 'Root', 'slug' => 'root']]);
+        $expectation = $mock->shouldReceive('getRelatedPages');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([]),
         );
-        $mock->shouldReceive('getPagesForNavigation')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getPagesForNavigation');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$page]),
         );
         $response = $this->get(
@@ -144,8 +168,10 @@ class PageControllerFeatureTest extends TestCase
     public function show_redirects_when_slug_not_localized(): void
     {
         $page = $this->mockPage(['slug' => ['cs' => 'lokalni', 'en' => 'english-slug']]);
-        $this->mock(PageServiceInterface::class)
-            ->shouldReceive('getPageBySlug')->once()->andReturn($page);
+        $pageService = $this->mock(PageServiceInterface::class);
+        $expectation = $pageService->shouldReceive('getPageBySlug');
+        $expectation->once();
+        $expectation->andReturn($page);
         $response = $this->get(
             route('frontend.pages.show', ['locale' => 'cs', 'slug' => 'english-slug']),
         );
@@ -157,8 +183,10 @@ class PageControllerFeatureTest extends TestCase
     #[Test]
     public function show_returns_404_when_not_found(): void
     {
-        $this->mock(PageServiceInterface::class)
-            ->shouldReceive('getPageBySlug')->once()->andReturn(null);
+        $pageService = $this->mock(PageServiceInterface::class);
+        $expectation = $pageService->shouldReceive('getPageBySlug');
+        $expectation->once();
+        $expectation->andReturn(null);
         $response = $this->get(
             route('frontend.pages.show', ['locale' => 'cs', 'slug' => 'neexistuje']),
         );
@@ -180,11 +208,17 @@ class PageControllerFeatureTest extends TestCase
         $page->category->name = ['cs' => 'Jina', 'en' => 'Other'];
         $page->category->slug = ['cs' => 'jina', 'en' => 'other'];
         $mock = $this->mock(PageServiceInterface::class);
-        $mock->shouldReceive('getCategoryBySlug')->once()->andReturn($category);
-        $mock->shouldReceive('getPagesByCategory')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getCategoryBySlug');
+        $expectation->once();
+        $expectation->andReturn($category);
+        $expectation = $mock->shouldReceive('getPagesByCategory');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$page]),
         );
-        $mock->shouldReceive('getPagesForNavigation')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getPagesForNavigation');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$page]),
         );
         $response = $this->get(
@@ -197,8 +231,10 @@ class PageControllerFeatureTest extends TestCase
     #[Test]
     public function category_by_slug_404_when_not_found(): void
     {
-        $this->mock(PageServiceInterface::class)
-            ->shouldReceive('getCategoryBySlug')->once()->andReturn(null);
+        $pageService = $this->mock(PageServiceInterface::class);
+        $expectation = $pageService->shouldReceive('getCategoryBySlug');
+        $expectation->once();
+        $expectation->andReturn(null);
         $response = $this->get(
             route('frontend.pages.category.slug', ['locale' => 'cs', 'slug' => 'nic']),
         );
@@ -214,10 +250,14 @@ class PageControllerFeatureTest extends TestCase
         $cat->slug = ['cs' => 'kategorie-7', 'en' => 'category-7'];
         $page->category = $cat;
         $mock = $this->mock(PageServiceInterface::class);
-        $mock->shouldReceive('getPagesByCategory')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getPagesByCategory');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$page]),
         );
-        $mock->shouldReceive('getPagesForNavigation')->once()->andReturn(
+        $expectation = $mock->shouldReceive('getPagesForNavigation');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$page]),
         );
         $response = $this->get(
@@ -230,10 +270,12 @@ class PageControllerFeatureTest extends TestCase
     #[Test]
     public function category_by_id_404_when_empty(): void
     {
-        $this->mock(PageServiceInterface::class)
-            ->shouldReceive('getPagesByCategory')->once()->andReturn(
-                new EloquentCollection([]),
-            );
+        $pageService = $this->mock(PageServiceInterface::class);
+        $expectation = $pageService->shouldReceive('getPagesByCategory');
+        $expectation->once();
+        $expectation->andReturn(
+            new EloquentCollection([]),
+        );
         $response = $this->get(
             route('frontend.pages.category', ['locale' => 'cs', 'categoryId' => 99]),
         );
@@ -243,10 +285,12 @@ class PageControllerFeatureTest extends TestCase
     #[Test]
     public function search_requires_min_length(): void
     {
-        $this->mock(PageServiceInterface::class)
-            ->shouldReceive('getPagesForNavigation')->once()->andReturn(
-                new EloquentCollection([]),
-            );
+        $pageService = $this->mock(PageServiceInterface::class);
+        $expectation = $pageService->shouldReceive('getPagesForNavigation');
+        $expectation->once();
+        $expectation->andReturn(
+            new EloquentCollection([]),
+        );
         $response = $this->get(
             route('frontend.pages.search', ['locale' => 'cs', 'q' => 'ab']),
         );
@@ -262,10 +306,14 @@ class PageControllerFeatureTest extends TestCase
     {
         $page = $this->mockPage();
         $mockService = $this->mock(PageServiceInterface::class);
-        $mockService->shouldReceive('getPagesForNavigation')->once()->andReturn(
+        $expectation = $mockService->shouldReceive('getPagesForNavigation');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([]),
         );
-        $mockService->shouldReceive('searchPages')->once()->andReturn(
+        $expectation = $mockService->shouldReceive('searchPages');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([$page]),
         );
         $response = $this->get(
@@ -282,10 +330,14 @@ class PageControllerFeatureTest extends TestCase
     public function sitemap_displays_categories_with_pages(): void
     {
         $mockService = $this->mock(PageServiceInterface::class);
-        $mockService->shouldReceive('getCategoriesWithPages')->once()->andReturn(
+        $expectation = $mockService->shouldReceive('getCategoriesWithPages');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([]),
         );
-        $mockService->shouldReceive('getPagesForNavigation')->once()->andReturn(
+        $expectation = $mockService->shouldReceive('getPagesForNavigation');
+        $expectation->once();
+        $expectation->andReturn(
             new EloquentCollection([]),
         );
         $response = $this->get(

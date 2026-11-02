@@ -106,7 +106,8 @@ final class UserFeatureTest extends TestCase
         $this->user->refresh();
 
         // Assert relationship works
-        $this->assertCount(2, $this->user->contacts()->get());
+        $contactQuery = $this->user->contacts();
+        $this->assertCount(2, $contactQuery->get());
         $this->assertTrue(
             $this->user->contacts->contains($contact1),
         );
@@ -149,7 +150,8 @@ final class UserFeatureTest extends TestCase
         $this->user->refresh();
 
         // Assert relationship works
-        $this->assertCount(2, $this->user->businesses()->get());
+        $businessQuery = $this->user->businesses();
+        $this->assertCount(2, $businessQuery->get());
         $this->assertTrue(
             $this->user->businesses->contains($business1),
         );
@@ -189,8 +191,10 @@ final class UserFeatureTest extends TestCase
         $this->user->refresh();
 
         // Assert both relationships work
-        $this->assertCount(1, $this->user->contacts()->get());
-        $this->assertCount(1, $this->user->businesses()->get());
+        $contactQuery = $this->user->contacts();
+        $this->assertCount(1, $contactQuery->get());
+        $businessQuery = $this->user->businesses();
+        $this->assertCount(1, $businessQuery->get());
         $this->assertTrue(
             $this->user->contacts->contains($contact),
         );
@@ -288,9 +292,11 @@ final class UserFeatureTest extends TestCase
         $invoiceFactory = Invoice::factory();
         $own = $invoiceFactory->create(['user_id' => $this->user->id, 'contact_id' => null]);
         $invoiceFactory->create();
+        $invoiceQuery = $this->user->invoices();
+        $invoiceIds = $invoiceQuery->pluck('id');
         $this->assertSame(
             [$own->id],
-            $this->user->invoices()->pluck('id')->all(),
+            $invoiceIds->all(),
         );
     }
 }

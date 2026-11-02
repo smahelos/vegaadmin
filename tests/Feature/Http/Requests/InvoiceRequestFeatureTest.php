@@ -123,11 +123,14 @@ final class InvoiceRequestFeatureTest extends TestCase
         ?User $user = null,
         bool $guest = false,
     ): array {
-        return $this->validator(
+        $validator = $this->validator(
             $data,
             $user,
             $guest,
-        )->errors()->toArray();
+        );
+        $errors = $validator->errors();
+
+        return $errors->toArray();
     }
 
     /**

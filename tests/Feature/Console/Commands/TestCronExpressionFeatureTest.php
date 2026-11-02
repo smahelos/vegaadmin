@@ -11,34 +11,38 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_exists_and_has_correct_signature(): void
     {
-        $this->artisan('cron:test --help')
-            ->assertExitCode(0);
+        $command = $this->pendingCommand('cron:test --help');
+        $command->assertExitCode(0);
+        $command->run();
     }
 
     #[Test]
     public function command_fails_without_arguments(): void
     {
-        $this->artisan('cron:test')
-            ->assertExitCode(1)
-            ->expectsOutput('You have to set task ID or CRON expression.');
+        $command = $this->pendingCommand('cron:test');
+        $command->assertExitCode(1);
+        $command->expectsOutput('You have to set task ID or CRON expression.');
+        $command->run();
     }
 
     #[Test]
     public function command_tests_custom_expression(): void
     {
-        $this->artisan('cron:test', ['--expression' => '0 12 * * *'])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
-            ->assertExitCode(0)
-            ->expectsOutput('CRON expression testing: 0 12 * * *')
-            ->expectsOutput('Next runs (5):');
+        $command = $this->pendingCommand('cron:test', ['--expression' => '0 12 * * *']);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no');
+        $command->assertExitCode(0);
+        $command->expectsOutput('CRON expression testing: 0 12 * * *');
+        $command->expectsOutput('Next runs (5):');
+        $command->run();
     }
 
     #[Test]
     public function command_rejects_invalid_expression(): void
     {
-        $this->artisan('cron:test', ['--expression' => 'invalid'])
-            ->assertExitCode(1)
-            ->expectsOutputToContain('Incorrect CRON expression:');
+        $command = $this->pendingCommand('cron:test', ['--expression' => 'invalid']);
+        $command->assertExitCode(1);
+        $command->expectsOutputToContain('Incorrect CRON expression:');
+        $command->run();
     }
 
     #[Test]
@@ -54,12 +58,13 @@ class TestCronExpressionFeatureTest extends TestCase
             ],
         );
 
-        $this->artisan('cron:test', ['id' => $task->id])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
-            ->assertExitCode(0)
-            ->expectsOutput("Testing of task: {$task->name}")
-            ->expectsOutput('CRON expression: 30 12 * * *')
-            ->expectsOutput('Next runs (5):');
+        $command = $this->pendingCommand('cron:test', ['id' => $task->id]);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no');
+        $command->assertExitCode(0);
+        $command->expectsOutput("Testing of task: {$task->name}");
+        $command->expectsOutput('CRON expression: 30 12 * * *');
+        $command->expectsOutput('Next runs (5):');
+        $command->run();
     }
 
     #[Test]
@@ -76,12 +81,13 @@ class TestCronExpressionFeatureTest extends TestCase
             ],
         );
 
-        $this->artisan('cron:test', ['id' => $task->id])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
-            ->assertExitCode(0)
-            ->expectsOutput("Testing of task: {$task->name}")
-            ->expectsOutput('CRON expression: 15 9 * * 1')
-            ->expectsOutput('Next runs (5):');
+        $command = $this->pendingCommand('cron:test', ['id' => $task->id]);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no');
+        $command->assertExitCode(0);
+        $command->expectsOutput("Testing of task: {$task->name}");
+        $command->expectsOutput('CRON expression: 15 9 * * 1');
+        $command->expectsOutput('Next runs (5):');
+        $command->run();
     }
 
     #[Test]
@@ -98,12 +104,13 @@ class TestCronExpressionFeatureTest extends TestCase
             ],
         );
 
-        $this->artisan('cron:test', ['id' => $task->id])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
-            ->assertExitCode(0)
-            ->expectsOutput("Testing of task: {$task->name}")
-            ->expectsOutput('CRON expression: 0 8 15 * *')
-            ->expectsOutput('Next runs (5):');
+        $command = $this->pendingCommand('cron:test', ['id' => $task->id]);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no');
+        $command->assertExitCode(0);
+        $command->expectsOutput("Testing of task: {$task->name}");
+        $command->expectsOutput('CRON expression: 0 8 15 * *');
+        $command->expectsOutput('Next runs (5):');
+        $command->run();
     }
 
     #[Test]
@@ -119,20 +126,22 @@ class TestCronExpressionFeatureTest extends TestCase
             ],
         );
 
-        $this->artisan('cron:test', ['id' => $task->id])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
-            ->assertExitCode(0)
-            ->expectsOutput("Testing of task: {$task->name}")
-            ->expectsOutput('CRON expression: */5 * * * *')
-            ->expectsOutput('Next runs (5):');
+        $command = $this->pendingCommand('cron:test', ['id' => $task->id]);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no');
+        $command->assertExitCode(0);
+        $command->expectsOutput("Testing of task: {$task->name}");
+        $command->expectsOutput('CRON expression: */5 * * * *');
+        $command->expectsOutput('Next runs (5):');
+        $command->run();
     }
 
     #[Test]
     public function command_fails_with_non_existent_task_id(): void
     {
-        $this->artisan('cron:test', ['id' => 999])
-            ->assertExitCode(1)
-            ->expectsOutput('Task with ID 999 not found.');
+        $command = $this->pendingCommand('cron:test', ['id' => 999]);
+        $command->assertExitCode(1);
+        $command->expectsOutput('Task with ID 999 not found.');
+        $command->run();
     }
 
     #[Test]
@@ -148,12 +157,13 @@ class TestCronExpressionFeatureTest extends TestCase
             ],
         );
 
-        $this->artisan('cron:test', ['id' => $task->id])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
-            ->assertExitCode(0)
-            ->expectsOutput("Testing of task: {$task->name}")
-            ->expectsOutput('CRON expression: 0 0 * * *') // Should default to midnight
-            ->expectsOutput('Next runs (5):');
+        $command = $this->pendingCommand('cron:test', ['id' => $task->id]);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no');
+        $command->assertExitCode(0);
+        $command->expectsOutput("Testing of task: {$task->name}");
+        $command->expectsOutput('CRON expression: 0 0 * * *'); // Should default to midnight
+        $command->expectsOutput('Next runs (5):');
+        $command->run();
     }
 
     #[Test]
@@ -169,23 +179,25 @@ class TestCronExpressionFeatureTest extends TestCase
             ],
         );
 
-        $this->artisan('cron:test', ['id' => $task->id])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
-            ->assertExitCode(0)
-            ->expectsOutput("Testing of task: {$task->name}")
-            ->expectsOutput('CRON expression: * * * * *') // Default fallback
-            ->expectsOutput('Next runs (5):');
+        $command = $this->pendingCommand('cron:test', ['id' => $task->id]);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no');
+        $command->assertExitCode(0);
+        $command->expectsOutput("Testing of task: {$task->name}");
+        $command->expectsOutput('CRON expression: * * * * *'); // Default fallback
+        $command->expectsOutput('Next runs (5):');
+        $command->run();
     }
 
     #[Test]
     public function command_simulation_is_not_available_for_custom_expressions(): void
     {
-        $this->artisan('cron:test', ['--expression' => '0 12 * * *'])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'yes')
-            ->expectsOutput(
-                'Simulation is not accessible for testing of task expression.',
-            )
-            ->assertExitCode(0);
+        $command = $this->pendingCommand('cron:test', ['--expression' => '0 12 * * *']);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'yes');
+        $command->expectsOutput(
+            'Simulation is not accessible for testing of task expression.',
+        );
+        $command->assertExitCode(0);
+        $command->run();
     }
 
     #[Test]
@@ -201,10 +213,11 @@ class TestCronExpressionFeatureTest extends TestCase
             ],
         );
 
-        $this->artisan('cron:test', ['id' => $task->id])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'yes')
-            ->expectsOutput("Task run: {$task->command}")
-            ->assertExitCode(0);
+        $command = $this->pendingCommand('cron:test', ['id' => $task->id]);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'yes');
+        $command->expectsOutput("Task run: {$task->command}");
+        $command->assertExitCode(0);
+        $command->run();
     }
 
     #[Test]
@@ -220,8 +233,9 @@ class TestCronExpressionFeatureTest extends TestCase
             ],
         );
 
-        $this->artisan('cron:test', ['id' => $task->id])
-            ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
-            ->assertExitCode(0);
+        $command = $this->pendingCommand('cron:test', ['id' => $task->id]);
+        $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no');
+        $command->assertExitCode(0);
+        $command->run();
     }
 }

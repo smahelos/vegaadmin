@@ -24,7 +24,8 @@ final class RegistrationApplicationServiceTest extends TestCase
     {
         $email = 'owner-' . uniqid() . '@billex.test';
 
-        $registered = $this->app->make(RegistrationApplicationService::class)->register(
+        $registrationService = $this->app->make(RegistrationApplicationService::class);
+        $registered = $registrationService->register(
             new UserWriteData(
                 'Jana Nováková',
                 $email,
@@ -68,7 +69,8 @@ final class RegistrationApplicationServiceTest extends TestCase
         $email = 'owner-' . uniqid() . '@billex.test';
 
         try {
-            $this->app->make(RegistrationApplicationService::class)->register(
+            $registrationService = $this->app->make(RegistrationApplicationService::class);
+            $registrationService->register(
                 new UserWriteData(
                     'Jana Nováková',
                     $email,

@@ -36,5 +36,6 @@ paths:
 - Admin HTTP tests: `actingAs($user, 'backpack')`; an unauthenticated admin request returns 403.
 - No real external calls: `tests/TestCase.php` calls `Http::preventStrayRequests()`, so a test fakes every request it causes (`Http::fake()`) or replaces the port. No `sleep()`: a test moves the stored time or the clock instead.
 - `tests/TestCase.php` disables the `SetLocale` middleware. Tests call the application's real routes; a test never registers a route that shadows one.
+- A console test with expectations holds its command through `$this->pendingCommand()` and ends with `$command->run()`. Without `run()` a `PendingCommand` runs in `__destruct`, so the command moves to the end of the method, after the assertions that follow it. No sniff reports this.
 - PDF output is pinned by `InvoicePdfSnapshotTest`; regenerate snapshots only for an intended change with `UPDATE_PDF_SNAPSHOTS=1` and review the diff.
 - Run targeted tests while working. Before a commit the `pre-pr-check` skill decides between targeted tests and the full suite (only for changes that can reach anything) and runs the architecture guards; CI runs the full suite on every push to a PR.

@@ -38,7 +38,9 @@ final class DatabaseArchiveCommandFeatureTest extends TestCase
             ],
         );
 
-        $this->artisan('db:archive', ['--force' => true])->assertSuccessful();
+        $command = $this->pendingCommand('db:archive', ['--force' => true]);
+        $command->assertSuccessful();
+        $command->run();
 
         $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
         $this->assertDatabaseHas(

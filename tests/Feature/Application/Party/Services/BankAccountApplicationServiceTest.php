@@ -104,11 +104,12 @@ final class BankAccountApplicationServiceTest extends TestCase
         );
 
         $this->assertSame($other->id->value, $business->fresh()?->default_bank_account_id);
+        $account = $this->accounts->get(
+            $this->ownerOf($business),
+            $default->id,
+        );
         $this->assertTrue(
-            $this->accounts->get(
-                $this->ownerOf($business),
-                $default->id,
-            )->isArchived(),
+            $account->isArchived(),
         );
     }
 

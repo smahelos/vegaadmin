@@ -208,21 +208,21 @@ class PaymentApplicationServiceFeatureTest extends TestCase
 
         $this->appService->initiateSubscription($subscription, 'stub');
 
-        $log->shouldHaveReceived('info')
-            ->with(
-                'usecase.start',
-                Mockery::on(
-                    fn (array $context): bool => $context['use_case'] === 'initiate_subscription'
-                        && $context['subscription_id'] === $subscription->id,
-                ),
-            )
-            ->once();
-        $log->shouldHaveReceived('info')
-            ->with(
-                'usecase.success',
-                Mockery::on(fn (array $context): bool => isset($context['duration_ms'])),
-            )
-            ->once();
+        $verification = $log->shouldHaveReceived('info');
+        $verification = $verification->with(
+            'usecase.start',
+            Mockery::on(
+                fn (array $context): bool => $context['use_case'] === 'initiate_subscription'
+                    && $context['subscription_id'] === $subscription->id,
+            ),
+        );
+        $verification->once();
+        $verification = $log->shouldHaveReceived('info');
+        $verification = $verification->with(
+            'usecase.success',
+            Mockery::on(fn (array $context): bool => isset($context['duration_ms'])),
+        );
+        $verification->once();
     }
 
     #[Test]

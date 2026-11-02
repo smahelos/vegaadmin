@@ -58,7 +58,9 @@ final class QrPaymentServiceFeatureTest extends TestCase
         string $prefix,
     ): void {
         $renderer = $this->createMock(QrCodeRendererInterface::class);
-        $renderer->expects($this->once())->method('renderDataUrl')->willReturnCallback(
+        $expectation = $renderer->expects($this->once());
+        $expectation->method('renderDataUrl');
+        $expectation->willReturnCallback(
             function (string $payload) use ($prefix): string {
                 $this->assertStringStartsWith($prefix, $payload);
 
@@ -137,7 +139,9 @@ final class QrPaymentServiceFeatureTest extends TestCase
         $qrPaymentMapper = app(QrPaymentMapper::class);
         $payment = $qrPaymentMapper->fromPrintableInvoice($printable);
         $renderer = $this->createMock(QrCodeRendererInterface::class);
-        $renderer->expects($this->once())->method('renderDataUrl')->willReturnCallback(
+        $expectation = $renderer->expects($this->once());
+        $expectation->method('renderDataUrl');
+        $expectation->willReturnCallback(
             function (string $qr): string {
                 $this->assertStringContainsString('ACC:CZ6508000000192000145399*AM:1234.56*CC:CZK', $qr);
                 $this->assertStringNotContainsString('DE89370400440532013000', $qr);
@@ -154,7 +158,8 @@ final class QrPaymentServiceFeatureTest extends TestCase
     public function a_missing_snapshot_has_no_fallback_payment_account(): void
     {
         $renderer = $this->createMock(QrCodeRendererInterface::class);
-        $renderer->expects($this->never())->method('renderDataUrl');
+        $expectation = $renderer->expects($this->never());
+        $expectation->method('renderDataUrl');
         $qrPaymentMapper = app(QrPaymentMapper::class);
         $payload = $qrPaymentMapper->fromSnapshot(
             '20260001',

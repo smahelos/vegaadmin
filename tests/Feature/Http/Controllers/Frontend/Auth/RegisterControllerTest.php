@@ -20,11 +20,11 @@ final class RegisterControllerTest extends TestCase
     #[Test]
     public function a_guest_opens_the_registration_form(): void
     {
-        $this->get(
+        $response = $this->get(
             route('frontend.register'),
-        )
-            ->assertOk()
-            ->assertSeeLivewire('user.registration-form');
+        );
+        $response->assertOk();
+        $response->assertSeeLivewire('user.registration-form');
     }
 
     #[Test]

@@ -25,7 +25,8 @@ final class LaravelEventPublisherTest extends TestCase
     {
         Event::fake([FormDataChanged::class]);
 
-        $this->publisher()->publish(
+        $publisher = $this->publisher();
+        $publisher->publish(
             new FormDataChanged(1, 'products'),
         );
 
@@ -37,9 +38,11 @@ final class LaravelEventPublisherTest extends TestCase
     {
         Event::fake([FormDataChanged::class]);
 
-        $this->transactions()->transaction(
+        $transactions = $this->transactions();
+        $transactions->transaction(
             function (): void {
-                $this->publisher()->publish(
+                $publisher = $this->publisher();
+                $publisher->publish(
                     new FormDataChanged(1, 'products'),
                 );
 
@@ -56,9 +59,11 @@ final class LaravelEventPublisherTest extends TestCase
         Event::fake([FormDataChanged::class]);
 
         try {
-            $this->transactions()->transaction(
+            $transactions = $this->transactions();
+            $transactions->transaction(
                 function (): void {
-                    $this->publisher()->publish(
+                    $publisher = $this->publisher();
+                    $publisher->publish(
                         new FormDataChanged(1, 'products'),
                     );
 
@@ -76,16 +81,20 @@ final class LaravelEventPublisherTest extends TestCase
     {
         Event::fake([FormDataChanged::class]);
 
-        $this->transactions()->transaction(
+        $transactions = $this->transactions();
+        $transactions->transaction(
             function (): void {
-                $this->publisher()->publish(
+                $publisher = $this->publisher();
+                $publisher->publish(
                     new FormDataChanged(1, 'outer'),
                 );
 
                 try {
-                    $this->transactions()->transaction(
+                    $transactions = $this->transactions();
+                    $transactions->transaction(
                         function (): void {
-                            $this->publisher()->publish(
+                            $publisher = $this->publisher();
+                            $publisher->publish(
                                 new FormDataChanged(1, 'inner'),
                             );
 
@@ -116,11 +125,14 @@ final class LaravelEventPublisherTest extends TestCase
             },
         );
         $handler = $this->recordingHandler();
-        $this->app->make(DomainEventDispatcher::class)->register(FormDataChanged::class, $handler);
+        $dispatcher = $this->app->make(DomainEventDispatcher::class);
+        $dispatcher->register(FormDataChanged::class, $handler);
 
-        $result = $this->transactions()->transaction(
+        $transactions = $this->transactions();
+        $result = $transactions->transaction(
             function (): string {
-                $this->publisher()->publish(
+                $publisher = $this->publisher();
+                $publisher->publish(
                     new FormDataChanged(1, 'products'),
                 );
 
@@ -140,12 +152,15 @@ final class LaravelEventPublisherTest extends TestCase
     public function domain_handlers_run_inside_the_transaction(): void
     {
         $handler = $this->recordingHandler();
-        $this->app->make(DomainEventDispatcher::class)->register(FormDataChanged::class, $handler);
+        $dispatcher = $this->app->make(DomainEventDispatcher::class);
+        $dispatcher->register(FormDataChanged::class, $handler);
         $levelOutside = DB::transactionLevel();
 
-        $this->transactions()->transaction(
+        $transactions = $this->transactions();
+        $transactions->transaction(
             function (): void {
-                $this->publisher()->publish(
+                $publisher = $this->publisher();
+                $publisher->publish(
                     new FormDataChanged(1, 'products'),
                 );
             },

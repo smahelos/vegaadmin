@@ -102,11 +102,11 @@ final class RestrictedDeleteOperationTest extends TestCase
     ): void {
         $id = $createReferencedEntry();
 
-        $this->deleteJson('/admin/' . $route . '/' . $id)
-            ->assertOk()
-            ->assertExactJson(
-                ['error' => [__('general.messages.delete_referenced')]],
-            );
+        $response = $this->deleteJson('/admin/' . $route . '/' . $id);
+        $response->assertOk();
+        $response->assertExactJson(
+            ['error' => [__('general.messages.delete_referenced')]],
+        );
 
         $this->assertDatabaseHas($table, ['id' => $id]);
     }

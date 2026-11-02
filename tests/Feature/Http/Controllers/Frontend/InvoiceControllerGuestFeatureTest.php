@@ -108,23 +108,23 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'account_country' => 'CZ',
         ];
         // Mock assembler to return payload as validated
-        $this->mock(InvoiceRequestAssemblerInterface::class)
-            ->shouldReceive('assemble')
-            ->once()
-            ->andReturn(
-                new InvoiceMutationPayload($invoiceData, []),
-            );
+        $invoiceRequestAssembler = $this->mock(InvoiceRequestAssemblerInterface::class);
+        $expectation = $invoiceRequestAssembler->shouldReceive('assemble');
+        $expectation->once();
+        $expectation->andReturn(
+            new InvoiceMutationPayload($invoiceData, []),
+        );
 
-        $this->mock(GuestInvoiceApplicationServiceInterface::class)
-            ->shouldReceive('storeGuestInvoice')
-            ->once()
-            ->andReturn(
-                [
-                    'success' => true,
-                    'token' => 'tok_' . uniqid(),
-                    'message' => __('invoices.messages.created'),
-                ],
-            );
+        $guestInvoiceApplicationService = $this->mock(GuestInvoiceApplicationServiceInterface::class);
+        $expectation = $guestInvoiceApplicationService->shouldReceive('storeGuestInvoice');
+        $expectation->once();
+        $expectation->andReturn(
+            [
+                'success' => true,
+                'token' => 'tok_' . uniqid(),
+                'message' => __('invoices.messages.created'),
+            ],
+        );
 
         $payload = array_merge($invoiceData, ['lang' => 'cs']);
         $response = $this->postJson(
@@ -176,18 +176,18 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'account_iban' => 'CZ1520100000002001234561',
             'account_country' => 'CZ',
         ];
-        $this->mock(InvoiceRequestAssemblerInterface::class)
-            ->shouldReceive('assemble')
-            ->once()
-            ->andReturn(
-                new InvoiceMutationPayload($invoiceData, []),
-            );
-        $this->mock(GuestInvoiceApplicationServiceInterface::class)
-            ->shouldReceive('storeGuestInvoice')
-            ->once()
-            ->andThrow(
-                new \Exception('boom'),
-            );
+        $invoiceRequestAssembler = $this->mock(InvoiceRequestAssemblerInterface::class);
+        $expectation = $invoiceRequestAssembler->shouldReceive('assemble');
+        $expectation->once();
+        $expectation->andReturn(
+            new InvoiceMutationPayload($invoiceData, []),
+        );
+        $guestInvoiceApplicationService = $this->mock(GuestInvoiceApplicationServiceInterface::class);
+        $expectation = $guestInvoiceApplicationService->shouldReceive('storeGuestInvoice');
+        $expectation->once();
+        $expectation->andThrow(
+            new \Exception('boom'),
+        );
         $response = $this->postJson(
             route('frontend.invoice.store.guest', ['locale' => 'cs']),
             array_merge($invoiceData, ['lang' => 'cs']),
@@ -204,12 +204,12 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             200,
             ['Content-Type' => 'application/pdf'],
         );
-        $this->mock(InvoicePdfApplicationServiceInterface::class)
-            ->shouldReceive('generate')
-            ->once()
-            ->andReturn(
-                InvoiceActionResult::success(response: $pdfResponse),
-            );
+        $invoicePdfApplicationService = $this->mock(InvoicePdfApplicationServiceInterface::class);
+        $expectation = $invoicePdfApplicationService->shouldReceive('generate');
+        $expectation->once();
+        $expectation->andReturn(
+            InvoiceActionResult::success(response: $pdfResponse),
+        );
 
         $response = $this->get(
             route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tok123']),

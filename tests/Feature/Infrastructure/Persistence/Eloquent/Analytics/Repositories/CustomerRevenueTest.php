@@ -152,10 +152,12 @@ final class CustomerRevenueTest extends TestCase
                 'payment-methods',
             ] as $chart
         ) {
-            $this->actingAs($owner)->getJson(
+            $this->actingAs($owner);
+            $response = $this->getJson(
                 route('api.statistics.' . $chart, ['contacts' => [$foreignContact->id]]),
-            )
-                ->assertOk()->assertExactJson(['data' => []]);
+            );
+            $response->assertOk();
+            $response->assertExactJson(['data' => []]);
         }
     }
 }

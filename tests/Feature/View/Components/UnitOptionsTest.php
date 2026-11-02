@@ -30,8 +30,8 @@ final class UnitOptionsTest extends TestCase
     #[Test]
     public function preselects_pieces_by_default(): void
     {
-        $this->component(UnitOptions::class)
-            ->assertSee('<option value="pieces" selected>', false);
+        $view = $this->component(UnitOptions::class);
+        $view->assertSee('<option value="pieces" selected>', false);
     }
 
     #[Test]

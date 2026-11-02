@@ -229,11 +229,12 @@ final class ContactApplicationServiceTest extends TestCase
                 $first->id,
             ),
         );
+        $contact = $this->contacts->get(
+            $this->idOf($user),
+            $first->id,
+        );
         $this->assertTrue(
-            $this->contacts->get(
-                $this->idOf($user),
-                $first->id,
-            )->isArchived(),
+            $contact->isArchived(),
         );
     }
 
@@ -273,11 +274,12 @@ final class ContactApplicationServiceTest extends TestCase
             [$contact->id->value],
             $this->listedIds($user, true),
         );
+        $storedContact = $this->contacts->get(
+            $this->idOf($user),
+            $contact->id,
+        );
         $this->assertTrue(
-            $this->contacts->get(
-                $this->idOf($user),
-                $contact->id,
-            )->isArchived(),
+            $storedContact->isArchived(),
         );
     }
 

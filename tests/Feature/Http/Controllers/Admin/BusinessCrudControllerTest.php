@@ -233,12 +233,13 @@ final class BusinessCrudControllerTest extends TestCase
                 'invalid',
             ] as $replacement
         ) {
-            $this->post(
+            $response = $this->post(
                 route('admin.businesses.archive', ['id' => $business->id]),
                 [
                     'replacement_business_id' => $replacement,
                 ],
-            )->assertSessionHasErrors('replacement_business_id');
+            );
+            $response->assertSessionHasErrors('replacement_business_id');
             $this->assertNull($business->fresh()->archived_at);
             $this->assertSame($business->id, $owner->fresh()->default_business_id);
         }

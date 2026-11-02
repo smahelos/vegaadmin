@@ -21,7 +21,8 @@ final class EloquentPaymentDtoWriteRepositoryTest extends TestCase
             'gateway_data' => null,
         ]);
 
-        $dto = $this->app->make(PaymentDtoWriteRepositoryInterface::class)->updateById(
+        $paymentRepository = $this->app->make(PaymentDtoWriteRepositoryInterface::class);
+        $dto = $paymentRepository->updateById(
             $payment->id,
             new PaymentWriteData(status: 'processing'),
         );

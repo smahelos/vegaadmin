@@ -128,6 +128,7 @@ final class BusinessDetailTest extends TestCase
 
     private function makeDefault(Business $business): void
     {
-        $this->user->forceFill(['default_business_id' => $business->id])->save();
+        $this->user->forceFill(['default_business_id' => $business->id]);
+        $this->user->save();
     }
 }

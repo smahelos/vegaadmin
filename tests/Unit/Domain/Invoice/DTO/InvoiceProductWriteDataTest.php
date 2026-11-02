@@ -72,11 +72,13 @@ final class InvoiceProductWriteDataTest extends TestCase
     #[Test]
     public function a_line_without_a_product_is_custom(): void
     {
-        $this->assertTrue($this->line()->isCustomProduct());
+        $line = $this->line();
+        $this->assertTrue($line->isCustomProduct());
+        $line = $this->line(
+            productId: ProductId::fromInt(7),
+        );
         $this->assertFalse(
-            $this->line(
-                productId: ProductId::fromInt(7),
-            )->isCustomProduct(),
+            $line->isCustomProduct(),
         );
     }
 

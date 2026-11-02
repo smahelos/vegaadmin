@@ -166,11 +166,11 @@ class ProfileControllerFeatureTest extends TestCase
     public function failed_profile_update_does_not_show_the_exception_to_the_user(): void
     {
         $this->actingAs($this->user, 'web');
-        $this->mock(UserWriteRepositoryInterface::class)
-            ->shouldReceive('updateProfile')
-            ->andThrow(
-                new RuntimeException('SQLSTATE[42S22]: Unknown column users.secret'),
-            );
+        $userWriteRepository = $this->mock(UserWriteRepositoryInterface::class);
+        $expectation = $userWriteRepository->shouldReceive('updateProfile');
+        $expectation->andThrow(
+            new RuntimeException('SQLSTATE[42S22]: Unknown column users.secret'),
+        );
 
         $response = $this->put(
             route('frontend.profile.update', ['locale' => 'cs']),

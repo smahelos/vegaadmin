@@ -142,7 +142,9 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function logs_error_and_returns_404_when_service_throws(): void
     {
-        Log::shouldReceive('error')->once()->withArgs(
+        $expectation = Log::shouldReceive('error');
+        $expectation->once();
+        $expectation->withArgs(
             function ($msg, $ctx) {
                 return str_contains($msg, 'API error: Invoice not found') && isset($ctx['invoice_id']);
             },

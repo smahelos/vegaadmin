@@ -100,16 +100,16 @@ final class StatisticsControllerFeatureTest extends TestCase
     {
         config(['sanctum.stateful' => ['billex.test']]);
 
-        $this->withCredentials()
-            ->withCookie(
-                config('session.cookie'),
-                $this->storedSessionOf($this->statisticsUser()),
-            )
-            ->withHeader('Referer', 'https://billex.test/cs/dashboard')
-            ->getJson(
-                route('api.statistics.monthly-revenue'),
-            )
-            ->assertOk();
+        $this->withCredentials();
+        $this->withCookie(
+            config('session.cookie'),
+            $this->storedSessionOf($this->statisticsUser()),
+        );
+        $this->withHeader('Referer', 'https://billex.test/cs/dashboard');
+        $response = $this->getJson(
+            route('api.statistics.monthly-revenue'),
+        );
+        $response->assertOk();
     }
 
     #[Test]
@@ -117,16 +117,16 @@ final class StatisticsControllerFeatureTest extends TestCase
     {
         config(['sanctum.stateful' => ['billex.test']]);
 
-        $this->withCredentials()
-            ->withCookie(
-                config('session.cookie'),
-                $this->storedSessionOf($this->statisticsUser()),
-            )
-            ->withHeader('Referer', 'https://elsewhere.test/')
-            ->getJson(
-                route('api.statistics.monthly-revenue'),
-            )
-            ->assertUnauthorized();
+        $this->withCredentials();
+        $this->withCookie(
+            config('session.cookie'),
+            $this->storedSessionOf($this->statisticsUser()),
+        );
+        $this->withHeader('Referer', 'https://elsewhere.test/');
+        $response = $this->getJson(
+            route('api.statistics.monthly-revenue'),
+        );
+        $response->assertUnauthorized();
     }
 
     #[Test]

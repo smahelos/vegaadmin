@@ -150,7 +150,8 @@ final class DevelopmentDataSeederTest extends TestCase
 
         $this->expectException(RuntimeException::class);
 
-        $this->app->make(DevelopmentDataSeeder::class)->run();
+        $seeder = $this->app->make(DevelopmentDataSeeder::class);
+        $seeder->run();
     }
 
     /**
