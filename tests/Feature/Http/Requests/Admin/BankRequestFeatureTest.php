@@ -127,27 +127,29 @@ class BankRequestFeatureTest extends TestCase
     public function authorization_passes_for_user_with_permission(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $this->postJson(
+        $httpResponse = $this->postJson(
             '/test-bank',
             [
                 'name' => 'Permitted',
                 'code' => 'PERM1',
                 'country' => 'CZ',
             ],
-        )->assertStatus(200);
+        );
+        $httpResponse->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->postJson(
+        $httpResponse = $this->postJson(
             '/test-bank',
             [
                 'name' => 'Fail',
                 'code' => 'FAIL1',
                 'country' => 'CZ',
             ],
-        )->assertStatus(403);
+        );
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -156,14 +158,15 @@ class BankRequestFeatureTest extends TestCase
         $userFactory = User::factory();
         $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
-        $this->postJson(
+        $httpResponse = $this->postJson(
             '/test-bank',
             [
                 'name' => 'NoPerm',
                 'code' => 'NOP1',
                 'country' => 'CZ',
             ],
-        )->assertStatus(403);
+        );
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -171,14 +174,15 @@ class BankRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
         EntityLimit::where('entity_type', 'bank')->update(['limit_value' => 1]);
-        $this->postJson(
+        $httpResponse = $this->postJson(
             '/test-bank',
             [
                 'name' => 'First Bank',
                 'code' => 'LIM01',
                 'country' => 'CZ',
             ],
-        )->assertStatus(200);
+        );
+        $httpResponse->assertStatus(200);
         // Record usage manually
         $this->limitService->recordUsage(
             $this->adminUser->id,
@@ -296,14 +300,15 @@ class BankRequestFeatureTest extends TestCase
     public function country_is_normalized_to_uppercase(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson(
+        $httpResponse = $this->postJson(
             '/test-bank',
             [
                 'name' => 'Lower Country',
                 'code' => 'LC01',
                 'country' => 'de',
             ],
-        )->assertStatus(200);
+        );
+        $response = $httpResponse->assertStatus(200);
 
         $this->assertDatabaseHas('banks', [
             'code' => 'LC01',

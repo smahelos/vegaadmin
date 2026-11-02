@@ -31,7 +31,8 @@ final class ContactCrudControllerTest extends TestCase
     #[Test]
     public function a_guest_is_sent_to_the_admin_login(): void
     {
-        $this->get('/admin/contact')->assertRedirect(
+        $httpResponse = $this->get('/admin/contact');
+        $httpResponse->assertRedirect(
             route('backpack.auth.login'),
         );
     }
@@ -41,18 +42,18 @@ final class ContactCrudControllerTest extends TestCase
     {
         $owner = $this->frontendUser();
 
-        $this->actingAs($this->admin, 'backpack')
-            ->post(
-                '/admin/contact',
-                [
-                    'user_id' => $owner->id,
-                    'name' => 'Admin Kontakt',
-                    'contact_person' => 'Eva',
-                    'country' => 'CZ',
-                    '_save_action' => 'save_and_back',
-                ],
-            )
-            ->assertRedirect();
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->post(
+            '/admin/contact',
+            [
+                'user_id' => $owner->id,
+                'name' => 'Admin Kontakt',
+                'contact_person' => 'Eva',
+                'country' => 'CZ',
+                '_save_action' => 'save_and_back',
+            ],
+        );
+        $httpResponse->assertRedirect();
 
         $contact = Contact::query()->where('user_id', $owner->id)->sole();
         $this->assertSame('Eva', $contact->contact_person);
@@ -64,16 +65,16 @@ final class ContactCrudControllerTest extends TestCase
         $owner = $this->frontendUser();
         $this->limitActive('contact', 0);
 
-        $this->actingAs($this->admin, 'backpack')
-            ->post(
-                '/admin/contact',
-                [
-                    'user_id' => $owner->id,
-                    'name' => 'Nad limit',
-                    'country' => 'CZ',
-                ],
-            )
-            ->assertRedirect();
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->post(
+            '/admin/contact',
+            [
+                'user_id' => $owner->id,
+                'name' => 'Nad limit',
+                'country' => 'CZ',
+            ],
+        );
+        $httpResponse->assertRedirect();
 
         $this->assertSame(
             0,
@@ -87,16 +88,17 @@ final class ContactCrudControllerTest extends TestCase
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->frontendUser()->id]);
 
-        $this->actingAs($this->admin, 'backpack')
-            ->post(
-                route('admin.contacts.archive', ['id' => $contact->id]),
-            )
-            ->assertRedirect();
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->post(
+            route('admin.contacts.archive', ['id' => $contact->id]),
+        );
+        $httpResponse->assertRedirect();
         $this->assertNotNull($contact->fresh()?->archived_at);
 
-        $this->post(
+        $httpResponse2 = $this->post(
             route('admin.contacts.restore', ['id' => $contact->id]),
-        )->assertRedirect();
+        );
+        $httpResponse2->assertRedirect();
         $this->assertNull($contact->fresh()?->archived_at);
     }
 
@@ -107,11 +109,11 @@ final class ContactCrudControllerTest extends TestCase
         $contact = $contactFactory->create();
         $backendUser = $this->backendUser('can_view_contact');
 
-        $this->actingAs($backendUser, 'backpack')
-            ->put('/admin/contact/' . $contact->id, [
-                'id' => $contact->id,
-                'name' => 'Změna',
-            ])
-            ->assertForbidden();
+        $httpClient = $this->actingAs($backendUser, 'backpack');
+        $httpResponse = $httpClient->put('/admin/contact/' . $contact->id, [
+            'id' => $contact->id,
+            'name' => 'Změna',
+        ]);
+        $httpResponse->assertForbidden();
     }
 }

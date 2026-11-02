@@ -252,32 +252,32 @@ class ArchivePolicyRequestFeatureTest extends TestCase
     public function authorization_passes_for_authenticated_user(): void
     {
         // Need a user with can_configure_system permission (adminUser)
-        $this->actingAs($this->adminUser, 'backpack')
-            ->withoutMiddleware()
-            ->postJson(
-                '/test-archive-policy',
-                [
-                    'table_name' => 'test_table',
-                    'retention_months' => 12,
-                    'date_column' => 'created_at',
-                ],
-            )
-            ->assertStatus(200);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $httpResponse = $httpClient->postJson(
+            '/test-archive-policy',
+            [
+                'table_name' => 'test_table',
+                'retention_months' => 12,
+                'date_column' => 'created_at',
+            ],
+        );
+        $httpResponse->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->withoutMiddleware()
-            ->postJson(
-                '/test-archive-policy',
-                [
-                    'table_name' => 'test_table',
-                    'retention_months' => 12,
-                    'date_column' => 'created_at',
-                ],
-            )
-            ->assertStatus(403);
+        $httpClient = $this->withoutMiddleware();
+        $httpResponse = $httpClient->postJson(
+            '/test-archive-policy',
+            [
+                'table_name' => 'test_table',
+                'retention_months' => 12,
+                'date_column' => 'created_at',
+            ],
+        );
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]

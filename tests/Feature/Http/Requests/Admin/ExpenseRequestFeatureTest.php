@@ -51,10 +51,11 @@ final class ExpenseRequestFeatureTest extends TestCase
     public function rejects_invalid_document_input(string $field, mixed $value): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/expense',
             $this->expenseInput($business, [$field => $value]),
-        )->assertSessionHasErrors($field === 'attachments' ? 'attachments.0' : $field);
+        );
+        $httpResponse->assertSessionHasErrors($field === 'attachments' ? 'attachments.0' : $field);
     }
 
     #[Test]
@@ -62,7 +63,8 @@ final class ExpenseRequestFeatureTest extends TestCase
     {
         [$business] = $this->issuerOf($this->adminUser);
         $data = $this->expenseInput($business);
-        $this->post('/admin/expense', $data)->assertSessionHasNoErrors();
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertDatabaseHas(
             'expenses',
             [
@@ -78,7 +80,8 @@ final class ExpenseRequestFeatureTest extends TestCase
     {
         $expenseFactory = Expense::factory();
         $expense = $expenseFactory->create(['user_id' => $this->adminUser->id]);
-        $this->put('/admin/expense/' . $expense->id, ['description' => 'Changed'])->assertSessionHasErrors([
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, ['description' => 'Changed']);
+        $httpResponse->assertSessionHasErrors([
             'business_id',
             'user_id',
             'supplier_name',

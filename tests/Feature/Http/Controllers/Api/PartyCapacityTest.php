@@ -31,16 +31,23 @@ final class PartyCapacityTest extends TestCase
         $businessFactory2->create();
 
         $this->actingAs($owner, 'web');
-        $this->getJson('/api/uels/contact/data')->assertOk()
-            ->assertJsonPath('current_usage', 3)->assertJsonPath('limit', 16)
-            ->assertJsonPath('remaining_count', 13)->assertJsonPath('best_stats_period', 'lifetime');
-        $this->getJson('/api/uels/business/data')->assertOk()
-            ->assertJsonPath('current_usage', 1)->assertJsonPath('limit', 10)
-            ->assertJsonPath('remaining_count', 9);
-        $this->getJson('/api/uels')->assertOk()
-            ->assertJsonPath('entities.contact.current_usage', 3)
-            ->assertJsonPath('entities.business.current_usage', 1)
-            ->assertJsonMissingPath('entities.client')->assertJsonMissingPath('entities.supplier');
+        $httpResponse = $this->getJson('/api/uels/contact/data');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('current_usage', 3);
+        $httpResponse = $httpResponse->assertJsonPath('limit', 16);
+        $httpResponse = $httpResponse->assertJsonPath('remaining_count', 13);
+        $httpResponse->assertJsonPath('best_stats_period', 'lifetime');
+        $httpResponse2 = $this->getJson('/api/uels/business/data');
+        $httpResponse2 = $httpResponse2->assertOk();
+        $httpResponse2 = $httpResponse2->assertJsonPath('current_usage', 1);
+        $httpResponse2 = $httpResponse2->assertJsonPath('limit', 10);
+        $httpResponse2->assertJsonPath('remaining_count', 9);
+        $httpResponse3 = $this->getJson('/api/uels');
+        $httpResponse3 = $httpResponse3->assertOk();
+        $httpResponse3 = $httpResponse3->assertJsonPath('entities.contact.current_usage', 3);
+        $httpResponse3 = $httpResponse3->assertJsonPath('entities.business.current_usage', 1);
+        $httpResponse3 = $httpResponse3->assertJsonMissingPath('entities.client');
+        $httpResponse3->assertJsonMissingPath('entities.supplier');
     }
 
     #[Test]
@@ -53,20 +60,28 @@ final class PartyCapacityTest extends TestCase
         $contactFactory = $contactFactory->count(16);
         $contactFactory->create(['user_id' => $owner->id]);
 
-        $this->actingAs($owner, 'web')->getJson('/api/uels/contact/data')->assertOk()
-            ->assertJsonPath('current_usage', 16)->assertJsonPath('limit', 16)
-            ->assertJsonPath('remaining_count', 0)->assertJsonPath('is_at_limit', true);
+        $httpClient = $this->actingAs($owner, 'web');
+        $httpResponse = $httpClient->getJson('/api/uels/contact/data');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('current_usage', 16);
+        $httpResponse = $httpResponse->assertJsonPath('limit', 16);
+        $httpResponse = $httpResponse->assertJsonPath('remaining_count', 0);
+        $httpResponse->assertJsonPath('is_at_limit', true);
     }
 
     #[Test]
     public function capacity_requires_authentication_and_a_configured_limit(): void
     {
-        $this->getJson('/api/uels/contact/data')->assertUnauthorized();
+        $httpResponse = $this->getJson('/api/uels/contact/data');
+        $httpResponse->assertUnauthorized();
         $userFactory = User::factory();
         $owner = $userFactory->create();
         $owner->givePermissionTo('frontend.api.access');
-        $this->actingAs($owner, 'web')->getJson('/api/uels/contact/data')->assertOk()
-            ->assertJsonPath('limit', 0)->assertJsonPath('status', 'no_permission');
+        $httpClient = $this->actingAs($owner, 'web');
+        $httpResponse2 = $httpClient->getJson('/api/uels/contact/data');
+        $httpResponse2 = $httpResponse2->assertOk();
+        $httpResponse2 = $httpResponse2->assertJsonPath('limit', 0);
+        $httpResponse2->assertJsonPath('status', 'no_permission');
     }
 
     #[Test]
@@ -76,7 +91,9 @@ final class PartyCapacityTest extends TestCase
         $owner = $userFactory->create();
         $owner->assignRole('frontend_user');
         $this->actingAs($owner, 'web');
-        $this->getJson('/api/uels/client/data')->assertStatus(400);
-        $this->getJson('/api/uels/supplier/data')->assertStatus(400);
+        $httpResponse = $this->getJson('/api/uels/client/data');
+        $httpResponse->assertStatus(400);
+        $httpResponse2 = $this->getJson('/api/uels/supplier/data');
+        $httpResponse2->assertStatus(400);
     }
 }

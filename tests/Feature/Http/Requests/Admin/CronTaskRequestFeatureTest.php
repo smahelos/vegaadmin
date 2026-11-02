@@ -320,17 +320,17 @@ class CronTaskRequestFeatureTest extends TestCase
     {
         $this->withoutMiddleware();
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson(
-                '/test-cron-task',
-                [
-                    'name' => 'HTTP Test Task',
-                    'base_command' => 'test:http',
-                    'frequency' => 'daily',
-                    'run_at' => '12:00',
-                    'is_active' => true,
-                ],
-            );
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson(
+            '/test-cron-task',
+            [
+                'name' => 'HTTP Test Task',
+                'base_command' => 'test:http',
+                'frequency' => 'daily',
+                'run_at' => '12:00',
+                'is_active' => true,
+            ],
+        );
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
@@ -341,14 +341,14 @@ class CronTaskRequestFeatureTest extends TestCase
     {
         $this->withoutMiddleware();
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson(
-                '/test-cron-task',
-                [
-                    // Missing required fields
-                    'description' => 'Task without required fields',
-                ],
-            );
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson(
+            '/test-cron-task',
+            [
+                // Missing required fields
+                'description' => 'Task without required fields',
+            ],
+        );
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors([
@@ -380,16 +380,16 @@ class CronTaskRequestFeatureTest extends TestCase
     {
         $this->withoutMiddleware();
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson(
-                '/test-cron-task',
-                [
-                    'name' => 'Custom Task',
-                    'base_command' => 'test:custom',
-                    'frequency' => 'custom',
-                    'is_active' => true,
-                ],
-            );
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson(
+            '/test-cron-task',
+            [
+                'name' => 'Custom Task',
+                'base_command' => 'test:custom',
+                'frequency' => 'custom',
+                'is_active' => true,
+            ],
+        );
 
         $response->assertStatus(422);
         $this->assertSame(
@@ -406,17 +406,17 @@ class CronTaskRequestFeatureTest extends TestCase
     {
         $this->withoutMiddleware();
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson(
-                '/test-cron-task',
-                [
-                    'name' => 'Custom Task',
-                    'base_command' => 'test:custom',
-                    'frequency' => 'custom',
-                    'custom_expression' => 'every minute',
-                    'is_active' => true,
-                ],
-            );
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson(
+            '/test-cron-task',
+            [
+                'name' => 'Custom Task',
+                'base_command' => 'test:custom',
+                'frequency' => 'custom',
+                'custom_expression' => 'every minute',
+                'is_active' => true,
+            ],
+        );
 
         $response->assertStatus(422);
         $this->assertSame(

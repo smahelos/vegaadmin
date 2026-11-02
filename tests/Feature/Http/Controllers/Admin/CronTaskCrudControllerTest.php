@@ -135,17 +135,17 @@ class CronTaskCrudControllerTest extends TestCase
             'last_run' => null,
         ]);
 
-        $this->actingAs($this->adminUser, 'backpack')
-            ->from('/admin/cron-task')
-            ->post(
-                route('admin.cron-tasks.run', ['id' => $task->id]),
-            )
-            ->assertRedirect('/admin/cron-task')
-            ->assertSessionHas(
-                'alert_messages.success',
-                [__('cron_tasks.messages.task_executed')],
-            )
-            ->assertSessionMissing('alert_messages.error');
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpClient = $httpClient->from('/admin/cron-task');
+        $httpResponse = $httpClient->post(
+            route('admin.cron-tasks.run', ['id' => $task->id]),
+        );
+        $httpResponse = $httpResponse->assertRedirect('/admin/cron-task');
+        $httpResponse = $httpResponse->assertSessionHas(
+            'alert_messages.success',
+            [__('cron_tasks.messages.task_executed')],
+        );
+        $httpResponse->assertSessionMissing('alert_messages.error');
 
         $this->assertNotNull($task->fresh()->last_run);
     }
@@ -156,17 +156,17 @@ class CronTaskCrudControllerTest extends TestCase
         $cronTaskFactory = CronTask::factory();
         $task = $cronTaskFactory->create(['command' => 'billex:no-such-command']);
 
-        $this->actingAs($this->adminUser, 'backpack')
-            ->from('/admin/cron-task')
-            ->post(
-                route('admin.cron-tasks.run', ['id' => $task->id]),
-            )
-            ->assertRedirect('/admin/cron-task')
-            ->assertSessionHas(
-                'alert_messages.error',
-                [__('cron_tasks.messages.execution_failed')],
-            )
-            ->assertSessionMissing('alert_messages.success');
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpClient = $httpClient->from('/admin/cron-task');
+        $httpResponse = $httpClient->post(
+            route('admin.cron-tasks.run', ['id' => $task->id]),
+        );
+        $httpResponse = $httpResponse->assertRedirect('/admin/cron-task');
+        $httpResponse = $httpResponse->assertSessionHas(
+            'alert_messages.error',
+            [__('cron_tasks.messages.execution_failed')],
+        );
+        $httpResponse->assertSessionMissing('alert_messages.success');
     }
 
     #[Test]
@@ -178,9 +178,9 @@ class CronTaskCrudControllerTest extends TestCase
             'last_run' => null,
         ]);
 
-        $this->actingAs($this->adminUser, 'backpack')
-            ->get('/admin/cron-task/' . $task->id . '/run')
-            ->assertMethodNotAllowed();
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpResponse = $httpClient->get('/admin/cron-task/' . $task->id . '/run');
+        $httpResponse->assertMethodNotAllowed();
 
         $this->assertNull($task->fresh()->last_run);
     }
@@ -202,11 +202,11 @@ class CronTaskCrudControllerTest extends TestCase
             Permission::findByName('backpack.access', 'backpack'),
         );
 
-        $this->actingAs($user, 'backpack')
-            ->post(
-                route('admin.cron-tasks.run', ['id' => $task->id]),
-            )
-            ->assertForbidden();
+        $httpClient = $this->actingAs($user, 'backpack');
+        $httpResponse = $httpClient->post(
+            route('admin.cron-tasks.run', ['id' => $task->id]),
+        );
+        $httpResponse->assertForbidden();
 
         $this->assertNull($task->fresh()->last_run);
     }

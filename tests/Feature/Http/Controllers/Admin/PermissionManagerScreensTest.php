@@ -61,10 +61,10 @@ final class PermissionManagerScreensTest extends TestCase
     ): void {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $this->withSession(['backpack.language-switcher.locale' => $locale])
-            ->get($url)
-            ->assertOk()
-            ->assertSeeText($label)
-            ->assertDontSeeText('permissionmanager.');
+        $httpClient = $this->withSession(['backpack.language-switcher.locale' => $locale]);
+        $httpResponse = $httpClient->get($url);
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSeeText($label);
+        $httpResponse->assertDontSeeText('permissionmanager.');
     }
 }

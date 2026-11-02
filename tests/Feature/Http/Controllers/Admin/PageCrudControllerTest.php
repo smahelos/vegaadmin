@@ -197,7 +197,9 @@ class PageCrudControllerTest extends TestCase
             ],
         );
 
-        $content = $this->get("/admin/page/{$page->id}/edit")->assertOk()->getContent();
+        $httpResponse = $this->get("/admin/page/{$page->id}/edit");
+        $httpResponse = $httpResponse->assertOk();
+        $content = $httpResponse->getContent();
 
         $this->assertMatchesRegularExpression('/<input[^>]*name="name_cs"[^>]*value="Nazev"/s', $content);
         $this->assertMatchesRegularExpression('/<input[^>]*name="name_en"[^>]*value="Title"/s', $content);
@@ -400,7 +402,7 @@ class PageCrudControllerTest extends TestCase
         Storage::fake('public');
         $this->actingAs($this->adminUser, 'backpack');
 
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/page',
             [
                 'name_cs' => 'Stránka s obrázkem',
@@ -411,7 +413,8 @@ class PageCrudControllerTest extends TestCase
                     600,
                 ),
             ],
-        )->assertSessionHasNoErrors();
+        );
+        $httpResponse->assertSessionHasNoErrors();
 
         $createdPage = Page::latest('id')->first();
         $this->assertNotNull($createdPage->main_image);
@@ -425,7 +428,7 @@ class PageCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $slug = 'stranka-s-pdf-' . uniqid();
 
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/page',
             [
                 'name_cs' => 'Stránka s PDF',
@@ -436,7 +439,8 @@ class PageCrudControllerTest extends TestCase
                     'application/pdf',
                 ),
             ],
-        )->assertSessionHasErrors(['main_image']);
+        );
+        $httpResponse->assertSessionHasErrors(['main_image']);
 
         $this->assertDatabaseMissing('pages', ['slug->cs' => $slug]);
     }
@@ -447,14 +451,15 @@ class PageCrudControllerTest extends TestCase
         Storage::fake('public');
         $this->actingAs($this->adminUser, 'backpack');
 
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/page',
             [
                 'name_cs' => 'Stránka s velkým obrázkem',
                 'slug_cs' => 'velky-obrazek-' . uniqid(),
                 'main_image' => UploadedFile::fake()->image('hero.jpg')->size(10241),
             ],
-        )->assertSessionHasErrors(['main_image']);
+        );
+        $httpResponse->assertSessionHasErrors(['main_image']);
     }
 
     #[Test]
@@ -463,7 +468,7 @@ class PageCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $slug = 'systemova-pole-' . uniqid();
 
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/page',
             [
                 'name_cs' => 'Systémová pole',
@@ -473,7 +478,8 @@ class PageCrudControllerTest extends TestCase
                 'created_at' => '2000-01-01 00:00:00',
                 'updated_at' => '2000-01-01 00:00:00',
             ],
-        )->assertSessionHasErrors(
+        );
+        $httpResponse->assertSessionHasErrors(
             [
                 'published_by',
                 'images',
@@ -498,7 +504,7 @@ class PageCrudControllerTest extends TestCase
             ],
         );
 
-        $this->put(
+        $httpResponse = $this->put(
             "/admin/page/{$page->id}",
             [
                 'id' => $page->id,
@@ -506,7 +512,8 @@ class PageCrudControllerTest extends TestCase
                 'slug_cs' => 'novy-nazev-' . uniqid(),
                 'main_image' => 'pages/../../.env',
             ],
-        )->assertSessionHasErrors(['main_image']);
+        );
+        $httpResponse->assertSessionHasErrors(['main_image']);
 
         $page->refresh();
         $this->assertSame(

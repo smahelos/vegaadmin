@@ -65,17 +65,17 @@ class AdminDateRangeFilterTest extends TestCase
             ['from' => '2026-03-01 00:00:00', 'to' => '2026-03-31 23:59:59'],
         );
 
-        $this->postJson(
+        $httpResponse = $this->postJson(
             "/admin/{$route}/search?{$filter}=" . urlencode($range),
             [
                 'draw' => 1,
                 'start' => 0,
                 'length' => 10,
             ],
-        )
-            ->assertOk()
-            ->assertJsonPath('recordsTotal', 2)
-            ->assertJsonPath('recordsFiltered', 1);
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('recordsTotal', 2);
+        $httpResponse->assertJsonPath('recordsFiltered', 1);
     }
 
     private function createRecord(

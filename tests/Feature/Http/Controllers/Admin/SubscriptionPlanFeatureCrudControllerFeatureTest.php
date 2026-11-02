@@ -20,8 +20,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function admin_can_access_subscription_plan_feature_list(): void
     {
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->get('/admin/subscription-plan-feature');
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->get('/admin/subscription-plan-feature');
 
         $response->assertStatus(200);
     }
@@ -29,8 +29,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function regular_user_cannot_access_subscription_plan_feature_list(): void
     {
-        $response = $this->actingAs($this->regularUser, 'backpack')
-            ->get('/admin/subscription-plan-feature');
+        $httpClient = $this->actingAs($this->regularUser, 'backpack');
+        $response = $httpClient->get('/admin/subscription-plan-feature');
 
         $response->assertStatus(403);
     }
@@ -38,8 +38,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     #[Test]
     public function admin_can_view_create_form(): void
     {
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->get('/admin/subscription-plan-feature/create');
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->get('/admin/subscription-plan-feature/create');
 
         $response->assertStatus(200);
     }
@@ -55,8 +55,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
             'sort_order' => 1,
         ];
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->post('/admin/subscription-plan-feature', $featureData);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->post('/admin/subscription-plan-feature', $featureData);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('subscription_plan_features', [
@@ -74,8 +74,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
             'is_active' => true,
         ];
 
-        $response = $this->actingAs($this->regularUser, 'backpack')
-            ->postJson('/admin/subscription-plan-feature', $featureData);
+        $httpClient = $this->actingAs($this->regularUser, 'backpack');
+        $response = $httpClient->postJson('/admin/subscription-plan-feature', $featureData);
 
         $response->assertStatus(403);
     }
@@ -86,8 +86,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $feature = $subscriptionPlanFeatureFactory->create();
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->get("/admin/subscription-plan-feature/{$feature->id}/show");
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->get("/admin/subscription-plan-feature/{$feature->id}/show");
 
         $response->assertStatus(200);
     }
@@ -98,8 +98,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $feature = $subscriptionPlanFeatureFactory->create();
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->get("/admin/subscription-plan-feature/{$feature->id}/edit");
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->get("/admin/subscription-plan-feature/{$feature->id}/edit");
 
         $response->assertStatus(200);
     }
@@ -145,8 +145,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
             'slug' => 'updated-feature',
         ];
 
-        $response = $this->actingAs($this->regularUser, 'backpack')
-            ->putJson("/admin/subscription-plan-feature/{$feature->id}", $updateData);
+        $httpClient = $this->actingAs($this->regularUser, 'backpack');
+        $response = $httpClient->putJson("/admin/subscription-plan-feature/{$feature->id}", $updateData);
 
         $response->assertStatus(403);
     }
@@ -157,8 +157,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $feature = $subscriptionPlanFeatureFactory->create();
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->deleteJson("/admin/subscription-plan-feature/{$feature->id}");
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->deleteJson("/admin/subscription-plan-feature/{$feature->id}");
 
         $response->assertStatus(200);
         $this->assertSoftDeleted('subscription_plan_features', ['id' => $feature->id]);
@@ -170,8 +170,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $feature = $subscriptionPlanFeatureFactory->create();
 
-        $response = $this->actingAs($this->regularUser, 'backpack')
-            ->deleteJson("/admin/subscription-plan-feature/{$feature->id}");
+        $httpClient = $this->actingAs($this->regularUser, 'backpack');
+        $response = $httpClient->deleteJson("/admin/subscription-plan-feature/{$feature->id}");
 
         $response->assertStatus(403);
     }
@@ -184,8 +184,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
             'slug' => '', // Missing required field
         ];
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/admin/subscription-plan-feature', $invalidData);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson('/admin/subscription-plan-feature', $invalidData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name', 'slug']);
@@ -203,8 +203,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
             'is_active' => true,
         ];
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/admin/subscription-plan-feature', $duplicateData);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson('/admin/subscription-plan-feature', $duplicateData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['slug']);
@@ -219,8 +219,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
             'sort_order' => -1, // Invalid negative value
         ];
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/admin/subscription-plan-feature', $invalidData);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson('/admin/subscription-plan-feature', $invalidData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['sort_order']);
@@ -234,8 +234,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
             'slug' => 'test-feature',
         ];
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/admin/subscription-plan-feature', $invalidData);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson('/admin/subscription-plan-feature', $invalidData);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['name']);
@@ -267,8 +267,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
         $subscriptionPlanFeatureFactory3 = SubscriptionPlanFeature::factory();
         $subscriptionPlanFeatureFactory3->create(['name' => 'Feature B', 'sort_order' => 2]);
 
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->get('/admin/subscription-plan-feature');
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->get('/admin/subscription-plan-feature');
 
         $response->assertStatus(200);
         // Features should be displayed in sort_order

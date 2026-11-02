@@ -476,23 +476,8 @@ class ProductRequestFeatureTest extends TestCase
             ],
         );
 
-        $this->actingAs($this->adminUser, 'backpack')
-            ->postJson(
-                '/test-product',
-                [
-                    'name' => 'Test Product',
-                    'user_id' => $this->productUser->id,
-                    'price' => 25.99,
-                    'currency' => 'CZK',
-                ],
-            )
-            ->assertStatus(200);
-    }
-
-    #[Test]
-    public function authorization_fails_for_unauthenticated_user(): void
-    {
-        $this->postJson(
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpResponse = $httpClient->postJson(
             '/test-product',
             [
                 'name' => 'Test Product',
@@ -500,8 +485,23 @@ class ProductRequestFeatureTest extends TestCase
                 'price' => 25.99,
                 'currency' => 'CZK',
             ],
-        )
-            ->assertStatus(403);
+        );
+        $httpResponse->assertStatus(200);
+    }
+
+    #[Test]
+    public function authorization_fails_for_unauthenticated_user(): void
+    {
+        $httpResponse = $this->postJson(
+            '/test-product',
+            [
+                'name' => 'Test Product',
+                'user_id' => $this->productUser->id,
+                'price' => 25.99,
+                'currency' => 'CZK',
+            ],
+        );
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -511,7 +511,7 @@ class ProductRequestFeatureTest extends TestCase
         $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
 
-        $this->postJson(
+        $httpResponse = $this->postJson(
             '/test-product',
             [
                 'name' => 'No Perm Product',
@@ -519,7 +519,8 @@ class ProductRequestFeatureTest extends TestCase
                 'price' => 9.99,
                 'currency' => 'CZK',
             ],
-        )->assertStatus(403);
+        );
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -541,7 +542,7 @@ class ProductRequestFeatureTest extends TestCase
         );
 
         // First creation passes
-        $this->postJson(
+        $httpResponse = $this->postJson(
             '/test-product',
             [
                 'name' => 'Product One',
@@ -549,7 +550,8 @@ class ProductRequestFeatureTest extends TestCase
                 'price' => 10,
                 'currency' => 'CZK',
             ],
-        )->assertStatus(200);
+        );
+        $httpResponse->assertStatus(200);
 
         // Record usage manually (authorize only checks)
         $this->limitService->recordUsage(

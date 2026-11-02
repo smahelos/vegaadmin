@@ -29,7 +29,9 @@ class AdminSelect2FieldsTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $content = $this->get('/admin/expense/create')->assertOk()->getContent();
+        $httpResponse = $this->get('/admin/expense/create');
+        $httpResponse = $httpResponse->assertOk();
+        $content = $httpResponse->getContent();
 
         $this->assertSelect2Field(
             $content,
@@ -54,7 +56,9 @@ class AdminSelect2FieldsTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $content = $this->get('/admin/invoice/create')->assertOk()->getContent();
+        $httpResponse = $this->get('/admin/invoice/create');
+        $httpResponse = $httpResponse->assertOk();
+        $content = $httpResponse->getContent();
 
         // payment_status_id has no matching relation method name; the column itself is the value
         $this->assertSelect2Field(
@@ -69,7 +73,9 @@ class AdminSelect2FieldsTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $content = $this->get('/admin/subscription/create')->assertOk()->getContent();
+        $httpResponse = $this->get('/admin/subscription/create');
+        $httpResponse = $httpResponse->assertOk();
+        $content = $httpResponse->getContent();
 
         $this->assertSelect2Field(
             $content,
@@ -113,7 +119,9 @@ class AdminSelect2FieldsTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $content = $this->get('/admin/invoice/create')->assertOk()->getContent();
+        $httpResponse = $this->get('/admin/invoice/create');
+        $httpResponse = $httpResponse->assertOk();
+        $content = $httpResponse->getContent();
 
         $this->assertStringContainsString(
             'name="issue_date" value="' . date('Y-m-d') . '" data-datepicker-value',
@@ -153,7 +161,9 @@ class AdminSelect2FieldsTest extends TestCase
             ],
         );
 
-        $content = $this->get("/admin/invoice/{$invoice->id}/edit")->assertOk()->getContent();
+        $httpResponse = $this->get("/admin/invoice/{$invoice->id}/edit");
+        $httpResponse = $httpResponse->assertOk();
+        $content = $httpResponse->getContent();
 
         $this->assertStringContainsString(
             'name="tax_point_date" value="2026-09-30" data-datepicker-value',
@@ -167,7 +177,9 @@ class AdminSelect2FieldsTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $content = $this->get('/admin/expense/create')->assertOk()->getContent();
+        $httpResponse = $this->get('/admin/expense/create');
+        $httpResponse = $httpResponse->assertOk();
+        $content = $httpResponse->getContent();
 
         $this->assertSame(
             1,

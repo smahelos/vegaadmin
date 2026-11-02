@@ -215,10 +215,11 @@ class TaxRequestFeatureTest extends TestCase
     public function authorization_passes_when_authenticated(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $this->postJson('/test-tax', [
+        $httpResponse = $this->postJson('/test-tax', [
             'name' => 'VAT 21%',
             'rate' => 21,
-        ])->assertStatus(200);
+        ]);
+        $httpResponse->assertStatus(200);
     }
 
     /**
@@ -227,10 +228,11 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_when_not_authenticated(): void
     {
-        $this->postJson('/test-tax', [
+        $httpResponse = $this->postJson('/test-tax', [
             'name' => 'VAT 21%',
             'rate' => 21,
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -240,10 +242,11 @@ class TaxRequestFeatureTest extends TestCase
         $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
 
-        $this->postJson('/test-tax', [
+        $httpResponse = $this->postJson('/test-tax', [
             'name' => 'No Perm Tax',
             'rate' => 5,
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -253,10 +256,11 @@ class TaxRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 1]);
 
-        $this->postJson('/test-tax', [
+        $httpResponse = $this->postJson('/test-tax', [
             'name' => 'Tax One',
             'rate' => 5,
-        ])->assertStatus(200);
+        ]);
+        $httpResponse->assertStatus(200);
 
         $this->limitService->recordUsage(
             $this->adminUser->id,

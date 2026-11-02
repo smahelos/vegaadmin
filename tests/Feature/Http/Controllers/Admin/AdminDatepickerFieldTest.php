@@ -63,13 +63,13 @@ class AdminDatepickerFieldTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $record = $model::factory()->create([$field => '2026-03-15 10:20:30']);
 
-        $this->get("/admin/{$route}/{$record->getKey()}/edit")
-            ->assertOk()
-            ->assertSee(
-                'name="' . $field . '" value="' . $expected . '" data-datepicker-value',
-                false,
-            )
-            ->assertSee('data-init-function="bpFieldInitDatepicker"', false);
+        $httpResponse = $this->get("/admin/{$route}/{$record->getKey()}/edit");
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee(
+            'name="' . $field . '" value="' . $expected . '" data-datepicker-value',
+            false,
+        );
+        $httpResponse->assertSee('data-init-function="bpFieldInitDatepicker"', false);
     }
 
     #[Test]
@@ -79,8 +79,8 @@ class AdminDatepickerFieldTest extends TestCase
         $subscriptionFactory = Subscription::factory();
         $record = $subscriptionFactory->create(['trial_ends_at' => null]);
 
-        $this->get("/admin/subscription/{$record->getKey()}/edit")
-            ->assertOk()
-            ->assertSee('name="trial_ends_at" value="" data-datepicker-value', false);
+        $httpResponse = $this->get("/admin/subscription/{$record->getKey()}/edit");
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertSee('name="trial_ends_at" value="" data-datepicker-value', false);
     }
 }

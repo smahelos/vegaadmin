@@ -58,13 +58,13 @@ class AdminListFiltersTest extends TestCase
         $businessFactory2 = Business::factory();
         $businessFactory2->create();
 
-        $this->postJson('/admin/business/search?user_id=' . $owner->id, [
+        $httpResponse = $this->postJson('/admin/business/search?user_id=' . $owner->id, [
             'draw' => 1,
             'start' => 0,
             'length' => 10,
-        ])
-            ->assertOk()
-            ->assertJsonPath('recordsFiltered', 1);
+        ]);
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertJsonPath('recordsFiltered', 1);
     }
 
     #[Test]
@@ -92,13 +92,13 @@ class AdminListFiltersTest extends TestCase
         $productFactory2 = Product::factory();
         $productFactory2->create(['is_active' => false]);
 
-        $this->postJson('/admin/product/search?is_active=1', [
+        $httpResponse = $this->postJson('/admin/product/search?is_active=1', [
             'draw' => 1,
             'start' => 0,
             'length' => 10,
-        ])
-            ->assertOk()
-            ->assertJsonPath('recordsTotal', 2)
-            ->assertJsonPath('recordsFiltered', 1);
+        ]);
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('recordsTotal', 2);
+        $httpResponse->assertJsonPath('recordsFiltered', 1);
     }
 }

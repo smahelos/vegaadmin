@@ -51,11 +51,11 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
     #[Test]
     public function authorize_returns_true_with_permission(): void
     {
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/test-subscription-plan-feature', [
-                'name' => 'Test Feature',
-                'slug' => 'test-feature',
-            ]);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson('/test-subscription-plan-feature', [
+            'name' => 'Test Feature',
+            'slug' => 'test-feature',
+        ]);
 
         $response->assertStatus(200);
     }

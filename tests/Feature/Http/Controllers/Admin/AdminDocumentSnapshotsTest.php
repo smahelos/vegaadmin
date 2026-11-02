@@ -70,7 +70,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $data[$role . '_registration_country'] = 'DE';
         $data[$role . '_company_number'] = 'HRB 999';
 
-        $this->put('/admin/' . $type . '/' . $document->id, $data)->assertSessionHasErrors($role . '_company_number');
+        $httpResponse = $this->put('/admin/' . $type . '/' . $document->id, $data);
+        $httpResponse->assertSessionHasErrors($role . '_company_number');
         $this->assertSame(
             'HRB 123',
             $document->fresh()->getAttribute($role . '_company_number'),
@@ -78,7 +79,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $this->assertSame($contact->id, $document->fresh()->contact_id);
 
         $data['contact_id'] = null;
-        $this->put('/admin/' . $type . '/' . $document->id, $data)->assertSessionHasNoErrors();
+        $httpResponse2 = $this->put('/admin/' . $type . '/' . $document->id, $data);
+        $httpResponse2->assertSessionHasNoErrors();
         $this->assertSame(
             'HRB 999',
             $document->fresh()->getAttribute($role . '_company_number'),
@@ -123,7 +125,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $data[$role . '_company_number'] = 'HRB 123';
         $data[$role . '_name'] = 'Document-only correction';
 
-        $this->put('/admin/' . $type . '/' . $document->id, $data)->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/' . $type . '/' . $document->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
 
         $this->assertSame(
             'HRB 123',
@@ -171,13 +174,14 @@ final class AdminDocumentSnapshotsTest extends TestCase
             ],
         );
 
-        $this->get('/admin/' . $type . '/' . $document->id . '/edit')->assertOk()
-            ->assertSee('value="Saved counterparty correction"', false)
-            ->assertSee('value="Saved street 12"', false)
-            ->assertSee('value="saved@example.test"', false)
-            ->assertSee('Saved business snapshot')
-            ->assertSee('value="2001234561"', false)
-            ->assertSee('data-stored-reference-id="' . $contact->id . '"', false);
+        $httpResponse = $this->get('/admin/' . $type . '/' . $document->id . '/edit');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee('value="Saved counterparty correction"', false);
+        $httpResponse = $httpResponse->assertSee('value="Saved street 12"', false);
+        $httpResponse = $httpResponse->assertSee('value="saved@example.test"', false);
+        $httpResponse = $httpResponse->assertSee('Saved business snapshot');
+        $httpResponse = $httpResponse->assertSee('value="2001234561"', false);
+        $httpResponse->assertSee('data-stored-reference-id="' . $contact->id . '"', false);
         $this->assertSame(
             'Saved counterparty correction',
             $document->fresh()->getAttribute($role . '_name'),
@@ -203,15 +207,16 @@ final class AdminDocumentSnapshotsTest extends TestCase
             ['user_id' => $this->adminUser->id, 'contact_id' => $contact->id],
         );
 
-        $this->withSession(
+        $httpClient = $this->withSession(
             ['_old_input' => ['contact_id' => $changed->id, $role . '_name' => 'Typed before validation']],
-        )
-            ->get('/admin/' . $type . '/' . $document->id . '/edit')->assertOk()
-            ->assertSee('value="Typed before validation"', false)
-            ->assertSee(
-                '<option value="' . $changed->id . '" selected>' . e($changed->name) . '</option>',
-                false,
-            )
-            ->assertSee('data-stored-reference-id="' . $contact->id . '"', false);
+        );
+        $httpResponse = $httpClient->get('/admin/' . $type . '/' . $document->id . '/edit');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee('value="Typed before validation"', false);
+        $httpResponse = $httpResponse->assertSee(
+            '<option value="' . $changed->id . '" selected>' . e($changed->name) . '</option>',
+            false,
+        );
+        $httpResponse->assertSee('data-stored-reference-id="' . $contact->id . '"', false);
     }
 }

@@ -96,9 +96,9 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_user_admin_returns_user_data_for_authorized_admin(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -120,9 +120,9 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_user_admin_returns_403_for_admin_without_permission(): void
     {
-        $response = $this->actingAs($this->unauthorizedAdmin, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->unauthorizedAdmin, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(403)
             ->assertJson(
@@ -135,8 +135,8 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_user_admin_returns_401_for_unauthenticated_request(): void
     {
-        $response = $this->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(401)
             ->assertJson(
@@ -151,9 +151,9 @@ class UserControllerFeatureTest extends TestCase
     {
         $nonExistentId = 99999;
 
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$nonExistentId}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$nonExistentId}");
 
         $response->assertStatus(404)
             ->assertJson(
@@ -166,9 +166,9 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_user_admin_returns_500_for_invalid_user_id(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson('/api/admin/user/invalid-id');
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson('/api/admin/user/invalid-id');
 
         // Invalid ID causes Laravel route model binding error which returns 404, not 500
         $response->assertStatus(404);
@@ -181,8 +181,8 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_users_admin_returns_all_users_for_authorized_admin(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->getJson('/api/admin/user');
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $response = $httpClient->getJson('/api/admin/user');
 
         $response->assertStatus(200);
         $users = $response->json();
@@ -277,8 +277,12 @@ class UserControllerFeatureTest extends TestCase
     public function search_users_admin_returns_the_requested_page(): void
     {
         $this->actingAs($this->backendAdminUser, 'backpack');
-        $first = $this->getJson('/api/admin/user/search?q=Paginated')->assertOk()->json();
-        $second = $this->getJson('/api/admin/user/search?q=Paginated&page=2')->assertOk()->json();
+        $httpResponse = $this->getJson('/api/admin/user/search?q=Paginated');
+        $httpResponse = $httpResponse->assertOk();
+        $first = $httpResponse->json();
+        $httpResponse2 = $this->getJson('/api/admin/user/search?q=Paginated&page=2');
+        $httpResponse2 = $httpResponse2->assertOk();
+        $second = $httpResponse2->json();
 
         $this->assertSame(2, $second['current_page']);
         $this->assertNotEmpty($second['data']);
@@ -293,12 +297,12 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function search_users_admin_returns_403_for_admin_without_permission(): void
     {
-        $this->actingAs($this->unauthorizedAdmin, 'backpack')
-            ->getJson('/api/admin/user/search?q=Test')
-            ->assertStatus(403)
-            ->assertJson(
-                ['error' => __('users.auth.unauthorized')],
-            );
+        $httpClient = $this->actingAs($this->unauthorizedAdmin, 'backpack');
+        $httpResponse = $httpClient->getJson('/api/admin/user/search?q=Test');
+        $httpResponse = $httpResponse->assertStatus(403);
+        $httpResponse->assertJson(
+            ['error' => __('users.auth.unauthorized')],
+        );
     }
 
     // ========================================================================
@@ -327,9 +331,9 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function api_endpoints_require_json_accept_header(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->get("/api/admin/user/{$this->testUser1->id}"); // Without JSON header
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->get("/api/admin/user/{$this->testUser1->id}"); // Without JSON header
 
         // Should still work as our controller returns JSON responses
         $this->assertTrue(true); // This test validates that endpoints work with or without JSON headers
@@ -342,9 +346,9 @@ class UserControllerFeatureTest extends TestCase
         // Malicious ID that doesn't match numeric pattern should return 404 (route not found)
         $maliciousId = "1'; DROP TABLE users; --";
 
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$maliciousId}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$maliciousId}");
 
         // After casting inside controller malicious string becomes int; just assert it does not crash
         $this->assertNotEquals(500, $response->getStatusCode());
@@ -357,9 +361,9 @@ class UserControllerFeatureTest extends TestCase
         $this->assertGreaterThan(0, $userCountBefore);
 
         // Test 4: Valid ID still works normally
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient2 = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient2 = $httpClient2->withoutMiddleware();
+        $response = $httpClient2->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(200);
         $data = $response->json();
@@ -404,9 +408,9 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_user_admin_returns_correct_json_structure(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(200)
             ->assertJsonStructure(
@@ -432,8 +436,8 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_users_admin_returns_array_of_users(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->getJson('/api/admin/user');
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $response = $httpClient->getJson('/api/admin/user');
 
         $response->assertStatus(200);
 
@@ -468,24 +472,24 @@ class UserControllerFeatureTest extends TestCase
     public function error_responses_have_consistent_format(): void
     {
         // Test 401 error format
-        $response = $this->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(401)
             ->assertJsonStructure(['error']);
 
         // Test 403 error format
-        $response = $this->actingAs($this->unauthorizedAdmin, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient2 = $this->actingAs($this->unauthorizedAdmin, 'backpack');
+        $httpClient2 = $httpClient2->withoutMiddleware();
+        $response = $httpClient2->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(403)
             ->assertJsonStructure(['error']);
 
         // Test 404 error format
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson('/api/admin/user/99999');
+        $httpClient3 = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient3 = $httpClient3->withoutMiddleware();
+        $response = $httpClient3->getJson('/api/admin/user/99999');
 
         $response->assertStatus(404)
             ->assertJsonStructure(['error']);
@@ -507,9 +511,9 @@ class UserControllerFeatureTest extends TestCase
         $failingId = 777777;
         $this->userServiceStub->failOnId = $failingId;
 
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$failingId}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$failingId}");
 
         $response->assertStatus(500)
             ->assertJsonStructure(['error']);

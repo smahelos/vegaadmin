@@ -26,16 +26,16 @@ class LoginControllerFeatureTest extends TestCase
     {
         $this->withoutMiddleware(VerifyCsrfToken::class);
         $locale = config('app.locale');
-        $response = $this->from(
+        $httpClient = $this->from(
             route('frontend.login', ['locale' => $locale]),
-        )
-            ->post(
-                route('frontend.login', ['locale' => $locale]),
-                [
-                    'email' => 'nouser@example.com',
-                    'password' => 'wrong',
-                ],
-            );
+        );
+        $response = $httpClient->post(
+            route('frontend.login', ['locale' => $locale]),
+            [
+                'email' => 'nouser@example.com',
+                'password' => 'wrong',
+            ],
+        );
 
         $response->assertStatus(302);
         $response->assertRedirect(

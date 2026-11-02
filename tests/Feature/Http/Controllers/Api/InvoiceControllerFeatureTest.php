@@ -49,8 +49,8 @@ class InvoiceControllerFeatureTest extends TestCase
     public function admin_can_get_any_invoice_by_route_param(): void
     {
         $invoice = $this->stub->invoices[1]; // owned by regular user
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->getJson('/api/admin/invoice/' . $invoice->id);
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $response = $httpClient->getJson('/api/admin/invoice/' . $invoice->id);
         $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
     }
 
@@ -58,8 +58,8 @@ class InvoiceControllerFeatureTest extends TestCase
     public function user_can_get_own_invoice_by_route_param(): void
     {
         $invoice = $this->stub->invoices[0]; // owned by frontend user
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/' . $invoice->id);
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice/' . $invoice->id);
         $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
     }
 
@@ -67,8 +67,8 @@ class InvoiceControllerFeatureTest extends TestCase
     public function user_cannot_access_foreign_invoice(): void
     {
         $foreign = $this->stub->invoices[2]; // owned by admin
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/' . $foreign->id);
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice/' . $foreign->id);
         $response->assertStatus(403)->assertJson(
             ['error' => __('users.auth.unauthorized')],
         );
@@ -77,8 +77,8 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function get_invoice_returns_404_when_not_found(): void
     {
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/999999');
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice/999999');
         $response->assertStatus(404)->assertJson(
             ['error' => __('invoices.messages.not_found')],
         );
@@ -100,8 +100,8 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function query_variant_requires_id(): void
     {
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice');
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice');
         $response->assertStatus(400)->assertJson(
             ['error' => __('invoices.messages.id_required')],
         );
@@ -111,8 +111,8 @@ class InvoiceControllerFeatureTest extends TestCase
     public function query_variant_fetches_invoice(): void
     {
         $invoice = $this->stub->invoices[0];
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice?q=' . $invoice->id);
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice?q=' . $invoice->id);
         $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
     }
 
@@ -122,8 +122,8 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function admin_list_returns_all_invoices(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->getJson('/api/admin/invoice?q=1'); // using existing route but with id to satisfy controller path; listInvoices not yet separate
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $response = $httpClient->getJson('/api/admin/invoice?q=1'); // using existing route but with id to satisfy controller path; listInvoices not yet separate
         // Because route hits getInvoice (not implemented list route) skip
         $this->assertTrue(true);
     }
@@ -140,8 +140,8 @@ class InvoiceControllerFeatureTest extends TestCase
             },
         );
         $this->stub->failOnId = 123456; // configure stub
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/123456');
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice/123456');
         $response->assertStatus(404)->assertJson(
             ['error' => __('invoices.messages.not_found')],
         );

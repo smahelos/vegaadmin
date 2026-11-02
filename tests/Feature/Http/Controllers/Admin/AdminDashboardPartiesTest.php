@@ -30,17 +30,18 @@ final class AdminDashboardPartiesTest extends TestCase
         $contactFactory2->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
-        $this->actingAs($this->adminUser, 'backpack')->get('/admin/dashboard')
-            ->assertOk()
-            ->assertViewHas(
-                'dashboardStats',
-                fn (array $stats): bool => $stats['total_businesses'] === 1 && $stats['total_contacts'] === 1 && $stats['recent_contacts'] === 1,
-            )
-            ->assertSee(
-                backpack_url('business/create'),
-            )
-            ->assertDontSee(
-                backpack_url('client/create'),
-            );
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpResponse = $httpClient->get('/admin/dashboard');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertViewHas(
+            'dashboardStats',
+            fn (array $stats): bool => $stats['total_businesses'] === 1 && $stats['total_contacts'] === 1 && $stats['recent_contacts'] === 1,
+        );
+        $httpResponse = $httpResponse->assertSee(
+            backpack_url('business/create'),
+        );
+        $httpResponse->assertDontSee(
+            backpack_url('client/create'),
+        );
     }
 }

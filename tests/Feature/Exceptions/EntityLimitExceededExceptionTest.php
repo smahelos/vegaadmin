@@ -70,8 +70,8 @@ final class EntityLimitExceededExceptionTest extends TestCase
         )->name('frontend.invoice.testLimit');
 
         // Act
-        $resp = $this->from('/previous')
-            ->post('/test/invoice-limit', []);
+        $httpClient = $this->from('/previous');
+        $resp = $httpClient->post('/test/invoice-limit', []);
 
         // Assert
         $resp->assertRedirect('/previous');
@@ -95,8 +95,8 @@ final class EntityLimitExceededExceptionTest extends TestCase
         )->name('frontend.business.testLimit');
 
         // Act
-        $resp = $this->from('/business-prev')
-            ->post('/test/business-limit', []);
+        $httpClient = $this->from('/business-prev');
+        $resp = $httpClient->post('/test/business-limit', []);
 
         // Assert
         $resp->assertRedirect('/business-prev');

@@ -26,10 +26,11 @@ final class AuthenticateSessionFeatureTest extends TestCase
             Role::findByName(PermissionCatalog::ADMIN_ROLE, PermissionCatalog::BACKPACK),
         );
 
-        $this->post('/admin/login', ['email' => $admin->email, 'password' => 'password'])
-            ->assertRedirect();
+        $httpResponse = $this->post('/admin/login', ['email' => $admin->email, 'password' => 'password']);
+        $httpResponse->assertRedirect();
 
-        $this->get('/admin/dashboard')->assertOk();
+        $httpResponse2 = $this->get('/admin/dashboard');
+        $httpResponse2->assertOk();
         $this->assertAuthenticatedAs($admin, PermissionCatalog::BACKPACK);
     }
 }

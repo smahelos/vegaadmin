@@ -68,13 +68,13 @@ class UserCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $this->withSession(['backpack.language-switcher.locale' => 'cs'])
-            ->get('/admin/user/create')
-            ->assertOk()
-            ->assertSeeText('Jméno')
-            ->assertSeeText('Role a oprávnění')
-            ->assertSeeText('Oprávnění')
-            ->assertDontSeeText('permissionmanager.');
+        $httpClient = $this->withSession(['backpack.language-switcher.locale' => 'cs']);
+        $httpResponse = $httpClient->get('/admin/user/create');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSeeText('Jméno');
+        $httpResponse = $httpResponse->assertSeeText('Role a oprávnění');
+        $httpResponse = $httpResponse->assertSeeText('Oprávnění');
+        $httpResponse->assertDontSeeText('permissionmanager.');
     }
 
     /**

@@ -261,11 +261,11 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/test-product-category', [
-                'name' => 'Test Category',
-            ])
-            ->assertStatus(200);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpResponse = $httpClient->postJson('/test-product-category', [
+            'name' => 'Test Category',
+        ]);
+        $httpResponse->assertStatus(200);
     }
 
     #[Test]
@@ -275,9 +275,10 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
 
-        $this->postJson('/test-product-category', [
+        $httpResponse = $this->postJson('/test-product-category', [
             'name' => 'No Perm Category',
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -288,9 +289,10 @@ class ProductCategoryRequestFeatureTest extends TestCase
         // Strict limit 1
         EntityLimit::where('entity_type', 'product_category')->update(['limit_value' => 1]);
 
-        $this->postJson('/test-product-category', [
+        $httpResponse = $this->postJson('/test-product-category', [
             'name' => 'First Cat',
-        ])->assertStatus(200);
+        ]);
+        $httpResponse->assertStatus(200);
 
         // Manually record usage so second authorize fails
         $this->limitService->recordUsage(
@@ -344,10 +346,10 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->postJson('/test-product-category', [
+        $httpResponse = $this->postJson('/test-product-category', [
             'name' => 'Test Category',
-        ])
-            ->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]

@@ -52,9 +52,10 @@ final class StatisticsControllerFeatureTest extends TestCase
     #[DataProvider('routes')]
     public function guest_gets_401(string $route): void
     {
-        $this->getJson(
+        $httpResponse = $this->getJson(
             route($route),
-        )->assertUnauthorized();
+        );
+        $httpResponse->assertUnauthorized();
 
         $this->assertSame([], $this->statistics->calls);
     }
@@ -67,9 +68,11 @@ final class StatisticsControllerFeatureTest extends TestCase
         $user = $userFactory->create();
         $user->givePermissionTo('frontend.api.access');
 
-        $this->actingAs($user, 'web')->getJson(
+        $httpClient = $this->actingAs($user, 'web');
+        $httpResponse = $httpClient->getJson(
             route($route),
-        )->assertForbidden();
+        );
+        $httpResponse->assertForbidden();
 
         $this->assertSame([], $this->statistics->calls);
     }
@@ -80,9 +83,11 @@ final class StatisticsControllerFeatureTest extends TestCase
     {
         $user = $this->statisticsUser();
 
-        $this->actingAs($user, 'web')->getJson(
+        $httpClient = $this->actingAs($user, 'web');
+        $httpResponse = $httpClient->getJson(
             route($route),
-        )->assertOk();
+        );
+        $httpResponse->assertOk();
 
         $this->assertNotEmpty($this->statistics->calls);
         foreach ($this->statistics->calls as $call) {
@@ -127,12 +132,12 @@ final class StatisticsControllerFeatureTest extends TestCase
     #[Test]
     public function defaults_to_the_last_year_in_whole_months(): void
     {
-        $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(
-                route('api.statistics.monthly-revenue'),
-            )
-            ->assertOk()
-            ->assertJsonPath('data.0.month', '2026-01');
+        $httpClient = $this->actingAs($this->statisticsUser(), 'web');
+        $httpResponse = $httpClient->getJson(
+            route('api.statistics.monthly-revenue'),
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertJsonPath('data.0.month', '2026-01');
 
         $call = $this->statistics->calls[0];
         $this->assertSame(
@@ -154,11 +159,11 @@ final class StatisticsControllerFeatureTest extends TestCase
             ],
         );
 
-        $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(
-                route('api.statistics.invoice-status') . '?' . $query,
-            )
-            ->assertOk();
+        $httpClient = $this->actingAs($this->statisticsUser(), 'web');
+        $httpResponse = $httpClient->getJson(
+            route('api.statistics.invoice-status') . '?' . $query,
+        );
+        $httpResponse->assertOk();
 
         $call = $this->statistics->calls[0];
         $this->assertSame(
@@ -178,15 +183,15 @@ final class StatisticsControllerFeatureTest extends TestCase
     #[Test]
     public function an_explicit_start_date_wins_over_the_period(): void
     {
-        $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(
-                route('api.statistics.customer-revenue', [
-                    'time_range' => 'month',
-                    'date_from' => '2026-01-15',
-                ]),
-            )
-            ->assertOk()
-            ->assertJsonPath('data.0.customer_name', 'Acme');
+        $httpClient = $this->actingAs($this->statisticsUser(), 'web');
+        $httpResponse = $httpClient->getJson(
+            route('api.statistics.customer-revenue', [
+                'time_range' => 'month',
+                'date_from' => '2026-01-15',
+            ]),
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertJsonPath('data.0.customer_name', 'Acme');
 
         $this->assertSame(
             '2026-01-15',
@@ -197,11 +202,11 @@ final class StatisticsControllerFeatureTest extends TestCase
     #[Test]
     public function merges_revenue_and_expenses_ordered_by_month(): void
     {
-        $response = $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(
-                route('api.statistics.revenue-expenses'),
-            )
-            ->assertOk();
+        $httpClient = $this->actingAs($this->statisticsUser(), 'web');
+        $httpResponse = $httpClient->getJson(
+            route('api.statistics.revenue-expenses'),
+        );
+        $response = $httpResponse->assertOk();
 
         $this->assertSame(
             [
@@ -236,12 +241,12 @@ final class StatisticsControllerFeatureTest extends TestCase
     #[DataProvider('invalidFilters')]
     public function rejects_an_invalid_filter(array $filter, string $field): void
     {
-        $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(
-                route('api.statistics.monthly-revenue', $filter),
-            )
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors($field);
+        $httpClient = $this->actingAs($this->statisticsUser(), 'web');
+        $httpResponse = $httpClient->getJson(
+            route('api.statistics.monthly-revenue', $filter),
+        );
+        $httpResponse = $httpResponse->assertUnprocessable();
+        $httpResponse->assertJsonValidationErrors($field);
 
         $this->assertSame([], $this->statistics->calls);
     }

@@ -184,7 +184,8 @@ class ProductControllerFeatureTest extends TestCase
             'monthly',
         );
 
-        $response = $this->actingAs($this->user, 'web')->get(
+        $httpClient = $this->actingAs($this->user, 'web');
+        $response = $httpClient->get(
             route('frontend.products', ['locale' => 'cs']),
         );
 
@@ -209,7 +210,8 @@ class ProductControllerFeatureTest extends TestCase
             'monthly',
         );
 
-        $response = $this->actingAs($this->user, 'web')->get(
+        $httpClient = $this->actingAs($this->user, 'web');
+        $response = $httpClient->get(
             route('frontend.products', ['locale' => 'cs']),
         );
 
@@ -468,20 +470,20 @@ class ProductControllerFeatureTest extends TestCase
         $invoiceProductFactory = InvoiceProduct::factory();
         $invoiceProductFactory->create(['product_id' => $product->id]);
 
-        $this->actingAs($this->user, 'web')
-            ->from(
-                route('frontend.products', ['locale' => 'cs']),
-            )
-            ->delete(
-                route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]),
-            )
-            ->assertRedirect(
-                route('frontend.products', ['locale' => 'cs']),
-            )
-            ->assertSessionHas(
-                'error',
-                __('products.messages.error_delete_invoices'),
-            );
+        $httpClient = $this->actingAs($this->user, 'web');
+        $httpClient = $httpClient->from(
+            route('frontend.products', ['locale' => 'cs']),
+        );
+        $httpResponse = $httpClient->delete(
+            route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]),
+        );
+        $httpResponse = $httpResponse->assertRedirect(
+            route('frontend.products', ['locale' => 'cs']),
+        );
+        $httpResponse->assertSessionHas(
+            'error',
+            __('products.messages.error_delete_invoices'),
+        );
 
         $this->assertDatabaseHas('products', ['id' => $product->id]);
         Storage::disk('public')->assertExists('products/kept.png');
@@ -500,18 +502,18 @@ class ProductControllerFeatureTest extends TestCase
             'currency' => 'CZK',
         ];
 
-        $this->actingAs($this->user, 'web')
-            ->post(
-                route('frontend.product.store', ['locale' => 'cs']),
-                [...$productData, 'slug' => $own->slug],
-            )
-            ->assertSessionHasErrors('slug');
+        $httpClient = $this->actingAs($this->user, 'web');
+        $httpResponse = $httpClient->post(
+            route('frontend.product.store', ['locale' => 'cs']),
+            [...$productData, 'slug' => $own->slug],
+        );
+        $httpResponse->assertSessionHasErrors('slug');
 
-        $this->post(
+        $httpResponse2 = $this->post(
             route('frontend.product.store', ['locale' => 'cs']),
             [...$productData, 'slug' => $foreign->slug],
-        )
-            ->assertSessionHasNoErrors();
+        );
+        $httpResponse2->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('products', ['user_id' => $this->user->id, 'slug' => $foreign->slug]);
     }

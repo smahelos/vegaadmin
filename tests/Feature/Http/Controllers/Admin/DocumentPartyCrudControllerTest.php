@@ -94,12 +94,18 @@ final class DocumentPartyCrudControllerTest extends TestCase
         $businessFactory3->create(['user_id' => $this->adminUser->id]);
         $contactFactory3 = Contact::factory();
         $contactFactory3->create(['user_id' => $this->adminUser->id]);
-        $this->getJson(
+        $httpResponse = $this->getJson(
             route('admin.document-parties.businesses', ['user_id' => $this->regularUser->id]),
-        )->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $business->id);
-        $this->getJson(
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonCount(1, 'data');
+        $httpResponse->assertJsonPath('data.0.id', $business->id);
+        $httpResponse2 = $this->getJson(
             route('admin.document-parties.contacts', ['user_id' => $this->regularUser->id]),
-        )->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $contact->id);
+        );
+        $httpResponse2 = $httpResponse2->assertOk();
+        $httpResponse2 = $httpResponse2->assertJsonCount(1, 'data');
+        $httpResponse2->assertJsonPath('data.0.id', $contact->id);
     }
 
     #[Test]
@@ -114,18 +120,24 @@ final class DocumentPartyCrudControllerTest extends TestCase
         $bankAccountFactory2 = BankAccount::factory();
         $bankAccountFactory2 = $bankAccountFactory2->ownedBy($business);
         $bankAccountFactory2->create(['archived_at' => now()]);
-        $this->getJson(
+        $httpResponse = $this->getJson(
             route(
                 'admin.document-parties.accounts',
                 ['user_id' => $this->regularUser->id, 'business_id' => $business->id],
             ),
-        )->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $account->id)->assertJsonPath('data.0.is_default', true);
-        $this->getJson(
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonCount(1, 'data');
+        $httpResponse = $httpResponse->assertJsonPath('data.0.id', $account->id);
+        $httpResponse->assertJsonPath('data.0.is_default', true);
+        $httpResponse2 = $this->getJson(
             route(
                 'admin.document-parties.accounts',
                 ['user_id' => $this->adminUser->id, 'business_id' => $business->id],
             ),
-        )->assertOk()->assertJsonCount(0, 'data');
+        );
+        $httpResponse2 = $httpResponse2->assertOk();
+        $httpResponse2->assertJsonCount(0, 'data');
     }
 
     #[Test]
@@ -139,30 +151,35 @@ final class DocumentPartyCrudControllerTest extends TestCase
         $bankAccountFactory2 = BankAccount::factory();
         $bankAccountFactory2 = $bankAccountFactory2->ownedBy($contact);
         $bankAccountFactory2->create(['archived_at' => now()]);
-        $this->getJson(
+        $httpResponse = $this->getJson(
             route(
                 'admin.document-parties.accounts',
                 ['user_id' => $this->regularUser->id, 'contact_id' => $contact->id],
             ),
-        )->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $account->id);
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonCount(1, 'data');
+        $httpResponse->assertJsonPath('data.0.id', $account->id);
     }
 
     #[Test]
     public function selector_parameters_are_validated(): void
     {
-        $this->getJson(
+        $httpResponse = $this->getJson(
             route('admin.document-parties.businesses', ['user_id' => 'invalid', 'q' => ['invalid']]),
-        )
-            ->assertUnprocessable()->assertJsonValidationErrors(['user_id', 'q']);
+        );
+        $httpResponse = $httpResponse->assertUnprocessable();
+        $httpResponse->assertJsonValidationErrors(['user_id', 'q']);
     }
 
     #[Test]
     public function guests_and_users_without_document_permissions_cannot_search(): void
     {
         auth('backpack')->logout();
-        $this->getJson(
+        $httpResponse = $this->getJson(
             route('admin.document-parties.businesses'),
-        )->assertUnauthorized();
+        );
+        $httpResponse->assertUnauthorized();
         $this->actingAs($this->regularUser, 'backpack');
         foreach (
             [

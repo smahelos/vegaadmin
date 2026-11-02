@@ -22,15 +22,15 @@ class DatabaseDashboardControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $this->withSession(['backpack.language-switcher.locale' => 'cs'])
-            ->get('/admin/database-dashboard')
-            ->assertOk()
-            ->assertSee(
-                __('admin/database.dashboard.title'),
-            )
-            ->assertSee(
-                __('admin/database.dashboard.run_optimization'),
-            )
-            ->assertDontSeeText('admin.database.');
+        $httpClient = $this->withSession(['backpack.language-switcher.locale' => 'cs']);
+        $httpResponse = $httpClient->get('/admin/database-dashboard');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee(
+            __('admin/database.dashboard.title'),
+        );
+        $httpResponse = $httpResponse->assertSee(
+            __('admin/database.dashboard.run_optimization'),
+        );
+        $httpResponse->assertDontSeeText('admin.database.');
     }
 }

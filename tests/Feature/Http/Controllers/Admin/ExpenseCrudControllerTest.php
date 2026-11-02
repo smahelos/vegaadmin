@@ -54,20 +54,28 @@ final class ExpenseCrudControllerTest extends TestCase
     {
         [$business] = $this->issuerOf($this->adminUser);
         $data = $this->expenseInput($business, $attachments);
-        $this->post('/admin/expense', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $expense = Expense::where('reference_number', $data['reference_number'])->sole();
         $this->assertSame([], $expense->attachments);
-        $this->put('/admin/expense/' . $expense->id, $data)->assertSessionHasNoErrors()->assertRedirect();
+        $httpResponse2 = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
+        $httpResponse2->assertRedirect();
         $this->assertSame([], $expense->fresh()->attachments);
     }
 
     #[Test]
     public function create_and_edit_forms_send_attachments_as_multipart_data(): void
     {
-        $this->get('/admin/expense/create')->assertOk()->assertSee('enctype="multipart/form-data"', false);
+        $httpResponse = $this->get('/admin/expense/create');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertSee('enctype="multipart/form-data"', false);
         $expenseFactory = Expense::factory();
         $expense = $expenseFactory->create();
-        $this->get('/admin/expense/' . $expense->id . '/edit')->assertOk()->assertSee('enctype="multipart/form-data"', false);
+        $httpResponse2 = $this->get('/admin/expense/' . $expense->id . '/edit');
+        $httpResponse2 = $httpResponse2->assertOk();
+        $httpResponse2->assertSee('enctype="multipart/form-data"', false);
     }
 
     #[Test]
@@ -82,7 +90,9 @@ final class ExpenseCrudControllerTest extends TestCase
                 'account_country' => 'CZ',
             ],
         );
-        $this->post('/admin/expense', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertDatabaseHas(
             'expenses',
             [
@@ -102,7 +112,9 @@ final class ExpenseCrudControllerTest extends TestCase
         [$business] = $this->issuerOf($this->adminUser);
         Address::where('business_id', $business->id)->delete();
         $data = $this->expenseInput($business);
-        $this->post('/admin/expense', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertDatabaseHas(
             'expenses',
             [
@@ -136,7 +148,9 @@ final class ExpenseCrudControllerTest extends TestCase
                 'account_iban' => 'invalid',
             ],
         );
-        $this->post('/admin/expense', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertDatabaseHas(
             'expenses',
             [
@@ -169,7 +183,7 @@ final class ExpenseCrudControllerTest extends TestCase
                 'account_country' => 'CZ',
             ],
         );
-        $this->put(
+        $httpResponse = $this->put(
             '/admin/expense/' . $expense->id,
             $this->expenseInput(
                 $business,
@@ -179,7 +193,9 @@ final class ExpenseCrudControllerTest extends TestCase
                     'supplier_name' => 'Document correction',
                 ],
             ),
-        )->assertSessionHasNoErrors()->assertRedirect();
+        );
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertSame('Document correction', $expense->fresh()->supplier_name);
         $this->assertSame('2001234561', $expense->fresh()->account_number);
         $this->assertSame($contact->name, $contact->fresh()->name);
@@ -197,10 +213,11 @@ final class ExpenseCrudControllerTest extends TestCase
         $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
         $addressFactory = Address::factory();
         $addressFactory->create(['business_id' => null, 'contact_id' => $contact->id]);
-        $this->put(
+        $httpResponse = $this->put(
             '/admin/expense/' . $expense->id,
             $this->expenseInput($business, ['contact_id' => $contact->id]),
-        )->assertSessionHasNoErrors();
+        );
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertSame($contact->name, $expense->fresh()->supplier_name);
     }
 
@@ -215,23 +232,25 @@ final class ExpenseCrudControllerTest extends TestCase
             Contact::factory()->create(['user_id' => $this->adminUser->id]),
         );
         $account = $bankAccountFactory->create();
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/expense',
             $this->expenseInput(
                 $business,
                 ['contact_id' => $contact->id, 'bank_account_id' => $account->id],
             ),
-        )->assertSessionHasErrors('bank_account_id');
+        );
+        $httpResponse->assertSessionHasErrors('bank_account_id');
     }
 
     #[Test]
     public function another_owners_business_is_rejected(): void
     {
         [$business] = $this->issuerOf($this->regularUser);
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/expense',
             $this->expenseInput($business, ['user_id' => $this->adminUser->id]),
-        )->assertSessionHasErrors('business_id');
+        );
+        $httpResponse->assertSessionHasErrors('business_id');
     }
 
     #[Test]
@@ -240,10 +259,11 @@ final class ExpenseCrudControllerTest extends TestCase
         [$business] = $this->issuerOf($this->adminUser);
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->adminUser->id, 'archived_at' => now()]);
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/expense',
             $this->expenseInput($business, ['contact_id' => $contact->id]),
-        )->assertSessionHasErrors('contact_id');
+        );
+        $httpResponse->assertSessionHasErrors('contact_id');
     }
 
     #[Test]
@@ -252,10 +272,11 @@ final class ExpenseCrudControllerTest extends TestCase
         [$business] = $this->issuerOf($this->adminUser);
         $expenseFactory = Expense::factory();
         $expense = $expenseFactory->create(['user_id' => $this->regularUser->id]);
-        $this->put(
+        $httpResponse = $this->put(
             '/admin/expense/' . $expense->id,
             $this->expenseInput($business),
-        )->assertNotFound();
+        );
+        $httpResponse->assertNotFound();
     }
 
     #[Test]
@@ -275,7 +296,8 @@ final class ExpenseCrudControllerTest extends TestCase
             ],
         );
         $data = $this->expenseInput($business);
-        $this->post('/admin/expense', $data)->assertSessionHasNoErrors();
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertDatabaseHas(
             'entity_limit_usage',
             [
@@ -284,10 +306,11 @@ final class ExpenseCrudControllerTest extends TestCase
                 'current_value' => 1,
             ],
         );
-        $this->post(
+        $httpResponse2 = $this->post(
             '/admin/expense',
             array_replace($data, ['reference_number' => 'blocked']),
-        )->assertRedirect();
+        );
+        $httpResponse2->assertRedirect();
         $this->assertDatabaseMissing('expenses', ['reference_number' => 'blocked']);
     }
 
@@ -313,7 +336,9 @@ final class ExpenseCrudControllerTest extends TestCase
         );
         [$business] = $this->issuerOf($this->regularUser);
         $data = $this->expenseInput($business);
-        $this->post('/admin/expense', $data)->assertSessionHasNoErrors()->assertRedirect();
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertDatabaseHas(
             'entity_limit_usage',
             [
@@ -322,10 +347,11 @@ final class ExpenseCrudControllerTest extends TestCase
                 'current_value' => 1,
             ],
         );
-        $this->post(
+        $httpResponse2 = $this->post(
             '/admin/expense',
             array_replace($data, ['reference_number' => 'WEB-BLOCKED']),
-        )->assertRedirect();
+        );
+        $httpResponse2->assertRedirect();
         $this->assertDatabaseMissing('expenses', ['reference_number' => 'WEB-BLOCKED']);
     }
 
@@ -336,12 +362,13 @@ final class ExpenseCrudControllerTest extends TestCase
         [$business] = $this->issuerOf($this->adminUser);
         $data = $this->expenseInput($business);
         $receipt = '%PDF-1.4 shared receipt';
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/expense',
             $data + [
                 'attachments' => [UploadedFile::fake()->createWithContent('receipt.pdf', $receipt)],
             ],
-        )->assertSessionHasNoErrors();
+        );
+        $httpResponse->assertSessionHasNoErrors();
         $expense = Expense::where('reference_number', $data['reference_number'])->sole();
         $path = $expense->attachments[0];
         $this->assertDatabaseHas('file_hashes', ['path' => $path, 'ref_count' => 1]);
@@ -389,27 +416,33 @@ final class ExpenseCrudControllerTest extends TestCase
         Storage::fake('public');
         [$business] = $this->issuerOf($this->adminUser);
         $data = $this->expenseInput($business);
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/expense',
             $data + ['attachments' => [UploadedFile::fake()->create(
                 'receipt.pdf',
                 12,
                 'application/pdf',
             )]],
-        )->assertSessionHasNoErrors();
+        );
+        $httpResponse->assertSessionHasNoErrors();
         $expense = Expense::where('reference_number', $data['reference_number'])->sole();
         $path = $expense->attachments[0];
         Storage::disk('public')->assertExists($path);
-        $this->get('/admin/expense/' . $expense->id . '/edit')->assertOk()->assertSee(
+        $httpResponse2 = $this->get('/admin/expense/' . $expense->id . '/edit');
+        $httpResponse2 = $httpResponse2->assertOk();
+        $httpResponse2 = $httpResponse2->assertSee(
             basename($path),
-        )->assertSee('la-file-pdf');
-        $this->put('/admin/expense/' . $expense->id, $data)->assertSessionHasNoErrors();
+        );
+        $httpResponse2->assertSee('la-file-pdf');
+        $httpResponse3 = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse3->assertSessionHasNoErrors();
         $this->assertSame([$path], $expense->fresh()->attachments);
         Storage::disk('public')->put('someone-else.pdf', 'private');
-        $this->put(
+        $httpResponse4 = $this->put(
             '/admin/expense/' . $expense->id,
             $data + ['attachments_removed' => json_encode([$path, 'someone-else.pdf'])],
-        )->assertSessionHasNoErrors();
+        );
+        $httpResponse4->assertSessionHasNoErrors();
         $this->assertSame([], $expense->fresh()->attachments);
         Storage::disk('public')->assertMissing($path);
         Storage::disk('public')->assertExists('someone-else.pdf');
@@ -420,18 +453,25 @@ final class ExpenseCrudControllerTest extends TestCase
     {
         $expenseFactory = Expense::factory();
         $expense = $expenseFactory->create(['supplier_name' => 'Saved supplier']);
-        $this->get('/admin/expense/' . $expense->id . '/show')->assertOk()->assertSee('Saved supplier');
-        $this->get('/admin/expense')->assertOk();
+        $httpResponse = $this->get('/admin/expense/' . $expense->id . '/show');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertSee('Saved supplier');
+        $httpResponse2 = $this->get('/admin/expense');
+        $httpResponse2->assertOk();
     }
 
     #[Test]
     public function guests_and_users_without_permission_cannot_write_expenses(): void
     {
         auth('backpack')->logout();
-        $this->post('/admin/expense', [])->assertRedirect(
+        $httpResponse = $this->post('/admin/expense', []);
+        $httpResponse->assertRedirect(
             route('backpack.auth.login'),
         );
-        $this->actingAs($this->regularUser, 'backpack')->post('/admin/expense', [])->assertForbidden();
-        $this->get('/admin/expense/create')->assertForbidden();
+        $httpClient = $this->actingAs($this->regularUser, 'backpack');
+        $httpResponse2 = $httpClient->post('/admin/expense', []);
+        $httpResponse2->assertForbidden();
+        $httpResponse3 = $this->get('/admin/expense/create');
+        $httpResponse3->assertForbidden();
     }
 }

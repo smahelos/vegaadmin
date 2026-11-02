@@ -66,9 +66,10 @@ final class CacheManagementControllerTest extends TestCase
     ): void {
         $artisan = Artisan::spy();
 
-        $this->post(
+        $httpResponse = $this->post(
             route($route),
-        )->assertRedirect(
+        );
+        $httpResponse->assertRedirect(
             route('backpack.auth.login'),
         );
 
@@ -95,9 +96,11 @@ final class CacheManagementControllerTest extends TestCase
             Permission::findByName('backpack.access', 'backpack'),
         );
 
-        $this->actingAs($user, 'backpack')->post(
+        $httpClient = $this->actingAs($user, 'backpack');
+        $httpResponse = $httpClient->post(
             route($route),
-        )->assertForbidden();
+        );
+        $httpResponse->assertForbidden();
 
         $artisan->shouldNotHaveReceived('call');
     }
@@ -114,16 +117,16 @@ final class CacheManagementControllerTest extends TestCase
     ): void {
         $artisan = Artisan::spy();
 
-        $this->actingAs($this->admin(), 'backpack')
-            ->from('/admin/dashboard')
-            ->post(
-                route($route),
-            )
-            ->assertRedirect('/admin/dashboard')
-            ->assertSessionHas(
-                'alert_messages.success',
-                [__($message)],
-            );
+        $httpClient = $this->actingAs($this->admin(), 'backpack');
+        $httpClient = $httpClient->from('/admin/dashboard');
+        $httpResponse = $httpClient->post(
+            route($route),
+        );
+        $httpResponse = $httpResponse->assertRedirect('/admin/dashboard');
+        $httpResponse->assertSessionHas(
+            'alert_messages.success',
+            [__($message)],
+        );
 
         foreach ($commands as $command) {
             $artisan->shouldHaveReceived('call')->with($command)->once();
@@ -137,11 +140,11 @@ final class CacheManagementControllerTest extends TestCase
             new RuntimeException('Connection refused [tcp://redis:6379]'),
         );
 
-        $response = $this->actingAs($this->admin(), 'backpack')
-            ->from('/admin/dashboard')
-            ->post(
-                route('admin.cache.clear'),
-            );
+        $httpClient = $this->actingAs($this->admin(), 'backpack');
+        $httpClient = $httpClient->from('/admin/dashboard');
+        $response = $httpClient->post(
+            route('admin.cache.clear'),
+        );
 
         $response->assertSessionHas(
             'alert_messages.error',
@@ -160,9 +163,9 @@ final class CacheManagementControllerTest extends TestCase
     {
         $artisan = Artisan::spy();
 
-        $this->actingAs($this->admin(), 'backpack')
-            ->get('/admin/cache/clear')
-            ->assertMethodNotAllowed();
+        $httpClient = $this->actingAs($this->admin(), 'backpack');
+        $httpResponse = $httpClient->get('/admin/cache/clear');
+        $httpResponse->assertMethodNotAllowed();
 
         $artisan->shouldNotHaveReceived('call');
     }

@@ -311,10 +311,10 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $store = app(TemporaryInvoiceStoreInterface::class);
         $token = $store->store(['invoice_vs' => '20260001']);
 
-        $response = $this->withSession(['last_guest_invoice_token' => $token])
-            ->delete(
-                route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]),
-            );
+        $httpClient = $this->withSession(['last_guest_invoice_token' => $token]);
+        $response = $httpClient->delete(
+            route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]),
+        );
 
         $response->assertRedirect(
             route('home', ['locale' => 'cs']),
@@ -332,12 +332,12 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $store = app(TemporaryInvoiceStoreInterface::class);
         $token = $store->store(['invoice_vs' => '20260001']);
 
-        $response = $this->withSession(
+        $httpClient = $this->withSession(
             ['last_guest_invoice_token' => str_repeat('a', 64)],
-        )
-            ->delete(
-                route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]),
-            );
+        );
+        $response = $httpClient->delete(
+            route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]),
+        );
 
         $response->assertRedirect(
             route('home', ['locale' => 'cs']),
@@ -354,11 +354,11 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $store = app(TemporaryInvoiceStoreInterface::class);
         $token = $store->store(['invoice_vs' => '20260001']);
 
-        $this->withSession(['last_guest_invoice_token' => $token])
-            ->get(
-                route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]),
-            )
-            ->assertMethodNotAllowed();
+        $httpClient = $this->withSession(['last_guest_invoice_token' => $token]);
+        $httpResponse = $httpClient->get(
+            route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]),
+        );
+        $httpResponse->assertMethodNotAllowed();
 
         $this->assertNotNull(
             $store->get($token),

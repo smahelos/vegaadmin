@@ -23,9 +23,9 @@ class UELSDashboardControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $this->get('/admin/uels-dashboard')
-            ->assertOk()
-            ->assertSee('id="user_select"', false);
+        $httpResponse = $this->get('/admin/uels-dashboard');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertSee('id="user_select"', false);
     }
 
     #[Test]
@@ -45,22 +45,22 @@ class UELSDashboardControllerTest extends TestCase
             ],
         );
 
-        $this->withSession(['backpack.language-switcher.locale' => 'cs'])
-            ->get('/admin/uels-dashboard')
-            ->assertOk()
-            ->assertSee(
-                __('entity_limits.dashboard.recent.title'),
-            )
-            ->assertSee(
-                __('entity_limits.entity_types.invoice.singular'),
-            )
-            ->assertSee(
-                __('entity_limits.periods.monthly'),
-            )
-            ->assertSee(
-                __('entity_limits.usages.labels.anonymous'),
-            )
-            ->assertDontSeeText('Recent Activity')
-            ->assertDontSeeText('Bulk Reset Usage');
+        $httpClient = $this->withSession(['backpack.language-switcher.locale' => 'cs']);
+        $httpResponse = $httpClient->get('/admin/uels-dashboard');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee(
+            __('entity_limits.dashboard.recent.title'),
+        );
+        $httpResponse = $httpResponse->assertSee(
+            __('entity_limits.entity_types.invoice.singular'),
+        );
+        $httpResponse = $httpResponse->assertSee(
+            __('entity_limits.periods.monthly'),
+        );
+        $httpResponse = $httpResponse->assertSee(
+            __('entity_limits.usages.labels.anonymous'),
+        );
+        $httpResponse = $httpResponse->assertDontSeeText('Recent Activity');
+        $httpResponse->assertDontSeeText('Bulk Reset Usage');
     }
 }

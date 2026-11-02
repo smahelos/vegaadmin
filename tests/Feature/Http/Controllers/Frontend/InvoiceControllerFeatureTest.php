@@ -589,12 +589,12 @@ class InvoiceControllerFeatureTest extends TestCase
             ],
         );
 
-        $this->actingAs($this->user, 'web')
-            ->post(
-                route('frontend.invoice.store', ['locale' => 'cs']),
-                $invoiceData,
-            )
-            ->assertSessionHasErrors('customer_company_number');
+        $httpClient = $this->actingAs($this->user, 'web');
+        $httpResponse = $httpClient->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $invoiceData,
+        );
+        $httpResponse->assertSessionHasErrors('customer_company_number');
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => $invoiceData['invoice_vs']]);
         $this->assertSame(
             1,

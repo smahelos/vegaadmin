@@ -205,12 +205,12 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_with_required_permission(): void
     {
-        $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/test-status-category', [
-                'name' => 'Test Category',
-                'slug' => 'test-category',
-            ])
-            ->assertStatus(200);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpResponse = $httpClient->postJson('/test-status-category', [
+            'name' => 'Test Category',
+            'slug' => 'test-category',
+        ]);
+        $httpResponse->assertStatus(200);
     }
 
     #[Test]
@@ -227,21 +227,22 @@ class StatusCategoryRequestFeatureTest extends TestCase
             $userWithoutPermission->givePermissionTo($backpackAccess);
         }
 
-        $this->actingAs($userWithoutPermission, 'backpack')
-            ->postJson('/test-status-category', [
-                'name' => 'Test Category',
-                'slug' => 'test-category',
-            ])
-            ->assertStatus(403);
+        $httpClient = $this->actingAs($userWithoutPermission, 'backpack');
+        $httpResponse = $httpClient->postJson('/test-status-category', [
+            'name' => 'Test Category',
+            'slug' => 'test-category',
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->postJson('/test-status-category', [
+        $httpResponse = $this->postJson('/test-status-category', [
             'name' => 'Test Category',
             'slug' => 'test-category',
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]

@@ -25,14 +25,19 @@ final class SharedProductCatalogTest extends TestCase
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $user->id]);
         $this->actingAs($user, 'web');
-        $this->get(
+        $httpResponse = $this->get(
             route('frontend.product.create', ['locale' => 'cs']),
-        )->assertOk()
-            ->assertSee('name="name"', false)->assertSee('name="price"', false)->assertDontSee('supplier_id');
-        $this->get(
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee('name="name"', false);
+        $httpResponse = $httpResponse->assertSee('name="price"', false);
+        $httpResponse->assertDontSee('supplier_id');
+        $httpResponse2 = $this->get(
             route('frontend.product.edit', ['locale' => 'cs', 'id' => $product->id]),
-        )->assertOk()
-            ->assertSee($product->name)->assertDontSee('supplier_id');
+        );
+        $httpResponse2 = $httpResponse2->assertOk();
+        $httpResponse2 = $httpResponse2->assertSee($product->name);
+        $httpResponse2->assertDontSee('supplier_id');
     }
 
     #[Test]

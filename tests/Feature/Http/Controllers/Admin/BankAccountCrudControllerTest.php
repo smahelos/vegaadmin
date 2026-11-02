@@ -31,7 +31,8 @@ final class BankAccountCrudControllerTest extends TestCase
     #[Test]
     public function a_guest_is_sent_to_the_admin_login(): void
     {
-        $this->get('/admin/bank-account')->assertRedirect(
+        $httpResponse = $this->get('/admin/bank-account');
+        $httpResponse->assertRedirect(
             route('backpack.auth.login'),
         );
     }
@@ -95,18 +96,18 @@ final class BankAccountCrudControllerTest extends TestCase
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create();
 
-        $this->actingAs($this->admin, 'backpack')
-            ->post(
-                '/admin/bank-account',
-                [
-                    'contact_id' => $contact->id,
-                    'country' => 'CZ',
-                    'number' => '2001234561',
-                    'bank_code' => '2010',
-                    '_save_action' => 'save_and_back',
-                ],
-            )
-            ->assertRedirect();
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->post(
+            '/admin/bank-account',
+            [
+                'contact_id' => $contact->id,
+                'country' => 'CZ',
+                'number' => '2001234561',
+                'bank_code' => '2010',
+                '_save_action' => 'save_and_back',
+            ],
+        );
+        $httpResponse->assertRedirect();
 
         $account = BankAccount::query()->where('contact_id', $contact->id)->sole();
         $this->assertSame('CZ1520100000002001234561', $account->iban);
@@ -119,15 +120,15 @@ final class BankAccountCrudControllerTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create();
 
-        $this->actingAs($this->admin, 'backpack')
-            ->post(
-                '/admin/bank-account',
-                [
-                    'business_id' => $business->id,
-                    'iban' => 'CZ0000000000000000000000',
-                ],
-            )
-            ->assertSessionHasErrors('iban');
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->post(
+            '/admin/bank-account',
+            [
+                'business_id' => $business->id,
+                'iban' => 'CZ0000000000000000000000',
+            ],
+        );
+        $httpResponse->assertSessionHasErrors('iban');
     }
 
     #[Test]
@@ -140,11 +141,11 @@ final class BankAccountCrudControllerTest extends TestCase
         $account = $bankAccountFactory->create();
         $business->forceFill(['default_bank_account_id' => $account->id])->save();
 
-        $this->actingAs($this->admin, 'backpack')
-            ->post(
-                route('admin.bank-accounts.archive', ['id' => $account->id]),
-            )
-            ->assertRedirect();
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->post(
+            route('admin.bank-accounts.archive', ['id' => $account->id]),
+        );
+        $httpResponse->assertRedirect();
 
         $this->assertNotNull($account->fresh()?->archived_at);
         $this->assertNull($business->fresh()?->default_bank_account_id);
@@ -160,10 +161,10 @@ final class BankAccountCrudControllerTest extends TestCase
         $account = $bankAccountFactory->create();
         $backendUser = $this->backendUser('can_update_business');
 
-        $this->actingAs($backendUser, 'backpack')
-            ->post(
-                route('admin.bank-accounts.archive', ['id' => $account->id]),
-            )
-            ->assertForbidden();
+        $httpClient = $this->actingAs($backendUser, 'backpack');
+        $httpResponse = $httpClient->post(
+            route('admin.bank-accounts.archive', ['id' => $account->id]),
+        );
+        $httpResponse->assertForbidden();
     }
 }

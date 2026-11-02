@@ -18,9 +18,10 @@ final class DashboardControllerFeatureTest extends TestCase
     #[Test]
     public function guest_is_redirected_to_login(): void
     {
-        $this->get(
+        $httpResponse = $this->get(
             route('frontend.dashboard', ['locale' => 'cs']),
-        )->assertRedirect(
+        );
+        $httpResponse->assertRedirect(
             route('login'),
         );
     }
@@ -44,17 +45,21 @@ final class DashboardControllerFeatureTest extends TestCase
             ],
         );
 
-        $this->actingAs($user)->get(
+        $httpClient = $this->actingAs($user);
+        $httpResponse = $httpClient->get(
             route('frontend.dashboard', ['locale' => 'cs']),
-        )
-            ->assertOk()->assertSee('My own business')->assertSee('My contact')->assertDontSee('Private other contact')
-            ->assertViewHas(
-                'dashboard',
-                fn ($dashboard): bool => $dashboard->statistics->invoiceCount === 1
-                && $dashboard->statistics->businessCount === 1
-                && $dashboard->statistics->contactCount === 1
-                && $dashboard->statistics->totalAmount->getAmount() === '123.45',
-            );
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee('My own business');
+        $httpResponse = $httpResponse->assertSee('My contact');
+        $httpResponse = $httpResponse->assertDontSee('Private other contact');
+        $httpResponse->assertViewHas(
+            'dashboard',
+            fn ($dashboard): bool => $dashboard->statistics->invoiceCount === 1
+            && $dashboard->statistics->businessCount === 1
+            && $dashboard->statistics->contactCount === 1
+            && $dashboard->statistics->totalAmount->getAmount() === '123.45',
+        );
     }
 
     #[Test]
@@ -64,13 +69,14 @@ final class DashboardControllerFeatureTest extends TestCase
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(['user_id' => $user->id, 'contact_id' => null]);
 
-        $this->actingAs($user)->get(
+        $httpClient = $this->actingAs($user);
+        $httpResponse = $httpClient->get(
             route('frontend.dashboard', ['locale' => 'cs']),
-        )
-            ->assertOk()
-            ->assertSee('id="stats-timerange"', false)
-            ->assertSee('id="stats-date-from"', false)
-            ->assertDontSee('id="stats-contact-filter"', false)
-            ->assertViewHas('dashboard', fn ($dashboard): bool => $dashboard->contacts === []);
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee('id="stats-timerange"', false);
+        $httpResponse = $httpResponse->assertSee('id="stats-date-from"', false);
+        $httpResponse = $httpResponse->assertDontSee('id="stats-contact-filter"', false);
+        $httpResponse->assertViewHas('dashboard', fn ($dashboard): bool => $dashboard->contacts === []);
     }
 }

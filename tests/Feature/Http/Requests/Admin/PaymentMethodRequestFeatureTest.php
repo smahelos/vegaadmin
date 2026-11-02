@@ -118,21 +118,23 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
         $this->actingAs($this->adminUser, 'backpack');
-        $this->postJson(
+        $httpResponse = $this->postJson(
             '/test-payment-method',
             [
                 'name' => 'Fast Pay',
                 'slug' => PaymentMethodCode::OTHER->value,
             ],
-        )->assertStatus(200);
+        );
+        $httpResponse->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->postJson('/test-payment-method', [
+        $httpResponse = $this->postJson('/test-payment-method', [
             'name' => 'Fail Pay',
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -141,9 +143,10 @@ class PaymentMethodRequestFeatureTest extends TestCase
         $userFactory = User::factory();
         $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
-        $this->postJson('/test-payment-method', [
+        $httpResponse = $this->postJson('/test-payment-method', [
             'name' => 'No Perm',
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -153,13 +156,14 @@ class PaymentMethodRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         EntityLimit::where('entity_type', 'payment_method')->update(['limit_value' => 1]);
         PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
-        $this->postJson(
+        $httpResponse = $this->postJson(
             '/test-payment-method',
             [
                 'name' => 'First Method',
                 'slug' => PaymentMethodCode::OTHER->value,
             ],
-        )->assertStatus(200);
+        );
+        $httpResponse->assertStatus(200);
         $this->limitService->recordUsage(
             $this->adminUser->id,
             'payment_method',

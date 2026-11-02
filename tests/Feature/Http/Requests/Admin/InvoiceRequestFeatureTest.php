@@ -53,7 +53,7 @@ final class InvoiceRequestFeatureTest extends TestCase
     public function rejects_invalid_document_input(string $field, mixed $value): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/invoice',
             $this->invoiceInput(
                 $business,
@@ -64,14 +64,15 @@ final class InvoiceRequestFeatureTest extends TestCase
                     $field => $value,
                 ],
             ),
-        )->assertSessionHasErrors($field);
+        );
+        $httpResponse->assertSessionHasErrors($field);
     }
 
     #[Test]
     public function rejects_a_status_from_the_expense_category(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $this->post(
+        $httpResponse = $this->post(
             '/admin/invoice',
             $this->invoiceInput(
                 $business,
@@ -82,7 +83,8 @@ final class InvoiceRequestFeatureTest extends TestCase
                     'payment_status_id' => Status::where('slug', 'paid-expense')->firstOrFail()->id,
                 ],
             ),
-        )->assertSessionHasErrors('payment_status_id');
+        );
+        $httpResponse->assertSessionHasErrors('payment_status_id');
     }
 
     #[Test]
@@ -97,7 +99,7 @@ final class InvoiceRequestFeatureTest extends TestCase
                 'contact_id' => Contact::factory()->create(['user_id' => $this->adminUser->id])->id,
             ],
         );
-        $this->put(
+        $httpResponse = $this->put(
             '/admin/invoice/' . $invoice->id,
             $this->invoiceInput(
                 $business,
@@ -109,6 +111,7 @@ final class InvoiceRequestFeatureTest extends TestCase
                     'customer_street' => '',
                 ],
             ),
-        )->assertSessionHasErrors('customer_street');
+        );
+        $httpResponse->assertSessionHasErrors('customer_street');
     }
 }
