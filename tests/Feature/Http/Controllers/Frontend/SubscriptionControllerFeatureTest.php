@@ -24,9 +24,9 @@ class SubscriptionControllerFeatureTest extends TestCase
         $this->setUpFrontendTestEnvironment();
 
         // Give user specific subscription permission
-        $permission = Permission::where('name', 'frontend.can_create_subscription')
-            ->where('guard_name', 'web')
-            ->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_subscription');
+        $permissionQuery->where('guard_name', 'web');
+        $permission = $permissionQuery->first();
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }

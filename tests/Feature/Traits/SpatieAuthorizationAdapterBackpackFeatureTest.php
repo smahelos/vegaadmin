@@ -41,7 +41,9 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $permission = Permission::where('name', 'test.permission')->where('guard_name', 'backpack')->first();
+        $permissionQuery = Permission::where('name', 'test.permission');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission = $permissionQuery->first();
         $user->givePermissionTo($permission);
 
         $this->assertTrue(
@@ -54,7 +56,9 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
+        $roleQuery = Role::where('name', 'admin');
+        $roleQuery->where('guard_name', 'backpack');
+        $role = $roleQuery->first();
         $user->assignRole($role);
 
         $this->assertTrue(
@@ -67,7 +71,9 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $viewPermission = Permission::where('name', 'can_view_contact')->where('guard_name', 'backpack')->first();
+        $permissionQuery = Permission::where('name', 'can_view_contact');
+        $permissionQuery->where('guard_name', 'backpack');
+        $viewPermission = $permissionQuery->first();
         $user->givePermissionTo($viewPermission);
 
         $this->assertTrue(

@@ -25,7 +25,8 @@ class PageCrudControllerTest extends TestCase
     {
         parent::setUp();
         $this->setUpAdminTestEnvironment();
-        $this->category = PageCategory::where('name', 'Podpora')->first() ?? PageCategory::factory()->create(['name' => 'Podpora']);
+        $pageCategoryQuery = PageCategory::where('name', 'Podpora');
+        $this->category = $pageCategoryQuery->first() ?? PageCategory::factory()->create(['name' => 'Podpora']);
     }
 
     #[Test]
@@ -108,7 +109,8 @@ class PageCrudControllerTest extends TestCase
         $this->assertEquals(302, $response->getStatusCode());
 
         // Check that the page was created with correct multilingual data
-        $createdPage = Page::latest('id')->first();
+        $pageQuery = Page::latest('id');
+        $createdPage = $pageQuery->first();
 
         $this->assertNotNull($createdPage);
         $this->assertEquals(
@@ -382,7 +384,8 @@ class PageCrudControllerTest extends TestCase
         $this->assertEquals(302, $response->getStatusCode());
 
         // Ověříme, že stránka byla vytvořena s minimálními daty
-        $createdPage = Page::latest('id')->first();
+        $pageQuery = Page::latest('id');
+        $createdPage = $pageQuery->first();
         $this->assertNotNull($createdPage);
         $this->assertEquals(
             'Minimální stránka',
@@ -416,9 +419,11 @@ class PageCrudControllerTest extends TestCase
         );
         $httpResponse->assertSessionHasNoErrors();
 
-        $createdPage = Page::latest('id')->first();
+        $pageQuery = Page::latest('id');
+        $createdPage = $pageQuery->first();
         $this->assertNotNull($createdPage->main_image);
-        Storage::disk('public')->assertExists($createdPage->main_image);
+        $disk = Storage::disk('public');
+        $disk->assertExists($createdPage->main_image);
     }
 
     #[Test]

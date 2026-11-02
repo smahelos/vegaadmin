@@ -33,7 +33,9 @@ trait CreatesAdminTestEnvironment
         ]);
 
         // Give admin role all permissions
-        $permissions = Permission::where('guard_name', PermissionCatalog::BACKPACK)->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK])->get();
+        $permissionQuery = Permission::where('guard_name', PermissionCatalog::BACKPACK);
+        $permissionQuery->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK]);
+        $permissions = $permissionQuery->get();
         $adminRole->syncPermissions($permissions);
 
         // Create admin user with admin role (if not already set)
@@ -49,9 +51,9 @@ trait CreatesAdminTestEnvironment
         $this->regularUser->assignRole($backendUserRole);
 
         // Get backpack.access permission if it exists
-        $backpackAccessPermission = Permission::where('name', 'backpack.access')
-            ->where('guard_name', 'backpack')
-            ->first();
+        $permissionQuery2 = Permission::where('name', 'backpack.access');
+        $permissionQuery2->where('guard_name', 'backpack');
+        $backpackAccessPermission = $permissionQuery2->first();
         if ($backpackAccessPermission) {
             $this->regularUser->givePermissionTo($backpackAccessPermission);
         }

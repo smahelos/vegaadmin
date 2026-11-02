@@ -87,9 +87,11 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         }
 
         $this->assertSame('BEFORE', $invoice->fresh()->invoice_vs);
+        $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoice->id);
+        $invoiceProductValues = $invoiceProductQuery->pluck('id');
         $this->assertSame(
             [$line->id],
-            InvoiceProduct::where('invoice_id', $invoice->id)->pluck('id')->all(),
+            $invoiceProductValues->all(),
         );
     }
 
@@ -102,7 +104,8 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         $addressFactory = Address::factory();
         $addressFactory->create(['business_id' => $business->id]);
         $beforeAddresses = Address::count();
-        $beforeUsage = EntityLimitUsage::where('user_id', $user->id)->count();
+        $entityLimitUsageQuery = EntityLimitUsage::where('user_id', $user->id);
+        $beforeUsage = $entityLimitUsageQuery->count();
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
         try {
             $this->app->make(InvoiceCrudApplicationServiceInterface::class)->create(
@@ -143,18 +146,21 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         } catch (RuntimeException $exception) {
             $this->assertSame('Storing the lines failed', $exception->getMessage());
         }
+        $contactQuery = Contact::where('user_id', $user->id);
         $this->assertSame(
             0,
-            Contact::where('user_id', $user->id)->count(),
+            $contactQuery->count(),
         );
+        $invoiceQuery = Invoice::where('user_id', $user->id);
         $this->assertSame(
             0,
-            Invoice::where('user_id', $user->id)->count(),
+            $invoiceQuery->count(),
         );
         $this->assertSame($beforeAddresses, Address::count());
+        $entityLimitUsageQuery2 = EntityLimitUsage::where('user_id', $user->id);
         $this->assertSame(
             $beforeUsage,
-            EntityLimitUsage::where('user_id', $user->id)->count(),
+            $entityLimitUsageQuery2->count(),
         );
     }
 
@@ -177,7 +183,8 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
 
             public function deleteByInvoiceId(InvoiceId $invoiceId): void
             {
-                InvoiceProduct::where('invoice_id', $invoiceId->getValue())->delete();
+                $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoiceId->getValue());
+                $invoiceProductQuery->delete();
             }
 
             public function allForInvoice(InvoiceId $invoiceId): array

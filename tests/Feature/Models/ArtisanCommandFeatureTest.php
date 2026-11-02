@@ -211,13 +211,15 @@ class ArtisanCommandFeatureTest extends TestCase
     public function relationship_eager_loading_works(): void
     {
         // The query reads the whole table; start without the seeded cron command
-        ArtisanCommand::query()->delete();
+        $artisanCommandQuery = ArtisanCommand::query();
+        $artisanCommandQuery->delete();
 
         $artisanCommandFactory = ArtisanCommand::factory();
         $artisanCommandFactory = $artisanCommandFactory->count(3);
         $commands = $artisanCommandFactory->create();
 
-        $commandsWithCategory = ArtisanCommand::with('category')->get();
+        $artisanCommandQuery2 = ArtisanCommand::with('category');
+        $commandsWithCategory = $artisanCommandQuery2->get();
 
         $this->assertCount(3, $commandsWithCategory);
         foreach ($commandsWithCategory as $command) {

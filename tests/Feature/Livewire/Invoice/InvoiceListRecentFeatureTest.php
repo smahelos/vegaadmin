@@ -116,7 +116,8 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_eager_loads_relationships(): void
     {
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $paymentMethod = $paymentMethodQuery->firstOrFail();
         $statusFactory = Status::factory();
         $paymentStatus = $statusFactory->create();
 

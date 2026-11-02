@@ -140,14 +140,15 @@ class UniversalLimitServiceFeatureTest extends TestCase
         );
 
         // Verify usage was recorded
-        $usage = EntityLimitUsage::where(
+        $entityLimitUsageQuery = EntityLimitUsage::where(
             [
                 'user_id' => $this->user->id,
                 'entity_type' => 'invoice',
                 'metric_type' => 'count',
                 'period_type' => 'monthly',
             ],
-        )->first();
+        );
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNotNull($usage);
         $this->assertEquals(1, $usage->current_value);
@@ -181,14 +182,15 @@ class UniversalLimitServiceFeatureTest extends TestCase
         );
 
         // Verify usage was recorded
-        $usage = EntityLimitUsage::where(
+        $entityLimitUsageQuery = EntityLimitUsage::where(
             [
                 'user_id' => $this->user->id,
                 'entity_type' => 'invoice',
                 'metric_type' => 'value',
                 'period_type' => 'monthly',
             ],
-        )->first();
+        );
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNotNull($usage);
         $this->assertEquals(5000, $usage->current_value);
@@ -213,14 +215,15 @@ class UniversalLimitServiceFeatureTest extends TestCase
         $this->assertTrue($result);
 
         // Verify usage was recorded
-        $usage = EntityLimitUsage::where(
+        $entityLimitUsageQuery = EntityLimitUsage::where(
             [
                 'user_id' => $this->user->id,
                 'entity_type' => 'invoice',
                 'metric_type' => 'count',
                 'period_type' => 'monthly',
             ],
-        )->first();
+        );
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNotNull($usage);
         $this->assertEquals(1, $usage->current_value);
@@ -245,14 +248,15 @@ class UniversalLimitServiceFeatureTest extends TestCase
         $this->assertFalse($result);
 
         // Verify no usage was recorded
-        $usage = EntityLimitUsage::where(
+        $entityLimitUsageQuery = EntityLimitUsage::where(
             [
                 'user_id' => $userWithoutPermission->id,
                 'entity_type' => 'invoice',
                 'metric_type' => 'count',
                 'period_type' => 'monthly',
             ],
-        )->first();
+        );
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNull($usage);
     }

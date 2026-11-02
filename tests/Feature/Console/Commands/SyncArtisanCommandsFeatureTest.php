@@ -24,7 +24,8 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
     public function command_syncs_artisan_commands(): void
     {
         // Clear existing commands
-        ArtisanCommand::query()->delete();
+        $artisanCommandQuery = ArtisanCommand::query();
+        $artisanCommandQuery->delete();
 
         $exitCode = Artisan::call('artisan:sync-commands');
 
@@ -75,7 +76,8 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
     #[Test]
     public function command_creates_proper_command_records(): void
     {
-        ArtisanCommand::query()->delete();
+        $artisanCommandQuery = ArtisanCommand::query();
+        $artisanCommandQuery->delete();
 
         $exitCode = Artisan::call('artisan:sync-commands');
 
@@ -97,7 +99,8 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
     public function command_handles_empty_database(): void
     {
         // Clear all commands
-        ArtisanCommand::query()->delete();
+        $artisanCommandQuery = ArtisanCommand::query();
+        $artisanCommandQuery->delete();
 
         $exitCode = Artisan::call('artisan:sync-commands');
 

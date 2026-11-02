@@ -98,9 +98,10 @@ final class ReferentialIntegrityTest extends TestCase
             ],
         );
 
+        $invoiceProductQuery = InvoiceProduct::where('invoice_id', $line->invoice_id);
         $this->assertSame(
             2,
-            InvoiceProduct::where('invoice_id', $line->invoice_id)->count(),
+            $invoiceProductQuery->count(),
         );
     }
 
@@ -179,7 +180,8 @@ final class ReferentialIntegrityTest extends TestCase
         $plan = $subscriptionPlanFactory->create();
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $feature = $subscriptionPlanFeatureFactory->create();
-        DB::table('subscription_plan_subscription_plan_feature')->insert(
+        $subscriptionPlanSubscriptionPlanFeatureQuery = DB::table('subscription_plan_subscription_plan_feature');
+        $subscriptionPlanSubscriptionPlanFeatureQuery->insert(
             [
                 'subscription_plan_id' => $plan->id,
                 'subscription_plan_feature_id' => $feature->id,

@@ -17,7 +17,8 @@ class InvoiceFormFieldsFeatureTest extends TestCase
     public function get_invoice_fields_works_with_real_data(): void
     {
         // Arrange
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
+        $paymentMethod = $paymentMethodQuery->firstOrFail();
         $statusFactory = Status::factory();
         $status = $statusFactory->create(['name' => 'Paid']);
 

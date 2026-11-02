@@ -75,8 +75,9 @@ class FileUploadContextLimitsFeatureTest extends TestCase
         );
 
         $this->assertNotNull($path);
+        $disk = Storage::disk('public');
         $this->assertTrue(
-            Storage::disk('public')->exists($path),
+            $disk->exists($path),
         );
     }
 

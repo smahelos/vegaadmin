@@ -185,9 +185,12 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         DatabaseMaintenanceLog::factory()->running()->create();
         DatabaseMaintenanceLog::factory()->completed()->createMany(2);
 
-        $pendingLogs = DatabaseMaintenanceLog::where('status', 'pending')->get();
-        $runningLogs = DatabaseMaintenanceLog::where('status', 'running')->get();
-        $completedLogs = DatabaseMaintenanceLog::where('status', 'completed')->get();
+        $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('status', 'pending');
+        $pendingLogs = $databaseMaintenanceLogQuery->get();
+        $databaseMaintenanceLogQuery2 = DatabaseMaintenanceLog::where('status', 'running');
+        $runningLogs = $databaseMaintenanceLogQuery2->get();
+        $databaseMaintenanceLogQuery3 = DatabaseMaintenanceLog::where('status', 'completed');
+        $completedLogs = $databaseMaintenanceLogQuery3->get();
 
         $this->assertCount(1, $pendingLogs);
         $this->assertCount(1, $runningLogs);
@@ -205,8 +208,10 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         $databaseMaintenanceLogFactory3 = DatabaseMaintenanceLog::factory();
         $databaseMaintenanceLogFactory3->create(['task_type' => 'optimize']);
 
-        $optimizeLogs = DatabaseMaintenanceLog::where('task_type', 'optimize')->get();
-        $analyzeLogs = DatabaseMaintenanceLog::where('task_type', 'analyze')->get();
+        $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('task_type', 'optimize');
+        $optimizeLogs = $databaseMaintenanceLogQuery->get();
+        $databaseMaintenanceLogQuery2 = DatabaseMaintenanceLog::where('task_type', 'analyze');
+        $analyzeLogs = $databaseMaintenanceLogQuery2->get();
 
         $this->assertCount(2, $optimizeLogs);
         $this->assertCount(1, $analyzeLogs);
@@ -223,8 +228,10 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         $databaseMaintenanceLogFactory3 = DatabaseMaintenanceLog::factory();
         $databaseMaintenanceLogFactory3->create(['table_name' => 'users']);
 
-        $userLogs = DatabaseMaintenanceLog::where('table_name', 'users')->get();
-        $invoiceLogs = DatabaseMaintenanceLog::where('table_name', 'invoices')->get();
+        $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('table_name', 'users');
+        $userLogs = $databaseMaintenanceLogQuery->get();
+        $databaseMaintenanceLogQuery2 = DatabaseMaintenanceLog::where('table_name', 'invoices');
+        $invoiceLogs = $databaseMaintenanceLogQuery2->get();
 
         $this->assertCount(2, $userLogs);
         $this->assertCount(1, $invoiceLogs);

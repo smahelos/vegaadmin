@@ -183,7 +183,8 @@ class UserCrudControllerTest extends TestCase
 
         $this->post('/admin/user', $userData);
 
-        $user = User::where('email', $testEmail)->first();
+        $userQuery = User::where('email', $testEmail);
+        $user = $userQuery->first();
         $this->assertNotEquals($testPassword, $user->password);
         $this->assertTrue(
             Hash::check($testPassword, $user->password),

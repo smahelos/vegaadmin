@@ -38,7 +38,9 @@ final class CapacityLimitTest extends TestCase
     {
         $other = $this->secondConnection();
         $ownerId = $this->committedUser($other);
-        User::query()->findOrFail($ownerId)->assignRole('frontend_user');
+        $userQuery = User::query();
+        $user = $userQuery->findOrFail($ownerId);
+        $user->assignRole('frontend_user');
         $probe = "SELECT id FROM users WHERE id = {$ownerId} FOR SHARE";
         $this->assertNull(
             $this->lockError($other, $probe),
@@ -96,7 +98,9 @@ final class CapacityLimitTest extends TestCase
                 $archived[] = (int) $other->lastInsertId();
             }
         }
-        User::query()->findOrFail($ownerId)->assignRole('frontend_user');
+        $userQuery = User::query();
+        $user = $userQuery->findOrFail($ownerId);
+        $user->assignRole('frontend_user');
         $this->assertSame(
             $limit - 1,
             DB::table($table)->where('user_id', $ownerId)->whereNull('archived_at')->count(),
@@ -168,10 +172,15 @@ final class CapacityLimitTest extends TestCase
             ],
         );
         $archivedId = (int) $other->lastInsertId();
-        User::query()->findOrFail($ownerId)->assignRole('frontend_user');
+        $userQuery = User::query();
+        $user = $userQuery->findOrFail($ownerId);
+        $user->assignRole('frontend_user');
+        $businessesQuery = DB::table('businesses');
+        $businessesQuery->where('user_id', $ownerId);
+        $businessesQuery->whereNull('archived_at');
         $this->assertSame(
             0,
-            DB::table('businesses')->where('user_id', $ownerId)->whereNull('archived_at')->count(),
+            $businessesQuery->count(),
         );
 
         $other->beginTransaction();
@@ -204,9 +213,12 @@ final class CapacityLimitTest extends TestCase
             );
         }
 
+        $usersQuery = DB::table('users');
+        $usersQuery->where('id', $ownerId);
+        $usersQuery->lockForUpdate();
         $this->assertSame(
             $defaultId,
-            DB::table('users')->where('id', $ownerId)->lockForUpdate()->value('default_business_id'),
+            $usersQuery->value('default_business_id'),
         );
     }
 

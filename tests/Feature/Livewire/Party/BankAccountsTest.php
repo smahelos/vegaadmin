@@ -45,7 +45,9 @@ final class BankAccountsTest extends TestCase
             ->assertHasNoErrors()
             ->assertSet('editing', false);
 
-        $account = BankAccount::query()->where('contact_id', $contact->id)->sole();
+        $bankAccountQuery = BankAccount::query();
+        $bankAccountQuery->where('contact_id', $contact->id);
+        $account = $bankAccountQuery->sole();
         $this->assertSame('AT611904300234573201', $account->iban);
         $this->assertSame($account->id, $contact->fresh()?->default_bank_account_id);
     }
@@ -62,9 +64,11 @@ final class BankAccountsTest extends TestCase
             ->call('save')
             ->assertHasErrors(['account.iban']);
 
+        $bankAccountQuery = BankAccount::query();
+        $bankAccountQuery->where('business_id', $business->id);
         $this->assertSame(
             0,
-            BankAccount::query()->where('business_id', $business->id)->count(),
+            $bankAccountQuery->count(),
         );
     }
 

@@ -72,6 +72,7 @@ final class InvoiceRequestFeatureTest extends TestCase
     public function rejects_a_status_from_the_expense_category(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
+        $statusQuery = Status::where('slug', 'paid-expense');
         $httpResponse = $this->post(
             '/admin/invoice',
             $this->invoiceInput(
@@ -80,7 +81,7 @@ final class InvoiceRequestFeatureTest extends TestCase
                 [
                     'user_id' => $this->adminUser->id,
                     'payment_amount' => '100.50',
-                    'payment_status_id' => Status::where('slug', 'paid-expense')->firstOrFail()->id,
+                    'payment_status_id' => $statusQuery->firstOrFail()->id,
                 ],
             ),
         );

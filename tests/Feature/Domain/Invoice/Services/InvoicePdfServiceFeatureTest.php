@@ -47,7 +47,8 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     public function prints_saved_parties_and_account_even_after_sources_change(string $template): void
     {
         $invoice = $this->invoice();
-        Business::whereKey($invoice->business_id)->update(
+        $businessQuery = Business::whereKey($invoice->business_id);
+        $businessQuery->update(
             [
                 'name' => 'Changed live business',
                 'logo' => 'missing.png',
@@ -122,8 +123,9 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $qr->expects($this->never())->method('generateQrCodeBase64');
         $this->app->instance(QrPaymentServiceInterface::class, $qr);
         $invoice = $this->invoice();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
         $invoice->update(
-            ['payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->sole()->id],
+            ['payment_method_id' => $paymentMethodQuery->sole()->id],
         );
         $html = $this->renderPdfHtml(
             $this->printable($invoice),
@@ -136,7 +138,8 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     {
         Storage::fake('public');
         $file = UploadedFile::fake()->image('logo.png');
-        Storage::disk('public')->put(
+        $disk = Storage::disk('public');
+        $disk->put(
             'documents/logos/saved.png',
             file_get_contents($file->getPathname()),
         );
@@ -145,11 +148,13 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $html = $this->renderPdfHtml(
             $this->printable($invoice),
         );
+        $disk2 = Storage::disk('public');
         $this->assertStringContainsString(
-            Storage::disk('public')->path('documents/logos/saved.png'),
+            $disk2->path('documents/logos/saved.png'),
             $html,
         );
-        Storage::disk('public')->delete('documents/logos/saved.png');
+        $disk3 = Storage::disk('public');
+        $disk3->delete('documents/logos/saved.png');
         $html = $this->renderPdfHtml(
             $this->printable($invoice),
         );

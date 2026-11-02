@@ -174,7 +174,9 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
 
             public function userExists(int $userId): bool
             {
-                return User::where('id', $userId)->exists();
+                $userQuery = User::where('id', $userId);
+
+                return $userQuery->exists();
             }
         };
         $clock = new class implements ClockInterface

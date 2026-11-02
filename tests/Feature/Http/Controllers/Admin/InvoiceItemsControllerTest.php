@@ -84,11 +84,13 @@ final class InvoiceItemsControllerTest extends TestCase
     #[Test]
     public function preview_uses_the_same_per_line_rounding_as_saving_and_writes_nothing(): void
     {
-        $tax = Tax::where('slug', 'dph')->where(
+        $taxQuery = Tax::where('slug', 'dph');
+        $taxQuery->where(
             'rate',
             '>',
             0,
-        )->firstOrFail();
+        );
+        $tax = $taxQuery->firstOrFail();
         $line = $this->invoiceItem(
             [
                 'price' => '0.03',
@@ -121,7 +123,8 @@ final class InvoiceItemsControllerTest extends TestCase
         $httpResponse2 = $this->post('/admin/invoice', $data);
         $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
         $httpResponse2->assertRedirect();
-        $invoice = Invoice::where('invoice_vs', $data['invoice_vs'])->sole();
+        $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
+        $invoice = $invoiceQuery->sole();
         $this->assertEquals(
             $response->json('data.total'),
             $invoice->payment_amount,
@@ -173,7 +176,8 @@ final class InvoiceItemsControllerTest extends TestCase
         $httpResponse = $this->post('/admin/invoice', $data);
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
         $httpResponse->assertRedirect();
-        $invoice = Invoice::where('invoice_vs', $data['invoice_vs'])->sole();
+        $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
+        $invoice = $invoiceQuery->sole();
         $this->assertSame('301.00', $invoice->payment_amount);
         $this->assertDatabaseHas(
             'invoice_products',
@@ -234,9 +238,10 @@ final class InvoiceItemsControllerTest extends TestCase
                 ],
             );
         }
+        $invoiceProductQuery = InvoiceProduct::where('product_id', $product->id);
         $this->assertSame(
             2,
-            InvoiceProduct::where('product_id', $product->id)->count(),
+            $invoiceProductQuery->count(),
         );
     }
 

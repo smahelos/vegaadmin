@@ -20,7 +20,9 @@ class ProfileControllerFeatureTest extends TestCase
         parent::setUp();
         $this->setUpFrontendTestEnvironment();
         // Ensure user has necessary permission (frontend.can_create_edit_user) for UserRequest authorize
-        $perm = Permission::where('name', 'frontend.can_create_edit_user')->where('guard_name', 'web')->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_user');
+        $permissionQuery->where('guard_name', 'web');
+        $perm = $permissionQuery->first();
         if ($perm) {
             $this->user->givePermissionTo($perm);
         }

@@ -71,8 +71,10 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     public function store_guest_creates_invoice_and_returns_json_success(): void
     {
         // Provide full valid payload to satisfy validation (guest create)
-        $paymentMethodId = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id;
-        $statusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id;
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $paymentMethodId = $paymentMethodQuery->firstOrFail()->id;
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+        $statusId = $statusQuery->firstOrFail()->id;
         $invoiceData = [
             'invoice_vs' => 'GUEST-' . uniqid(),
             'payment_method_id' => $paymentMethodId,
@@ -138,8 +140,10 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     public function store_guest_handles_exception_and_returns_error_json(): void
     {
         // Provide full valid payload to satisfy validation then simulate exception in service
-        $paymentMethodId = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id;
-        $statusId = Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id;
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $paymentMethodId = $paymentMethodQuery->firstOrFail()->id;
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+        $statusId = $statusQuery->firstOrFail()->id;
         $invoiceData = [
             'invoice_vs' => 'GUEST-' . uniqid(),
             'payment_method_id' => $paymentMethodId,

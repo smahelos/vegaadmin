@@ -20,7 +20,8 @@ class StatusFeatureTest extends TestCase
         parent::setUp();
 
         // The queries below read the whole statuses table; start without the seeded statuses
-        Status::query()->delete();
+        $statusQuery = Status::query();
+        $statusQuery->delete();
     }
 
     #[Test]
@@ -161,7 +162,8 @@ class StatusFeatureTest extends TestCase
         $statusFactory3 = Status::factory();
         $status3 = $statusFactory3->create(['category_id' => $category2->id]);
 
-        $category1Statuses = Status::where('category_id', $category1->id)->get();
+        $statusQuery = Status::where('category_id', $category1->id);
+        $category1Statuses = $statusQuery->get();
 
         $this->assertCount(2, $category1Statuses);
         $this->assertTrue(
@@ -183,7 +185,8 @@ class StatusFeatureTest extends TestCase
         $statusFactory = Status::factory();
         $status = $statusFactory->create(['category_id' => $category->id]);
 
-        $statusWithCategory = Status::with('category')->find($status->id);
+        $statusQuery = Status::with('category');
+        $statusWithCategory = $statusQuery->find($status->id);
 
         $this->assertNotNull($statusWithCategory->category);
         $this->assertEquals('Test Category', $statusWithCategory->category->name);
@@ -211,7 +214,9 @@ class StatusFeatureTest extends TestCase
         $statusFactory3 = Status::factory();
         $statusFactory3->create(['name' => 'Beta Status']);
 
-        $statusesOrderedByName = Status::orderBy('name')->pluck('name')->toArray();
+        $statusQuery = Status::orderBy('name');
+        $statusValues = $statusQuery->pluck('name');
+        $statusesOrderedByName = $statusValues->toArray();
 
         $expectedOrder = [
             'Alpha Status',
@@ -255,7 +260,8 @@ class StatusFeatureTest extends TestCase
         );
 
         // Use case insensitive search for "payment"
-        $searchResults = Status::whereRaw('LOWER(name) LIKE ?', ['%payment%'])->get();
+        $statusQuery = Status::whereRaw('LOWER(name) LIKE ?', ['%payment%']);
+        $searchResults = $statusQuery->get();
 
         $this->assertCount(2, $searchResults);
         $this->assertTrue(
@@ -275,8 +281,10 @@ class StatusFeatureTest extends TestCase
         Status::factory()->count(3)->active()->create();
         Status::factory()->count(2)->inactive()->create();
 
-        $activeCount = Status::where('is_active', true)->count();
-        $inactiveCount = Status::where('is_active', false)->count();
+        $statusQuery = Status::where('is_active', true);
+        $activeCount = $statusQuery->count();
+        $statusQuery2 = Status::where('is_active', false);
+        $inactiveCount = $statusQuery2->count();
 
         $this->assertEquals(3, $activeCount);
         $this->assertEquals(2, $inactiveCount);

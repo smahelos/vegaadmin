@@ -43,16 +43,22 @@ final class RegistrationFormTest extends TestCase
             ->assertHasNoErrors()
             ->assertRedirect();
 
-        $user = User::query()->where('email', $email)->sole();
+        $userQuery = User::query();
+        $userQuery->where('email', $email);
+        $user = $userQuery->sole();
         $this->assertTrue(
             $user->hasRole('frontend_user'),
         );
         $this->assertAuthenticatedAs($user);
-        $business = Business::query()->where('user_id', $user->id)->sole();
+        $businessQuery = Business::query();
+        $businessQuery->where('user_id', $user->id);
+        $business = $businessQuery->sole();
         $this->assertSame('Novák Design s.r.o.', $business->name);
         $this->assertSame('faktury@example.test', $business->email);
         $this->assertSame($business->id, $user->default_business_id);
-        $account = BankAccount::query()->where('business_id', $business->id)->sole();
+        $bankAccountQuery = BankAccount::query();
+        $bankAccountQuery->where('business_id', $business->id);
+        $account = $bankAccountQuery->sole();
         $this->assertSame($account->id, $business->default_bank_account_id);
         Event::assertDispatched(Registered::class);
     }
@@ -84,9 +90,11 @@ final class RegistrationFormTest extends TestCase
             ->call('save')
             ->assertHasErrors(['password']);
 
+        $userQuery = User::query();
+        $userQuery->where('email', $email);
         $this->assertSame(
             0,
-            User::query()->where('email', $email)->count(),
+            $userQuery->count(),
         );
     }
 

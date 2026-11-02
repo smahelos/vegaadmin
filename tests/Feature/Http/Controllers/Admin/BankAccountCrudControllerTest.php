@@ -109,7 +109,9 @@ final class BankAccountCrudControllerTest extends TestCase
         );
         $httpResponse->assertRedirect();
 
-        $account = BankAccount::query()->where('contact_id', $contact->id)->sole();
+        $bankAccountQuery = BankAccount::query();
+        $bankAccountQuery->where('contact_id', $contact->id);
+        $account = $bankAccountQuery->sole();
         $this->assertSame('CZ1520100000002001234561', $account->iban);
         $this->assertSame($account->id, $contact->fresh()?->default_bank_account_id);
     }

@@ -287,7 +287,8 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $this->revokeUnlimitedAccess('product_category');
         $this->actingAs($this->adminUser, 'backpack');
         // Strict limit 1
-        EntityLimit::where('entity_type', 'product_category')->update(['limit_value' => 1]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'product_category');
+        $entityLimitQuery->update(['limit_value' => 1]);
 
         $httpResponse = $this->postJson('/test-product-category', [
             'name' => 'First Cat',
@@ -321,7 +322,8 @@ class ProductCategoryRequestFeatureTest extends TestCase
     public function category_update_bypasses_limit_checks(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'product_category')->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'product_category');
+        $entityLimitQuery->update(['limit_value' => 0]);
         $this->limitService->recordUsage(
             $this->adminUser->id,
             'product_category',

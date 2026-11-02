@@ -273,6 +273,7 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         string $status,
     ): void {
         $invoiceFactory = Invoice::factory();
+        $statusQuery = Status::where('slug', $status);
         $invoiceFactory->create(
             [
                 'user_id' => $client->user_id,
@@ -280,7 +281,7 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
                 'issue_date' => $issueDate,
                 'due_in' => 14,
                 'payment_amount' => $amount,
-                'payment_status_id' => Status::where('slug', $status)->value('id'),
+                'payment_status_id' => $statusQuery->value('id'),
                 'payment_method_id' => PaymentMethod::where('slug', 'bankaccount')->value('id'),
             ],
         );

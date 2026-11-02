@@ -49,7 +49,9 @@ final class DatabaseArchiveCommandFeatureTest extends TestCase
             ],
         );
         $this->assertDatabaseHas('invoices_archive', ['original_id' => $linked->id, 'contact_id' => $contact->id]);
-        $archive = DB::table('invoices_archive')->where('original_id', $invoice->id)->first();
+        $invoicesArchiveQuery = DB::table('invoices_archive');
+        $invoicesArchiveQuery->where('original_id', $invoice->id);
+        $archive = $invoicesArchiveQuery->first();
         $stored = json_decode(
             $archive->invoice_data,
             true,

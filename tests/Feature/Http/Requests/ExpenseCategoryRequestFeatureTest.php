@@ -34,9 +34,9 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
 
         // Set up frontend test environment with roles and permissions
         $this->setUpFrontendTestEnvironment();
-        $permission = Permission::where('name', 'frontend.can_create_edit_expense')
-            ->where('guard_name', 'web')
-            ->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_expense');
+        $permissionQuery->where('guard_name', 'web');
+        $permission = $permissionQuery->first();
         $this->user->givePermissionTo($permission);
 
         // Set up valid expense category data

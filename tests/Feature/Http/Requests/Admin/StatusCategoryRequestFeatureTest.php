@@ -220,9 +220,9 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $userFactory = User::factory();
         $userWithoutPermission = $userFactory->create();
         // Give basic backpack access but not the specific permission (for backpack guard)
-        $backpackAccess = Permission::where('name', 'backpack.access')
-            ->where('guard_name', 'backpack')
-            ->first();
+        $permissionQuery = Permission::where('name', 'backpack.access');
+        $permissionQuery->where('guard_name', 'backpack');
+        $backpackAccess = $permissionQuery->first();
         if ($backpackAccess) {
             $userWithoutPermission->givePermissionTo($backpackAccess);
         }

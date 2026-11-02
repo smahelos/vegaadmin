@@ -314,7 +314,8 @@ class StatusCategoryFeatureTest extends TestCase
         $statusCategoryFactory = StatusCategory::factory();
         $statusCategory = $statusCategoryFactory->create(['slug' => 'findable-slug']);
 
-        $foundCategory = StatusCategory::where('slug', 'findable-slug')->first();
+        $statusCategoryQuery = StatusCategory::where('slug', 'findable-slug');
+        $foundCategory = $statusCategoryQuery->first();
 
         $this->assertNotNull($foundCategory);
         $this->assertEquals($statusCategory->id, $foundCategory->id);

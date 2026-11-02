@@ -148,7 +148,8 @@ class HasFileUploadsFeatureTest extends TestCase
     {
         // Arrange
         $this->attributes = ['file' => 'test-file.pdf'];
-        Storage::disk('public')->put('test-file.pdf', 'fake content');
+        $disk = Storage::disk('public');
+        $disk->put('test-file.pdf', 'fake content');
 
         // Act
         $url = $this->getFileUrl('file');
@@ -178,7 +179,8 @@ class HasFileUploadsFeatureTest extends TestCase
         // Arrange
         Storage::fake('custom');
         $this->attributes = ['file' => 'test-file.pdf'];
-        Storage::disk('custom')->put('test-file.pdf', 'fake content');
+        $disk = Storage::disk('custom');
+        $disk->put('test-file.pdf', 'fake content');
 
         // Act
         $url = $this->getFileUrl('file', 'custom');
@@ -192,7 +194,8 @@ class HasFileUploadsFeatureTest extends TestCase
     {
         // Arrange
         $this->attributes = ['image' => 'test-image.jpg'];
-        Storage::disk('public')->put('test-image.jpg', 'fake image content');
+        $disk = Storage::disk('public');
+        $disk->put('test-image.jpg', 'fake image content');
 
         // Act
         $url = $this->getThumbnailUrl('image');
@@ -207,7 +210,8 @@ class HasFileUploadsFeatureTest extends TestCase
     {
         // Arrange
         $this->attributes = ['image' => 'test-image.jpg'];
-        Storage::disk('public')->put('test-image.jpg', 'fake image content');
+        $disk = Storage::disk('public');
+        $disk->put('test-image.jpg', 'fake image content');
 
         // Act
         $url = $this->getThumbnailUrl('image', 'custom_thumbnails');
@@ -222,7 +226,8 @@ class HasFileUploadsFeatureTest extends TestCase
         // Arrange
         Storage::fake('custom');
         $this->attributes = ['image' => 'test-image.jpg'];
-        Storage::disk('custom')->put('test-image.jpg', 'fake image content');
+        $disk = Storage::disk('custom');
+        $disk->put('test-image.jpg', 'fake image content');
 
         // Act
         $url = $this->getThumbnailUrl(
@@ -303,7 +308,8 @@ class HasFileUploadsFeatureTest extends TestCase
     {
         // Arrange
         $this->attributes = ['file' => 'test-file.pdf'];
-        Storage::disk('public')->put('test-file.pdf', 'fake content');
+        $disk = Storage::disk('public');
+        $disk->put('test-file.pdf', 'fake content');
 
         // Act
         $url = $this->getAttributeFileUrl('file');
@@ -322,7 +328,8 @@ class HasFileUploadsFeatureTest extends TestCase
             'file2.pdf',
             'file3.pdf',
         ]];
-        Storage::disk('public')->put('file2.pdf', 'fake content');
+        $disk = Storage::disk('public');
+        $disk->put('file2.pdf', 'fake content');
 
         // Act
         $url = $this->getAttributeFileUrl('files', 1);
@@ -351,7 +358,8 @@ class HasFileUploadsFeatureTest extends TestCase
         // Arrange
         Storage::fake('custom');
         $this->attributes = ['file' => 'test-file.pdf'];
-        Storage::disk('custom')->put('test-file.pdf', 'fake content');
+        $disk = Storage::disk('custom');
+        $disk->put('test-file.pdf', 'fake content');
 
         // Act
         $url = $this->getAttributeFileUrl(

@@ -134,12 +134,14 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
 
                     public function updateById(int $paymentId, PaymentWriteData $attributes): PaymentDTO
                     {
-                        $m = Payment::query()->find($paymentId);
+                        $paymentQuery = Payment::query();
+                        $m = $paymentQuery->find($paymentId);
                         if ($m && ($arr = $attributes->toModelAttributes())) {
                             $m->fill($arr);
                             $m->save();
                         }
-                        $m = Payment::query()->findOrFail($paymentId);
+                        $paymentQuery2 = Payment::query();
+                        $m = $paymentQuery2->findOrFail($paymentId);
 
                         return $this->mapper->toDto($m);
                     }
@@ -274,7 +276,8 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
         $this->assertFalse($result['success']);
         $this->assertArrayHasKey('error', $result);
         // Current implementation keeps the created payment record as 'pending' without gateway_payment_id
-        $payment = Payment::where('subscription_id', $subscription->id)->first();
+        $paymentQuery = Payment::where('subscription_id', $subscription->id);
+        $payment = $paymentQuery->first();
         $this->assertNotNull($payment);
         $this->assertEquals('pending', $payment->status);
         $this->assertNull($payment->gateway_payment_id);

@@ -33,7 +33,9 @@ final class InvoiceItemsFeatureTest extends TestCase
         parent::setUp();
 
         $this->setUpFrontendTestEnvironment();
-        $permission = Permission::where('name', 'frontend.can_create_edit_invoice')->where('guard_name', 'web')->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_invoice');
+        $permissionQuery->where('guard_name', 'web');
+        $permission = $permissionQuery->first();
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
@@ -88,12 +90,16 @@ final class InvoiceItemsFeatureTest extends TestCase
         );
 
         $response->assertSessionHas('success');
-        $invoice = Invoice::where('invoice_vs', 'INV-ITEMS-1')->firstOrFail();
+        $invoiceQuery = Invoice::where('invoice_vs', 'INV-ITEMS-1');
+        $invoice = $invoiceQuery->firstOrFail();
         // 373.95 + 44.87 and 224.01 + 47.04; the typed payment amount 1 is ignored
         $this->assertSame('689.87', $invoice->fresh()->payment_amount);
+        $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoice->id);
+        $invoiceProductQuery->orderBy('id');
+        $invoiceProductValues = $invoiceProductQuery->pluck('quantity');
         $this->assertSame(
             ['1.500', '3.000'],
-            InvoiceProduct::where('invoice_id', $invoice->id)->orderBy('id')->pluck('quantity')->all(),
+            $invoiceProductValues->all(),
         );
     }
 
@@ -106,7 +112,8 @@ final class InvoiceItemsFeatureTest extends TestCase
                 $this->item(), $this->item(),
             ], number: 'INV-ITEMS-2'),
         );
-        $invoice = Invoice::where('invoice_vs', 'INV-ITEMS-2')->firstOrFail();
+        $invoiceQuery = Invoice::where('invoice_vs', 'INV-ITEMS-2');
+        $invoice = $invoiceQuery->firstOrFail();
 
         $response = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
@@ -123,7 +130,8 @@ final class InvoiceItemsFeatureTest extends TestCase
         );
 
         $response->assertSessionHasNoErrors();
-        $lines = InvoiceProduct::where('invoice_id', $invoice->id)->get();
+        $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoice->id);
+        $lines = $invoiceProductQuery->get();
         $this->assertCount(1, $lines);
         $this->assertSame('0.21', $lines[0]->tax_amount);
         $this->assertSame('1.21', $invoice->fresh()->payment_amount);

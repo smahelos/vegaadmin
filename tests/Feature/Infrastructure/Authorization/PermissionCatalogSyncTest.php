@@ -17,9 +17,12 @@ class PermissionCatalogSyncTest extends TestCase
     public function migrations_create_the_catalog_permissions_and_roles(): void
     {
         foreach (PermissionCatalog::PERMISSIONS as $guard => $names) {
+            $permissionQuery = Permission::where('guard_name', $guard);
+            $permissionQuery->whereIn('name', $names);
+            $permissionValues = $permissionQuery->pluck('name');
             $this->assertEqualsCanonicalizing(
                 $names,
-                Permission::where('guard_name', $guard)->whereIn('name', $names)->pluck('name')->all(),
+                $permissionValues->all(),
             );
         }
 

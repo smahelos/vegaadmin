@@ -43,6 +43,7 @@ final class InvoicePdfSnapshotTest extends TestCase
             )->setTime(14, 7),
         );
         $invoiceFactory = Invoice::factory();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
         $invoice = $invoiceFactory->create(
             [
                 'invoice_vs' => '20260001',
@@ -54,7 +55,7 @@ final class InvoicePdfSnapshotTest extends TestCase
                 'invoice_text' => 'Snapshot invoice text',
                 'payment_currency' => 'EUR',
                 'payment_amount' => '1210.00',
-                'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->sole()->id,
+                'payment_method_id' => $paymentMethodQuery->sole()->id,
                 'supplier_name' => 'Snapshot Supplier s.r.o.',
                 'supplier_email' => 'supplier@snapshot.test',
                 'supplier_phone' => '+420 123 456 789',

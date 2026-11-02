@@ -89,7 +89,8 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     {
         $notifier = $this->captureReminders();
         $invoice = $this->dueInvoice(['supplier_email' => null, 'customer_email' => null]);
-        Business::whereKey($invoice->business_id)->update(['email' => 'live-business@example.test']);
+        $businessQuery = Business::whereKey($invoice->business_id);
+        $businessQuery->update(['email' => 'live-business@example.test']);
 
         $this->assertSame(
             0,
@@ -122,8 +123,9 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     {
         $notifier = $this->captureReminders();
         foreach ([InvoiceStatus::PAID, InvoiceStatus::CANCELLED] as $status) {
+            $statusQuery = Status::where('slug', $status->value);
             $this->dueInvoice(
-                ['payment_status_id' => Status::where('slug', $status->value)->sole()->id],
+                ['payment_status_id' => $statusQuery->sole()->id],
             );
         }
         $this->dueInvoice(['due_in' => 12]);

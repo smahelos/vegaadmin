@@ -288,7 +288,8 @@ class PageFeatureTest extends TestCase
     public function page_scope_published_filters_published_pages(): void
     {
         // The scope reads the whole table; start without the seeded content pages
-        Page::query()->delete();
+        $pageQuery = Page::query();
+        $pageQuery->delete();
 
         $pageCategoryFactory = PageCategory::factory();
         $category = $pageCategoryFactory->create();

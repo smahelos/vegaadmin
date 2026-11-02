@@ -144,7 +144,8 @@ class ProductServiceFeatureTest extends TestCase
     {
         Cache::flush();
         // The service lists the whole table; start without the seeded categories
-        ProductCategory::query()->delete();
+        $productCategoryQuery = ProductCategory::query();
+        $productCategoryQuery->delete();
         $productCategoryFactory = ProductCategory::factory();
         $productCategoryFactory->create(['name' => 'Zeta']);
         $productCategoryFactory2 = ProductCategory::factory();

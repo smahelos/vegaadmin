@@ -99,7 +99,8 @@ class CronTaskCrudControllerTest extends TestCase
             'frequency' => 'daily',
         ]);
 
-        $cronTask = CronTask::where('name', $payload['name'])->first();
+        $cronTaskQuery = CronTask::where('name', $payload['name']);
+        $cronTask = $cronTaskQuery->first();
         $this->assertNotNull($cronTask);
         $this->assertEquals('inspire', $cronTask->base_command); // accessor
     }

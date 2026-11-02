@@ -65,7 +65,8 @@ final class InvoiceContactControllerTest extends TestCase
             route('frontend.invoices.link-contact', ['invoice' => $invoice->id]),
         );
         $httpResponse2->assertForbidden();
-        $this->assertSame(0, Contact::query()->count());
+        $contactQuery = Contact::query();
+        $this->assertSame(0, $contactQuery->count());
     }
 
     #[Test]
@@ -110,7 +111,9 @@ final class InvoiceContactControllerTest extends TestCase
             __('invoices.messages.saved_to_contacts'),
         );
 
-        $contact = Contact::query()->where('user_id', $user->id)->sole();
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $user->id);
+        $contact = $contactQuery->sole();
         $this->assertSame('Odběratel s.r.o.', $contact->name);
         $this->assertSame(self::CUSTOMER_NUMBER, $contact->company_number);
         $this->assertSame($contact->id, $invoice->fresh()?->contact_id);
@@ -133,9 +136,10 @@ final class InvoiceContactControllerTest extends TestCase
         );
         $httpResponse2->assertSessionHasNoErrors();
         $this->assertSame($contactId, $invoice->fresh()->contact_id);
+        $contactQuery = Contact::where('user_id', $user->id);
         $this->assertSame(
             1,
-            Contact::where('user_id', $user->id)->count(),
+            $contactQuery->count(),
         );
     }
 

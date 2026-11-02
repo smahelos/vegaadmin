@@ -72,11 +72,15 @@ final class BusinessCrudControllerTest extends TestCase
         );
         $httpResponse->assertRedirect();
 
-        $business = Business::query()->where('user_id', $owner->id)->sole();
+        $businessQuery = Business::query();
+        $businessQuery->where('user_id', $owner->id);
+        $business = $businessQuery->sole();
         $this->assertSame('27082440', $business->company_number);
+        $addressQuery = Address::query();
+        $addressQuery->where('business_id', $business->id);
         $this->assertSame(
             'Brno',
-            Address::query()->where('business_id', $business->id)->value('city'),
+            $addressQuery->value('city'),
         );
         $this->assertSame($business->id, $owner->fresh()?->default_business_id);
     }
@@ -101,9 +105,11 @@ final class BusinessCrudControllerTest extends TestCase
         );
         $httpResponse->assertRedirect('/admin/business/create');
 
+        $businessQuery = Business::query();
+        $businessQuery->where('user_id', $owner->id);
         $this->assertSame(
             1,
-            Business::query()->where('user_id', $owner->id)->count(),
+            $businessQuery->count(),
         );
     }
 

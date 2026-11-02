@@ -71,8 +71,9 @@ class FileUploadHashDedupFeatureTest extends TestCase
             $this->assertGreaterThanOrEqual(1, $record->ref_count);
         } else {
             // If fake generated different content, simulate re-upload of exact same file for dedupe check
+            $disk = Storage::disk('public');
             $duplicate = new UploadedFile(
-                Storage::disk('public')->path($path1),
+                $disk->path($path1),
                 'dup.png',
                 'image/png',
                 null,
@@ -132,15 +133,17 @@ class FileUploadHashDedupFeatureTest extends TestCase
         // Simulate delete: first call should only decrement
         $service->deleteFile($path1, 'public');
         $this->assertDatabaseHas('file_hashes', ['path' => $path1, 'ref_count' => 1]);
+        $disk = Storage::disk('public');
         $this->assertTrue(
-            Storage::disk('public')->exists($path1),
+            $disk->exists($path1),
         );
 
         // Second delete removes file and record
         $service->deleteFile($path2, 'public');
         $this->assertDatabaseMissing('file_hashes', ['path' => $path1]);
+        $disk2 = Storage::disk('public');
         $this->assertFalse(
-            Storage::disk('public')->exists($path1),
+            $disk2->exists($path1),
         );
     }
 }

@@ -38,10 +38,10 @@ trait BuildsParties
      */
     private function limitActive(string $entityType, int $limit): void
     {
-        EntityLimit::query()
-            ->where('entity_type', $entityType)
-            ->where('metric_type', 'active')
-            ->update(['limit_value' => $limit]);
+        $entityLimitQuery = EntityLimit::query();
+        $entityLimitQuery->where('entity_type', $entityType);
+        $entityLimitQuery->where('metric_type', 'active');
+        $entityLimitQuery->update(['limit_value' => $limit]);
     }
 
     private function profile(

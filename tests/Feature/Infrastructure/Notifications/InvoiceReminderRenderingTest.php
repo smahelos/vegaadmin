@@ -54,7 +54,8 @@ final class InvoiceReminderRenderingTest extends TestCase
                 'payment_currency' => 'EUR',
             ],
         );
-        Business::whereKey($invoice->business_id)->update(
+        $businessQuery = Business::whereKey($invoice->business_id);
+        $businessQuery->update(
             ['name' => 'Changed source business', 'archived_at' => now()],
         );
 

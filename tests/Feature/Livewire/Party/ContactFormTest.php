@@ -42,12 +42,16 @@ final class ContactFormTest extends TestCase
             ->assertHasNoErrors()
             ->assertRedirect();
 
-        $contact = Contact::query()->where('user_id', $this->user->id)->sole();
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $this->user->id);
+        $contact = $contactQuery->sole();
         $this->assertNull($contact->email);
         $this->assertNull($contact->phone);
+        $addressQuery = Address::query();
+        $addressQuery->where('contact_id', $contact->id);
         $this->assertSame(
             0,
-            Address::query()->where('contact_id', $contact->id)->count(),
+            $addressQuery->count(),
         );
     }
 
@@ -65,13 +69,17 @@ final class ContactFormTest extends TestCase
             ->call('save')
             ->assertHasNoErrors();
 
-        $contact = Contact::query()->where('user_id', $this->user->id)->sole();
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $this->user->id);
+        $contact = $contactQuery->sole();
         $this->assertSame('AT', $contact->registration_country);
         $this->assertSame('FN 123456a', $contact->company_number);
         $this->assertSame('Anna Huber', $contact->contact_person);
+        $addressQuery = Address::query();
+        $addressQuery->where('contact_id', $contact->id);
         $this->assertSame(
             'AT',
-            Address::query()->where('contact_id', $contact->id)->value('country'),
+            $addressQuery->value('country'),
         );
     }
 
@@ -93,9 +101,11 @@ final class ContactFormTest extends TestCase
             ->assertSet('blockingDuplicate.archived', true)
             ->assertNoRedirect();
 
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $this->user->id);
         $this->assertSame(
             1,
-            Contact::query()->where('user_id', $this->user->id)->count(),
+            $contactQuery->count(),
         );
     }
 
@@ -128,9 +138,11 @@ final class ContactFormTest extends TestCase
                 __('contacts.messages.limit_exceeded'),
             );
 
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $this->user->id);
         $this->assertSame(
             1,
-            Contact::query()->where('user_id', $this->user->id)->count(),
+            $contactQuery->count(),
         );
     }
 
@@ -191,10 +203,13 @@ final class ContactFormTest extends TestCase
                 UploadedFile::fake()->image('logo.png'),
             )
             ->call('save')->assertHasNoErrors();
-        $contact = Contact::where('user_id', $this->user->id)->where('name', 'Contact with a logo')->sole();
+        $contactQuery = Contact::where('user_id', $this->user->id);
+        $contactQuery->where('name', 'Contact with a logo');
+        $contact = $contactQuery->sole();
         $first = $contact->logo;
         $this->assertNotNull($first);
-        Storage::disk('public')->assertExists($first);
+        $disk = Storage::disk('public');
+        $disk->assertExists($first);
         Livewire::actingAs($this->user)->test(ContactForm::class, ['contactId' => $contact->id])
             ->set(
                 'logo',
@@ -208,11 +223,14 @@ final class ContactFormTest extends TestCase
         $second = $contact->fresh()->logo;
         $this->assertNotNull($second);
         $this->assertNotSame($first, $second);
-        Storage::disk('public')->assertMissing($first);
-        Storage::disk('public')->assertExists($second);
+        $disk2 = Storage::disk('public');
+        $disk2->assertMissing($first);
+        $disk3 = Storage::disk('public');
+        $disk3->assertExists($second);
         Livewire::actingAs($this->user)->test(ContactForm::class, ['contactId' => $contact->id])
             ->set('removeLogo', true)->call('save')->assertHasNoErrors();
         $this->assertNull($contact->fresh()->logo);
-        Storage::disk('public')->assertMissing($second);
+        $disk4 = Storage::disk('public');
+        $disk4->assertMissing($second);
     }
 }

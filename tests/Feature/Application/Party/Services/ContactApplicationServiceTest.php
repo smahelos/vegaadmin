@@ -118,9 +118,11 @@ final class ContactApplicationServiceTest extends TestCase
         } catch (DuplicateCompanyNumberException $e) {
             $this->assertInstanceOf(ContactId::class, $e->existing);
             $this->assertSame($archived->id, $e->existing->value);
+            $contactQuery = Contact::query();
+            $contactQuery->where('user_id', $user->id);
             $this->assertSame(
                 1,
-                Contact::query()->where('user_id', $user->id)->count(),
+                $contactQuery->count(),
             );
 
             return;
@@ -161,9 +163,11 @@ final class ContactApplicationServiceTest extends TestCase
         );
 
         $this->assertSame(DuplicateReason::COMPANY_NUMBER, $duplicates[0]->reason);
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $user->id);
         $this->assertSame(
             2,
-            Contact::query()->where('user_id', $user->id)->count(),
+            $contactQuery->count(),
         );
     }
 

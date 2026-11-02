@@ -42,16 +42,21 @@ final class RegistrationApplicationServiceTest extends TestCase
             $this->czechAccount(),
         );
 
-        $user = User::query()->findOrFail($registered->id);
-        $business = Business::query()->where('user_id', $user->id)->sole();
+        $userQuery = User::query();
+        $user = $userQuery->findOrFail($registered->id);
+        $businessQuery = Business::query();
+        $businessQuery->where('user_id', $user->id);
+        $business = $businessQuery->sole();
         $this->assertTrue(
             $user->hasRole('frontend_user'),
         );
         $this->assertSame($business->id, $user->default_business_id);
         $this->assertSame('studio@billex.test', $business->email);
         $this->assertSame($email, $user->email);
+        $bankAccountQuery = BankAccount::query();
+        $bankAccountQuery->where('business_id', $business->id);
         $this->assertSame(
-            BankAccount::query()->where('business_id', $business->id)->sole()->id,
+            $bankAccountQuery->sole()->id,
             $business->default_bank_account_id,
         );
     }

@@ -31,9 +31,11 @@ final class DatabaseOptimizeCommandFeatureTest extends TestCase
                 'status' => 'completed',
             ],
         );
+        $performanceMetricsQuery = DB::table('performance_metrics');
+        $performanceMetricsQuery->where('table_name', 'taxes');
         $this->assertSame(
             1,
-            DB::table('performance_metrics')->where('table_name', 'taxes')->count(),
+            $performanceMetricsQuery->count(),
         );
     }
 }

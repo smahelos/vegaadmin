@@ -90,7 +90,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     public function subscription_plan_active_scope_returns_only_active_plans(): void
     {
         // The scope reads the whole table; start without the seeded plans
-        SubscriptionPlan::query()->delete();
+        $subscriptionPlanQuery = SubscriptionPlan::query();
+        $subscriptionPlanQuery->delete();
 
         $subscriptionPlanFactory = SubscriptionPlan::factory();
         $subscriptionPlanFactory->create(['is_active' => true]);

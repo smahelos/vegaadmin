@@ -36,13 +36,15 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         // Create a fake file
         $filePath = 'test/test.txt';
-        Storage::disk('public')->put($filePath, 'test content');
+        $disk = Storage::disk('public');
+        $disk->put($filePath, 'test content');
 
         $result = $this->service->deleteFile($filePath, 'public');
 
         $this->assertTrue($result);
+        $disk2 = Storage::disk('public');
         $this->assertFalse(
-            Storage::disk('public')->exists($filePath),
+            $disk2->exists($filePath),
         );
     }
 
@@ -272,13 +274,15 @@ class FileUploadServiceFeatureTest extends TestCase
         );
 
         $this->assertNotNull($path);
+        $disk = Storage::disk('public');
         $this->assertTrue(
-            Storage::disk('public')->exists($path),
+            $disk->exists($path),
         );
 
         // Expected thumbnail path structure
+        $disk2 = Storage::disk('public');
         $this->assertTrue(
-            Storage::disk('public')->exists('thumbnails/images/photo.jpg'),
+            $disk2->exists('thumbnails/images/photo.jpg'),
             'Thumbnail should be created at expected path.',
         );
     }

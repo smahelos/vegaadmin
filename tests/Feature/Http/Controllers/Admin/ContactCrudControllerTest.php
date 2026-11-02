@@ -55,7 +55,9 @@ final class ContactCrudControllerTest extends TestCase
         );
         $httpResponse->assertRedirect();
 
-        $contact = Contact::query()->where('user_id', $owner->id)->sole();
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $owner->id);
+        $contact = $contactQuery->sole();
         $this->assertSame('Eva', $contact->contact_person);
     }
 
@@ -76,9 +78,11 @@ final class ContactCrudControllerTest extends TestCase
         );
         $httpResponse->assertRedirect();
 
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $owner->id);
         $this->assertSame(
             0,
-            Contact::query()->where('user_id', $owner->id)->count(),
+            $contactQuery->count(),
         );
     }
 

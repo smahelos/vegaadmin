@@ -130,9 +130,12 @@ class MysqlOptimizationLogFeatureTest extends TestCase
         MysqlOptimizationLog::factory()->mediumPriority()->create();
         MysqlOptimizationLog::factory()->lowPriority()->createMany(2);
 
-        $highPriorityLogs = MysqlOptimizationLog::where('priority', 'high')->get();
-        $mediumPriorityLogs = MysqlOptimizationLog::where('priority', 'medium')->get();
-        $lowPriorityLogs = MysqlOptimizationLog::where('priority', 'low')->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('priority', 'high');
+        $highPriorityLogs = $mysqlOptimizationLogQuery->get();
+        $mysqlOptimizationLogQuery2 = MysqlOptimizationLog::where('priority', 'medium');
+        $mediumPriorityLogs = $mysqlOptimizationLogQuery2->get();
+        $mysqlOptimizationLogQuery3 = MysqlOptimizationLog::where('priority', 'low');
+        $lowPriorityLogs = $mysqlOptimizationLogQuery3->get();
 
         $this->assertCount(1, $highPriorityLogs);
         $this->assertCount(1, $mediumPriorityLogs);
@@ -145,8 +148,10 @@ class MysqlOptimizationLogFeatureTest extends TestCase
         MysqlOptimizationLog::factory()->applied()->createMany(2);
         MysqlOptimizationLog::factory()->unapplied()->createMany(3);
 
-        $appliedLogs = MysqlOptimizationLog::where('applied', true)->get();
-        $unappliedLogs = MysqlOptimizationLog::where('applied', false)->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('applied', true);
+        $appliedLogs = $mysqlOptimizationLogQuery->get();
+        $mysqlOptimizationLogQuery2 = MysqlOptimizationLog::where('applied', false);
+        $unappliedLogs = $mysqlOptimizationLogQuery2->get();
 
         $this->assertCount(2, $appliedLogs);
         $this->assertCount(3, $unappliedLogs);
@@ -162,8 +167,10 @@ class MysqlOptimizationLogFeatureTest extends TestCase
         $mysqlOptimizationLogFactory3 = MysqlOptimizationLog::factory();
         $mysqlOptimizationLogFactory3->create(['setting_name' => 'innodb_buffer_pool_size']);
 
-        $bufferPoolLogs = MysqlOptimizationLog::where('setting_name', 'innodb_buffer_pool_size')->get();
-        $maxConnectionsLogs = MysqlOptimizationLog::where('setting_name', 'max_connections')->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('setting_name', 'innodb_buffer_pool_size');
+        $bufferPoolLogs = $mysqlOptimizationLogQuery->get();
+        $mysqlOptimizationLogQuery2 = MysqlOptimizationLog::where('setting_name', 'max_connections');
+        $maxConnectionsLogs = $mysqlOptimizationLogQuery2->get();
 
         $this->assertCount(2, $bufferPoolLogs);
         $this->assertCount(1, $maxConnectionsLogs);

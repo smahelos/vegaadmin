@@ -46,7 +46,9 @@ final class BusinessApplicationServiceTest extends TestCase
         );
 
         $this->assertSame($business->id->value, $user->fresh()?->default_business_id);
-        $account = BankAccount::query()->where('business_id', $business->id->value)->sole();
+        $bankAccountQuery = BankAccount::query();
+        $bankAccountQuery->where('business_id', $business->id->value);
+        $account = $bankAccountQuery->sole();
         $this->assertSame($account->id, $business->defaultBankAccountId?->value);
         $this->assertSame('CZ1520100000002001234561', $account->iban);
         $this->assertSame('Brno', $business->profile->address?->city);
@@ -206,9 +208,10 @@ final class BusinessApplicationServiceTest extends TestCase
             null,
         );
         $bankAccountFactory = BankAccount::factory();
+        $businessQuery = Business::query();
         $bankAccountFactory = $bankAccountFactory
             ->ownedBy(
-                Business::query()->findOrFail($other->id->value),
+                $businessQuery->findOrFail($other->id->value),
             );
         $archivedAccount = $bankAccountFactory
             ->create(['archived_at' => now()]);
@@ -330,8 +333,9 @@ final class BusinessApplicationServiceTest extends TestCase
             );
         } catch (DuplicateCompanyNumberException $e) {
             $this->assertSame($holder->id->value, $e->existing->value);
+            $businessQuery = Business::query();
             $this->assertNull(
-                Business::query()->findOrFail($other->id->value)->company_number,
+                $businessQuery->findOrFail($other->id->value)->company_number,
             );
 
             return;

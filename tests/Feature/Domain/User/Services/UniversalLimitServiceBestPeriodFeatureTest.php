@@ -137,11 +137,11 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
         );
 
         // Usage should be recorded under lifetime period (best period)
-        $usage = EntityLimitUsage::where('user_id', $this->user->id)
-            ->where('entity_type', 'invoice')
-            ->where('metric_type', 'count')
-            ->where('period_type', 'lifetime')
-            ->first();
+        $entityLimitUsageQuery = EntityLimitUsage::where('user_id', $this->user->id);
+        $entityLimitUsageQuery->where('entity_type', 'invoice');
+        $entityLimitUsageQuery->where('metric_type', 'count');
+        $entityLimitUsageQuery->where('period_type', 'lifetime');
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNotNull($usage, 'Usage record for lifetime period should exist');
         $this->assertEquals(3, (int) $usage->current_value);

@@ -65,8 +65,10 @@ final class InvoiceListFeatureTest extends TestCase
         $contact = $contactFactory->create(
             ['user_id' => $this->user->id, 'name' => 'Current Address Book Name'],
         );
-        $paid = Status::where('slug', 'paid')->value('id');
-        $pending = Status::where('slug', 'pending')->value('id');
+        $statusQuery = Status::where('slug', 'paid');
+        $paid = $statusQuery->value('id');
+        $statusQuery2 = Status::where('slug', 'pending');
+        $pending = $statusQuery2->value('id');
         $base = [
             'user_id' => $this->user->id,
             'business_id' => $business->id,
@@ -227,13 +229,14 @@ final class InvoiceListFeatureTest extends TestCase
         $contact = $contactFactory->create(['user_id' => $this->user->id]);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory = $invoiceFactory->count(12);
+        $statusQuery = Status::where('slug', 'paid');
         $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $business->id,
                 'contact_id' => $contact->id,
                 'invoice_vs' => 'PAGE-001',
-                'payment_status_id' => Status::where('slug', 'paid')->value('id'),
+                'payment_status_id' => $statusQuery->value('id'),
             ],
         );
         $component = Livewire::test(InvoiceList::class);

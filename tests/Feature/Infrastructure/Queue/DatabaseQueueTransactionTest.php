@@ -56,7 +56,10 @@ final class DatabaseQueueTransactionTest extends TestCase
 
     private function storedJobs(): int
     {
-        return DB::table('jobs')->where('queue', self::QUEUE)->count();
+        $jobsQuery = DB::table('jobs');
+        $jobsQuery->where('queue', self::QUEUE);
+
+        return $jobsQuery->count();
     }
 
     private function transactions(): TransactionBoundaryInterface

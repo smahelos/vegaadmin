@@ -57,7 +57,8 @@ final class ExpenseCrudControllerTest extends TestCase
         $httpResponse = $this->post('/admin/expense', $data);
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
         $httpResponse->assertRedirect();
-        $expense = Expense::where('reference_number', $data['reference_number'])->sole();
+        $expenseQuery = Expense::where('reference_number', $data['reference_number']);
+        $expense = $expenseQuery->sole();
         $this->assertSame([], $expense->attachments);
         $httpResponse2 = $this->put('/admin/expense/' . $expense->id, $data);
         $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
@@ -110,7 +111,8 @@ final class ExpenseCrudControllerTest extends TestCase
     public function an_expenses_own_business_needs_no_address_and_keeps_its_optional_customer_fields(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        Address::where('business_id', $business->id)->delete();
+        $addressQuery = Address::where('business_id', $business->id);
+        $addressQuery->delete();
         $data = $this->expenseInput($business);
         $httpResponse = $this->post('/admin/expense', $data);
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
@@ -369,7 +371,8 @@ final class ExpenseCrudControllerTest extends TestCase
             ],
         );
         $httpResponse->assertSessionHasNoErrors();
-        $expense = Expense::where('reference_number', $data['reference_number'])->sole();
+        $expenseQuery = Expense::where('reference_number', $data['reference_number']);
+        $expense = $expenseQuery->sole();
         $path = $expense->attachments[0];
         $this->assertDatabaseHas('file_hashes', ['path' => $path, 'ref_count' => 1]);
         $this->mock(
@@ -399,10 +402,12 @@ final class ExpenseCrudControllerTest extends TestCase
         } catch (RuntimeException $exception) {
             $this->assertSame('Persistence failed', $exception->getMessage());
         }
-        Storage::disk('public')->assertExists($path);
+        $disk = Storage::disk('public');
+        $disk->assertExists($path);
+        $disk2 = Storage::disk('public');
         $this->assertSame(
             [$path],
-            Storage::disk('public')->allFiles('expenses/attachments'),
+            $disk2->allFiles('expenses/attachments'),
         );
         $this->assertSame([$path], $expense->fresh()->attachments);
         $this->assertDatabaseHas('file_hashes', ['path' => $path, 'ref_count' => 1]);
@@ -425,9 +430,11 @@ final class ExpenseCrudControllerTest extends TestCase
             )]],
         );
         $httpResponse->assertSessionHasNoErrors();
-        $expense = Expense::where('reference_number', $data['reference_number'])->sole();
+        $expenseQuery = Expense::where('reference_number', $data['reference_number']);
+        $expense = $expenseQuery->sole();
         $path = $expense->attachments[0];
-        Storage::disk('public')->assertExists($path);
+        $disk = Storage::disk('public');
+        $disk->assertExists($path);
         $httpResponse2 = $this->get('/admin/expense/' . $expense->id . '/edit');
         $httpResponse2 = $httpResponse2->assertOk();
         $httpResponse2 = $httpResponse2->assertSee(
@@ -437,15 +444,18 @@ final class ExpenseCrudControllerTest extends TestCase
         $httpResponse3 = $this->put('/admin/expense/' . $expense->id, $data);
         $httpResponse3->assertSessionHasNoErrors();
         $this->assertSame([$path], $expense->fresh()->attachments);
-        Storage::disk('public')->put('someone-else.pdf', 'private');
+        $disk2 = Storage::disk('public');
+        $disk2->put('someone-else.pdf', 'private');
         $httpResponse4 = $this->put(
             '/admin/expense/' . $expense->id,
             $data + ['attachments_removed' => json_encode([$path, 'someone-else.pdf'])],
         );
         $httpResponse4->assertSessionHasNoErrors();
         $this->assertSame([], $expense->fresh()->attachments);
-        Storage::disk('public')->assertMissing($path);
-        Storage::disk('public')->assertExists('someone-else.pdf');
+        $disk3 = Storage::disk('public');
+        $disk3->assertMissing($path);
+        $disk4 = Storage::disk('public');
+        $disk4->assertExists('someone-else.pdf');
     }
 
     #[Test]

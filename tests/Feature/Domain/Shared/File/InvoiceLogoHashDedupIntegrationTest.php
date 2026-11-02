@@ -55,7 +55,8 @@ class InvoiceLogoHashDedupIntegrationTest extends TestCase
         );
 
         $this->assertSame($path1, $path2);
-        $record = FileHash::where('path', $path1)->first();
+        $fileHashQuery = FileHash::where('path', $path1);
+        $record = $fileHashQuery->first();
         $this->assertNotNull($record);
         $this->assertGreaterThanOrEqual(2, $record->ref_count);
     }

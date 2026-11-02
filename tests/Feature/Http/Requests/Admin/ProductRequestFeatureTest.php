@@ -44,9 +44,9 @@ class ProductRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-        $permission = Permission::where('name', 'can_create_edit_product')
-            ->where('guard_name', 'backpack')
-            ->first();
+        $permissionQuery = Permission::where('name', 'can_create_edit_product');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission = $permissionQuery->first();
         $this->regularUser->givePermissionTo($permission);
 
         $this->productUser = User::factory()->create();

@@ -19,7 +19,8 @@ class TaxesServiceFeatureTest extends TestCase
         $this->service = app(TaxesService::class);
 
         // The service lists the whole taxes table; start without the seeded VAT rates
-        Tax::query()->delete();
+        $taxQuery = Tax::query();
+        $taxQuery->delete();
 
         // Clear cache before each test
         Cache::flush();

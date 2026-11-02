@@ -29,9 +29,9 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
             'frontend.can_create_business',
         ];
         foreach ($permissions as $permissionName) {
-            $permission = Permission::where('name', $permissionName)
-                ->where('guard_name', 'web')
-                ->first();
+            $permissionQuery = Permission::where('name', $permissionName);
+            $permissionQuery->where('guard_name', 'web');
+            $permission = $permissionQuery->first();
             if ($permission) {
                 $this->user->givePermissionTo($permission);
             }

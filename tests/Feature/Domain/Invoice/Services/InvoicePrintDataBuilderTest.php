@@ -20,12 +20,13 @@ final class InvoicePrintDataBuilderTest extends TestCase
     public function prints_the_tax_point_date_text_and_payment_method_of_the_stored_invoice(): void
     {
         $invoiceFactory = Invoice::factory();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
         $invoice = $invoiceFactory->create(
             [
                 'issue_date' => '2026-10-10',
                 'tax_point_date' => '2026-09-30',
                 'invoice_text' => 'Consulting in September',
-                'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail()->id,
+                'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
             ],
         );
         $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(

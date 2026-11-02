@@ -32,9 +32,9 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->setUpFrontendTestEnvironment();
 
         // Give user specific invoice permission
-        $permission = Permission::where('name', 'frontend.can_create_edit_invoice')
-            ->where('guard_name', 'web')
-            ->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_invoice');
+        $permissionQuery->where('guard_name', 'web');
+        $permission = $permissionQuery->first();
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
@@ -372,11 +372,12 @@ class InvoiceControllerFeatureTest extends TestCase
 
         // Ensure the limit is set to 1 for this test
         // we need to set limit to 1, so update data in database
-        EntityLimit::where(
+        $entityLimitQuery = EntityLimit::where(
             [
                 'permission_name' => 'frontend.can_create_edit_invoice',
             ],
-        )->update(['limit_value' => 1]);
+        );
+        $entityLimitQuery->update(['limit_value' => 1]);
 
         // First invoice creation - should succeed
         $checkBeforeFirst = $this->limitService->checkLimit(
@@ -456,7 +457,8 @@ class InvoiceControllerFeatureTest extends TestCase
     public function mark_as_paid_updates_status(): void
     {
         $this->actingAs($this->user, 'web');
-        $paidStatus = Status::where('slug', 'paid')->firstOrFail();
+        $statusQuery = Status::where('slug', 'paid');
+        $paidStatus = $statusQuery->firstOrFail();
 
         $this->put(
             route('frontend.invoice.mark-as-paid', ['locale' => 'en', 'id' => $this->invoice->id]),
@@ -596,9 +598,10 @@ class InvoiceControllerFeatureTest extends TestCase
         );
         $httpResponse->assertSessionHasErrors('customer_company_number');
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => $invoiceData['invoice_vs']]);
+        $contactQuery = Contact::where('user_id', $this->user->id);
         $this->assertSame(
             1,
-            Contact::where('user_id', $this->user->id)->count(),
+            $contactQuery->count(),
         );
     }
 }

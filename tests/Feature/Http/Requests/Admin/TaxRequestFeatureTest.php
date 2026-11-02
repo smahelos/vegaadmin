@@ -254,7 +254,8 @@ class TaxRequestFeatureTest extends TestCase
     {
         $this->revokeUnlimitedAccess('tax');
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 1]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'tax');
+        $entityLimitQuery->update(['limit_value' => 1]);
 
         $httpResponse = $this->postJson('/test-tax', [
             'name' => 'Tax One',
@@ -288,7 +289,8 @@ class TaxRequestFeatureTest extends TestCase
     public function admin_creation_bypasses_entity_limits(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'tax');
+        $entityLimitQuery->update(['limit_value' => 0]);
 
         $request = new class extends TaxRequest
         {
@@ -307,7 +309,8 @@ class TaxRequestFeatureTest extends TestCase
     public function tax_update_bypasses_limit_checks(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'tax');
+        $entityLimitQuery->update(['limit_value' => 0]);
         $this->limitService->recordUsage(
             $this->adminUser->id,
             'tax',

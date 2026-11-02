@@ -35,8 +35,10 @@ final class PartyLogoStorageIntegrationTest extends TestCase
 
         $this->assertNotSame($first, $second);
         $logos->delete($first);
-        Storage::disk('public')->assertExists($second);
+        $disk = Storage::disk('public');
+        $disk->assertExists($second);
         $logos->delete($second);
-        Storage::disk('public')->assertMissing($second);
+        $disk2 = Storage::disk('public');
+        $disk2->assertMissing($second);
     }
 }

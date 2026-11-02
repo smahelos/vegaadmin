@@ -74,7 +74,9 @@ class CrudAccessServiceFeatureTest extends TestCase
         $this->setCrudModel(User::class);
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $perm = Permission::where('name', 'can_view_user')->where('guard_name', 'backpack')->first();
+        $permissionQuery = Permission::where('name', 'can_view_user');
+        $permissionQuery->where('guard_name', 'backpack');
+        $perm = $permissionQuery->first();
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);
@@ -95,7 +97,9 @@ class CrudAccessServiceFeatureTest extends TestCase
         $this->setCrudModel(User::class);
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $perm = Permission::where('name', 'can_create_edit_user')->where('guard_name', 'backpack')->first();
+        $permissionQuery = Permission::where('name', 'can_create_edit_user');
+        $permissionQuery->where('guard_name', 'backpack');
+        $perm = $permissionQuery->first();
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);
@@ -120,7 +124,9 @@ class CrudAccessServiceFeatureTest extends TestCase
         $this->setCrudModel(User::class);
         $userFactory = User::factory();
         $admin = $userFactory->create();
-        $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
+        $roleQuery = Role::where('name', 'admin');
+        $roleQuery->where('guard_name', 'backpack');
+        $role = $roleQuery->first();
         $admin->assignRole($role);
 
         $this->service->configureCrudAccess($this->crud, $admin->id);
@@ -148,7 +154,9 @@ class CrudAccessServiceFeatureTest extends TestCase
         $user = $userFactory->create();
         // For contact view permission, adapter checks can_view_contact; create_edit permission is can_create_edit_contact
         Permission::firstOrCreate(['name' => 'can_view_contact', 'guard_name' => 'backpack']);
-        $perm = Permission::where('name', 'can_view_contact')->where('guard_name', 'backpack')->first();
+        $permissionQuery = Permission::where('name', 'can_view_contact');
+        $permissionQuery->where('guard_name', 'backpack');
+        $perm = $permissionQuery->first();
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);

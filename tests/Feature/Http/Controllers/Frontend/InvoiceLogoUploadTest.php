@@ -32,9 +32,9 @@ final class InvoiceLogoUploadTest extends TestCase
         parent::setUp();
 
         $this->setUpFrontendTestEnvironment();
-        $permission = Permission::where('name', 'frontend.can_create_edit_invoice')
-            ->where('guard_name', 'web')
-            ->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_invoice');
+        $permissionQuery->where('guard_name', 'web');
+        $permission = $permissionQuery->first();
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
@@ -58,7 +58,8 @@ final class InvoiceLogoUploadTest extends TestCase
     #[Test]
     public function a_signed_in_invoice_uses_a_private_copy_of_the_selected_business_logo(): void
     {
-        Storage::disk('public')->put('parties/logo.png', 'business logo contents');
+        $disk = Storage::disk('public');
+        $disk->put('parties/logo.png', 'business logo contents');
         $this->business->update(['logo' => 'parties/logo.png']);
         $response = $this->post(
             route('frontend.invoice.store', ['locale' => 'cs']),
@@ -70,13 +71,16 @@ final class InvoiceLogoUploadTest extends TestCase
             ),
         );
         $response->assertRedirect();
-        $invoice = Invoice::where('invoice_vs', 'TEST001')->sole();
+        $invoiceQuery = Invoice::where('invoice_vs', 'TEST001');
+        $invoice = $invoiceQuery->sole();
         $this->assertNotSame($this->business->logo, $invoice->supplier_logo);
+        $disk2 = Storage::disk('public');
         $this->assertSame(
             'business logo contents',
-            Storage::disk('public')->get($invoice->supplier_logo),
+            $disk2->get($invoice->supplier_logo),
         );
-        Storage::disk('public')->delete($this->business->logo);
+        $disk3 = Storage::disk('public');
+        $disk3->delete($this->business->logo);
         $this->business->update(['logo' => null]);
         $httpResponse = $this->get(
             route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]),
@@ -90,9 +94,10 @@ final class InvoiceLogoUploadTest extends TestCase
         );
         $httpResponse2->assertRedirect();
         $this->assertSame($copy, $invoice->fresh()->supplier_logo);
+        $disk4 = Storage::disk('public');
         $this->assertSame(
             'business logo contents',
-            Storage::disk('public')->get($copy),
+            $disk4->get($copy),
         );
         $httpResponse3 = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
@@ -100,7 +105,8 @@ final class InvoiceLogoUploadTest extends TestCase
         );
         $httpResponse3->assertRedirect();
         $this->assertNull($invoice->fresh()->supplier_logo);
-        Storage::disk('public')->assertMissing($copy);
+        $disk5 = Storage::disk('public');
+        $disk5->assertMissing($copy);
     }
 
     #[Test]

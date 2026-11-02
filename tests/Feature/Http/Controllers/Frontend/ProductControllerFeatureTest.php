@@ -27,9 +27,9 @@ class ProductControllerFeatureTest extends TestCase
         $this->setUpFrontendTestEnvironment();
 
         // Create required permissions for 'web' guard
-        $permission = Permission::where('name', 'frontend.can_create_edit_product')
-            ->where('guard_name', 'web')
-            ->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_product');
+        $permissionQuery->where('guard_name', 'web');
+        $permission = $permissionQuery->first();
         $this->user->givePermissionTo($permission);
 
         $this->createProductEntityLimit();
@@ -118,11 +118,12 @@ class ProductControllerFeatureTest extends TestCase
 
         // Ensure the limit is set to 1 for this test
         // we need to set limit to 1, so update data in database
-        EntityLimit::where(
+        $entityLimitQuery = EntityLimit::where(
             [
                 'permission_name' => 'frontend.can_create_edit_product',
             ],
-        )->update(['limit_value' => 1]);
+        );
+        $entityLimitQuery->update(['limit_value' => 1]);
 
         // First product creation - should succeed
         $checkBeforeFirst = $this->limitService->checkLimit(
@@ -176,7 +177,8 @@ class ProductControllerFeatureTest extends TestCase
     #[Test]
     public function index_shows_the_product_limit_and_usage(): void
     {
-        EntityLimit::where('permission_name', 'frontend.can_create_edit_product')->update(['limit_value' => 2]);
+        $entityLimitQuery = EntityLimit::where('permission_name', 'frontend.can_create_edit_product');
+        $entityLimitQuery->update(['limit_value' => 2]);
         $this->limitService->recordUsage(
             $this->user->id,
             'product',
@@ -202,7 +204,8 @@ class ProductControllerFeatureTest extends TestCase
     #[Test]
     public function index_does_not_allow_a_new_product_at_the_limit(): void
     {
-        EntityLimit::where('permission_name', 'frontend.can_create_edit_product')->update(['limit_value' => 1]);
+        $entityLimitQuery = EntityLimit::where('permission_name', 'frontend.can_create_edit_product');
+        $entityLimitQuery->update(['limit_value' => 1]);
         $this->limitService->recordUsage(
             $this->user->id,
             'product',
@@ -302,11 +305,12 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        EntityLimit::where(
+        $entityLimitQuery = EntityLimit::where(
             [
                 'permission_name' => 'frontend.can_create_edit_product',
             ],
-        )->update(['limit_value' => 0]);
+        );
+        $entityLimitQuery->update(['limit_value' => 0]);
 
         $productData = [
             'name' => 'Test Product ' . uniqid(),
@@ -459,7 +463,8 @@ class ProductControllerFeatureTest extends TestCase
     public function destroy_refuses_a_product_on_invoices_and_keeps_its_image(): void
     {
         Storage::fake('public');
-        Storage::disk('public')->put('products/kept.png', 'image');
+        $disk = Storage::disk('public');
+        $disk->put('products/kept.png', 'image');
         $productFactory = Product::factory();
         $product = $productFactory->create(
             [
@@ -486,7 +491,8 @@ class ProductControllerFeatureTest extends TestCase
         );
 
         $this->assertDatabaseHas('products', ['id' => $product->id]);
-        Storage::disk('public')->assertExists('products/kept.png');
+        $disk2 = Storage::disk('public');
+        $disk2->assertExists('products/kept.png');
     }
 
     #[Test]

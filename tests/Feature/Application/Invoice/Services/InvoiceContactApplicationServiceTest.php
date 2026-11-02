@@ -78,9 +78,11 @@ final class InvoiceContactApplicationServiceTest extends TestCase
         $linked = app(InvoiceContactApplicationService::class)->saveCustomerToContacts($ownerId, $invoiceId);
 
         $this->assertSame($contact->id, $linked->value);
+        $contactQuery = Contact::where('user_id', $owner->id);
+        $contactQuery->lockForUpdate();
         $this->assertCount(
             1,
-            Contact::where('user_id', $owner->id)->lockForUpdate()->get(),
+            $contactQuery->get(),
         );
         $this->assertSame(
             $contact->id,

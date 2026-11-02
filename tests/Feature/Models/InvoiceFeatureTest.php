@@ -46,7 +46,8 @@ class InvoiceFeatureTest extends TestCase
     #[Test]
     public function it_belongs_to_payment_method(): void
     {
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $paymentMethod = $paymentMethodQuery->firstOrFail();
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create(['payment_method_id' => $paymentMethod->id]);
 
@@ -104,7 +105,8 @@ class InvoiceFeatureTest extends TestCase
     #[Test]
     public function payment_status_name_is_translated_by_status_slug(): void
     {
-        $status = Status::where('slug', 'partially-paid')->first()
+        $statusQuery = Status::where('slug', 'partially-paid');
+        $status = $statusQuery->first()
             ?? Status::factory()->create(['slug' => 'partially-paid', 'name' => 'Částečně uhrazená']);
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create(['payment_status_id' => $status->id]);
@@ -349,9 +351,11 @@ class InvoiceFeatureTest extends TestCase
     {
         $invoiceFactory = Invoice::factory();
 
+        $statusQuery = Status::where('slug', $status->value);
+
         return $invoiceFactory->create(
             [
-                'payment_status_id' => Status::where('slug', $status->value)->firstOrFail()->id,
+                'payment_status_id' => $statusQuery->firstOrFail()->id,
                 'issue_date' => now()->subDays(14 + $days)->toDateString(),
                 'due_in' => 14,
             ],

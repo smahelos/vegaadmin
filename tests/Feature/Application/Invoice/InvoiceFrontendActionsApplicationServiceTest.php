@@ -135,11 +135,12 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
         $paid = $this->frontend->markAsPaid($this->user->id, $invoiceId);
         $this->assertInvoiceSuccess($paid, 'Mark paid failed');
 
+        $statusQuery = Status::where('slug', InvoiceStatus::PAID->value);
         $this->assertDatabaseHas(
             'invoices',
             [
                 'id' => $invoiceId,
-                'payment_status_id' => Status::where('slug', InvoiceStatus::PAID->value)->value('id'),
+                'payment_status_id' => $statusQuery->value('id'),
             ],
         );
     }

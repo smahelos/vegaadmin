@@ -190,7 +190,9 @@ final class InvoicePartiesAssemblerTest extends TestCase
             null,
         );
 
-        $contact = Contact::query()->where('user_id', $this->user->id)->sole();
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $this->user->id);
+        $contact = $contactQuery->sole();
         $this->assertSame($contact->id, $parties->contactId?->value);
         $this->assertSame('Odběratel s.r.o.', $contact->name);
         $this->assertSame(self::CUSTOMER_NUMBER, $contact->company_number);

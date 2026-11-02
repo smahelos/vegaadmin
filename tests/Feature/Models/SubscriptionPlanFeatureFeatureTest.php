@@ -15,7 +15,8 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
         parent::setUp();
 
         // The scopes below read the whole table; start without the seeded plan features
-        SubscriptionPlanFeature::query()->delete();
+        $subscriptionPlanFeatureQuery = SubscriptionPlanFeature::query();
+        $subscriptionPlanFeatureQuery->delete();
     }
 
     #[Test]

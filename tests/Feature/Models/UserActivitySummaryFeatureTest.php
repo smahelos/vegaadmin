@@ -31,7 +31,8 @@ final class UserActivitySummaryFeatureTest extends TestCase
         $contactFactory2->create();
         $businessFactory2 = Business::factory();
         $businessFactory2->create();
-        $summary = UserActivitySummary::where('user_id', $user->id)->sole();
+        $userActivitySummaryQuery = UserActivitySummary::where('user_id', $user->id);
+        $summary = $userActivitySummaryQuery->sole();
 
         $this->assertSame($user->id, $summary->user->id);
         $this->assertSame(2, $summary->total_contacts);

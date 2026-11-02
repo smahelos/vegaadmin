@@ -24,7 +24,8 @@ final class DevelopmentDataSeederTest extends TestCase
         $this->seed(DevelopmentDataSeeder::class);
 
         foreach (DevelopmentDataSeeder::ACCOUNTS as $email => $account) {
-            $user = User::where('email', $email)->firstOrFail();
+            $userQuery = User::where('email', $email);
+            $user = $userQuery->firstOrFail();
             $this->assertTrue(
                 Hash::check(DevelopmentDataSeeder::PASSWORD, $user->password),
                 $email,
@@ -42,14 +43,16 @@ final class DevelopmentDataSeederTest extends TestCase
         $this->seed(DevelopmentDataSeeder::class);
 
         foreach (DevelopmentDataSeeder::ACCOUNTS as $email => $account) {
-            $user = User::where('email', $email)->firstOrFail();
+            $userQuery = User::where('email', $email);
+            $user = $userQuery->firstOrFail();
             $businesses = Business::where('user_id', $user->id);
 
             if ($account['guard'] === PermissionCatalog::BACKPACK) {
                 $this->assertFalse($businesses->exists(), $email);
+                $expenseQuery = Expense::where('user_id', $user->id);
                 $this->assertSame(
                     0,
-                    Expense::where('user_id', $user->id)->count(),
+                    $expenseQuery->count(),
                     $email,
                 );
 
@@ -59,26 +62,35 @@ final class DevelopmentDataSeederTest extends TestCase
             $default = Business::findOrFail($user->default_business_id);
             $this->assertNull($default->archived_at, $email);
             $this->assertNotNull($default->default_bank_account_id, $email);
+            $businessQuery = Business::where('user_id', $user->id);
+            $businessQuery->whereNull('archived_at');
             $this->assertSame(
                 2,
-                Business::where('user_id', $user->id)->whereNull('archived_at')->count(),
+                $businessQuery->count(),
                 $email,
             );
+            $businessQuery2 = Business::where('user_id', $user->id);
+            $businessQuery2->whereNotNull('archived_at');
             $this->assertTrue(
-                Business::where('user_id', $user->id)->whereNotNull('archived_at')->exists(),
+                $businessQuery2->exists(),
                 $email,
             );
+            $contactQuery = Contact::where('user_id', $user->id);
+            $contactQuery->whereNull('archived_at');
             $this->assertLessThanOrEqual(
                 16,
-                Contact::where('user_id', $user->id)->whereNull('archived_at')->count(),
+                $contactQuery->count(),
                 $email,
             );
+            $contactQuery2 = Contact::where('user_id', $user->id);
+            $contactQuery2->whereNotNull('archived_at');
             $this->assertTrue(
-                Contact::where('user_id', $user->id)->whereNotNull('archived_at')->exists(),
+                $contactQuery2->exists(),
                 $email,
             );
 
-            $expenses = Expense::where('user_id', $user->id)->get();
+            $expenseQuery2 = Expense::where('user_id', $user->id);
+            $expenses = $expenseQuery2->get();
             $this->assertTrue(
                 $expenses->every(
                     fn (Expense $expense): bool => $expense->business_id === $default->id,
@@ -95,9 +107,11 @@ final class DevelopmentDataSeederTest extends TestCase
                 $expenses->contains(fn (Expense $expense): bool => $expense->contact_id === null),
                 $email,
             );
+            $entityLimitUsageQuery = DB::table('entity_limit_usage');
+            $entityLimitUsageQuery->where('user_id', $user->id);
             $this->assertSame(
                 0,
-                DB::table('entity_limit_usage')->where('user_id', $user->id)->count(),
+                $entityLimitUsageQuery->count(),
                 $email,
             );
         }
@@ -107,10 +121,11 @@ final class DevelopmentDataSeederTest extends TestCase
     public function running_it_again_recreates_the_same_data(): void
     {
         $this->seed(DevelopmentDataSeeder::class);
-        $users = User::whereIn(
+        $userQuery = User::whereIn(
             'email',
             array_keys(DevelopmentDataSeeder::ACCOUNTS),
-        )->pluck('id');
+        );
+        $users = $userQuery->pluck('id');
         $first = $this->seededData($users->all());
 
         $this->seed(DevelopmentDataSeeder::class);
@@ -144,8 +159,12 @@ final class DevelopmentDataSeederTest extends TestCase
      */
     private function seededData(array $userIds): array
     {
+        $businessQuery = Business::whereIn('user_id', $userIds);
+        $businessQuery->orderBy('name');
+        $businessValues = $businessQuery->pluck('name');
+
         return [
-            'businesses' => Business::whereIn('user_id', $userIds)->orderBy('name')->pluck('name')->all(),
+            'businesses' => $businessValues->all(),
             'contacts' => Contact::whereIn('user_id', $userIds)->orderBy('name')->pluck('name')->all(),
             'expenses' => Expense::whereIn('user_id', $userIds)->orderBy('expense_date')->orderBy('amount')->pluck('amount')->all(),
         ];

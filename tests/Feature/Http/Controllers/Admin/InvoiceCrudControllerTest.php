@@ -40,7 +40,8 @@ final class InvoiceCrudControllerTest extends TestCase
         $owner->assignRole(
             Role::findByName('frontend_user', 'web'),
         );
-        EntityLimit::where('entity_type', 'invoice')->update(['limit_value' => 1]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'invoice');
+        $entityLimitQuery->update(['limit_value' => 1]);
         [$business, $account] = $this->issuerOf($owner);
         $data = $this->invoiceInput(
             $business,
@@ -250,13 +251,14 @@ final class InvoiceCrudControllerTest extends TestCase
     public function a_cash_invoice_drops_the_account(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
         $data = $this->invoiceInput(
             $business,
             $account,
             [
                 'user_id' => $this->regularUser->id,
                 'payment_amount' => '0',
-                'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail()->id,
+                'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
             ],
         );
         $httpResponse = $this->post('/admin/invoice', $data);
@@ -333,7 +335,8 @@ final class InvoiceCrudControllerTest extends TestCase
         $httpResponse = $this->post('/admin/invoice', $data);
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
         $httpResponse->assertRedirect();
-        $invoice = Invoice::where('invoice_vs', $data['invoice_vs'])->sole();
+        $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
+        $invoice = $invoiceQuery->sole();
         $this->assertSame('1234.56', $invoice->payment_amount);
         $httpResponse2 = $this->put(
             '/admin/invoice/' . $invoice->id,

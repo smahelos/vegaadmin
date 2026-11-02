@@ -58,7 +58,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function accepts_a_payment_method_code_that_is_not_stored(): void
     {
-        PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::OTHER->value);
+        $paymentMethodQuery->delete();
 
         $validator = Validator::make(
             ['name' => 'Other', 'slug' => PaymentMethodCode::OTHER->value],
@@ -116,7 +117,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::OTHER->value);
+        $paymentMethodQuery->delete();
         $this->actingAs($this->adminUser, 'backpack');
         $httpResponse = $this->postJson(
             '/test-payment-method',
@@ -154,8 +156,10 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         $this->revokeUnlimitedAccess('payment_method');
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'payment_method')->update(['limit_value' => 1]);
-        PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
+        $entityLimitQuery = EntityLimit::where('entity_type', 'payment_method');
+        $entityLimitQuery->update(['limit_value' => 1]);
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::OTHER->value);
+        $paymentMethodQuery->delete();
         $httpResponse = $this->postJson(
             '/test-payment-method',
             [
@@ -189,7 +193,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     public function payment_method_update_bypasses_limits(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'payment_method')->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'payment_method');
+        $entityLimitQuery->update(['limit_value' => 0]);
         $this->limitService->recordUsage(
             $this->adminUser->id,
             'payment_method',

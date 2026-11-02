@@ -35,9 +35,9 @@ class ProductRequestFeatureTest extends TestCase
         // Set up frontend test environment with roles and permissions
         $this->setUpFrontendTestEnvironment();
 
-        $permission = Permission::where('name', 'frontend.can_create_edit_product')
-            ->where('guard_name', 'web')
-            ->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_product');
+        $permissionQuery->where('guard_name', 'web');
+        $permission = $permissionQuery->first();
 
         // Create regular user with limited role
         if (!$this->user) {

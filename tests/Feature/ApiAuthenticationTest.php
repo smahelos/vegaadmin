@@ -17,7 +17,9 @@ final class ApiAuthenticationTest extends TestCase
         // Create frontend user with role
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $frontendRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
+        $roleQuery = Role::where('name', 'frontend_user');
+        $roleQuery->where('guard_name', 'web');
+        $frontendRole = $roleQuery->first();
         $user->assignRole($frontendRole);
 
         $this->actingAs($user, 'web');
@@ -39,7 +41,9 @@ final class ApiAuthenticationTest extends TestCase
         // Create admin user with role
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
+        $roleQuery = Role::where('name', 'admin');
+        $roleQuery->where('guard_name', 'backpack');
+        $adminRole = $roleQuery->first();
         $user->assignRole($adminRole);
 
         $this->actingAs($user, 'backpack');
@@ -61,12 +65,16 @@ final class ApiAuthenticationTest extends TestCase
         // Create users with different guards
         $userFactory = User::factory();
         $backpackUser = $userFactory->create();
-        $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
+        $roleQuery = Role::where('name', 'admin');
+        $roleQuery->where('guard_name', 'backpack');
+        $adminRole = $roleQuery->first();
         $backpackUser->assignRole($adminRole);
 
         $userFactory2 = User::factory();
         $webUser = $userFactory2->create();
-        $frontendRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
+        $roleQuery2 = Role::where('name', 'frontend_user');
+        $roleQuery2->where('guard_name', 'web');
+        $frontendRole = $roleQuery2->first();
         $webUser->assignRole($frontendRole);
 
         // Test cross-guard permissions are denied
@@ -89,10 +97,18 @@ final class ApiAuthenticationTest extends TestCase
     #[Test]
     public function role_permissions_are_correctly_assigned(): void
     {
-        $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
-        $backendUserRole = Role::where('name', 'backend_user')->where('guard_name', 'backpack')->first();
-        $frontendRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
-        $frontendPlusRole = Role::where('name', 'frontend_user_plus')->where('guard_name', 'web')->first();
+        $roleQuery = Role::where('name', 'admin');
+        $roleQuery->where('guard_name', 'backpack');
+        $adminRole = $roleQuery->first();
+        $roleQuery2 = Role::where('name', 'backend_user');
+        $roleQuery2->where('guard_name', 'backpack');
+        $backendUserRole = $roleQuery2->first();
+        $roleQuery3 = Role::where('name', 'frontend_user');
+        $roleQuery3->where('guard_name', 'web');
+        $frontendRole = $roleQuery3->first();
+        $roleQuery4 = Role::where('name', 'frontend_user_plus');
+        $roleQuery4->where('guard_name', 'web');
+        $frontendPlusRole = $roleQuery4->first();
 
         // Admin should have backpack permissions
         $this->assertTrue(

@@ -303,11 +303,12 @@ final class InvoiceRequestFeatureTest extends TestCase
             $this->errors($data),
         );
 
-        $cash = PaymentMethod::where(
+        $paymentMethodQuery = PaymentMethod::where(
             'slug',
             '!=',
             PaymentMethodCode::BANK_ACCOUNT->value,
-        )->firstOrFail();
+        );
+        $cash = $paymentMethodQuery->firstOrFail();
         $this->assertSame(
             [],
             $this->errors(['payment_method_id' => $cash->id] + $data),
@@ -317,7 +318,8 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function an_account_left_on_the_form_is_dropped_without_a_bank_transfer(): void
     {
-        $cash = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
+        $cash = $paymentMethodQuery->firstOrFail();
         [, $accountOfAnotherBusiness] = $this->issuerOf($this->user);
 
         $validator = $this->validator(
@@ -399,7 +401,8 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_an_expense_status(): void
     {
-        $data = ['payment_status_id' => Status::where('slug', 'paid-expense')->firstOrFail()->id] + $this->validInvoiceData;
+        $statusQuery = Status::where('slug', 'paid-expense');
+        $data = ['payment_status_id' => $statusQuery->firstOrFail()->id] + $this->validInvoiceData;
 
         $this->assertSame(
             ['payment_status_id'],

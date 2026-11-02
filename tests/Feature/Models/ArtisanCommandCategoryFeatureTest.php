@@ -218,12 +218,12 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
             ArtisanCommand::factory()->count(2)->create(['category_id' => $category->id]);
         }
 
-        $categoriesWithCommands = ArtisanCommandCategory::with('commands')
-            ->whereIn(
-                'id',
-                $categories->pluck('id'),
-            )
-            ->get();
+        $artisanCommandCategoryQuery = ArtisanCommandCategory::with('commands');
+        $artisanCommandCategoryQuery->whereIn(
+            'id',
+            $categories->pluck('id'),
+        );
+        $categoriesWithCommands = $artisanCommandCategoryQuery->get();
 
         $this->assertCount(2, $categoriesWithCommands);
 

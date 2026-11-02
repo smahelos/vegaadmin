@@ -254,8 +254,10 @@ final class BankAccountApplicationServiceTest extends TestCase
 
     private function ownerOf(Business|Contact $party): UserId
     {
+        $userQuery = User::query();
+
         return $this->idOf(
-            User::query()->findOrFail($party->user_id),
+            $userQuery->findOrFail($party->user_id),
         );
     }
 }

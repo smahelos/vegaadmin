@@ -21,9 +21,9 @@ class CronTaskRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-        $permission = Permission::where('name', 'can_create_edit_cron_task')
-            ->where('guard_name', 'backpack')
-            ->first();
+        $permissionQuery = Permission::where('name', 'can_create_edit_cron_task');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission = $permissionQuery->first();
 
         $this->regularUser->givePermissionTo($permission);
 

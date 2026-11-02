@@ -140,7 +140,8 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
         $this->assertStringContainsString('Dry run: Yes', $output);
 
         // Verify data is still there after dry run - count only our process-specific data
-        $processSpecificCount = PerformanceMetric::whereJsonContains('metadata->test_process', $this->processId)->count();
+        $performanceMetricQuery = PerformanceMetric::whereJsonContains('metadata->test_process', $this->processId);
+        $processSpecificCount = $performanceMetricQuery->count();
         $this->assertGreaterThan(0, $processSpecificCount);
     }
 

@@ -19,7 +19,8 @@ class PageServiceFeatureTest extends TestCase
         $this->pageService = app(PageServiceInterface::class);
 
         // The service reads the whole pages table; start without the seeded content pages
-        Page::query()->delete();
+        $pageQuery = Page::query();
+        $pageQuery->delete();
     }
 
     #[Test]

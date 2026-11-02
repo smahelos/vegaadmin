@@ -173,7 +173,8 @@ class BankRequestFeatureTest extends TestCase
     public function bank_creation_respects_limits(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'bank')->update(['limit_value' => 1]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'bank');
+        $entityLimitQuery->update(['limit_value' => 1]);
         $httpResponse = $this->postJson(
             '/test-bank',
             [
@@ -216,7 +217,8 @@ class BankRequestFeatureTest extends TestCase
     public function bank_update_bypasses_limits(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'bank')->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'bank');
+        $entityLimitQuery->update(['limit_value' => 0]);
         // Simulate that usage already at limit
         $this->limitService->recordUsage(
             $this->adminUser->id,

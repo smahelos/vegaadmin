@@ -205,8 +205,10 @@ class PerformanceMetricFeatureTest extends TestCase
         $performanceMetricFactory = PerformanceMetric::factory();
         $performanceMetricFactory->create(['query_type' => null]);
 
-        $selectMetrics = PerformanceMetric::where('query_type', 'SELECT')->get();
-        $insertMetrics = PerformanceMetric::where('query_type', 'INSERT')->get();
+        $performanceMetricQuery = PerformanceMetric::where('query_type', 'SELECT');
+        $selectMetrics = $performanceMetricQuery->get();
+        $performanceMetricQuery2 = PerformanceMetric::where('query_type', 'INSERT');
+        $insertMetrics = $performanceMetricQuery2->get();
 
         $this->assertCount(2, $selectMetrics);
         $this->assertCount(1, $insertMetrics);

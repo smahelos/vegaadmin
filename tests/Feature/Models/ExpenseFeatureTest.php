@@ -136,7 +136,8 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function belongs_to_payment_method_relationship(): void
     {
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $paymentMethod = $paymentMethodQuery->firstOrFail();
         $expenseFactory = Expense::factory();
         $expense = $expenseFactory->create(['payment_method_id' => $paymentMethod->id]);
 
