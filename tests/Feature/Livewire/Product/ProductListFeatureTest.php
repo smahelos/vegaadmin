@@ -101,8 +101,8 @@ class ProductListFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->set('search', 'Awesome');
+        $component = Livewire::test(ProductList::class);
+        $component->set('search', 'Awesome');
 
         $products = $component->viewData('products');
         $this->assertEquals(1, $products->count());
@@ -131,8 +131,8 @@ class ProductListFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->set('search', 'awesome');
+        $component = Livewire::test(ProductList::class);
+        $component->set('search', 'awesome');
 
         $products = $component->viewData('products');
         $this->assertEquals(1, $products->count());
@@ -155,8 +155,8 @@ class ProductListFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->set('status', 'active');
+        $component = Livewire::test(ProductList::class);
+        $component->set('status', 'active');
 
         $products = $component->viewData('products');
         $this->assertEquals(1, $products->count());
@@ -179,8 +179,8 @@ class ProductListFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->set('status', 'inactive');
+        $component = Livewire::test(ProductList::class);
+        $component->set('status', 'inactive');
 
         $products = $component->viewData('products');
         $this->assertEquals(1, $products->count());
@@ -196,9 +196,9 @@ class ProductListFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->set('orderBy', 'name')
-            ->set('orderAsc', true);
+        $component = Livewire::test(ProductList::class);
+        $component->set('orderBy', 'name');
+        $component->set('orderAsc', true);
 
         $component->call('sortBy', 'name');
 
@@ -215,9 +215,9 @@ class ProductListFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->set('orderBy', 'created_at')
-            ->set('orderAsc', false);
+        $component = Livewire::test(ProductList::class);
+        $component->set('orderBy', 'created_at');
+        $component->set('orderAsc', false);
 
         $component->call('sortBy', 'name');
 
@@ -234,8 +234,8 @@ class ProductListFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->call('sortBy', 'invoices');
+        $component = Livewire::test(ProductList::class);
+        $component->call('sortBy', 'invoices');
 
         $component->assertSet('orderBy', 'invoices');
         $component->assertSet('orderAsc', true);
@@ -253,11 +253,11 @@ class ProductListFeatureTest extends TestCase
         $productFactory = $productFactory->count(16);
         $productFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(ProductList::class)
-            ->call('gotoPage', 2)
-            ->assertSet('paginators.page', 2)
-            ->set('search', 'test')
-            ->assertSet('paginators.page', 1);
+        $component = Livewire::test(ProductList::class);
+        $component->call('gotoPage', 2);
+        $component->assertSet('paginators.page', 2);
+        $component->set('search', 'test');
+        $component->assertSet('paginators.page', 1);
     }
 
     #[Test]
@@ -268,11 +268,11 @@ class ProductListFeatureTest extends TestCase
         $productFactory = $productFactory->count(16);
         $productFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(ProductList::class)
-            ->call('gotoPage', 2)
-            ->assertSet('paginators.page', 2)
-            ->set('status', 'active')
-            ->assertSet('paginators.page', 1);
+        $component = Livewire::test(ProductList::class);
+        $component->call('gotoPage', 2);
+        $component->assertSet('paginators.page', 2);
+        $component->set('status', 'active');
+        $component->assertSet('paginators.page', 1);
     }
 
     #[Test]
@@ -283,14 +283,14 @@ class ProductListFeatureTest extends TestCase
         $productFactory = $productFactory->count(16);
         $productFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(ProductList::class)
-            ->set('search', 'test')
-            ->set('status', 'active')
-            ->call('gotoPage', 2)
-            ->call('resetFilters')
-            ->assertSet('search', '')
-            ->assertSet('status', '')
-            ->assertSet('paginators.page', 1);
+        $component = Livewire::test(ProductList::class);
+        $component->set('search', 'test');
+        $component->set('status', 'active');
+        $component->call('gotoPage', 2);
+        $component->call('resetFilters');
+        $component->assertSet('search', '');
+        $component->assertSet('status', '');
+        $component->assertSet('paginators.page', 1);
     }
 
     #[Test]
@@ -383,8 +383,8 @@ class ProductListFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->set('search', 'Matching');
+        $component = Livewire::test(ProductList::class);
+        $component->set('search', 'Matching');
 
         $products = $component->viewData('products');
         $this->assertEquals(1, $products->count());
@@ -396,12 +396,12 @@ class ProductListFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->set('search', 'test')
-            ->set('status', 'active')
-            ->set('orderBy', 'name')
-            ->set('orderAsc', true)
-            ->call('gotoPage', 2);
+        $component = Livewire::test(ProductList::class);
+        $component->set('search', 'test');
+        $component->set('status', 'active');
+        $component->set('orderBy', 'name');
+        $component->set('orderAsc', true);
+        $component->call('gotoPage', 2);
 
         $component->assertSet('search', 'test');
         $component->assertSet('status', 'active');
@@ -419,9 +419,9 @@ class ProductListFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductList::class)
-            ->set('search', '')
-            ->set('status', '');
+        $component = Livewire::test(ProductList::class);
+        $component->set('search', '');
+        $component->set('status', '');
 
         $products = $component->viewData('products');
         $this->assertEquals(2, $products->count());

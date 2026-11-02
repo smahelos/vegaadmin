@@ -77,7 +77,11 @@ final class SharedProductCatalogTest extends TestCase
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $user->id, 'name' => 'Visible shared product']);
         $productFactory->create(['name' => 'Other private product']);
-        Livewire::actingAs($user)->test(ProductList::class)
-            ->set('search', 'product')->assertSee($product->name)->assertDontSee('Other private product')->assertDontSee('supplier_id');
+        Livewire::actingAs($user);
+        $component = Livewire::test(ProductList::class);
+        $component->set('search', 'product');
+        $component->assertSee($product->name);
+        $component->assertDontSee('Other private product');
+        $component->assertDontSee('supplier_id');
     }
 }

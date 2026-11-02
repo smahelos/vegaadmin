@@ -36,19 +36,19 @@ final class BusinessFormTest extends TestCase
     #[Test]
     public function creates_a_business_with_its_address_and_first_account_as_the_default(): void
     {
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Acme s.r.o.')
-            ->set('party.registrationCountry', 'CZ')
-            ->set('party.companyNumber', self::VALID_COMPANY_NUMBER)
-            ->set('party.street', 'Hlavní 1')
-            ->set('party.city', 'Brno')
-            ->set('party.postalCode', '602 00')
-            ->set('party.country', 'CZ')
-            ->set('account.number', '2001234561')
-            ->set('account.bankCode', '2010')
-            ->call('save')
-            ->assertHasNoErrors()
-            ->assertRedirect();
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Acme s.r.o.');
+        $component->set('party.registrationCountry', 'CZ');
+        $component->set('party.companyNumber', self::VALID_COMPANY_NUMBER);
+        $component->set('party.street', 'Hlavní 1');
+        $component->set('party.city', 'Brno');
+        $component->set('party.postalCode', '602 00');
+        $component->set('party.country', 'CZ');
+        $component->set('account.number', '2001234561');
+        $component->set('account.bankCode', '2010');
+        $component->call('save');
+        $component->assertHasNoErrors();
+        $component->assertRedirect();
 
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
@@ -71,10 +71,10 @@ final class BusinessFormTest extends TestCase
     #[Test]
     public function a_business_needs_only_its_name(): void
     {
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Jen název')
-            ->call('save')
-            ->assertHasNoErrors();
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Jen název');
+        $component->call('save');
+        $component->assertHasNoErrors();
 
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
@@ -97,12 +97,12 @@ final class BusinessFormTest extends TestCase
     #[Test]
     public function refuses_a_czech_company_number_with_a_wrong_checksum(): void
     {
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Acme')
-            ->set('party.registrationCountry', 'CZ')
-            ->set('party.companyNumber', '27082441')
-            ->call('save')
-            ->assertHasErrors(['party.companyNumber']);
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Acme');
+        $component->set('party.registrationCountry', 'CZ');
+        $component->set('party.companyNumber', '27082441');
+        $component->call('save');
+        $component->assertHasErrors(['party.companyNumber']);
 
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
@@ -115,44 +115,44 @@ final class BusinessFormTest extends TestCase
     #[Test]
     public function a_company_number_needs_its_registration_country(): void
     {
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Acme')
-            ->set('party.country', '')
-            ->set('party.companyNumber', 'HRB 12345')
-            ->call('save')
-            ->assertHasErrors(['party.registrationCountry']);
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Acme');
+        $component->set('party.country', '');
+        $component->set('party.companyNumber', 'HRB 12345');
+        $component->call('save');
+        $component->assertHasErrors(['party.registrationCountry']);
     }
 
     #[Test]
     public function the_registration_country_follows_the_address_while_it_is_empty(): void
     {
-        Livewire::test(BusinessForm::class)
-            ->set('party.country', 'AT')
-            ->set('party.companyNumber', 'FN 12345a')
-            ->assertSet('party.registrationCountry', 'AT')
-            ->set('party.country', 'DE')
-            ->assertSet('party.registrationCountry', 'AT');
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.country', 'AT');
+        $component->set('party.companyNumber', 'FN 12345a');
+        $component->assertSet('party.registrationCountry', 'AT');
+        $component->set('party.country', 'DE');
+        $component->assertSet('party.registrationCountry', 'AT');
     }
 
     #[Test]
     public function an_address_part_needs_the_country(): void
     {
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Acme')
-            ->set('party.city', 'Brno')
-            ->set('party.country', '')
-            ->call('save')
-            ->assertHasErrors(['party.country']);
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Acme');
+        $component->set('party.city', 'Brno');
+        $component->set('party.country', '');
+        $component->call('save');
+        $component->assertHasErrors(['party.country']);
     }
 
     #[Test]
     public function refuses_an_incomplete_first_account(): void
     {
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Acme')
-            ->set('account.number', '2001234561')
-            ->call('save')
-            ->assertHasErrors(['account.number']);
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Acme');
+        $component->set('account.number', '2001234561');
+        $component->call('save');
+        $component->assertHasErrors(['account.number']);
 
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
@@ -172,17 +172,17 @@ final class BusinessFormTest extends TestCase
             ],
         );
 
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Kopie')
-            ->set('party.registrationCountry', 'CZ')
-            ->set('party.companyNumber', self::VALID_COMPANY_NUMBER)
-            ->call('save')
-            ->assertSet('blockingDuplicate.archived', true)
-            ->assertSet(
-                'blockingDuplicate.url',
-                route('frontend.businesses.show', ['business' => $existing->id]),
-            )
-            ->assertNoRedirect();
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Kopie');
+        $component->set('party.registrationCountry', 'CZ');
+        $component->set('party.companyNumber', self::VALID_COMPANY_NUMBER);
+        $component->call('save');
+        $component->assertSet('blockingDuplicate.archived', true);
+        $component->assertSet(
+            'blockingDuplicate.url',
+            route('frontend.businesses.show', ['business' => $existing->id]),
+        );
+        $component->assertNoRedirect();
 
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
@@ -201,11 +201,11 @@ final class BusinessFormTest extends TestCase
             'name' => 'Acme',
         ]);
 
-        $form = Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Acme')
-            ->call('save')
-            ->assertCount('duplicateWarnings', 1)
-            ->assertNoRedirect();
+        $form = Livewire::test(BusinessForm::class);
+        $form->set('party.name', 'Acme');
+        $form->call('save');
+        $form->assertCount('duplicateWarnings', 1);
+        $form->assertNoRedirect();
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
         $this->assertSame(
@@ -229,14 +229,14 @@ final class BusinessFormTest extends TestCase
         $businessFactory = Business::factory();
         $businessFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Druhá')
-            ->call('save')
-            ->assertSet(
-                'limitMessage',
-                __('businesses.messages.limit_exceeded'),
-            )
-            ->assertNoRedirect();
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Druhá');
+        $component->call('save');
+        $component->assertSet(
+            'limitMessage',
+            __('businesses.messages.limit_exceeded'),
+        );
+        $component->assertNoRedirect();
 
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
@@ -260,15 +260,15 @@ final class BusinessFormTest extends TestCase
         $addressFactory = Address::factory();
         $addressFactory->create(['business_id' => $business->id]);
 
-        Livewire::test(BusinessForm::class, ['businessId' => $business->id])
-            ->assertSet('party.email', 'old@example.test')
-            ->set('party.email', '')
-            ->set('party.phone', '')
-            ->set('party.street', '')
-            ->set('party.city', '')
-            ->set('party.postalCode', '')
-            ->call('save')
-            ->assertHasNoErrors();
+        $component = Livewire::test(BusinessForm::class, ['businessId' => $business->id]);
+        $component->assertSet('party.email', 'old@example.test');
+        $component->set('party.email', '');
+        $component->set('party.phone', '');
+        $component->set('party.street', '');
+        $component->set('party.city', '');
+        $component->set('party.postalCode', '');
+        $component->call('save');
+        $component->assertHasNoErrors();
 
         $business->refresh();
         $this->assertNull($business->email);
@@ -286,18 +286,18 @@ final class BusinessFormTest extends TestCase
     {
         Storage::fake('public');
 
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'S logem')
-            ->set(
-                'logo',
-                UploadedFile::fake()->image(
-                    'logo.png',
-                    200,
-                    100,
-                ),
-            )
-            ->call('save')
-            ->assertHasNoErrors();
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'S logem');
+        $component->set(
+            'logo',
+            UploadedFile::fake()->image(
+                'logo.png',
+                200,
+                100,
+            ),
+        );
+        $component->call('save');
+        $component->assertHasNoErrors();
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
         $business = $businessQuery->sole();
@@ -306,17 +306,17 @@ final class BusinessFormTest extends TestCase
         $disk = Storage::disk('public');
         $disk->assertExists($first);
 
-        Livewire::test(BusinessForm::class, ['businessId' => $business->id])
-            ->set(
-                'logo',
-                UploadedFile::fake()->image(
-                    'new.png',
-                    300,
-                    120,
-                ),
-            )
-            ->call('save')
-            ->assertHasNoErrors();
+        $component = Livewire::test(BusinessForm::class, ['businessId' => $business->id]);
+        $component->set(
+            'logo',
+            UploadedFile::fake()->image(
+                'new.png',
+                300,
+                120,
+            ),
+        );
+        $component->call('save');
+        $component->assertHasNoErrors();
         $second = $business->fresh()?->logo;
         $this->assertNotSame($first, $second);
         $disk->assertMissing($first);
@@ -327,18 +327,18 @@ final class BusinessFormTest extends TestCase
     {
         Storage::fake('public');
 
-        Livewire::test(BusinessForm::class)
-            ->set('party.name', 'Bez loga')
-            ->set(
-                'logo',
-                UploadedFile::fake()->create(
-                    'logo.pdf',
-                    10,
-                    'application/pdf',
-                ),
-            )
-            ->call('save')
-            ->assertHasErrors(['logo']);
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Bez loga');
+        $component->set(
+            'logo',
+            UploadedFile::fake()->create(
+                'logo.pdf',
+                10,
+                'application/pdf',
+            ),
+        );
+        $component->call('save');
+        $component->assertHasErrors(['logo']);
 
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
@@ -353,6 +353,7 @@ final class BusinessFormTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        Livewire::test(BusinessForm::class)->assertForbidden();
+        $component = Livewire::test(BusinessForm::class);
+        $component->assertForbidden();
     }
 }

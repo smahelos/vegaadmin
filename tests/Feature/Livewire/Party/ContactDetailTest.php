@@ -34,25 +34,26 @@ final class ContactDetailTest extends TestCase
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(ContactDetail::class, ['contactId' => $contact->id])
-            ->call('archive')
-            ->assertSet(
-                'successMessage',
-                __('contacts.messages.archived'),
-            );
+        $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
+        $component->call('archive');
+        $component->assertSet(
+            'successMessage',
+            __('contacts.messages.archived'),
+        );
         $this->assertNotNull($contact->fresh()?->archived_at);
 
         $replacement = $contactFactory->create(['user_id' => $this->user->id]);
-        Livewire::test(ContactDetail::class, ['contactId' => $contact->id])
-            ->call('restore')
-            ->assertSet(
-                'errorMessage',
-                __('contacts.messages.limit_exceeded'),
-            );
+        $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
+        $component->call('restore');
+        $component->assertSet(
+            'errorMessage',
+            __('contacts.messages.limit_exceeded'),
+        );
         $this->assertNotNull($contact->fresh()?->archived_at);
 
         $replacement->forceFill(['archived_at' => now()])->save();
-        Livewire::test(ContactDetail::class, ['contactId' => $contact->id])->call('restore');
+        $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
+        $component->call('restore');
         $this->assertNull($contact->fresh()?->archived_at);
     }
 
@@ -67,6 +68,7 @@ final class ContactDetailTest extends TestCase
             ],
         );
 
-        Livewire::test(ContactDetail::class, ['contactId' => $contact->id])->assertSee('Eva Malá');
+        $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
+        $component->assertSee('Eva Malá');
     }
 }

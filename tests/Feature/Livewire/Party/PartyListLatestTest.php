@@ -44,39 +44,41 @@ final class PartyListLatestTest extends TestCase
             );
         }
 
-        Livewire::actingAs($user)
-            ->withQueryParams(
-                [
-                    'page' => 2,
-                    'contactPage' => 2,
-                    'businessPage' => 2,
-                ],
-            )
-            ->test(PartyListLatest::class, ['partyType' => $kind])
-            ->assertSeeInOrder(
-                [
-                    'Party 6',
-                    'Party 5',
-                    'Party 4',
-                    'Party 3',
-                    'Party 2',
-                ],
-            )
-            ->assertDontSee('Party 1')->assertDontSee('Foreign party')->assertDontSee('Archived party')
-            ->assertSee(
-                __('general.actions.view_all'),
-            )
-            ->assertSee(
-                route(
-                    'frontend.' . ($kind === 'business' ? 'businesses' : 'contacts') . '.index',
-                    ['locale' => 'cs'],
-                ),
-                false,
-            )
-            ->assertDontSee(
-                'aria-label="' . __('general.pagination.navigation') . '"',
-                false,
-            );
+        Livewire::actingAs($user);
+        Livewire::withQueryParams(
+            [
+                'page' => 2,
+                'contactPage' => 2,
+                'businessPage' => 2,
+            ],
+        );
+        $component = Livewire::test(PartyListLatest::class, ['partyType' => $kind]);
+        $component->assertSeeInOrder(
+            [
+                'Party 6',
+                'Party 5',
+                'Party 4',
+                'Party 3',
+                'Party 2',
+            ],
+        );
+        $component->assertDontSee('Party 1');
+        $component->assertDontSee('Foreign party');
+        $component->assertDontSee('Archived party');
+        $component->assertSee(
+            __('general.actions.view_all'),
+        );
+        $component->assertSee(
+            route(
+                'frontend.' . ($kind === 'business' ? 'businesses' : 'contacts') . '.index',
+                ['locale' => 'cs'],
+            ),
+            false,
+        );
+        $component->assertDontSee(
+            'aria-label="' . __('general.pagination.navigation') . '"',
+            false,
+        );
 
     }
 
@@ -88,14 +90,15 @@ final class PartyListLatestTest extends TestCase
         $user = $this->frontendUser();
         $model::factory()->archived()->create(['user_id' => $user->id, 'name' => 'Archived only']);
 
-        Livewire::actingAs($user)->test(PartyListLatest::class, ['partyType' => $kind])
-            ->assertSee(
-                __('general.empty.no_results'),
-            )
-            ->assertSee(
-                __('general.actions.view_all'),
-            )
-            ->assertDontSee('Archived only');
+        Livewire::actingAs($user);
+        $component = Livewire::test(PartyListLatest::class, ['partyType' => $kind]);
+        $component->assertSee(
+            __('general.empty.no_results'),
+        );
+        $component->assertSee(
+            __('general.actions.view_all'),
+        );
+        $component->assertDontSee('Archived only');
     }
 
     #[Test]
@@ -121,8 +124,9 @@ final class PartyListLatestTest extends TestCase
             ],
         );
 
-        Livewire::actingAs($user)->test(PartyListLatest::class, ['partyType' => $kind])
-            ->assertSeeInOrder(['Zulu newer', 'Alpha older']);
+        Livewire::actingAs($user);
+        $component = Livewire::test(PartyListLatest::class, ['partyType' => $kind]);
+        $component->assertSeeInOrder(['Zulu newer', 'Alpha older']);
     }
 
     #[Test]
@@ -133,7 +137,10 @@ final class PartyListLatestTest extends TestCase
         $user = $userFactory->create();
         $model::factory()->create(['user_id' => $user->id]);
 
-        Livewire::test(PartyListLatest::class, ['partyType' => $kind])->assertForbidden();
-        Livewire::actingAs($user)->test(PartyListLatest::class, ['partyType' => $kind])->assertForbidden();
+        $component = Livewire::test(PartyListLatest::class, ['partyType' => $kind]);
+        $component->assertForbidden();
+        Livewire::actingAs($user);
+        $component = Livewire::test(PartyListLatest::class, ['partyType' => $kind]);
+        $component->assertForbidden();
     }
 }

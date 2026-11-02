@@ -34,9 +34,9 @@ final class BusinessDetailTest extends TestCase
         $other = $this->business();
         $this->makeDefault($default);
 
-        $detail = Livewire::test(BusinessDetail::class, ['businessId' => $default->id])
-            ->call('archive')
-            ->assertSet('choosingNewDefault', true);
+        $detail = Livewire::test(BusinessDetail::class, ['businessId' => $default->id]);
+        $detail->call('archive');
+        $detail->assertSet('choosingNewDefault', true);
         $this->assertNull($default->fresh()?->archived_at);
 
         $detail->set('newDefault', (string) $other->id)
@@ -52,7 +52,8 @@ final class BusinessDetailTest extends TestCase
         $only = $this->business();
         $this->makeDefault($only);
 
-        Livewire::test(BusinessDetail::class, ['businessId' => $only->id])->call('archive');
+        $component = Livewire::test(BusinessDetail::class, ['businessId' => $only->id]);
+        $component->call('archive');
 
         $this->assertNotNull($only->fresh()?->archived_at);
         $this->assertNull($this->user->fresh()?->default_business_id);
@@ -63,12 +64,12 @@ final class BusinessDetailTest extends TestCase
     {
         $archived = Business::factory()->archived()->create(['user_id' => $this->user->id]);
 
-        Livewire::test(BusinessDetail::class, ['businessId' => $archived->id])
-            ->call('restore')
-            ->assertSet(
-                'successMessage',
-                __('businesses.messages.restored'),
-            );
+        $component = Livewire::test(BusinessDetail::class, ['businessId' => $archived->id]);
+        $component->call('restore');
+        $component->assertSet(
+            'successMessage',
+            __('businesses.messages.restored'),
+        );
 
         $this->assertNull($archived->fresh()?->archived_at);
         $this->assertSame($archived->id, $this->user->fresh()?->default_business_id);
@@ -81,12 +82,12 @@ final class BusinessDetailTest extends TestCase
         $this->business();
         $archived = Business::factory()->archived()->create(['user_id' => $this->user->id]);
 
-        Livewire::test(BusinessDetail::class, ['businessId' => $archived->id])
-            ->call('restore')
-            ->assertSet(
-                'errorMessage',
-                __('businesses.messages.limit_exceeded'),
-            );
+        $component = Livewire::test(BusinessDetail::class, ['businessId' => $archived->id]);
+        $component->call('restore');
+        $component->assertSet(
+            'errorMessage',
+            __('businesses.messages.limit_exceeded'),
+        );
 
         $this->assertNotNull($archived->fresh()?->archived_at);
     }
@@ -98,7 +99,8 @@ final class BusinessDetailTest extends TestCase
         $other = $this->business();
         $this->makeDefault($default);
 
-        Livewire::test(BusinessDetail::class, ['businessId' => $other->id])->call('makeDefault');
+        $component = Livewire::test(BusinessDetail::class, ['businessId' => $other->id]);
+        $component->call('makeDefault');
 
         $this->assertSame($other->id, $this->user->fresh()?->default_business_id);
     }
@@ -110,9 +112,9 @@ final class BusinessDetailTest extends TestCase
         $this->user->removeRole('frontend_user');
         $this->user->givePermissionTo('frontend.can_view_business');
 
-        Livewire::test(BusinessDetail::class, ['businessId' => $business->id])
-            ->call('archive')
-            ->assertForbidden();
+        $component = Livewire::test(BusinessDetail::class, ['businessId' => $business->id]);
+        $component->call('archive');
+        $component->assertForbidden();
 
         $this->assertNull($business->fresh()?->archived_at);
     }

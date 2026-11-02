@@ -36,11 +36,11 @@ final class PaginatesTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        Livewire::test(ContactList::class)
-            ->assertSeeText('Zobrazeno')
-            ->assertSee('aria-label="Další"', false)
-            ->assertDontSeeText('Showing')
-            ->assertDontSeeText('results');
+        $component = Livewire::test(ContactList::class);
+        $component->assertSeeText('Zobrazeno');
+        $component->assertSee('aria-label="Další"', false);
+        $component->assertDontSeeText('Showing');
+        $component->assertDontSeeText('results');
     }
 
     #[Test]
@@ -48,12 +48,12 @@ final class PaginatesTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        Livewire::test(ContactList::class)
-            ->assertSee("wire:click=\"nextPage('page')\"", false)
-            ->assertDontSee('href="?page=', false)
-            ->call('nextPage')
-            ->assertSee('aria-current="page">2</span>', false)
-            ->assertSee('<span class="font-medium">11</span>', false);
+        $component = Livewire::test(ContactList::class);
+        $component->assertSee("wire:click=\"nextPage('page')\"", false);
+        $component->assertDontSee('href="?page=', false);
+        $component->call('nextPage');
+        $component->assertSee('aria-current="page">2</span>', false);
+        $component->assertSee('<span class="font-medium">11</span>', false);
     }
 
     #[Test]
@@ -61,9 +61,9 @@ final class PaginatesTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        Livewire::withQueryParams(['page' => 'abc'])
-            ->test(ContactList::class)
-            ->assertOk()
-            ->assertSee('aria-current="page">1</span>', false);
+        Livewire::withQueryParams(['page' => 'abc']);
+        $component = Livewire::test(ContactList::class);
+        $component->assertOk();
+        $component->assertSee('aria-current="page">1</span>', false);
     }
 }

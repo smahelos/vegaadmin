@@ -37,13 +37,13 @@ final class BankAccountsTest extends TestCase
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'contact', 'ownerId' => $contact->id])
-            ->call('add')
-            ->set('account.country', 'AT')
-            ->set('account.iban', 'AT61 1904 3002 3457 3201')
-            ->call('save')
-            ->assertHasNoErrors()
-            ->assertSet('editing', false);
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'contact', 'ownerId' => $contact->id]);
+        $component->call('add');
+        $component->set('account.country', 'AT');
+        $component->set('account.iban', 'AT61 1904 3002 3457 3201');
+        $component->call('save');
+        $component->assertHasNoErrors();
+        $component->assertSet('editing', false);
 
         $bankAccountQuery = BankAccount::query();
         $bankAccountQuery->where('contact_id', $contact->id);
@@ -58,11 +58,11 @@ final class BankAccountsTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->call('add')
-            ->set('account.iban', 'CZ0000000000000000000000')
-            ->call('save')
-            ->assertHasErrors(['account.iban']);
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $component->call('add');
+        $component->set('account.iban', 'CZ0000000000000000000000');
+        $component->call('save');
+        $component->assertHasErrors(['account.iban']);
 
         $bankAccountQuery = BankAccount::query();
         $bankAccountQuery->where('business_id', $business->id);
@@ -78,12 +78,12 @@ final class BankAccountsTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->call('add')
-            ->set('account.number', '2001234561')
-            ->set('account.bankCode', '9999')
-            ->call('save')
-            ->assertHasErrors(['account.bankCode']);
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $component->call('add');
+        $component->set('account.number', '2001234561');
+        $component->set('account.bankCode', '9999');
+        $component->call('save');
+        $component->assertHasErrors(['account.bankCode']);
     }
 
     #[Test]
@@ -103,9 +103,9 @@ final class BankAccountsTest extends TestCase
         );
         $business->forceFill(['default_bank_account_id' => $default->id])->save();
 
-        $accounts = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->call('archive', $default->id)
-            ->assertSet('archivingId', $default->id);
+        $accounts = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $accounts->call('archive', $default->id);
+        $accounts->assertSet('archivingId', $default->id);
         $this->assertNull($default->fresh()?->archived_at);
 
         $accounts->set('newDefault', (string) $other->id)->call('archive', $default->id);
@@ -123,8 +123,8 @@ final class BankAccountsTest extends TestCase
 
         $this->expectException(BankAccountNotFoundException::class);
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->call('edit', $foreign->id);
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $component->call('edit', $foreign->id);
     }
 
     #[Test]
@@ -135,12 +135,12 @@ final class BankAccountsTest extends TestCase
         $this->user->removeRole('frontend_user');
         $this->user->givePermissionTo('frontend.can_view_business');
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->assertDontSee(
-                __('parties.bank_accounts.actions.add'),
-            )
-            ->call('add')
-            ->assertForbidden();
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $component->assertDontSee(
+            __('parties.bank_accounts.actions.add'),
+        );
+        $component->call('add');
+        $component->assertForbidden();
     }
 
     /** @return iterable<string, array{string, string, string}> */

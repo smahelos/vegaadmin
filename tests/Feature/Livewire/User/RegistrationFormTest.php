@@ -30,18 +30,18 @@ final class RegistrationFormTest extends TestCase
         Event::fake([Registered::class]);
         $email = 'novak' . uniqid() . '@example.test';
 
-        Livewire::test(RegistrationForm::class)
-            ->set('name', 'Jan Novák')
-            ->set('email', $email)
-            ->set('password', 'secret-password')
-            ->set('passwordConfirmation', 'secret-password')
-            ->set('party.name', 'Novák Design s.r.o.')
-            ->set('party.email', 'faktury@example.test')
-            ->set('account.number', '2001234561')
-            ->set('account.bankCode', '2010')
-            ->call('save')
-            ->assertHasNoErrors()
-            ->assertRedirect();
+        $component = Livewire::test(RegistrationForm::class);
+        $component->set('name', 'Jan Novák');
+        $component->set('email', $email);
+        $component->set('password', 'secret-password');
+        $component->set('passwordConfirmation', 'secret-password');
+        $component->set('party.name', 'Novák Design s.r.o.');
+        $component->set('party.email', 'faktury@example.test');
+        $component->set('account.number', '2001234561');
+        $component->set('account.bankCode', '2010');
+        $component->call('save');
+        $component->assertHasNoErrors();
+        $component->assertRedirect();
 
         $userQuery = User::query();
         $userQuery->where('email', $email);
@@ -66,14 +66,14 @@ final class RegistrationFormTest extends TestCase
     #[Test]
     public function the_business_name_and_email_follow_the_login_until_typed_differently(): void
     {
-        Livewire::test(RegistrationForm::class)
-            ->set('name', 'Jan')
-            ->assertSet('party.name', 'Jan')
-            ->set('email', 'jan@example.test')
-            ->assertSet('party.email', 'jan@example.test')
-            ->set('party.name', 'Firma Jana')
-            ->set('name', 'Jan Novák')
-            ->assertSet('party.name', 'Firma Jana');
+        $component = Livewire::test(RegistrationForm::class);
+        $component->set('name', 'Jan');
+        $component->assertSet('party.name', 'Jan');
+        $component->set('email', 'jan@example.test');
+        $component->assertSet('party.email', 'jan@example.test');
+        $component->set('party.name', 'Firma Jana');
+        $component->set('name', 'Jan Novák');
+        $component->assertSet('party.name', 'Firma Jana');
     }
 
     #[Test]
@@ -81,14 +81,14 @@ final class RegistrationFormTest extends TestCase
     {
         $email = 'invalid' . uniqid() . '@example.test';
 
-        Livewire::test(RegistrationForm::class)
-            ->set('name', 'Jan')
-            ->set('email', $email)
-            ->set('password', 'secret-password')
-            ->set('passwordConfirmation', 'other-password')
-            ->set('party.name', 'Firma')
-            ->call('save')
-            ->assertHasErrors(['password']);
+        $component = Livewire::test(RegistrationForm::class);
+        $component->set('name', 'Jan');
+        $component->set('email', $email);
+        $component->set('password', 'secret-password');
+        $component->set('passwordConfirmation', 'other-password');
+        $component->set('party.name', 'Firma');
+        $component->call('save');
+        $component->assertHasErrors(['password']);
 
         $userQuery = User::query();
         $userQuery->where('email', $email);
@@ -120,19 +120,19 @@ final class RegistrationFormTest extends TestCase
             ],
         );
 
-        Livewire::test(RegistrationForm::class)
-            ->set('party.companyNumber', '27082440')
-            ->call('lookUpCompany')
-            ->assertHasNoErrors()
-            ->assertSet('party.name', 'Alza.cz a.s.')
-            ->assertSet('party.street', 'Jankovcova 1522/53')
-            ->assertSet('party.city', 'Praha')
-            ->assertSet('party.postalCode', '17000')
-            ->assertSet('party.vatNumber', '')
-            ->assertSet(
-                'registerMessage',
-                __('parties.messages.register_filled'),
-            );
+        $component = Livewire::test(RegistrationForm::class);
+        $component->set('party.companyNumber', '27082440');
+        $component->call('lookUpCompany');
+        $component->assertHasNoErrors();
+        $component->assertSet('party.name', 'Alza.cz a.s.');
+        $component->assertSet('party.street', 'Jankovcova 1522/53');
+        $component->assertSet('party.city', 'Praha');
+        $component->assertSet('party.postalCode', '17000');
+        $component->assertSet('party.vatNumber', '');
+        $component->assertSet(
+            'registerMessage',
+            __('parties.messages.register_filled'),
+        );
     }
 
     #[Test]
@@ -150,13 +150,13 @@ final class RegistrationFormTest extends TestCase
             ],
         );
 
-        Livewire::test(RegistrationForm::class)
-            ->set('party.companyNumber', '45317054')
-            ->call('lookUpCompany')
-            ->assertSet('party.vatNumber', 'CZ699001182')
-            ->set('party.companyNumber', '27082440')
-            ->call('lookUpCompany')
-            ->assertHasNoErrors()
-            ->assertSet('party.vatNumber', '');
+        $component = Livewire::test(RegistrationForm::class);
+        $component->set('party.companyNumber', '45317054');
+        $component->call('lookUpCompany');
+        $component->assertSet('party.vatNumber', 'CZ699001182');
+        $component->set('party.companyNumber', '27082440');
+        $component->call('lookUpCompany');
+        $component->assertHasNoErrors();
+        $component->assertSet('party.vatNumber', '');
     }
 }

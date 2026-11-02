@@ -114,8 +114,8 @@ class ProductListSelectFeatureTest extends TestCase
             ],
         );
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('search', 'Test');
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('search', 'Test');
 
         $products = $component->viewData('products');
 
@@ -146,8 +146,8 @@ class ProductListSelectFeatureTest extends TestCase
             ],
         );
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('search', 'test');
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('search', 'test');
 
         $products = $component->viewData('products');
         $this->assertTrue(
@@ -193,8 +193,8 @@ class ProductListSelectFeatureTest extends TestCase
         $productFactory = $productFactory->count(16);
         $productFactory->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('search', 'test');
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('search', 'test');
 
         // Navigate to page 2
         $component->call('gotoPage', 2);
@@ -227,8 +227,8 @@ class ProductListSelectFeatureTest extends TestCase
         $productFactory = $productFactory->count(15);
         $productFactory->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('perPage', 5);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('perPage', 5);
 
         // Check component state
         $this->assertEquals(
@@ -247,9 +247,9 @@ class ProductListSelectFeatureTest extends TestCase
     #[Test]
     public function sort_by_toggles_direction_for_same_field(): void
     {
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('orderBy', 'name')
-            ->set('orderAsc', true);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('orderBy', 'name');
+        $component->set('orderAsc', true);
 
         $component->call('sortBy', 'name');
 
@@ -265,9 +265,9 @@ class ProductListSelectFeatureTest extends TestCase
     #[Test]
     public function sort_by_sets_ascending_for_different_field(): void
     {
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('orderBy', 'name')
-            ->set('orderAsc', false);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('orderBy', 'name');
+        $component->set('orderAsc', false);
 
         $component->call('sortBy', 'price');
 
@@ -290,9 +290,9 @@ class ProductListSelectFeatureTest extends TestCase
             'name' => 'A Product',
         ]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('orderBy', 'name')
-            ->set('orderAsc', true);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('orderBy', 'name');
+        $component->set('orderAsc', true);
 
         $products = $component->viewData('products');
         $productIds = $products->pluck('id')->toArray();
@@ -311,8 +311,8 @@ class ProductListSelectFeatureTest extends TestCase
         $product2 = $productFactory->create(['user_id' => $this->user->id]);
         $product3 = $productFactory->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('selectedProductIds', [$product1->id, $product2->id]);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('selectedProductIds', [$product1->id, $product2->id]);
 
         $products = $component->viewData('products');
 
@@ -420,8 +420,8 @@ class ProductListSelectFeatureTest extends TestCase
             'tax_id' => $tax->id,
         ]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->call('selectProduct', $product->id);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->call('selectProduct', $product->id);
 
         // Check that events were dispatched (indicates success)
         $component->assertDispatched('product-selected');
@@ -436,8 +436,8 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->call('selectProduct', 999999);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->call('selectProduct', 999999);
 
         // Check that events were NOT dispatched (indicates failure)
         $component->assertNotDispatched('product-selected');
@@ -592,14 +592,14 @@ class ProductListSelectFeatureTest extends TestCase
         $productFactory = Product::factory();
         $foreign = $productFactory->create(['user_id' => User::factory()->create()->id]);
 
-        Livewire::test(ProductListSelect::class)
-            ->call('selectProduct', $foreign->id)
-            ->assertNotDispatched('product-selected')
-            ->assertNotDispatched('closeModal')
-            ->assertSet(
-                'errorMessage',
-                __('products.messages.not_found'),
-            );
+        $component = Livewire::test(ProductListSelect::class);
+        $component->call('selectProduct', $foreign->id);
+        $component->assertNotDispatched('product-selected');
+        $component->assertNotDispatched('closeModal');
+        $component->assertSet(
+            'errorMessage',
+            __('products.messages.not_found'),
+        );
     }
 
     #[Test]
@@ -619,8 +619,8 @@ class ProductListSelectFeatureTest extends TestCase
             ],
         );
 
-        Livewire::test(ProductListSelect::class)
-            ->assertSee('Own Product')
-            ->assertDontSee('Foreign Product');
+        $component = Livewire::test(ProductListSelect::class);
+        $component->assertSee('Own Product');
+        $component->assertDontSee('Foreign Product');
     }
 }

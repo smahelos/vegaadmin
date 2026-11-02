@@ -41,10 +41,10 @@ final class PartyListTest extends TestCase
         Contact::factory()->archived()->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
         $contactFactory->create(['name' => 'Someone Else']);
 
-        Livewire::test(ContactList::class)
-            ->assertSee('Active Mine')
-            ->assertDontSee('Archived Mine')
-            ->assertDontSee('Someone Else');
+        $component = Livewire::test(ContactList::class);
+        $component->assertSee('Active Mine');
+        $component->assertDontSee('Archived Mine');
+        $component->assertDontSee('Someone Else');
     }
 
     #[Test]
@@ -54,10 +54,10 @@ final class PartyListTest extends TestCase
         $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
         Contact::factory()->archived()->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
 
-        Livewire::test(ContactList::class)
-            ->call('showArchived', true)
-            ->assertSee('Archived Mine')
-            ->assertDontSee('Active Mine');
+        $component = Livewire::test(ContactList::class);
+        $component->call('showArchived', true);
+        $component->assertSee('Archived Mine');
+        $component->assertDontSee('Active Mine');
     }
 
     #[Test]
@@ -79,13 +79,13 @@ final class PartyListTest extends TestCase
             ],
         );
 
-        Livewire::test(ContactList::class)
-            ->set('search', 'NAK')
-            ->assertSee('Nakladatelství')
-            ->assertDontSee('Tiskárna')
-            ->set('search', 'tisk@')
-            ->assertSee('Tiskárna')
-            ->assertDontSee('Nakladatelství');
+        $component = Livewire::test(ContactList::class);
+        $component->set('search', 'NAK');
+        $component->assertSee('Nakladatelství');
+        $component->assertDontSee('Tiskárna');
+        $component->set('search', 'tisk@');
+        $component->assertSee('Tiskárna');
+        $component->assertDontSee('Nakladatelství');
     }
 
     #[Test]
@@ -94,9 +94,9 @@ final class PartyListTest extends TestCase
         $contactFactory = Contact::factory();
         $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Plain Name']);
 
-        Livewire::test(ContactList::class)
-            ->set('search', '%')
-            ->assertDontSee('Plain Name');
+        $component = Livewire::test(ContactList::class);
+        $component->set('search', '%');
+        $component->assertDontSee('Plain Name');
     }
 
     #[Test]
@@ -106,10 +106,10 @@ final class PartyListTest extends TestCase
         $business = $businessFactory->create(['user_id' => $this->user->id, 'name' => 'Default One']);
         $this->user->forceFill(['default_business_id' => $business->id])->save();
 
-        Livewire::test(BusinessList::class)
-            ->assertSeeInOrder(
-                ['Default One', __('businesses.fields.default')],
-            );
+        $component = Livewire::test(BusinessList::class);
+        $component->assertSeeInOrder(
+            ['Default One', __('businesses.fields.default')],
+        );
     }
 
     #[Test]
@@ -117,8 +117,10 @@ final class PartyListTest extends TestCase
     {
         $this->actingAs(User::factory()->create());
 
-        Livewire::test(ContactList::class)->assertForbidden();
-        Livewire::test(BusinessList::class)->assertForbidden();
+        $component = Livewire::test(ContactList::class);
+        $component->assertForbidden();
+        $component = Livewire::test(BusinessList::class);
+        $component->assertForbidden();
     }
 
     #[Test]
@@ -133,17 +135,21 @@ final class PartyListTest extends TestCase
             );
         }
 
-        Livewire::test(ContactList::class)
-            ->assertSee('Contact 01')->assertDontSee('Contact 11')
-            ->assertSee(
-                'aria-label="' . __('general.pagination.navigation') . '"',
-                false,
-            )
-            ->call('setPage', 2)->assertSee('Contact 11')->assertDontSee('Contact 01')
-            ->set('search', 'Contact 01')->assertSee('Contact 01')
-            ->assertViewHas(
-                'contacts',
-                fn ($contacts): bool => $contacts->currentPage() === 1 && $contacts->total() === 1,
-            );
+        $component = Livewire::test(ContactList::class);
+        $component->assertSee('Contact 01');
+        $component->assertDontSee('Contact 11');
+        $component->assertSee(
+            'aria-label="' . __('general.pagination.navigation') . '"',
+            false,
+        );
+        $component->call('setPage', 2);
+        $component->assertSee('Contact 11');
+        $component->assertDontSee('Contact 01');
+        $component->set('search', 'Contact 01');
+        $component->assertSee('Contact 01');
+        $component->assertViewHas(
+            'contacts',
+            fn ($contacts): bool => $contacts->currentPage() === 1 && $contacts->total() === 1,
+        );
     }
 }

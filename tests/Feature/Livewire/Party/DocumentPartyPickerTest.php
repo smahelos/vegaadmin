@@ -35,14 +35,14 @@ final class DocumentPartyPickerTest extends TestCase
     {
         $business = $this->businessWithAddress(['name' => 'Moje firma s.r.o.']);
 
-        Livewire::actingAs($this->user)
-            ->test(DocumentPartyPicker::class, ['businessId' => $business->id])
-            ->assertSet('businessId', $business->id)
-            ->assertSee('Moje firma s.r.o.')
-            ->assertSee('Brno')
-            ->assertDontSee(
-                __('parties.validation.business_address_incomplete'),
-            );
+        Livewire::actingAs($this->user);
+        $component = Livewire::test(DocumentPartyPicker::class, ['businessId' => $business->id]);
+        $component->assertSet('businessId', $business->id);
+        $component->assertSee('Moje firma s.r.o.');
+        $component->assertSee('Brno');
+        $component->assertDontSee(
+            __('parties.validation.business_address_incomplete'),
+        );
     }
 
     #[Test]
@@ -51,11 +51,11 @@ final class DocumentPartyPickerTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::actingAs($this->user)
-            ->test(DocumentPartyPicker::class, ['businessId' => $business->id])
-            ->assertSee(
-                __('parties.validation.business_address_incomplete'),
-            );
+        Livewire::actingAs($this->user);
+        $component = Livewire::test(DocumentPartyPicker::class, ['businessId' => $business->id]);
+        $component->assertSee(
+            __('parties.validation.business_address_incomplete'),
+        );
     }
 
     #[Test]
@@ -71,18 +71,18 @@ final class DocumentPartyPickerTest extends TestCase
             ],
         );
 
-        Livewire::actingAs($this->user)
-            ->test(DocumentPartyPicker::class, ['invoiceId' => $invoice->id])
-            ->assertSee('Uložený název')
-            ->assertSee(
-                __('invoices.messages.business_changed'),
-            )
-            ->call('reloadBusinessData')
-            ->assertSet('reloadBusiness', true)
-            ->assertDontSee('Uložený název')
-            ->assertSee(
-                __('invoices.messages.business_reloaded'),
-            );
+        Livewire::actingAs($this->user);
+        $component = Livewire::test(DocumentPartyPicker::class, ['invoiceId' => $invoice->id]);
+        $component->assertSee('Uložený název');
+        $component->assertSee(
+            __('invoices.messages.business_changed'),
+        );
+        $component->call('reloadBusinessData');
+        $component->assertSet('reloadBusiness', true);
+        $component->assertDontSee('Uložený název');
+        $component->assertSee(
+            __('invoices.messages.business_reloaded'),
+        );
     }
 
     #[Test]
@@ -110,14 +110,14 @@ final class DocumentPartyPickerTest extends TestCase
             ],
         );
 
-        Livewire::actingAs($this->user)
-            ->test(DocumentPartyPicker::class, ['businessId' => $business->id])
-            ->set('bankAccountId', $account->id)
-            ->assertSee('1234567899/0100')
-            ->assertSee('CZ95 0100 0000 0012 3456 7899')
-            ->assertSee('KOMBCZPP')
-            ->assertSee('Komerční banka')
-            ->assertDontSee('Fio banka');
+        Livewire::actingAs($this->user);
+        $component = Livewire::test(DocumentPartyPicker::class, ['businessId' => $business->id]);
+        $component->set('bankAccountId', $account->id);
+        $component->assertSee('1234567899/0100');
+        $component->assertSee('CZ95 0100 0000 0012 3456 7899');
+        $component->assertSee('KOMBCZPP');
+        $component->assertSee('Komerční banka');
+        $component->assertDontSee('Fio banka');
     }
 
     #[Test]
@@ -142,12 +142,12 @@ final class DocumentPartyPickerTest extends TestCase
             ],
         );
 
-        Livewire::actingAs($this->user)
-            ->test(DocumentPartyPicker::class, ['invoiceId' => $invoice->id])
-            ->assertSee('Uložená banka')
-            ->call('reloadBusinessData')
-            ->assertDontSee('Uložená banka')
-            ->assertSee('Aktuální banka');
+        Livewire::actingAs($this->user);
+        $component = Livewire::test(DocumentPartyPicker::class, ['invoiceId' => $invoice->id]);
+        $component->assertSee('Uložená banka');
+        $component->call('reloadBusinessData');
+        $component->assertDontSee('Uložená banka');
+        $component->assertSee('Aktuální banka');
     }
 
     #[Test]
@@ -161,13 +161,13 @@ final class DocumentPartyPickerTest extends TestCase
             ],
         );
 
-        Livewire::actingAs($this->user)
-            ->test(DocumentPartyPicker::class)
-            ->call('selectContact', $contact->id)
-            ->assertHasNoErrors()
-            ->assertSet('contactId', $contact->id)
-            ->assertSet('customer.name', 'Odběratel s.r.o.')
-            ->assertSet('customer.companyNumber', $contact->company_number);
+        Livewire::actingAs($this->user);
+        $component = Livewire::test(DocumentPartyPicker::class);
+        $component->call('selectContact', $contact->id);
+        $component->assertHasNoErrors();
+        $component->assertSet('contactId', $contact->id);
+        $component->assertSet('customer.name', 'Odběratel s.r.o.');
+        $component->assertSet('customer.companyNumber', $contact->company_number);
     }
 
     #[Test]
@@ -175,11 +175,11 @@ final class DocumentPartyPickerTest extends TestCase
     {
         $contact = Contact::factory()->archived()->create(['user_id' => $this->user->id]);
 
-        Livewire::actingAs($this->user)
-            ->test(DocumentPartyPicker::class)
-            ->call('selectContact', $contact->id)
-            ->assertHasErrors('contactId')
-            ->assertSet('contactId', null);
+        Livewire::actingAs($this->user);
+        $component = Livewire::test(DocumentPartyPicker::class);
+        $component->call('selectContact', $contact->id);
+        $component->assertHasErrors('contactId');
+        $component->assertSet('contactId', null);
     }
 
     #[Test]
@@ -194,24 +194,24 @@ final class DocumentPartyPickerTest extends TestCase
         );
         $contactFactory->create(['name' => 'Hledaný cizí']);
 
-        Livewire::actingAs($this->user)
-            ->test(DocumentPartyPicker::class)
-            ->set('contactQuery', 'Hledaný')
-            ->assertSee('Hledaný vlastní')
-            ->assertDontSee('Hledaný cizí');
+        Livewire::actingAs($this->user);
+        $component = Livewire::test(DocumentPartyPicker::class);
+        $component->set('contactQuery', 'Hledaný');
+        $component->assertSee('Hledaný vlastní');
+        $component->assertDontSee('Hledaný cizí');
     }
 
     #[Test]
     public function a_guest_enters_the_supplier_and_its_account(): void
     {
-        Livewire::test(DocumentPartyPicker::class, ['guest' => true])
-            ->assertOk()
-            ->assertSee(
-                __('invoices.sections.payment_info'),
-            )
-            ->assertDontSee(
-                __('invoices.placeholders.select_business'),
-            );
+        $component = Livewire::test(DocumentPartyPicker::class, ['guest' => true]);
+        $component->assertOk();
+        $component->assertSee(
+            __('invoices.sections.payment_info'),
+        );
+        $component->assertDontSee(
+            __('invoices.placeholders.select_business'),
+        );
     }
 
     /**
