@@ -46,20 +46,17 @@ final class InvoiceItemsControllerTest extends TestCase
                 'is_active' => true,
             ],
         );
-        $productFactory2 = Product::factory();
-        $productFactory2->create(
+        $productFactory->create(
             ['name' => 'Shared consulting foreign owner', 'currency' => 'CZK'],
         );
-        $productFactory3 = Product::factory();
-        $productFactory3->create(
+        $productFactory->create(
             [
                 'user_id' => $this->regularUser->id,
                 'name' => 'Shared EUR',
                 'currency' => 'EUR',
             ],
         );
-        $productFactory4 = Product::factory();
-        $productFactory4->create(
+        $productFactory->create(
             [
                 'user_id' => $this->regularUser->id,
                 'name' => 'Shared inactive',
@@ -74,11 +71,11 @@ final class InvoiceItemsControllerTest extends TestCase
         $httpResponse = $httpResponse->assertJsonCount(1, 'data');
         $httpResponse = $httpResponse->assertJsonPath('data.0.product_id', $product->id);
         $httpResponse->assertJsonPath('data.0.price', '123.45');
-        $httpResponse2 = $this->getJson(
+        $httpResponse = $this->getJson(
             $this->catalogUrl('No match'),
         );
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2->assertJsonCount(0, 'data');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertJsonCount(0, 'data');
     }
 
     #[Test]
@@ -120,9 +117,9 @@ final class InvoiceItemsControllerTest extends TestCase
                 'invoice-products' => json_encode([$line, $line]),
             ],
         );
-        $httpResponse2 = $this->post('/admin/invoice', $data);
-        $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
-        $httpResponse2->assertRedirect();
+        $httpResponse = $this->post('/admin/invoice', $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
         $invoice = $invoiceQuery->sole();
         $this->assertEquals(
@@ -198,16 +195,16 @@ final class InvoiceItemsControllerTest extends TestCase
         );
         $this->assertSame('100.00', $product->fresh()->price);
         $data['invoice-products'] = [$this->invoiceItem(['price' => '45.67', 'quantity' => '3'])];
-        $httpResponse2 = $this->put('/admin/invoice/' . $invoice->id, $data);
-        $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
-        $httpResponse2->assertRedirect();
+        $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertSame('137.01', $invoice->fresh()->payment_amount);
         $this->assertSame(1, $invoice->invoiceProducts()->count());
         $data['invoice-products'] = [];
         $data['payment_amount'] = '88.88';
-        $httpResponse3 = $this->put('/admin/invoice/' . $invoice->id, $data);
-        $httpResponse3 = $httpResponse3->assertSessionHasNoErrors();
-        $httpResponse3->assertRedirect();
+        $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertSame(0, $invoice->invoiceProducts()->count());
         $this->assertSame('88.88', $invoice->fresh()->payment_amount);
     }
@@ -326,9 +323,9 @@ final class InvoiceItemsControllerTest extends TestCase
         );
         $httpResponse = $this->post('/admin/invoice', $data);
         $httpResponse->assertSessionHasErrors('invoice-products.0.product_id');
-        $httpResponse2 = $this->postJson('/admin/invoice-items/preview', $data);
-        $httpResponse2 = $httpResponse2->assertUnprocessable();
-        $httpResponse2->assertJsonValidationErrors('invoice-products.0.product_id');
+        $httpResponse = $this->postJson('/admin/invoice-items/preview', $data);
+        $httpResponse = $httpResponse->assertUnprocessable();
+        $httpResponse->assertJsonValidationErrors('invoice-products.0.product_id');
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
 
@@ -372,13 +369,14 @@ final class InvoiceItemsControllerTest extends TestCase
         $this->actingAs($this->regularUser, 'backpack');
         $httpResponse = $this->getJson($this->catalogUrl());
         $httpResponse->assertForbidden();
-        $httpResponse2 = $this->postJson('/admin/invoice-items/preview', []);
-        $httpResponse2->assertForbidden();
-        auth('backpack')->logout();
-        $httpResponse3 = $this->getJson($this->catalogUrl());
-        $httpResponse3->assertUnauthorized();
-        $httpResponse4 = $this->postJson('/admin/invoice-items/preview', []);
-        $httpResponse4->assertUnauthorized();
+        $httpResponse = $this->postJson('/admin/invoice-items/preview', []);
+        $httpResponse->assertForbidden();
+        $auth = auth('backpack');
+        $auth->logout();
+        $httpResponse = $this->getJson($this->catalogUrl());
+        $httpResponse->assertUnauthorized();
+        $httpResponse = $this->postJson('/admin/invoice-items/preview', []);
+        $httpResponse->assertUnauthorized();
     }
 
     private function catalogUrl(string $search = ''): string

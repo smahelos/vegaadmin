@@ -59,8 +59,7 @@ class SubscriptionPlanFeatureTest extends TestCase
         $plan = $subscriptionPlanFactory->create();
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $feature1 = $subscriptionPlanFeatureFactory->create(['name' => 'Feature 1']);
-        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
-        $feature2 = $subscriptionPlanFeatureFactory2->create(['name' => 'Feature 2']);
+        $feature2 = $subscriptionPlanFeatureFactory->create(['name' => 'Feature 2']);
 
         // Attach features to plan
         $plan->features()->attach([$feature1->id, $feature2->id]);
@@ -95,8 +94,7 @@ class SubscriptionPlanFeatureTest extends TestCase
 
         $subscriptionPlanFactory = SubscriptionPlan::factory();
         $subscriptionPlanFactory->create(['is_active' => true]);
-        $subscriptionPlanFactory2 = SubscriptionPlan::factory();
-        $subscriptionPlanFactory2->create(['is_active' => false]);
+        $subscriptionPlanFactory->create(['is_active' => false]);
 
         $activePlans = SubscriptionPlan::active()->get();
 

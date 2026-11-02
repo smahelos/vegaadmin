@@ -7,6 +7,7 @@ use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\Contracts\UserServiceInterface;
 use App\Domain\User\DTO\UserDTO;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Log;
@@ -188,7 +189,8 @@ class UserControllerFeatureTest extends TestCase
         $response->assertStatus(200);
         $users = $response->json();
         $this->assertIsArray($users);
-        $ids = collect($users)->pluck('id');
+        $collection = collect($users);
+        $ids = $collection->pluck('id');
         $this->assertTrue(
             $ids->contains($this->testUser1->id),
         );
@@ -230,7 +232,9 @@ class UserControllerFeatureTest extends TestCase
         $response = $this->getJson('/api/admin/user/search?q=Test+User');
         $response->assertStatus(200);
         $payload = $response->json();
-        $names = collect($payload['data'])->pluck('name')->toArray();
+        $collection = collect($payload['data']);
+        $values = $collection->pluck('name');
+        $names = $values->toArray();
         $this->assertContains('Test User One', $names);
         $this->assertContains('Test User Two', $names);
         $this->assertNotContains('Another Name', $names);
@@ -253,7 +257,9 @@ class UserControllerFeatureTest extends TestCase
         $response = $this->getJson('/api/admin/user/search?q=test+user');
         $response->assertStatus(200);
         $payload = $response->json();
-        $names = collect($payload['data'])->pluck('name')->toArray();
+        $collection = collect($payload['data']);
+        $values = $collection->pluck('name');
+        $names = $values->toArray();
         $this->assertContains('Test User One', $names);
         $this->assertContains('Test User Two', $names);
     }
@@ -281,9 +287,9 @@ class UserControllerFeatureTest extends TestCase
         $httpResponse = $this->getJson('/api/admin/user/search?q=Paginated');
         $httpResponse = $httpResponse->assertOk();
         $first = $httpResponse->json();
-        $httpResponse2 = $this->getJson('/api/admin/user/search?q=Paginated&page=2');
-        $httpResponse2 = $httpResponse2->assertOk();
-        $second = $httpResponse2->json();
+        $httpResponse = $this->getJson('/api/admin/user/search?q=Paginated&page=2');
+        $httpResponse = $httpResponse->assertOk();
+        $second = $httpResponse->json();
 
         $this->assertSame(2, $second['current_page']);
         $this->assertNotEmpty($second['data']);
@@ -362,9 +368,9 @@ class UserControllerFeatureTest extends TestCase
         $this->assertGreaterThan(0, $userCountBefore);
 
         // Test 4: Valid ID still works normally
-        $httpClient2 = $this->actingAs($this->backendAdminUser, 'backpack');
-        $httpClient2 = $httpClient2->withoutMiddleware();
-        $response = $httpClient2->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(200);
         $data = $response->json();
@@ -377,9 +383,11 @@ class UserControllerFeatureTest extends TestCase
         $this->actingAs($this->backendAdminUser, 'backpack');
         $response = $this->getJson('/api/admin/user/search?q=%C5%A0p%C3%AB%C4%8Di%C3%A1l');
         $response->assertStatus(200);
-        $names = collect(
+        $collection = collect(
             $response->json('data'),
-        )->pluck('name')->toArray();
+        );
+        $values = $collection->pluck('name');
+        $names = $values->toArray();
         $this->assertContains('User with Špëčiál Ćháräçtërs', $names);
     }
 
@@ -482,20 +490,20 @@ class UserControllerFeatureTest extends TestCase
         $assertionResponse->assertJsonStructure(['error']);
 
         // Test 403 error format
-        $httpClient2 = $this->actingAs($this->unauthorizedAdmin, 'backpack');
-        $httpClient2 = $httpClient2->withoutMiddleware();
-        $response = $httpClient2->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->unauthorizedAdmin, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $assertionResponse2 = $response->assertStatus(403);
-        $assertionResponse2->assertJsonStructure(['error']);
+        $assertionResponse = $response->assertStatus(403);
+        $assertionResponse->assertJsonStructure(['error']);
 
         // Test 404 error format
-        $httpClient3 = $this->actingAs($this->backendAdminUser, 'backpack');
-        $httpClient3 = $httpClient3->withoutMiddleware();
-        $response = $httpClient3->getJson('/api/admin/user/99999');
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson('/api/admin/user/99999');
 
-        $assertionResponse3 = $response->assertStatus(404);
-        $assertionResponse3->assertJsonStructure(['error']);
+        $assertionResponse = $response->assertStatus(404);
+        $assertionResponse->assertJsonStructure(['error']);
     }
 
     #[Test]
@@ -547,13 +555,14 @@ class InMemoryUserServiceStub implements UserServiceInterface
         }
         // Add special char user & paginated dataset
         $specialId = 555555;
+        $now = CarbonImmutable::now();
         $this->users[$specialId] = [
             'id' => $specialId,
             'name' => 'User with Špëčiál Ćháräçtërs',
             'email' => 'special@example.com',
             'email_verified_at' => null,
-            'created_at' => now()->toISOString(),
-            'updated_at' => now()->toISOString(),
+            'created_at' => $now->toISOString(),
+            'updated_at' => $now->toISOString(),
         ];
         // Add extra users for pagination (15) if not already
         $base = 800000;
@@ -564,8 +573,8 @@ class InMemoryUserServiceStub implements UserServiceInterface
                 'name' => 'Paginated User ' . $id,
                 'email' => 'p' . $id . '@example.com',
                 'email_verified_at' => null,
-                'created_at' => now()->toISOString(),
-                'updated_at' => now()->toISOString(),
+                'created_at' => $now->toISOString(),
+                'updated_at' => $now->toISOString(),
             ];
         }
     }

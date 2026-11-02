@@ -243,10 +243,8 @@ final class ExpenseFeatureTest extends TestCase
     {
         $expenseFactory = Expense::factory();
         $usdExpense = $expenseFactory->create(['currency' => 'USD']);
-        $expenseFactory2 = Expense::factory();
-        $eurExpense = $expenseFactory2->create(['currency' => 'EUR']);
-        $expenseFactory3 = Expense::factory();
-        $gbpExpense = $expenseFactory3->create(['currency' => 'GBP']);
+        $eurExpense = $expenseFactory->create(['currency' => 'EUR']);
+        $gbpExpense = $expenseFactory->create(['currency' => 'GBP']);
 
         $this->assertEquals('USD', $usdExpense->currency);
         $this->assertEquals('EUR', $eurExpense->currency);

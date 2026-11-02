@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -43,8 +44,7 @@ class InvoiceListRecentFeatureTest extends TestCase
             'user_id' => $this->user->id,
         ]);
 
-        $invoiceFactory2 = Invoice::factory();
-        $otherUserInvoice = $invoiceFactory2->create([
+        $otherUserInvoice = $invoiceFactory->create([
             'user_id' => $otherUser->id,
         ]);
 
@@ -77,7 +77,8 @@ class InvoiceListRecentFeatureTest extends TestCase
         $component->assertStatus(200);
 
         // Test behavior when not authenticated (Auth::id() returns null)
-        auth()->logout();
+        $auth = auth();
+        $auth->logout();
 
         $component = Livewire::test(InvoiceListRecent::class);
         $invoices = $component->viewData('invoices');
@@ -149,18 +150,18 @@ class InvoiceListRecentFeatureTest extends TestCase
     public function component_defaults_to_descending_created_at_order(): void
     {
         $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
         $oldInvoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
-                'created_at' => now()->subDays(2),
+                'created_at' => $now->subDays(2),
             ],
         );
 
-        $invoiceFactory2 = Invoice::factory();
-        $newInvoice = $invoiceFactory2->create(
+        $newInvoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
-                'created_at' => now()->subDay(),
+                'created_at' => $now->subDay(),
             ],
         );
 

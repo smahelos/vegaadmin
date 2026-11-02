@@ -9,6 +9,7 @@ use App\Domain\User\ValueObjects\UserId;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -24,12 +25,13 @@ final class AnalyticsCacheKeysDeterministicTest extends TestCase
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $user->id]);
         $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
         $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
                 'payment_amount' => 123.45,
-                'issue_date' => now()->subMonth(),
+                'issue_date' => $now->subMonth(),
             ],
         );
 
@@ -46,8 +48,9 @@ final class AnalyticsCacheKeysDeterministicTest extends TestCase
         ];
 
         foreach ($expectedKeys as $key) {
+            $taggedCache = Cache::tags(['analytics.user.' . $user->id]);
             $this->assertNotNull(
-                Cache::tags(['analytics.user.' . $user->id])->get($key),
+                $taggedCache->get($key),
             );
         }
 

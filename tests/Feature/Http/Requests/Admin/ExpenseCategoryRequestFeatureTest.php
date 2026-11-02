@@ -56,8 +56,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();
         $this->assertArrayHasKey('name', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('slug', $errors2->toArray());
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]

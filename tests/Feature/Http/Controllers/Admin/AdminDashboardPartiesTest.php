@@ -20,14 +20,12 @@ final class AdminDashboardPartiesTest extends TestCase
         $this->setUpAdminTestEnvironment();
         $businessFactory = Business::factory();
         $businessFactory->create(['user_id' => $this->regularUser->id]);
-        $businessFactory2 = Business::factory();
-        $businessFactory2->create(
+        $businessFactory->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
         $contactFactory = Contact::factory();
         $contactFactory->create(['user_id' => $this->regularUser->id]);
-        $contactFactory2 = Contact::factory();
-        $contactFactory2->create(
+        $contactFactory->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
         $httpClient = $this->actingAs($this->adminUser, 'backpack');

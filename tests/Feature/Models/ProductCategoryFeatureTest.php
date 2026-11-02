@@ -38,14 +38,11 @@ class ProductCategoryFeatureTest extends TestCase
         $category = $productCategoryFactory->create();
         $productFactory = Product::factory();
         $product1 = $productFactory->create(['category_id' => $category->id]);
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create(['category_id' => $category->id]);
+        $product2 = $productFactory->create(['category_id' => $category->id]);
 
         // Create another product in different category to ensure proper filtering
-        $productCategoryFactory2 = ProductCategory::factory();
-        $otherCategory = $productCategoryFactory2->create();
-        $productFactory3 = Product::factory();
-        $productFactory3->create(['category_id' => $otherCategory->id]);
+        $otherCategory = $productCategoryFactory->create();
+        $productFactory->create(['category_id' => $otherCategory->id]);
 
         $relationship = $category->products();
         $this->assertInstanceOf(HasMany::class, $relationship);

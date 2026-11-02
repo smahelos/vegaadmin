@@ -92,8 +92,7 @@ class StatusCategoryFeatureTest extends TestCase
         $statusCategoryFactory->create(['slug' => 'unique-slug']);
 
         $this->expectException(QueryException::class);
-        $statusCategoryFactory2 = StatusCategory::factory();
-        $statusCategoryFactory2->create(['slug' => 'unique-slug']);
+        $statusCategoryFactory->create(['slug' => 'unique-slug']);
     }
 
     #[Test]
@@ -117,10 +116,8 @@ class StatusCategoryFeatureTest extends TestCase
         // Create statuses with this category
         $statusFactory = Status::factory();
         $status1 = $statusFactory->create(['category_id' => $statusCategory->id]);
-        $statusFactory2 = Status::factory();
-        $status2 = $statusFactory2->create(['category_id' => $statusCategory->id]);
-        $statusFactory3 = Status::factory();
-        $status3 = $statusFactory3->create(['category_id' => $statusCategory->id]);
+        $status2 = $statusFactory->create(['category_id' => $statusCategory->id]);
+        $status3 = $statusFactory->create(['category_id' => $statusCategory->id]);
 
         $this->assertCount(3, $statusCategory->statuses);
         $this->assertTrue(
@@ -254,10 +251,8 @@ class StatusCategoryFeatureTest extends TestCase
     {
         $statusCategoryFactory = StatusCategory::factory();
         $category1 = $statusCategoryFactory->create();
-        $statusCategoryFactory2 = StatusCategory::factory();
-        $category2 = $statusCategoryFactory2->create();
-        $statusCategoryFactory3 = StatusCategory::factory();
-        $category3 = $statusCategoryFactory3->create();
+        $category2 = $statusCategoryFactory->create();
+        $category3 = $statusCategoryFactory->create();
 
         $this->assertNotEquals($category1->slug, $category2->slug);
         $this->assertNotEquals($category1->slug, $category3->slug);

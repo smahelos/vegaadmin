@@ -155,10 +155,8 @@ class TaxFeatureTest extends TestCase
     {
         $taxFactory = Tax::factory();
         $taxFactory->create(['name' => 'Low Tax', 'rate' => 5.00]);
-        $taxFactory2 = Tax::factory();
-        $taxFactory2->create(['name' => 'Medium Tax', 'rate' => 15.00]);
-        $taxFactory3 = Tax::factory();
-        $taxFactory3->create(['name' => 'High Tax', 'rate' => 25.00]);
+        $taxFactory->create(['name' => 'Medium Tax', 'rate' => 15.00]);
+        $taxFactory->create(['name' => 'High Tax', 'rate' => 25.00]);
 
         $taxQuery = Tax::whereBetween('rate', [10.00, 20.00]);
         $mediumTaxes = $taxQuery->get();
@@ -172,10 +170,8 @@ class TaxFeatureTest extends TestCase
     {
         $taxFactory = Tax::factory();
         $taxFactory->create(['name' => 'Zebra Tax']);
-        $taxFactory2 = Tax::factory();
-        $taxFactory2->create(['name' => 'Alpha Tax']);
-        $taxFactory3 = Tax::factory();
-        $taxFactory3->create(['name' => 'Beta Tax']);
+        $taxFactory->create(['name' => 'Alpha Tax']);
+        $taxFactory->create(['name' => 'Beta Tax']);
 
         $taxQuery = Tax::orderBy('name');
         $taxValues = $taxQuery->pluck('name');
@@ -194,10 +190,8 @@ class TaxFeatureTest extends TestCase
     {
         $taxFactory = Tax::factory();
         $taxFactory->create(['name' => 'High Tax', 'rate' => 25.00]);
-        $taxFactory2 = Tax::factory();
-        $taxFactory2->create(['name' => 'Low Tax', 'rate' => 5.00]);
-        $taxFactory3 = Tax::factory();
-        $taxFactory3->create(['name' => 'Medium Tax', 'rate' => 15.00]);
+        $taxFactory->create(['name' => 'Low Tax', 'rate' => 5.00]);
+        $taxFactory->create(['name' => 'Medium Tax', 'rate' => 15.00]);
 
         $taxQuery = Tax::orderBy('rate');
         $taxValues = $taxQuery->pluck('name');
@@ -216,10 +210,8 @@ class TaxFeatureTest extends TestCase
     {
         $taxFactory = Tax::factory();
         $taxFactory->create(['name' => 'Standard VAT']);
-        $taxFactory2 = Tax::factory();
-        $taxFactory2->create(['name' => 'Reduced VAT']);
-        $taxFactory3 = Tax::factory();
-        $taxFactory3->create(['name' => 'Zero Rate']);
+        $taxFactory->create(['name' => 'Reduced VAT']);
+        $taxFactory->create(['name' => 'Zero Rate']);
 
         $taxQuery = Tax::whereRaw('LOWER(name) LIKE ?', ['%vat%']);
         $searchResults = $taxQuery->get();
@@ -246,12 +238,12 @@ class TaxFeatureTest extends TestCase
 
         $taxQuery = Tax::where('rate', 0);
         $zeroRateTaxes = $taxQuery->get();
-        $taxQuery2 = Tax::where(
+        $taxQuery = Tax::where(
             'rate',
             '>',
             0,
         );
-        $nonZeroTaxes = $taxQuery2->get();
+        $nonZeroTaxes = $taxQuery->get();
 
         $this->assertCount(2, $zeroRateTaxes);
         $this->assertCount(3, $nonZeroTaxes);
@@ -268,15 +260,15 @@ class TaxFeatureTest extends TestCase
         $taxQuery = Tax::where('rate', 21.00);
         $taxQuery->update(['rate' => 23.00]);
 
-        $taxQuery2 = Tax::where('rate', 21.00);
+        $taxQuery = Tax::where('rate', 21.00);
         $this->assertEquals(
             0,
-            $taxQuery2->count(),
+            $taxQuery->count(),
         );
-        $taxQuery3 = Tax::where('rate', 23.00);
+        $taxQuery = Tax::where('rate', 23.00);
         $this->assertEquals(
             5,
-            $taxQuery3->count(),
+            $taxQuery->count(),
         );
     }
 

@@ -106,12 +106,10 @@ class ProductServiceFeatureTest extends TestCase
         // Prepare data
         $productCategoryFactory = ProductCategory::factory();
         $productCategoryFactory->create(['name' => 'Electronics']);
-        $productCategoryFactory2 = ProductCategory::factory();
-        $productCategoryFactory2->create(['name' => 'Books']);
+        $productCategoryFactory->create(['name' => 'Books']);
         $taxFactory = Tax::factory();
         $taxFactory->create(['slug' => 'dph', 'rate' => 21]);
-        $taxFactory2 = Tax::factory();
-        $taxFactory2->create(['slug' => 'other', 'rate' => 10]); // should be ignored
+        $taxFactory->create(['slug' => 'other', 'rate' => 10]); // should be ignored
 
         $cache = $this->makeCountingCache();
         $this->app->instance(CacheServiceInterface::class, $cache);
@@ -148,8 +146,7 @@ class ProductServiceFeatureTest extends TestCase
         $productCategoryQuery->delete();
         $productCategoryFactory = ProductCategory::factory();
         $productCategoryFactory->create(['name' => 'Zeta']);
-        $productCategoryFactory2 = ProductCategory::factory();
-        $productCategoryFactory2->create(['name' => 'Alpha']);
+        $productCategoryFactory->create(['name' => 'Alpha']);
 
         // Resolve Application service
         $service = app(ProductApplicationServiceInterface::class);

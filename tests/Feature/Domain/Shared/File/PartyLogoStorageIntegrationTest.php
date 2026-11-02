@@ -39,7 +39,6 @@ final class PartyLogoStorageIntegrationTest extends TestCase
         $disk = Storage::disk('public');
         $disk->assertExists($second);
         $logos->delete($second);
-        $disk2 = Storage::disk('public');
-        $disk2->assertMissing($second);
+        $disk->assertMissing($second);
     }
 }

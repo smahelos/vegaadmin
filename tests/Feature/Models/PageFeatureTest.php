@@ -6,6 +6,7 @@ use App\Models\Page;
 use App\Models\PageCategory;
 use App\Models\User;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use PHPUnit\Framework\Attributes\Test;
@@ -64,8 +65,7 @@ class PageFeatureTest extends TestCase
     {
         $pageFactory = Page::factory();
         $parentPage = $pageFactory->create(['name' => 'Parent Page']);
-        $pageFactory2 = Page::factory();
-        $childPage = $pageFactory2->create(
+        $childPage = $pageFactory->create(
             [
                 'name' => 'Child Page',
                 'parent_id' => $parentPage->id,
@@ -82,15 +82,13 @@ class PageFeatureTest extends TestCase
     {
         $pageFactory = Page::factory();
         $parentPage = $pageFactory->create(['name' => 'Parent Page']);
-        $pageFactory2 = Page::factory();
-        $childPage1 = $pageFactory2->create(
+        $childPage1 = $pageFactory->create(
             [
                 'name' => 'Child Page 1',
                 'parent_id' => $parentPage->id,
             ],
         );
-        $pageFactory3 = Page::factory();
-        $childPage2 = $pageFactory3->create(
+        $childPage2 = $pageFactory->create(
             [
                 'name' => 'Child Page 2',
                 'parent_id' => $parentPage->id,
@@ -210,8 +208,7 @@ class PageFeatureTest extends TestCase
     {
         $pageFactory = Page::factory();
         $publishedPage = $pageFactory->create(['published' => 1]);
-        $pageFactory2 = Page::factory();
-        $unpublishedPage = $pageFactory2->create(['published' => 0]);
+        $unpublishedPage = $pageFactory->create(['published' => 0]);
 
         $this->assertTrue($publishedPage->published);
         $this->assertFalse($unpublishedPage->published);
@@ -258,8 +255,7 @@ class PageFeatureTest extends TestCase
     {
         $pageFactory = Page::factory();
         $parentPage = $pageFactory->create();
-        $pageFactory2 = Page::factory();
-        $childPage = $pageFactory2->create(['parent_id' => $parentPage->id]);
+        $childPage = $pageFactory->create(['parent_id' => $parentPage->id]);
 
         $this->assertInstanceOf(BelongsTo::class, $childPage->parent());
     }
@@ -306,30 +302,28 @@ class PageFeatureTest extends TestCase
         );
 
         // Unpublished page
-        $pageFactory2 = Page::factory();
-        $unpublishedPage = $pageFactory2->create([
+        $unpublishedPage = $pageFactory->create([
             'published' => false,
             'category_id' => $category->id,
         ]);
 
         // Published page with future start date
-        $pageFactory3 = Page::factory();
-        $futurePublishedPage = $pageFactory3->create(
+        $now = CarbonImmutable::now();
+        $futurePublishedPage = $pageFactory->create(
             [
                 'published' => true,
                 'category_id' => $category->id,
-                'publishing_start' => now()->addDay(),
+                'publishing_start' => $now->addDay(),
                 'publishing_end' => null,
             ],
         );
 
         // Published page with past end date
-        $pageFactory4 = Page::factory();
-        $expiredPublishedPage = $pageFactory4->create(
+        $expiredPublishedPage = $pageFactory->create(
             [
                 'published' => true,
                 'category_id' => $category->id,
-                'publishing_start' => now()->subWeek(),
+                'publishing_start' => $now->subWeek(),
                 'publishing_end' => now()->subDay(),
             ],
         );
@@ -356,13 +350,11 @@ class PageFeatureTest extends TestCase
     {
         $pageCategoryFactory = PageCategory::factory();
         $category1 = $pageCategoryFactory->create();
-        $pageCategoryFactory2 = PageCategory::factory();
-        $category2 = $pageCategoryFactory2->create();
+        $category2 = $pageCategoryFactory->create();
 
         $pageFactory = Page::factory();
         $pageInCategory1 = $pageFactory->create(['category_id' => $category1->id]);
-        $pageFactory2 = Page::factory();
-        $pageInCategory2 = $pageFactory2->create(['category_id' => $category2->id]);
+        $pageInCategory2 = $pageFactory->create(['category_id' => $category2->id]);
 
         $pagesInCategory1 = Page::byCategory($category1->id)->get();
 
@@ -380,10 +372,8 @@ class PageFeatureTest extends TestCase
     {
         $pageFactory = Page::factory();
         $parentPage = $pageFactory->create();
-        $pageFactory2 = Page::factory();
-        $rootPage = $pageFactory2->create(['parent_id' => null]);
-        $pageFactory3 = Page::factory();
-        $childPage = $pageFactory3->create(['parent_id' => $parentPage->id]);
+        $rootPage = $pageFactory->create(['parent_id' => null]);
+        $childPage = $pageFactory->create(['parent_id' => $parentPage->id]);
 
         $rootPages = Page::rootPages()->get();
 
@@ -412,37 +402,34 @@ class PageFeatureTest extends TestCase
         );
 
         // Unpublished
-        $pageFactory2 = Page::factory();
-        $unpublished = $pageFactory2->create([
+        $unpublished = $pageFactory->create([
             'published' => false,
         ]);
 
         // Published but future start date
-        $pageFactory3 = Page::factory();
-        $futurePublished = $pageFactory3->create(
+        $now = CarbonImmutable::now();
+        $futurePublished = $pageFactory->create(
             [
                 'published' => true,
-                'publishing_start' => now()->addDay(),
+                'publishing_start' => $now->addDay(),
             ],
         );
 
         // Published but past end date
-        $pageFactory4 = Page::factory();
-        $expiredPublished = $pageFactory4->create(
+        $expiredPublished = $pageFactory->create(
             [
                 'published' => true,
-                'publishing_start' => now()->subWeek(),
+                'publishing_start' => $now->subWeek(),
                 'publishing_end' => now()->subDay(),
             ],
         );
 
         // Currently published (within time window)
-        $pageFactory5 = Page::factory();
-        $currentlyPublished = $pageFactory5->create(
+        $currentlyPublished = $pageFactory->create(
             [
                 'published' => true,
-                'publishing_start' => now()->subDay(),
-                'publishing_end' => now()->addDay(),
+                'publishing_start' => $now->subDay(),
+                'publishing_end' => $now->addDay(),
             ],
         );
 
@@ -458,16 +445,14 @@ class PageFeatureTest extends TestCase
     {
         $pageFactory = Page::factory();
         $grandparent = $pageFactory->create(['name' => 'Grandparent', 'slug' => 'grandparent']);
-        $pageFactory2 = Page::factory();
-        $parent = $pageFactory2->create(
+        $parent = $pageFactory->create(
             [
                 'name' => 'Parent',
                 'slug' => 'parent',
                 'parent_id' => $grandparent->id,
             ],
         );
-        $pageFactory3 = Page::factory();
-        $child = $pageFactory3->create(
+        $child = $pageFactory->create(
             [
                 'name' => 'Child',
                 'slug' => 'child',

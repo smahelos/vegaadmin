@@ -28,18 +28,18 @@ final class EntityLimitSystemBasicTest extends TestCase
         $roleQuery = Role::where('name', 'frontend_user');
         $roleQuery->where('guard_name', 'web');
         $frontendUserRole = $roleQuery->first();
-        $roleQuery2 = Role::where('name', 'backend_user');
-        $roleQuery2->where('guard_name', 'backpack');
-        $backendUserRole = $roleQuery2->first();
+        $roleQuery = Role::where('name', 'backend_user');
+        $roleQuery->where('guard_name', 'backpack');
+        $backendUserRole = $roleQuery->first();
         $permissionQuery = Permission::where('name', 'can_create_edit_invoice');
         $permissionQuery->where('guard_name', 'backpack');
         $permission = $permissionQuery->first();
-        $permissionQuery2 = Permission::where('name', 'can_create_contact');
-        $permissionQuery2->where('guard_name', 'backpack');
-        $permission2 = $permissionQuery2->first();
-        $permissionQuery3 = Permission::where('name', 'can_create_business');
-        $permissionQuery3->where('guard_name', 'backpack');
-        $permission3 = $permissionQuery3->first();
+        $permissionQuery = Permission::where('name', 'can_create_contact');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission2 = $permissionQuery->first();
+        $permissionQuery = Permission::where('name', 'can_create_business');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission3 = $permissionQuery->first();
 
         // Create admin user with admin role (has all permissions)
         $this->backendUser = User::factory()->create();

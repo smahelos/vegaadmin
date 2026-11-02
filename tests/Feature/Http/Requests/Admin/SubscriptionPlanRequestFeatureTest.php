@@ -166,8 +166,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         // Create some test features first
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $feature1 = $subscriptionPlanFeatureFactory->create();
-        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
-        $feature2 = $subscriptionPlanFeatureFactory2->create();
+        $feature2 = $subscriptionPlanFeatureFactory->create();
 
         $data = [
             'name' => 'Test Plan',
@@ -206,8 +205,7 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         $this->assertTrue($validator->fails());
         $errors = $validator->errors();
         $this->assertArrayHasKey('features.0', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('features.1', $errors2->toArray());
+        $this->assertArrayHasKey('features.1', $errors->toArray());
     }
 
     #[Test]

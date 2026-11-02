@@ -158,8 +158,7 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     {
         $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
         $activeCategory = $artisanCommandCategoryFactory->create(['is_active' => 1]);
-        $artisanCommandCategoryFactory2 = ArtisanCommandCategory::factory();
-        $inactiveCategory = $artisanCommandCategoryFactory2->create(['is_active' => 0]);
+        $inactiveCategory = $artisanCommandCategoryFactory->create(['is_active' => 0]);
 
         $this->assertTrue($activeCategory->is_active);
         $this->assertFalse($inactiveCategory->is_active);
@@ -179,8 +178,7 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
             'name' => 'Migrate',
         ]);
 
-        $artisanCommandFactory2 = ArtisanCommand::factory();
-        $command2 = $artisanCommandFactory2->create([
+        $command2 = $artisanCommandFactory->create([
             'category_id' => $category->id,
             'name' => 'Seed',
         ]);

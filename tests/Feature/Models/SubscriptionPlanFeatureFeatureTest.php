@@ -54,8 +54,7 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
         $feature = $subscriptionPlanFeatureFactory->create();
         $subscriptionPlanFactory = SubscriptionPlan::factory();
         $plan1 = $subscriptionPlanFactory->create();
-        $subscriptionPlanFactory2 = SubscriptionPlan::factory();
-        $plan2 = $subscriptionPlanFactory2->create();
+        $plan2 = $subscriptionPlanFactory->create();
 
         $feature->subscriptionPlans()->attach([$plan1->id, $plan2->id]);
 

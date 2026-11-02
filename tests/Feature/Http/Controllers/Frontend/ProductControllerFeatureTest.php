@@ -491,8 +491,7 @@ class ProductControllerFeatureTest extends TestCase
         );
 
         $this->assertDatabaseHas('products', ['id' => $product->id]);
-        $disk2 = Storage::disk('public');
-        $disk2->assertExists('products/kept.png');
+        $disk->assertExists('products/kept.png');
     }
 
     #[Test]
@@ -500,8 +499,7 @@ class ProductControllerFeatureTest extends TestCase
     {
         $productFactory = Product::factory();
         $own = $productFactory->create(['user_id' => $this->user->id]);
-        $productFactory2 = Product::factory();
-        $foreign = $productFactory2->create();
+        $foreign = $productFactory->create();
         $productData = [
             'name' => 'Product ' . uniqid(),
             'price' => 10,
@@ -515,11 +513,11 @@ class ProductControllerFeatureTest extends TestCase
         );
         $httpResponse->assertSessionHasErrors('slug');
 
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             route('frontend.product.store', ['locale' => 'cs']),
             [...$productData, 'slug' => $foreign->slug],
         );
-        $httpResponse2->assertSessionHasNoErrors();
+        $httpResponse->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('products', ['user_id' => $this->user->id, 'slug' => $foreign->slug]);
     }

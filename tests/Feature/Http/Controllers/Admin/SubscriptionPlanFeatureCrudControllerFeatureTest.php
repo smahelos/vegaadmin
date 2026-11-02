@@ -262,10 +262,8 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
     {
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $subscriptionPlanFeatureFactory->create(['name' => 'Feature C', 'sort_order' => 3]);
-        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
-        $subscriptionPlanFeatureFactory2->create(['name' => 'Feature A', 'sort_order' => 1]);
-        $subscriptionPlanFeatureFactory3 = SubscriptionPlanFeature::factory();
-        $subscriptionPlanFeatureFactory3->create(['name' => 'Feature B', 'sort_order' => 2]);
+        $subscriptionPlanFeatureFactory->create(['name' => 'Feature A', 'sort_order' => 1]);
+        $subscriptionPlanFeatureFactory->create(['name' => 'Feature B', 'sort_order' => 2]);
 
         $httpClient = $this->actingAs($this->adminUser, 'backpack');
         $response = $httpClient->get('/admin/subscription-plan-feature');

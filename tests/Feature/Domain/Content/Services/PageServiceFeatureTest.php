@@ -137,8 +137,7 @@ class PageServiceFeatureTest extends TestCase
         $category = $pageCategoryFactory->create();
         $page1 = Page::factory()->published()->inCategory($category)->create();
         $page2 = Page::factory()->published()->inCategory($category)->create();
-        $pageCategoryFactory2 = PageCategory::factory();
-        $otherCategory = $pageCategoryFactory2->create();
+        $otherCategory = $pageCategoryFactory->create();
         Page::factory()->published()->inCategory($otherCategory)->create();
 
         $categoryPages = $this->pageService->getPagesByCategory($category->id);
@@ -230,8 +229,7 @@ class PageServiceFeatureTest extends TestCase
         $relatedPage1 = Page::factory()->published()->inCategory($category)->create();
         $relatedPage2 = Page::factory()->published()->inCategory($category)->create();
         $relatedPage3 = Page::factory()->published()->inCategory($category)->create();
-        $pageCategoryFactory2 = PageCategory::factory();
-        $otherCategory = $pageCategoryFactory2->create();
+        $otherCategory = $pageCategoryFactory->create();
         Page::factory()->published()->inCategory($otherCategory)->create();
         $relatedPages = $this->pageService->getRelatedPages(
             $this->pageService->getPageBySlug((string) $mainPage->id),

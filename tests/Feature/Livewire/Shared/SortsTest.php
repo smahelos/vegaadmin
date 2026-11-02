@@ -34,8 +34,7 @@ final class SortsTest extends TestCase
                 'name' => 'Alpha Contact',
             ],
         );
-        $contactFactory2 = Contact::factory();
-        $beta = $contactFactory2->create(
+        $beta = $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Beta Contact',
@@ -49,8 +48,7 @@ final class SortsTest extends TestCase
                 'city' => 'Zlín',
             ],
         );
-        $addressFactory2 = Address::factory();
-        $addressFactory2->create(
+        $addressFactory->create(
             [
                 'business_id' => null,
                 'contact_id' => $beta->id,

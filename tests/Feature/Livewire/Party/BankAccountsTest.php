@@ -92,11 +92,9 @@ final class BankAccountsTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $this->user->id]);
         $bankAccountFactory = BankAccount::factory();
-        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
-        $default = $bankAccountFactory->create();
-        $bankAccountFactory2 = BankAccount::factory();
-        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($business);
-        $other = $bankAccountFactory2->create(
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $default = $ownedFactory->create();
+        $other = $ownedFactory->create(
             [
                 'number' => '1234567899',
                 'bank_code' => '0100',

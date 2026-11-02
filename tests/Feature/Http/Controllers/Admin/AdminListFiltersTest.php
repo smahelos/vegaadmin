@@ -55,8 +55,7 @@ class AdminListFiltersTest extends TestCase
         $owner = $userFactory->create();
         $businessFactory = Business::factory();
         $businessFactory->create(['user_id' => $owner->id]);
-        $businessFactory2 = Business::factory();
-        $businessFactory2->create();
+        $businessFactory->create();
 
         $httpResponse = $this->postJson('/admin/business/search?user_id=' . $owner->id, [
             'draw' => 1,
@@ -89,8 +88,7 @@ class AdminListFiltersTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $productFactory = Product::factory();
         $productFactory->create(['is_active' => true]);
-        $productFactory2 = Product::factory();
-        $productFactory2->create(['is_active' => false]);
+        $productFactory->create(['is_active' => false]);
 
         $httpResponse = $this->postJson('/admin/product/search?is_active=1', [
             'draw' => 1,

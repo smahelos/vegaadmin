@@ -65,7 +65,9 @@ final class InvoiceReminderRenderingTest extends TestCase
             [$type],
         );
 
-        $notifications = collect(Notification::sentNotifications())->flatten(3)->all();
+        $collection = collect(Notification::sentNotifications());
+        $flattened = $collection->flatten(3);
+        $notifications = $flattened->all();
         $this->assertCount(2, $notifications);
         foreach ($notifications as $sent) {
             $notification = $sent['notification'];

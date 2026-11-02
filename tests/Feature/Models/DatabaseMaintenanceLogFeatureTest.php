@@ -167,10 +167,8 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     {
         $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
         $notStarted = $databaseMaintenanceLogFactory->create(['started_at' => null, 'completed_at' => null]);
-        $databaseMaintenanceLogFactory2 = DatabaseMaintenanceLog::factory();
-        $running = $databaseMaintenanceLogFactory2->create(['started_at' => now(), 'completed_at' => null]);
-        $databaseMaintenanceLogFactory3 = DatabaseMaintenanceLog::factory();
-        $completedOnly = $databaseMaintenanceLogFactory3->create(['started_at' => null, 'completed_at' => now()]);
+        $running = $databaseMaintenanceLogFactory->create(['started_at' => now(), 'completed_at' => null]);
+        $completedOnly = $databaseMaintenanceLogFactory->create(['started_at' => null, 'completed_at' => now()]);
 
         $this->assertNull($notStarted->duration);
         $this->assertNull($running->duration);
@@ -187,10 +185,10 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
 
         $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('status', 'pending');
         $pendingLogs = $databaseMaintenanceLogQuery->get();
-        $databaseMaintenanceLogQuery2 = DatabaseMaintenanceLog::where('status', 'running');
-        $runningLogs = $databaseMaintenanceLogQuery2->get();
-        $databaseMaintenanceLogQuery3 = DatabaseMaintenanceLog::where('status', 'completed');
-        $completedLogs = $databaseMaintenanceLogQuery3->get();
+        $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('status', 'running');
+        $runningLogs = $databaseMaintenanceLogQuery->get();
+        $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('status', 'completed');
+        $completedLogs = $databaseMaintenanceLogQuery->get();
 
         $this->assertCount(1, $pendingLogs);
         $this->assertCount(1, $runningLogs);
@@ -203,15 +201,13 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
 
         $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
         $databaseMaintenanceLogFactory->create(['task_type' => 'optimize']);
-        $databaseMaintenanceLogFactory2 = DatabaseMaintenanceLog::factory();
-        $databaseMaintenanceLogFactory2->create(['task_type' => 'analyze']);
-        $databaseMaintenanceLogFactory3 = DatabaseMaintenanceLog::factory();
-        $databaseMaintenanceLogFactory3->create(['task_type' => 'optimize']);
+        $databaseMaintenanceLogFactory->create(['task_type' => 'analyze']);
+        $databaseMaintenanceLogFactory->create(['task_type' => 'optimize']);
 
         $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('task_type', 'optimize');
         $optimizeLogs = $databaseMaintenanceLogQuery->get();
-        $databaseMaintenanceLogQuery2 = DatabaseMaintenanceLog::where('task_type', 'analyze');
-        $analyzeLogs = $databaseMaintenanceLogQuery2->get();
+        $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('task_type', 'analyze');
+        $analyzeLogs = $databaseMaintenanceLogQuery->get();
 
         $this->assertCount(2, $optimizeLogs);
         $this->assertCount(1, $analyzeLogs);
@@ -223,15 +219,13 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
 
         $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
         $databaseMaintenanceLogFactory->create(['table_name' => 'users']);
-        $databaseMaintenanceLogFactory2 = DatabaseMaintenanceLog::factory();
-        $databaseMaintenanceLogFactory2->create(['table_name' => 'invoices']);
-        $databaseMaintenanceLogFactory3 = DatabaseMaintenanceLog::factory();
-        $databaseMaintenanceLogFactory3->create(['table_name' => 'users']);
+        $databaseMaintenanceLogFactory->create(['table_name' => 'invoices']);
+        $databaseMaintenanceLogFactory->create(['table_name' => 'users']);
 
         $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('table_name', 'users');
         $userLogs = $databaseMaintenanceLogQuery->get();
-        $databaseMaintenanceLogQuery2 = DatabaseMaintenanceLog::where('table_name', 'invoices');
-        $invoiceLogs = $databaseMaintenanceLogQuery2->get();
+        $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('table_name', 'invoices');
+        $invoiceLogs = $databaseMaintenanceLogQuery->get();
 
         $this->assertCount(2, $userLogs);
         $this->assertCount(1, $invoiceLogs);

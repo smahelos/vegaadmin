@@ -20,13 +20,12 @@ final class UniversalLimitServiceCapacityTest extends TestCase
     {
         $user = $this->frontendUser();
         $contactFactory = Contact::factory();
-        $contactFactory = $contactFactory->count(2);
-        $contactFactory->create(['user_id' => $user->id]);
+        $batchFactory = $contactFactory->count(2);
+        $batchFactory->create(['user_id' => $user->id]);
         Contact::factory()->archived()->create(['user_id' => $user->id]);
         $businessFactory = Business::factory();
         $businessFactory->create(['user_id' => $user->id]);
-        $contactFactory2 = Contact::factory();
-        $contactFactory2->create();
+        $contactFactory->create();
 
         $limits = app(UniversalLimitServiceInterface::class);
         $contacts = $limits->checkLimit(

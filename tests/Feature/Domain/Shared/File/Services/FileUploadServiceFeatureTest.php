@@ -42,9 +42,8 @@ class FileUploadServiceFeatureTest extends TestCase
         $result = $this->service->deleteFile($filePath, 'public');
 
         $this->assertTrue($result);
-        $disk2 = Storage::disk('public');
         $this->assertFalse(
-            $disk2->exists($filePath),
+            $disk->exists($filePath),
         );
     }
 
@@ -113,7 +112,8 @@ class FileUploadServiceFeatureTest extends TestCase
     public function handle_file_upload_returns_null_when_file_removed(): void
     {
         // Simulate removal request
-        request()->merge(['document_remove' => true]);
+        $currentRequest = request();
+        $currentRequest->merge(['document_remove' => true]);
 
         $result = $this->service->handleFileUpload(
             null,
@@ -286,9 +286,8 @@ class FileUploadServiceFeatureTest extends TestCase
         );
 
         // Expected thumbnail path structure
-        $disk2 = Storage::disk('public');
         $this->assertTrue(
-            $disk2->exists('thumbnails/images/photo.jpg'),
+            $disk->exists('thumbnails/images/photo.jpg'),
             'Thumbnail should be created at expected path.',
         );
     }

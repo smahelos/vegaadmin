@@ -99,10 +99,10 @@ final class ContactCrudControllerTest extends TestCase
         $httpResponse->assertRedirect();
         $this->assertNotNull($contact->fresh()?->archived_at);
 
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             route('admin.contacts.restore', ['id' => $contact->id]),
         );
-        $httpResponse2->assertRedirect();
+        $httpResponse->assertRedirect();
         $this->assertNull($contact->fresh()?->archived_at);
     }
 

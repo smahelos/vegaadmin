@@ -260,8 +260,9 @@ final class StatisticsControllerFeatureTest extends TestCase
         $session->setId(
             Str::random(40),
         );
+        $guard = Auth::guard('web');
         $session->put(
-            Auth::guard('web')->getName(),
+            $guard->getName(),
             $user->id,
         );
         $session->save();

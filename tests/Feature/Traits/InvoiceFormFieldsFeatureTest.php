@@ -38,9 +38,10 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $this->assertNotEmpty($result);
 
         // Verify options are passed correctly
-        $paymentMethodField = collect($result)->firstWhere('name', 'payment_method_id');
-        $statusField = collect($result)->firstWhere('name', 'payment_status_id');
-        $currencyField = collect($result)->firstWhere('name', 'payment_currency');
+        $resultList = collect($result);
+        $paymentMethodField = $resultList->firstWhere('name', 'payment_method_id');
+        $statusField = $resultList->firstWhere('name', 'payment_status_id');
+        $currencyField = $resultList->firstWhere('name', 'payment_currency');
 
         $this->assertEquals($paymentMethods, $paymentMethodField['options']);
         $this->assertEquals($statuses, $statusField['options']);
@@ -58,8 +59,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $this->assertNotEmpty($result);
 
         // Check that empty arrays are handled correctly
-        $paymentMethodField = collect($result)->firstWhere('name', 'payment_method_id');
-        $statusField = collect($result)->firstWhere('name', 'payment_status_id');
+        $resultList = collect($result);
+        $paymentMethodField = $resultList->firstWhere('name', 'payment_method_id');
+        $statusField = $resultList->firstWhere('name', 'payment_status_id');
 
         $this->assertEquals([], $paymentMethodField['options']);
         $this->assertEquals([], $statusField['options']);
@@ -99,7 +101,8 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert - Check required fields
-        $requiredFields = collect($result)->where('required', true);
+        $collection = collect($result);
+        $requiredFields = $collection->where('required', true);
 
         $requiredFieldNames = $requiredFields->pluck('name')->toArray();
 
@@ -120,9 +123,10 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert - Check default values
-        $issueDateField = collect($result)->firstWhere('name', 'issue_date');
-        $taxPointDateField = collect($result)->firstWhere('name', 'tax_point_date');
-        $paymentAmountField = collect($result)->firstWhere('name', 'payment_amount');
+        $resultList = collect($result);
+        $issueDateField = $resultList->firstWhere('name', 'issue_date');
+        $taxPointDateField = $resultList->firstWhere('name', 'tax_point_date');
+        $paymentAmountField = $resultList->firstWhere('name', 'payment_amount');
 
         $this->assertEquals(
             date('Y-m-d'),
@@ -148,7 +152,8 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         }
 
         // Check specific field exists
-        $invoiceVsField = collect($result)->firstWhere('name', 'invoice_vs');
+        $collection = collect($result);
+        $invoiceVsField = $collection->firstWhere('name', 'invoice_vs');
         $this->assertNotNull($invoiceVsField);
         $this->assertArrayHasKey('label', $invoiceVsField);
     }
@@ -160,12 +165,13 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert - Check that fields have hints
-        $fieldsWithHints = collect($result)->whereNotNull('hint');
+        $resultList = collect($result);
+        $fieldsWithHints = $resultList->whereNotNull('hint');
 
         $this->assertGreaterThan(5, $fieldsWithHints->count());
 
         // Check specific hint exists
-        $invoiceVsField = collect($result)->firstWhere('name', 'invoice_vs');
+        $invoiceVsField = $resultList->firstWhere('name', 'invoice_vs');
         $this->assertArrayHasKey('hint', $invoiceVsField);
         $this->assertNotNull($invoiceVsField['hint']);
     }
@@ -177,7 +183,8 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert
-        $dueInField = collect($result)->firstWhere('name', 'due_in');
+        $collection = collect($result);
+        $dueInField = $collection->firstWhere('name', 'due_in');
 
         $this->assertArrayHasKey('options', $dueInField);
         $this->assertArrayHasKey(1, $dueInField['options']);

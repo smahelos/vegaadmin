@@ -30,8 +30,7 @@ class StatusCategoryCrudControllerTest extends TestCase
         $status = $statusFactory->create(
             ['category_id' => $category->id, 'name' => 'Status ' . uniqid()],
         );
-        $statusFactory2 = Status::factory();
-        $otherStatus = $statusFactory2->create(['name' => 'Other ' . uniqid()]);
+        $otherStatus = $statusFactory->create(['name' => 'Other ' . uniqid()]);
 
         $response = $this->get("/admin/status-category/{$category->id}/show");
 
@@ -70,8 +69,7 @@ class StatusCategoryCrudControllerTest extends TestCase
         $statusFactory = Status::factory();
         $statusFactory = $statusFactory->count(2);
         $statusFactory->create(['category_id' => $category->id]);
-        $statusCategoryFactory2 = StatusCategory::factory();
-        $statusCategoryFactory2->create();
+        $statusCategoryFactory->create();
 
         DB::enableQueryLog();
         $response = $this->postJson('/admin/status-category/search', [
@@ -85,9 +83,10 @@ class StatusCategoryCrudControllerTest extends TestCase
         );
 
         $response->assertOk();
-        $row = collect(
+        $collection = collect(
             $response->json('data'),
-        )->first(
+        );
+        $row = $collection->first(
             fn ($row) => str_contains(
                 implode('', $row),
                 $category->name,

@@ -30,19 +30,25 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         // Define test routes
-        Route::post(
+        $route = Route::post(
             '/test-archive-policy',
             function (ArchivePolicyRequest $request) {
-                return response()->json(['success' => true]);
-            },
-        )->middleware('web');
+                $responseFactory = response();
 
-        Route::put(
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
             '/test-archive-policy/{id}',
             function (ArchivePolicyRequest $request, $id) {
-                return response()->json(['success' => true]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -87,10 +93,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();
         $this->assertArrayHasKey('table_name', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('retention_months', $errors2->toArray());
-        $errors3 = $validator->errors();
-        $this->assertArrayHasKey('date_column', $errors3->toArray());
+        $this->assertArrayHasKey('retention_months', $errors->toArray());
+        $this->assertArrayHasKey('date_column', $errors->toArray());
     }
 
     #[Test]

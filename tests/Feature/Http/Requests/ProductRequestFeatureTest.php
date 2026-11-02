@@ -402,9 +402,9 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertTrue($validator->fails());
-        $errors2 = $validator->errors();
+        $errors = $validator->errors();
         $this->assertTrue(
-            $errors2->has('category_id'),
+            $errors->has('category_id'),
         );
     }
 
@@ -430,13 +430,12 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertFalse($validator->fails(), 'Validation should pass with valid image');
 
         // Test image too large
-        $fileFactory2 = UploadedFile::fake();
-        $fakeFile2 = $fileFactory2->image(
+        $largeFile = $fileFactory->image(
             'large.jpg',
             1000,
             1000,
         );
-        $largeImage = $fakeFile2->size(3000); // > 2048 KB
+        $largeImage = $largeFile->size(3000); // > 2048 KB
         $data['image'] = $largeImage;
 
         $validator = Validator::make($data, $request->rules());
@@ -448,16 +447,15 @@ class ProductRequestFeatureTest extends TestCase
         );
 
         // Test non-image file
-        $fileFactory3 = UploadedFile::fake();
-        $textFile = $fileFactory3->create('document.txt', 100);
+        $textFile = $fileFactory->create('document.txt', 100);
         $data['image'] = $textFile;
 
         $validator = Validator::make($data, $request->rules());
 
         $this->assertTrue($validator->fails(), 'Validation should fail with non-image file');
-        $errors2 = $validator->errors();
+        $errors = $validator->errors();
         $this->assertTrue(
-            $errors2->has('image'),
+            $errors->has('image'),
         );
     }
 

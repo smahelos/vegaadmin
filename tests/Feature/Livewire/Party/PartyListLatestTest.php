@@ -8,6 +8,7 @@ use App\Livewire\Party\PartyListLatest;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -103,7 +104,8 @@ final class PartyListLatestTest extends TestCase
     {
         URL::defaults(['locale' => 'cs']);
         $user = $this->frontendUser();
-        $created = now()->subDay();
+        $now = CarbonImmutable::now();
+        $created = $now->subDay();
         $model::factory()->create(
             [
                 'user_id' => $user->id,

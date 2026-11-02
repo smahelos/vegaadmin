@@ -11,6 +11,7 @@ use App\Domain\User\ValueObjects\UserId;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -133,12 +134,13 @@ final class AnalyticsCacheInvalidationTest extends TestCase
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $user->id]);
         $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
         $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
                 'payment_amount' => 100.00,
-                'issue_date' => now()->subMonth(),
+                'issue_date' => $now->subMonth(),
             ],
         );
         // Warm cache (stats only for isolation)
@@ -147,13 +149,12 @@ final class AnalyticsCacheInvalidationTest extends TestCase
         );
         $this->assertEquals(1, $stats1->invoiceCount);
         // Add new invoice (cached value should remain stale until invalidation)
-        $invoiceFactory2 = Invoice::factory();
-        $invoiceFactory2->create(
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
                 'payment_amount' => 50.00,
-                'issue_date' => now()->subDays(5),
+                'issue_date' => $now->subDays(5),
             ],
         );
         $statsCached = $service->getUserStatistics(

@@ -34,19 +34,25 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $statusCategoryFactory->create();
 
         // Define test routes
-        Route::post(
+        $route = Route::post(
             '/test-status-category',
             function (StatusCategoryRequest $request) {
-                return response()->json(['success' => true]);
-            },
-        )->middleware('web');
+                $responseFactory = response();
 
-        Route::put(
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
             '/test-status-category/{id}',
             function (StatusCategoryRequest $request, $id) {
-                return response()->json(['success' => true]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -88,8 +94,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();
         $this->assertArrayHasKey('name', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('slug', $errors2->toArray());
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]

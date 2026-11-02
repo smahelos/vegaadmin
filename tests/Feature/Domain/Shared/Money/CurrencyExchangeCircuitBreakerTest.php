@@ -26,13 +26,14 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
     #[Test]
     public function transitions_to_open_after_fail_threshold(): void
     {
-        config()->set('exchange.fail_threshold', 2);
-        config()->set('exchange.open_timeout_seconds', 60);
+        $config = config();
+        $config->set('exchange.fail_threshold', 2);
+        $config->set('exchange.open_timeout_seconds', 60);
 
-        Http::fakeSequence()
-            ->pushStatus(500)
-            ->pushStatus(500)
-            ->pushStatus(200, ['rates' => ['USD' => 1.0, 'EUR' => 0.9]]);
+        $sequence = Http::fakeSequence();
+        $sequence->pushStatus(500);
+        $sequence->pushStatus(500);
+        $sequence->pushStatus(200, ['rates' => ['USD' => 1.0, 'EUR' => 0.9]]);
 
         $fallback1 = $this->service->getExchangeRates('USD'); // fail 1 -> fallback
         $this->assertIsArray($fallback1);
@@ -84,8 +85,9 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
     #[Test]
     public function half_open_probe_failure_reopens_circuit(): void
     {
-        config()->set('exchange.fail_threshold', 1);
-        config()->set('exchange.open_timeout_seconds', 1);
+        $config = config();
+        $config->set('exchange.fail_threshold', 1);
+        $config->set('exchange.open_timeout_seconds', 1);
 
         Http::fakeSequence()
             ->pushStatus(500) // initial -> open

@@ -34,8 +34,7 @@ final class DashboardControllerFeatureTest extends TestCase
         $business = $businessFactory->create(['user_id' => $user->id, 'name' => 'My own business']);
         $contactFactory = Contact::factory();
         $contactFactory->create(['user_id' => $user->id, 'name' => 'My contact']);
-        $contactFactory2 = Contact::factory();
-        $contactFactory2->create(['name' => 'Private other contact']);
+        $contactFactory->create(['name' => 'Private other contact']);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(
             [

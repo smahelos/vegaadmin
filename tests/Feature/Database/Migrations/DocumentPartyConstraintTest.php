@@ -97,8 +97,7 @@ final class DocumentPartyConstraintTest extends TestCase
         $bankAccountFactory = BankAccount::factory();
         $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
         $ownAccount = $bankAccountFactory->create();
-        $contactFactory2 = Contact::factory();
-        $otherContact = $contactFactory2->create(['user_id' => $expense->user_id]);
+        $otherContact = $contactFactory->create(['user_id' => $expense->user_id]);
 
         $expense->forceFill(
             ['contact_id' => $contact->id, 'bank_account_id' => $ownAccount->id],

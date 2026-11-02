@@ -20,8 +20,9 @@ class RefreshBackpackSessionFeatureTest extends TestCase
     #[Test]
     public function middleware_sets_session_flag(): void
     {
+        $session = session();
         $this->assertFalse(
-            session()->has('backpack_session_state'),
+            $session->has('backpack_session_state'),
         );
         $request = Request::create('/admin/dashboard');
         $this->middleware->handle(
@@ -29,7 +30,7 @@ class RefreshBackpackSessionFeatureTest extends TestCase
             fn () => response('OK'),
         );
         $this->assertTrue(
-            session()->has('backpack_session_state'),
+            $session->has('backpack_session_state'),
         );
     }
 
@@ -50,8 +51,9 @@ class RefreshBackpackSessionFeatureTest extends TestCase
             'preserved',
             session('_custom_key'),
         );
+        $session = session();
         $this->assertTrue(
-            session()->has('backpack_session_state'),
+            $session->has('backpack_session_state'),
         );
     }
 
@@ -60,12 +62,13 @@ class RefreshBackpackSessionFeatureTest extends TestCase
     {
         // First request triggers regeneration
         $request1 = Request::create('/admin/dashboard');
-        $idBeforeFirst = session()->getId();
+        $session = session();
+        $idBeforeFirst = $session->getId();
         $this->middleware->handle(
             $request1,
             fn () => response('OK'),
         );
-        $idAfterFirst = session()->getId();
+        $idAfterFirst = $session->getId();
         $this->assertNotEquals(
             $idBeforeFirst,
             $idAfterFirst,
@@ -78,7 +81,7 @@ class RefreshBackpackSessionFeatureTest extends TestCase
             $request2,
             fn () => response('OK'),
         );
-        $idAfterSecond = session()->getId();
+        $idAfterSecond = $session->getId();
         $this->assertEquals(
             $idAfterFirst,
             $idAfterSecond,
@@ -94,9 +97,10 @@ class RefreshBackpackSessionFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $idAfterFirst = session()->getId();
+        $session = session();
+        $idAfterFirst = $session->getId();
         $this->assertTrue(
-            session()->has('backpack_session_last_regenerated'),
+            $session->has('backpack_session_last_regenerated'),
         );
         $originalTimestamp = session('backpack_session_last_regenerated');
 
@@ -109,7 +113,7 @@ class RefreshBackpackSessionFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $idAfterSecond = session()->getId();
+        $idAfterSecond = $session->getId();
         $this->assertNotEquals(
             $idAfterFirst,
             $idAfterSecond,
@@ -129,7 +133,8 @@ class RefreshBackpackSessionFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $baselineId = session()->getId();
+        $session = session();
+        $baselineId = $session->getId();
         for ($i = 0; $i < 5; $i++) {
             $this->middleware->handle(
                 $request,
@@ -137,7 +142,7 @@ class RefreshBackpackSessionFeatureTest extends TestCase
             );
             $this->assertSame(
                 $baselineId,
-                session()->getId(),
+                $session->getId(),
                 'Session ID changed unexpectedly within interval on iteration ' . $i,
             );
         }

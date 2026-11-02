@@ -58,20 +58,19 @@ final class DocumentSupplierLogoTest extends TestCase
         $invoice = $invoiceQuery->sole();
         $copy = $invoice->supplier_logo;
         $this->assertOwnCopy($business->logo, $copy);
-        $httpResponse2 = $this->get('/admin/invoice/' . $invoice->id . '/show');
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2->assertSee($copy);
+        $httpResponse = $this->get('/admin/invoice/' . $invoice->id . '/show');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertSee($copy);
         $disk = Storage::disk('public');
         $disk->delete($business->logo);
         $business->update(
             ['logo' => $this->sourceLogo('new.png')],
         );
-        $httpResponse3 = $this->put('/admin/invoice/' . $invoice->id, $data);
-        $httpResponse3 = $httpResponse3->assertSessionHasNoErrors();
-        $httpResponse3->assertRedirect();
+        $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertSame($copy, $invoice->fresh()->supplier_logo);
-        $disk2 = Storage::disk('public');
-        $disk2->assertExists($copy);
+        $disk->assertExists($copy);
     }
 
     #[Test]
@@ -94,13 +93,12 @@ final class DocumentSupplierLogoTest extends TestCase
         [$second, $secondAccount] = $this->issuerOf($this->adminUser);
         $data['business_id'] = $second->id;
         $data['bank_account_id'] = $secondAccount->id;
-        $httpResponse2 = $this->put('/admin/invoice/' . $invoice->id, $data);
-        $httpResponse2->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertNull($invoice->fresh()->supplier_logo);
         $disk = Storage::disk('public');
         $disk->assertMissing($oldCopy);
-        $disk2 = Storage::disk('public');
-        $disk2->assertExists($business->logo);
+        $disk->assertExists($business->logo);
     }
 
     #[Test]
@@ -128,8 +126,7 @@ final class DocumentSupplierLogoTest extends TestCase
             [],
             $disk->allFiles('documents/logos'),
         );
-        $disk2 = Storage::disk('public');
-        $disk2->assertExists($business->logo);
+        $disk->assertExists($business->logo);
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
 
@@ -148,28 +145,26 @@ final class DocumentSupplierLogoTest extends TestCase
         $expense = $expenseQuery->sole();
         $copy = $expense->supplier_logo;
         $this->assertOwnCopy($contact->logo, $copy);
-        $httpResponse2 = $this->get('/admin/expense/' . $expense->id . '/show');
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2->assertSee($copy);
+        $httpResponse = $this->get('/admin/expense/' . $expense->id . '/show');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertSee($copy);
         $disk = Storage::disk('public');
         $this->assertNotSame(
             $disk->get($business->logo),
             Storage::disk('public')->get($copy),
         );
-        $disk2 = Storage::disk('public');
-        $disk2->delete($contact->logo);
+        $disk->delete($contact->logo);
         $contact->update(['logo' => null]);
         [$secondBusiness] = $this->issuerOf($this->adminUser);
         $data['business_id'] = $secondBusiness->id;
         // Editing the saved form submits its copied supplier identity.
         $data['supplier_company_number'] = $expense->supplier_company_number;
         $data['supplier_registration_country'] = $expense->supplier_registration_country;
-        $httpResponse3 = $this->put('/admin/expense/' . $expense->id, $data);
-        $httpResponse3->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertSame($copy, $expense->fresh()->supplier_logo);
         $this->assertSame($contact->company_number, $expense->fresh()->supplier_company_number);
-        $disk3 = Storage::disk('public');
-        $disk3->assertExists($copy);
+        $disk->assertExists($copy);
     }
 
     #[Test]
@@ -185,18 +180,17 @@ final class DocumentSupplierLogoTest extends TestCase
         $expense = $expenseQuery->sole();
         $old = $expense->supplier_logo;
         $data['contact_id'] = $second->id;
-        $httpResponse2 = $this->put('/admin/expense/' . $expense->id, $data);
-        $httpResponse2->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
         $copy = $expense->fresh()->supplier_logo;
         $this->assertOwnCopy($second->logo, $copy);
         $disk = Storage::disk('public');
         $disk->assertMissing($old);
         $data['contact_id'] = null;
-        $httpResponse3 = $this->put('/admin/expense/' . $expense->id, $data);
-        $httpResponse3->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertNull($expense->fresh()->supplier_logo);
-        $disk2 = Storage::disk('public');
-        $disk2->assertMissing($copy);
+        $disk->assertMissing($copy);
     }
 
     #[Test]
@@ -219,12 +213,12 @@ final class DocumentSupplierLogoTest extends TestCase
         $this->assertNotNull($copy);
         $this->assertNotSame($business->logo, $copy);
         unset($data['supplier_logo']);
-        $httpResponse2 = $this->put('/admin/expense/' . $expense->id, $data);
-        $httpResponse2->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertSame($copy, $expense->fresh()->supplier_logo);
         $data['remove_supplier_logo'] = '1';
-        $httpResponse3 = $this->put('/admin/expense/' . $expense->id, $data);
-        $httpResponse3->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertNull($expense->fresh()->supplier_logo);
         $disk = Storage::disk('public');
         $disk->assertMissing($copy);
@@ -265,7 +259,7 @@ final class DocumentSupplierLogoTest extends TestCase
         );
         $name = 'Contact with logo ' . uniqid();
         $fileFactory = UploadedFile::fake();
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             '/admin/contact',
             [
                 'user_id' => $owner->id,
@@ -273,44 +267,40 @@ final class DocumentSupplierLogoTest extends TestCase
                 'logo' => $fileFactory->image('logo.png'),
             ],
         );
-        $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
-        $httpResponse2->assertRedirect();
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $contactQuery = Contact::where('name', $name);
         $contact = $contactQuery->sole();
         $this->assertNotNull($contact->logo);
         $disk = Storage::disk('public');
         $disk->assertExists($contact->logo);
-        $httpResponse3 = $this->get('/admin/contact/' . $contact->id . '/edit');
-        $httpResponse3 = $httpResponse3->assertOk();
-        $httpResponse3->assertSee('enctype="multipart/form-data"', false);
+        $httpResponse = $this->get('/admin/contact/' . $contact->id . '/edit');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertSee('enctype="multipart/form-data"', false);
         $first = $contact->logo;
-        $httpResponse4 = $this->put('/admin/contact/' . $contact->id, ['name' => $name]);
-        $httpResponse4->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/contact/' . $contact->id, ['name' => $name]);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertSame($first, $contact->fresh()->logo);
-        $fileFactory2 = UploadedFile::fake();
-        $httpResponse5 = $this->put(
+        $httpResponse = $this->put(
             '/admin/contact/' . $contact->id,
             [
                 'name' => $name,
-                'logo' => $fileFactory2->image(
+                'logo' => $fileFactory->image(
                     'replacement.png',
                     300,
                     120,
                 ),
             ],
         );
-        $httpResponse5->assertSessionHasNoErrors();
+        $httpResponse->assertSessionHasNoErrors();
         $second = $contact->fresh()->logo;
         $this->assertNotSame($first, $second);
-        $disk2 = Storage::disk('public');
-        $disk2->assertMissing($first);
-        $disk3 = Storage::disk('public');
-        $disk3->assertExists($second);
-        $httpResponse6 = $this->put('/admin/contact/' . $contact->id, ['name' => $name, 'remove_logo' => '1']);
-        $httpResponse6->assertSessionHasNoErrors();
+        $disk->assertMissing($first);
+        $disk->assertExists($second);
+        $httpResponse = $this->put('/admin/contact/' . $contact->id, ['name' => $name, 'remove_logo' => '1']);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertNull($contact->fresh()->logo);
-        $disk4 = Storage::disk('public');
-        $disk4->assertMissing($second);
+        $disk->assertMissing($second);
     }
 
     #[Test]
@@ -332,24 +322,22 @@ final class DocumentSupplierLogoTest extends TestCase
         );
         $httpResponse = $this->post('/admin/invoice', $firstInput);
         $httpResponse->assertSessionHasNoErrors();
-        $httpResponse2 = $this->post('/admin/invoice', $secondInput);
-        $httpResponse2->assertSessionHasNoErrors();
+        $httpResponse = $this->post('/admin/invoice', $secondInput);
+        $httpResponse->assertSessionHasNoErrors();
         $invoiceQuery = Invoice::where('invoice_vs', $firstInput['invoice_vs']);
         $first = $invoiceQuery->sole();
-        $invoiceQuery2 = Invoice::where('invoice_vs', $secondInput['invoice_vs']);
-        $second = $invoiceQuery2->sole();
+        $invoiceQuery = Invoice::where('invoice_vs', $secondInput['invoice_vs']);
+        $second = $invoiceQuery->sole();
         $this->assertNotSame($first->supplier_logo, $second->supplier_logo);
         [$withoutLogo, $otherAccount] = $this->issuerOf($this->adminUser);
         $firstInput['business_id'] = $withoutLogo->id;
         $firstInput['bank_account_id'] = $otherAccount->id;
-        $httpResponse3 = $this->put('/admin/invoice/' . $first->id, $firstInput);
-        $httpResponse3->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/invoice/' . $first->id, $firstInput);
+        $httpResponse->assertSessionHasNoErrors();
         $disk = Storage::disk('public');
         $disk->assertMissing($first->supplier_logo);
-        $disk2 = Storage::disk('public');
-        $disk2->assertExists($second->supplier_logo);
-        $disk3 = Storage::disk('public');
-        $disk3->assertExists($business->logo);
+        $disk->assertExists($second->supplier_logo);
+        $disk->assertExists($business->logo);
     }
 
     #[Test]
@@ -377,16 +365,15 @@ final class DocumentSupplierLogoTest extends TestCase
         $input['business_id'] = $nextBusiness->id;
         $input['bank_account_id'] = $nextAccount->id;
         $input['contact_id'] = $contact->id;
-        $httpResponse2 = $this->put('/admin/invoice/' . $invoice->id, $input);
-        $httpResponse2->assertSessionHasErrors('contact_id');
+        $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $input);
+        $httpResponse->assertSessionHasErrors('contact_id');
         $this->assertSame($invoice->supplier_logo, $invoice->fresh()->supplier_logo);
         $disk = Storage::disk('public');
         $this->assertSame(
             [$invoice->supplier_logo],
             $disk->allFiles('documents/logos'),
         );
-        $disk2 = Storage::disk('public');
-        $disk2->assertExists($nextBusiness->logo);
+        $disk->assertExists($nextBusiness->logo);
     }
 
     #[Test]

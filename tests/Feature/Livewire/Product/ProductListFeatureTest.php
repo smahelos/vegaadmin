@@ -26,25 +26,30 @@ class ProductListFeatureTest extends TestCase
      */
     private function setupTestRoutes(): void
     {
-        \Route::get('/test/products', function () {
+        $route = \Route::get('/test/products', function () {
             return 'test';
-        })->name('frontend.product.index');
+        });
+        $route->name('frontend.product.index');
 
-        \Route::get('/test/product/{id}', function ($id) {
+        $route = \Route::get('/test/product/{id}', function ($id) {
             return "product {$id}";
-        })->name('frontend.product.show');
+        });
+        $route->name('frontend.product.show');
 
-        \Route::get('/test/product/{id}/edit', function ($id) {
+        $route = \Route::get('/test/product/{id}/edit', function ($id) {
             return "edit product {$id}";
-        })->name('frontend.product.edit');
+        });
+        $route->name('frontend.product.edit');
 
-        \Route::post('/test/product/{id}', function ($id) {
+        $route = \Route::post('/test/product/{id}', function ($id) {
             return "delete product {$id}";
-        })->name('frontend.product.destroy');
+        });
+        $route->name('frontend.product.destroy');
 
-        \Route::get('/test/product/create', function () {
+        $route = \Route::get('/test/product/create', function () {
             return 'create product';
-        })->name('frontend.product.create');
+        });
+        $route->name('frontend.product.create');
     }
 
     #[Test]
@@ -65,8 +70,7 @@ class ProductListFeatureTest extends TestCase
 
         $productFactory = Product::factory();
         $userProduct = $productFactory->create(['user_id' => $this->user->id]);
-        $productFactory2 = Product::factory();
-        $otherUserProduct = $productFactory2->create(['user_id' => $otherUser->id]);
+        $otherUserProduct = $productFactory->create(['user_id' => $otherUser->id]);
 
         $this->actingAs($this->user);
 
@@ -88,8 +92,7 @@ class ProductListFeatureTest extends TestCase
             ],
         );
 
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create(
+        $product2 = $productFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Different Item',
@@ -118,8 +121,7 @@ class ProductListFeatureTest extends TestCase
             ],
         );
 
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create(
+        $product2 = $productFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Product B',
@@ -146,8 +148,7 @@ class ProductListFeatureTest extends TestCase
             'is_active' => true,
         ]);
 
-        $productFactory2 = Product::factory();
-        $inactiveProduct = $productFactory2->create([
+        $inactiveProduct = $productFactory->create([
             'user_id' => $this->user->id,
             'is_active' => false,
         ]);
@@ -171,8 +172,7 @@ class ProductListFeatureTest extends TestCase
             'is_active' => true,
         ]);
 
-        $productFactory2 = Product::factory();
-        $inactiveProduct = $productFactory2->create([
+        $inactiveProduct = $productFactory->create([
             'user_id' => $this->user->id,
             'is_active' => false,
         ]);
@@ -230,8 +230,7 @@ class ProductListFeatureTest extends TestCase
     {
         $productFactory = Product::factory();
         $product1 = $productFactory->create(['user_id' => $this->user->id]);
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create(['user_id' => $this->user->id]);
+        $product2 = $productFactory->create(['user_id' => $this->user->id]);
 
         $this->actingAs($this->user);
 
@@ -314,7 +313,8 @@ class ProductListFeatureTest extends TestCase
         $component->assertStatus(200);
 
         // Test behavior when not authenticated (Auth::id() returns null)
-        auth()->logout();
+        $auth = auth();
+        $auth->logout();
 
         $component = Livewire::test(ProductList::class);
         $products = $component->viewData('products');
@@ -374,8 +374,7 @@ class ProductListFeatureTest extends TestCase
             ],
         );
 
-        $productFactory2 = Product::factory();
-        $productFactory2->create(
+        $productFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Different Product',

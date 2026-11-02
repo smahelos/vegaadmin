@@ -90,8 +90,7 @@ final class ReferentialIntegrityTest extends TestCase
         $invoiceProductFactory = InvoiceProduct::factory();
         $line = $invoiceProductFactory->create();
 
-        $invoiceProductFactory2 = InvoiceProduct::factory();
-        $invoiceProductFactory2->create(
+        $invoiceProductFactory->create(
             [
                 'invoice_id' => $line->invoice_id,
                 'product_id' => $line->product_id,
@@ -201,8 +200,7 @@ final class ReferentialIntegrityTest extends TestCase
         $userFactory = User::factory();
         $otherUser = $userFactory->create();
 
-        $productFactory2 = Product::factory();
-        $productFactory2->create(['user_id' => $otherUser->id, 'slug' => $product->slug]);
+        $productFactory->create(['user_id' => $otherUser->id, 'slug' => $product->slug]);
 
         $this->assertRefused(
             fn () => Product::factory()->create(['user_id' => $product->user_id, 'slug' => $product->slug]),

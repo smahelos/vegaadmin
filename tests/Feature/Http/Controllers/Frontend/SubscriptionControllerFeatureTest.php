@@ -6,6 +6,7 @@ use App\Http\Controllers\Frontend\SubscriptionController;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -40,8 +41,7 @@ class SubscriptionControllerFeatureTest extends TestCase
             'is_active' => true,
             'name' => 'Active Test Plan',
         ]);
-        $subscriptionPlanFactory2 = SubscriptionPlan::factory();
-        $inactivePlan = $subscriptionPlanFactory2->create([
+        $inactivePlan = $subscriptionPlanFactory->create([
             'is_active' => false,
             'name' => 'Inactive Test Plan',
         ]);
@@ -82,12 +82,13 @@ class SubscriptionControllerFeatureTest extends TestCase
     public function my_subscription_shows_the_active_subscription(): void
     {
         $subscriptionFactory = Subscription::factory();
+        $now = CarbonImmutable::now();
         $subscription = $subscriptionFactory->create(
             [
                 'user_id' => $this->user->id,
                 'status' => 'active',
-                'trial_ends_at' => now()->addDays(3),
-                'ends_at' => now()->addDays(10),
+                'trial_ends_at' => $now->addDays(3),
+                'ends_at' => $now->addDays(10),
             ],
         );
 

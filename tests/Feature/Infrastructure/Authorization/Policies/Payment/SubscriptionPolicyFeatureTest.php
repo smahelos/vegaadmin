@@ -62,8 +62,7 @@ class SubscriptionPolicyFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user1 = $userFactory->create();
-        $userFactory2 = User::factory();
-        $user2 = $userFactory2->create();
+        $user2 = $userFactory->create();
         $subscriptionFactory = Subscription::factory();
         $subscriptionFactory = $subscriptionFactory->for($user2);
         $subscription = $subscriptionFactory->create();
@@ -100,8 +99,7 @@ class SubscriptionPolicyFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user1 = $userFactory->create();
-        $userFactory2 = User::factory();
-        $user2 = $userFactory2->create();
+        $user2 = $userFactory->create();
         $subscriptionFactory = Subscription::factory();
         $subscriptionFactory = $subscriptionFactory->for($user2);
         $subscription = $subscriptionFactory->create();
@@ -136,8 +134,7 @@ class SubscriptionPolicyFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user1 = $userFactory->create();
-        $userFactory2 = User::factory();
-        $user2 = $userFactory2->create();
+        $user2 = $userFactory->create();
         $subscriptionFactory = Subscription::factory();
         $subscriptionFactory = $subscriptionFactory->for($user2);
         $subscription = $subscriptionFactory->create();
@@ -184,8 +181,7 @@ class SubscriptionPolicyFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user1 = $userFactory->create();
-        $userFactory2 = User::factory();
-        $user2 = $userFactory2->create();
+        $user2 = $userFactory->create();
         $subscriptionFactory = Subscription::factory();
         $subscriptionFactory = $subscriptionFactory->for($user2);
         $subscription = $subscriptionFactory->create();

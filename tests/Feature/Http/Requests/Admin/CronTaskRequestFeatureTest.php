@@ -28,12 +28,15 @@ class CronTaskRequestFeatureTest extends TestCase
         $this->regularUser->givePermissionTo($permission);
 
         // Set up test route
-        Route::post(
+        $route = Route::post(
             '/test-cron-task',
             function (CronTaskRequest $request) {
-                return response()->json(['success' => true]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -211,8 +214,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $request->setContainer(app());
 
         // Run validation through the request
-        $validator2 = app('validator');
-        $validator = $validator2->make($data, $request->rules());
+        $validatorFactory = app('validator');
+        $validator = $validatorFactory->make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();

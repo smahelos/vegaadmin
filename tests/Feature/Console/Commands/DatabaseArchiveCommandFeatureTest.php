@@ -6,6 +6,7 @@ namespace Tests\Feature\Console\Commands;
 
 use App\Models\Contact;
 use App\Models\Invoice;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,9 +18,10 @@ final class DatabaseArchiveCommandFeatureTest extends TestCase
     public function archives_document_party_references_and_stored_one_off_data(): void
     {
         $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
         $invoice = $invoiceFactory->create(
             [
-                'created_at' => now()->subYears(4),
+                'created_at' => $now->subYears(4),
                 'supplier_name' => 'Stored issuing business',
                 'customer_name' => 'Stored one-off customer',
                 'contact_id' => null,
@@ -27,13 +29,12 @@ final class DatabaseArchiveCommandFeatureTest extends TestCase
         );
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $invoice->user_id]);
-        $invoiceFactory2 = Invoice::factory();
-        $linked = $invoiceFactory2->create(
+        $linked = $invoiceFactory->create(
             [
                 'user_id' => $invoice->user_id,
                 'business_id' => $invoice->business_id,
                 'contact_id' => $contact->id,
-                'created_at' => now()->subYears(4),
+                'created_at' => $now->subYears(4),
             ],
         );
 

@@ -103,7 +103,8 @@ PHP;
         $this->assertIsArray($json);
         $this->assertArrayHasKey('violations', $json);
         $this->assertNotEmpty($json['violations'], 'Expected at least one violation');
-        $foundConcrete = collect($json['violations'])->contains(fn ($v) => ($v['type'] ?? null) === 'di_concrete_import');
+        $collection = collect($json['violations']);
+        $foundConcrete = $collection->contains(fn ($v) => ($v['type'] ?? null) === 'di_concrete_import');
         $this->assertTrue(
             $foundConcrete,
             'Expected at least one di_concrete_import violation in report',
@@ -160,7 +161,8 @@ PHP;
         );
         $this->assertIsArray($json);
         $this->assertArrayHasKey('violations', $json);
-        $found = collect($json['violations'])->contains(fn ($v) => ($v['type'] ?? null) === 'di_concrete_import');
+        $collection = collect($json['violations']);
+        $found = $collection->contains(fn ($v) => ($v['type'] ?? null) === 'di_concrete_import');
         $this->assertTrue(
             $found,
             'Expected di_concrete_import violation once interface exists',

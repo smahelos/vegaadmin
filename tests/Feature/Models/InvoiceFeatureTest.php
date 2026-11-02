@@ -287,8 +287,7 @@ class InvoiceFeatureTest extends TestCase
                 'currency' => 'CZK',
             ],
         );
-        $invoiceProductFactory2 = InvoiceProduct::factory();
-        $invoiceProductFactory2->create(
+        $invoiceProductFactory->create(
             [
                 'invoice_id' => $invoice->id,
                 'price' => 50.00,

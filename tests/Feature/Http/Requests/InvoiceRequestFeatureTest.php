@@ -793,8 +793,7 @@ final class InvoiceRequestFeatureTest extends TestCase
         $user = $userFactory->create();
         $productFactory = Product::factory();
         $own = $productFactory->create(['user_id' => $user->id]);
-        $productFactory2 = Product::factory();
-        $foreign = $productFactory2->create();
+        $foreign = $productFactory->create();
 
         $this->assertSame(
             [],

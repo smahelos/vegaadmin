@@ -26,8 +26,7 @@ class UserSubscriptionFeatureTest extends TestCase
         $user = $userFactory->create();
         $subscriptionFactory = Subscription::factory();
         $subscription1 = $subscriptionFactory->create(['user_id' => $user->id]);
-        $subscriptionFactory2 = Subscription::factory();
-        $subscription2 = $subscriptionFactory2->create(['user_id' => $user->id]);
+        $subscription2 = $subscriptionFactory->create(['user_id' => $user->id]);
 
         $subscriptions = $user->subscriptions;
 

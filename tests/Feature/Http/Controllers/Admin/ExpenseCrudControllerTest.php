@@ -60,9 +60,9 @@ final class ExpenseCrudControllerTest extends TestCase
         $expenseQuery = Expense::where('reference_number', $data['reference_number']);
         $expense = $expenseQuery->sole();
         $this->assertSame([], $expense->attachments);
-        $httpResponse2 = $this->put('/admin/expense/' . $expense->id, $data);
-        $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
-        $httpResponse2->assertRedirect();
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertSame([], $expense->fresh()->attachments);
     }
 
@@ -74,9 +74,9 @@ final class ExpenseCrudControllerTest extends TestCase
         $httpResponse->assertSee('enctype="multipart/form-data"', false);
         $expenseFactory = Expense::factory();
         $expense = $expenseFactory->create();
-        $httpResponse2 = $this->get('/admin/expense/' . $expense->id . '/edit');
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2->assertSee('enctype="multipart/form-data"', false);
+        $httpResponse = $this->get('/admin/expense/' . $expense->id . '/edit');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertSee('enctype="multipart/form-data"', false);
     }
 
     #[Test]
@@ -308,11 +308,11 @@ final class ExpenseCrudControllerTest extends TestCase
                 'current_value' => 1,
             ],
         );
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             '/admin/expense',
             array_replace($data, ['reference_number' => 'blocked']),
         );
-        $httpResponse2->assertRedirect();
+        $httpResponse->assertRedirect();
         $this->assertDatabaseMissing('expenses', ['reference_number' => 'blocked']);
     }
 
@@ -349,11 +349,11 @@ final class ExpenseCrudControllerTest extends TestCase
                 'current_value' => 1,
             ],
         );
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             '/admin/expense',
             array_replace($data, ['reference_number' => 'WEB-BLOCKED']),
         );
-        $httpResponse2->assertRedirect();
+        $httpResponse->assertRedirect();
         $this->assertDatabaseMissing('expenses', ['reference_number' => 'WEB-BLOCKED']);
     }
 
@@ -386,7 +386,6 @@ final class ExpenseCrudControllerTest extends TestCase
         );
         $this->withoutExceptionHandling();
         try {
-            $fileFactory2 = UploadedFile::fake();
             $this->post(
                 '/admin/expense',
                 array_replace(
@@ -394,7 +393,7 @@ final class ExpenseCrudControllerTest extends TestCase
                     [
                         'reference_number' => 'FAILED',
                         'attachments' => [
-                            $fileFactory2->createWithContent('receipt.pdf', $receipt),
+                            $fileFactory->createWithContent('receipt.pdf', $receipt),
                             UploadedFile::fake()->createWithContent('new.pdf', '%PDF-1.4 new receipt'),
                         ],
                     ],
@@ -406,10 +405,9 @@ final class ExpenseCrudControllerTest extends TestCase
         }
         $disk = Storage::disk('public');
         $disk->assertExists($path);
-        $disk2 = Storage::disk('public');
         $this->assertSame(
             [$path],
-            $disk2->allFiles('expenses/attachments'),
+            $disk->allFiles('expenses/attachments'),
         );
         $this->assertSame([$path], $expense->fresh()->attachments);
         $this->assertDatabaseHas('file_hashes', ['path' => $path, 'ref_count' => 1]);
@@ -438,27 +436,24 @@ final class ExpenseCrudControllerTest extends TestCase
         $path = $expense->attachments[0];
         $disk = Storage::disk('public');
         $disk->assertExists($path);
-        $httpResponse2 = $this->get('/admin/expense/' . $expense->id . '/edit');
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2 = $httpResponse2->assertSee(
+        $httpResponse = $this->get('/admin/expense/' . $expense->id . '/edit');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee(
             basename($path),
         );
-        $httpResponse2->assertSee('la-file-pdf');
-        $httpResponse3 = $this->put('/admin/expense/' . $expense->id, $data);
-        $httpResponse3->assertSessionHasNoErrors();
+        $httpResponse->assertSee('la-file-pdf');
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertSame([$path], $expense->fresh()->attachments);
-        $disk2 = Storage::disk('public');
-        $disk2->put('someone-else.pdf', 'private');
-        $httpResponse4 = $this->put(
+        $disk->put('someone-else.pdf', 'private');
+        $httpResponse = $this->put(
             '/admin/expense/' . $expense->id,
             $data + ['attachments_removed' => json_encode([$path, 'someone-else.pdf'])],
         );
-        $httpResponse4->assertSessionHasNoErrors();
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertSame([], $expense->fresh()->attachments);
-        $disk3 = Storage::disk('public');
-        $disk3->assertMissing($path);
-        $disk4 = Storage::disk('public');
-        $disk4->assertExists('someone-else.pdf');
+        $disk->assertMissing($path);
+        $disk->assertExists('someone-else.pdf');
     }
 
     #[Test]
@@ -469,22 +464,23 @@ final class ExpenseCrudControllerTest extends TestCase
         $httpResponse = $this->get('/admin/expense/' . $expense->id . '/show');
         $httpResponse = $httpResponse->assertOk();
         $httpResponse->assertSee('Saved supplier');
-        $httpResponse2 = $this->get('/admin/expense');
-        $httpResponse2->assertOk();
+        $httpResponse = $this->get('/admin/expense');
+        $httpResponse->assertOk();
     }
 
     #[Test]
     public function guests_and_users_without_permission_cannot_write_expenses(): void
     {
-        auth('backpack')->logout();
+        $auth = auth('backpack');
+        $auth->logout();
         $httpResponse = $this->post('/admin/expense', []);
         $httpResponse->assertRedirect(
             route('backpack.auth.login'),
         );
         $httpClient = $this->actingAs($this->regularUser, 'backpack');
-        $httpResponse2 = $httpClient->post('/admin/expense', []);
-        $httpResponse2->assertForbidden();
-        $httpResponse3 = $this->get('/admin/expense/create');
-        $httpResponse3->assertForbidden();
+        $httpResponse = $httpClient->post('/admin/expense', []);
+        $httpResponse->assertForbidden();
+        $httpResponse = $this->get('/admin/expense/create');
+        $httpResponse->assertForbidden();
     }
 }

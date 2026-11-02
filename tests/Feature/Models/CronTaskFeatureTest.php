@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Models\CronTask;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -161,8 +162,9 @@ class CronTaskFeatureTest extends TestCase
         $recentTask = CronTask::factory()->recentlyRun()->create();
 
         $this->assertNotNull($recentTask->last_run);
+        $now = CarbonImmutable::now();
         $this->assertTrue(
-            $recentTask->last_run->isAfter(now()->subDay()),
+            $recentTask->last_run->isAfter($now->subDay()),
         );
         $this->assertNotNull($recentTask->last_output);
         $this->assertStringContainsString('successfully', $recentTask->last_output);

@@ -377,22 +377,21 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         // Should fail for all three fields
         $errors = $validator->errors();
         $this->assertArrayHasKey('current_password', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('password', $errors2->toArray());
-        $errors3 = $validator->errors();
-        $this->assertArrayHasKey('password_confirmation', $errors3->toArray());
+        $this->assertArrayHasKey('password', $errors->toArray());
+        $this->assertArrayHasKey('password_confirmation', $errors->toArray());
     }
 
     #[Test]
     public function new_password_errors_name_the_new_password_field(): void
     {
         $request = new PasswordUpdateRequest;
-        $errors = Validator::make(
+        $validator = Validator::make(
             ['password' => 'short', 'password_confirmation' => 'short'],
             $request->rules(),
             [],
             $request->attributes(),
-        )->errors();
+        );
+        $errors = $validator->errors();
 
         $this->assertStringContainsString(
             __('users.fields.new_password'),

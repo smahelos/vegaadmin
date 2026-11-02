@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Models\PerformanceMetric;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -131,8 +132,9 @@ class PerformanceMetricFeatureTest extends TestCase
 
         $metric = PerformanceMetric::factory()->recent()->create();
 
+        $now = CarbonImmutable::now();
         $this->assertGreaterThanOrEqual(
-            now()->subDays(7),
+            $now->subDays(7),
             $metric->measured_at,
         );
         $this->assertLessThanOrEqual(now(), $metric->measured_at);
@@ -144,12 +146,13 @@ class PerformanceMetricFeatureTest extends TestCase
 
         $metric = PerformanceMetric::factory()->old()->create();
 
+        $now = CarbonImmutable::now();
         $this->assertLessThanOrEqual(
-            now()->subMonths(2),
+            $now->subMonths(2),
             $metric->measured_at,
         );
         $this->assertGreaterThanOrEqual(
-            now()->subMonths(6),
+            $now->subMonths(6),
             $metric->measured_at,
         );
     }
@@ -207,8 +210,8 @@ class PerformanceMetricFeatureTest extends TestCase
 
         $performanceMetricQuery = PerformanceMetric::where('query_type', 'SELECT');
         $selectMetrics = $performanceMetricQuery->get();
-        $performanceMetricQuery2 = PerformanceMetric::where('query_type', 'INSERT');
-        $insertMetrics = $performanceMetricQuery2->get();
+        $performanceMetricQuery = PerformanceMetric::where('query_type', 'INSERT');
+        $insertMetrics = $performanceMetricQuery->get();
 
         $this->assertCount(2, $selectMetrics);
         $this->assertCount(1, $insertMetrics);

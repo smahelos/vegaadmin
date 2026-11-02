@@ -20,8 +20,9 @@ class RefreshFrontendSessionFeatureTest extends TestCase
     #[Test]
     public function middleware_sets_session_flag(): void
     {
+        $session = session();
         $this->assertFalse(
-            session()->has('frontend_session_state'),
+            $session->has('frontend_session_state'),
         );
         $request = Request::create('/dashboard');
         $this->middleware->handle(
@@ -29,7 +30,7 @@ class RefreshFrontendSessionFeatureTest extends TestCase
             fn () => response('OK'),
         );
         $this->assertTrue(
-            session()->has('frontend_session_state'),
+            $session->has('frontend_session_state'),
         );
     }
 
@@ -46,8 +47,9 @@ class RefreshFrontendSessionFeatureTest extends TestCase
             'stay',
             session('_custom_key'),
         );
+        $session = session();
         $this->assertTrue(
-            session()->has('frontend_session_state'),
+            $session->has('frontend_session_state'),
         );
     }
 
@@ -56,12 +58,13 @@ class RefreshFrontendSessionFeatureTest extends TestCase
     {
         // First request triggers regeneration
         $request1 = Request::create('/dashboard');
-        $idBeforeFirst = session()->getId();
+        $session = session();
+        $idBeforeFirst = $session->getId();
         $this->middleware->handle(
             $request1,
             fn () => response('OK'),
         );
-        $idAfterFirst = session()->getId();
+        $idAfterFirst = $session->getId();
         $this->assertNotEquals(
             $idBeforeFirst,
             $idAfterFirst,
@@ -74,7 +77,7 @@ class RefreshFrontendSessionFeatureTest extends TestCase
             $request2,
             fn () => response('OK'),
         );
-        $idAfterSecond = session()->getId();
+        $idAfterSecond = $session->getId();
         $this->assertEquals(
             $idAfterFirst,
             $idAfterSecond,
@@ -90,14 +93,15 @@ class RefreshFrontendSessionFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $firstId = session()->getId();
+        $session = session();
+        $firstId = $session->getId();
 
         // Druhý průchod okamžitě – nemělo by dojít k migraci
         $this->middleware->handle(
             $request,
             fn () => response('OK'),
         );
-        $secondId = session()->getId();
+        $secondId = $session->getId();
         $this->assertSame(
             $firstId,
             $secondId,
@@ -114,9 +118,10 @@ class RefreshFrontendSessionFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $idAfterFirst = session()->getId();
+        $session = session();
+        $idAfterFirst = $session->getId();
         $this->assertTrue(
-            session()->has('frontend_session_last_regenerated'),
+            $session->has('frontend_session_last_regenerated'),
         );
         $originalTimestamp = session('frontend_session_last_regenerated');
 
@@ -130,7 +135,7 @@ class RefreshFrontendSessionFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $idAfterSecond = session()->getId();
+        $idAfterSecond = $session->getId();
         $this->assertNotEquals(
             $idAfterFirst,
             $idAfterSecond,
@@ -151,7 +156,8 @@ class RefreshFrontendSessionFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $baselineId = session()->getId();
+        $session = session();
+        $baselineId = $session->getId();
         // Multiple rapid calls should not regenerate
         for ($i = 0; $i < 5; $i++) {
             $this->middleware->handle(
@@ -160,7 +166,7 @@ class RefreshFrontendSessionFeatureTest extends TestCase
             );
             $this->assertSame(
                 $baselineId,
-                session()->getId(),
+                $session->getId(),
                 'Session ID changed unexpectedly within interval on iteration ' . $i,
             );
         }

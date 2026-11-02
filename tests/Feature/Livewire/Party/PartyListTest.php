@@ -39,8 +39,7 @@ final class PartyListTest extends TestCase
         $contactFactory = Contact::factory();
         $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
         Contact::factory()->archived()->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
-        $contactFactory2 = Contact::factory();
-        $contactFactory2->create(['name' => 'Someone Else']);
+        $contactFactory->create(['name' => 'Someone Else']);
 
         Livewire::test(ContactList::class)
             ->assertSee('Active Mine')
@@ -72,8 +71,7 @@ final class PartyListTest extends TestCase
                 'short_name' => 'NAK',
             ],
         );
-        $contactFactory2 = Contact::factory();
-        $contactFactory2->create(
+        $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Tiskárna',

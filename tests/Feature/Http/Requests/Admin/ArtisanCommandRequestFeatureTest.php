@@ -54,10 +54,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();
         $this->assertArrayHasKey('name', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('command', $errors2->toArray());
-        $errors3 = $validator->errors();
-        $this->assertArrayHasKey('category_id', $errors3->toArray());
+        $this->assertArrayHasKey('command', $errors->toArray());
+        $this->assertArrayHasKey('category_id', $errors->toArray());
     }
 
     #[Test]

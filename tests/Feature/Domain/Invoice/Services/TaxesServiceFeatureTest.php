@@ -32,10 +32,8 @@ class TaxesServiceFeatureTest extends TestCase
         // Arrange
         $taxFactory = Tax::factory();
         $tax1 = $taxFactory->create(['name' => 'Zebra Tax']);
-        $taxFactory2 = Tax::factory();
-        $tax2 = $taxFactory2->create(['name' => 'Alpha Tax']);
-        $taxFactory3 = Tax::factory();
-        $tax3 = $taxFactory3->create(['name' => 'Beta Tax']);
+        $tax2 = $taxFactory->create(['name' => 'Alpha Tax']);
+        $tax3 = $taxFactory->create(['name' => 'Beta Tax']);
 
         // Act
         $result = $this->service->getAllTaxesForSelect();

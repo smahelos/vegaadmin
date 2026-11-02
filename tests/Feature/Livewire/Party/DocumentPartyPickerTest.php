@@ -90,8 +90,8 @@ final class DocumentPartyPickerTest extends TestCase
     {
         $business = $this->businessWithAddress();
         $bankAccountFactory = BankAccount::factory();
-        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
-        $bankAccountFactory->create(
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $ownedFactory->create(
             [
                 'number' => '2001234561',
                 'bank_code' => '2010',
@@ -100,9 +100,7 @@ final class DocumentPartyPickerTest extends TestCase
                 'bank_name' => 'Fio banka',
             ],
         );
-        $bankAccountFactory2 = BankAccount::factory();
-        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($business);
-        $account = $bankAccountFactory2->create(
+        $account = $ownedFactory->create(
             [
                 'number' => '1234567899',
                 'bank_code' => '0100',
@@ -194,8 +192,7 @@ final class DocumentPartyPickerTest extends TestCase
                 'name' => 'Hledaný vlastní',
             ],
         );
-        $contactFactory2 = Contact::factory();
-        $contactFactory2->create(['name' => 'Hledaný cizí']);
+        $contactFactory->create(['name' => 'Hledaný cizí']);
 
         Livewire::actingAs($this->user)
             ->test(DocumentPartyPicker::class)

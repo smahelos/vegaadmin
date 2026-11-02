@@ -30,12 +30,13 @@ class FrontendAuthFeatureTest extends TestCase
         $user->givePermissionTo('view_dashboard');
         $this->actingAs($user, 'web');
 
+        $auth = auth('web');
         $this->assertTrue(
-            auth('web')->check(),
+            $auth->check(),
         );
         $this->assertEquals(
             $user->id,
-            auth('web')->id(),
+            $auth->id(),
         );
         $this->assertTrue(
             $user->hasPermissionTo('view_dashboard', 'web'),
@@ -51,7 +52,8 @@ class FrontendAuthFeatureTest extends TestCase
         $request = request();
         $request->headers->set('X-Requested-With', 'XMLHttpRequest');
 
-        $response = response()->json(
+        $responseFactory = response();
+        $response = $responseFactory->json(
             ['error' => __('users.auth.unauthorized'), 'code' => 401],
             401,
         );
@@ -64,8 +66,10 @@ class FrontendAuthFeatureTest extends TestCase
     #[Test]
     public function unauthorized_redirect_for_regular_request(): void
     {
-        $response = redirect()->guest(
-            route('frontend.login', ['locale' => app()->getLocale()]),
+        $redirector = redirect();
+        $application = app();
+        $response = $redirector->guest(
+            route('frontend.login', ['locale' => $application->getLocale()]),
         );
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertEquals(302, $response->getStatusCode());

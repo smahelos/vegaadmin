@@ -137,14 +137,12 @@ final class BusinessAndContactConstraintTest extends TestCase
         $business = $businessFactory->create();
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $business->user_id]);
-        $businessFactory2 = Business::factory();
-        $otherBusiness = $businessFactory2->create(['user_id' => $business->user_id]);
+        $otherBusiness = $businessFactory->create(['user_id' => $business->user_id]);
         $bankAccountFactory = BankAccount::factory();
-        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
-        $ownAccount = $bankAccountFactory->create();
-        $bankAccountFactory2 = BankAccount::factory();
-        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($contact);
-        $contactAccount = $bankAccountFactory2->create();
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $ownAccount = $ownedFactory->create();
+        $ownedFactory = $bankAccountFactory->ownedBy($contact);
+        $contactAccount = $ownedFactory->create();
 
         $business->forceFill(['default_bank_account_id' => $ownAccount->id])->save();
         $contact->forceFill(['default_bank_account_id' => $contactAccount->id])->save();
@@ -168,8 +166,7 @@ final class BusinessAndContactConstraintTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create();
         $user = User::findOrFail($business->user_id);
-        $businessFactory2 = Business::factory();
-        $otherUsersBusiness = $businessFactory2->create();
+        $otherUsersBusiness = $businessFactory->create();
 
         $user->forceFill(['default_business_id' => $business->id])->save();
 

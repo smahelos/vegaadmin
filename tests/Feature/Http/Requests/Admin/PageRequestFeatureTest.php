@@ -29,12 +29,15 @@ class PageRequestFeatureTest extends TestCase
         $this->category = PageCategory::factory()->create();
         $this->request = new PageRequest;
 
-        Route::post(
+        $route = Route::post(
             '/admin/test-page-validation',
             function (PageRequest $request) {
-                return response()->json(['success' => true]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
             },
-        )->middleware(['web', 'auth:backpack']);
+        );
+        $route->middleware(['web', 'auth:backpack']);
     }
 
     #[Test]
@@ -232,12 +235,15 @@ class PageRequestFeatureTest extends TestCase
     public function prepare_for_validation_transforms_multilingual_data_correctly(): void
     {
         // Define route locally to capture transformed output
-        Route::post(
+        $route = Route::post(
             '/admin/test-page-transform',
             function (PageRequest $request) {
-                return response()->json($request->all());
+                $responseFactory = response();
+
+                return $responseFactory->json($request->all());
             },
-        )->middleware(['web', 'auth:backpack']);
+        );
+        $route->middleware(['web', 'auth:backpack']);
         $this->actingAs($this->adminUser, 'backpack');
         $payload = [
             'name_cs' => 'Nazev',

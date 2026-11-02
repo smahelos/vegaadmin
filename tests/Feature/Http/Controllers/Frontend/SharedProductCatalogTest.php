@@ -32,12 +32,12 @@ final class SharedProductCatalogTest extends TestCase
         $httpResponse = $httpResponse->assertSee('name="name"', false);
         $httpResponse = $httpResponse->assertSee('name="price"', false);
         $httpResponse->assertDontSee('supplier_id');
-        $httpResponse2 = $this->get(
+        $httpResponse = $this->get(
             route('frontend.product.edit', ['locale' => 'cs', 'id' => $product->id]),
         );
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2 = $httpResponse2->assertSee($product->name);
-        $httpResponse2->assertDontSee('supplier_id');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee($product->name);
+        $httpResponse->assertDontSee('supplier_id');
     }
 
     #[Test]
@@ -76,8 +76,7 @@ final class SharedProductCatalogTest extends TestCase
         $user = $userFactory->create();
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $user->id, 'name' => 'Visible shared product']);
-        $productFactory2 = Product::factory();
-        $productFactory2->create(['name' => 'Other private product']);
+        $productFactory->create(['name' => 'Other private product']);
         Livewire::actingAs($user)->test(ProductList::class)
             ->set('search', 'product')->assertSee($product->name)->assertDontSee('Other private product')->assertDontSee('supplier_id');
     }

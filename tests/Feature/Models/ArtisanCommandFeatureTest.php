@@ -159,8 +159,7 @@ class ArtisanCommandFeatureTest extends TestCase
     {
         $artisanCommandFactory = ArtisanCommand::factory();
         $activeCommand = $artisanCommandFactory->create(['is_active' => 1]);
-        $artisanCommandFactory2 = ArtisanCommand::factory();
-        $inactiveCommand = $artisanCommandFactory2->create(['is_active' => 0]);
+        $inactiveCommand = $artisanCommandFactory->create(['is_active' => 0]);
 
         $this->assertTrue($activeCommand->is_active);
         $this->assertFalse($inactiveCommand->is_active);
@@ -173,13 +172,11 @@ class ArtisanCommandFeatureTest extends TestCase
     {
         $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
         $category1 = $artisanCommandCategoryFactory->create(['name' => 'Cache']);
-        $artisanCommandCategoryFactory2 = ArtisanCommandCategory::factory();
-        $category2 = $artisanCommandCategoryFactory2->create(['name' => 'Database']);
+        $category2 = $artisanCommandCategoryFactory->create(['name' => 'Database']);
 
         $artisanCommandFactory = ArtisanCommand::factory();
         $command1 = $artisanCommandFactory->create(['category_id' => $category1->id]);
-        $artisanCommandFactory2 = ArtisanCommand::factory();
-        $command2 = $artisanCommandFactory2->create(['category_id' => $category2->id]);
+        $command2 = $artisanCommandFactory->create(['category_id' => $category2->id]);
 
         $this->assertEquals('Cache', $command1->category->name);
         $this->assertEquals('Database', $command2->category->name);
@@ -218,8 +215,8 @@ class ArtisanCommandFeatureTest extends TestCase
         $artisanCommandFactory = $artisanCommandFactory->count(3);
         $commands = $artisanCommandFactory->create();
 
-        $artisanCommandQuery2 = ArtisanCommand::with('category');
-        $commandsWithCategory = $artisanCommandQuery2->get();
+        $artisanCommandQuery = ArtisanCommand::with('category');
+        $commandsWithCategory = $artisanCommandQuery->get();
 
         $this->assertCount(3, $commandsWithCategory);
         foreach ($commandsWithCategory as $command) {

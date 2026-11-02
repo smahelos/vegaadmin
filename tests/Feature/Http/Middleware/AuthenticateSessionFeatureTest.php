@@ -29,8 +29,8 @@ final class AuthenticateSessionFeatureTest extends TestCase
         $httpResponse = $this->post('/admin/login', ['email' => $admin->email, 'password' => 'password']);
         $httpResponse->assertRedirect();
 
-        $httpResponse2 = $this->get('/admin/dashboard');
-        $httpResponse2->assertOk();
+        $httpResponse = $this->get('/admin/dashboard');
+        $httpResponse->assertOk();
         $this->assertAuthenticatedAs($admin, PermissionCatalog::BACKPACK);
     }
 }

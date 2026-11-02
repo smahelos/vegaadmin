@@ -138,8 +138,7 @@ class ArchivePolicyFeatureTest extends TestCase
 
         $archivePolicyFactory = ArchivePolicy::factory();
         $truePolicy = $archivePolicyFactory->create(['enabled' => 1]);
-        $archivePolicyFactory2 = ArchivePolicy::factory();
-        $falsePolicy = $archivePolicyFactory2->create(['enabled' => 0]);
+        $falsePolicy = $archivePolicyFactory->create(['enabled' => 0]);
 
         $this->assertTrue($truePolicy->enabled);
         $this->assertFalse($falsePolicy->enabled);

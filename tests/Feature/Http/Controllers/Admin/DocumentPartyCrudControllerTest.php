@@ -85,30 +85,26 @@ final class DocumentPartyCrudControllerTest extends TestCase
         $business = $businessFactory->create(['user_id' => $this->regularUser->id]);
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->regularUser->id]);
-        $businessFactory2 = Business::factory();
-        $businessFactory2->create(
+        $businessFactory->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
-        $contactFactory2 = Contact::factory();
-        $contactFactory2->create(
+        $contactFactory->create(
             ['user_id' => $this->regularUser->id, 'archived_at' => now()],
         );
-        $businessFactory3 = Business::factory();
-        $businessFactory3->create(['user_id' => $this->adminUser->id]);
-        $contactFactory3 = Contact::factory();
-        $contactFactory3->create(['user_id' => $this->adminUser->id]);
+        $businessFactory->create(['user_id' => $this->adminUser->id]);
+        $contactFactory->create(['user_id' => $this->adminUser->id]);
         $httpResponse = $this->getJson(
             route('admin.document-parties.businesses', ['user_id' => $this->regularUser->id]),
         );
         $httpResponse = $httpResponse->assertOk();
         $httpResponse = $httpResponse->assertJsonCount(1, 'data');
         $httpResponse->assertJsonPath('data.0.id', $business->id);
-        $httpResponse2 = $this->getJson(
+        $httpResponse = $this->getJson(
             route('admin.document-parties.contacts', ['user_id' => $this->regularUser->id]),
         );
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2 = $httpResponse2->assertJsonCount(1, 'data');
-        $httpResponse2->assertJsonPath('data.0.id', $contact->id);
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonCount(1, 'data');
+        $httpResponse->assertJsonPath('data.0.id', $contact->id);
     }
 
     #[Test]
@@ -117,12 +113,11 @@ final class DocumentPartyCrudControllerTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $this->regularUser->id]);
         $bankAccountFactory = BankAccount::factory();
-        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
-        $account = $bankAccountFactory->create();
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $account = $ownedFactory->create();
         $business->update(['default_bank_account_id' => $account->id]);
-        $bankAccountFactory2 = BankAccount::factory();
-        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($business);
-        $bankAccountFactory2->create(['archived_at' => now()]);
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $ownedFactory->create(['archived_at' => now()]);
         $httpResponse = $this->getJson(
             route(
                 'admin.document-parties.accounts',
@@ -133,14 +128,14 @@ final class DocumentPartyCrudControllerTest extends TestCase
         $httpResponse = $httpResponse->assertJsonCount(1, 'data');
         $httpResponse = $httpResponse->assertJsonPath('data.0.id', $account->id);
         $httpResponse->assertJsonPath('data.0.is_default', true);
-        $httpResponse2 = $this->getJson(
+        $httpResponse = $this->getJson(
             route(
                 'admin.document-parties.accounts',
                 ['user_id' => $this->adminUser->id, 'business_id' => $business->id],
             ),
         );
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2->assertJsonCount(0, 'data');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertJsonCount(0, 'data');
     }
 
     #[Test]
@@ -149,11 +144,9 @@ final class DocumentPartyCrudControllerTest extends TestCase
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->regularUser->id]);
         $bankAccountFactory = BankAccount::factory();
-        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
-        $account = $bankAccountFactory->create();
-        $bankAccountFactory2 = BankAccount::factory();
-        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($contact);
-        $bankAccountFactory2->create(['archived_at' => now()]);
+        $ownedFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $ownedFactory->create();
+        $ownedFactory->create(['archived_at' => now()]);
         $httpResponse = $this->getJson(
             route(
                 'admin.document-parties.accounts',
@@ -178,7 +171,8 @@ final class DocumentPartyCrudControllerTest extends TestCase
     #[Test]
     public function guests_and_users_without_document_permissions_cannot_search(): void
     {
-        auth('backpack')->logout();
+        $auth = auth('backpack');
+        $auth->logout();
         $httpResponse = $this->getJson(
             route('admin.document-parties.businesses'),
         );

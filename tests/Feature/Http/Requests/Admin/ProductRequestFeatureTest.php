@@ -57,19 +57,25 @@ class ProductRequestFeatureTest extends TestCase
         $this->limitService = app(UniversalLimitService::class);
 
         // Define test routes
-        Route::post(
+        $route = Route::post(
             '/test-product',
             function (ProductRequest $request) {
-                return response()->json(['success' => true]);
-            },
-        )->middleware('web');
+                $responseFactory = response();
 
-        Route::put(
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
             '/test-product/{id}',
             function (ProductRequest $request, $id) {
-                return response()->json(['success' => true]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -129,10 +135,8 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();
         $this->assertArrayHasKey('name', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('user_id', $errors2->toArray());
-        $errors3 = $validator->errors();
-        $this->assertArrayHasKey('price', $errors3->toArray());
+        $this->assertArrayHasKey('user_id', $errors->toArray());
+        $this->assertArrayHasKey('price', $errors->toArray());
     }
 
     #[Test]

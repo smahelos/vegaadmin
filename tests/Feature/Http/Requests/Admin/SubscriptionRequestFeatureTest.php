@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Requests\Admin;
 use App\Http\Requests\Admin\SubscriptionRequest;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -201,13 +202,14 @@ class SubscriptionRequestFeatureTest extends TestCase
         $userFactory = User::factory();
         $user = $userFactory->create();
 
+        $now = CarbonImmutable::now();
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
             'status' => 'active',
             'amount' => 99.99,
             'currency' => 'CZK',
-            'starts_at' => now()->format('Y-m-d H:i:s'),
+            'starts_at' => $now->format('Y-m-d H:i:s'),
             'ends_at' => 'invalid-date',
         ];
 
@@ -226,14 +228,16 @@ class SubscriptionRequestFeatureTest extends TestCase
         $userFactory = User::factory();
         $user = $userFactory->create();
 
+        $now = CarbonImmutable::now();
+        $date = $now->addDays(30);
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
             'status' => 'active',
             'amount' => 99.99,
             'currency' => 'CZK',
-            'starts_at' => now()->format('Y-m-d H:i:s'),
-            'ends_at' => now()->addDays(30)->format('Y-m-d H:i:s'),
+            'starts_at' => $now->format('Y-m-d H:i:s'),
+            'ends_at' => $date->format('Y-m-d H:i:s'),
         ];
 
         $validator = Validator::make($data, $this->request->rules());

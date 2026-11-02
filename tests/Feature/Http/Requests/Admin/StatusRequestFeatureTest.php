@@ -37,19 +37,25 @@ class StatusRequestFeatureTest extends TestCase
         $this->statusCategory = StatusCategory::factory()->create();
 
         // Define test routes
-        Route::post(
+        $route = Route::post(
             '/test-status',
             function (StatusRequest $request) {
-                return response()->json(['success' => true]);
-            },
-        )->middleware('web');
+                $responseFactory = response();
 
-        Route::put(
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
             '/test-status/{id}',
             function (StatusRequest $request, $id) {
-                return response()->json(['success' => true]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
     }
 
     /**
@@ -343,12 +349,15 @@ class StatusRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Temporary route to capture generated slug
-        Route::post(
+        $route = Route::post(
             '/test-status-slug',
             function (StatusRequest $request) {
-                return response()->json(['slug' => $request->slug]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['slug' => $request->slug]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
 
         $data = [
             'name' => 'My Custom Status Name',

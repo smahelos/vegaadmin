@@ -44,14 +44,11 @@ class ExpenseCategoryFeatureTest extends TestCase
         $category = $expenseCategoryFactory->create();
         $expenseFactory = Expense::factory();
         $expense1 = $expenseFactory->create(['category_id' => $category->id]);
-        $expenseFactory2 = Expense::factory();
-        $expense2 = $expenseFactory2->create(['category_id' => $category->id]);
+        $expense2 = $expenseFactory->create(['category_id' => $category->id]);
 
         // Create another expense in different category to ensure proper filtering
-        $expenseCategoryFactory2 = ExpenseCategory::factory();
-        $otherCategory = $expenseCategoryFactory2->create();
-        $expenseFactory3 = Expense::factory();
-        $expenseFactory3->create(['category_id' => $otherCategory->id]);
+        $otherCategory = $expenseCategoryFactory->create();
+        $expenseFactory->create(['category_id' => $otherCategory->id]);
 
         $relationship = $category->expenses();
         $this->assertInstanceOf(HasMany::class, $relationship);
@@ -71,8 +68,7 @@ class ExpenseCategoryFeatureTest extends TestCase
     {
         $expenseCategoryFactory = ExpenseCategory::factory();
         $activeCategory = $expenseCategoryFactory->create(['is_active' => '1']);
-        $expenseCategoryFactory2 = ExpenseCategory::factory();
-        $inactiveCategory = $expenseCategoryFactory2->create(['is_active' => '0']);
+        $inactiveCategory = $expenseCategoryFactory->create(['is_active' => '0']);
 
         $this->assertIsBool($activeCategory->is_active);
         $this->assertTrue($activeCategory->is_active);

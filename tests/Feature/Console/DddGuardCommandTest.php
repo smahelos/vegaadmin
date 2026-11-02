@@ -59,7 +59,8 @@ class DddGuardCommandTest extends TestCase
         $originalConfig = config('ddd_guard.forbidden_paths');
         $originalDiPaths = config('ddd_guard.di_scan_paths');
 
-        $modifiedConfig = collect($originalConfig)->map(
+        $collection = collect($originalConfig);
+        $mapped = $collection->map(
             function ($path) use ($servicesPath) {
                 if (isset($path['path']) && $path['path'] === base_path('app/Services')) {
                     $path['path'] = $servicesPath;
@@ -67,7 +68,8 @@ class DddGuardCommandTest extends TestCase
 
                 return $path;
             },
-        )->toArray();
+        );
+        $modifiedConfig = $mapped->toArray();
 
         // Disable DI scanning to avoid conflicts with process-specific Controllers folders
         config(

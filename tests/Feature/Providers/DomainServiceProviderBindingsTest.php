@@ -74,8 +74,7 @@ class DomainServiceProviderBindingsTest extends TestCase
 
             // Attempt to resolve & ensure instance implements interface
             try {
-                $application2 = app();
-                $instance = $application2->make($fqcn);
+                $instance = $application->make($fqcn);
                 if (!$instance instanceof $fqcn) {
                     $resolutionErrors[] = $fqcn . ' resolved to ' . get_debug_type($instance) . ' which does not implement it';
                 }

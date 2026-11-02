@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\EntityLimitUsage;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
@@ -32,14 +33,15 @@ class UELSDashboardControllerTest extends TestCase
     public function dashboard_shows_translated_labels(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
+        $now = CarbonImmutable::now();
         EntityLimitUsage::create(
             [
                 'user_id' => null,
                 'entity_type' => 'invoice',
                 'metric_type' => 'count',
                 'period_type' => 'monthly',
-                'period_start' => now()->startOfMonth(),
-                'period_end' => now()->endOfMonth(),
+                'period_start' => $now->startOfMonth(),
+                'period_end' => $now->endOfMonth(),
                 'current_value' => 3,
                 'last_reset_at' => now(),
             ],

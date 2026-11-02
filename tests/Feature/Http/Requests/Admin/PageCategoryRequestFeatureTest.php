@@ -37,19 +37,25 @@ class PageCategoryRequestFeatureTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         // Define test routes
-        Route::post(
+        $route = Route::post(
             '/test-page-category',
             function (PageCategoryRequest $request) {
-                return response()->json(['success' => true]);
-            },
-        )->middleware('web');
+                $responseFactory = response();
 
-        Route::put(
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
             '/test-page-category/{id}',
             function (PageCategoryRequest $request, $id) {
-                return response()->json(['success' => true]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
     }
 
     #[Test]

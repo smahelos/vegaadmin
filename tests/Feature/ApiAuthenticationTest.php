@@ -70,11 +70,10 @@ final class ApiAuthenticationTest extends TestCase
         $adminRole = $roleQuery->first();
         $backpackUser->assignRole($adminRole);
 
-        $userFactory2 = User::factory();
-        $webUser = $userFactory2->create();
-        $roleQuery2 = Role::where('name', 'frontend_user');
-        $roleQuery2->where('guard_name', 'web');
-        $frontendRole = $roleQuery2->first();
+        $webUser = $userFactory->create();
+        $roleQuery = Role::where('name', 'frontend_user');
+        $roleQuery->where('guard_name', 'web');
+        $frontendRole = $roleQuery->first();
         $webUser->assignRole($frontendRole);
 
         // Test cross-guard permissions are denied
@@ -100,15 +99,15 @@ final class ApiAuthenticationTest extends TestCase
         $roleQuery = Role::where('name', 'admin');
         $roleQuery->where('guard_name', 'backpack');
         $adminRole = $roleQuery->first();
-        $roleQuery2 = Role::where('name', 'backend_user');
-        $roleQuery2->where('guard_name', 'backpack');
-        $backendUserRole = $roleQuery2->first();
-        $roleQuery3 = Role::where('name', 'frontend_user');
-        $roleQuery3->where('guard_name', 'web');
-        $frontendRole = $roleQuery3->first();
-        $roleQuery4 = Role::where('name', 'frontend_user_plus');
-        $roleQuery4->where('guard_name', 'web');
-        $frontendPlusRole = $roleQuery4->first();
+        $roleQuery = Role::where('name', 'backend_user');
+        $roleQuery->where('guard_name', 'backpack');
+        $backendUserRole = $roleQuery->first();
+        $roleQuery = Role::where('name', 'frontend_user');
+        $roleQuery->where('guard_name', 'web');
+        $frontendRole = $roleQuery->first();
+        $roleQuery = Role::where('name', 'frontend_user_plus');
+        $roleQuery->where('guard_name', 'web');
+        $frontendPlusRole = $roleQuery->first();
 
         // Admin should have backpack permissions
         $this->assertTrue(

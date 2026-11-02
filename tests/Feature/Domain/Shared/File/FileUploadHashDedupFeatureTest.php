@@ -143,9 +143,8 @@ class FileUploadHashDedupFeatureTest extends TestCase
         // Second delete removes file and record
         $service->deleteFile($path2, 'public');
         $this->assertDatabaseMissing('file_hashes', ['path' => $path1]);
-        $disk2 = Storage::disk('public');
         $this->assertFalse(
-            $disk2->exists($path1),
+            $disk->exists($path1),
         );
     }
 }

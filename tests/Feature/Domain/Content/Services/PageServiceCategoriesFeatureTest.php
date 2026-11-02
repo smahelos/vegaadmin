@@ -24,10 +24,8 @@ class PageServiceCategoriesFeatureTest extends TestCase
     {
         $pageCategoryFactory = PageCategory::factory();
         $catWithPages = $pageCategoryFactory->create();
-        $pageCategoryFactory2 = PageCategory::factory();
-        $catEmpty = $pageCategoryFactory2->create();
-        $pageCategoryFactory3 = PageCategory::factory();
-        $catWithDraftOnly = $pageCategoryFactory3->create();
+        $catEmpty = $pageCategoryFactory->create();
+        $catWithDraftOnly = $pageCategoryFactory->create();
 
         // Published pages
         Page::factory()->published()->inCategory($catWithPages)->create();

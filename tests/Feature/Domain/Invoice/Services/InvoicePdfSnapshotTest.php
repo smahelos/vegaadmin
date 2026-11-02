@@ -12,6 +12,7 @@ use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\RendersInvoicePdfHtml;
@@ -35,12 +36,14 @@ final class InvoicePdfSnapshotTest extends TestCase
     #[DataProvider('templates')]
     public function pdf_templates_print_both_saved_roles_and_amounts(string $template): void
     {
+        $now = CarbonImmutable::now();
+        $date = $now->setDate(
+            2026,
+            3,
+            20,
+        );
         $this->travelTo(
-            now()->setDate(
-                2026,
-                3,
-                20,
-            )->setTime(14, 7),
+            $date->setTime(14, 7),
         );
         $invoiceFactory = Invoice::factory();
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);

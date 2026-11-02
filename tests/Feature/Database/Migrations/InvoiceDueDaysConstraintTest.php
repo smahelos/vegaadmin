@@ -21,8 +21,7 @@ final class InvoiceDueDaysConstraintTest extends TestCase
     {
         $invoiceFactory = Invoice::factory();
         $first = $invoiceFactory->create(['due_in' => 0]);
-        $invoiceFactory2 = Invoice::factory();
-        $last = $invoiceFactory2->create(['due_in' => InvoiceDueDate::MAX_DAYS]);
+        $last = $invoiceFactory->create(['due_in' => InvoiceDueDate::MAX_DAYS]);
 
         $this->assertDatabaseHas('invoices', ['id' => $first->id, 'due_in' => 0]);
         $this->assertDatabaseHas('invoices', ['id' => $last->id, 'due_in' => InvoiceDueDate::MAX_DAYS]);

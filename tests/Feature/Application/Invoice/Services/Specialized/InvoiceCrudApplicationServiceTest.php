@@ -157,10 +157,10 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
             $invoiceQuery->count(),
         );
         $this->assertSame($beforeAddresses, Address::count());
-        $entityLimitUsageQuery2 = EntityLimitUsage::where('user_id', $user->id);
+        $entityLimitUsageQuery = EntityLimitUsage::where('user_id', $user->id);
         $this->assertSame(
             $beforeUsage,
-            $entityLimitUsageQuery2->count(),
+            $entityLimitUsageQuery->count(),
         );
     }
 

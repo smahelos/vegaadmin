@@ -45,11 +45,10 @@ final class BankAccountCrudControllerTest extends TestCase
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create();
         $bankAccountFactory = BankAccount::factory();
-        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
-        $businessAccount = $bankAccountFactory->create();
-        $bankAccountFactory2 = BankAccount::factory();
-        $bankAccountFactory2 = $bankAccountFactory2->ownedBy($contact);
-        $contactAccount = $bankAccountFactory2->create(['iban' => 'DE89370400440532013000']);
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $businessAccount = $ownedFactory->create();
+        $ownedFactory = $bankAccountFactory->ownedBy($contact);
+        $contactAccount = $ownedFactory->create(['iban' => 'DE89370400440532013000']);
         foreach (
             [
                 [

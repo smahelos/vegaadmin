@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Console\Commands;
 
 use App\Models\PerformanceMetric;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -28,28 +29,27 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
     {
         // Create some old metrics (older than 90 days) with process-specific identifiers
         $performanceMetricFactory = PerformanceMetric::factory();
-        $performanceMetricFactory = $performanceMetricFactory->count(5);
-        $performanceMetricFactory->create(
+        $batchFactory = $performanceMetricFactory->count(5);
+        $now = CarbonImmutable::now();
+        $batchFactory->create(
             [
-                'measured_at' => now()->subDays(100),
+                'measured_at' => $now->subDays(100),
                 'metadata' => ['test_process' => $this->processId, 'category' => 'old'],
             ],
         );
 
         // Create some recent metrics (within 90 days) with process-specific identifiers
-        $performanceMetricFactory2 = PerformanceMetric::factory();
-        $performanceMetricFactory2 = $performanceMetricFactory2->count(3);
-        $performanceMetricFactory2->create(
+        $batchFactory = $performanceMetricFactory->count(3);
+        $batchFactory->create(
             [
-                'measured_at' => now()->subDays(30),
+                'measured_at' => $now->subDays(30),
                 'metadata' => ['test_process' => $this->processId, 'category' => 'recent'],
             ],
         );
 
         // Create some sample metrics (with generated metadata) with process-specific identifiers
-        $performanceMetricFactory3 = PerformanceMetric::factory();
-        $performanceMetricFactory3 = $performanceMetricFactory3->count(2);
-        $performanceMetricFactory3->create(
+        $batchFactory = $performanceMetricFactory->count(2);
+        $batchFactory->create(
             [
                 'metadata' => [
                     'generated' => true,

@@ -69,10 +69,10 @@ final class DevelopmentDataSeederTest extends TestCase
                 $businessQuery->count(),
                 $email,
             );
-            $businessQuery2 = Business::where('user_id', $user->id);
-            $businessQuery2->whereNotNull('archived_at');
+            $businessQuery = Business::where('user_id', $user->id);
+            $businessQuery->whereNotNull('archived_at');
             $this->assertTrue(
-                $businessQuery2->exists(),
+                $businessQuery->exists(),
                 $email,
             );
             $contactQuery = Contact::where('user_id', $user->id);
@@ -82,15 +82,15 @@ final class DevelopmentDataSeederTest extends TestCase
                 $contactQuery->count(),
                 $email,
             );
-            $contactQuery2 = Contact::where('user_id', $user->id);
-            $contactQuery2->whereNotNull('archived_at');
+            $contactQuery = Contact::where('user_id', $user->id);
+            $contactQuery->whereNotNull('archived_at');
             $this->assertTrue(
-                $contactQuery2->exists(),
+                $contactQuery->exists(),
                 $email,
             );
 
-            $expenseQuery2 = Expense::where('user_id', $user->id);
-            $expenses = $expenseQuery2->get();
+            $expenseQuery = Expense::where('user_id', $user->id);
+            $expenses = $expenseQuery->get();
             $this->assertTrue(
                 $expenses->every(
                     fn (Expense $expense): bool => $expense->business_id === $default->id,

@@ -48,8 +48,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();
         $this->assertArrayHasKey('name', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('slug', $errors2->toArray());
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -127,8 +126,7 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     {
         $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
         $artisanCommandCategoryFactory->create(['slug' => 'taken-slug']);
-        $artisanCommandCategoryFactory2 = ArtisanCommandCategory::factory();
-        $category = $artisanCommandCategoryFactory2->create(['slug' => 'own-slug']);
+        $category = $artisanCommandCategoryFactory->create(['slug' => 'own-slug']);
 
         $request = ArtisanCommandCategoryRequest::create(
             '/',

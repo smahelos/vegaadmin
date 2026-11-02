@@ -177,8 +177,7 @@ final class ContactApplicationServiceTest extends TestCase
         $user = $this->frontendUser();
         $contactFactory = Contact::factory();
         $own = $contactFactory->create(['user_id' => $user->id, 'name' => 'Acme']);
-        $contactFactory2 = Contact::factory();
-        $contactFactory2->create(['name' => 'Acme']);
+        $contactFactory->create(['name' => 'Acme']);
 
         $duplicates = $this->contacts->findDuplicates(
             $this->idOf($user),

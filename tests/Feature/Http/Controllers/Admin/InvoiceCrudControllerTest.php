@@ -64,11 +64,11 @@ final class InvoiceCrudControllerTest extends TestCase
                 'current_value' => 1,
             ],
         );
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             '/admin/invoice',
             array_replace($data, ['invoice_vs' => 'BLOCKED']),
         );
-        $httpResponse2->assertRedirect();
+        $httpResponse->assertRedirect();
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => 'BLOCKED']);
     }
 
@@ -92,9 +92,9 @@ final class InvoiceCrudControllerTest extends TestCase
             $this->backendUser('can_create_invoice', 'can_create_invoice_unlimited'),
             'backpack',
         );
-        $httpResponse2 = $this->post('/admin/invoice', $data);
-        $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
-        $httpResponse2->assertRedirect();
+        $httpResponse = $this->post('/admin/invoice', $data);
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertDatabaseHas('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
 
@@ -109,10 +109,10 @@ final class InvoiceCrudControllerTest extends TestCase
         $httpResponse->assertDontSee('forms/invoice.js', false);
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create();
-        $httpResponse2 = $this->get('/admin/invoice/' . $invoice->id . '/edit');
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2 = $httpResponse2->assertSee('name="bank_account_id"', false);
-        $httpResponse2->assertSee('name="customer_name"', false);
+        $httpResponse = $this->get('/admin/invoice/' . $invoice->id . '/edit');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee('name="bank_account_id"', false);
+        $httpResponse->assertSee('name="customer_name"', false);
     }
 
     #[Test]
@@ -195,8 +195,7 @@ final class InvoiceCrudControllerTest extends TestCase
         [$business, $account] = $this->issuerOf($this->regularUser);
         $contactFactory = Contact::factory();
         $old = $contactFactory->create(['user_id' => $this->regularUser->id]);
-        $contactFactory2 = Contact::factory();
-        $new = $contactFactory2->create(['user_id' => $this->regularUser->id]);
+        $new = $contactFactory->create(['user_id' => $this->regularUser->id]);
         $addressFactory = Address::factory();
         $addressFactory->create(['business_id' => null, 'contact_id' => $new->id]);
         $invoiceFactory = Invoice::factory();
@@ -338,12 +337,12 @@ final class InvoiceCrudControllerTest extends TestCase
         $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
         $invoice = $invoiceQuery->sole();
         $this->assertSame('1234.56', $invoice->payment_amount);
-        $httpResponse2 = $this->put(
+        $httpResponse = $this->put(
             '/admin/invoice/' . $invoice->id,
             array_replace($data, ['payment_amount' => '2345.67']),
         );
-        $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
-        $httpResponse2->assertRedirect();
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertSame('2345.67', $invoice->fresh()->payment_amount);
         $this->assertSame(0, $invoice->invoiceProducts()->count());
     }
@@ -435,13 +434,14 @@ final class InvoiceCrudControllerTest extends TestCase
     #[Test]
     public function guests_and_admin_users_without_permission_cannot_write_invoices(): void
     {
-        auth('backpack')->logout();
+        $auth = auth('backpack');
+        $auth->logout();
         $httpResponse = $this->post('/admin/invoice', []);
         $httpResponse->assertRedirect(
             route('backpack.auth.login'),
         );
         $httpClient = $this->actingAs($this->regularUser, 'backpack');
-        $httpResponse2 = $httpClient->post('/admin/invoice', []);
-        $httpResponse2->assertForbidden();
+        $httpResponse = $httpClient->post('/admin/invoice', []);
+        $httpResponse->assertForbidden();
     }
 }

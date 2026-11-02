@@ -40,26 +40,32 @@ class BankRequestFeatureTest extends TestCase
             ],
         );
 
-        Route::post(
+        $route = Route::post(
             '/test-bank',
             function (BankRequest $request) {
                 $data = $request->validated();
                 $bank = Bank::create($data);
 
-                return response()->json(['success' => true, 'id' => $bank->id]);
-            },
-        )->middleware('web');
+                $responseFactory = response();
 
-        Route::put(
+                return $responseFactory->json(['success' => true, 'id' => $bank->id]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
             '/test-bank/{id}',
             function (BankRequest $request, $id) {
                 $data = $request->validated();
                 $bank = Bank::findOrFail($id);
                 $bank->update($data);
 
-                return response()->json(['success' => true, 'id' => $bank->id]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true, 'id' => $bank->id]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -84,10 +90,8 @@ class BankRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();
         $this->assertArrayHasKey('name', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('code', $errors2->toArray());
-        $errors3 = $validator->errors();
-        $this->assertArrayHasKey('country', $errors3->toArray());
+        $this->assertArrayHasKey('code', $errors->toArray());
+        $this->assertArrayHasKey('country', $errors->toArray());
     }
 
     #[Test]

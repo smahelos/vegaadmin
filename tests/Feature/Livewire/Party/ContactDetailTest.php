@@ -42,8 +42,7 @@ final class ContactDetailTest extends TestCase
             );
         $this->assertNotNull($contact->fresh()?->archived_at);
 
-        $contactFactory2 = Contact::factory();
-        $replacement = $contactFactory2->create(['user_id' => $this->user->id]);
+        $replacement = $contactFactory->create(['user_id' => $this->user->id]);
         Livewire::test(ContactDetail::class, ['contactId' => $contact->id])
             ->call('restore')
             ->assertSet(

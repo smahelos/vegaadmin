@@ -143,8 +143,7 @@ class StatusFeatureTest extends TestCase
 
         $this->expectException(QueryException::class);
 
-        $statusFactory2 = Status::factory();
-        $statusFactory2->create(['slug' => 'unique-slug']);
+        $statusFactory->create(['slug' => 'unique-slug']);
     }
 
     #[Test]
@@ -152,15 +151,12 @@ class StatusFeatureTest extends TestCase
     {
         $statusCategoryFactory = StatusCategory::factory();
         $category1 = $statusCategoryFactory->create();
-        $statusCategoryFactory2 = StatusCategory::factory();
-        $category2 = $statusCategoryFactory2->create();
+        $category2 = $statusCategoryFactory->create();
 
         $statusFactory = Status::factory();
         $status1 = $statusFactory->create(['category_id' => $category1->id]);
-        $statusFactory2 = Status::factory();
-        $status2 = $statusFactory2->create(['category_id' => $category1->id]);
-        $statusFactory3 = Status::factory();
-        $status3 = $statusFactory3->create(['category_id' => $category2->id]);
+        $status2 = $statusFactory->create(['category_id' => $category1->id]);
+        $status3 = $statusFactory->create(['category_id' => $category2->id]);
 
         $statusQuery = Status::where('category_id', $category1->id);
         $category1Statuses = $statusQuery->get();
@@ -209,10 +205,8 @@ class StatusFeatureTest extends TestCase
     {
         $statusFactory = Status::factory();
         $statusFactory->create(['name' => 'Zebra Status']);
-        $statusFactory2 = Status::factory();
-        $statusFactory2->create(['name' => 'Alpha Status']);
-        $statusFactory3 = Status::factory();
-        $statusFactory3->create(['name' => 'Beta Status']);
+        $statusFactory->create(['name' => 'Alpha Status']);
+        $statusFactory->create(['name' => 'Beta Status']);
 
         $statusQuery = Status::orderBy('name');
         $statusValues = $statusQuery->pluck('name');
@@ -283,8 +277,8 @@ class StatusFeatureTest extends TestCase
 
         $statusQuery = Status::where('is_active', true);
         $activeCount = $statusQuery->count();
-        $statusQuery2 = Status::where('is_active', false);
-        $inactiveCount = $statusQuery2->count();
+        $statusQuery = Status::where('is_active', false);
+        $inactiveCount = $statusQuery->count();
 
         $this->assertEquals(3, $activeCount);
         $this->assertEquals(2, $inactiveCount);
@@ -363,8 +357,7 @@ class StatusFeatureTest extends TestCase
     {
         $statusFactory = Status::factory();
         $gray = $statusFactory->create(['color' => 'gray']);
-        $statusFactory2 = Status::factory();
-        $none = $statusFactory2->create(['color' => null]);
+        $none = $statusFactory->create(['color' => null]);
 
         $this->assertStringContainsString('badge bg-secondary text-secondary-fg', $gray->color_preview);
         $this->assertStringContainsString('badge bg-secondary text-secondary-fg', $none->color_preview);

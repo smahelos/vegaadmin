@@ -21,12 +21,15 @@ class EntityLimitRequestFeatureTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         // Define a temporary route using the request for testing (bypassing Backpack CRUD stack)
-        Route::post(
+        $route = Route::post(
             '/admin/entity-limit-test',
             function (EntityLimitRequest $request) {
-                return response()->json(['success' => true]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
     }
 
     #[Test]

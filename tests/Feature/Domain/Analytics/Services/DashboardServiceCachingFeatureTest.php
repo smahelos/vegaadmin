@@ -50,8 +50,7 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $this->assertSame(1, $statsInitial->invoiceCount);
 
         // Create another invoice AFTER cache warmed
-        $invoiceFactory2 = Invoice::factory();
-        $invoiceFactory2->create(
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -66,8 +65,7 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $this->assertSame(2, $statsAfterSecond->invoiceCount);
 
         // Third invoice likewise -> immediate 3
-        $invoiceFactory3 = Invoice::factory();
-        $invoiceFactory3->create(
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
@@ -95,12 +93,10 @@ final class DashboardServiceCachingFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $userA = $userFactory->create();
-        $userFactory2 = User::factory();
-        $userB = $userFactory2->create();
+        $userB = $userFactory->create();
         $contactFactory = Contact::factory();
         $contactA = $contactFactory->create(['user_id' => $userA->id]);
-        $contactFactory2 = Contact::factory();
-        $contactB = $contactFactory2->create(['user_id' => $userB->id]);
+        $contactB = $contactFactory->create(['user_id' => $userB->id]);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(
             [
@@ -117,16 +113,14 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $this->assertSame(1, $statsA1->invoiceCount);
 
         // Add invoice for user B (no cache yet) and second for A (stale cache)
-        $invoiceFactory2 = Invoice::factory();
-        $invoiceFactory2->create(
+        $invoiceFactory->create(
             [
                 'user_id' => $userB->id,
                 'contact_id' => $contactB->id,
                 'payment_amount' => 30,
             ],
         );
-        $invoiceFactory3 = Invoice::factory();
-        $invoiceFactory3->create(
+        $invoiceFactory->create(
             [
                 'user_id' => $userA->id,
                 'contact_id' => $contactA->id,

@@ -27,10 +27,8 @@ final class UserActivitySummaryFeatureTest extends TestCase
         Contact::factory()->archived()->create(['user_id' => $user->id]);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(['user_id' => $user->id, 'business_id' => $business->id]);
-        $contactFactory2 = Contact::factory();
-        $contactFactory2->create();
-        $businessFactory2 = Business::factory();
-        $businessFactory2->create();
+        $contactFactory->create();
+        $businessFactory->create();
         $userActivitySummaryQuery = UserActivitySummary::where('user_id', $user->id);
         $summary = $userActivitySummaryQuery->sole();
 

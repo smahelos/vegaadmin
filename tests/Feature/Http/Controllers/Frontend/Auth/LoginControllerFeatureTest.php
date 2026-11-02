@@ -42,11 +42,12 @@ class LoginControllerFeatureTest extends TestCase
             route('frontend.login', ['locale' => $locale]),
         );
         // Some flows may return generic failure without validation bag; accept either validation error or flash 'error'
-        if (session()->has('errors')) {
+        $session = session();
+        if ($session->has('errors')) {
             $response->assertSessionHasErrors('email');
         } else {
             $this->assertTrue(
-                session()->has('error'),
+                $session->has('error'),
             );
         }
         $this->assertGuest('web');

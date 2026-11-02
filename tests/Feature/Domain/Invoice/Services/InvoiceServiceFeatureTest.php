@@ -193,8 +193,7 @@ class InvoiceServiceFeatureTest extends TestCase
         $user = $userFactory->create();
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '0007']);
-        $invoiceFactory2 = Invoice::factory();
-        $invoiceFactory2->create(['user_id' => $user->id, 'invoice_vs' => $year . '0012']);
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '0012']);
 
         $this->assertSame(
             $year . '0013',
@@ -231,8 +230,7 @@ class InvoiceServiceFeatureTest extends TestCase
         $user = $userFactory->create();
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '9999']);
-        $invoiceFactory2 = Invoice::factory();
-        $invoiceFactory2->create(['user_id' => $user->id, 'invoice_vs' => $year . '10000']);
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '10000']);
 
         $this->assertSame(
             $year . '10001',
@@ -251,8 +249,7 @@ class InvoiceServiceFeatureTest extends TestCase
         $user = $userFactory->create();
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '0005']);
-        $invoiceFactory2 = Invoice::factory();
-        $invoiceFactory2->create(
+        $invoiceFactory->create(
             ['user_id' => $user->id, 'invoice_vs' => $year . '-ZZZ-LONG-NUMBER'],
         );
 

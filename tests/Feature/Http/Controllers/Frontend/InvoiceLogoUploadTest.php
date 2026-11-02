@@ -74,13 +74,11 @@ final class InvoiceLogoUploadTest extends TestCase
         $invoiceQuery = Invoice::where('invoice_vs', 'TEST001');
         $invoice = $invoiceQuery->sole();
         $this->assertNotSame($this->business->logo, $invoice->supplier_logo);
-        $disk2 = Storage::disk('public');
         $this->assertSame(
             'business logo contents',
-            $disk2->get($invoice->supplier_logo),
+            $disk->get($invoice->supplier_logo),
         );
-        $disk3 = Storage::disk('public');
-        $disk3->delete($this->business->logo);
+        $disk->delete($this->business->logo);
         $this->business->update(['logo' => null]);
         $httpResponse = $this->get(
             route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]),
@@ -88,25 +86,23 @@ final class InvoiceLogoUploadTest extends TestCase
         $httpResponse = $httpResponse->assertOk();
         $httpResponse->assertSee('wire:click="reloadBusinessData"', false);
         $copy = $invoice->supplier_logo;
-        $httpResponse2 = $this->put(
+        $httpResponse = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
             $this->invoiceData('TEST001'),
         );
-        $httpResponse2->assertRedirect();
+        $httpResponse->assertRedirect();
         $this->assertSame($copy, $invoice->fresh()->supplier_logo);
-        $disk4 = Storage::disk('public');
         $this->assertSame(
             'business logo contents',
-            $disk4->get($copy),
+            $disk->get($copy),
         );
-        $httpResponse3 = $this->put(
+        $httpResponse = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
             $this->invoiceData('TEST001', ['reload_business' => '1']),
         );
-        $httpResponse3->assertRedirect();
+        $httpResponse->assertRedirect();
         $this->assertNull($invoice->fresh()->supplier_logo);
-        $disk5 = Storage::disk('public');
-        $disk5->assertMissing($copy);
+        $disk->assertMissing($copy);
     }
 
     #[Test]
@@ -121,11 +117,11 @@ final class InvoiceLogoUploadTest extends TestCase
         $invoice = $invoiceFactory->create(
             ['user_id' => $this->user->id, 'business_id' => $this->business->id],
         );
-        $httpResponse2 = $this->get(
+        $httpResponse = $this->get(
             route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]),
         );
-        $httpResponse2 = $httpResponse2->assertOk();
-        $httpResponse2->assertDontSee('name="invoice_logo"', false);
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertDontSee('name="invoice_logo"', false);
     }
 
     /**

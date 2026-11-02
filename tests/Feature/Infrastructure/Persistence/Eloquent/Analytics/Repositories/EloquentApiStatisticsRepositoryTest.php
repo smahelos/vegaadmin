@@ -220,24 +220,21 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
                 'amount' => 120,
             ],
         );
-        $expenseFactory2 = Expense::factory();
-        $expenseFactory2->create(
+        $expenseFactory->create(
             [
                 'user_id' => $this->user->id,
                 'expense_date' => '2026-01-28',
                 'amount' => 80,
             ],
         );
-        $expenseFactory3 = Expense::factory();
-        $expenseFactory3->create(
+        $expenseFactory->create(
             [
                 'user_id' => $this->user->id,
                 'expense_date' => '2026-03-01',
                 'amount' => 50,
             ],
         );
-        $expenseFactory4 = Expense::factory();
-        $expenseFactory4->create(['expense_date' => '2026-01-10', 'amount' => 999]);
+        $expenseFactory->create(['expense_date' => '2026-01-10', 'amount' => 999]);
 
         $rows = $this->repository->expenses(
             UserId::fromInt($this->user->id),

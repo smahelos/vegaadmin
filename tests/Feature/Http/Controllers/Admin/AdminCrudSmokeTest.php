@@ -147,7 +147,8 @@ class AdminCrudSmokeTest extends TestCase
             $this->app->forgetInstance($abstract);
             Facade::clearResolvedInstance($abstract);
         }
-        foreach (Route::getRoutes()->getRoutes() as $route) {
+        $routes = Route::getRoutes();
+        foreach ($routes->getRoutes() as $route) {
             $route->flushController();
         }
 
@@ -179,13 +180,15 @@ class AdminCrudSmokeTest extends TestCase
     {
         $uri = ltrim($uri, '/');
 
-        return collect(Route::getRoutes()->getRoutes())
-            ->contains(
-                fn ($route) => $route->uri() === $uri && in_array(
-                    'GET',
-                    $route->methods(),
-                    true,
-                ),
-            );
+        $routes = Route::getRoutes();
+        $collection = collect($routes->getRoutes());
+
+        return $collection->contains(
+            fn ($route) => $route->uri() === $uri && in_array(
+                'GET',
+                $route->methods(),
+                true,
+            ),
+        );
     }
 }

@@ -57,8 +57,7 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         // Create some features for testing
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $feature1 = $subscriptionPlanFeatureFactory->create();
-        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
-        $feature2 = $subscriptionPlanFeatureFactory2->create();
+        $feature2 = $subscriptionPlanFeatureFactory->create();
         $uniquePlanName = 'Premium Plan ' . uniqid();
         $data = [
             'name' => $uniquePlanName,
@@ -150,8 +149,7 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         // Create some features for testing
         $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
         $feature1 = $subscriptionPlanFeatureFactory->create();
-        $subscriptionPlanFeatureFactory2 = SubscriptionPlanFeature::factory();
-        $feature2 = $subscriptionPlanFeatureFactory2->create();
+        $feature2 = $subscriptionPlanFeatureFactory->create();
 
         $data = [
             'name' => 'Updated Plan',

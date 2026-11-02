@@ -79,8 +79,7 @@ class PageCategoryFeatureTest extends TestCase
             'name' => 'Page 1',
             'category_id' => $category->id,
         ]);
-        $pageFactory2 = Page::factory();
-        $page2 = $pageFactory2->create([
+        $page2 = $pageFactory->create([
             'name' => 'Page 2',
             'category_id' => $category->id,
         ]);
@@ -183,8 +182,7 @@ class PageCategoryFeatureTest extends TestCase
         // Protože model už automaticky negeneruje slugy - dělá to request
         $pageCategoryFactory = PageCategory::factory();
         $category1 = $pageCategoryFactory->create();
-        $pageCategoryFactory2 = PageCategory::factory();
-        $category2 = $pageCategoryFactory2->create();
+        $category2 = $pageCategoryFactory->create();
 
         // Both categories should be created successfully
         $this->assertInstanceOf(PageCategory::class, $category1);
@@ -267,14 +265,12 @@ class PageCategoryFeatureTest extends TestCase
 
         // Vytvoříme 3 stránky v kategorii
         $pageFactory = Page::factory();
-        $pageFactory = $pageFactory->count(3);
-        $pageFactory->create(['category_id' => $category->id]);
+        $batchFactory = $pageFactory->count(3);
+        $batchFactory->create(['category_id' => $category->id]);
 
         // Vytvoříme stránku v jiné kategorii
-        $pageCategoryFactory2 = PageCategory::factory();
-        $otherCategory = $pageCategoryFactory2->create();
-        $pageFactory2 = Page::factory();
-        $pageFactory2->create(['category_id' => $otherCategory->id]);
+        $otherCategory = $pageCategoryFactory->create();
+        $pageFactory->create(['category_id' => $otherCategory->id]);
 
         $this->assertEquals(3, $category->pages_count);
         $this->assertEquals(1, $otherCategory->pages_count);
@@ -288,15 +284,14 @@ class PageCategoryFeatureTest extends TestCase
 
         // Vytvoříme 2 publikované stránky
         $pageFactory = Page::factory();
-        $pageFactory = $pageFactory->count(2);
-        $pageFactory->create([
+        $batchFactory = $pageFactory->count(2);
+        $batchFactory->create([
             'category_id' => $category->id,
             'published' => true,
         ]);
 
         // Vytvoříme 1 nepublikovanou stránku
-        $pageFactory2 = Page::factory();
-        $pageFactory2->create([
+        $pageFactory->create([
             'category_id' => $category->id,
             'published' => false,
         ]);

@@ -14,7 +14,8 @@ class ApiBackpackControllerFeatureTest extends TestCase
     {
         parent::setUp();
         // Define temporary test routes using reflection to access protected controller methods (no fake wrapper class)
-        Route::middleware('web')->get(
+        $routeRegistrar = Route::middleware('web');
+        $routeRegistrar->get(
             '/api/test-backpack-auth-user',
             function () {
                 $controller = app(ApiBackpackController::class);
@@ -25,7 +26,8 @@ class ApiBackpackControllerFeatureTest extends TestCase
                 // Determine guard used
                 $guardUsed = 'none';
                 if ($user) {
-                    if (auth('backpack')->check() && auth('backpack')->id() === $user->id) {
+                    $auth = auth('backpack');
+                    if ($auth->check() && auth('backpack')->id() === $user->id) {
                         $guardUsed = 'backpack';
                     } elseif (auth('web')->check() && auth('web')->id() === $user->id) {
                         $guardUsed = 'web';
@@ -36,7 +38,9 @@ class ApiBackpackControllerFeatureTest extends TestCase
                     }
                 }
 
-                return response()->json(
+                $responseFactory = response();
+
+                return $responseFactory->json(
                     [
                         'user_id' => $user?->id ?? 'unauthenticated',
                         'guard_used' => $guardUsed,
@@ -44,7 +48,8 @@ class ApiBackpackControllerFeatureTest extends TestCase
                 );
             },
         );
-        Route::middleware('web')->get(
+        $routeRegistrar = Route::middleware('web');
+        $routeRegistrar->get(
             '/api/test-backpack-auth-context',
             function () {
                 $controller = app(ApiBackpackController::class);
@@ -53,7 +58,9 @@ class ApiBackpackControllerFeatureTest extends TestCase
                 $mCtx->setAccessible(true);
                 $ctx = $mCtx->invoke($controller, []);
 
-                return response()->json(['context' => $ctx]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['context' => $ctx]);
             },
         );
     }

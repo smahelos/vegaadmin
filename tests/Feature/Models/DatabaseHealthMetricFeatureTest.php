@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Models\DatabaseHealthMetric;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -92,31 +93,29 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         // Create old metrics (older than 24 hours)
         $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $now = CarbonImmutable::now();
         $databaseHealthMetricFactory->create(
             [
-                'measured_at' => now()->subDays(2),
+                'measured_at' => $now->subDays(2),
             ],
         );
 
-        $databaseHealthMetricFactory2 = DatabaseHealthMetric::factory();
-        $databaseHealthMetricFactory2->create(
+        $databaseHealthMetricFactory->create(
             [
-                'measured_at' => now()->subHours(30),
+                'measured_at' => $now->subHours(30),
             ],
         );
 
         // Create recent metrics (within 24 hours)
-        $databaseHealthMetricFactory3 = DatabaseHealthMetric::factory();
-        $recentMetric1 = $databaseHealthMetricFactory3->create(
+        $recentMetric1 = $databaseHealthMetricFactory->create(
             [
-                'measured_at' => now()->subHours(12),
+                'measured_at' => $now->subHours(12),
             ],
         );
 
-        $databaseHealthMetricFactory4 = DatabaseHealthMetric::factory();
-        $recentMetric2 = $databaseHealthMetricFactory4->create(
+        $recentMetric2 = $databaseHealthMetricFactory->create(
             [
-                'measured_at' => now()->subHours(6),
+                'measured_at' => $now->subHours(6),
             ],
         );
 
@@ -174,11 +173,12 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         $recentMetric = DatabaseHealthMetric::factory()->recent()->create();
 
+        $now = CarbonImmutable::now();
         $this->assertTrue(
-            $recentMetric->measured_at->isAfter(now()->subDay()),
+            $recentMetric->measured_at->isAfter($now->subDay()),
         );
         $this->assertTrue(
-            $recentMetric->measured_at->isBefore(now()->addMinute()),
+            $recentMetric->measured_at->isBefore($now->addMinute()),
         );
     }
 

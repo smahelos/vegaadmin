@@ -29,25 +29,30 @@ class ProductListSelectFeatureTest extends TestCase
      */
     private function setupTestRoutes(): void
     {
-        \Route::get('/test/products', function () {
+        $route = \Route::get('/test/products', function () {
             return 'test';
-        })->name('frontend.product.index');
+        });
+        $route->name('frontend.product.index');
 
-        \Route::get('/test/product/{id}', function ($id) {
+        $route = \Route::get('/test/product/{id}', function ($id) {
             return "product {$id}";
-        })->name('frontend.product.show');
+        });
+        $route->name('frontend.product.show');
 
-        \Route::get('/test/product/{id}/edit', function ($id) {
+        $route = \Route::get('/test/product/{id}/edit', function ($id) {
             return "edit product {$id}";
-        })->name('frontend.product.edit');
+        });
+        $route->name('frontend.product.edit');
 
-        \Route::post('/test/product/{id}', function ($id) {
+        $route = \Route::post('/test/product/{id}', function ($id) {
             return "delete product {$id}";
-        })->name('frontend.product.destroy');
+        });
+        $route->name('frontend.product.destroy');
 
-        \Route::get('/test/product/create', function () {
+        $route = \Route::get('/test/product/create', function () {
             return 'create product';
-        })->name('frontend.product.create');
+        });
+        $route->name('frontend.product.create');
     }
 
     #[Test]
@@ -64,8 +69,7 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $productFactory = Product::factory();
         $userProduct = $productFactory->create(['user_id' => $this->user->id]);
-        $productFactory2 = Product::factory();
-        $otherProduct = $productFactory2->create();
+        $otherProduct = $productFactory->create();
 
         $this->actingAs($this->user);
         $component = Livewire::test(ProductListSelect::class);
@@ -103,8 +107,7 @@ class ProductListSelectFeatureTest extends TestCase
                 'name' => 'Test Product One',
             ],
         );
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create(
+        $product2 = $productFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => 'Another Product',
@@ -136,8 +139,7 @@ class ProductListSelectFeatureTest extends TestCase
                 'description' => 'This is a test product description',
             ],
         );
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create(
+        $product2 = $productFactory->create(
             [
                 'user_id' => $this->user->id,
                 'description' => 'This is another product description',
@@ -283,8 +285,7 @@ class ProductListSelectFeatureTest extends TestCase
             'user_id' => $this->user->id,
             'name' => 'B Product',
         ]);
-        $productFactory2 = Product::factory();
-        $productA = $productFactory2->create([
+        $productA = $productFactory->create([
             'user_id' => $this->user->id,
             'name' => 'A Product',
         ]);
@@ -307,10 +308,8 @@ class ProductListSelectFeatureTest extends TestCase
 
         $productFactory = Product::factory();
         $product1 = $productFactory->create(['user_id' => $this->user->id]);
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create(['user_id' => $this->user->id]);
-        $productFactory3 = Product::factory();
-        $product3 = $productFactory3->create(['user_id' => $this->user->id]);
+        $product2 = $productFactory->create(['user_id' => $this->user->id]);
+        $product3 = $productFactory->create(['user_id' => $this->user->id]);
 
         $component = Livewire::test(ProductListSelect::class)
             ->set('selectedProductIds', [$product1->id, $product2->id]);
@@ -335,8 +334,7 @@ class ProductListSelectFeatureTest extends TestCase
 
         $productFactory = Product::factory();
         $product1 = $productFactory->create(['user_id' => $this->user->id]);
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create(['user_id' => $this->user->id]);
+        $product2 = $productFactory->create(['user_id' => $this->user->id]);
 
         $component = Livewire::test(ProductListSelect::class);
 
@@ -614,8 +612,7 @@ class ProductListSelectFeatureTest extends TestCase
                 'name' => 'Own Product ' . uniqid(),
             ],
         );
-        $productFactory2 = Product::factory();
-        $productFactory2->create(
+        $productFactory->create(
             [
                 'user_id' => User::factory()->create()->id,
                 'name' => 'Foreign Product ' . uniqid(),

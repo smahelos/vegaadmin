@@ -79,8 +79,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $this->assertSame($contact->id, $document->fresh()->contact_id);
 
         $data['contact_id'] = null;
-        $httpResponse2 = $this->put('/admin/' . $type . '/' . $document->id, $data);
-        $httpResponse2->assertSessionHasNoErrors();
+        $httpResponse = $this->put('/admin/' . $type . '/' . $document->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertSame(
             'HRB 999',
             $document->fresh()->getAttribute($role . '_company_number'),
@@ -195,8 +195,7 @@ final class AdminDocumentSnapshotsTest extends TestCase
     {
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
-        $contactFactory2 = Contact::factory();
-        $changed = $contactFactory2->create(
+        $changed = $contactFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'name' => "O'Conner & Sons <Trading>",

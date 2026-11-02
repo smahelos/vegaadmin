@@ -19,6 +19,7 @@ use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
+use Carbon\CarbonImmutable;
 use DOMDocument;
 use DOMXPath;
 use Illuminate\Http\UploadedFile;
@@ -149,13 +150,11 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $html = $this->renderPdfHtml(
             $this->printable($invoice),
         );
-        $disk2 = Storage::disk('public');
         $this->assertStringContainsString(
-            $disk2->path('documents/logos/saved.png'),
+            $disk->path('documents/logos/saved.png'),
             $html,
         );
-        $disk3 = Storage::disk('public');
-        $disk3->delete('documents/logos/saved.png');
+        $disk->delete('documents/logos/saved.png');
         $html = $this->renderPdfHtml(
             $this->printable($invoice),
         );
@@ -165,12 +164,14 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     #[Test]
     public function prints_dates_and_money_in_the_requested_locale_and_restores_the_previous_locale(): void
     {
+        $now = CarbonImmutable::now();
+        $date = $now->setDate(
+            2026,
+            3,
+            20,
+        );
         $this->travelTo(
-            now()->setDate(
-                2026,
-                3,
-                20,
-            )->setTime(14, 7),
+            $date->setTime(14, 7),
         );
         $invoice = $this->invoice();
         $application = app();
@@ -181,15 +182,13 @@ final class InvoicePdfServiceFeatureTest extends TestCase
             'default',
             'de',
         );
-        $application2 = app();
-        $this->assertSame($previous, $application2->getLocale());
+        $this->assertSame($previous, $application->getLocale());
         $english = $this->renderPdfHtml(
             $print,
             'default',
             'en',
         );
-        $application3 = app();
-        $this->assertSame($previous, $application3->getLocale());
+        $this->assertSame($previous, $application->getLocale());
         $this->assertStringContainsString('05.03.2026', $german);
         $this->assertStringContainsString('19.03.2026', $german);
         $this->assertStringContainsString('20.03.2026, 14:07', $german);

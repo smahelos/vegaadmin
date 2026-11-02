@@ -329,7 +329,8 @@ class LoginControllerTest extends TestCase
         $this->actingAs($this->user);
 
         // Store original session ID
-        $originalSessionId = session()->getId();
+        $session = session();
+        $originalSessionId = $session->getId();
 
         $application = app();
         $application->setLocale('en');
@@ -338,7 +339,7 @@ class LoginControllerTest extends TestCase
 
         $response->assertRedirect();
         // Session should be invalidated (new ID generated)
-        $this->assertNotEquals($originalSessionId, session()->getId());
+        $this->assertNotEquals($originalSessionId, $session->getId());
     }
 
     /**

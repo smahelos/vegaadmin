@@ -169,8 +169,7 @@ class ProductFeatureTest extends TestCase
         ]);
 
         // Create second product and set as default
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create([
+        $product2 = $productFactory->create([
             'user_id' => $user->id,
             'is_default' => true,
         ]);
@@ -187,8 +186,7 @@ class ProductFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user1 = $userFactory->create();
-        $userFactory2 = User::factory();
-        $user2 = $userFactory2->create();
+        $user2 = $userFactory->create();
 
         $productFactory = Product::factory();
         $product1 = $productFactory->create([
@@ -196,8 +194,7 @@ class ProductFeatureTest extends TestCase
             'is_default' => true,
         ]);
 
-        $productFactory2 = Product::factory();
-        $product2 = $productFactory2->create([
+        $product2 = $productFactory->create([
             'user_id' => $user2->id,
             'is_default' => true,
         ]);

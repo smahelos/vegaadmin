@@ -107,8 +107,7 @@ final class DashboardServiceFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $userA = $userFactory->create();
-        $userFactory2 = User::factory();
-        $userB = $userFactory2->create();
+        $userB = $userFactory->create();
         $contactFactory = Contact::factory();
         $contactA = $contactFactory->create(['user_id' => $userA->id]);
         $invoiceFactory = Invoice::factory();

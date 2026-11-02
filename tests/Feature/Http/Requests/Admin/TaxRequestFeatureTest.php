@@ -49,19 +49,25 @@ class TaxRequestFeatureTest extends TestCase
         );
 
         // Define test routes
-        Route::post(
+        $route = Route::post(
             '/test-tax',
             function (TaxRequest $request) {
-                return response()->json(['success' => true]);
-            },
-        )->middleware('web');
+                $responseFactory = response();
 
-        Route::put(
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
             '/test-tax/{id}',
             function (TaxRequest $request, $id) {
-                return response()->json(['success' => true]);
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
             },
-        )->middleware('web');
+        );
+        $route->middleware('web');
     }
 
     /**
@@ -95,8 +101,7 @@ class TaxRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();
         $this->assertArrayHasKey('name', $errors->toArray());
-        $errors2 = $validator->errors();
-        $this->assertArrayHasKey('rate', $errors2->toArray());
+        $this->assertArrayHasKey('rate', $errors->toArray());
     }
 
     /**

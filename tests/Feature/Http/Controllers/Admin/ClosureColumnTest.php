@@ -8,6 +8,7 @@ use App\Infrastructure\Authorization\PermissionCatalog;
 use App\Models\EntityLimitUsage;
 use App\Models\PageCategory;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -58,14 +59,15 @@ final class ClosureColumnTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create(['name' => '<i>User ' . uniqid() . '</i>']);
+        $now = CarbonImmutable::now();
         EntityLimitUsage::create(
             [
                 'user_id' => $user->id,
                 'entity_type' => 'invoice',
                 'metric_type' => 'count',
                 'period_type' => 'monthly',
-                'period_start' => now()->startOfMonth(),
-                'period_end' => now()->endOfMonth(),
+                'period_start' => $now->startOfMonth(),
+                'period_end' => $now->endOfMonth(),
                 'current_value' => 0,
                 'last_reset_at' => now(),
             ],
@@ -98,14 +100,15 @@ final class ClosureColumnTest extends TestCase
         ]);
         $response->assertOk();
 
-        $row = collect(
+        $collection = collect(
             $response->json('data'),
-        )->map(
+        );
+        $mapped = $collection->map(
             fn (array $cells) => implode('', $cells),
-        )
-            ->first(
-                fn (string $cells) => str_contains($cells, $needle),
-            );
+        );
+        $row = $mapped->first(
+            fn (string $cells) => str_contains($cells, $needle),
+        );
         $this->assertNotNull($row, "No list row of {$route} contains {$needle}");
 
         return $row;

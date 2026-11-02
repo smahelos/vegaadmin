@@ -40,10 +40,10 @@ final class InvoiceContactControllerTest extends TestCase
         $httpResponse->assertRedirect(
             route('frontend.login'),
         );
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             route('frontend.invoices.link-contact', ['invoice' => $invoice->id]),
         );
-        $httpResponse2->assertRedirect(
+        $httpResponse->assertRedirect(
             route('frontend.login'),
         );
     }
@@ -60,11 +60,11 @@ final class InvoiceContactControllerTest extends TestCase
             route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]),
         );
         $httpResponse->assertForbidden();
-        $httpClient2 = $this->actingAs($user);
-        $httpResponse2 = $httpClient2->post(
+        $httpClient = $this->actingAs($user);
+        $httpResponse = $httpClient->post(
             route('frontend.invoices.link-contact', ['invoice' => $invoice->id]),
         );
-        $httpResponse2->assertForbidden();
+        $httpResponse->assertForbidden();
         $contactQuery = Contact::query();
         $this->assertSame(0, $contactQuery->count());
     }
@@ -81,12 +81,12 @@ final class InvoiceContactControllerTest extends TestCase
             route('frontend.invoices.save-to-contacts', ['invoice' => $foreign->id]),
         );
         $httpResponse->assertNotFound();
-        $httpClient2 = $this->actingAs($user);
-        $httpResponse2 = $httpClient2->post(
+        $httpClient = $this->actingAs($user);
+        $httpResponse = $httpClient->post(
             route('frontend.invoices.link-contact', ['invoice' => $foreign->id]),
             ['contact_id' => $contact->id],
         );
-        $httpResponse2->assertNotFound();
+        $httpResponse->assertNotFound();
         $this->assertNull($foreign->fresh()?->contact_id);
     }
 
@@ -131,10 +131,10 @@ final class InvoiceContactControllerTest extends TestCase
         );
         $httpResponse->assertSessionHasNoErrors();
         $contactId = $invoice->fresh()->contact_id;
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]),
         );
-        $httpResponse2->assertSessionHasNoErrors();
+        $httpResponse->assertSessionHasNoErrors();
         $this->assertSame($contactId, $invoice->fresh()->contact_id);
         $contactQuery = Contact::where('user_id', $user->id);
         $this->assertSame(

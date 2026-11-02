@@ -74,10 +74,10 @@ final class PartyPagesTest extends TestCase
             route($index),
         );
         $httpResponse->assertRedirect('/login');
-        $httpResponse2 = $this->get(
+        $httpResponse = $this->get(
             route($create),
         );
-        $httpResponse2->assertRedirect('/login');
+        $httpResponse->assertRedirect('/login');
     }
 
     #[Test]
@@ -90,10 +90,10 @@ final class PartyPagesTest extends TestCase
             route($index),
         );
         $httpResponse->assertForbidden();
-        $httpResponse2 = $this->get(
+        $httpResponse = $this->get(
             route($create),
         );
-        $httpResponse2->assertForbidden();
+        $httpResponse->assertForbidden();
     }
 
     #[Test]
@@ -106,10 +106,10 @@ final class PartyPagesTest extends TestCase
             route($index),
         );
         $httpResponse->assertOk();
-        $httpResponse2 = $this->get(
+        $httpResponse = $this->get(
             route($create),
         );
-        $httpResponse2->assertOk();
+        $httpResponse->assertOk();
     }
 
     /**

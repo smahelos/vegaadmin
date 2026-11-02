@@ -33,13 +33,14 @@ final class CacheInvalidationFeatureTest extends TestCase
     #[Test]
     public function cache_service_can_invalidate_tags(): void
     {
-        cache()->put(
+        $cache = cache();
+        $cache->put(
             'test_key',
             'test_value',
             60,
         );
         $this->assertTrue(
-            cache()->has('test_key'),
+            $cache->has('test_key'),
         );
         $this->cacheService->invalidateTags(['test_tag']);
         $this->assertTrue(true);
@@ -212,10 +213,10 @@ final class CacheInvalidationFeatureTest extends TestCase
         $this->dashboardService->getUserStatistics($uid);
         $this->dashboardService->getCustomersWithInvoiceTotals($uid);
 
-        Cache::tags(['analytics.user.' . $user->id])->flush();
+        $taggedCache = Cache::tags(['analytics.user.' . $user->id]);
+        $taggedCache->flush();
 
-        $invoiceFactory2 = Invoice::factory();
-        $invoiceFactory2->create(
+        $invoiceFactory->create(
             [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,

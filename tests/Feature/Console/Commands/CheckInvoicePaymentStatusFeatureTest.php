@@ -12,6 +12,7 @@ use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\Status;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -35,19 +36,24 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     #[DataProvider('dueDates')]
     public function sends_both_roles_from_the_snapshot_without_a_contact(int $days, InvoiceReminderType $type): void
     {
+        $now = CarbonImmutable::now();
+        $date = $now->setDate(
+            2026,
+            10,
+            29,
+        );
         $this->travelTo(
-            now()->setDate(
-                2026,
-                10,
-                29,
-            )->setTime(17, 45),
+            $date->setTime(17, 45),
         );
         $notifier = $this->captureReminders();
         $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
+        $date = $now->startOfDay();
+        $date = $date->subDays(10);
         $invoiceFactory->create(
             [
                 'invoice_vs' => '20260001',
-                'issue_date' => now()->startOfDay()->subDays(10)->addDays($days),
+                'issue_date' => $date->addDays($days),
                 'due_in' => 10,
                 'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->sole()->id,
                 'contact_id' => null,
@@ -68,8 +74,9 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         foreach ($notifier->sent as [$sentType, $payload, $recipient]) {
             $this->assertSame($type, $sentType);
             $this->assertSame('20260001', $payload->invoiceNumber);
+            $date = $now->addDays($days);
             $this->assertSame(
-                now()->addDays($days)->toDateString(),
+                $date->toDateString(),
                 $payload->dueDate->format('Y-m-d'),
             );
             $supplier = $payload->recipientType === 'supplier';
@@ -199,9 +206,11 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     {
         $invoiceFactory = Invoice::factory();
 
+        $now = CarbonImmutable::now();
+
         return $invoiceFactory->create(
             $overrides + [
-                'issue_date' => now()->subDays(10),
+                'issue_date' => $now->subDays(10),
                 'due_in' => 10,
                 'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->sole()->id,
                 'supplier_email' => 'supplier@example.test',

@@ -46,8 +46,8 @@ final class BusinessCrudControllerTest extends TestCase
 
         $httpResponse = $this->get('/admin/business');
         $httpResponse->assertForbidden();
-        $httpResponse2 = $this->get('/admin/business/create');
-        $httpResponse2->assertForbidden();
+        $httpResponse = $this->get('/admin/business/create');
+        $httpResponse->assertForbidden();
     }
 
     #[Test]
@@ -179,10 +179,10 @@ final class BusinessCrudControllerTest extends TestCase
         $this->assertNotNull($business->fresh()?->archived_at);
         $this->assertNull($owner->fresh()?->default_business_id);
 
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             route('admin.businesses.restore', ['id' => $business->id]),
         );
-        $httpResponse2->assertRedirect();
+        $httpResponse->assertRedirect();
         $this->assertNull($business->fresh()?->archived_at);
         $this->assertSame($business->id, $owner->fresh()?->default_business_id);
     }
@@ -193,8 +193,7 @@ final class BusinessCrudControllerTest extends TestCase
         $owner = $this->frontendUser();
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $owner->id]);
-        $businessFactory2 = Business::factory();
-        $replacement = $businessFactory2->create(['user_id' => $owner->id]);
+        $replacement = $businessFactory->create(['user_id' => $owner->id]);
         $owner->forceFill(['default_business_id' => $business->id])->save();
         $this->actingAs(
             $this->backendUser('can_archive_business', 'can_view_business'),
@@ -204,14 +203,14 @@ final class BusinessCrudControllerTest extends TestCase
         $httpResponse = $httpResponse->assertOk();
         $httpResponse = $httpResponse->assertSee('replacement_business_id');
         $httpResponse->assertSee($replacement->name);
-        $httpResponse2 = $this->post(
+        $httpResponse = $this->post(
             route('admin.businesses.archive', ['id' => $business->id]),
             [
                 'replacement_business_id' => $replacement->id,
             ],
         );
-        $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
-        $httpResponse2->assertRedirect();
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
         $this->assertNotNull($business->fresh()->archived_at);
         $this->assertSame($replacement->id, $owner->fresh()->default_business_id);
     }
@@ -224,8 +223,7 @@ final class BusinessCrudControllerTest extends TestCase
         $business = $businessFactory->create(['user_id' => $owner->id]);
         $owner->forceFill(['default_business_id' => $business->id])->save();
         $archived = Business::factory()->archived()->create(['user_id' => $owner->id]);
-        $businessFactory2 = Business::factory();
-        $foreign = $businessFactory2->create();
+        $foreign = $businessFactory->create();
         $this->actingAs($this->admin, 'backpack');
         foreach (
             [

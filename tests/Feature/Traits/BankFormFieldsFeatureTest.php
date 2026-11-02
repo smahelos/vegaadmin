@@ -36,26 +36,27 @@ class BankFormFieldsFeatureTest extends TestCase
         $this->assertCount(6, $fields);
 
         // Check name field
-        $nameField = collect($fields)->firstWhere('name', 'name');
+        $fieldList = collect($fields);
+        $nameField = $fieldList->firstWhere('name', 'name');
         $this->assertNotNull($nameField);
         $this->assertEquals('text', $nameField['type']);
         $this->assertTrue($nameField['required']);
         $this->assertArrayHasKey('label', $nameField);
 
         // Check code field
-        $codeField = collect($fields)->firstWhere('name', 'code');
+        $codeField = $fieldList->firstWhere('name', 'code');
         $this->assertNotNull($codeField);
         $this->assertEquals('text', $codeField['type']);
         $this->assertTrue($codeField['required']);
 
         // Check swift field
-        $swiftField = collect($fields)->firstWhere('name', 'swift');
+        $swiftField = $fieldList->firstWhere('name', 'swift');
         $this->assertNotNull($swiftField);
         $this->assertEquals('text', $swiftField['type']);
         $this->assertFalse($swiftField['required']);
 
         // Check country field
-        $countryField = collect($fields)->firstWhere('name', 'country');
+        $countryField = $fieldList->firstWhere('name', 'country');
         $this->assertNotNull($countryField);
         $this->assertEquals('select_from_array', $countryField['type']);
         $this->assertTrue($countryField['required']);
@@ -64,13 +65,13 @@ class BankFormFieldsFeatureTest extends TestCase
         $this->assertArrayHasKey('options', $countryField);
 
         // Check active field
-        $activeField = collect($fields)->firstWhere('name', 'active');
+        $activeField = $fieldList->firstWhere('name', 'active');
         $this->assertNotNull($activeField);
         $this->assertEquals('boolean', $activeField['type']);
         $this->assertTrue($activeField['default']);
 
         // Check description field
-        $descriptionField = collect($fields)->firstWhere('name', 'description');
+        $descriptionField = $fieldList->firstWhere('name', 'description');
         $this->assertNotNull($descriptionField);
         $this->assertEquals('textarea', $descriptionField['type']);
         $this->assertFalse($descriptionField['required']);
@@ -84,7 +85,8 @@ class BankFormFieldsFeatureTest extends TestCase
 
         $fields = $this->traitInstance->callGetBankFields();
 
-        $countryField = collect($fields)->firstWhere('name', 'country');
+        $collection = collect($fields);
+        $countryField = $collection->firstWhere('name', 'country');
         $countryOptionsPresenter = app(CountryOptionsPresenter::class);
         $this->assertSame(
             $countryOptionsPresenter->options('cs'),
@@ -106,7 +108,9 @@ class BankFormFieldsFeatureTest extends TestCase
     public function get_bank_fields_field_names_are_correct(): void
     {
         $fields = $this->traitInstance->callGetBankFields();
-        $fieldNames = collect($fields)->pluck('name')->toArray();
+        $collection = collect($fields);
+        $values = $collection->pluck('name');
+        $fieldNames = $values->toArray();
 
         $expectedFields = [
             'name',
@@ -125,8 +129,13 @@ class BankFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->traitInstance->callGetBankFields();
 
-        $requiredFields = collect($fields)->where('required', true)->pluck('name')->toArray();
-        $optionalFields = collect($fields)->where('required', false)->pluck('name')->toArray();
+        $fieldList = collect($fields);
+        $matches = $fieldList->where('required', true);
+        $values = $matches->pluck('name');
+        $requiredFields = $values->toArray();
+        $matches = $fieldList->where('required', false);
+        $values = $matches->pluck('name');
+        $optionalFields = $values->toArray();
 
         $this->assertContains('name', $requiredFields);
         $this->assertContains('code', $requiredFields);
@@ -141,7 +150,9 @@ class BankFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->traitInstance->callGetBankFields();
 
-        $fieldTypes = collect($fields)->pluck('type', 'name')->toArray();
+        $collection = collect($fields);
+        $values = $collection->pluck('type', 'name');
+        $fieldTypes = $values->toArray();
 
         $this->assertEquals('text', $fieldTypes['name']);
         $this->assertEquals('text', $fieldTypes['code']);
@@ -156,10 +167,11 @@ class BankFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->traitInstance->callGetBankFields();
 
-        $countryField = collect($fields)->firstWhere('name', 'country');
+        $fieldList = collect($fields);
+        $countryField = $fieldList->firstWhere('name', 'country');
         $this->assertEquals('CZ', $countryField['default']);
 
-        $activeField = collect($fields)->firstWhere('name', 'active');
+        $activeField = $fieldList->firstWhere('name', 'active');
         $this->assertTrue($activeField['default']);
     }
 }

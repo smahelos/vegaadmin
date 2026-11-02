@@ -223,14 +223,11 @@ final class ContactFormTest extends TestCase
         $second = $contact->fresh()->logo;
         $this->assertNotNull($second);
         $this->assertNotSame($first, $second);
-        $disk2 = Storage::disk('public');
-        $disk2->assertMissing($first);
-        $disk3 = Storage::disk('public');
-        $disk3->assertExists($second);
+        $disk->assertMissing($first);
+        $disk->assertExists($second);
         Livewire::actingAs($this->user)->test(ContactForm::class, ['contactId' => $contact->id])
             ->set('removeLogo', true)->call('save')->assertHasNoErrors();
         $this->assertNull($contact->fresh()->logo);
-        $disk4 = Storage::disk('public');
-        $disk4->assertMissing($second);
+        $disk->assertMissing($second);
     }
 }

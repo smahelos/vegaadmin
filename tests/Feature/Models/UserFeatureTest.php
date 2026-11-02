@@ -94,8 +94,7 @@ final class UserFeatureTest extends TestCase
             ],
         );
 
-        $contactFactory2 = Contact::factory();
-        $contact2 = $contactFactory2->create(
+        $contact2 = $contactFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -138,8 +137,7 @@ final class UserFeatureTest extends TestCase
             ],
         );
 
-        $businessFactory2 = Business::factory();
-        $business2 = $businessFactory2->create(
+        $business2 = $businessFactory->create(
             [
                 'user_id' => $this->user->id,
                 'name' => $this->faker->company,
@@ -289,8 +287,7 @@ final class UserFeatureTest extends TestCase
     {
         $invoiceFactory = Invoice::factory();
         $own = $invoiceFactory->create(['user_id' => $this->user->id, 'contact_id' => null]);
-        $invoiceFactory2 = Invoice::factory();
-        $invoiceFactory2->create();
+        $invoiceFactory->create();
         $this->assertSame(
             [$own->id],
             $this->user->invoices()->pluck('id')->all(),

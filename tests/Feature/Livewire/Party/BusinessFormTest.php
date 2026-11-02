@@ -214,11 +214,11 @@ final class BusinessFormTest extends TestCase
         );
 
         $form->call('confirmDuplicates')->assertRedirect();
-        $businessQuery2 = Business::query();
-        $businessQuery2->where('user_id', $this->user->id);
+        $businessQuery = Business::query();
+        $businessQuery->where('user_id', $this->user->id);
         $this->assertSame(
             2,
-            $businessQuery2->count(),
+            $businessQuery->count(),
         );
     }
 
@@ -319,8 +319,7 @@ final class BusinessFormTest extends TestCase
             ->assertHasNoErrors();
         $second = $business->fresh()?->logo;
         $this->assertNotSame($first, $second);
-        $disk2 = Storage::disk('public');
-        $disk2->assertMissing($first);
+        $disk->assertMissing($first);
     }
 
     #[Test]

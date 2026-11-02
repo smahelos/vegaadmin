@@ -52,7 +52,8 @@ class DddGuardRootTraitsRuleTest extends TestCase
 
         // Temporarily override config to use our process-specific path
         $originalConfig = config('ddd_guard.forbidden_paths');
-        $modifiedConfig = collect($originalConfig)->map(
+        $collection = collect($originalConfig);
+        $mapped = $collection->map(
             function ($path) {
                 if (isset($path['path']) && $path['path'] === base_path('app/Traits')) {
                     $path['path'] = $this->traitsPath;
@@ -60,7 +61,8 @@ class DddGuardRootTraitsRuleTest extends TestCase
 
                 return $path;
             },
-        )->toArray();
+        );
+        $modifiedConfig = $mapped->toArray();
 
         config(['ddd_guard.forbidden_paths' => $modifiedConfig]);
 

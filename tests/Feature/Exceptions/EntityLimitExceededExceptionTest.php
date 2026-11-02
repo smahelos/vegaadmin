@@ -15,7 +15,8 @@ final class EntityLimitExceededExceptionTest extends TestCase
     public function json_requests_receive_translated_payload(): void
     {
         // Arrange: test route that throws the exception
-        Route::middleware('web')->get(
+        $routeRegistrar = Route::middleware('web');
+        $routeRegistrar->get(
             '/test/json-limit',
             function (): void {
                 throw new EntityLimitExceededException(
@@ -60,14 +61,16 @@ final class EntityLimitExceededExceptionTest extends TestCase
     public function invoice_routes_redirect_back_with_flash_message(): void
     {
         // Arrange: named route under frontend.invoice*
-        Route::middleware('web')->post(
+        $routeRegistrar = Route::middleware('web');
+        $route = $routeRegistrar->post(
             '/test/invoice-limit',
             function (): void {
                 throw new EntityLimitExceededException(
                     limitData: ['entity' => 'invoice', 'limit' => 5],
                 );
             },
-        )->name('frontend.invoice.testLimit');
+        );
+        $route->name('frontend.invoice.testLimit');
 
         // Act
         $httpClient = $this->from('/previous');
@@ -85,14 +88,16 @@ final class EntityLimitExceededExceptionTest extends TestCase
     public function business_routes_redirect_back_with_flash_message(): void
     {
         // Arrange: named route under frontend.business*
-        Route::middleware('web')->post(
+        $routeRegistrar = Route::middleware('web');
+        $route = $routeRegistrar->post(
             '/test/business-limit',
             function (): void {
                 throw new EntityLimitExceededException(
                     limitData: ['entity' => 'business', 'limit' => 2],
                 );
             },
-        )->name('frontend.business.testLimit');
+        );
+        $route->name('frontend.business.testLimit');
 
         // Act
         $httpClient = $this->from('/business-prev');

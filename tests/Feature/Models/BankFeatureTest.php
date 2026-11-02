@@ -58,8 +58,7 @@ final class BankFeatureTest extends TestCase
         $bank1 = $bankFactory->create(['code' => '1234']);
 
         $this->expectException(QueryException::class);
-        $bankFactory2 = Bank::factory();
-        $bankFactory2->create(['code' => '1234']);
+        $bankFactory->create(['code' => '1234']);
     }
 
     #[Test]

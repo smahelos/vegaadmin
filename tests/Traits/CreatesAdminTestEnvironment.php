@@ -51,9 +51,9 @@ trait CreatesAdminTestEnvironment
         $this->regularUser->assignRole($backendUserRole);
 
         // Get backpack.access permission if it exists
-        $permissionQuery2 = Permission::where('name', 'backpack.access');
-        $permissionQuery2->where('guard_name', 'backpack');
-        $backpackAccessPermission = $permissionQuery2->first();
+        $permissionQuery = Permission::where('name', 'backpack.access');
+        $permissionQuery->where('guard_name', 'backpack');
+        $backpackAccessPermission = $permissionQuery->first();
         if ($backpackAccessPermission) {
             $this->regularUser->givePermissionTo($backpackAccessPermission);
         }
@@ -65,6 +65,7 @@ trait CreatesAdminTestEnvironment
      */
     protected function revokeUnlimitedAccess(string $entityType): void
     {
-        Role::findByName('admin', 'backpack')->revokePermissionTo("can_create_{$entityType}_unlimited");
+        $role = Role::findByName('admin', 'backpack');
+        $role->revokePermissionTo("can_create_{$entityType}_unlimited");
     }
 }

@@ -147,8 +147,7 @@ final class BankAccountApplicationServiceTest extends TestCase
     {
         $businessFactory = Business::factory();
         $business = $businessFactory->create();
-        $businessFactory2 = Business::factory();
-        $sibling = $businessFactory2->create(['user_id' => $business->user_id]);
+        $sibling = $businessFactory->create(['user_id' => $business->user_id]);
         $owner = AccountOwner::business(
             BusinessId::fromInt($business->id),
         );

@@ -30,15 +30,13 @@ class ProductPolicyTest extends TestCase
             $this->policy->viewAny($admin),
         );
 
-        $userFactory2 = User::factory();
-        $frontend = $userFactory2->create();
+        $frontend = $userFactory->create();
         $this->makeRole($frontend, 'frontend_user');
         $this->assertTrue(
             $this->policy->viewAny($frontend),
         );
 
-        $userFactory3 = User::factory();
-        $permUser = $userFactory3->create();
+        $permUser = $userFactory->create();
         Permission::firstOrCreate(
             ['name' => 'frontend.can_create_edit_product', 'guard_name' => 'backpack'],
         );
@@ -54,10 +52,8 @@ class ProductPolicyTest extends TestCase
         $userFactory = User::factory();
         $admin = $userFactory->create();
         $this->makeRole($admin, 'admin');
-        $userFactory2 = User::factory();
-        $owner = $userFactory2->create();
-        $userFactory3 = User::factory();
-        $other = $userFactory3->create();
+        $owner = $userFactory->create();
+        $other = $userFactory->create();
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $owner->id]);
         $this->assertTrue(
@@ -77,10 +73,8 @@ class ProductPolicyTest extends TestCase
         $userFactory = User::factory();
         $admin = $userFactory->create();
         $this->makeRole($admin, 'admin');
-        $userFactory2 = User::factory();
-        $owner = $userFactory2->create();
-        $userFactory3 = User::factory();
-        $other = $userFactory3->create();
+        $owner = $userFactory->create();
+        $other = $userFactory->create();
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $owner->id]);
         $this->assertTrue(
@@ -100,11 +94,9 @@ class ProductPolicyTest extends TestCase
         $userFactory = User::factory();
         $admin = $userFactory->create();
         $this->makeRole($admin, 'admin');
-        $userFactory2 = User::factory();
-        $frontend = $userFactory2->create();
+        $frontend = $userFactory->create();
         $this->makeRole($frontend, 'frontend_user');
-        $userFactory3 = User::factory();
-        $owner = $userFactory3->create();
+        $owner = $userFactory->create();
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $owner->id]);
         $this->assertTrue(
@@ -113,8 +105,7 @@ class ProductPolicyTest extends TestCase
         $this->assertFalse(
             $this->policy->delete($frontend, $product),
         ); // not owner
-        $productFactory2 = Product::factory();
-        $ownedProduct = $productFactory2->create(['user_id' => $frontend->id]);
+        $ownedProduct = $productFactory->create(['user_id' => $frontend->id]);
         $this->assertTrue(
             $this->policy->delete($frontend, $ownedProduct),
         );

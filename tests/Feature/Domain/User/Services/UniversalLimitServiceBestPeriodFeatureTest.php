@@ -60,8 +60,7 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
                 'is_active' => true,
             ],
         );
-        $entityLimitFactory2 = EntityLimit::factory();
-        $entityLimitFactory2->create(
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'frontend.can_create_edit_invoice_plus',
                 'entity_type' => 'invoice',
@@ -71,8 +70,7 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
                 'is_active' => true,
             ],
         );
-        $entityLimitFactory3 = EntityLimit::factory();
-        $entityLimitFactory3->create(
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'frontend.can_create_edit_invoice_pro',
                 'entity_type' => 'invoice',
@@ -82,8 +80,7 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
                 'is_active' => true,
             ],
         );
-        $entityLimitFactory4 = EntityLimit::factory();
-        $entityLimitFactory4->create(
+        $entityLimitFactory->create(
             [
                 'permission_name' => 'frontend.can_create_edit_invoice_ultra',
                 'entity_type' => 'invoice',

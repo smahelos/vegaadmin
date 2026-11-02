@@ -60,8 +60,9 @@ final class ProductApplicationServiceMoneyFeatureTest extends TestCase
             $user->id,
         );
 
+        $money = Money::fromString('20.50', 'EUR');
         $this->assertTrue(
-            Money::fromString('20.50', 'EUR')->equals($updated->price),
+            $money->equals($updated->price),
         );
         $this->assertSame('EUR', $updated->price?->getCurrency());
     }

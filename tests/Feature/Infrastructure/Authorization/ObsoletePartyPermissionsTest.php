@@ -26,7 +26,8 @@ final class ObsoletePartyPermissionsTest extends TestCase
         $custom = Permission::create(
             ['name' => 'custom_party_report', 'guard_name' => 'backpack'],
         );
-        Role::findByName('backend_user', 'backpack')->givePermissionTo($custom);
+        $role = Role::findByName('backend_user', 'backpack');
+        $role->givePermissionTo($custom);
 
         $migration->up();
         $migration->up();
@@ -34,14 +35,17 @@ final class ObsoletePartyPermissionsTest extends TestCase
         $this->assertDatabaseMissing('permissions', ['name' => 'can_view_client', 'guard_name' => 'backpack']);
         $this->assertDatabaseMissing('permissions', ['name' => 'frontend.api.suppliers', 'guard_name' => 'web']);
         $this->assertSame([], $owner->fresh()->permissions->all());
+        $role = Role::findByName('backend_user', 'backpack');
         $this->assertTrue(
-            Role::findByName('backend_user', 'backpack')->hasPermissionTo($custom),
+            $role->hasPermissionTo($custom),
         );
+        $role = Role::findByName('admin', 'backpack');
         $this->assertTrue(
-            Role::findByName('admin', 'backpack')->hasPermissionTo('can_view_contact', 'backpack'),
+            $role->hasPermissionTo('can_view_contact', 'backpack'),
         );
+        $role = Role::findByName('frontend_user', 'web');
         $this->assertTrue(
-            Role::findByName('frontend_user', 'web')->hasPermissionTo('frontend.can_create_business', 'web'),
+            $role->hasPermissionTo('frontend.can_create_business', 'web'),
         );
     }
 
@@ -52,14 +56,17 @@ final class ObsoletePartyPermissionsTest extends TestCase
         $migration->down();
         $migration->down();
 
+        $role = Role::findByName('admin', 'backpack');
         $this->assertTrue(
-            Role::findByName('admin', 'backpack')->hasPermissionTo('can_view_client', 'backpack'),
+            $role->hasPermissionTo('can_view_client', 'backpack'),
         );
+        $role = Role::findByName('frontend_user', 'web');
         $this->assertTrue(
-            Role::findByName('frontend_user', 'web')->hasPermissionTo('frontend.api.clients', 'web'),
+            $role->hasPermissionTo('frontend.api.clients', 'web'),
         );
+        $role = Role::findByName('frontend_user_plus', 'web');
         $this->assertTrue(
-            Role::findByName('frontend_user_plus', 'web')->hasPermissionTo('frontend.can_delete_supplier', 'web'),
+            $role->hasPermissionTo('frontend.can_delete_supplier', 'web'),
         );
         $migration->up();
         $this->assertDatabaseMissing('permissions', ['name' => 'frontend.api.clients', 'guard_name' => 'web']);
