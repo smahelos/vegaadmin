@@ -181,7 +181,9 @@ class ProductListSelectFeatureTest extends TestCase
         );
 
         // Test that pagination was reset by checking the rendered view
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
     }
 
@@ -215,7 +217,9 @@ class ProductListSelectFeatureTest extends TestCase
         );
 
         // Verify products are displayed
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
     }
 
@@ -237,7 +241,9 @@ class ProductListSelectFeatureTest extends TestCase
         );
 
         // Verify products are displayed with correct pagination
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
 
         // Should show 5 products per page
@@ -253,13 +259,13 @@ class ProductListSelectFeatureTest extends TestCase
 
         $component->call('sortBy', 'name');
 
-        $component->assertSet('orderBy', 'name')
-            ->assertSet('orderAsc', false);
+        $component->assertSet('orderBy', 'name');
+        $component->assertSet('orderAsc', false);
 
         $component->call('sortBy', 'name');
 
-        $component->assertSet('orderBy', 'name')
-            ->assertSet('orderAsc', true);
+        $component->assertSet('orderBy', 'name');
+        $component->assertSet('orderAsc', true);
     }
 
     #[Test]
@@ -271,8 +277,8 @@ class ProductListSelectFeatureTest extends TestCase
 
         $component->call('sortBy', 'price');
 
-        $component->assertSet('orderBy', 'price')
-            ->assertSet('orderAsc', true);
+        $component->assertSet('orderBy', 'price');
+        $component->assertSet('orderAsc', true);
     }
 
     #[Test]
@@ -295,7 +301,8 @@ class ProductListSelectFeatureTest extends TestCase
         $component->set('orderAsc', true);
 
         $products = $component->viewData('products');
-        $productIds = $products->pluck('id')->toArray();
+        $productValues = $products->pluck('id');
+        $productIds = $productValues->toArray();
 
         $this->assertEquals($productA->id, $productIds[0]);
         $this->assertEquals($productB->id, $productIds[1]);
@@ -571,7 +578,9 @@ class ProductListSelectFeatureTest extends TestCase
         $component = Livewire::test(ProductListSelect::class);
 
         // Verify products are displayed with pagination
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
 
         // Should show 10 products on first page
@@ -582,7 +591,9 @@ class ProductListSelectFeatureTest extends TestCase
         $component->call('gotoPage', 2);
 
         // Re-render to get updated products
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertCount(6, $products->items()); // Remaining 6 products on page 2
     }
 

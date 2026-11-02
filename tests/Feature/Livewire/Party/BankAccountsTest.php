@@ -108,7 +108,8 @@ final class BankAccountsTest extends TestCase
         $accounts->assertSet('archivingId', $default->id);
         $this->assertNull($default->fresh()?->archived_at);
 
-        $accounts->set('newDefault', (string) $other->id)->call('archive', $default->id);
+        $accounts->set('newDefault', (string) $other->id);
+        $accounts->call('archive', $default->id);
         $this->assertNotNull($default->fresh()?->archived_at);
         $this->assertSame($other->id, $business->fresh()?->default_bank_account_id);
     }

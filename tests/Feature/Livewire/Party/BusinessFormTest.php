@@ -213,7 +213,8 @@ final class BusinessFormTest extends TestCase
             $businessQuery->count(),
         );
 
-        $form->call('confirmDuplicates')->assertRedirect();
+        $form->call('confirmDuplicates');
+        $form->assertRedirect();
         $businessQuery = Business::query();
         $businessQuery->where('user_id', $this->user->id);
         $this->assertSame(

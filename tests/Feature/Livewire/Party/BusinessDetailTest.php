@@ -39,9 +39,9 @@ final class BusinessDetailTest extends TestCase
         $detail->assertSet('choosingNewDefault', true);
         $this->assertNull($default->fresh()?->archived_at);
 
-        $detail->set('newDefault', (string) $other->id)
-            ->call('archive')
-            ->assertSet('choosingNewDefault', false);
+        $detail->set('newDefault', (string) $other->id);
+        $detail->call('archive');
+        $detail->assertSet('choosingNewDefault', false);
         $this->assertNotNull($default->fresh()?->archived_at);
         $this->assertSame($other->id, $this->user->fresh()?->default_business_id);
     }

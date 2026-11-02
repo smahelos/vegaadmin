@@ -41,9 +41,11 @@ final class InvoiceListFeatureTest extends TestCase
         $component->assertSee($owned->invoice_vs);
         $component->assertDontSee($foreign->invoice_vs);
         $component->assertDontSee($foreignContact->name);
+        $invoices = $component->viewData('invoices');
+        $invoiceIds = $invoices->map(fn ($row): int => $row->id->value);
         $this->assertSame(
             [$owned->id],
-            $component->viewData('invoices')->map(fn ($row): int => $row->id->value)->all(),
+            $invoiceIds->all(),
         );
         $this->assertNotContains(
             $foreign->business_id,
@@ -107,13 +109,14 @@ final class InvoiceListFeatureTest extends TestCase
         $component->assertDontSee('ONE-OFF');
         $component->assertDontSee('UNPAID');
         $component->assertDontSee('OTHER-NAME');
+        $invoices = $component->viewData('invoices');
         $this->assertSame(
             1,
-            $component->viewData('invoices')->total(),
+            $invoices->total(),
         );
         $this->assertSame(
             $match->id,
-            $component->viewData('invoices')->first()->id->value,
+            $invoices->first()->id->value,
         );
     }
 
@@ -260,13 +263,21 @@ final class InvoiceListFeatureTest extends TestCase
                 'status' => 'paid',
             ] as $key => $value
         ) {
-            $component->call('gotoPage', 2)->set($key, $value)->assertSet('paginators.page', 1);
+            $component->call('gotoPage', 2);
+            $component->set($key, $value);
+            $component->assertSet('paginators.page', 1);
         }
-        $component->call('gotoPage', 2)->call('resetFilters')->assertSet('paginators.page', 1)
-            ->assertSet('businessId', '')->assertSet('contactId', '')->assertSet('search', '')->assertSet('status', '');
+        $component->call('gotoPage', 2);
+        $component->call('resetFilters');
+        $component->assertSet('paginators.page', 1);
+        $component->assertSet('businessId', '');
+        $component->assertSet('contactId', '');
+        $component->assertSet('search', '');
+        $component->assertSet('status', '');
+        $invoices = $component->viewData('invoices');
         $this->assertSame(
             12,
-            $component->viewData('invoices')->total(),
+            $invoices->total(),
         );
     }
 

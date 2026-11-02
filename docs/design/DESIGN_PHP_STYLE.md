@@ -62,6 +62,8 @@ Test helpers with a fresh return, such as `now()`, `collect()` or `Route::post()
 
 For chains rooted at the `Livewire` facade in tests, manager calls such as `actingAs()` and `withQueryParams()` and the `Testable` calls return their receiver, verified against the installed Livewire, so no return value is retained. Each manager call becomes its own facade statement, `test()` assigns the `Testable`, and every later call uses that variable. An assignment keeps its target name, and a second `Livewire::test()` is a new component that follows the second-initialisation rule below. A call whose return is not verified, a return value or argument, a link argument reading the target and a target captured by reference stay as they are.
 
+A chain on a variable holding a `Testable` splits the same way for calls that return it. `instance()` and `viewData()` return something else, so that value, the rendered view and a mapped or plucked result are retained under names from context. Such a read may leave an assertion's argument only when the earlier arguments have no side effect.
+
 A receiver with the same origin is initialised once per function scope and reused; a closure is its own scope, an arrow function shares its parent's. A merge happens only under the condition verified for that receiver against the installed framework:
 
 | Receiver | Merged when | Reason |
@@ -75,6 +77,7 @@ A receiver with the same origin is initialised once per function scope and reuse
 | `app(Foo::class)` | a verified singleton, no binding change in between | another abstract may build a new instance |
 | `UploadedFile::fake()` | always | `FileFactory` has no state; the files stay separate, and a fake file keeps its own variable because its temporary file is released with its last reference |
 | `$validator->errors()` | `$validator` not reassigned or rerun | `passes()` replaces the bag |
+| `$component->viewData('x')`, `$component->instance()` | no `set()` or `call()` in between | each of them renders again and replaces the view data and the component; an assertion does not |
 | `now()` | no `travel`, `setTestNow` or `freezeTime` in between | see below |
 
 `$now…` variables hold `CarbonImmutable::now()`, which reads the same clock and timezone as `now()` and follows `setTestNow`. Sharing a mutable `now()` would be a bug: a mutable Carbon call returns its receiver, so in `$a = $now->startOfDay(); $b = $a->subDays(10);` both variables are one object and a later read of `$a` sees `$b`'s value. `now()` stays in place where a variable is read after a later step changed that object. This is the one conversion with a small behaviour change: one clock read and a different type. A held value does not follow the clock, which is why travel is a barrier.
